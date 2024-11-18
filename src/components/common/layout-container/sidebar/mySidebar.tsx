@@ -30,7 +30,7 @@ export const MySidebar = () => {
                     >
                         <img src="/images/ssdc_logo.png" width={48} height={48}></img>
                         <SidebarGroup
-                            className={`text-title font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}
+                            className={`text-[18px] font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}
                         >
                             Shri Saidas Classes
                         </SidebarGroup>
