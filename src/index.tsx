@@ -8,6 +8,7 @@ import RootPendingComponent from "./components/core/default-pending";
 import "./index.css";
 import { ThemeProvider } from "./providers/theme-provider";
 import { routeTree } from "./routeTree.gen";
+import "./i18n";
 
 const queryClient = new QueryClient();
 

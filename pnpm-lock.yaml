@@ -7,9 +7,15 @@ settings:
 importers:
     .:
         dependencies:
+            "@hookform/resolvers":
+                specifier: ^3.9.1
+                version: 3.9.1(react-hook-form@7.53.1(react@18.3.1))
             "@radix-ui/react-avatar":
                 specifier: ^1.1.1
                 version: 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-dialog":
+                specifier: ^1.1.2
+                version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
             "@radix-ui/react-dropdown-menu":
                 specifier: ^2.1.2
                 version: 2.1.2(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -40,9 +46,18 @@ importers:
             dayjs:
                 specifier: ^1.11.13
                 version: 1.11.13
+            framer-motion:
+                specifier: ^11.11.11
+                version: 11.11.11(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            i18next:
+                specifier: ^23.16.4
+                version: 23.16.4
             lodash:
                 specifier: ^4.17.21
                 version: 4.17.21
+            pnpm:
+                specifier: ^9.12.3
+                version: 9.12.3
             react:
                 specifier: ^18.3.1
                 version: 18.3.1
@@ -52,6 +67,12 @@ importers:
             react-helmet:
                 specifier: ^6.1.0
                 version: 6.1.0(react@18.3.1)
+            react-hook-form:
+                specifier: ^7.53.1
+                version: 7.53.1(react@18.3.1)
+            react-i18next:
+                specifier: ^15.1.0
+                version: 15.1.0(i18next@23.16.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
             react-icons:
                 specifier: ^5.3.0
                 version: 5.3.0(react@18.3.1)
@@ -61,6 +82,9 @@ importers:
             tailwindcss-animate:
                 specifier: ^1.0.7
                 version: 1.0.7(tailwindcss@3.4.10)
+            zod:
+                specifier: ^3.23.8
+                version: 3.23.8
             zustand:
                 specifier: ^4.5.5
                 version: 4.5.5(@types/react@18.3.3)(react@18.3.1)
@@ -607,6 +631,14 @@ packages:
                 integrity: sha512-kym7SodPp8/wloecOpcmSnWJsK7M0E5Wg8UcFA+uO4B9s5d0ywXOEro/8HM9x0rW+TljRzul/14UYz3TleT3ig==,
             }
 
+    "@hookform/resolvers@3.9.1":
+        resolution:
+            {
+                integrity: sha512-ud2HqmGBM0P0IABqoskKWI6PEf6ZDDBZkFqe2Vnl+mTHCEHzr3ISjjZyCwTjC/qpL25JC9aIDkloQejvMeq0ug==,
+            }
+        peerDependencies:
+            react-hook-form: ^7.0.0
+
     "@humanwhocodes/config-array@0.11.14":
         resolution:
             {
@@ -805,6 +837,22 @@ packages:
             react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
         peerDependenciesMeta:
             "@types/react":
+                optional: true
+
+    "@radix-ui/react-dialog@1.1.2":
+        resolution:
+            {
+                integrity: sha512-Yj4dZtqa2o+kG61fzB0H2qUvmwBA2oyQroGLyNtBj1beo1khoQ3q1a2AO8rrQYjd8256CO9+N8L9tvsS+bnIyA==,
+            }
+        peerDependencies:
+            "@types/react": "*"
+            "@types/react-dom": "*"
+            react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+            react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+        peerDependenciesMeta:
+            "@types/react":
+                optional: true
+            "@types/react-dom":
                 optional: true
 
     "@radix-ui/react-direction@1.1.0":
@@ -2893,6 +2941,23 @@ packages:
                 integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==,
             }
 
+    framer-motion@11.11.11:
+        resolution:
+            {
+                integrity: sha512-tuDH23ptJAKUHGydJQII9PhABNJBpB+z0P1bmgKK9QFIssHGlfPd6kxMq00LSKwE27WFsb2z0ovY0bpUyMvfRw==,
+            }
+        peerDependencies:
+            "@emotion/is-prop-valid": "*"
+            react: ^18.0.0
+            react-dom: ^18.0.0
+        peerDependenciesMeta:
+            "@emotion/is-prop-valid":
+                optional: true
+            react:
+                optional: true
+            react-dom:
+                optional: true
+
     fs.realpath@1.0.0:
         resolution:
             {
@@ -3116,6 +3181,12 @@ packages:
             }
         engines: { node: ">= 0.4" }
 
+    html-parse-stringify@3.0.1:
+        resolution:
+            {
+                integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==,
+            }
+
     human-signals@5.0.0:
         resolution:
             {
@@ -3130,6 +3201,12 @@ packages:
             }
         engines: { node: ">=14" }
         hasBin: true
+
+    i18next@23.16.4:
+        resolution:
+            {
+                integrity: sha512-9NIYBVy9cs4wIqzurf7nLXPyf3R78xYbxExVqHLK9od3038rjpyOEzW+XB130kZ1N4PZ9inTtJ471CRJ4Ituyg==,
+            }
 
     iconv-lite@0.6.3:
         resolution:
@@ -4027,6 +4104,14 @@ packages:
                 integrity: sha512-+JrgthZG6m3ckicaOB74TwQ+tBWsFl3qVQg7mN8ulwSOElJ7gBhKzj2VkCPnZ4NlF6kEquYU+RIYNVAvzd54UA==,
             }
 
+    pnpm@9.12.3:
+        resolution:
+            {
+                integrity: sha512-zOD53pxafJW++UQWnMXf6HQav7FFB4wNUIuGgFaEiofIHmJiRstglny9f9KabAYu9z/4QNlrPIbECsks9KgT7g==,
+            }
+        engines: { node: ">=18.12" }
+        hasBin: true
+
     possible-typed-array-names@1.0.0:
         resolution:
             {
@@ -4244,6 +4329,31 @@ packages:
             }
         peerDependencies:
             react: ">=16.3.0"
+
+    react-hook-form@7.53.1:
+        resolution:
+            {
+                integrity: sha512-6aiQeBda4zjcuaugWvim9WsGqisoUk+etmFEsSUMm451/Ic8L/UAb7sRtMj3V+Hdzm6mMjU1VhiSzYUZeBm0Vg==,
+            }
+        engines: { node: ">=18.0.0" }
+        peerDependencies:
+            react: ^16.8.0 || ^17 || ^18 || ^19
+
+    react-i18next@15.1.0:
+        resolution:
+            {
+                integrity: sha512-zj3nJynMnZsy2gPZiOTC7XctCY5eQGqT3tcKMmfJWC9FMvgd+960w/adq61j8iPzpwmsXejqID9qC3Mqu1Xu2Q==,
+            }
+        peerDependencies:
+            i18next: ">= 23.2.3"
+            react: ">= 16.8.0"
+            react-dom: "*"
+            react-native: "*"
+        peerDependenciesMeta:
+            react-dom:
+                optional: true
+            react-native:
+                optional: true
 
     react-icons@5.3.0:
         resolution:
@@ -5075,6 +5185,13 @@ packages:
             jsdom:
                 optional: true
 
+    void-elements@3.1.0:
+        resolution:
+            {
+                integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==,
+            }
+        engines: { node: ">=0.10.0" }
+
     webidl-conversions@7.0.0:
         resolution:
             {
@@ -5485,6 +5602,10 @@ snapshots:
 
     "@floating-ui/utils@0.2.8": {}
 
+    "@hookform/resolvers@3.9.1(react-hook-form@7.53.1(react@18.3.1))":
+        dependencies:
+            react-hook-form: 7.53.1(react@18.3.1)
+
     "@humanwhocodes/config-array@0.11.14":
         dependencies:
             "@humanwhocodes/object-schema": 2.0.3
@@ -5598,6 +5719,28 @@ snapshots:
             react: 18.3.1
         optionalDependencies:
             "@types/react": 18.3.3
+
+    "@radix-ui/react-dialog@1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+        dependencies:
+            "@radix-ui/primitive": 1.1.0
+            "@radix-ui/react-compose-refs": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-context": 1.1.1(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-dismissable-layer": 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-focus-guards": 1.1.1(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-focus-scope": 1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-id": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-portal": 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-presence": 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-primitive": 2.0.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-slot": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-use-controllable-state": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            aria-hidden: 1.2.4
+            react: 18.3.1
+            react-dom: 18.3.1(react@18.3.1)
+            react-remove-scroll: 2.6.0(@types/react@18.3.3)(react@18.3.1)
+        optionalDependencies:
+            "@types/react": 18.3.3
+            "@types/react-dom": 18.3.0
 
     "@radix-ui/react-direction@1.1.0(@types/react@18.3.3)(react@18.3.1)":
         dependencies:
@@ -7087,6 +7230,13 @@ snapshots:
 
     fraction.js@4.3.7: {}
 
+    framer-motion@11.11.11(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+        dependencies:
+            tslib: 2.6.3
+        optionalDependencies:
+            react: 18.3.1
+            react-dom: 18.3.1(react@18.3.1)
+
     fs.realpath@1.0.0: {}
 
     fsevents@2.3.3:
@@ -7216,9 +7366,17 @@ snapshots:
         dependencies:
             function-bind: 1.1.2
 
+    html-parse-stringify@3.0.1:
+        dependencies:
+            void-elements: 3.1.0
+
     human-signals@5.0.0: {}
 
     husky@8.0.3: {}
+
+    i18next@23.16.4:
+        dependencies:
+            "@babel/runtime": 7.25.0
 
     iconv-lite@0.6.3:
         dependencies:
@@ -7689,6 +7847,8 @@ snapshots:
             mlly: 1.7.1
             pathe: 1.1.2
 
+    pnpm@9.12.3: {}
+
     possible-typed-array-names@1.0.0: {}
 
     postcss-import@15.1.0(postcss@8.4.41):
@@ -7781,6 +7941,19 @@ snapshots:
             react: 18.3.1
             react-fast-compare: 3.2.2
             react-side-effect: 2.1.2(react@18.3.1)
+
+    react-hook-form@7.53.1(react@18.3.1):
+        dependencies:
+            react: 18.3.1
+
+    react-i18next@15.1.0(i18next@23.16.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+        dependencies:
+            "@babel/runtime": 7.25.0
+            html-parse-stringify: 3.0.1
+            i18next: 23.16.4
+            react: 18.3.1
+        optionalDependencies:
+            react-dom: 18.3.1(react@18.3.1)
 
     react-icons@5.3.0(react@18.3.1):
         dependencies:
@@ -8356,6 +8529,8 @@ snapshots:
             - sugarss
             - supports-color
             - terser
+
+    void-elements@3.1.0: {}
 
     webidl-conversions@7.0.0: {}
 
