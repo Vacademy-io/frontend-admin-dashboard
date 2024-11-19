@@ -140,3 +140,13 @@
         @apply bg-background text-foreground;
     }
 }
+
+@layer components {
+    .table-shadow-left {
+        box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-shadow-right {
+        box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1);
+    }
+}

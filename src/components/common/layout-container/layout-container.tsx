@@ -13,14 +13,13 @@ export const LayoutContainer = ({
     const { open } = useSidebar();
     return (
         <div className={`flex w-full ${open ? "gap-8" : "gap-16"}`}>
-            <div>
-                {/* <AppSidebar /> */}
+            <div className="flex-none">
                 <MySidebar />
             </div>
 
-            <div className="w-full">
+            <div className="w-full flex-1 overflow-hidden">
                 <Navbar />
-                <div className={cn("m-8", className)}>{children}</div>
+                <div className={cn("m-8 max-w-full", className)}>{children}</div>
             </div>
         </div>
     );

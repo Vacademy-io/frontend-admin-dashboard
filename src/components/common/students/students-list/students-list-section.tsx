@@ -3,21 +3,22 @@ import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { FilterChips } from "@/components/design-system/chips";
 import { Export } from "@phosphor-icons/react";
+import { MyTable } from "@/components/design-system/table";
 
 export const StudentsListSection = () => {
     const [sessionValue, setSessionValue] = useState("Session 2024-2025");
     const [searchInput, setSearchInput] = useState("");
 
     return (
-        <section className="flex flex-col gap-6">
+        <section className="flex max-w-full flex-col gap-6">
             <div className="flex items-center justify-between">
                 <div className="text-h3 font-semibold">Students List</div>
                 <MyButton scale="large" buttonType="primary" layoutVariant="default">
                     Enroll Student
                 </MyButton>
             </div>
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-6">
                     <MyInput inputType="dropdown" input={sessionValue} setInput={setSessionValue} />
                     <MyInput
                         inputType="text"
@@ -33,6 +34,9 @@ export const StudentsListSection = () => {
                     <Export />
                     <div>Export</div>
                 </MyButton>
+            </div>
+            <div className="max-w-full">
+                <MyTable />
             </div>
         </section>
     );

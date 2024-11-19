@@ -76,7 +76,7 @@ export const ActivityStatusData: Record<
     active: {
         icon: CheckCircle,
         color: {
-            bg: "bg-success-100",
+            bg: "bg-success-50",
             icon: "text-success-600",
         },
     },
