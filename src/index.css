@@ -149,4 +149,24 @@
     .table-shadow-right {
         box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1);
     }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 8px; /* for horizontal scrollbar */
+        width: 8px; /* for vertical scrollbar */
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgb(
+            var(--primary-200)
+        ); /* assuming primary-200 is defined in your CSS variables */
+        border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgb(var(--primary-300));
+    }
 }

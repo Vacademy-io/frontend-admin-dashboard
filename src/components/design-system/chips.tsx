@@ -14,7 +14,7 @@ const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
     return (
         <div
             className={cn(
-                "flex h-9 min-w-16 cursor-pointer items-start justify-center gap-2 rounded-lg border border-neutral-300 p-2 text-body font-regular text-neutral-600",
+                "flex h-9 min-w-16 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 px-2 text-body font-regular text-neutral-600",
                 className,
             )}
         >
@@ -56,7 +56,14 @@ const Chips = ({
                 </div>
             )}
             {label && (
-                <div className={disabled ? "text-neutral-300" : "text-neutral-600"}>{label}</div>
+                <div
+                    className={cn(
+                        "flex items-center",
+                        disabled ? "text-neutral-300" : "text-neutral-600",
+                    )}
+                >
+                    {label}
+                </div>
             )}
             {trailingIcon &&
                 React.createElement(trailingIcon, {
@@ -83,8 +90,10 @@ export const StatusChips = ({ status }: StatusChipsProps) => {
 
     return (
         <ChipsWrapper className={cn(statusData.color.bg)}>
-            <StatusIcon className={statusData.color.icon} weight="fill" />
-            <div className="capitalize">{status}</div>
+            <div className="flex items-center gap-2">
+                <StatusIcon className={statusData.color.icon} weight="fill" />
+                <div className="capitalize">{status}</div>
+            </div>
         </ChipsWrapper>
     );
 };
