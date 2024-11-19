@@ -10,33 +10,50 @@
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as DashboardIndexImport } from "./routes/dashboard/index";
+import { Route as rootRoute } from "./routes/__root"
+import { Route as DashboardIndexImport } from "./routes/dashboard/index"
+import { Route as DashboardAssessmentQuestionPapersIndexImport } from "./routes/dashboard/assessment/question-papers/index"
 
 // Create/Update Routes
 
 const DashboardIndexRoute = DashboardIndexImport.update({
-    path: "/dashboard/",
+  path: "/dashboard/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardAssessmentQuestionPapersIndexRoute =
+  DashboardAssessmentQuestionPapersIndexImport.update({
+    path: "/dashboard/assessment/question-papers/",
     getParentRoute: () => rootRoute,
-} as any);
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module "@tanstack/react-router" {
-    interface FileRoutesByPath {
-        "/dashboard/": {
-            id: "/dashboard/";
-            path: "/dashboard";
-            fullPath: "/dashboard";
-            preLoaderRoute: typeof DashboardIndexImport;
-            parentRoute: typeof rootRoute;
-        };
+  interface FileRoutesByPath {
+    "/dashboard/": {
+      id: "/dashboard/"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof DashboardIndexImport
+      parentRoute: typeof rootRoute
     }
+    "/dashboard/assessment/question-papers/": {
+      id: "/dashboard/assessment/question-papers/"
+      path: "/dashboard/assessment/question-papers"
+      fullPath: "/dashboard/assessment/question-papers"
+      preLoaderRoute: typeof DashboardAssessmentQuestionPapersIndexImport
+      parentRoute: typeof rootRoute
+    }
+  }
 }
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({ DashboardIndexRoute });
+export const routeTree = rootRoute.addChildren({
+  DashboardIndexRoute,
+  DashboardAssessmentQuestionPapersIndexRoute,
+})
 
 /* prettier-ignore-end */
 
@@ -46,11 +63,15 @@ export const routeTree = rootRoute.addChildren({ DashboardIndexRoute });
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/dashboard/"
+        "/dashboard/",
+        "/dashboard/assessment/question-papers/"
       ]
     },
     "/dashboard/": {
       "filePath": "dashboard/index.tsx"
+    },
+    "/dashboard/assessment/question-papers/": {
+      "filePath": "dashboard/assessment/question-papers/index.tsx"
     }
   }
 }

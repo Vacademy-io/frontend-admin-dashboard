@@ -1,2 +1,1 @@
-// Add imports like this
-// export { default as NotFoundIllustration } from "./NotFound.svg";
+export { default as EmptyQuestionPapers } from "./empty-question-papers.svg";
