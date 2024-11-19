@@ -5,17 +5,19 @@ import { MyInput } from "@/components/design-system/input";
 import { Link } from "@tanstack/react-router";
 import { loginSchema } from "@/schemas/login";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SplashScreen } from "@/components/common/LoginPages/layout/splash-container";
 import { LoginFormState } from "../types";
 import { loginUser } from "@/components/common/LoginPages/hooks/dummy/login/login-button";
 import { useMutation } from "@tanstack/react-query";
 import { ErrorDialog } from "../ui/error-dialog";
 import { MyButton } from "@/components/design-system/button";
+import { useAnimationStore } from "@/stores/login/animationStore";
 
 export function LoginForm() {
     useSyncLanguage();
     const { t } = useTranslation();
+    const { hasSeenAnimation, setHasSeenAnimation } = useAnimationStore();
 
     const [userEmail, setUserEmail] = useState<LoginFormState["userEmail"]>("");
     const [userPassword, setUserPassword] = useState<LoginFormState["userPassword"]>("");
@@ -25,6 +27,14 @@ export function LoginForm() {
     // State for controlling the error dialog
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [dialogDescription, setDialogDescription] = useState("");
+
+    useEffect(() => {
+        if (!hasSeenAnimation) {
+            setTimeout(() => {
+                setHasSeenAnimation();
+            }, 3000);
+        }
+    }, [hasSeenAnimation, setHasSeenAnimation]);
 
     const mutation = useMutation({
         mutationFn: () => loginUser(userEmail, userPassword),
@@ -81,7 +91,7 @@ export function LoginForm() {
     };
 
     return (
-        <SplashScreen isAnimationEnabled={true}>
+        <SplashScreen isAnimationEnabled={!hasSeenAnimation}>
             <div className="flex w-full flex-col items-center justify-center gap-16">
                 <Heading heading={t("loginHeading")} subHeading={t("loginSubheading")} />
                 <div className="flex w-full flex-col items-center justify-center gap-5 px-16">
