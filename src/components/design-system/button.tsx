@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { MyButtonProps } from "./types";
+import { MyButtonProps } from "./design-system-types";
 
 // Button Variants Configuration
 const myButtonVariants = {
-    base: "font-normal focus:outline-none focus:ring-2 focus:ring-primary-200 disabled:cursor-not-allowed transition-colors text-subtitle font-semibold",
+    base: "font-normal focus:outline-none focus:ring-2 focus:ring-primary-200 disabled:cursor-not-allowed transition-colors text-subtitle font-semibold shadow-none active:outline-none ",
     types: {
         primary:
             "bg-primary-500 text-neutral-50 hover:bg-primary-400 active:bg-[#be5d1d] disabled:bg-[#fad5bd] disabled:text-neutral-50",

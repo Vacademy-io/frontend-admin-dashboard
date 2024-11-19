@@ -3,8 +3,8 @@ import { Input } from "@/components/ui/input";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { cn } from "@/lib/utils";
 import { VscError } from "react-icons/vsc";
-import { FormInputProps } from "./types";
-import { InputErrorProps } from "./types";
+import { FormInputProps } from "./design-system-types";
+import { InputErrorProps } from "./design-system-types";
 
 // Input size variants
 const inputSizeVariants = {
@@ -63,7 +63,7 @@ export const MyInput = ({
                             inputSizeVariants[size],
                             error ? "border-danger-600" : "border-neutral-300",
                             inputType === "password" ? "pr-10" : "",
-                            "shadow-none hover:border-primary-200 focus:border-primary-500 focus-visible:ring-0",
+                            "text-neutral-600 shadow-none hover:border-primary-200 focus:border-primary-500 focus-visible:ring-0",
                             className,
                         )}
                         value={input}

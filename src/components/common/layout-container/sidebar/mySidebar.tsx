@@ -7,7 +7,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
-import { SidebarStateType } from "./types";
+import { SidebarStateType } from "../types";
 import { SidebarItem } from "./sidebar-item";
 import { SidebarItemsData } from "./utils";
 import "./scrollbarStyle.css";

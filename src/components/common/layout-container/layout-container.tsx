@@ -7,7 +7,7 @@ export const LayoutContainer = ({
     children,
     className,
 }: {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     className?: string;
 }) => {
     const { open } = useSidebar();
