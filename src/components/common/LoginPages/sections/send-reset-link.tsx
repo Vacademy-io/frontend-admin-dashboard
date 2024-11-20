@@ -12,8 +12,8 @@ import { forgotPassword } from "@/components/common/LoginPages/hooks/dummy/login
 import { sendResetLink } from "@/components/common/LoginPages/hooks/dummy/login/reset-link-click";
 import { Dispatch, SetStateAction } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ErrorDialog } from "../ui/error-dialog";
 import { MyButton } from "@/components/design-system/button";
+import { toast } from "sonner";
 
 export function SendResetLink({
     setResetLinkClick,
@@ -26,10 +26,6 @@ export function SendResetLink({
     const [userEmail, setUserEmail] = useState<ForgotPasswordState["userEmail"]>("");
     const [emailError, setEmailError] = useState<ForgotPasswordState["emailError"]>(null);
 
-    // State for controlling the error dialog
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [dialogDescription, setDialogDescription] = useState("");
-
     const forgotPasswordMutation = useMutation({
         mutationFn: () => forgotPassword(userEmail),
         onSuccess: async (response) => {
@@ -39,15 +35,21 @@ export function SendResetLink({
                 // Trigger the sendResetLink mutation on successful forgotPassword request
                 sendResetLinkMutation.mutate();
             } else {
-                setDialogDescription("This account doesn't exist.");
-                setIsDialogOpen(true);
+                toast.error("Login Error", {
+                    description: "This account doesn't exist",
+                    className: "error-toast",
+                    duration: 2000,
+                });
                 console.error("Reset Link request failed:", response.message);
                 setUserEmail(""); // Clear email field if request fails
             }
         },
         onError: (error) => {
-            setDialogDescription("This account doesn't exist.");
-            setIsDialogOpen(true);
+            toast.error("Login Error", {
+                description: "This account doesn't exist",
+                className: "error-toast",
+                duration: 2000,
+            });
             console.error("Forgot password request failed:", error);
         },
     });
@@ -122,12 +124,6 @@ export function SendResetLink({
                         </div>
                     </div>
                 </div>
-                {/* Error dialog */}
-                <ErrorDialog
-                    open={isDialogOpen}
-                    description={dialogDescription}
-                    setIsDialogOpen={setIsDialogOpen}
-                />
             </FormContainer>
         </div>
     );

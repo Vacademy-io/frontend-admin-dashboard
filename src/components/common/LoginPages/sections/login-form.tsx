@@ -10,9 +10,9 @@ import { SplashScreen } from "@/components/common/LoginPages/layout/splash-conta
 import { LoginFormState } from "../types";
 import { loginUser } from "@/components/common/LoginPages/hooks/dummy/login/login-button";
 import { useMutation } from "@tanstack/react-query";
-import { ErrorDialog } from "../ui/error-dialog";
 import { MyButton } from "@/components/design-system/button";
 import { useAnimationStore } from "@/stores/login/animationStore";
+import { toast } from "sonner";
 
 export function LoginForm() {
     useSyncLanguage();
@@ -24,15 +24,11 @@ export function LoginForm() {
     const [emailError, setEmailError] = useState<LoginFormState["emailError"]>(null);
     const [passwordError, setPasswordError] = useState<LoginFormState["passwordError"]>(null);
 
-    // State for controlling the error dialog
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [dialogDescription, setDialogDescription] = useState("");
-
     useEffect(() => {
         if (!hasSeenAnimation) {
             setTimeout(() => {
                 setHasSeenAnimation();
-            }, 3000);
+            }, 8000);
         }
     }, [hasSeenAnimation, setHasSeenAnimation]);
 
@@ -43,18 +39,26 @@ export function LoginForm() {
                 // Handle successful login
                 console.log("Logged in:", response);
             } else {
-                // Show dialog on login failure
-                setDialogDescription("Your password is incorrect or this account doesn't exist.");
-                setIsDialogOpen(true);
+                // Show toast on login failure
+                // showErrorToast("Your password is incorrect or this account doesn't exist.");
+                toast.error("Login Error", {
+                    description: "Your password is incorrect or this account doesn't exist.",
+                    className: "error-toast",
+                    duration: 2000,
+                });
                 setUserEmail("");
                 setUserPassword("");
                 console.log("Your password is incorrect or this account doesn't exist.");
             }
         },
         onError: (error: unknown) => {
-            // Show dialog on request error
-            setDialogDescription("Your password is incorrect or this account doesn't exist.");
-            setIsDialogOpen(true);
+            // Show toast on request error
+            // showErrorToast("Your password is incorrect or this account doesn't exist.");
+            toast.error("Login Error", {
+                description: "Your password is incorrect or this account doesn't exist.",
+                className: "error-toast",
+                duration: 3000,
+            });
             console.log("Your password is incorrect or this account doesn't exist.", error);
         },
     });
@@ -130,13 +134,6 @@ export function LoginForm() {
                     </MyButton>
                 </div>
             </div>
-
-            {/* Error dialog */}
-            <ErrorDialog
-                open={isDialogOpen}
-                description={dialogDescription}
-                setIsDialogOpen={setIsDialogOpen}
-            />
         </SplashScreen>
     );
 }

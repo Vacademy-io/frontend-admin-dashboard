@@ -60,9 +60,3 @@ export interface SetPasswordSchemaType {
     password: z.ZodString;
     confirmPassword: z.ZodString;
 }
-
-export interface ErrorDialogProps {
-    open: boolean;
-    description: string;
-    setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}

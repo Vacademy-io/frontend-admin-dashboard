@@ -9,6 +9,7 @@ import "./index.css";
 import { ThemeProvider } from "./providers/theme-provider";
 import { routeTree } from "./routeTree.gen";
 import "./i18n";
+import { Toaster } from "./components/ui/sonner";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ if (!rootElement.innerHTML) {
             <ThemeProvider defaultTheme="light" storageKey="ui-theme">
                 <QueryClientProvider client={queryClient}>
                     <RouterProvider router={router} />
+                    <Toaster />
                 </QueryClientProvider>
             </ThemeProvider>
         </StrictMode>,
