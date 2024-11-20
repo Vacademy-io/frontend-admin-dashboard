@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { useSyncLanguage } from "@/hooks/useSyncLanguage";
 import { Heading } from "@/components/common/LoginPages/ui/heading";
 import { MyInput } from "@/components/design-system/input";
@@ -16,7 +15,6 @@ import { toast } from "sonner";
 
 export function LoginForm() {
     useSyncLanguage();
-    const { t } = useTranslation();
     const { hasSeenAnimation, setHasSeenAnimation } = useAnimationStore();
 
     const [userEmail, setUserEmail] = useState<LoginFormState["userEmail"]>("");
@@ -97,11 +95,14 @@ export function LoginForm() {
     return (
         <SplashScreen isAnimationEnabled={!hasSeenAnimation}>
             <div className="flex w-full flex-col items-center justify-center gap-20">
-                <Heading heading={t("loginHeading")} subHeading={t("loginSubheading")} />
+                <Heading
+                    heading="Glad To Have You Back!"
+                    subHeading="Login and take the reins - your admin tools are waiting!"
+                />
                 <div className="flex w-full flex-col items-center justify-center gap-8 px-16">
                     <MyInput
                         inputType="email"
-                        inputPlaceholder={t("loginInput1")}
+                        inputPlaceholder="you@email.com"
                         input={userEmail}
                         setInput={setUserEmail}
                         error={emailError}
@@ -122,7 +123,7 @@ export function LoginForm() {
                         />
                         <Link to="/login/forgot-password">
                             <div className="cursor-pointer pl-1 text-caption font-regular text-primary-500">
-                                {t("loginText")}
+                                Forgot Password?
                             </div>
                         </Link>
                     </div>
@@ -130,7 +131,7 @@ export function LoginForm() {
 
                 <div className="flex flex-col gap-1" onClick={handleSubmit}>
                     <MyButton scale="large" buttonType="primary" layoutVariant="default">
-                        {t("loginBtn")}
+                        Login
                     </MyButton>
                 </div>
             </div>

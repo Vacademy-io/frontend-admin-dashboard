@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { useSyncLanguage } from "@/hooks/useSyncLanguage";
 import { FormContainer } from "@/components/common/LoginPages/layout/form-container";
 import { Heading } from "@/components/common/LoginPages/ui/heading";
@@ -13,7 +12,6 @@ import { setPassword } from "@/components/common/LoginPages/hooks/dummy/login/re
 
 export function SetPassword() {
     useSyncLanguage();
-    const { t } = useTranslation();
 
     const [userPassword, setUserPassword] = useState<SetPasswordState["userPassword"]>("");
     const [userConfirmPassword, setUserConfirmPassword] =
@@ -73,12 +71,15 @@ export function SetPassword() {
     return (
         <FormContainer>
             <div className="flex w-full flex-col items-center gap-16">
-                <Heading heading={t("setPassHeading")} subHeading={t("setPassSubheading")} />
+                <Heading
+                    heading="Set New Password"
+                    subHeading="Secure your account with a new password"
+                />
 
                 <div className="flex w-full flex-col gap-5 px-16">
                     <MyInput
                         inputType="password"
-                        inputPlaceholder={t("setPassInput1")}
+                        inputPlaceholder="New password"
                         input={userPassword}
                         setInput={setUserPassword}
                         error={passwordError}
@@ -87,7 +88,7 @@ export function SetPassword() {
                     />
                     <MyInput
                         inputType="password"
-                        inputPlaceholder={t("setPassInput2")}
+                        inputPlaceholder="Confirm new password"
                         input={userConfirmPassword}
                         setInput={setUserConfirmPassword}
                         error={confirmPasswordError}
@@ -99,13 +100,11 @@ export function SetPassword() {
                 <div className="flex flex-col gap-1">
                     <div onClick={handleSubmit}>
                         <MyButton scale="large" buttonType="primary" layoutVariant="default">
-                            {t("setPassBtn")}
+                            Reset Password
                         </MyButton>
                     </div>
                     <div className={`flex gap-1 text-xs`}>
-                        <div className="cursor-pointer text-neutral-600">
-                            {t("setPassBottomText")}
-                        </div>
+                        <div className="cursor-pointer text-neutral-600">Back to Login?</div>
                         <Link to="/login" className={`cursor-pointer text-primary-500`}>
                             Login
                         </Link>

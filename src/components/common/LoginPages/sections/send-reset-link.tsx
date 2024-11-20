@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { useSyncLanguage } from "@/hooks/useSyncLanguage";
 import { FormContainer } from "@/components/common/LoginPages/layout/form-container";
 import { Heading } from "@/components/common/LoginPages/ui/heading";
@@ -21,7 +20,6 @@ export function SendResetLink({
     setResetLinkClick: Dispatch<SetStateAction<boolean>>;
 }) {
     useSyncLanguage();
-    const { t } = useTranslation();
 
     const [userEmail, setUserEmail] = useState<ForgotPasswordState["userEmail"]>("");
     const [emailError, setEmailError] = useState<ForgotPasswordState["emailError"]>(null);
@@ -102,12 +100,12 @@ export function SendResetLink({
             <FormContainer>
                 <div className="flex w-full flex-col items-center justify-center gap-20">
                     <Heading
-                        heading={t("forgotPassHeading")}
-                        subHeading={t("forgotPassSubheading")}
+                        heading="Forgot Password"
+                        subHeading="Enter your email, and we'll send your password to your inbox"
                     />
                     <MyInput
                         inputType="email"
-                        inputPlaceholder={t("forgotPassInput1")}
+                        inputPlaceholder="you@email.com"
                         input={userEmail}
                         setInput={setUserEmail}
                         error={emailError}
@@ -122,7 +120,7 @@ export function SendResetLink({
                             </MyButton>
                         </div>
                         <div className="flex gap-1 text-xs">
-                            <div className="text-neutral-500">{t("forgotPassBottomText")}</div>
+                            <div className="text-neutral-500">Remember your password?</div>
                             <Link to="/login" className="cursor-pointer text-primary-500">
                                 Back to Login
                             </Link>
