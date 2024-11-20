@@ -1,4 +1,3 @@
-import { useSyncLanguage } from "@/hooks/useSyncLanguage";
 import { FormContainer } from "@/components/common/LoginPages/layout/form-container";
 import { Heading } from "@/components/common/LoginPages/ui/heading";
 import { MyInput } from "@/components/design-system/input";
@@ -6,67 +5,56 @@ import { MyButton } from "@/components/design-system/button";
 import { Link } from "@tanstack/react-router";
 import { setPasswordSchema } from "@/schemas/login";
 import { z } from "zod";
-import { useState } from "react";
-import { SetPasswordState } from "../types";
 import { setPassword } from "@/components/common/LoginPages/hooks/dummy/login/reset-password-button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { toast } from "sonner";
+
+type FormValues = z.infer<typeof setPasswordSchema>;
 
 export function SetPassword() {
-    useSyncLanguage();
+    const form = useForm<FormValues>({
+        resolver: zodResolver(setPasswordSchema),
+        defaultValues: {
+            password: "",
+            confirmPassword: "",
+        },
+        mode: "onTouched",
+    });
 
-    const [userPassword, setUserPassword] = useState<SetPasswordState["userPassword"]>("");
-    const [userConfirmPassword, setUserConfirmPassword] =
-        useState<SetPasswordState["userConfirmPassword"]>("");
-
-    const [passwordError, setPasswordError] = useState<SetPasswordState["passwordError"]>(null);
-    const [confirmPasswordError, setConfirmPasswordError] =
-        useState<SetPasswordState["confirmPasswordError"]>(null);
-
-    const handleSubmit = async () => {
-        // Reset errors before validation
-        setPasswordError(null);
-        setConfirmPasswordError(null);
-
-        // Check if password and confirm password are empty
-        if (!userPassword) {
-            setPasswordError("Password is required");
-        }
-        if (!userConfirmPassword) {
-            setConfirmPasswordError("Confirm Password is required");
-        }
-
-        // If both fields are not empty, try to validate the schema
-        if (userPassword && userConfirmPassword) {
-            try {
-                setPasswordSchema.parse({
-                    password: userPassword,
-                    confirmPassword: userConfirmPassword,
+    const mutation = useMutation({
+        mutationFn: (values: FormValues) => setPassword(values.password),
+        onSuccess: (response) => {
+            if (response.status === "success") {
+                // Handle successful password set (e.g., redirect or show success message)
+                toast.error("Login Error", {
+                    description: "Your password is incorrect or this account doesn't exist.",
+                    className: "error-toast",
+                    duration: 3000,
                 });
-                console.log("Validation passed");
-
-                const response = await setPassword(userPassword);
-
-                if (response.status === "success") {
-                    // Handle successful password set
-                    console.log("Password set successfully");
-                } else {
-                    // Handle failed password set
-                    console.error("Failed to set password:", response.message);
-                }
-            } catch (error: unknown) {
-                if (error instanceof z.ZodError) {
-                    error.issues.forEach((issue) => {
-                        if (issue.path[0] === "password") {
-                            setPasswordError(issue.message);
-                        } else if (issue.path[0] === "confirmPassword") {
-                            setConfirmPasswordError(issue.message);
-                        }
-                    });
-                } else {
-                    console.error(error);
-                }
+            } else {
+                // Handle failed password set
+                toast.error("Login Error", {
+                    description: "Your password is incorrect or this account doesn't exist.",
+                    className: "error-toast",
+                    duration: 3000,
+                });
             }
-        }
-    };
+        },
+        onError: () => {
+            toast.error("Login Error", {
+                description: "Your password is incorrect or this account doesn't exist.",
+                className: "error-toast",
+                duration: 3000,
+            });
+        },
+    });
+
+    function onSubmit(values: FormValues) {
+        mutation.mutate(values);
+    }
 
     return (
         <FormContainer>
@@ -76,40 +64,75 @@ export function SetPassword() {
                     subHeading="Secure your account with a new password"
                 />
 
-                <div className="flex w-full flex-col gap-5 px-16">
-                    <MyInput
-                        inputType="password"
-                        inputPlaceholder="New password"
-                        input={userPassword}
-                        setInput={setUserPassword}
-                        error={passwordError}
-                        required={true}
-                        size="large"
-                    />
-                    <MyInput
-                        inputType="password"
-                        inputPlaceholder="Confirm new password"
-                        input={userConfirmPassword}
-                        setInput={setUserConfirmPassword}
-                        error={confirmPasswordError}
-                        required={true}
-                        size="large"
-                    />
-                </div>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+                        <div className="flex w-full flex-col gap-8 px-20">
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="password"
+                                                label="New password"
+                                                inputPlaceholder="••••••••"
+                                                input={value}
+                                                setInput={onChange}
+                                                error={form.formState.errors.password?.message}
+                                                required={true}
+                                                size="large"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="confirmPassword"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="password"
+                                                label="Confirm new password"
+                                                inputPlaceholder="••••••••"
+                                                input={value}
+                                                setInput={onChange}
+                                                error={
+                                                    form.formState.errors.confirmPassword?.message
+                                                }
+                                                required={true}
+                                                size="large"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
-                <div className="flex flex-col gap-1">
-                    <div onClick={handleSubmit}>
-                        <MyButton scale="large" buttonType="primary" layoutVariant="default">
-                            Reset Password
-                        </MyButton>
-                    </div>
-                    <div className={`flex gap-1 text-xs`}>
-                        <div className="cursor-pointer text-neutral-600">Back to Login?</div>
-                        <Link to="/login" className={`cursor-pointer text-primary-500`}>
-                            Login
-                        </Link>
-                    </div>
-                </div>
+                        <div className="mt-16 flex flex-col items-center gap-4">
+                            <MyButton
+                                type="submit"
+                                scale="large"
+                                buttonType="primary"
+                                layoutVariant="default"
+                            >
+                                Reset Password
+                            </MyButton>
+                            <div className="flex gap-1 text-body font-regular">
+                                <div className="cursor-pointer text-neutral-600">
+                                    Back to Login?
+                                </div>
+                                <Link to="/login" className="cursor-pointer text-primary-500">
+                                    Login
+                                </Link>
+                            </div>
+                        </div>
+                    </form>
+                </Form>
             </div>
         </FormContainer>
     );
