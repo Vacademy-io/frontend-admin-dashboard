@@ -49,7 +49,7 @@ export const MyInput = ({
 
     return (
         <div className="flex flex-col gap-1">
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-1">
                 {label && (
                     <Label className="text-subtitle font-regular">
                         {label}
@@ -71,7 +71,7 @@ export const MyInput = ({
                             inputSizeVariants[size],
                             error ? "border-danger-600" : "border-neutral-300",
                             inputType === "password" ? "pr-10" : "",
-                            "shadow-none hover:border-primary-200 focus:border-primary-500 focus-visible:ring-0",
+                            "shadow-none placeholder:text-subtitle placeholder:font-regular hover:border-primary-200 focus:border-primary-500 focus-visible:ring-0",
                             className,
                         )}
                         value={input}

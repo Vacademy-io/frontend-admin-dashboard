@@ -96,9 +96,9 @@ export function LoginForm() {
 
     return (
         <SplashScreen isAnimationEnabled={!hasSeenAnimation}>
-            <div className="flex w-full flex-col items-center justify-center gap-16">
+            <div className="flex w-full flex-col items-center justify-center gap-20">
                 <Heading heading={t("loginHeading")} subHeading={t("loginSubheading")} />
-                <div className="flex w-full flex-col items-center justify-center gap-5 px-16">
+                <div className="flex w-full flex-col items-center justify-center gap-8 px-16">
                     <MyInput
                         inputType="email"
                         inputPlaceholder={t("loginInput1")}
@@ -109,10 +109,10 @@ export function LoginForm() {
                         size="large"
                         label="Email"
                     />
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-2">
                         <MyInput
                             inputType="password"
-                            inputPlaceholder={t("loginInput2")}
+                            inputPlaceholder="••••••••"
                             input={userPassword}
                             setInput={setUserPassword}
                             error={passwordError}

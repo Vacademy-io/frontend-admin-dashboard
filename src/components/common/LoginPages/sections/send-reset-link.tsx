@@ -100,7 +100,7 @@ export function SendResetLink({
     return (
         <div>
             <FormContainer>
-                <div className="flex w-full flex-col items-center justify-center gap-16">
+                <div className="flex w-full flex-col items-center justify-center gap-20">
                     <Heading
                         heading={t("forgotPassHeading")}
                         subHeading={t("forgotPassSubheading")}
@@ -113,11 +113,12 @@ export function SendResetLink({
                         error={emailError}
                         required={true}
                         size="large"
+                        label="Email"
                     />
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-4">
                         <div onClick={handleSubmit}>
                             <MyButton scale="large" buttonType="primary" layoutVariant="default">
-                                {t("forgotPassBtn")}
+                                Get Password
                             </MyButton>
                         </div>
                         <div className="flex gap-1 text-xs">
