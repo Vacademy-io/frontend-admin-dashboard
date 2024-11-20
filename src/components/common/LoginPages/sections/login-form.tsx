@@ -103,6 +103,7 @@ export function LoginForm() {
                         error={emailError}
                         required={true}
                         size="large"
+                        label="Email"
                     />
                     <div className="flex flex-col gap-1">
                         <MyInput
@@ -113,6 +114,7 @@ export function LoginForm() {
                             error={passwordError}
                             required={true}
                             size="large"
+                            label="Password"
                         />
                         <Link to="/login/forgot-password">
                             <div className="cursor-pointer pl-1 text-caption font-regular text-primary-500">

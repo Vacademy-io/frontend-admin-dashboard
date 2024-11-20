@@ -36,4 +36,5 @@ export interface FormInputProps {
     className?: string;
     size?: "large" | "medium" | "small";
     disabled?: boolean;
+    label?: string;
 }
