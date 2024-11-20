@@ -31,6 +31,10 @@ export function SendResetLink({
         onSuccess: async (response) => {
             if (response.status === "success") {
                 console.log("Reset Link request successful");
+                toast.success("Password Sent Successfully", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
 
                 // Trigger the sendResetLink mutation on successful forgotPassword request
                 sendResetLinkMutation.mutate();
