@@ -20,7 +20,7 @@ module.exports = {
 
 			//custom fonts
 			fontFamily: {
-				sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+				sans: ['Open Sans', 'sans-serif']
 			},
 
 
