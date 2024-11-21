@@ -7,9 +7,9 @@ const myButtonVariants = {
     base: "font-normal focus:outline-none focus:ring-2 focus:ring-primary-200 disabled:cursor-not-allowed transition-colors text-subtitle font-semibold",
     types: {
         primary:
-            "bg-primary-500 font-semibold hover:bg-primary-400 active:bg-[#be5d1d] disabled:bg-[#fad5bd] disabled:text-neutral-50",
+            "bg-primary-500 !text-neutral-50 font-semibold hover:bg-primary-400 active:bg-[#be5d1d] disabled:bg-[#fad5bd] ",
         secondary:
-            "bg-white font-regular border-neutral-300 border-2 text-neutral-600 hover:border-primary-300 hover:bg-[#fef7ee] active:border-primary-500 active:bg-[#fdedd7] disabled:text-[#7f7f7f] disabled:bg-white disabled:border-neutral-200",
+            "bg-white font-regular border-neutral-300 border !text-neutral-600 hover:border-primary-300 hover:bg-[#fef7ee] active:border-primary-500 active:bg-[#fdedd7] disabled:text-[#7f7f7f] disabled:bg-white disabled:border-neutral-200",
         text: "shadow-none bg-transparent text-primary-500 hover:bg-primary-50 active:bg-primary-100 disabled:text-neutral-300 disabled:bg-transparent",
     },
     textStyles: {
@@ -19,9 +19,9 @@ const myButtonVariants = {
     },
     scales: {
         default: {
-            large: "w-60 h-10 px-4 text-subtitle text-neutral-50",
-            medium: "w-[140px] h-9 px-3 text-body text-neutral-50 ",
-            small: "w-[83px] h-6 px-2 text-caption text-neutral-50",
+            large: "w-60 h-10 px-4 text-subtitle ",
+            medium: "w-[140px] h-9 px-3 text-body ",
+            small: "w-[83px] h-6 px-2 text-caption",
         },
         icon: {
             large: "w-10 h-10",
