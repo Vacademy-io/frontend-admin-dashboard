@@ -5,7 +5,7 @@ import { MyButton } from "@/components/design-system/button";
 import { Link } from "@tanstack/react-router";
 import { setPasswordSchema } from "@/schemas/login";
 import { z } from "zod";
-import { setPassword } from "@/components/common/LoginPages/hooks/dummy/login/reset-password-button";
+import { setPassword } from "@/hooks/dummy/login/reset-password-button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";

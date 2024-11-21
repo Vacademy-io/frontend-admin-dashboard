@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { MyButtonProps } from "./types";
+import { MyButtonProps } from "./utils/types/button-types";
 
 // Button Variants Configuration
 const myButtonVariants = {

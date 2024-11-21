@@ -3,8 +3,8 @@ import { Input } from "@/components/ui/input";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { cn } from "@/lib/utils";
 import { VscError } from "react-icons/vsc";
-import { FormInputProps } from "./types";
-import { InputErrorProps } from "./types";
+import { FormInputProps } from "./utils/types/input-types";
+import { InputErrorProps } from "./utils/types/input-types";
 import { Label } from "../ui/label";
 
 const inputSizeVariants = {

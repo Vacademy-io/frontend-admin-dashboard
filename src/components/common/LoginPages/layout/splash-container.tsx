@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { LanguageDropdown } from "../../localization/language-dropdown";
-import { SplashScreenProps } from "../types";
+import { SplashScreenProps } from "../../../../types/loginTypes";
 
 export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps) => {
     return (
@@ -23,7 +23,7 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                     className="fixed left-0 top-0 h-screen w-screen"
                 >
                     <motion.img
-                        src="/svgs/ssdc_logo.svg"
+                        src="/svgs/login/ssdc_logo.svg"
                         alt="logo"
                         initial={
                             isAnimationEnabled
@@ -43,7 +43,7 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                         className="left-8 top-8 size-full max-h-80 max-w-80 origin-top-left object-cover"
                     />
                 </motion.div>
-                <img src="/images/login-image.png" alt="login image" width={400} height={400} />
+                <img src="/svgs/login/login-image.svg" alt="login image" width={400} height={400} />
             </div>
             <div className="relative flex w-full items-center justify-center text-neutral-600">
                 <LanguageDropdown />
