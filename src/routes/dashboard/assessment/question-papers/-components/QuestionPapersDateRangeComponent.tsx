@@ -13,9 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarBlank } from "phosphor-react";
+import { CalendarBlank, X } from "phosphor-react";
+import { PopoverClose } from "@radix-ui/react-popover";
 
-export const DateRangeComponent = () => {
+export const QuestionPapersDateRangeComponent = () => {
     const form = useForm<z.infer<typeof dateRangeFormSchema>>({
         resolver: zodResolver(dateRangeFormSchema),
         defaultValues: {
@@ -49,10 +50,18 @@ export const DateRangeComponent = () => {
                     <CalendarBlank size={32} />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="!p-0">
-                <h1 className="bg-primary-50 p-4 text-primary-500">Select Date Range</h1>
+            <PopoverContent className="rounded-md !p-0">
+                <div className="flex items-center justify-between bg-primary-50">
+                    <h1 className="rounded-sm p-4 text-primary-500">Select Date Range</h1>
+                    <PopoverClose className="border-none bg-primary-50 pr-4 shadow-none hover:bg-primary-50">
+                        <X size={18} className="text-neutral-600" />
+                    </PopoverClose>
+                </div>
                 <Form {...form}>
-                    <form className="grid gap-4 p-4" onSubmit={handleSubmit(onSubmit, onInvalid)}>
+                    <form
+                        className="grid gap-4 rounded-md p-4"
+                        onSubmit={handleSubmit(onSubmit, onInvalid)}
+                    >
                         <FormField
                             control={form.control}
                             name="startDate"

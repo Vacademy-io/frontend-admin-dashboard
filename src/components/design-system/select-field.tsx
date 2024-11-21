@@ -1,0 +1,81 @@
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    Select,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { type Control } from "react-hook-form";
+
+interface Options {
+    _id: string | number;
+    value: string | number;
+    label: string;
+}
+
+interface SelectFieldProps {
+    className?: string;
+    label: string;
+    name: string;
+    options: Options[];
+    required?: boolean;
+    onSelect?: (value: string) => void;
+    // eslint-disable-next-line
+    control: any;
+    disabled?: boolean;
+}
+const SelectField: React.FC<SelectFieldProps> = ({
+    label,
+    name,
+    options,
+    required = false,
+    control,
+    onSelect,
+    disabled = false,
+    className,
+}) => (
+    <FormField
+        control={control as Control}
+        name={name}
+        render={({ field }) => (
+            <FormItem className={cn("w-44", className)}>
+                <FormLabel>
+                    {label}
+                    {required && <span className="text-red-500">*</span>}
+                </FormLabel>
+                <FormControl>
+                    <Select
+                        onValueChange={(value) => {
+                            field.onChange(value);
+                            if (onSelect !== null && onSelect !== undefined) {
+                                onSelect(value);
+                            }
+                        }}
+                        disabled={disabled}
+                        {...field}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder={`Select ${label}`} />
+                        </SelectTrigger>
+                        <SelectContent className="max-w-96">
+                            {options.map((option) => (
+                                <SelectItem
+                                    className={className}
+                                    key={option._id}
+                                    value={option?.value?.toString()}
+                                >
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </FormControl>
+                <FormMessage />
+            </FormItem>
+        )}
+    />
+);
+
+export default SelectField;

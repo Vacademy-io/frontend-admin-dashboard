@@ -3,7 +3,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabListComponent } from "./TabListComponent";
 import { QuestionPapersFilter } from "./QuestionPapersFilter";
 import { QuestionPapersSearchComponent } from "./QuestionPapersSearchComponent";
-import { DateRangeComponent } from "./DateRangeComponent";
+import { QuestionPapersDateRangeComponent } from "./QuestionPapersDateRangeComponent";
 import { EmptyQuestionPapers } from "@/svgs";
 
 export const QuestionPapersTabs = () => {
@@ -38,7 +38,7 @@ export const QuestionPapersTabs = () => {
                 </div>
                 <div className="flex gap-4">
                     <QuestionPapersSearchComponent />
-                    <DateRangeComponent />
+                    <QuestionPapersDateRangeComponent />
                 </div>
             </div>
             <TabsContent value="All">
