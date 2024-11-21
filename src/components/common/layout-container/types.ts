@@ -2,7 +2,7 @@ import { IconProps } from "@phosphor-icons/react";
 
 export interface subItemsType {
     subItem: string;
-    subItemLink: string;
+    subItemLink: string | undefined;
 }
 
 export interface SidebarItemsType {

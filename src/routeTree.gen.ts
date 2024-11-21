@@ -12,11 +12,17 @@
 
 import { Route as rootRoute } from "./routes/__root";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
+import { Route as DashboardStudentsIndexImport } from "./routes/dashboard/students/index";
 
 // Create/Update Routes
 
 const DashboardIndexRoute = DashboardIndexImport.update({
     path: "/dashboard/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const DashboardStudentsIndexRoute = DashboardStudentsIndexImport.update({
+    path: "/dashboard/students/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -31,12 +37,22 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof DashboardIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/dashboard/students/": {
+            id: "/dashboard/students/";
+            path: "/dashboard/students";
+            fullPath: "/dashboard/students";
+            preLoaderRoute: typeof DashboardStudentsIndexImport;
+            parentRoute: typeof rootRoute;
+        };
     }
 }
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({ DashboardIndexRoute });
+export const routeTree = rootRoute.addChildren({
+    DashboardIndexRoute,
+    DashboardStudentsIndexRoute,
+});
 
 /* prettier-ignore-end */
 
@@ -46,11 +62,15 @@ export const routeTree = rootRoute.addChildren({ DashboardIndexRoute });
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/dashboard/"
+        "/dashboard/",
+        "/dashboard/students/"
       ]
     },
     "/dashboard/": {
       "filePath": "dashboard/index.tsx"
+    },
+    "/dashboard/students/": {
+      "filePath": "dashboard/students/index.tsx"
     }
   }
 }
