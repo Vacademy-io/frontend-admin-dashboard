@@ -6,7 +6,7 @@ import {
     SealPercent,
     GraduationCap,
 } from "@phosphor-icons/react";
-import { ActivityStatus, FeeStatus, SuccessStatus } from "./design-system-types";
+import { ActivityStatus, FeeStatus, SuccessStatus } from "../types/chips-types";
 
 export const FeeStatusData: Record<FeeStatus, Icon> = {
     refund: SealPercent,

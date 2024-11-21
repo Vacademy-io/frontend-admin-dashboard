@@ -6,9 +6,9 @@ import {
     StatusChipsProps,
     ChipsProps,
     ChipsWrapperProps,
-} from "./design-system-types";
+} from "./utils/types/chips-types";
 import { PlusCircle } from "@phosphor-icons/react";
-import { ActivityStatusData } from "./design-system-data";
+import { ActivityStatusData } from "./utils/data/chips-data";
 
 const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
     return (

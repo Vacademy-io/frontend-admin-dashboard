@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "../ui/checkbox";
-import { TableDummyData } from "./table-dummy-data";
+import { TableDummyData } from "./utils/data/table-dummy-data";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";

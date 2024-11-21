@@ -1,6 +1,6 @@
 import { ArrowSquareOut, DotsThreeCircle } from "@phosphor-icons/react";
-import { Checkbox } from "../ui/checkbox";
-import { StatusChips } from "./chips";
+import { Checkbox } from "@/components/ui/checkbox";
+import { StatusChips } from "../../chips";
 
 export const TableDummyData = [
     {
