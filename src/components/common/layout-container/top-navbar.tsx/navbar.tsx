@@ -22,9 +22,9 @@ export function Navbar() {
     const { selectedItem } = useSidebarStore();
 
     return (
-        <div className="flex h-24 items-center justify-between bg-neutral-50 px-8">
-            <div className="flex items-center gap-3">
-                <SidebarTrigger className="" />
+        <div className="flex h-24 items-center justify-between bg-neutral-50 px-8 py-6">
+            <div className="flex items-center gap-4">
+                <SidebarTrigger />
                 <div className="border-l border-neutral-500 px-4 text-h2 font-semibold text-neutral-600">
                     {selectedItem}
                 </div>
@@ -45,7 +45,7 @@ export function Navbar() {
                 <div className="flex items-center gap-1">
                     <IconContainer className="size-10 cursor-auto p-0">
                         <img
-                            src="/images/dummy/profile.jpg"
+                            src="/images/svgs/dummy_profile_photo.svg"
                             className="size-full rounded-full object-cover"
                         />
                     </IconContainer>
