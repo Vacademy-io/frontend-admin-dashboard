@@ -5,7 +5,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
     {
         icon: House,
         title: "Dashboard",
-        to: "/dashboard/home",
+        to: "/dashboard",
     },
     {
         icon: Users,
