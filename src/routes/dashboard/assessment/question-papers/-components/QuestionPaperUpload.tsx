@@ -9,7 +9,7 @@ import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { File, X } from "phosphor-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
+import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
 
 export const QuestionPaperUpload = () => {
     const QuestionsLabels = ["(1.)", "1.)", "(1)", "1)"];
@@ -136,11 +136,7 @@ export const QuestionPaperUpload = () => {
                         </div>
                     </div>
                     <div className="flex justify-between">
-                        <Link to="/dashboard/assessment/question-papers/view">
-                            <Button variant="outline" className="w-52 border-2">
-                                Preview
-                            </Button>
-                        </Link>
+                        <QuestionPaperTemplate />
                         <Button
                             disabled={!form.formState.isValid}
                             type="submit"

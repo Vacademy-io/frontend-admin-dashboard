@@ -1,4 +1,4 @@
-import { questionFormSchema } from "@/routes/dashboard/assessment/question-papers/view/-utils/question-form-schema";
+import { questionFormSchema } from "@/routes/dashboard/assessment/question-papers/-utils/question-form-schema";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
