@@ -2,7 +2,7 @@ import React from "react";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { SidebarGroup } from "@/components/ui/sidebar";
-import { SidebarItemProps } from "../types";
+import { SidebarItemProps } from "../../../../types/layout-container-types";
 import { usePageStore } from "@/stores/usePageStore";
 import { useSidebar } from "@/components/ui/sidebar";
 

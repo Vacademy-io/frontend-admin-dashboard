@@ -3,7 +3,7 @@ import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useState, useEffect } from "react";
 import React from "react";
 import { SidebarGroup } from "@/components/ui/sidebar";
-import { SidebarItemProps } from "../types";
+import { SidebarItemProps } from "../../../../types/layout-container-types";
 import { useSidebar } from "@/components/ui/sidebar";
 import { usePageStore } from "@/stores/usePageStore";
 import { Link } from "@tanstack/react-router";
