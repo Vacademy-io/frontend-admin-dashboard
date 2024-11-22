@@ -7,6 +7,7 @@ import RootNotFoundComponent from "./components/core/default-not-found";
 import RootPendingComponent from "./components/core/default-pending";
 import "./index.css";
 import { ThemeProvider } from "./providers/theme-provider";
+import { SidebarProvider } from "./components/ui/sidebar";
 import { routeTree } from "./routeTree.gen";
 import "./i18n";
 import { Toaster } from "./components/ui/sonner";
@@ -39,8 +40,10 @@ if (!rootElement.innerHTML) {
         <StrictMode>
             <ThemeProvider defaultTheme="light" storageKey="ui-theme">
                 <QueryClientProvider client={queryClient}>
-                    <RouterProvider router={router} />
-                    <Toaster />
+                    <SidebarProvider>
+                        <RouterProvider router={router} />
+                        <Toaster />
+                    </SidebarProvider>
                 </QueryClientProvider>
             </ThemeProvider>
         </StrictMode>,

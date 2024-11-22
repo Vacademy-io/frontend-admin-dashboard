@@ -16,6 +16,9 @@ importers:
             "@radix-ui/react-avatar":
                 specifier: ^1.1.1
                 version: 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-collapsible":
+                specifier: ^1.1.1
+                version: 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
             "@radix-ui/react-dialog":
                 specifier: ^1.1.2
                 version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -28,6 +31,9 @@ importers:
             "@radix-ui/react-label":
                 specifier: ^2.1.0
                 version: 2.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-separator":
+                specifier: ^1.1.0
+                version: 1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
             "@radix-ui/react-slot":
                 specifier: ^1.1.0
                 version: 1.1.0(@types/react@18.3.3)(react@18.3.1)
@@ -70,6 +76,12 @@ importers:
             pnpm:
                 specifier: ^9.12.3
                 version: 9.12.3
+            lucide-react:
+                specifier: ^0.456.0
+                version: 0.456.0(react@18.3.1)
+            phosphor-react:
+                specifier: ^1.4.1
+                version: 1.4.1(react@18.3.1)
             react:
                 specifier: ^18.3.1
                 version: 18.3.1
@@ -812,6 +824,22 @@ packages:
             "@types/react-dom":
                 optional: true
 
+    "@radix-ui/react-collapsible@1.1.1":
+        resolution:
+            {
+                integrity: sha512-1///SnrfQHJEofLokyczERxQbWfCGQlQ2XsCZMucVs6it+lq9iw4vXy+uDn1edlb58cOZOWSldnfPAYcT4O/Yg==,
+            }
+        peerDependencies:
+            "@types/react": "*"
+            "@types/react-dom": "*"
+            react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+            react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+        peerDependenciesMeta:
+            "@types/react":
+                optional: true
+            "@types/react-dom":
+                optional: true
+
     "@radix-ui/react-collection@1.1.0":
         resolution:
             {
@@ -1072,6 +1100,22 @@ packages:
         resolution:
             {
                 integrity: sha512-EA6AMGeq9AEeQDeSH0aZgG198qkfHSbvWTf1HvoDmOB5bBG/qTxjYMWUKMnYiV6J/iP/J8MEFSuB2zRU2n7ODA==,
+            }
+        peerDependencies:
+            "@types/react": "*"
+            "@types/react-dom": "*"
+            react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+            react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+        peerDependenciesMeta:
+            "@types/react":
+                optional: true
+            "@types/react-dom":
+                optional: true
+
+    "@radix-ui/react-separator@1.1.0":
+        resolution:
+            {
+                integrity: sha512-3uBAs+egzvJBDZAzvb/n4NxxOYpnspmWxO2u5NbZ8Y6FM/NdrGSF9bop3Cf6F6C71z1rTSn8KV0Fo2ZVd79lGA==,
             }
         peerDependencies:
             "@types/react": "*"
@@ -3762,6 +3806,14 @@ packages:
                 integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==,
             }
 
+    lucide-react@0.456.0:
+        resolution:
+            {
+                integrity: sha512-DIIGJqTT5X05sbAsQ+OhA8OtJYyD4NsEMCA/HQW/Y6ToPQ7gwbtujIoeAaup4HpHzV35SQOarKAWH8LYglB6eA==,
+            }
+        peerDependencies:
+            react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
+
     lz-string@1.5.0:
         resolution:
             {
@@ -4128,6 +4180,15 @@ packages:
             {
                 integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==,
             }
+
+    phosphor-react@1.4.1:
+        resolution:
+            {
+                integrity: sha512-gO5j7U0xZrdglTAYDYPACU4xDOFBTJmptrrB/GeR+tHhCZF3nUMyGmV/0hnloKjuTrOmpSFlbfOY78H39rgjUQ==,
+            }
+        engines: { node: ">=10" }
+        peerDependencies:
+            react: ">=16"
 
     picocolors@1.0.1:
         resolution:
@@ -5770,6 +5831,22 @@ snapshots:
             "@types/react": 18.3.3
             "@types/react-dom": 18.3.0
 
+    "@radix-ui/react-collapsible@1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+        dependencies:
+            "@radix-ui/primitive": 1.1.0
+            "@radix-ui/react-compose-refs": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-context": 1.1.1(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-id": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-presence": 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-primitive": 2.0.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@radix-ui/react-use-controllable-state": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            "@radix-ui/react-use-layout-effect": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            react: 18.3.1
+            react-dom: 18.3.1(react@18.3.1)
+        optionalDependencies:
+            "@types/react": 18.3.3
+            "@types/react-dom": 18.3.0
+
     "@radix-ui/react-collection@1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
         dependencies:
             "@radix-ui/react-compose-refs": 1.1.0(@types/react@18.3.3)(react@18.3.1)
@@ -5977,6 +6054,15 @@ snapshots:
             "@radix-ui/react-primitive": 2.0.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
             "@radix-ui/react-use-callback-ref": 1.1.0(@types/react@18.3.3)(react@18.3.1)
             "@radix-ui/react-use-controllable-state": 1.1.0(@types/react@18.3.3)(react@18.3.1)
+            react: 18.3.1
+            react-dom: 18.3.1(react@18.3.1)
+        optionalDependencies:
+            "@types/react": 18.3.3
+            "@types/react-dom": 18.3.0
+
+    "@radix-ui/react-separator@1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+        dependencies:
+            "@radix-ui/react-primitive": 2.0.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
             react: 18.3.1
             react-dom: 18.3.1(react@18.3.1)
         optionalDependencies:
@@ -7757,6 +7843,10 @@ snapshots:
         dependencies:
             yallist: 3.1.1
 
+    lucide-react@0.456.0(react@18.3.1):
+        dependencies:
+            react: 18.3.1
+
     lz-string@1.5.0: {}
 
     magic-string@0.30.11:
@@ -7944,6 +8034,10 @@ snapshots:
     pathe@1.1.2: {}
 
     pathval@1.1.1: {}
+
+    phosphor-react@1.4.1(react@18.3.1):
+        dependencies:
+            react: 18.3.1
 
     picocolors@1.0.1: {}
 

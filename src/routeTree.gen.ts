@@ -12,7 +12,9 @@
 
 import { Route as rootRoute } from "./routes/__root";
 import { Route as LoginIndexImport } from "./routes/login/index";
+import { Route as DashboardIndexImport } from "./routes/dashboard/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
+import { Route as DashboardStudentsIndexImport } from "./routes/dashboard/students/index";
 
 // Create/Update Routes
 
@@ -21,8 +23,18 @@ const LoginIndexRoute = LoginIndexImport.update({
     getParentRoute: () => rootRoute,
 } as any);
 
+const DashboardIndexRoute = DashboardIndexImport.update({
+    path: "/dashboard/",
+    getParentRoute: () => rootRoute,
+} as any);
+
 const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
     path: "/login/forgot-password/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const DashboardStudentsIndexRoute = DashboardStudentsIndexImport.update({
+    path: "/dashboard/students/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -30,11 +42,25 @@ const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
 
 declare module "@tanstack/react-router" {
     interface FileRoutesByPath {
+        "/dashboard/": {
+            id: "/dashboard/";
+            path: "/dashboard";
+            fullPath: "/dashboard";
+            preLoaderRoute: typeof DashboardIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/login/": {
             id: "/login/";
             path: "/login";
             fullPath: "/login";
             preLoaderRoute: typeof LoginIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/dashboard/students/": {
+            id: "/dashboard/students/";
+            path: "/dashboard/students";
+            fullPath: "/dashboard/students";
+            preLoaderRoute: typeof DashboardStudentsIndexImport;
             parentRoute: typeof rootRoute;
         };
         "/login/forgot-password/": {
@@ -50,7 +76,9 @@ declare module "@tanstack/react-router" {
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
+    DashboardIndexRoute,
     LoginIndexRoute,
+    DashboardStudentsIndexRoute,
     LoginForgotPasswordIndexRoute,
 });
 
@@ -62,12 +90,20 @@ export const routeTree = rootRoute.addChildren({
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/dashboard/",
         "/login/",
+        "/dashboard/students/",
         "/login/forgot-password/"
       ]
     },
+    "/dashboard/": {
+      "filePath": "dashboard/index.tsx"
+    },
     "/login/": {
       "filePath": "login/index.tsx"
+    },
+    "/dashboard/students/": {
+      "filePath": "dashboard/students/index.tsx"
     },
     "/login/forgot-password/": {
       "filePath": "login/forgot-password/index.tsx"
