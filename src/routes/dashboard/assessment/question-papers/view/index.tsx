@@ -5,8 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { PencilSimpleLine, Plus, TrashSimple } from "phosphor-react";
-import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import {
     Pagination,
@@ -28,14 +28,14 @@ export const Route = createFileRoute("/dashboard/assessment/question-papers/view
 
 function ViewQuestionPaperComponent() {
     const [isHeaderEditable, setIsHeaderEditable] = useState(false); // State to toggle edit mode
-    const [currentQuestionIndex] = useState(0);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [currentQuestionImageIndex] = useState(0);
 
     const form = useForm<z.infer<typeof questionFormSchema>>({
         resolver: zodResolver(questionFormSchema),
         defaultValues: {
-            title: "Untitled",
-            description: "Add description",
+            title: "",
+            description: "",
             createdDate: new Date().toISOString(), // Default to the current date
             questions: [
                 {
@@ -71,11 +71,93 @@ function ViewQuestionPaperComponent() {
         },
     });
 
-    const { control } = form;
+    const { control, getValues, setValue } = form;
+    console.log(getValues("questions"));
 
     function onSubmit(values: z.infer<typeof questionFormSchema>) {
         console.log(values);
     }
+
+    // UseFieldArray to manage questions array
+    const { fields, append } = useFieldArray({
+        control,
+        name: "questions", // Name of the field array
+    });
+
+    // Function to handle adding a new question
+    const handleAddNewQuestion = () => {
+        append({
+            questionId: "",
+            questionName: "",
+            explanation: "",
+            imageDetails: [
+                {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    isDeleted: false,
+                },
+            ],
+            option1: {
+                name: "",
+                isSelected: false,
+            },
+            option2: {
+                name: "",
+                isSelected: false,
+            },
+            option3: {
+                name: "",
+                isSelected: false,
+            },
+            option4: {
+                name: "",
+                isSelected: false,
+            },
+        });
+        setCurrentQuestionIndex(fields.length);
+    };
+
+    useEffect(() => {
+        setValue(
+            `questions.${currentQuestionIndex}`,
+            getValues(`questions.${currentQuestionIndex}`),
+        );
+    }, [currentQuestionIndex]);
+
+    // Function to handle page navigation by question number
+    const handlePageClick = (pageIndex: number) => {
+        setCurrentQuestionIndex(pageIndex);
+    };
+
+    const itemsPerPage = 5; // Number of items to show between "previous" and "next" buttons
+
+    const handleNextBlock = () => {
+        if (currentQuestionIndex < fields.length - 1) {
+            setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+        }
+    };
+
+    const handlePreviousBlock = () => {
+        if (currentQuestionIndex > 0) {
+            setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
+        }
+    };
+
+    const getPaginationRange = () => {
+        const totalItems = fields.length;
+        const start = Math.floor(currentQuestionIndex / itemsPerPage) * itemsPerPage;
+        const end = Math.min(start + itemsPerPage, totalItems);
+
+        const range = [];
+        for (let i = start; i < end; i++) {
+            range.push(i); // Display index starting from 1
+        }
+
+        return range;
+    };
+
+    const paginationRange = getPaginationRange();
 
     return (
         <div className="flex w-full flex-col">
@@ -95,7 +177,7 @@ function ViewQuestionPaperComponent() {
                                                     value={field.value}
                                                     onChange={field.onChange}
                                                     className="rounded-none border-none p-0 !text-2xl font-bold shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
-                                                    placeholder="Title"
+                                                    placeholder="Untitled"
                                                     disabled={!isHeaderEditable}
                                                 />
                                             </FormControl>
@@ -217,7 +299,7 @@ function ViewQuestionPaperComponent() {
                                                         onCheckedChange={field.onChange}
                                                         className={`mt-1 h-5 w-5 border-2 shadow-none ${
                                                             field.value
-                                                                ? "bg-green-500 text-white" // Blue background and red tick when checked
+                                                                ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                                 : "" // Default styles when unchecked
                                                         }`}
                                                     />
@@ -263,7 +345,7 @@ function ViewQuestionPaperComponent() {
                                                         onCheckedChange={field.onChange}
                                                         className={`mt-1 h-5 w-5 border-2 shadow-none ${
                                                             field.value
-                                                                ? "bg-green-500 text-white" // Blue background and red tick when checked
+                                                                ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                                 : "" // Default styles when unchecked
                                                         }`}
                                                     />
@@ -308,7 +390,7 @@ function ViewQuestionPaperComponent() {
                                                         onCheckedChange={field.onChange}
                                                         className={`mt-1 h-5 w-5 border-2 shadow-none ${
                                                             field.value
-                                                                ? "bg-green-500 text-white" // Blue background and red tick when checked
+                                                                ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                                 : "" // Default styles when unchecked
                                                         }`}
                                                     />
@@ -353,7 +435,7 @@ function ViewQuestionPaperComponent() {
                                                         onCheckedChange={field.onChange}
                                                         className={`mt-1 h-5 w-5 border-2 shadow-none ${
                                                             field.value
-                                                                ? "bg-green-500 text-white" // Blue background and red tick when checked
+                                                                ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                                 : "" // Default styles when unchecked
                                                         }`}
                                                     />
@@ -384,20 +466,40 @@ function ViewQuestionPaperComponent() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center justify-between bg-primary-100 p-4">
+                    <div className="flex flex-wrap items-center justify-center bg-primary-100 p-4">
                         <div className="flex items-center gap-12">
                             <Pagination>
                                 <PaginationContent>
-                                    <PaginationItem>
+                                    <PaginationItem
+                                        onClick={handlePreviousBlock}
+                                        className="cursor-pointer"
+                                    >
                                         <PaginationPrevious />
                                     </PaginationItem>
-                                    <PaginationItem>
-                                        <PaginationLink>1</PaginationLink>
+                                    <PaginationItem className="flex items-center gap-2">
+                                        {paginationRange.map((page, index) => (
+                                            <PaginationLink
+                                                key={index}
+                                                onClick={() => handlePageClick(page)}
+                                                className={`flex cursor-pointer items-center rounded-md border-2 p-0 ${
+                                                    currentQuestionIndex === page
+                                                        ? "border-primary-500 bg-none"
+                                                        : "bg-none"
+                                                }`}
+                                            >
+                                                {page + 1}
+                                            </PaginationLink>
+                                        ))}
                                     </PaginationItem>
+
                                     <PaginationItem>
                                         <PaginationEllipsis />
                                     </PaginationItem>
-                                    <PaginationItem>
+
+                                    <PaginationItem
+                                        onClick={handleNextBlock}
+                                        className="cursor-pointer"
+                                    >
                                         <PaginationNext />
                                     </PaginationItem>
                                 </PaginationContent>
@@ -412,6 +514,7 @@ function ViewQuestionPaperComponent() {
                                 type="button"
                                 variant="outline"
                                 className="border-2 bg-transparent p-0 px-3 hover:bg-transparent"
+                                onClick={handleAddNewQuestion}
                             >
                                 <Plus size={20} />
                             </Button>
