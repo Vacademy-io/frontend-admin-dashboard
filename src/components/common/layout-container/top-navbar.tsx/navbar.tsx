@@ -3,6 +3,7 @@ import { useState } from "react";
 import { MagnifyingGlass, Bell, Sliders, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { usePageStore } from "@/stores/usePageStore";
+import { DummyProfile } from "@/assets/svgs";
 
 const IconContainer = ({
     children,
@@ -44,10 +45,11 @@ export function Navbar() {
                 </IconContainer>
                 <div className="flex items-center gap-1">
                     <IconContainer className="size-10 cursor-auto p-0">
-                        <img
+                        {/* <img
                             src="/images/svgs/dummy_profile_photo.svg"
                             className="size-full rounded-full object-cover"
-                        />
+                        /> */}
+                        <DummyProfile className="size-full rounded-full object-cover" />
                     </IconContainer>
                     <div className="cursor-pointer">
                         {dropdown ? (

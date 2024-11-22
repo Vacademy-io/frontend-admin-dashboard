@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Share } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";
+import { EmptyDashboardImage } from "@/assets/svgs";
 
 export const EmptyDashboard = () => {
     return (
@@ -14,7 +15,8 @@ export const EmptyDashboard = () => {
             className={`flex w-full flex-col items-center justify-center gap-4 rounded-md bg-neutral-50 py-10`}
             style={{ height: `calc(100vh - 160px)` }}
         >
-            <img src="/images/svgs/empty-student-dashboard.svg" width={300.8} height={294.7} />
+            {/* <img src="/images/svgs/empty-student-dashboard.svg" width={300.8} height={294.7} /> */}
+            <EmptyDashboardImage width={300.8} height={294.7} />
             <div className="text-title font-regular text-neutral-600">
                 No student data available
             </div>
