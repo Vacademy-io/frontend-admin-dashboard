@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { usePageStore } from "@/stores/usePageStore";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { createFileRoute } from "@tanstack/react-router";
-import { EmptyDashboard } from "@/components/common/students/empty-dashboard/empty-dashboard";
+// import { EmptyDashboard } from "@/components/common/students/empty-dashboard/empty-dashboard";
+import { StudentsListSection } from "@/components/common/students/students-list/students-list-section";
 
 export const Route = createFileRoute("/dashboard/students/")({
     component: StudentDashboard,
@@ -17,7 +18,8 @@ export function StudentDashboard() {
 
     return (
         <LayoutContainer>
-            <EmptyDashboard />
+            {/* <EmptyDashboard /> */}
+            <StudentsListSection />
         </LayoutContainer>
     );
 }
