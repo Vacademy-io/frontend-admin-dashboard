@@ -1,4 +1,4 @@
-import { ArrowSquareOut, DotsThreeCircle } from "@phosphor-icons/react";
+import { ArrowSquareOut, DotsThree } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StatusChips } from "../../chips";
 
@@ -6,7 +6,7 @@ export const TableDummyData = [
     {
         id: "1",
         checkbox: <Checkbox />,
-        details: <ArrowSquareOut size={20} />,
+        details: <ArrowSquareOut />,
         studentName: "John Doe",
         batch: "2023-A",
         enrollmentNumber: "EN001",
@@ -23,12 +23,12 @@ export const TableDummyData = [
         state: "NY",
         sessionExpiry: "2024-12-31",
         status: <StatusChips status="active" />,
-        actions: <DotsThreeCircle size={20} />,
+        actions: <DotsThree />,
     },
     {
         id: "2",
         checkbox: <Checkbox />,
-        details: <ArrowSquareOut size={20} />,
+        details: <ArrowSquareOut />,
         studentName: "Sarah Smith",
         batch: "2023-B",
         enrollmentNumber: "EN002",
@@ -45,12 +45,12 @@ export const TableDummyData = [
         state: "CA",
         sessionExpiry: "2024-12-31",
         status: <StatusChips status="active" />,
-        actions: <DotsThreeCircle size={20} />,
+        actions: <DotsThree />,
     },
     {
         id: "3",
         checkbox: <Checkbox />,
-        details: <ArrowSquareOut size={20} />,
+        details: <ArrowSquareOut />,
         studentName: "Michael Johnson",
         batch: "2023-A",
         enrollmentNumber: "EN003",
@@ -67,14 +67,14 @@ export const TableDummyData = [
         state: "IL",
         sessionExpiry: "2024-12-31",
         status: <StatusChips status="active" />,
-        actions: <DotsThreeCircle size={20} />,
+        actions: <DotsThree />,
     },
     // Continue with 7 more similar entries...
     // Here are a few more examples to give you the pattern:
     {
         id: "4",
         checkbox: <Checkbox />,
-        details: <ArrowSquareOut size={20} />,
+        details: <ArrowSquareOut />,
         studentName: "Emily Brown",
         batch: "2023-B",
         enrollmentNumber: "EN004",
@@ -91,12 +91,12 @@ export const TableDummyData = [
         state: "TX",
         sessionExpiry: "2024-12-31",
         status: <StatusChips status="active" />,
-        actions: <DotsThreeCircle size={20} />,
+        actions: <DotsThree />,
     },
     {
         id: "5",
         checkbox: <Checkbox />,
-        details: <ArrowSquareOut size={20} />,
+        details: <ArrowSquareOut />,
         studentName: "John Doe",
         batch: "2023-A",
         enrollmentNumber: "EN001",
@@ -113,12 +113,12 @@ export const TableDummyData = [
         state: "NY",
         sessionExpiry: "2024-12-31",
         status: <StatusChips status="active" />,
-        actions: <DotsThreeCircle size={20} />,
+        actions: <DotsThree />,
     },
     {
         id: "6",
         checkbox: <Checkbox />,
-        details: <ArrowSquareOut size={20} />,
+        details: <ArrowSquareOut />,
         studentName: "Sarah Smith",
         batch: "2023-B",
         enrollmentNumber: "EN002",
@@ -135,12 +135,12 @@ export const TableDummyData = [
         state: "CA",
         sessionExpiry: "2024-12-31",
         status: <StatusChips status="active" />,
-        actions: <DotsThreeCircle size={20} />,
+        actions: <DotsThree />,
     },
     {
         id: "7",
         checkbox: <Checkbox />,
-        details: <ArrowSquareOut size={20} />,
+        details: <ArrowSquareOut />,
         studentName: "Michael Johnson",
         batch: "2023-A",
         enrollmentNumber: "EN003",
@@ -157,6 +157,6 @@ export const TableDummyData = [
         state: "IL",
         sessionExpiry: "2024-12-31",
         status: <StatusChips status="active" />,
-        actions: <DotsThreeCircle size={20} />,
+        actions: <DotsThree />,
     },
 ];

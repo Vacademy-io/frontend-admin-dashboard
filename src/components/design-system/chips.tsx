@@ -89,7 +89,7 @@ export const StatusChips = ({ status }: StatusChipsProps) => {
     const StatusIcon = statusData.icon;
 
     return (
-        <ChipsWrapper className={cn(statusData.color.bg)}>
+        <ChipsWrapper className={cn(statusData.color.bg, "h-[34px] w-[85px]")}>
             <div className="flex items-center gap-2">
                 <StatusIcon className={statusData.color.icon} weight="fill" />
                 <div className="capitalize">{status}</div>

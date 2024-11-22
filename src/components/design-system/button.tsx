@@ -24,9 +24,9 @@ const myButtonVariants = {
             small: "w-[83px] h-6 px-2 text-caption",
         },
         icon: {
-            large: "w-10 h-10",
-            medium: "w-9 h-9",
-            small: "w-6 h-6",
+            large: "w-10 h-10 !p-0",
+            medium: "w-9 h-9 !p-0",
+            small: "w-6 h-6 !p-0",
         },
         floating: {
             large: "w-24 h-24 rounded-full",

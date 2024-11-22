@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "../ui/checkbox";
 import { TableDummyData } from "./utils/data/table-dummy-data";
+import { MyButton } from "./button";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -232,7 +233,14 @@ export function MyTable() {
                                 <TableCell
                                     className={`${cellCommonCss} sticky right-0 bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.actions}`}
                                 >
-                                    {row.actions}
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="small"
+                                        layoutVariant="icon"
+                                        className="flex items-center justify-center"
+                                    >
+                                        {row.actions}
+                                    </MyButton>
                                 </TableCell>
                             </TableRow>
                         ))}
