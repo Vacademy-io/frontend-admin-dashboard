@@ -10,11 +10,51 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
     form,
     currentQuestionIndex,
     currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
 }) => {
+    const { setValue, getValues, watch } = form;
+    watch(`questions.${currentQuestionIndex}.imageDetails`);
+    const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
+
+    const handleRemovePicture = () => {
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.isDeleted`,
+            true,
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+            "",
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
+            "",
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageTitle`,
+            "",
+        );
+    };
+
+    // Handle Add Image click
+    const handleAddImage = () => {
+        // Only append a new image if imageDetails is not empty (prevent duplicates)
+        const newImage = {
+            imageId: "",
+            imageName: "",
+            imageTitle: "",
+            imageFile: undefined, // or an empty string if you prefer
+            isDeleted: false,
+        };
+
+        // Update form state to append the new image to the imageDetails array
+        setValue(`questions.${currentQuestionIndex}.imageDetails`, [...imageDetails, newImage]);
+        setCurrentQuestionImageIndex(imageDetails.length);
+    };
+
     return (
         <Dialog>
             <DialogTrigger>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleAddImage}>
                     <Plus size={32} />
                     Add Image
                 </Button>
@@ -23,13 +63,29 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
                 <h1 className="rounded-md bg-primary-100 p-3 pl-4 font-bold text-primary-500">
                     Question Image
                 </h1>
-                <div className="flex h-80 w-full items-center justify-center bg-black !p-0">
-                    <UploadImageDialogue
-                        form={form}
-                        currentQuestionIndex={currentQuestionIndex}
-                        currentQuestionImageIndex={currentQuestionImageIndex}
-                        title="Upload Image"
-                    />
+                <div className="relative flex h-80 w-full items-center justify-center bg-black !p-0">
+                    {getValues(
+                        `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+                    ) && (
+                        <img
+                            src={getValues(
+                                `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+                            )}
+                            alt="logo"
+                            className="h-64 w-96"
+                        />
+                    )}
+
+                    {!getValues(
+                        `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+                    ) && (
+                        <UploadImageDialogue
+                            form={form}
+                            currentQuestionIndex={currentQuestionIndex}
+                            currentQuestionImageIndex={currentQuestionImageIndex}
+                            title="Upload Image"
+                        />
+                    )}
                 </div>
                 <div className="flex gap-4 p-4">
                     <FormField
@@ -55,7 +111,7 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
                         title="Change Image"
                     />
 
-                    <Button variant="outline" className="p-0 px-3">
+                    <Button variant="outline" className="p-0 px-3" onClick={handleRemovePicture}>
                         <TrashSimple size={32} className="text-red-500" />
                     </Button>
                 </div>

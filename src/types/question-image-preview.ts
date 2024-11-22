@@ -9,4 +9,5 @@ export interface QuestionImagePreviewDialogueProps {
     form: UseFormReturn<QuestionFormSchemaType>; // Type for the form
     currentQuestionIndex: number; // Type for the current question index
     currentQuestionImageIndex: number; // Type for the current image index
+    setCurrentQuestionImageIndex: React.Dispatch<React.SetStateAction<number>>;
 }

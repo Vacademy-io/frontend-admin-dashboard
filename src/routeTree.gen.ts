@@ -10,65 +10,65 @@
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as DashboardIndexImport } from "./routes/dashboard/index";
-import { Route as DashboardAssessmentQuestionPapersIndexImport } from "./routes/dashboard/assessment/question-papers/index";
-import { Route as DashboardAssessmentQuestionPapersViewIndexImport } from "./routes/dashboard/assessment/question-papers/view/index";
+import { Route as rootRoute } from "./routes/__root"
+import { Route as DashboardIndexImport } from "./routes/dashboard/index"
+import { Route as DashboardAssessmentQuestionPapersIndexImport } from "./routes/dashboard/assessment/question-papers/index"
+import { Route as DashboardAssessmentQuestionPapersViewIndexImport } from "./routes/dashboard/assessment/question-papers/view/index"
 
 // Create/Update Routes
 
 const DashboardIndexRoute = DashboardIndexImport.update({
-    path: "/dashboard/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/dashboard/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const DashboardAssessmentQuestionPapersIndexRoute =
-    DashboardAssessmentQuestionPapersIndexImport.update({
-        path: "/dashboard/assessment/question-papers/",
-        getParentRoute: () => rootRoute,
-    } as any);
+  DashboardAssessmentQuestionPapersIndexImport.update({
+    path: "/dashboard/assessment/question-papers/",
+    getParentRoute: () => rootRoute,
+  } as any)
 
 const DashboardAssessmentQuestionPapersViewIndexRoute =
-    DashboardAssessmentQuestionPapersViewIndexImport.update({
-        path: "/dashboard/assessment/question-papers/view/",
-        getParentRoute: () => rootRoute,
-    } as any);
+  DashboardAssessmentQuestionPapersViewIndexImport.update({
+    path: "/dashboard/assessment/question-papers/view/",
+    getParentRoute: () => rootRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module "@tanstack/react-router" {
-    interface FileRoutesByPath {
-        "/dashboard/": {
-            id: "/dashboard/";
-            path: "/dashboard";
-            fullPath: "/dashboard";
-            preLoaderRoute: typeof DashboardIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/dashboard/assessment/question-papers/": {
-            id: "/dashboard/assessment/question-papers/";
-            path: "/dashboard/assessment/question-papers";
-            fullPath: "/dashboard/assessment/question-papers";
-            preLoaderRoute: typeof DashboardAssessmentQuestionPapersIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/dashboard/assessment/question-papers/view/": {
-            id: "/dashboard/assessment/question-papers/view/";
-            path: "/dashboard/assessment/question-papers/view";
-            fullPath: "/dashboard/assessment/question-papers/view";
-            preLoaderRoute: typeof DashboardAssessmentQuestionPapersViewIndexImport;
-            parentRoute: typeof rootRoute;
-        };
+  interface FileRoutesByPath {
+    "/dashboard/": {
+      id: "/dashboard/"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof DashboardIndexImport
+      parentRoute: typeof rootRoute
     }
+    "/dashboard/assessment/question-papers/": {
+      id: "/dashboard/assessment/question-papers/"
+      path: "/dashboard/assessment/question-papers"
+      fullPath: "/dashboard/assessment/question-papers"
+      preLoaderRoute: typeof DashboardAssessmentQuestionPapersIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/dashboard/assessment/question-papers/view/": {
+      id: "/dashboard/assessment/question-papers/view/"
+      path: "/dashboard/assessment/question-papers/view"
+      fullPath: "/dashboard/assessment/question-papers/view"
+      preLoaderRoute: typeof DashboardAssessmentQuestionPapersViewIndexImport
+      parentRoute: typeof rootRoute
+    }
+  }
 }
 
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
-    DashboardIndexRoute,
-    DashboardAssessmentQuestionPapersIndexRoute,
-    DashboardAssessmentQuestionPapersViewIndexRoute,
-});
+  DashboardIndexRoute,
+  DashboardAssessmentQuestionPapersIndexRoute,
+  DashboardAssessmentQuestionPapersViewIndexRoute,
+})
 
 /* prettier-ignore-end */
 

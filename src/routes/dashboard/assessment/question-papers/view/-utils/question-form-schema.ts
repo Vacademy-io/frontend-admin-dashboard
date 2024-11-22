@@ -41,6 +41,7 @@ export const questionFormSchema = z.object({
                         required_error: "Image title is required",
                         invalid_type_error: "Image title must be a string",
                     }),
+                    imageFile: z.string().optional(),
                     isDeleted: z.boolean({
                         required_error: "isDeleted is required",
                         invalid_type_error: "isDeleted must be a boolean",

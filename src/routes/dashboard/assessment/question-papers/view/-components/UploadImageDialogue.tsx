@@ -14,10 +14,28 @@ const UploadImageDialogue: React.FC<UploadImageDialogueProps> = ({
     title,
     triggerButton,
 }) => {
+    const { getValues, setValue } = form;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const handleFileSubmit = (file: File) => {
-        console.log("Uploaded file:", file);
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
+            file.name,
+        );
+
+        // Generate the image preview URL
+        const imageUrl = URL.createObjectURL(file);
+
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+            imageUrl,
+        );
+    };
+
+    const handleFileSelect = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click(); // Trigger the file input click
+        }
     };
 
     return (
@@ -25,7 +43,7 @@ const UploadImageDialogue: React.FC<UploadImageDialogueProps> = ({
             <DialogTrigger>
                 {triggerButton ? triggerButton : <Button variant="outline">{title}</Button>}
             </DialogTrigger>
-            <DialogContent className="flex flex-col !gap-0 p-0">
+            <DialogContent className="flex flex-col gap-2 p-0">
                 <h1 className="rounded-md bg-primary-100 p-4 font-bold text-primary-500">
                     {title}
                 </h1>
@@ -45,15 +63,22 @@ const UploadImageDialogue: React.FC<UploadImageDialogueProps> = ({
                             </FormItem>
                         )}
                     />
-                    <Button className="bg-primary-500">
+                    <Button
+                        className="bg-primary-500 p-3"
+                        disabled={
+                            !getValues(
+                                `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
+                            )
+                        }
+                    >
                         <Check size={32} className="text-white" />
                     </Button>
                 </div>
                 <div className="text-center">
                     <h1>OR</h1>
                 </div>
-                <div className="py-3 text-center">
-                    <Button variant="outline">
+                <div className="mb-2 py-3 text-center">
+                    <Button variant="outline" onClick={handleFileSelect}>
                         Upload From Device
                         <FileUploadComponent
                             fileInputRef={fileInputRef}

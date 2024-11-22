@@ -29,7 +29,7 @@ export const Route = createFileRoute("/dashboard/assessment/question-papers/view
 function ViewQuestionPaperComponent() {
     const [isHeaderEditable, setIsHeaderEditable] = useState(false); // State to toggle edit mode
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [currentQuestionImageIndex] = useState(0);
+    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
 
     const form = useForm<z.infer<typeof questionFormSchema>>({
         resolver: zodResolver(questionFormSchema),
@@ -42,14 +42,7 @@ function ViewQuestionPaperComponent() {
                     questionId: "",
                     questionName: "",
                     explanation: "",
-                    imageDetails: [
-                        {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            isDeleted: false,
-                        },
-                    ],
+                    imageDetails: [],
                     option1: {
                         name: "",
                         isSelected: false,
@@ -72,7 +65,7 @@ function ViewQuestionPaperComponent() {
     });
 
     const { control, getValues, setValue } = form;
-    console.log(getValues("questions"));
+    const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
 
     function onSubmit(values: z.infer<typeof questionFormSchema>) {
         console.log(values);
@@ -90,14 +83,7 @@ function ViewQuestionPaperComponent() {
             questionId: "",
             questionName: "",
             explanation: "",
-            imageDetails: [
-                {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    isDeleted: false,
-                },
-            ],
+            imageDetails: [],
             option1: {
                 name: "",
                 isSelected: false,
@@ -117,13 +103,6 @@ function ViewQuestionPaperComponent() {
         });
         setCurrentQuestionIndex(fields.length);
     };
-
-    useEffect(() => {
-        setValue(
-            `questions.${currentQuestionIndex}`,
-            getValues(`questions.${currentQuestionIndex}`),
-        );
-    }, [currentQuestionIndex]);
 
     // Function to handle page navigation by question number
     const handlePageClick = (pageIndex: number) => {
@@ -158,6 +137,39 @@ function ViewQuestionPaperComponent() {
     };
 
     const paginationRange = getPaginationRange();
+
+    const [options, setOptions] = useState([false, false, false, false]);
+
+    const handleOptionToggle = (idx: number) => {
+        const newOptions = options.map((option, index) => (index === idx ? !option : option));
+        setOptions(newOptions);
+    };
+
+    const handleRemovePicture = (currentQuestionImageIndex: number) => {
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.isDeleted`,
+            true,
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+            "",
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
+            "",
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageTitle`,
+            "",
+        );
+    };
+
+    useEffect(() => {
+        setValue(
+            `questions.${currentQuestionIndex}`,
+            getValues(`questions.${currentQuestionIndex}`),
+        );
+    }, [currentQuestionIndex]);
 
     return (
         <div className="flex w-full flex-col">
@@ -234,35 +246,67 @@ function ViewQuestionPaperComponent() {
                                 )}
                             />
                         </div>
+
                         <div className="flex flex-wrap items-end gap-8">
-                            <div className="flex w-72 flex-col">
-                                <div className="h-72 w-72 items-center justify-center bg-black !p-0"></div>
-                                <div className="flex items-center justify-between pt-2">
-                                    <span className="text-sm">Eye Diagram</span>
-                                    <div className="flex items-center gap-4">
-                                        <UploadImageDialogue
-                                            form={form}
-                                            currentQuestionIndex={currentQuestionIndex}
-                                            currentQuestionImageIndex={currentQuestionImageIndex}
-                                            title="Change Image"
-                                            triggerButton={
-                                                <Button variant="outline" className="p-0 px-2">
-                                                    <PencilSimpleLine size={16} />
-                                                </Button>
-                                            }
-                                        />
-                                        <Button variant="outline" className="p-0 px-2">
-                                            <TrashSimple size={32} className="text-red-500" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
+                            {imageDetails.map((imgDetail, index) => {
+                                // Only render the div if imageFile exists
+                                if (imgDetail.imageFile) {
+                                    return (
+                                        <div className="flex w-72 flex-col" key={index}>
+                                            <div className="h-64 w-72 items-center justify-center bg-black !p-0">
+                                                <img
+                                                    src={imgDetail.imageFile}
+                                                    alt="logo"
+                                                    className="h-64 w-96"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between pt-2">
+                                                <span className="text-sm">
+                                                    {imgDetail.imageTitle}
+                                                </span>
+                                                <div className="flex items-center gap-4">
+                                                    <UploadImageDialogue
+                                                        form={form}
+                                                        currentQuestionIndex={currentQuestionIndex}
+                                                        currentQuestionImageIndex={index}
+                                                        title="Change Image"
+                                                        triggerButton={
+                                                            <Button
+                                                                variant="outline"
+                                                                className="p-0 px-2"
+                                                            >
+                                                                <PencilSimpleLine size={16} />
+                                                            </Button>
+                                                        }
+                                                    />
+                                                    <Button
+                                                        variant="outline"
+                                                        className="p-0 px-2"
+                                                        onClick={() => handleRemovePicture(index)}
+                                                    >
+                                                        <TrashSimple
+                                                            size={32}
+                                                            className="text-red-500"
+                                                        />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                // Return null if imageFile doesn't exist
+                                return null;
+                            })}
+
                             <QuestionImagePreviewDialogue
                                 form={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 currentQuestionImageIndex={currentQuestionImageIndex}
+                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </div>
+
                         <div className="mt-2 flex w-full flex-col gap-4">
                             <div className="flex items-center justify-between rounded-md bg-neutral-100 p-4">
                                 <div className="flex w-[100%] items-center gap-4">
@@ -280,12 +324,17 @@ function ViewQuestionPaperComponent() {
                                                         onChange={field.onChange}
                                                         className="rounded-none border-none p-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
                                                         placeholder="option 1"
+                                                        disabled={!options[0]}
                                                     />
                                                 </FormControl>
                                             </FormItem>
                                         )}
                                     />
-                                    <PencilSimpleLine size={16} className="text-neutral-400" />
+                                    <PencilSimpleLine
+                                        size={16}
+                                        className="cursor-pointer text-neutral-400"
+                                        onClick={() => handleOptionToggle(0)}
+                                    />
                                 </div>
                                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                                     <FormField
@@ -326,12 +375,17 @@ function ViewQuestionPaperComponent() {
                                                         onChange={field.onChange}
                                                         className="rounded-none border-none p-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
                                                         placeholder="option 2"
+                                                        disabled={!options[1]}
                                                     />
                                                 </FormControl>
                                             </FormItem>
                                         )}
                                     />
-                                    <PencilSimpleLine size={16} className="text-neutral-400" />
+                                    <PencilSimpleLine
+                                        size={16}
+                                        className="cursor-pointer text-neutral-400"
+                                        onClick={() => handleOptionToggle(1)}
+                                    />
                                 </div>
                                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                                     <FormField
@@ -371,12 +425,17 @@ function ViewQuestionPaperComponent() {
                                                         onChange={field.onChange}
                                                         className="rounded-none border-none p-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
                                                         placeholder="option 3"
+                                                        disabled={!options[2]}
                                                     />
                                                 </FormControl>
                                             </FormItem>
                                         )}
                                     />
-                                    <PencilSimpleLine size={16} className="text-neutral-400" />
+                                    <PencilSimpleLine
+                                        size={16}
+                                        className="cursor-pointer text-neutral-400"
+                                        onClick={() => handleOptionToggle(2)}
+                                    />
                                 </div>
                                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                                     <FormField
@@ -416,12 +475,17 @@ function ViewQuestionPaperComponent() {
                                                         onChange={field.onChange}
                                                         className="rounded-none border-none p-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
                                                         placeholder="option 4"
+                                                        disabled={!options[3]}
                                                     />
                                                 </FormControl>
                                             </FormItem>
                                         )}
                                     />
-                                    <PencilSimpleLine size={16} className="text-neutral-400" />
+                                    <PencilSimpleLine
+                                        size={16}
+                                        className="cursor-pointer text-neutral-400"
+                                        onClick={() => handleOptionToggle(3)}
+                                    />
                                 </div>
                                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                                     <FormField
@@ -466,7 +530,7 @@ function ViewQuestionPaperComponent() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center justify-center bg-primary-100 p-4">
+                    <div className="flex flex-wrap items-center justify-between bg-primary-100 p-4">
                         <div className="flex items-center gap-12">
                             <Pagination>
                                 <PaginationContent>
@@ -513,7 +577,7 @@ function ViewQuestionPaperComponent() {
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="border-2 bg-transparent p-0 px-3 hover:bg-transparent"
+                                className="border-2 bg-transparent p-0 px-2 hover:bg-transparent"
                                 onClick={handleAddNewQuestion}
                             >
                                 <Plus size={20} />
