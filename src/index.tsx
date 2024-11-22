@@ -9,6 +9,8 @@ import "./index.css";
 import { ThemeProvider } from "./providers/theme-provider";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { routeTree } from "./routeTree.gen";
+import "./i18n";
+import { Toaster } from "./components/ui/sonner";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,7 @@ if (!rootElement.innerHTML) {
                 <QueryClientProvider client={queryClient}>
                     <SidebarProvider>
                         <RouterProvider router={router} />
+                        <Toaster />
                     </SidebarProvider>
                 </QueryClientProvider>
             </ThemeProvider>

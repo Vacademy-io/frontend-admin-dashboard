@@ -45,11 +45,9 @@ export function Navbar() {
                 </IconContainer>
                 <div className="flex items-center gap-1">
                     <IconContainer className="size-10 cursor-auto p-0">
-                        {/* <img
-                            src="/images/svgs/dummy_profile_photo.svg"
-                            className="size-full rounded-full object-cover"
-                        /> */}
-                        <DummyProfile className="size-full rounded-full object-cover" />
+                        <div className="rounded-full object-cover">
+                            <DummyProfile />
+                        </div>
                     </IconContainer>
                     <div className="cursor-pointer">
                         {dropdown ? (

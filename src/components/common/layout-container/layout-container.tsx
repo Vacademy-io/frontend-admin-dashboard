@@ -12,7 +12,7 @@ export const LayoutContainer = ({
 }) => {
     const { open } = useSidebar();
     return (
-        <div className={`flex w-full ${open ? "gap-8" : "gap-16"}`}>
+        <div className={`flex w-full ${open ? "gap-12" : "gap-16"}`}>
             <div>
                 <MySidebar />
             </div>
