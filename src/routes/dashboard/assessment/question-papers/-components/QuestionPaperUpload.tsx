@@ -9,6 +9,7 @@ import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { File, X } from "phosphor-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 
 export const QuestionPaperUpload = () => {
     const QuestionsLabels = ["(1.)", "1.)", "(1)", "1)"];
@@ -64,7 +65,6 @@ export const QuestionPaperUpload = () => {
                                 _id: index,
                             }))}
                             control={form.control}
-                            className="text-neutral-600"
                             required
                         />
                         <SelectField
@@ -76,7 +76,6 @@ export const QuestionPaperUpload = () => {
                                 _id: index,
                             }))}
                             control={form.control}
-                            className="text-neutral-600"
                             required
                         />
                         <SelectField
@@ -88,7 +87,6 @@ export const QuestionPaperUpload = () => {
                                 _id: index,
                             }))}
                             control={form.control}
-                            className="text-neutral-600"
                             required
                         />
                         <SelectField
@@ -100,7 +98,6 @@ export const QuestionPaperUpload = () => {
                                 _id: index,
                             }))}
                             control={form.control}
-                            className="text-neutral-600"
                             required
                         />
                     </div>
@@ -128,22 +125,22 @@ export const QuestionPaperUpload = () => {
                         </div>
                         <div className="flex w-full flex-col">
                             <div className="flex items-center justify-between">
-                                <p className="text-sm font-bold text-neutral-600">
-                                    10th Class Enrollment.tsx
-                                </p>
-                                <X size={14} className="cursor-pointer text-neutral-600" />
+                                <p className="text-sm font-bold">10th Class Enrollment.tsx</p>
+                                <X size={14} className="cursor-pointer" />
                             </div>
-                            <p className="text-xs text-neutral-600">10 MB / 50 MB</p>
+                            <p className="text-xs">10 MB / 50 MB</p>
                             <div className="flex items-center gap-2">
                                 <Progress value={100} className="w-full bg-primary-500" />
-                                <span className="text-xs text-neutral-600">100%</span>
+                                <span className="text-xs">100%</span>
                             </div>
                         </div>
                     </div>
                     <div className="flex justify-between">
-                        <Button variant="outline" className="w-52 border-2 text-neutral-600">
-                            Preview
-                        </Button>
+                        <Link to="/dashboard/assessment/question-papers/view">
+                            <Button variant="outline" className="w-52 border-2">
+                                Preview
+                            </Button>
+                        </Link>
                         <Button
                             disabled={!form.formState.isValid}
                             type="submit"

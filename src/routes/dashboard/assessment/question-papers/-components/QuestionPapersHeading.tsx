@@ -7,10 +7,16 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { QuestionPaperUpload } from "./QuestionPaperUpload";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const QuestionPapersHeading = () => {
+    const isMobile = useIsMobile();
     return (
-        <div className="flex items-center justify-between gap-10">
+        <div
+            className={`flex items-center justify-between gap-10 ${
+                isMobile ? "flex-wrap gap-4" : ""
+            }`}
+        >
             <div className="flex flex-col">
                 <h1 className="text-[1.25rem] font-bold text-neutral-600">
                     Question Paper Access & Management

@@ -138,6 +138,7 @@
     }
     body {
         @apply bg-background text-foreground;
+        color: #525252;
     }
     /* Chrome, Safari and Opera */
     .no-scrollbar::-webkit-scrollbar {

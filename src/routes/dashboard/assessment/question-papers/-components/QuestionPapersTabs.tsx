@@ -28,8 +28,8 @@ export const QuestionPapersTabs = () => {
 
     return (
         <Tabs value={selectedTab} onValueChange={handleTabChange}>
-            <div className="flex items-center justify-between gap-8">
-                <div className="flex gap-8">
+            <div className="flex flex-wrap items-center justify-between gap-8">
+                <div className="flex flex-wrap gap-8">
                     <TabListComponent selectedTab={selectedTab} />
                     <div className="flex gap-6">
                         <QuestionPapersFilter label="Year/Class" data={YearClassFilterData} />

@@ -3,7 +3,7 @@ import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const TabListComponent = ({ selectedTab }: { selectedTab: string }) => {
     return (
-        <TabsList className="inline-flex h-auto flex-wrap justify-start gap-4 rounded-none border-b-2 !bg-transparent p-0">
+        <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-2 !bg-transparent p-0">
             <TabsTrigger
                 value="All"
                 className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
