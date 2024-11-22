@@ -1,5 +1,5 @@
 import { SidebarMenuItem } from "@/components/ui/sidebar";
-import { SidebarItemProps } from "./types";
+import { SidebarItemProps } from "../../../../types/layout-container-types";
 import { useSidebar } from "@/components/ui/sidebar";
 import { CollapsibleItem } from "./collapsible-item";
 import { NonCollapsibleItem } from "./non-collapsible-item";
