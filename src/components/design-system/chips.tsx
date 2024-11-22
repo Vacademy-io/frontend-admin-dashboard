@@ -58,7 +58,7 @@ const Chips = ({
             {label && (
                 <div
                     className={cn(
-                        "flex items-center",
+                        "flex items-center text-[14px] leading-[22px]",
                         disabled ? "text-neutral-300" : "text-neutral-600",
                     )}
                 >

@@ -17,7 +17,7 @@ export const StudentsListSection = () => {
                     Enroll Student
                 </MyButton>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-start justify-between">
                 <div className="flex flex-wrap items-center gap-6">
                     <MyInput inputType="dropdown" input={sessionValue} setInput={setSessionValue} />
                     <MyInput
