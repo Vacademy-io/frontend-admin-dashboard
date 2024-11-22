@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext, Outlet, redirect } from "@tanstack/react-router";
 import React, { Suspense } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -16,6 +16,14 @@ const TanStackRouterDevtools =
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient;
 }>()({
+    beforeLoad: ({ location }) => {
+        if (location.pathname === "/") {
+            throw redirect({
+                to: "/login",
+            });
+        }
+    },
+
     component: () => (
         <>
             <Outlet />

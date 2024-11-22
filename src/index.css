@@ -139,4 +139,25 @@
     body {
         @apply bg-background text-foreground;
     }
+
+    .error-toast {
+        background-color: #fef2f2 !important; /* danger-100 */
+        color: #4b4b4b !important; /* neutral-600 */
+    }
+
+    .error-toast > div {
+        color: #f64c4c !important; /* danger-600 */
+        font-weight: 600 !important;
+        font-size: 16px !important;
+    }
+    .success-toast {
+        background-color: #f2faf6 !important; /* danger-100 */
+        color: #4b4b4b !important; /* neutral-600 */
+    }
+
+    .success-toast > div {
+        color: #47b881 !important; /* danger-600 */
+        font-weight: 600 !important;
+        font-size: 16px !important;
+    }
 }
