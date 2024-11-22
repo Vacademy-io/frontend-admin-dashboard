@@ -29,8 +29,7 @@ export const MySidebar = () => {
                             state == "expanded" ? "pl-4" : "pl-0"
                         }`}
                     >
-                        {/* <img src="/images/svgs/ssdc_logo.svg" width={48} height={48}></img> */}
-                        <SSDC_Logo width={48} height={48} />
+                        <SSDC_Logo />
                         <SidebarGroup
                             className={`text-[18px] font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}
                         >
