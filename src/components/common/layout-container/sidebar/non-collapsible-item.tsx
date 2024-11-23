@@ -36,7 +36,7 @@ export const NonCollapsibleItem = ({ icon, title, to }: SidebarItemProps) => {
             <SidebarGroup
                 className={`${
                     hover || currentPage.path == to ? "text-primary-500" : "text-neutral-600"
-                } text-body font-regular group-data-[collapsible=icon]:hidden`}
+                } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
             >
                 {title}
             </SidebarGroup>

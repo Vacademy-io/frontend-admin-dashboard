@@ -29,6 +29,10 @@ export const StudentsListSection = () => {
                     <FilterChips label="Batches"></FilterChips>
                     <FilterChips label="Status"></FilterChips>
                     <FilterChips label="Gender"></FilterChips>
+
+                    {/* <FilterChips label="Batches"></FilterChips>
+                    <StatusChips status="pending" label="Pending"></StatusChips>
+                    <InputChips leadingIcon={Export} label="Gender"></InputChips> */}
                 </div>
                 <MyButton scale="large" buttonType="secondary" layoutVariant="default">
                     <Export />

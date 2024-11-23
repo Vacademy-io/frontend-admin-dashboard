@@ -14,7 +14,7 @@ const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
     return (
         <div
             className={cn(
-                "flex h-9 min-w-16 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 px-2 text-body font-regular text-neutral-600",
+                "inline-flex h-9 min-w-16 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 px-2 text-body font-regular text-neutral-600",
                 className,
             )}
         >
