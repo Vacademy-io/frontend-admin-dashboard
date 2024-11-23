@@ -14,7 +14,7 @@ const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
     return (
         <div
             className={cn(
-                "inline-flex h-9 min-w-16 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 px-2 text-body font-regular text-neutral-600",
+                "inline-flex h-8 flex-shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 px-3 py-[6px] text-body font-regular text-neutral-600",
                 className,
             )}
         >
@@ -50,11 +50,13 @@ const Chips = ({
                         disabled ? "text-neutral-300" : "text-neutral-600",
                     ),
                 })}
+
             {avatarAddress && (
                 <div className="size-5 overflow-hidden rounded-full">
                     <img src={avatarAddress} className="size-5 object-cover" alt="avatar" />
                 </div>
             )}
+
             {label && (
                 <div
                     className={cn(
@@ -67,10 +69,7 @@ const Chips = ({
             )}
             {trailingIcon &&
                 React.createElement(trailingIcon, {
-                    className: cn(
-                        "size-[18px]",
-                        disabled ? "text-neutral-300" : "text-neutral-600",
-                    ),
+                    className: cn("size-4", disabled ? "text-neutral-300" : "text-neutral-600"),
                 })}
         </ChipsWrapper>
     );
@@ -89,11 +88,9 @@ export const StatusChips = ({ status }: StatusChipsProps) => {
     const StatusIcon = statusData.icon;
 
     return (
-        <ChipsWrapper className={cn(statusData.color.bg, "h-[34px] w-[85px]")}>
-            <div className="flex items-center gap-2">
-                <StatusIcon className={statusData.color.icon} weight="fill" />
-                <div className="capitalize">{status}</div>
-            </div>
+        <ChipsWrapper className={cn(statusData.color.bg, "")}>
+            <StatusIcon className={cn(statusData.color.icon, "size-[18px]")} weight="fill" />
+            <div className="text-body capitalize text-neutral-600">{status}</div>
         </ChipsWrapper>
     );
 };
