@@ -112,7 +112,7 @@ export const FilterChips = ({
                                   : "hover:border-primary-500 hover:bg-primary-50",
                         )}
                     >
-                        <div className="flex">
+                        <div className="flex items-center gap-2">
                             {React.createElement(PlusCircle, {
                                 className: cn(
                                     "size-[18px]",
@@ -131,9 +131,12 @@ export const FilterChips = ({
                             <div
                                 className={`${
                                     selectedFilters.length > 0 ? "visible" : "hidden"
-                                } flex`}
+                                } flex items-center gap-2`}
                             >
-                                <Separator orientation="vertical" className="mx-2 h-4" />
+                                <Separator
+                                    orientation="vertical"
+                                    className="mx-2 h-4 bg-neutral-500"
+                                />
                                 <div
                                     className={`inline-flex items-center rounded-md bg-primary-200 px-2.5 py-0.5 text-caption font-normal ${
                                         selectedFilters.length > 0 ? "visible" : "hidden"
