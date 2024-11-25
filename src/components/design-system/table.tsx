@@ -9,6 +9,8 @@ import {
 import { Checkbox } from "../ui/checkbox";
 import { TableDummyData } from "./utils/data/table-dummy-data";
 import { MyButton } from "./button";
+import { ArrowSquareOut, DotsThree } from "@phosphor-icons/react";
+import { StatusChips } from "./chips";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -143,12 +145,12 @@ export function MyTable() {
                                 <TableCell
                                     className={`${cellCommonCss} sticky left-0 bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.checkbox}`}
                                 >
-                                    {row.checkbox}
+                                    <Checkbox className="size-4 border-[#e4e4e4] shadow-none" />
                                 </TableCell>
                                 <TableCell
                                     className={`${cellCommonCss} sticky left-[56px] bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.details}`}
                                 >
-                                    {row.details}
+                                    <ArrowSquareOut className="size-6 text-neutral-600" />
                                 </TableCell>
                                 <TableCell
                                     className={`${cellCommonCss} sticky left-[136px] bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.studentName}`}
@@ -228,7 +230,7 @@ export function MyTable() {
                                 <TableCell
                                     className={`${cellCommonCss} text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.status}`}
                                 >
-                                    {row.status}
+                                    <StatusChips status={row.status} />
                                 </TableCell>
                                 <TableCell
                                     className={`${cellCommonCss} sticky right-0 bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.actions}`}
@@ -239,7 +241,7 @@ export function MyTable() {
                                         layoutVariant="icon"
                                         className="flex items-center justify-center"
                                     >
-                                        {row.actions}
+                                        <DotsThree />
                                     </MyButton>
                                 </TableCell>
                             </TableRow>

@@ -13,6 +13,7 @@ export interface ChipsProps {
     avatarAddress?: string;
     selected?: boolean;
     disabled?: boolean;
+    className?: string;
 }
 
 export interface InputChipsProps extends ChipsProps {}
@@ -20,7 +21,11 @@ export interface InputChipsProps extends ChipsProps {}
 export interface FilterChipsProps {
     label?: React.ReactNode;
     leadingIcon?: Icon;
-    selected?: boolean;
+    filterList?: string[];
+    selectedFilters: string[];
+    setSelectedFilters: React.Dispatch<React.SetStateAction<string[]>>;
+    disabled?: boolean | false;
+    className?: boolean;
 }
 
 export interface StatusChipsProps {

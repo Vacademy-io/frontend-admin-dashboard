@@ -71,7 +71,7 @@ export const MyInput = ({
                             inputSizeVariants[size],
                             error ? "border-danger-600" : "border-neutral-300",
                             inputType === "password" ? "pr-10" : "",
-                            "shadow-none placeholder:text-subtitle placeholder:font-regular hover:border-primary-200 focus:border-primary-500 focus-visible:ring-0",
+                            "text-subtitle shadow-none placeholder:text-subtitle placeholder:font-regular hover:border-primary-200 focus:border-primary-500 focus-visible:ring-0",
                             className,
                         )}
                         value={input}
