@@ -11,6 +11,7 @@ import { TableDummyData } from "./utils/data/table-dummy-data";
 import { MyButton } from "./button";
 import { ArrowSquareOut, DotsThree } from "@phosphor-icons/react";
 import { StatusChips } from "./chips";
+import { useState } from "react";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -37,7 +38,37 @@ const COLUMN_WIDTHS = {
     actions: "min-w-[56px] w-[56px]",
 };
 
-export function MyTable() {
+export function MyTable({ filteredData }: { filteredData: typeof TableDummyData }) {
+    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+    const [selectAll, setSelectAll] = useState<boolean>(false);
+
+    // Handle select all checkbox
+    const handleSelectAll = (checked: boolean | "indeterminate") => {
+        const isChecked = checked === true;
+        setSelectAll(isChecked);
+        if (checked) {
+            // Select all rows
+            setSelectedRows(new Set(filteredData.map((row) => row.id)));
+        } else {
+            // Deselect all rows
+            setSelectedRows(new Set());
+        }
+    };
+
+    // Handle individual row checkbox
+    const handleRowSelect = (rowId: string, checked: boolean | "indeterminate") => {
+        const newSelected = new Set(selectedRows);
+        if (checked) {
+            newSelected.add(rowId);
+        } else {
+            newSelected.delete(rowId);
+        }
+        setSelectedRows(newSelected);
+
+        // Update selectAll state based on whether all rows are selected
+        setSelectAll(newSelected.size === filteredData.length);
+    };
+
     return (
         <div className="w-full rounded-lg border">
             <div className="max-w-full overflow-x-auto rounded-lg">
@@ -47,7 +78,11 @@ export function MyTable() {
                             <TableHead
                                 className={`${headerTextCss} sticky left-0 bg-primary-200 text-subtitle font-semibold text-neutral-600 ${COLUMN_WIDTHS.checkbox}`}
                             >
-                                <Checkbox className="bg-white" />
+                                <Checkbox
+                                    checked={selectAll}
+                                    onCheckedChange={handleSelectAll}
+                                    className="bg-white"
+                                />
                             </TableHead>
                             <TableHead
                                 className={`${headerTextCss} sticky left-[56px] bg-primary-200 text-subtitle font-semibold text-neutral-600 ${COLUMN_WIDTHS.details}`}
@@ -140,12 +175,18 @@ export function MyTable() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {TableDummyData.map((row) => (
+                        {filteredData.map((row) => (
                             <TableRow key={row.id} className="hover:bg-white">
                                 <TableCell
                                     className={`${cellCommonCss} sticky left-0 bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.checkbox}`}
                                 >
-                                    <Checkbox className="size-4 border-[#e4e4e4] shadow-none" />
+                                    <Checkbox
+                                        checked={selectedRows.has(row.id)}
+                                        onCheckedChange={(checked) =>
+                                            handleRowSelect(row.id, checked)
+                                        }
+                                        className="size-4 border-[#e4e4e4] shadow-none"
+                                    />
                                 </TableCell>
                                 <TableCell
                                     className={`${cellCommonCss} sticky left-[56px] bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.details}`}

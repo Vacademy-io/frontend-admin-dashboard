@@ -5,15 +5,19 @@ import { Export, MagnifyingGlass } from "@phosphor-icons/react";
 import { MyTable } from "@/components/design-system/table";
 import { MyDropdown } from "./dropdown";
 import { Filters } from "./filters";
+import { TableDummyData } from "@/components/design-system/utils/data/table-dummy-data";
 
 export const StudentsListSection = () => {
     /*An API which will return a list containing all the sessions and their respected students data or 2 apis for both the operations*/
-    const sessionlist = ["2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"];
 
     const [currentSession, setCurrentSession] = useState<string>("2024-2025");
-
     const [searchInput, setSearchInput] = useState("");
+    const [selectedBatches, setSelectedBatches] = useState<string[]>([]);
+    const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
+    const [selectedGender, setSelectedGender] = useState<string[]>([]);
+    const [selectedSessionExpiry, setSelectedSessionExpiry] = useState<string[]>([]);
 
+    const sessionlist = ["2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"];
     const filters = [
         {
             label: "Batches",
@@ -30,7 +34,7 @@ export const StudentsListSection = () => {
         },
         {
             label: "Status",
-            filters: ["Active", "Inactive"],
+            filters: ["active", "inactive"],
         },
         {
             label: "Gender",
@@ -41,6 +45,53 @@ export const StudentsListSection = () => {
             filters: ["Above Session Threshold", "Below Session Threshold", "Session Expired"],
         },
     ];
+
+    const handleFilterChange = (filterType: string, values: string[]) => {
+        switch (filterType) {
+            case "Batches":
+                setSelectedBatches(values);
+                break;
+            case "Status":
+                setSelectedStatus(values);
+                break;
+            case "Gender":
+                setSelectedGender(values);
+                break;
+            case "Session Expiry":
+                setSelectedSessionExpiry(values);
+                break;
+        }
+    };
+
+    const filterData = (data: typeof TableDummyData) => {
+        return data.filter((row) => {
+            const searchMatch =
+                searchInput === "" ||
+                row.studentName.toLowerCase().includes(searchInput.toLowerCase()) ||
+                row.enrollmentNumber.toLowerCase().includes(searchInput.toLowerCase());
+
+            const batchMatch = selectedBatches.length === 0 || selectedBatches.includes(row.batch);
+            const statusMatch = selectedStatus.length === 0 || selectedStatus.includes(row.status);
+            const genderMatch = selectedGender.length === 0 || selectedGender.includes(row.gender);
+            const sessionExpiryMatch =
+                selectedSessionExpiry.length === 0 ||
+                selectedSessionExpiry.includes(getSessionExpiryStatus(row.sessionExpiry));
+
+            return searchMatch && batchMatch && statusMatch && genderMatch && sessionExpiryMatch;
+        });
+    };
+
+    // Function to determine session expiry status
+    const getSessionExpiryStatus = (expiryDate: string) => {
+        const today = new Date();
+        const expiry = new Date(expiryDate);
+        const threshold = new Date();
+        threshold.setMonth(threshold.getMonth() + 1); // 1 month threshold
+
+        if (expiry < today) return "Session Expired";
+        if (expiry <= threshold) return "Below Session Threshold";
+        return "Above Session Threshold";
+    };
 
     return (
         <section className="flex max-w-full flex-col gap-6">
@@ -70,7 +121,11 @@ export const StudentsListSection = () => {
                     </div>
 
                     {filters.map((obj, ind) => (
-                        <Filters filterDetails={obj} key={ind} />
+                        <Filters
+                            filterDetails={obj}
+                            key={ind}
+                            onFilterChange={(values) => handleFilterChange(obj.label, values)}
+                        />
                     ))}
                 </div>
                 <MyButton scale="large" buttonType="secondary" layoutVariant="default">
@@ -79,7 +134,7 @@ export const StudentsListSection = () => {
                 </MyButton>
             </div>
             <div className="max-w-full">
-                <MyTable />
+                <MyTable filteredData={filterData(TableDummyData)} />
             </div>
         </section>
     );

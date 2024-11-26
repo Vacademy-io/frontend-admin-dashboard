@@ -4,7 +4,7 @@ export const TableDummyData: TableDataType[] = [
     {
         id: "1",
         studentName: "John Doe",
-        batch: "2023-A",
+        batch: "10th Premium Pro Group 1",
         enrollmentNumber: "EN001",
         collegeSchool: "ABC University",
         gender: "Male",
@@ -23,7 +23,7 @@ export const TableDummyData: TableDataType[] = [
     {
         id: "2",
         studentName: "Sarah Smith",
-        batch: "2023-B",
+        batch: "10th Premium Pro Group 2",
         enrollmentNumber: "EN002",
         collegeSchool: "XYZ College",
         gender: "Female",
@@ -42,7 +42,7 @@ export const TableDummyData: TableDataType[] = [
     {
         id: "3",
         studentName: "Michael Johnson",
-        batch: "2023-A",
+        batch: "10th Premium Pro Group 2",
         enrollmentNumber: "EN003",
         collegeSchool: "PQR Institute",
         gender: "Male",
@@ -61,7 +61,7 @@ export const TableDummyData: TableDataType[] = [
     {
         id: "4",
         studentName: "Emily Brown",
-        batch: "2023-B",
+        batch: "9th Premium Plus Group 1",
         enrollmentNumber: "EN004",
         collegeSchool: "LMN College",
         gender: "Female",
@@ -80,7 +80,7 @@ export const TableDummyData: TableDataType[] = [
     {
         id: "5",
         studentName: "John Doe",
-        batch: "2023-A",
+        batch: "9th Premium Plus Group 1",
         enrollmentNumber: "EN001",
         collegeSchool: "ABC University",
         gender: "Male",
@@ -99,7 +99,7 @@ export const TableDummyData: TableDataType[] = [
     {
         id: "6",
         studentName: "Sarah Smith",
-        batch: "2023-B",
+        batch: "9th Premium Plus Group 1",
         enrollmentNumber: "EN002",
         collegeSchool: "XYZ College",
         gender: "Female",
@@ -118,7 +118,7 @@ export const TableDummyData: TableDataType[] = [
     {
         id: "7",
         studentName: "Michael Johnson",
-        batch: "2023-A",
+        batch: "10th Premium Plus Group 2",
         enrollmentNumber: "EN003",
         collegeSchool: "PQR Institute",
         gender: "Male",
