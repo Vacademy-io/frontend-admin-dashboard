@@ -19,7 +19,7 @@ export const MySidebar = () => {
     return (
         <Sidebar collapsible="icon">
             <SidebarContent
-                className={`sidebar-content flex flex-col gap-14 bg-primary-50 py-10 ${
+                className={`sidebar-content flex flex-col gap-14 border-r-2 border-r-neutral-300 bg-primary-50 py-10 ${
                     state == "expanded" ? "w-[307px]" : "w-28"
                 }`}
             >

@@ -94,7 +94,7 @@ export const StudentsListSection = () => {
     };
 
     return (
-        <section className="flex max-w-full flex-col gap-6">
+        <section className="flex max-w-full flex-col gap-8">
             <div className="flex items-center justify-between">
                 <div className="text-h3 font-semibold">Students List</div>
                 <MyButton scale="large" buttonType="primary" layoutVariant="default">
@@ -102,12 +102,15 @@ export const StudentsListSection = () => {
                 </MyButton>
             </div>
             <div className="flex items-start justify-between">
-                <div className="flex flex-wrap items-center gap-6">
-                    <MyDropdown
-                        currentValue={currentSession}
-                        setCurrentValue={setCurrentSession}
-                        dropdownList={sessionlist}
-                    />
+                <div className="flex flex-wrap items-center gap-6 gap-y-4">
+                    <div className="flex items-center gap-2">
+                        <div className="text-title font-semibold">Session</div>
+                        <MyDropdown
+                            currentValue={currentSession}
+                            setCurrentValue={setCurrentSession}
+                            dropdownList={sessionlist}
+                        />
+                    </div>
 
                     <div className="relative">
                         <MyInput

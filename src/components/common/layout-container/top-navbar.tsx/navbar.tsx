@@ -13,7 +13,14 @@ const IconContainer = ({
     className?: string;
 }) => {
     return (
-        <div className={cn("cursor-pointer rounded-full bg-white p-2", className)}>{children}</div>
+        <div
+            className={cn(
+                "cursor-pointer rounded-full border border-neutral-300 bg-white p-2",
+                className,
+            )}
+        >
+            {children}
+        </div>
     );
 };
 
@@ -44,7 +51,7 @@ export function Navbar() {
                     <Sliders className="size-6" />
                 </IconContainer>
                 <div className="flex items-center gap-1">
-                    <IconContainer className="size-10 cursor-auto p-0">
+                    <IconContainer className="size-10 cursor-auto border-none p-0">
                         <div className="rounded-full object-cover">
                             <DummyProfile />
                         </div>

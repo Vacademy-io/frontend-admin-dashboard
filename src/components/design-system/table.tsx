@@ -81,16 +81,16 @@ export function MyTable({ filteredData }: { filteredData: typeof TableDummyData 
                                 <Checkbox
                                     checked={selectAll}
                                     onCheckedChange={handleSelectAll}
-                                    className="bg-white"
+                                    className="border-neutral-400 bg-white text-neutral-600"
                                 />
                             </TableHead>
                             <TableHead
-                                className={`${headerTextCss} sticky left-[56px] bg-primary-200 text-subtitle font-semibold text-neutral-600 ${COLUMN_WIDTHS.details}`}
+                                className={`${headerTextCss} sticky left-[52px] bg-primary-200 text-subtitle font-semibold text-neutral-600 ${COLUMN_WIDTHS.details}`}
                             >
                                 Details
                             </TableHead>
                             <TableHead
-                                className={`${headerTextCss} sticky left-[136px] bg-primary-200 text-subtitle font-semibold text-neutral-600 ${COLUMN_WIDTHS.studentName}`}
+                                className={`${headerTextCss} sticky left-[130px] bg-primary-200 text-subtitle font-semibold text-neutral-600 ${COLUMN_WIDTHS.studentName}`}
                             >
                                 Student Name
                             </TableHead>
@@ -185,16 +185,16 @@ export function MyTable({ filteredData }: { filteredData: typeof TableDummyData 
                                         onCheckedChange={(checked) =>
                                             handleRowSelect(row.id, checked)
                                         }
-                                        className="size-4 border-[#e4e4e4] shadow-none"
+                                        className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none"
                                     />
                                 </TableCell>
                                 <TableCell
-                                    className={`${cellCommonCss} sticky left-[56px] bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.details}`}
+                                    className={`${cellCommonCss} sticky left-[52px] bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.details}`}
                                 >
                                     <ArrowSquareOut className="size-6 text-neutral-600" />
                                 </TableCell>
                                 <TableCell
-                                    className={`${cellCommonCss} sticky left-[136px] bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.studentName}`}
+                                    className={`${cellCommonCss} sticky left-[130px] bg-white text-body font-regular text-neutral-600 ${COLUMN_WIDTHS.studentName}`}
                                 >
                                     {row.studentName}
                                 </TableCell>

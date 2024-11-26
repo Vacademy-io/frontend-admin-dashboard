@@ -19,9 +19,9 @@ const myButtonVariants = {
     },
     scales: {
         default: {
-            large: "w-60 h-10 px-4 text-subtitle ",
-            medium: "w-[140px] h-9 px-3 text-body ",
-            small: "w-[83px] h-6 px-2 text-caption",
+            large: "min-w-60 h-10 px-4 text-subtitle ",
+            medium: "min-w-[140px] h-9 px-3 text-body ",
+            small: "min-w-[83px] h-6 px-2 text-caption",
         },
         icon: {
             large: "w-10 h-10 !p-0",
