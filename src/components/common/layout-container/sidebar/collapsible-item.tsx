@@ -10,18 +10,10 @@ import { Link } from "@tanstack/react-router";
 
 export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => {
     const [hover, setHover] = useState<boolean>(false);
-    // const [isSelectedInSubItems, setIsSelectedInSubItems] = useState(false);
     const { currentPage, setCurrentPage } = usePageStore();
     const { state, toggleSidebar } = useSidebar(); // Access sidebar state and toggle function
 
     const toggleHover = () => setHover(!hover);
-
-    // Track if selectedItem is within subItems
-    // useEffect(() => {
-    //     if (subItems) {
-    //         setIsSelectedInSubItems(subItems.some((item) => item.subItem === selectedItem));
-    //     }
-    // }, [selectedItem, subItems]);
 
     const [isMatchingCurrentPage, setIsMatchingCurrentPage] = useState<boolean | undefined>(false);
 
@@ -62,7 +54,7 @@ export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => 
                                 hover || isMatchingCurrentPage
                                     ? "text-primary-500"
                                     : "text-neutral-600"
-                            } text-body font-regular group-data-[collapsible=icon]:hidden`}
+                            } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
                         >
                             {title}
                         </SidebarGroup>

@@ -4,7 +4,7 @@ import { MyButtonProps } from "./utils/types/button-types";
 
 // Button Variants Configuration
 const myButtonVariants = {
-    base: "font-normal focus:outline-none focus:ring-2 focus:ring-primary-200 disabled:cursor-not-allowed transition-colors text-subtitle font-semibold",
+    base: "font-normal focus:outline-none  focus:ring-primary-200 disabled:cursor-not-allowed transition-colors text-subtitle font-semibold shadow-none ",
     types: {
         primary:
             "bg-primary-500 !text-neutral-50 font-semibold hover:bg-primary-400 active:bg-[#be5d1d] disabled:bg-[#fad5bd] ",
@@ -24,9 +24,9 @@ const myButtonVariants = {
             small: "w-[83px] h-6 px-2 text-caption",
         },
         icon: {
-            large: "w-10 h-10",
-            medium: "w-9 h-9",
-            small: "w-6 h-6",
+            large: "w-10 h-10 !p-0",
+            medium: "w-9 h-9 !p-0",
+            small: "w-6 h-6 !p-0",
         },
         floating: {
             large: "w-24 h-24 rounded-full",
