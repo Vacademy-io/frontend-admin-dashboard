@@ -6,9 +6,16 @@ import { MyTable } from "@/components/design-system/table";
 import { MyDropdown } from "./dropdown";
 import { Filters } from "./filters";
 import { TableDummyData } from "@/components/design-system/utils/data/table-dummy-data";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { useEffect } from "react";
 
 export const StudentsListSection = () => {
     /*An API which will return a list containing all the sessions and their respected students data or 2 apis for both the operations*/
+
+    const { setNavHeading } = useNavHeadingStore();
+    useEffect(() => {
+        setNavHeading("Students");
+    }, []);
 
     const [currentSession, setCurrentSession] = useState<string>("2024-2025");
     const [searchInput, setSearchInput] = useState("");
@@ -104,7 +111,7 @@ export const StudentsListSection = () => {
             <div className="flex items-start justify-between">
                 <div className="flex flex-wrap items-center gap-6 gap-y-4">
                     <div className="flex items-center gap-2">
-                        <div className="text-title font-semibold">Session</div>
+                        <div className="text-title">Session</div>
                         <MyDropdown
                             currentValue={currentSession}
                             setCurrentValue={setCurrentSession}
