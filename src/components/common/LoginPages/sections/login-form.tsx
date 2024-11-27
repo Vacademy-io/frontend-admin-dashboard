@@ -13,13 +13,13 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 
 type FormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
     const { hasSeenAnimation, setHasSeenAnimation } = useAnimationStore();
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(loginSchema),
@@ -49,7 +49,7 @@ export function LoginForm() {
                 });
                 form.reset();
             } else {
-                navigate({ to: "/dashboard" });
+                router.navigate({ to: "/dashboard" });
             }
         },
         onError: () => {
