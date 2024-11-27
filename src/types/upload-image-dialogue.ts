@@ -7,8 +7,6 @@ type QuestionFormSchemaType = z.infer<typeof questionFormSchema>;
 
 export interface UploadImageDialogueProps {
     form: UseFormReturn<QuestionFormSchemaType>; // Type for the form
-    currentQuestionIndex: number; // Type for the current question index
-    currentQuestionImageIndex: number; // Type for the current image index
     title: string; // Title for the dialogue
     triggerButton?: React.ReactNode; // Optional trigger button
 }

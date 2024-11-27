@@ -6,14 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Check } from "phosphor-react";
 import { useRef } from "react";
 import { UploadImageDialogueProps } from "@/types/upload-image-dialogue";
+import { useQuestionStore } from "../-global-states/question-index";
+import { useQuestionImageStore } from "../-global-states/question-imag-index";
 
 const UploadImageDialogue: React.FC<UploadImageDialogueProps> = ({
     form,
-    currentQuestionIndex,
-    currentQuestionImageIndex,
     title,
     triggerButton,
 }) => {
+    const { currentQuestionIndex } = useQuestionStore();
+    const { currentQuestionImageIndex } = useQuestionImageStore();
     const { getValues, setValue } = form;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 

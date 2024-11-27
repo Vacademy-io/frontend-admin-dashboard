@@ -18,21 +18,16 @@ import {
 export const QuestionPaperTemplateForm = ({
     form,
     currentQuestionIndex,
-    setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
     className,
     isSideBar,
 }: QuestionPaperTemplateFormProps) => {
-    // UseFieldArray to manage questions array
-    console.log(setCurrentQuestionIndex);
-
     const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
     const { control, getValues, setValue } = form;
 
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
+    const allQuestions = getValues("questions") || [];
 
     const [options, setOptions] = useState([false, false, false, false]);
 
@@ -61,15 +56,11 @@ export const QuestionPaperTemplateForm = ({
     };
 
     const handleDeleteSlide = () => {
-        const currentQuestions = getValues("questions");
-        const updatedQuestions = currentQuestions.filter(
-            (_, index) => index !== currentQuestionIndex,
-        );
-        setValue("questions", updatedQuestions);
+        allQuestions.splice(currentQuestionIndex, 1);
+        setValue("questions", allQuestions);
     };
 
     const handleDuplicateSlide = () => {
-        const allQuestions = getValues("questions") || [];
         const questionToDuplicate = allQuestions[currentQuestionIndex];
         if (questionToDuplicate) {
             const duplicatedQuestion = {
@@ -87,6 +78,14 @@ export const QuestionPaperTemplateForm = ({
             setValue("questions", allQuestions);
         }
     };
+
+    if (allQuestions.length === 0) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center">
+                <h1>Nothing to show</h1>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -113,58 +112,60 @@ export const QuestionPaperTemplateForm = ({
                     )}
                 />
             </div>
-            <div className="flex flex-wrap items-end gap-8">
-                {imageDetails.length > 0 &&
-                    imageDetails.map((imgDetail, index) => {
-                        // Only render the div if imageFile exists
-                        if (imgDetail.imageFile) {
-                            return (
-                                <div className="flex w-72 flex-col" key={index}>
-                                    <div className="h-64 w-72 items-center justify-center bg-black !p-0">
-                                        <img
-                                            src={imgDetail.imageFile}
-                                            alt="logo"
-                                            className="h-64 w-96"
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between pt-2">
-                                        <span className="text-sm">{imgDetail.imageTitle}</span>
-                                        <div className="flex items-center gap-4">
-                                            <UploadImageDialogue
-                                                form={form}
-                                                currentQuestionIndex={currentQuestionIndex}
-                                                currentQuestionImageIndex={index}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
+            {!isSideBar && (
+                <div className="flex flex-wrap items-end gap-8">
+                    {Array.isArray(allQuestions) &&
+                        allQuestions.length > 0 &&
+                        Array.isArray(imageDetails) &&
+                        imageDetails.length > 0 &&
+                        imageDetails.map((imgDetail, index) => {
+                            if (imgDetail.imageFile) {
+                                return (
+                                    <div className="flex w-72 flex-col" key={index}>
+                                        <div className="h-64 w-72 items-center justify-center bg-black !p-0">
+                                            <img
+                                                src={imgDetail.imageFile}
+                                                alt="logo"
+                                                className="h-64 w-96"
                                             />
-                                            <Button
-                                                variant="outline"
-                                                className="p-0 px-2"
-                                                onClick={() => handleRemovePicture(index)}
-                                            >
-                                                <TrashSimple size={32} className="text-red-500" />
-                                            </Button>
+                                        </div>
+                                        <div className="flex items-center justify-between pt-2">
+                                            <span className="text-sm">{imgDetail.imageTitle}</span>
+                                            <div className="flex items-center gap-4">
+                                                <UploadImageDialogue
+                                                    form={form}
+                                                    title="Change Image"
+                                                    triggerButton={
+                                                        <Button
+                                                            variant="outline"
+                                                            className="p-0 px-2"
+                                                        >
+                                                            <PencilSimpleLine size={16} />
+                                                        </Button>
+                                                    }
+                                                />
+                                                <Button
+                                                    variant="outline"
+                                                    className="p-0 px-2"
+                                                    onClick={() => handleRemovePicture(index)}
+                                                >
+                                                    <TrashSimple
+                                                        size={32}
+                                                        className="text-red-500"
+                                                    />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        }
+                                );
+                            }
 
-                        // Return null if imageFile doesn't exist
-                        return null;
-                    })}
-
-                <QuestionImagePreviewDialogue
-                    form={form}
-                    currentQuestionIndex={currentQuestionIndex}
-                    currentQuestionImageIndex={currentQuestionImageIndex}
-                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
-                />
-            </div>
+                            // Return null if imageFile doesn't exist
+                            return null;
+                        })}
+                    <QuestionImagePreviewDialogue form={form} />
+                </div>
+            )}
             <div className="flex w-full flex-grow flex-col gap-4">
                 <div className="flex gap-4">
                     <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
@@ -371,25 +372,27 @@ export const QuestionPaperTemplateForm = ({
                     </div>
                 </div>
             </div>
-            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>Exp:</span>
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.explanation`}
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormControl>
-                                <Textarea
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    placeholder="Enter Explanation"
-                                    className="h-20 !resize-none"
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
-            </div>
+            {!isSideBar && (
+                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                    <span>Exp:</span>
+                    <FormField
+                        control={control}
+                        name={`questions.${currentQuestionIndex}.explanation`}
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <Textarea
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Enter Explanation"
+                                        className="h-20 !resize-none"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
             {isSideBar && (
                 <div className="absolute bottom-10 right-12">
                     {(isDropdownVisible || isDropdownOpen) && (

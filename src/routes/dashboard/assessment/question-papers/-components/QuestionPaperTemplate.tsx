@@ -12,11 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import { SSDCLogo } from "@/svgs";
 import { QuestionPaperTemplateForm } from "./QuestionPaperTemplateForm";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
+import { useQuestionStore } from "../-global-states/question-index";
 
 export function QuestionPaperTemplate() {
     const [isHeaderEditable, setIsHeaderEditable] = useState(false); // State to toggle edit mode
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
+    const { currentQuestionIndex, setCurrentQuestionIndex } = useQuestionStore();
 
     const form = useForm<z.infer<typeof questionFormSchema>>({
         resolver: zodResolver(questionFormSchema),
@@ -26,7 +26,7 @@ export function QuestionPaperTemplate() {
             createdDate: new Date().toLocaleDateString(), // Default to the current date
             questions: [
                 {
-                    questionId: "Slide 1",
+                    questionId: "",
                     questionName: "",
                     explanation: "",
                     imageDetails: [],
@@ -174,7 +174,7 @@ export function QuestionPaperTemplate() {
                                                     key={index}
                                                     onClick={() => handlePageClick(index)}
                                                     className={`w-[600px] origin-top-left scale-[0.2] rounded-xl border-4 bg-primary-50 p-6 ${
-                                                        index !== 0 ? "!mb-0 mt-[-32.5rem]" : ""
+                                                        index !== 0 ? "!mb-0 mt-[-23.8rem]" : ""
                                                     } ${
                                                         currentQuestionIndex === index
                                                             ? "border-primary-500 bg-none"
@@ -190,26 +190,14 @@ export function QuestionPaperTemplate() {
                                                             <SortableDragHandle
                                                                 variant="outline"
                                                                 size="icon"
-                                                                className="size-32"
+                                                                className="size-24"
                                                             >
-                                                                <DotsSixVertical
-                                                                    size={128}
-                                                                    className="text-bold size-32"
-                                                                />
+                                                                <DotsSixVertical className="text-bold !size-16" />
                                                             </SortableDragHandle>
                                                         </div>
                                                         <QuestionPaperTemplateForm
                                                             form={form}
                                                             currentQuestionIndex={index}
-                                                            setCurrentQuestionIndex={
-                                                                setCurrentQuestionIndex
-                                                            }
-                                                            currentQuestionImageIndex={
-                                                                currentQuestionImageIndex
-                                                            }
-                                                            setCurrentQuestionImageIndex={
-                                                                setCurrentQuestionImageIndex
-                                                            }
                                                             className="relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4"
                                                             isSideBar={true}
                                                         />
@@ -227,14 +215,11 @@ export function QuestionPaperTemplate() {
                                     Add Question
                                 </Button>
                             </div>
-                            <Separator orientation="vertical" className="ml-4" />
+                            <Separator orientation="vertical" className="ml-4 h-screen" />
                             <QuestionPaperTemplateForm
                                 form={form}
-                                currentQuestionIndex={currentQuestionIndex}
-                                setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                currentQuestionImageIndex={currentQuestionImageIndex}
-                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                 className="flex w-full flex-col gap-6 pr-6 pt-4"
+                                currentQuestionIndex={currentQuestionIndex}
                             />
                         </div>
                     </form>
