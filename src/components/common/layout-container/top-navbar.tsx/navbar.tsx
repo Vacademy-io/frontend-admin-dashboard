@@ -2,8 +2,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useState } from "react";
 import { MagnifyingGlass, Bell, Sliders, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
-import { usePageStore } from "@/stores/usePageStore";
 import { DummyProfile } from "@/assets/svgs";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 
 const IconContainer = ({
     children,
@@ -27,14 +27,14 @@ const IconContainer = ({
 export function Navbar() {
     const notifications = true;
     const [dropdown, setDropdown] = useState<boolean>(true);
-    const { currentPage } = usePageStore();
+    const { navHeading } = useNavHeadingStore();
 
     return (
         <div className="flex h-24 items-center justify-between bg-neutral-50 px-8 py-6">
             <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div className="border-l border-neutral-500 px-4 text-h2 font-semibold text-neutral-600">
-                    {currentPage.title}
+                    {navHeading}
                 </div>
             </div>
             <div className="flex gap-6 text-neutral-600">
