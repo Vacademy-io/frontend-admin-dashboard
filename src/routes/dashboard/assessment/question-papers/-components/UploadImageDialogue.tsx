@@ -7,7 +7,7 @@ import { Check } from "phosphor-react";
 import { useRef } from "react";
 import { UploadImageDialogueProps } from "@/types/upload-image-dialogue";
 import { useQuestionStore } from "../-global-states/question-index";
-import { useQuestionImageStore } from "../-global-states/question-imag-index";
+import { useQuestionImageStore } from "../-global-states/question-image-index";
 
 const UploadImageDialogue: React.FC<UploadImageDialogueProps> = ({
     form,

@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DotsSixVertical, PencilSimpleLine } from "phosphor-react";
 import { useEffect, useState } from "react";
-import { FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { FormProvider, UseFormReturn, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -13,17 +13,26 @@ import { SSDCLogo } from "@/svgs";
 import { QuestionPaperTemplateForm } from "./QuestionPaperTemplateForm";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { useQuestionStore } from "../-global-states/question-index";
+import { formatStructure } from "../-utils/helper";
+import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 
-export function QuestionPaperTemplate() {
+type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+interface QuestionPaperTemplateProps {
+    questionPaperUploadForm: UseFormReturn<QuestionPaperForm>;
+}
+
+export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaperTemplateProps) {
+    const { getValues: getQuestionPaperUploadForm } = questionPaperUploadForm;
+    const title = getQuestionPaperUploadForm("title") || "";
+    const questionsType = getQuestionPaperUploadForm("questions") || "";
+
     const [isHeaderEditable, setIsHeaderEditable] = useState(false); // State to toggle edit mode
     const { currentQuestionIndex, setCurrentQuestionIndex } = useQuestionStore();
 
     const form = useForm<z.infer<typeof questionFormSchema>>({
         resolver: zodResolver(questionFormSchema),
         defaultValues: {
-            title: "",
-            description: "",
-            createdDate: new Date().toLocaleDateString(), // Default to the current date
+            title: `${title}`,
             questions: [
                 {
                     questionId: "",
@@ -101,6 +110,24 @@ export function QuestionPaperTemplate() {
             getValues(`questions.${currentQuestionIndex}`),
         );
     }, [currentQuestionIndex]);
+
+    useEffect(() => {
+        form.reset({
+            title: title,
+            questions: [
+                {
+                    questionId: "",
+                    questionName: "",
+                    explanation: "",
+                    imageDetails: [],
+                    option1: { name: "", isSelected: false },
+                    option2: { name: "", isSelected: false },
+                    option3: { name: "", isSelected: false },
+                    option4: { name: "", isSelected: false },
+                },
+            ],
+        });
+    }, [title, form]);
 
     return (
         <Dialog>
@@ -183,9 +210,13 @@ export function QuestionPaperTemplate() {
                                                     onMouseEnter={() => handlePageClick(index)}
                                                 >
                                                     <div className="flex flex-col">
-                                                        <div className="flex justify-between">
+                                                        <div className="flex items-center justify-between">
                                                             <h1 className="text-5xl font-bold">
-                                                                Question {index + 1}
+                                                                {formatStructure(
+                                                                    questionsType,
+                                                                    index + 1,
+                                                                )}
+                                                                &nbsp;Question
                                                             </h1>
                                                             <SortableDragHandle
                                                                 variant="outline"
@@ -200,6 +231,9 @@ export function QuestionPaperTemplate() {
                                                             currentQuestionIndex={index}
                                                             className="relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4"
                                                             isSideBar={true}
+                                                            questionPaperUploadForm={
+                                                                questionPaperUploadForm
+                                                            }
                                                         />
                                                     </div>
                                                 </div>
@@ -220,6 +254,7 @@ export function QuestionPaperTemplate() {
                                 form={form}
                                 className="flex w-full flex-col gap-6 pr-6 pt-4"
                                 currentQuestionIndex={currentQuestionIndex}
+                                questionPaperUploadForm={questionPaperUploadForm}
                             />
                         </div>
                     </form>

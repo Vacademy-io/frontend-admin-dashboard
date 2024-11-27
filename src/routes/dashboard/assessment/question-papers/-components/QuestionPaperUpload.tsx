@@ -10,6 +10,7 @@ import { File, X } from "phosphor-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
+import CustomInput from "@/components/design-system/custom-input";
 
 export const QuestionPaperUpload = () => {
     const QuestionsLabels = ["(1.)", "1.)", "(1)", "1)"];
@@ -22,6 +23,7 @@ export const QuestionPaperUpload = () => {
     const form = useForm<z.infer<typeof uploadQuestionPaperFormSchema>>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         defaultValues: {
+            title: "",
             questions: "",
             options: "",
             answers: "",
@@ -135,8 +137,15 @@ export const QuestionPaperUpload = () => {
                             </div>
                         </div>
                     </div>
+                    <CustomInput
+                        control={form.control}
+                        name="title"
+                        label="Title"
+                        placeholder="Enter Title"
+                        required
+                    />
                     <div className="flex justify-between">
-                        <QuestionPaperTemplate />
+                        <QuestionPaperTemplate questionPaperUploadForm={form} />
                         <Button
                             disabled={!form.formState.isValid}
                             type="submit"

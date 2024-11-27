@@ -14,13 +14,21 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatStructure } from "../-utils/helper";
 
 export const QuestionPaperTemplateForm = ({
     form,
     currentQuestionIndex,
     className,
     isSideBar,
+    questionPaperUploadForm,
 }: QuestionPaperTemplateFormProps) => {
+    const { getValues: getQuestionPaperUploadForm } = questionPaperUploadForm;
+    const answersType = getQuestionPaperUploadForm("answers") || "";
+    const explanationsType = getQuestionPaperUploadForm("explanations") || "";
+    const optionsType = getQuestionPaperUploadForm("options") || "";
+    const questionsType = getQuestionPaperUploadForm("questions") || "";
+
     const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
@@ -82,7 +90,7 @@ export const QuestionPaperTemplateForm = ({
     if (allQuestions.length === 0) {
         return (
             <div className="flex h-screen w-full items-center justify-center">
-                <h1>Nothing to show</h1>
+                <h1>Please add a question to show question details</h1>
             </div>
         );
     }
@@ -94,7 +102,9 @@ export const QuestionPaperTemplateForm = ({
             onMouseLeave={() => !isDropdownOpen && setIsDropdownVisible(false)}
         >
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>Question&nbsp;({currentQuestionIndex + 1}.)</span>
+                <span>
+                    Question&nbsp;{formatStructure(questionsType, currentQuestionIndex + 1)}
+                </span>
                 <FormField
                     control={control}
                     name={`questions.${currentQuestionIndex}.questionName`}
@@ -167,11 +177,14 @@ export const QuestionPaperTemplateForm = ({
                 </div>
             )}
             <div className="flex w-full flex-grow flex-col gap-4">
+                <span className="-mb-3">{answersType}</span>
                 <div className="flex gap-4">
                     <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
                         <div className="flex items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                <span className="!p-0 text-sm">(a.)</span>
+                                <span className="!p-0 text-sm">
+                                    {formatStructure(optionsType, "a")}
+                                </span>
                             </div>
                             <FormField
                                 control={control}
@@ -221,7 +234,9 @@ export const QuestionPaperTemplateForm = ({
                     <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
                         <div className="flex items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                <span className="!p-0 text-sm">(a.)</span>
+                                <span className="!p-0 text-sm">
+                                    {formatStructure(optionsType, "b")}
+                                </span>
                             </div>
                             <FormField
                                 control={control}
@@ -273,7 +288,9 @@ export const QuestionPaperTemplateForm = ({
                     <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
                         <div className="flex items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                <span className="!p-0 text-sm">(a.)</span>
+                                <span className="!p-0 text-sm">
+                                    {formatStructure(optionsType, "c")}
+                                </span>
                             </div>
                             <FormField
                                 control={control}
@@ -323,7 +340,9 @@ export const QuestionPaperTemplateForm = ({
                     <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
                         <div className="flex items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                <span className="!p-0 text-sm">(a.)</span>
+                                <span className="!p-0 text-sm">
+                                    {formatStructure(optionsType, "d")}
+                                </span>
                             </div>
                             <FormField
                                 control={control}
@@ -374,7 +393,7 @@ export const QuestionPaperTemplateForm = ({
             </div>
             {!isSideBar && (
                 <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                    <span>Exp:</span>
+                    <span>{explanationsType}</span>
                     <FormField
                         control={control}
                         name={`questions.${currentQuestionIndex}.explanation`}

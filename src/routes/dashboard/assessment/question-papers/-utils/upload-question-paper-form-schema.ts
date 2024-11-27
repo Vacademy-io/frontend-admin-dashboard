@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 export const uploadQuestionPaperFormSchema = z.object({
+    title: z.string({
+        required_error: "Title is required",
+        invalid_type_error: "Title must be a string",
+    }),
     questions: z.string({
         required_error: "Question field is required",
         invalid_type_error: "Question field must be a string",
