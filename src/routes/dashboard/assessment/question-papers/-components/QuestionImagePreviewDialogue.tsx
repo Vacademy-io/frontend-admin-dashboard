@@ -47,8 +47,10 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
         };
 
         // Update form state to append the new image to the imageDetails array
-        setValue(`questions.${currentQuestionIndex}.imageDetails`, [...imageDetails, newImage]);
-        setCurrentQuestionImageIndex(imageDetails.length);
+        if (imageDetails) {
+            setValue(`questions.${currentQuestionIndex}.imageDetails`, [...imageDetails, newImage]);
+            setCurrentQuestionImageIndex(imageDetails.length);
+        }
     };
 
     return (
@@ -107,5 +109,4 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
         </Dialog>
     );
 };
-
 export default QuestionImagePreviewDialogue;

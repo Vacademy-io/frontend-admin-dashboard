@@ -1,4 +1,4 @@
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import UploadImageDialogue from "./UploadImageDialogue";
 import { Button } from "@/components/ui/button";
@@ -118,6 +118,7 @@ export const QuestionPaperTemplateForm = ({
                                     className="h-20 !resize-none"
                                 />
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -200,6 +201,7 @@ export const QuestionPaperTemplateForm = ({
                                                 disabled={!options[0]}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -226,6 +228,7 @@ export const QuestionPaperTemplateForm = ({
                                                 }`}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -252,6 +255,7 @@ export const QuestionPaperTemplateForm = ({
                                                 disabled={!options[1]}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -278,6 +282,7 @@ export const QuestionPaperTemplateForm = ({
                                                 }`}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -306,6 +311,7 @@ export const QuestionPaperTemplateForm = ({
                                                 disabled={!options[2]}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -332,6 +338,7 @@ export const QuestionPaperTemplateForm = ({
                                                 }`}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -358,6 +365,7 @@ export const QuestionPaperTemplateForm = ({
                                                 disabled={!options[3]}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -384,6 +392,7 @@ export const QuestionPaperTemplateForm = ({
                                                 }`}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -407,6 +416,7 @@ export const QuestionPaperTemplateForm = ({
                                         className="h-20 !resize-none"
                                     />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />

@@ -1,4 +1,4 @@
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DotsSixVertical, PencilSimpleLine } from "phosphor-react";
@@ -156,6 +156,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                     disabled={!isHeaderEditable}
                                                 />
                                             </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
