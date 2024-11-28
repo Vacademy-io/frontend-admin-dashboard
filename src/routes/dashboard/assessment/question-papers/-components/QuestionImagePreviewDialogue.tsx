@@ -42,7 +42,7 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
             imageId: "",
             imageName: "",
             imageTitle: "",
-            imageFile: undefined, // or an empty string if you prefer
+            imageFile: "", // or an empty string if you prefer
             isDeleted: false,
         };
 

@@ -103,6 +103,9 @@ importers:
             lucide-react:
                 specifier: ^0.456.0
                 version: 0.456.0(react@18.3.1)
+            next-themes:
+                specifier: ^0.4.3
+                version: 0.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
             phosphor-react:
                 specifier: ^1.4.1
                 version: 1.4.1(react@18.3.1)
@@ -127,6 +130,9 @@ importers:
             react-icons:
                 specifier: ^5.3.0
                 version: 5.3.0(react@18.3.1)
+            sonner:
+                specifier: ^1.7.0
+                version: 1.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
             tailwind-merge:
                 specifier: ^2.5.4
                 version: 2.5.4
@@ -4365,6 +4371,15 @@ packages:
                 integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==,
             }
 
+    next-themes@0.4.3:
+        resolution:
+            {
+                integrity: sha512-nG84VPkTdUHR2YeD89YchvV4I9RbiMAql3GiLEQlPvq1ioaqPaIReK+yMRdg/zgiXws620qS1rU30TiWmmG9lA==,
+            }
+        peerDependencies:
+            react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+            react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+
     no-case@3.0.4:
         resolution:
             {
@@ -5230,6 +5245,15 @@ packages:
             {
                 integrity: sha512-LAOh4z89bGQvl9pFfNF8V146i7o7/CqFPbqzYgP+yYzDIDeS9HaNFtXABamRW+AQzEVODcvE79ljJ+8a9YSdMg==,
             }
+
+    sonner@1.7.0:
+        resolution:
+            {
+                integrity: sha512-W6dH7m5MujEPyug3lpI2l3TC3Pp1+LTgK0Efg+IHDrBbtEjyCmCHHo6yfNBOsf1tFZ6zf+jceWwB38baC8yO9g==,
+            }
+        peerDependencies:
+            react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+            react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
 
     source-map-js@1.2.0:
         resolution:
@@ -8654,6 +8678,11 @@ snapshots:
 
     natural-compare@1.4.0: {}
 
+    next-themes@0.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+        dependencies:
+            react: 18.3.1
+            react-dom: 18.3.1(react@18.3.1)
+
     no-case@3.0.4:
         dependencies:
             lower-case: 2.0.2
@@ -9149,6 +9178,11 @@ snapshots:
         dependencies:
             dot-case: 3.0.4
             tslib: 2.6.3
+
+    sonner@1.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+        dependencies:
+            react: 18.3.1
+            react-dom: 18.3.1(react@18.3.1)
 
     source-map-js@1.2.0: {}
 
