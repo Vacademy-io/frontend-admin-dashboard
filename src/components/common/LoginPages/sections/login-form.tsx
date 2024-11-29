@@ -2,7 +2,7 @@ import { Heading } from "@/components/common/LoginPages/ui/heading";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { Link } from "@tanstack/react-router";
-import { loginSchema } from "@/schemas/login";
+import { loginSchema } from "@/schemas/login/login";
 import { useEffect } from "react";
 import { SplashScreen } from "@/components/common/LoginPages/layout/splash-container";
 import { loginUser } from "@/hooks/dummy/login/login-button";

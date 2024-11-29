@@ -5,99 +5,46 @@ import { Export, MagnifyingGlass } from "@phosphor-icons/react";
 import { MyTable } from "@/components/design-system/table";
 import { MyDropdown } from "./dropdown";
 import { Filters } from "./filters";
-import { TableDummyData } from "@/components/design-system/utils/data/table-dummy-data";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
+import { filters } from "@/components/design-system/utils/hooks/dummy/useTable";
+import { sessionlist } from "@/components/design-system/utils/hooks/dummy/useTable";
+
+export const getSessionExpiryStatus = (expiryDate: string) => {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const threshold = new Date();
+    threshold.setMonth(threshold.getMonth() + 1); // 1 month threshold
+
+    if (expiry < today) return "Session Expired";
+    if (expiry <= threshold) return "Below Session Threshold";
+    return "Above Session Threshold";
+};
+
+export type SessionExpiryStatus =
+    | "Session Expired"
+    | "Below Session Threshold"
+    | "Above Session Threshold";
 
 export const StudentsListSection = () => {
     /*An API which will return a list containing all the sessions and their respected students data or 2 apis for both the operations*/
 
     const { setNavHeading } = useNavHeadingStore();
+
+    const [currentSession, setCurrentSession] = useState<string>("2024-2025");
+    const [columnFilters, setColumnFilters] = useState<{ id: string; value: string[] }[]>([]);
+    const [searchInput, setSearchInput] = useState("");
+
     useEffect(() => {
         setNavHeading("Students");
     }, []);
 
-    const [currentSession, setCurrentSession] = useState<string>("2024-2025");
-    const [searchInput, setSearchInput] = useState("");
-    const [selectedBatches, setSelectedBatches] = useState<string[]>([]);
-    const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
-    const [selectedGender, setSelectedGender] = useState<string[]>([]);
-    const [selectedSessionExpiry, setSelectedSessionExpiry] = useState<string[]>([]);
-
-    const sessionlist = ["2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"];
-    const filters = [
-        {
-            label: "Batches",
-            filters: [
-                "10th Premium Pro Group 1",
-                "10th Premium Pro Group 2",
-                "10th Premium Plus Group 1",
-                "10th Premium Plus Group 2",
-                "9th Premium Pro Group 1",
-                "9th Premium Pro Group 2",
-                "9th Premium Plus Group 1",
-                "9th Premium Plus Group 2",
-            ],
-        },
-        {
-            label: "Status",
-            filters: ["active", "inactive"],
-        },
-        {
-            label: "Gender",
-            filters: ["Male", "Female", "Others"],
-        },
-        {
-            label: "Session Expiry",
-            filters: ["Above Session Threshold", "Below Session Threshold", "Session Expired"],
-        },
-    ];
-
-    const handleFilterChange = (filterType: string, values: string[]) => {
-        switch (filterType) {
-            case "Batches":
-                setSelectedBatches(values);
-                break;
-            case "Status":
-                setSelectedStatus(values);
-                break;
-            case "Gender":
-                setSelectedGender(values);
-                break;
-            case "Session Expiry":
-                setSelectedSessionExpiry(values);
-                break;
-        }
-    };
-
-    const filterData = (data: typeof TableDummyData) => {
-        return data.filter((row) => {
-            const searchMatch =
-                searchInput === "" ||
-                row.studentName.toLowerCase().includes(searchInput.toLowerCase()) ||
-                row.enrollmentNumber.toLowerCase().includes(searchInput.toLowerCase());
-
-            const batchMatch = selectedBatches.length === 0 || selectedBatches.includes(row.batch);
-            const statusMatch = selectedStatus.length === 0 || selectedStatus.includes(row.status);
-            const genderMatch = selectedGender.length === 0 || selectedGender.includes(row.gender);
-            const sessionExpiryMatch =
-                selectedSessionExpiry.length === 0 ||
-                selectedSessionExpiry.includes(getSessionExpiryStatus(row.sessionExpiry));
-
-            return searchMatch && batchMatch && statusMatch && genderMatch && sessionExpiryMatch;
+    const handleFilterChange = (filterId: string, values: string[]) => {
+        setColumnFilters((prev) => {
+            const existing = prev.filter((f) => f.id !== filterId);
+            if (values.length === 0) return existing;
+            return [...existing, { id: filterId, value: values }];
         });
-    };
-
-    // Function to determine session expiry status
-    const getSessionExpiryStatus = (expiryDate: string) => {
-        const today = new Date();
-        const expiry = new Date(expiryDate);
-        const threshold = new Date();
-        threshold.setMonth(threshold.getMonth() + 1); // 1 month threshold
-
-        if (expiry < today) return "Session Expired";
-        if (expiry <= threshold) return "Below Session Threshold";
-        return "Above Session Threshold";
     };
 
     return (
@@ -134,7 +81,7 @@ export const StudentsListSection = () => {
                         <Filters
                             filterDetails={obj}
                             key={ind}
-                            onFilterChange={(values) => handleFilterChange(obj.label, values)}
+                            onFilterChange={(values) => handleFilterChange(obj.id, values)}
                         />
                     ))}
                 </div>
@@ -144,7 +91,7 @@ export const StudentsListSection = () => {
                 </MyButton>
             </div>
             <div className="max-w-full">
-                <MyTable filteredData={filterData(TableDummyData)} />
+                <MyTable columnFilters={columnFilters} searchValue={searchInput} />
             </div>
         </section>
     );

@@ -3,7 +3,7 @@ import { Heading } from "@/components/common/LoginPages/ui/heading";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { Link } from "@tanstack/react-router";
-import { setPasswordSchema } from "@/schemas/login";
+import { setPasswordSchema } from "@/schemas/login/login";
 import { z } from "zod";
 import { setPassword } from "@/hooks/dummy/login/reset-password-button";
 import { useForm } from "react-hook-form";

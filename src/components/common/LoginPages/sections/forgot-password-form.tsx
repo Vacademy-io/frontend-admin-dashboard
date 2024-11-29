@@ -2,7 +2,7 @@ import { FormContainer } from "@/components/common/LoginPages/layout/form-contai
 import { Heading } from "@/components/common/LoginPages/ui/heading";
 import { MyInput } from "@/components/design-system/input";
 import { Link } from "@tanstack/react-router";
-import { forgotPasswordSchema } from "@/schemas/login";
+import { forgotPasswordSchema } from "@/schemas/login/login";
 import { z } from "zod";
 import { forgotPassword } from "@/hooks/dummy/login/send-link-button";
 import { sendResetLink } from "@/hooks/dummy/login/reset-link-click";

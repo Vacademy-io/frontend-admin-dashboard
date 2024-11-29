@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import {
     InputChipsProps,
     FilterChipsProps,
-    StatusChipsProps,
     ChipsProps,
     ChipsWrapperProps,
 } from "./utils/types/chips-types";
@@ -20,6 +19,7 @@ import {
 } from "../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Separator } from "../ui/separator";
+import { ActivityStatus } from "./utils/types/chips-types";
 
 const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
     return (
@@ -212,7 +212,7 @@ export const FilterChips = ({
     );
 };
 
-export const StatusChips = ({ status }: StatusChipsProps) => {
+export const StatusChips = ({ status }: { status: ActivityStatus }) => {
     const statusData = ActivityStatusData[status];
     const StatusIcon = statusData.icon;
 

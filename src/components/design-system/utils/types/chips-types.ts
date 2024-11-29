@@ -28,10 +28,10 @@ export interface FilterChipsProps {
     className?: boolean;
 }
 
-export interface StatusChipsProps {
-    label?: React.ReactNode;
-    status: ActivityStatus;
-}
+// export interface StatusChipsProps {
+//     label?: React.ReactNode;
+//     status: ActivityStatus;
+// }
 
 // Status Types
 export type ActivityStatus = "active" | "inactive" | "pending" | "error";
