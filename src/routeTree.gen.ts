@@ -11,12 +11,19 @@
 // Import Routes
 
 import { Route as rootRoute } from "./routes/__root";
+import { Route as StudentsIndexImport } from "./routes/students/index";
 import { Route as LoginIndexImport } from "./routes/login/index";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
+import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
 import { Route as DashboardStudentsIndexImport } from "./routes/dashboard/students/index";
 
 // Create/Update Routes
+
+const StudentsIndexRoute = StudentsIndexImport.update({
+    path: "/students/",
+    getParentRoute: () => rootRoute,
+} as any);
 
 const LoginIndexRoute = LoginIndexImport.update({
     path: "/login/",
@@ -25,6 +32,11 @@ const LoginIndexRoute = LoginIndexImport.update({
 
 const DashboardIndexRoute = DashboardIndexImport.update({
     path: "/dashboard/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
+    path: "/students/students-list/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -56,6 +68,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof LoginIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/students/": {
+            id: "/students/";
+            path: "/students";
+            fullPath: "/students";
+            preLoaderRoute: typeof StudentsIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/dashboard/students/": {
             id: "/dashboard/students/";
             path: "/dashboard/students";
@@ -70,6 +89,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof LoginForgotPasswordIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/students/students-list/": {
+            id: "/students/students-list/";
+            path: "/students/students-list";
+            fullPath: "/students/students-list";
+            preLoaderRoute: typeof StudentsStudentsListIndexImport;
+            parentRoute: typeof rootRoute;
+        };
     }
 }
 
@@ -78,8 +104,10 @@ declare module "@tanstack/react-router" {
 export const routeTree = rootRoute.addChildren({
     DashboardIndexRoute,
     LoginIndexRoute,
+    StudentsIndexRoute,
     DashboardStudentsIndexRoute,
     LoginForgotPasswordIndexRoute,
+    StudentsStudentsListIndexRoute,
 });
 
 /* prettier-ignore-end */
@@ -92,8 +120,10 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/dashboard/",
         "/login/",
+        "/students/",
         "/dashboard/students/",
-        "/login/forgot-password/"
+        "/login/forgot-password/",
+        "/students/students-list/"
       ]
     },
     "/dashboard/": {
@@ -102,11 +132,17 @@ export const routeTree = rootRoute.addChildren({
     "/login/": {
       "filePath": "login/index.tsx"
     },
+    "/students/": {
+      "filePath": "students/index.tsx"
+    },
     "/dashboard/students/": {
       "filePath": "dashboard/students/index.tsx"
     },
     "/login/forgot-password/": {
       "filePath": "login/forgot-password/index.tsx"
+    },
+    "/students/students-list/": {
+      "filePath": "students/students-list/index.tsx"
     }
   }
 }

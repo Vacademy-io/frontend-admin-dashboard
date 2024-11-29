@@ -4,7 +4,7 @@ import { MyButtonProps } from "./utils/types/button-types";
 
 // Button Variants Configuration
 const myButtonVariants = {
-    base: "font-normal focus:outline-none focus:ring-2 focus:ring-primary-200 disabled:cursor-not-allowed transition-colors text-subtitle font-semibold",
+    base: "font-normal shadow-none disabled:cursor-not-allowed transition-colors text-subtitle font-semibold",
     types: {
         primary:
             "bg-primary-500 !text-neutral-50 font-semibold hover:bg-primary-400 active:bg-[#be5d1d] disabled:bg-[#fad5bd] ",
