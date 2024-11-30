@@ -15,7 +15,7 @@ import './index.css'
 import { useEffect, useRef, useState } from "react";
 import { GREEK_OPERATORS, MATH_OPERATORS } from "./Operators";
 
-const QuillEditor = () => {
+const QuillEditor = ({ value, onChange }) => {
   const [selectedFormulaType, setSelectedFormulaType] = useState("Math");
   const operators = selectedFormulaType === "Math" ? MATH_OPERATORS : GREEK_OPERATORS;
   const reactQuillRef = useRef(null);
@@ -73,7 +73,7 @@ const QuillEditor = () => {
         handleSelectFormulaType("Greek");
       });
       buttonContainer.appendChild(greekButton);
-
+      
       // Append the container div to the formula tooltip
       formulaTooltip.appendChild(buttonContainer);
     }
@@ -90,13 +90,7 @@ const QuillEditor = () => {
   };
 
   return (
-    <ReactQuill
-      ref={reactQuillRef}
-      id="editor"
-      modules={modules}
-      placeholder="Type text here, or click on the formula button to enter math."
-      theme="snow"
-    />
+    <ReactQuill ref={reactQuillRef} modules={modules} theme="snow" value={value} onChange={onChange} />
   );
 };
 

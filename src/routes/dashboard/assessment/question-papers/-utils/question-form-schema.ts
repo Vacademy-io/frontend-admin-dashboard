@@ -22,18 +22,50 @@ export const questionFormSchema = z.object({
                 option1: z.object({
                     name: z.string().min(1, "Option 1 is required"),
                     isSelected: z.boolean(),
+                    image: z
+                        .object({
+                            imageId: z.string().optional(),
+                            imageName: z.string().min(1, "Image name is required"),
+                            imageTitle: z.string().optional(),
+                            imageFile: z.string().min(1, "Image file is required"),
+                        })
+                        .optional(),
                 }),
                 option2: z.object({
                     name: z.string().min(1, "Option 2 is required"),
                     isSelected: z.boolean(),
+                    image: z
+                        .object({
+                            imageId: z.string().optional(),
+                            imageName: z.string().min(1, "Image name is required"),
+                            imageTitle: z.string().optional(),
+                            imageFile: z.string().min(1, "Image file is required"),
+                        })
+                        .optional(),
                 }),
                 option3: z.object({
                     name: z.string().min(1, "Option 3 is required"),
                     isSelected: z.boolean(),
+                    image: z
+                        .object({
+                            imageId: z.string().optional(),
+                            imageName: z.string().min(1, "Image name is required"),
+                            imageTitle: z.string().optional(),
+                            imageFile: z.string().min(1, "Image file is required"),
+                        })
+                        .optional(),
                 }),
                 option4: z.object({
                     name: z.string().min(1, "Option 4 is required"),
                     isSelected: z.boolean(),
+                    image: z
+                        .object({
+                            imageId: z.string().optional(),
+                            imageName: z.string().min(1, "Image name is required"),
+                            imageTitle: z.string().optional(),
+                            imageFile: z.string().min(1, "Image file is required"),
+                        })
+                        .optional(),
                 }),
             }),
         )

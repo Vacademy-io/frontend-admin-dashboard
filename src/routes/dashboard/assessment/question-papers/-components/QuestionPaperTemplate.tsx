@@ -64,18 +64,22 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     option1: {
                         name: "",
                         isSelected: false,
+                        image: undefined,
                     },
                     option2: {
                         name: "",
                         isSelected: false,
+                        image: undefined,
                     },
                     option3: {
                         name: "",
                         isSelected: false,
+                        image: undefined,
                     },
                     option4: {
                         name: "",
                         isSelected: false,
+                        image: undefined,
                     },
                 },
             ],
@@ -109,18 +113,22 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
             option1: {
                 name: "",
                 isSelected: false,
+                image: undefined,
             },
             option2: {
                 name: "",
                 isSelected: false,
+                image: undefined,
             },
             option3: {
                 name: "",
                 isSelected: false,
+                image: undefined,
             },
             option4: {
                 name: "",
                 isSelected: false,
+                image: undefined,
             },
         });
         setCurrentQuestionIndex(fields.length);
@@ -147,10 +155,10 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     questionName: "",
                     explanation: "",
                     imageDetails: [],
-                    option1: { name: "", isSelected: false },
-                    option2: { name: "", isSelected: false },
-                    option3: { name: "", isSelected: false },
-                    option4: { name: "", isSelected: false },
+                    option1: { name: "", isSelected: false, image: undefined },
+                    option2: { name: "", isSelected: false, image: undefined },
+                    option3: { name: "", isSelected: false, image: undefined },
+                    option4: { name: "", isSelected: false, image: undefined },
                 },
             ],
         });
@@ -161,6 +169,8 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
             errors.questions?.questions?.[currentQuestionIndex]?.message ?? "An error occurred";
         toast(message);
     };
+
+    console.log(getValues());
 
     return (
         <Dialog>
@@ -229,7 +239,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                             </div>
                         </div>
                         <div className="flex items-start gap-6">
-                            <div className="flex w-28 flex-col items-start justify-between !gap-0 p-2">
+                            <div className="flex w-24 flex-col items-start justify-between !gap-0 p-2">
                                 <Sortable
                                     value={fields}
                                     onMove={({ activeIndex, overIndex }) =>
@@ -249,8 +259,8 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                     <div
                                                         key={index}
                                                         onClick={() => handlePageClick(index)}
-                                                        className={`w-[600px] origin-top-left scale-[0.2] rounded-xl border-4 bg-primary-50 p-6 ${
-                                                            index !== 0 ? "!mb-0 mt-[-23.8rem]" : ""
+                                                        className={`origin-top-left scale-x-[0.26] scale-y-[0.2] rounded-xl border-4 bg-primary-50 p-6 ${
+                                                            index !== 0 ? "!mb-0 mt-[-21.8rem]" : ""
                                                         } ${
                                                             currentQuestionIndex === index
                                                                 ? "border-primary-500 bg-none"
@@ -262,7 +272,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                             <Tooltip open={hasError ? true : false}>
                                                                 <TooltipTrigger>
                                                                     <div className="flex flex-col">
-                                                                        <div className="flex items-center justify-between">
+                                                                        <div className="flex items-center justify-between gap-8">
                                                                             <h1 className="text-5xl font-bold">
                                                                                 {index + 1}
                                                                                 &nbsp;Question

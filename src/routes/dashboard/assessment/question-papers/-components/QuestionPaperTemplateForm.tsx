@@ -1,10 +1,8 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import UploadImageDialogue from "./UploadImageDialogue";
 import { Button } from "@/components/ui/button";
-import { DotsThree, PencilSimpleLine, TrashSimple } from "phosphor-react";
+import { DotsThree, Image, PencilSimpleLine, TrashSimple } from "phosphor-react";
 import QuestionImagePreviewDialogue from "./QuestionImagePreviewDialogue";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { QuestionPaperTemplateFormProps } from "../-utils/question-paper-template-form";
@@ -15,6 +13,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatStructure } from "../-utils/helper";
+import QuillEditor from "@/components/quill/QuillEditor";
+import "react-quill/dist/quill.snow.css";
 
 export const QuestionPaperTemplateForm = ({
     form,
@@ -36,13 +36,6 @@ export const QuestionPaperTemplateForm = ({
 
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
-
-    const [options, setOptions] = useState([false, false, false, false]);
-
-    const handleOptionToggle = (idx: number) => {
-        const newOptions = options.map((option, index) => (index === idx ? !option : option));
-        setOptions(newOptions);
-    };
 
     const handleRemovePicture = (currentQuestionImageIndex: number) => {
         setValue(
@@ -114,12 +107,7 @@ export const QuestionPaperTemplateForm = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <Textarea
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    placeholder="Enter Question"
-                                    className="h-20 !resize-none"
-                                />
+                                <QuillEditor value={field.value} onChange={field.onChange} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -180,251 +168,228 @@ export const QuestionPaperTemplateForm = ({
                     <QuestionImagePreviewDialogue form={form} />
                 </div>
             )}
-            <div className="flex w-full flex-grow flex-col gap-4">
-                <span className="-mb-3">{answersType}</span>
-                <div className="flex gap-4">
-                    <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.option1.name`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                className="rounded-none border-none p-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
-                                                placeholder="option 1"
-                                                disabled={!options[0]}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <PencilSimpleLine
-                                size={16}
-                                className="cursor-pointer text-neutral-400"
-                                onClick={() => handleOptionToggle(0)}
-                            />
-                        </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.option1.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.option2.name`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                className="rounded-none border-none p-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
-                                                placeholder="option 2"
-                                                disabled={!options[1]}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <PencilSimpleLine
-                                size={16}
-                                className="cursor-pointer text-neutral-400"
-                                onClick={() => handleOptionToggle(1)}
-                            />
-                        </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.option2.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div className="flex gap-4">
-                    <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.option3.name`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                className="rounded-none border-none p-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
-                                                placeholder="option 3"
-                                                disabled={!options[2]}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <PencilSimpleLine
-                                size={16}
-                                className="cursor-pointer text-neutral-400"
-                                onClick={() => handleOptionToggle(2)}
-                            />
-                        </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.option3.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div className="flex w-1/2 items-center justify-between rounded-md bg-neutral-100 p-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.option4.name`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                className="rounded-none border-none p-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
-                                                placeholder="option 4"
-                                                disabled={!options[3]}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <PencilSimpleLine
-                                size={16}
-                                className="cursor-pointer text-neutral-400"
-                                onClick={() => handleOptionToggle(3)}
-                            />
-                        </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.option4.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
             {!isSideBar && (
-                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                    <span>{explanationsType}</span>
-                    <FormField
-                        control={control}
-                        name={`questions.${currentQuestionIndex}.explanation`}
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormControl>
-                                    <Textarea
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        placeholder="Enter Explanation"
-                                        className="h-20 !resize-none"
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                <div className="flex w-full flex-grow flex-col gap-4">
+                    <span className="-mb-3">{answersType}</span>
+                    <div className="flex gap-4">
+                        <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
+                            <div className="flex w-full items-center gap-4">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                    <span className="!p-0 text-sm">
+                                        {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
+                                    </span>
+                                </div>
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.option1.name`}
+                                    render={({ field }) => (
+                                        <FormItem className="w-full">
+                                            <FormControl>
+                                                <QuillEditor
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button variant="outline" className="px-2">
+                                    <Image size={32} className="!size-5" />
+                                </Button>
+                            </div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.option1.isSelected`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                    className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                        field.value
+                                                            ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
+                                                            : "" // Default styles when unchecked
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
+                            <div className="flex w-full items-center gap-4">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                    <span className="!p-0 text-sm">
+                                        {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
+                                    </span>
+                                </div>
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.option2.name`}
+                                    render={({ field }) => (
+                                        <FormItem className="w-full">
+                                            <FormControl>
+                                                <QuillEditor
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button variant="outline" className="px-2">
+                                    <Image size={32} className="!size-5" />
+                                </Button>
+                            </div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.option2.isSelected`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                    className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                        field.value
+                                                            ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
+                                                            : "" // Default styles when unchecked
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex gap-4">
+                        <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
+                            <div className="flex w-full items-center gap-4">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                    <span className="!p-0 text-sm">
+                                        {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
+                                    </span>
+                                </div>
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.option3.name`}
+                                    render={({ field }) => (
+                                        <FormItem className="w-full">
+                                            <FormControl>
+                                                <QuillEditor
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button variant="outline" className="px-2">
+                                    <Image size={32} className="!size-5" />
+                                </Button>
+                            </div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.option3.isSelected`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                    className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                        field.value
+                                                            ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
+                                                            : "" // Default styles when unchecked
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
+                            <div className="flex w-full items-center gap-4">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                    <span className="!p-0 text-sm">
+                                        {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
+                                    </span>
+                                </div>
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.option4.name`}
+                                    render={({ field }) => (
+                                        <FormItem className="w-full">
+                                            <FormControl>
+                                                <QuillEditor
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button variant="outline" className="px-2">
+                                    <Image size={32} className="!size-5" />
+                                </Button>
+                            </div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.option4.isSelected`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                    className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                        field.value
+                                                            ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
+                                                            : "" // Default styles when unchecked
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
+
+            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                <span>{explanationsType}</span>
+                <FormField
+                    control={control}
+                    name={`questions.${currentQuestionIndex}.explanation`}
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormControl>
+                                <QuillEditor value={field.value} onChange={field.onChange} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+
             {isSideBar && (
                 <div className="absolute bottom-10 right-12">
                     {(isDropdownVisible || isDropdownOpen) && (
