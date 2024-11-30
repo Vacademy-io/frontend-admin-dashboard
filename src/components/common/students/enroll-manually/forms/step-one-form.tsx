@@ -25,7 +25,7 @@ export const StepOneForm = () => {
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
-                    <div className="flex flex-col gap-20">
+                    <div className="flex flex-col items-center gap-20">
                         <FormItemWrapper<FormData> control={form.control} name="step1heading">
                             <FormStepHeading stepNumber={1} heading="Add Student Profile Picture" />
                         </FormItemWrapper>
