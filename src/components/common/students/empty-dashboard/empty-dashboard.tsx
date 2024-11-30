@@ -1,5 +1,6 @@
 import { EnrollStudentsButton } from "./enroll-students-button";
 import { EmptyDashboardImage } from "@/assets/svgs";
+// import { EnrollManuallyButton } from "../enroll-manually/enroll-manually-button";
 
 export const EmptyDashboard = () => {
     return (

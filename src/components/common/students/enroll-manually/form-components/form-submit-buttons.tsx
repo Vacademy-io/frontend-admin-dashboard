@@ -9,7 +9,7 @@ export const FormSubmitButtons = ({
     finishButtonDisable?: boolean;
 }) => {
     return (
-        <DialogFooter className="flex w-full justify-between">
+        <DialogFooter className="flex w-full items-center justify-between px-6 py-4">
             <MyButton buttonType="secondary" scale="large" layoutVariant="default">
                 {stepNumber == 1 ? <span>Skip</span> : <span>Back</span>}
             </MyButton>

@@ -6,8 +6,8 @@ export const FormStepHeading = ({
     heading: string;
 }) => {
     return (
-        <div className="flex w-full gap-3">
-            <div className="text-subtitle">step {stepNumber}</div>
+        <div className="flex w-full items-center gap-3">
+            <div className="text-subtitle">Step {stepNumber}</div>
             <div className="text-h3 font-semibold">{heading}</div>
         </div>
     );
