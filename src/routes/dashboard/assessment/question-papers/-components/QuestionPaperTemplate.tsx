@@ -20,7 +20,6 @@ import { SSDCLogo } from "@/svgs";
 import { QuestionPaperTemplateForm } from "./QuestionPaperTemplateForm";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { useQuestionStore } from "../-global-states/question-index";
-import { formatStructure } from "../-utils/helper";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -49,8 +48,6 @@ interface QuestionPaperTemplateProps {
 export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaperTemplateProps) {
     const { getValues: getQuestionPaperUploadForm } = questionPaperUploadForm;
     const title = getQuestionPaperUploadForm("title") || "";
-    const questionsType = getQuestionPaperUploadForm("questions") || "";
-
     const [isHeaderEditable, setIsHeaderEditable] = useState(false); // State to toggle edit mode
     const { currentQuestionIndex, setCurrentQuestionIndex } = useQuestionStore();
 
@@ -267,10 +264,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                                     <div className="flex flex-col">
                                                                         <div className="flex items-center justify-between">
                                                                             <h1 className="text-5xl font-bold">
-                                                                                {formatStructure(
-                                                                                    questionsType,
-                                                                                    index + 1,
-                                                                                )}
+                                                                                {index + 1}
                                                                                 &nbsp;Question
                                                                             </h1>
                                                                             <SortableDragHandle

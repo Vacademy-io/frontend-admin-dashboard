@@ -24,8 +24,8 @@ export const QuestionPaperTemplateForm = ({
     questionPaperUploadForm,
 }: QuestionPaperTemplateFormProps) => {
     const { getValues: getQuestionPaperUploadForm } = questionPaperUploadForm;
-    const answersType = getQuestionPaperUploadForm("answers") || "";
-    const explanationsType = getQuestionPaperUploadForm("explanations") || "";
+    const answersType = getQuestionPaperUploadForm("answers") || "Answer:";
+    const explanationsType = getQuestionPaperUploadForm("explanations") || "Explanation:";
     const optionsType = getQuestionPaperUploadForm("options") || "";
     const questionsType = getQuestionPaperUploadForm("questions") || "";
 
@@ -103,7 +103,10 @@ export const QuestionPaperTemplateForm = ({
         >
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
-                    Question&nbsp;{formatStructure(questionsType, currentQuestionIndex + 1)}
+                    Question&nbsp;
+                    {questionsType
+                        ? formatStructure(questionsType, currentQuestionIndex + 1)
+                        : currentQuestionIndex + 1}
                 </span>
                 <FormField
                     control={control}
@@ -184,7 +187,7 @@ export const QuestionPaperTemplateForm = ({
                         <div className="flex items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                                 <span className="!p-0 text-sm">
-                                    {formatStructure(optionsType, "a")}
+                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
                                 </span>
                             </div>
                             <FormField
@@ -238,7 +241,7 @@ export const QuestionPaperTemplateForm = ({
                         <div className="flex items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                                 <span className="!p-0 text-sm">
-                                    {formatStructure(optionsType, "b")}
+                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
                                 </span>
                             </div>
                             <FormField
@@ -294,7 +297,7 @@ export const QuestionPaperTemplateForm = ({
                         <div className="flex items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                                 <span className="!p-0 text-sm">
-                                    {formatStructure(optionsType, "c")}
+                                    {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
                                 </span>
                             </div>
                             <FormField
@@ -348,7 +351,7 @@ export const QuestionPaperTemplateForm = ({
                         <div className="flex items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
                                 <span className="!p-0 text-sm">
-                                    {formatStructure(optionsType, "d")}
+                                    {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
                                 </span>
                             </div>
                             <FormField

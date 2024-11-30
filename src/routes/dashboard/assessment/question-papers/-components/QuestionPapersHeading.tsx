@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { QuestionPaperUpload } from "./QuestionPaperUpload";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 export const QuestionPapersHeading = () => {
     const isMobile = useIsMobile();
     return (

@@ -103,7 +103,6 @@ export const QuestionPaperUpload = () => {
                             required
                         />
                     </div>
-
                     <div
                         className="flex w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dotted border-primary-500 p-4"
                         onClick={handleFileSelect}
