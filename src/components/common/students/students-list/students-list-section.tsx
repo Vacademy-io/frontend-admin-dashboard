@@ -3,7 +3,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { Export, MagnifyingGlass } from "@phosphor-icons/react";
 import { MyTable } from "@/components/design-system/table";
-import { MyDropdown } from "./dropdown";
+import { MyDropdown } from "../../../design-system/dropdown";
 import { Filters } from "./filters";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";

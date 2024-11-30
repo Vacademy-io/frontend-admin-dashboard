@@ -1,0 +1,5 @@
+export interface myDropDownProps {
+    currentValue: string;
+    setCurrentValue: React.Dispatch<React.SetStateAction<string>>;
+    dropdownList: string[];
+}

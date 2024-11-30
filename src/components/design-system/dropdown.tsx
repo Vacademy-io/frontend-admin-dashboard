@@ -6,7 +6,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
-import { myDropDownProps } from "@/types/students/students-list-types";
+import { myDropDownProps } from "./utils/types/dropdown-types";
 
 export const MyDropdown = ({ currentValue, setCurrentValue, dropdownList }: myDropDownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
