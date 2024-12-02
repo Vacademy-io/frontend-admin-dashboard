@@ -97,7 +97,7 @@ export function MyTable({
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell
                                         key={cell.id}
-                                        className={`${cellCommonCss} bg-white text-body font-regular text-neutral-600 ${
+                                        className={`${cellCommonCss} z-10 bg-white text-body font-regular text-neutral-600 ${
                                             COLUMN_WIDTHS[
                                                 cell.column.id as keyof typeof COLUMN_WIDTHS
                                             ] || ""

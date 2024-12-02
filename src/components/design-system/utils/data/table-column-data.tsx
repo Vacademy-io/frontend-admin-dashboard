@@ -1,11 +1,12 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { tableType } from "../schema/table-schema";
-import { ArrowSquareOut, DotsThree } from "@phosphor-icons/react";
+import { ArrowSquareOut, DotsThree, CaretUp, CaretDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyButton } from "../../button";
 import { StatusChips } from "../../chips";
 import { ActivityStatus } from "../types/chips-types";
 import { getSessionExpiryStatus } from "@/components/common/students/students-list/students-list-section";
+import { MyDropdown } from "../../dropdown";
 
 const createStringFilterFn =
     () => (row: Row<tableType>, columnId: string, filterValue: string[]) => {
@@ -38,7 +39,17 @@ export const myColumns: ColumnDef<tableType>[] = [
     },
     {
         accessorKey: "studentName",
-        header: "Student Name",
+        header: () => (
+            <MyDropdown dropdownList={["Asc", "Desc"]}>
+                <button className="flex w-full cursor-pointer items-center justify-between">
+                    <div>Student Name</div>
+                    <div>
+                        <CaretUp />
+                        <CaretDown />
+                    </div>
+                </button>
+            </MyDropdown>
+        ),
         filterFn: createStringFilterFn(),
         enableGlobalFilter: true,
     },
