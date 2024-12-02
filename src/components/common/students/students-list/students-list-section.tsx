@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, SetStateAction, Dispatch } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { Export, MagnifyingGlass } from "@phosphor-icons/react";
@@ -7,8 +7,8 @@ import { MyDropdown } from "../../../design-system/dropdown";
 import { Filters } from "./filters";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
-import { filters } from "@/components/design-system/utils/hooks/dummy/useTable";
-import { sessionlist } from "@/components/design-system/utils/hooks/dummy/useTable";
+import { page_setup } from "@/hooks/student-list/page-setup";
+import { PageFilters } from "@/hooks/student-list/page-setup";
 
 export const getSessionExpiryStatus = (expiryDate: string) => {
     const today = new Date();
@@ -30,8 +30,7 @@ export const StudentsListSection = () => {
     /*An API which will return a list containing all the sessions and their respected students data or 2 apis for both the operations*/
 
     const { setNavHeading } = useNavHeadingStore();
-
-    const [currentSession, setCurrentSession] = useState<string>("2024-2025");
+    const setCurrentSession: Dispatch<SetStateAction<string>> = () => {};
     const [columnFilters, setColumnFilters] = useState<{ id: string; value: string[] }[]>([]);
     const [searchInput, setSearchInput] = useState("");
 
@@ -47,6 +46,30 @@ export const StudentsListSection = () => {
         });
     };
 
+    const page_filters = page_setup();
+    type FilterTitle = {
+        id: keyof PageFilters;
+        title: string;
+    };
+    const filter_titles: FilterTitle[] = [
+        {
+            id: "batch",
+            title: "Batch",
+        },
+        {
+            id: "status",
+            title: "Status",
+        },
+        {
+            id: "gender",
+            title: "Gender",
+        },
+        {
+            id: "session_expiry",
+            title: "Session Expiry",
+        },
+    ];
+
     return (
         <section className="flex max-w-full flex-col gap-8">
             <div className="flex items-center justify-between">
@@ -60,9 +83,9 @@ export const StudentsListSection = () => {
                     <div className="flex items-center gap-2">
                         <div className="text-title">Session</div>
                         <MyDropdown
-                            currentValue={currentSession}
+                            currentValue={"2024-2025"}
                             setCurrentValue={setCurrentSession}
-                            dropdownList={sessionlist}
+                            dropdownList={page_filters.session}
                         />
                     </div>
 
@@ -77,13 +100,17 @@ export const StudentsListSection = () => {
                         <MagnifyingGlass className="absolute left-3 top-1/4 size-[18px] text-neutral-600" />
                     </div>
 
-                    {filters.map((obj, ind) => (
-                        <Filters
-                            filterDetails={obj}
-                            key={ind}
-                            onFilterChange={(values) => handleFilterChange(obj.id, values)}
-                        />
-                    ))}
+                    {filter_titles.map((obj, key) =>
+                        page_filters[obj.id] ? (
+                            <Filters
+                                key={key}
+                                filterDetails={{ label: obj.title, filters: page_filters[obj.id] }}
+                                onFilterChange={(values) => handleFilterChange(obj.id, values)}
+                            />
+                        ) : (
+                            <></>
+                        ),
+                    )}
                 </div>
                 <MyButton scale="large" buttonType="secondary" layoutVariant="default">
                     <Export />

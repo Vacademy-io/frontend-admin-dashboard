@@ -1,6 +1,6 @@
-import { tableType } from "../../schema/table-schema";
+import { tableType } from "../../schemas/student-list/table-schema";
 
-export const useTable = () => {
+export const getTableData = () => {
     return TableDummyData;
 };
 
@@ -139,37 +139,3 @@ const TableDummyData: tableType[] = [
         status: "active",
     },
 ];
-
-export const filters = [
-    {
-        id: "batch",
-        label: "Batches",
-        filters: [
-            "10th Premium Pro Group 1",
-            "10th Premium Pro Group 2",
-            "10th Premium Plus Group 1",
-            "10th Premium Plus Group 2",
-            "9th Premium Pro Group 1",
-            "9th Premium Pro Group 2",
-            "9th Premium Plus Group 1",
-            "9th Premium Plus Group 2",
-        ],
-    },
-    {
-        id: "status",
-        label: "Status",
-        filters: ["active", "inactive"],
-    },
-    {
-        id: "gender",
-        label: "Gender",
-        filters: ["Male", "Female", "Others"],
-    },
-    {
-        id: "sessionExpiry",
-        label: "Session Expiry",
-        filters: ["Above Session Threshold", "Below Session Threshold", "Session Expired"],
-    },
-];
-
-export const sessionlist = ["2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"];

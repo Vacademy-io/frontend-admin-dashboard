@@ -12,7 +12,7 @@ import {
     useReactTable,
     getFilteredRowModel,
 } from "@tanstack/react-table";
-import { useTable } from "./utils/hooks/dummy/useTable";
+import { getTableData } from "../../hooks/student-list/getTableData";
 import { myColumns } from "./utils/data/table-column-data";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
@@ -47,7 +47,7 @@ export function MyTable({
     columnFilters?: { id: string; value: string[] }[];
     searchValue?: string;
 }) {
-    const TableDummyData = useTable();
+    const TableDummyData = getTableData();
 
     const table = useReactTable({
         data: TableDummyData,
