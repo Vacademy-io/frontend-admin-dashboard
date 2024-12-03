@@ -11,12 +11,18 @@
 // Import Routes
 
 import { Route as rootRoute } from "./routes/__root";
+import { Route as StudentsIndexImport } from "./routes/students/index";
 import { Route as LoginIndexImport } from "./routes/login/index";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
+import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
-import { Route as DashboardStudentsIndexImport } from "./routes/dashboard/students/index";
 
 // Create/Update Routes
+
+const StudentsIndexRoute = StudentsIndexImport.update({
+    path: "/students/",
+    getParentRoute: () => rootRoute,
+} as any);
 
 const LoginIndexRoute = LoginIndexImport.update({
     path: "/login/",
@@ -28,13 +34,13 @@ const DashboardIndexRoute = DashboardIndexImport.update({
     getParentRoute: () => rootRoute,
 } as any);
 
-const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
-    path: "/login/forgot-password/",
+const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
+    path: "/students/students-list/",
     getParentRoute: () => rootRoute,
 } as any);
 
-const DashboardStudentsIndexRoute = DashboardStudentsIndexImport.update({
-    path: "/dashboard/students/",
+const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
+    path: "/login/forgot-password/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -56,11 +62,11 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof LoginIndexImport;
             parentRoute: typeof rootRoute;
         };
-        "/dashboard/students/": {
-            id: "/dashboard/students/";
-            path: "/dashboard/students";
-            fullPath: "/dashboard/students";
-            preLoaderRoute: typeof DashboardStudentsIndexImport;
+        "/students/": {
+            id: "/students/";
+            path: "/students";
+            fullPath: "/students";
+            preLoaderRoute: typeof StudentsIndexImport;
             parentRoute: typeof rootRoute;
         };
         "/login/forgot-password/": {
@@ -68,6 +74,13 @@ declare module "@tanstack/react-router" {
             path: "/login/forgot-password";
             fullPath: "/login/forgot-password";
             preLoaderRoute: typeof LoginForgotPasswordIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/students/students-list/": {
+            id: "/students/students-list/";
+            path: "/students/students-list";
+            fullPath: "/students/students-list";
+            preLoaderRoute: typeof StudentsStudentsListIndexImport;
             parentRoute: typeof rootRoute;
         };
     }
@@ -78,8 +91,9 @@ declare module "@tanstack/react-router" {
 export const routeTree = rootRoute.addChildren({
     DashboardIndexRoute,
     LoginIndexRoute,
-    DashboardStudentsIndexRoute,
+    StudentsIndexRoute,
     LoginForgotPasswordIndexRoute,
+    StudentsStudentsListIndexRoute,
 });
 
 /* prettier-ignore-end */
@@ -92,8 +106,9 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/dashboard/",
         "/login/",
-        "/dashboard/students/",
-        "/login/forgot-password/"
+        "/students/",
+        "/login/forgot-password/",
+        "/students/students-list/"
       ]
     },
     "/dashboard/": {
@@ -102,11 +117,14 @@ export const routeTree = rootRoute.addChildren({
     "/login/": {
       "filePath": "login/index.tsx"
     },
-    "/dashboard/students/": {
-      "filePath": "dashboard/students/index.tsx"
+    "/students/": {
+      "filePath": "students/index.tsx"
     },
     "/login/forgot-password/": {
       "filePath": "login/forgot-password/index.tsx"
+    },
+    "/students/students-list/": {
+      "filePath": "students/students-list/index.tsx"
     }
   }
 }

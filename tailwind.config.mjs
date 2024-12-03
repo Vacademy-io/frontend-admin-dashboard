@@ -18,8 +18,9 @@ module.exports = {
         },
         extend: {
 
-            fontFamily: {
-                sans: ['Open Sans', 'sans-serif'],
+			//custom fonts
+			fontFamily: {
+				sans: ['Open Sans', 'sans-serif']
 			},
 
 
