@@ -1,9 +1,18 @@
+import { useQuery } from "@tanstack/react-query";
+
 export type PageFilters = {
     session: string[];
     batch: string[];
     status: string[];
     gender: string[];
     session_expiry: string[];
+};
+
+export const usePageSetup = () => {
+    return useQuery<PageFilters, Error>({
+        queryKey: ["pageInit"],
+        queryFn: (): PageFilters => page_setup(),
+    });
 };
 
 export function page_setup(): PageFilters {

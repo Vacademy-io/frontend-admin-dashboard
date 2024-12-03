@@ -7,8 +7,8 @@ import { MyDropdown } from "../../../design-system/dropdown";
 import { Filters } from "./filters";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
-import { page_setup } from "@/hooks/student-list/page-setup";
-import { PageFilters } from "@/hooks/student-list/page-setup";
+import { PageFilters } from "@/hooks/student-list/usePageSetup";
+import { usePageSetup } from "@/hooks/student-list/usePageSetup";
 
 export const getSessionExpiryStatus = (expiryDate: string) => {
     const today = new Date();
@@ -36,6 +36,7 @@ export const StudentsListSection = () => {
 
     useEffect(() => {
         setNavHeading("Students");
+        console.log(columnFilters);
     }, []);
 
     const handleFilterChange = (filterId: string, values: string[]) => {
@@ -46,7 +47,12 @@ export const StudentsListSection = () => {
         });
     };
 
-    const page_filters = page_setup();
+    const { data, isLoading, error } = usePageSetup();
+    if (isLoading) return <div>Loading filters...</div>;
+    if (error) return <div>Error loading filters...</div>;
+
+    const page_filters = data;
+
     type FilterTitle = {
         id: keyof PageFilters;
         title: string;
@@ -85,7 +91,7 @@ export const StudentsListSection = () => {
                         <MyDropdown
                             currentValue={"2024-2025"}
                             setCurrentValue={setCurrentSession}
-                            dropdownList={page_filters.session}
+                            dropdownList={page_filters ? page_filters.session : []}
                         />
                     </div>
 
@@ -101,12 +107,19 @@ export const StudentsListSection = () => {
                     </div>
 
                     {filter_titles.map((obj, key) =>
-                        page_filters[obj.id] ? (
-                            <Filters
-                                key={key}
-                                filterDetails={{ label: obj.title, filters: page_filters[obj.id] }}
-                                onFilterChange={(values) => handleFilterChange(obj.id, values)}
-                            />
+                        page_filters ? (
+                            page_filters[obj.id] ? (
+                                <Filters
+                                    key={key}
+                                    filterDetails={{
+                                        label: obj.title,
+                                        filters: page_filters[obj.id],
+                                    }}
+                                    onFilterChange={(values) => handleFilterChange(obj.id, values)}
+                                />
+                            ) : (
+                                <></>
+                            )
                         ) : (
                             <></>
                         ),
@@ -118,7 +131,7 @@ export const StudentsListSection = () => {
                 </MyButton>
             </div>
             <div className="max-w-full">
-                <MyTable columnFilters={columnFilters} searchValue={searchInput} />
+                <MyTable />
             </div>
         </section>
     );

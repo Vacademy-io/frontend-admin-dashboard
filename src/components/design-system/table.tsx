@@ -6,14 +6,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {
-    flexRender,
-    getCoreRowModel,
-    useReactTable,
-    getFilteredRowModel,
-} from "@tanstack/react-table";
-import { getTableData } from "../../hooks/student-list/getTableData";
+import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { myColumns } from "./utils/data/table-column-data";
+import { useTableData } from "../../hooks/student-list/useTableData";
+import { useEffect } from "react";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -21,50 +17,54 @@ const cellCommonCss = "p-3";
 const COLUMN_WIDTHS = {
     checkbox: "min-w-[56px] sticky left-0",
     details: "min-w-[80px] sticky left-[52px]",
-    studentName: "min-w-[180px]  sticky left-[130px]",
-    batch: "min-w-[240px] ",
-    enrollmentNumber: "min-w-[200px] ",
-    collegeSchool: "min-w-[240px] ",
-    gender: "min-w-[120px] ",
-    mobileNumber: "min-w-[180px] ",
-    emailId: "min-w-[240px] ",
-    fatherName: "min-w-[180px] ",
-    motherName: "min-w-[180px] ",
-    guardianName: "min-w-[180px] ",
-    guardianNumber: "min-w-[180px] ",
-    guardianEmail: "min-w-[240px] ",
-    city: "min-w-[180px] ",
-    state: "min-w-[180px] ",
-    sessionExpiry: "min-w-[180px] ",
-    status: "min-w-[180px] ",
-    options: "min-w-[56px] sticky right-0 ",
+    studentName: "min-w-[180px] sticky left-[130px]",
+    batch: "min-w-[240px]",
+    enrollmentNumber: "min-w-[200px]",
+    collegeSchool: "min-w-[240px]",
+    gender: "min-w-[120px]",
+    mobileNumber: "min-w-[180px]",
+    emailId: "min-w-[240px]",
+    fatherName: "min-w-[180px]",
+    motherName: "min-w-[180px]",
+    guardianName: "min-w-[180px]",
+    guardianNumber: "min-w-[180px]",
+    guardianEmail: "min-w-[240px]",
+    city: "min-w-[180px]",
+    state: "min-w-[180px]",
+    sessionExpiry: "min-w-[180px]",
+    status: "min-w-[180px]",
+    options: "min-w-[56px] sticky right-0",
 };
 
-export function MyTable({
-    columnFilters,
-    searchValue,
-}: {
-    columnFilters?: { id: string; value: string[] }[];
-    searchValue?: string;
-}) {
-    const TableDummyData = getTableData();
+export function MyTable() {
+    const tableMutation = useTableData();
 
     const table = useReactTable({
-        data: TableDummyData,
+        data: tableMutation.data?.content || [],
         columns: myColumns,
         getCoreRowModel: getCoreRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        state: {
-            columnFilters,
-            globalFilter: searchValue,
-        },
-        enableFilters: true,
-        enableGlobalFilter: true,
-        globalFilterFn: (row, columnId) => {
-            const value = String(row.getValue(columnId)).toLowerCase();
-            return searchValue ? value.includes(searchValue.toLowerCase()) : true;
-        },
     });
+
+    useEffect(() => {
+        tableMutation
+            .mutateAsync({
+                queryParams: {
+                    pageNo: 0,
+                    pageSize: 10,
+                },
+                body: {
+                    session: ["2024-2025"],
+                    batches: [],
+                    status: [],
+                    gender: [],
+                    session_expiry: [],
+                },
+            })
+            .catch(console.error);
+    }, []);
+
+    if (tableMutation.isPending) return <div>Loading</div>;
+    if (tableMutation.isError) return <div>Error: {tableMutation.error.message}</div>;
 
     return (
         <div className="w-full rounded-lg border">

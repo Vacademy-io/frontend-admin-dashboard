@@ -1,7 +1,63 @@
 import { tableType } from "../../schemas/student-list/table-schema";
+import { useMutation } from "@tanstack/react-query";
 
-export const getTableData = () => {
-    return TableDummyData;
+type QueryParamsType = {
+    pageNo: number;
+    pageSize: number;
+};
+
+type bodyType = {
+    session: string[];
+    batches: string[];
+    status: string[];
+    gender: string[];
+    session_expiry: string[];
+};
+
+type ResponseType = {
+    content: tableType[];
+    last: boolean;
+    page_no: number;
+    page_size: number;
+    total_elements: number;
+    total_pages: number;
+};
+
+const tableData = async (queryParams: QueryParamsType, body: bodyType): Promise<ResponseType> => {
+    return new Promise<ResponseType>((resolve, reject) => {
+        try {
+            setTimeout(() => {
+                if (!TableDummyData) {
+                    reject(new Error("No data available"));
+                }
+                resolve({
+                    content: TableDummyData,
+                    last: false,
+                    page_no: queryParams.pageNo,
+                    page_size: queryParams.pageSize,
+                    total_elements: 116,
+                    total_pages: 12,
+                });
+            }, 1000);
+        } catch (error) {
+            console.log(body);
+            reject(error);
+        }
+    });
+};
+
+export const useTableData = () => {
+    return useMutation({
+        mutationFn: async (variables: { queryParams: QueryParamsType; body: bodyType }) => {
+            try {
+                const response = await tableData(variables.queryParams, variables.body);
+                return response;
+            } catch (error) {
+                console.error("Mutation error:", error);
+                throw error;
+            }
+        },
+    });
 };
 
 const TableDummyData: tableType[] = [
