@@ -26,6 +26,7 @@ export interface FilterChipsProps {
     setSelectedFilters: React.Dispatch<React.SetStateAction<string[]>>;
     disabled?: boolean | false;
     className?: boolean;
+    clearFilters?: boolean;
 }
 
 // export interface StatusChipsProps {

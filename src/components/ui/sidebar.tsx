@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { FiSidebar } from "react-icons/fi";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -249,7 +248,7 @@ Sidebar.displayName = "Sidebar";
 const SidebarTrigger = React.forwardRef<
     React.ElementRef<typeof Button>,
     React.ComponentProps<typeof Button>
->(({ className, onClick, ...props }, ref) => {
+>(({ className, onClick, children, ...props }, ref) => {
     const { toggleSidebar } = useSidebar();
 
     return (
@@ -265,7 +264,7 @@ const SidebarTrigger = React.forwardRef<
             }}
             {...props}
         >
-            <FiSidebar className="text-neutral-600" />
+            {children}
             <span className="sr-only">Toggle Sidebar</span>
         </Button>
     );

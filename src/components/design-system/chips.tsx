@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
     InputChipsProps,
@@ -98,7 +98,18 @@ export const FilterChips = ({
     selectedFilters,
     setSelectedFilters,
     disabled,
+    clearFilters,
 }: FilterChipsProps) => {
+    const handleClearFilters = () => {
+        if (setSelectedFilters) {
+            setSelectedFilters([]);
+        }
+    };
+
+    useEffect(() => {
+        if (clearFilters) handleClearFilters();
+    }, [clearFilters]);
+
     return (
         <Popover>
             <PopoverTrigger className="flex items-center">
@@ -169,12 +180,6 @@ export const FilterChips = ({
                                                 if (setSelectedFilters)
                                                     setSelectedFilters((prev) => [...prev, option]);
                                             }
-                                            // const filterValues = Array.from(selectedFilters);
-                                            // column?.setFilterValue(
-                                            //     filterValues.length !== 0
-                                            //         ? filterValues
-                                            //         : undefined,
-                                            // );
                                         }}
                                     >
                                         <div
@@ -196,10 +201,7 @@ export const FilterChips = ({
                             <>
                                 <CommandSeparator />
                                 <CommandGroup>
-                                    <CommandItem
-                                    // onSelect={() => column?.setFilterValue(undefined)}
-                                    // className="justify-center text-center"
-                                    >
+                                    <CommandItem onSelect={handleClearFilters}>
                                         clear_filters
                                     </CommandItem>
                                 </CommandGroup>

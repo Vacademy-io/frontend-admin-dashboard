@@ -4,6 +4,7 @@ import { MagnifyingGlass, Bell, Sliders, CaretDown, CaretUp } from "@phosphor-ic
 import { cn } from "@/lib/utils";
 import { DummyProfile } from "@/assets/svgs";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { FiSidebar } from "react-icons/fi";
 
 const IconContainer = ({
     children,
@@ -32,7 +33,9 @@ export function Navbar() {
     return (
         <div className="flex h-24 items-center justify-between bg-neutral-50 px-8 py-6">
             <div className="flex items-center gap-4">
-                <SidebarTrigger />
+                <SidebarTrigger>
+                    <FiSidebar className="text-neutral-600" />
+                </SidebarTrigger>
                 <div className="border-l border-neutral-500 px-4 text-h2 font-semibold text-neutral-600">
                     {navHeading}
                 </div>

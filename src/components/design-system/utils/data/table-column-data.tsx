@@ -35,7 +35,7 @@ export const myColumns: ColumnDef<tableType>[] = [
     {
         id: "details",
         header: "Details",
-        cell: () => <ArrowSquareOut className="size-6 text-neutral-600" />,
+        cell: () => <ArrowSquareOut className="size-6 cursor-pointer text-neutral-600" />,
     },
     {
         accessorKey: "studentName",

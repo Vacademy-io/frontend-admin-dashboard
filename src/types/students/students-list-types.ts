@@ -7,4 +7,6 @@ export interface FilterProps {
         label: string;
         filters: string[];
     };
+    onFilterChange?: (values: string[]) => void;
+    clearFilters?: boolean;
 }

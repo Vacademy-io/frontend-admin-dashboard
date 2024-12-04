@@ -2,7 +2,7 @@ import { useState, SetStateAction, Dispatch } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { Export, MagnifyingGlass } from "@phosphor-icons/react";
-import { MyTable } from "@/components/design-system/table";
+import { MyTable } from "@/components/design-system/table/table";
 import { MyDropdown } from "../../../design-system/dropdown";
 import { Filters } from "./filters";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
@@ -27,17 +27,25 @@ export type SessionExpiryStatus =
     | "Above Session Threshold";
 
 export const StudentsListSection = () => {
-    /*An API which will return a list containing all the sessions and their respected students data or 2 apis for both the operations*/
-
     const { setNavHeading } = useNavHeadingStore();
     const setCurrentSession: Dispatch<SetStateAction<string>> = () => {};
     const [columnFilters, setColumnFilters] = useState<{ id: string; value: string[] }[]>([]);
     const [searchInput, setSearchInput] = useState("");
+    const [clearFilters, setClearFilters] = useState<boolean>(false);
 
     useEffect(() => {
         setNavHeading("Students");
-        console.log(columnFilters);
     }, []);
+
+    useEffect(() => {
+        if (columnFilters.length == 0) {
+            setClearFilters(false);
+        }
+    }, [JSON.stringify(columnFilters)]);
+
+    const handleClearFilters = () => {
+        setClearFilters(true);
+    };
 
     const handleFilterChange = (filterId: string, values: string[]) => {
         setColumnFilters((prev) => {
@@ -116,6 +124,7 @@ export const StudentsListSection = () => {
                                         filters: page_filters[obj.id],
                                     }}
                                     onFilterChange={(values) => handleFilterChange(obj.id, values)}
+                                    clearFilters={clearFilters}
                                 />
                             ) : (
                                 <></>
@@ -124,6 +133,29 @@ export const StudentsListSection = () => {
                             <></>
                         ),
                     )}
+                    <div
+                        className={`flex flex-wrap items-center gap-6 ${
+                            columnFilters.length ? "visible" : "hidden"
+                        }`}
+                    >
+                        <MyButton
+                            buttonType="primary"
+                            scale="small"
+                            layoutVariant="default"
+                            className="h-8 bg-success-500 hover:bg-success-400 active:bg-success-600"
+                        >
+                            Filter
+                        </MyButton>
+                        <MyButton
+                            buttonType="primary"
+                            scale="small"
+                            layoutVariant="default"
+                            className="h-8 bg-danger-600 hover:bg-danger-400 active:bg-danger-700"
+                            onClick={handleClearFilters}
+                        >
+                            Reset
+                        </MyButton>
+                    </div>
                 </div>
                 <MyButton scale="large" buttonType="secondary" layoutVariant="default">
                     <Export />

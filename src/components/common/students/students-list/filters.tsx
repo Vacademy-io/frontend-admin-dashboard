@@ -2,10 +2,7 @@ import { FilterChips } from "@/components/design-system/chips";
 import { FilterProps } from "@/types/students/students-list-types";
 import { useState, useEffect } from "react";
 
-export const Filters = ({
-    filterDetails,
-    onFilterChange,
-}: FilterProps & { onFilterChange?: (values: string[]) => void }) => {
+export const Filters = ({ filterDetails, onFilterChange, clearFilters }: FilterProps) => {
     const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
     useEffect(() => {
@@ -20,6 +17,7 @@ export const Filters = ({
             filterList={filterDetails.filters}
             selectedFilters={selectedFilters}
             setSelectedFilters={setSelectedFilters}
+            clearFilters={clearFilters}
         ></FilterChips>
     );
 };
