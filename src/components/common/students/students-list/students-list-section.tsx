@@ -7,8 +7,8 @@ import { MyDropdown } from "../../../design-system/dropdown";
 import { Filters } from "./filters";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
-import { PageFilters } from "@/hooks/student-list/usePageSetup";
-import { usePageSetup } from "@/hooks/student-list/usePageSetup";
+import { PageFilters } from "@/hooks/student-list/useInstituteDetails";
+import { useInstituteDetails } from "@/hooks/student-list/useInstituteDetails";
 
 export const getSessionExpiryStatus = (expiryDate: string) => {
     const today = new Date();
@@ -55,7 +55,7 @@ export const StudentsListSection = () => {
         });
     };
 
-    const { data, isLoading, error } = usePageSetup();
+    const { data, isLoading, error } = useInstituteDetails();
     if (isLoading) return <div>Loading filters...</div>;
     if (error) return <div>Error loading filters...</div>;
 
