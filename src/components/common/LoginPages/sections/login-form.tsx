@@ -14,6 +14,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useNavigate } from "@tanstack/react-router";
+import { setAuthorizationCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -41,9 +43,9 @@ export function LoginForm() {
     const mutation = useMutation({
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
-            if (response.accessToken) {
-                localStorage.setItem("accessToken", response.accessToken);
-                localStorage.setItem("refreshToken", response.refreshToken);
+            if (response) {
+                setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
+                setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
                 navigate({ to: "/dashboard" });
             } else {
                 toast.error("Login Error", {
