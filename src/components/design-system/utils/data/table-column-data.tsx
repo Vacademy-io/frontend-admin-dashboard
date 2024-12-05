@@ -5,7 +5,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MyButton } from "../../button";
 import { StatusChips } from "../../chips";
 import { ActivityStatus } from "../types/chips-types";
-import { getSessionExpiryStatus } from "@/components/common/students/students-list/students-list-section";
 import { MyDropdown } from "../../dropdown";
 
 const createStringFilterFn =
@@ -134,12 +133,6 @@ export const myColumns: ColumnDef<tableType>[] = [
     {
         accessorKey: "sessionExpiry",
         header: "Session Expiry",
-        filterFn: (row: Row<tableType>, columnId: string, filterValue: string[]) => {
-            if (filterValue.length === 0) return true;
-            const value = row.getValue(columnId) as string;
-            const status = getSessionExpiryStatus(value);
-            return filterValue.includes(status);
-        },
         enableGlobalFilter: true,
     },
     {

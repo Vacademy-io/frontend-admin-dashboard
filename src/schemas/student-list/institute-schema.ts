@@ -58,4 +58,4 @@ const InstituteSchema = z.object({
     student_statuses: z.array(z.enum(["ACTIVE", "TERMINATED"])),
 });
 
-export type Institute = z.infer<typeof InstituteSchema>;
+export type InstituteDetailsType = z.infer<typeof InstituteSchema>;

@@ -1,50 +1,57 @@
-import { useState, SetStateAction, Dispatch } from "react";
+// student-list-section.tsx
+import { useState, useEffect } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { Export, MagnifyingGlass } from "@phosphor-icons/react";
 import { MyTable } from "@/components/design-system/table/table";
-import { MyDropdown } from "../../../design-system/dropdown";
+import { MyDropdown } from "@/components/design-system/dropdown";
 import { Filters } from "./filters";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
-import { PageFilters } from "@/hooks/student-list/useInstituteDetails";
-import { useInstituteDetails } from "@/hooks/student-list/useInstituteDetails";
-
-export const getSessionExpiryStatus = (expiryDate: string) => {
-    const today = new Date();
-    const expiry = new Date(expiryDate);
-    const threshold = new Date();
-    threshold.setMonth(threshold.getMonth() + 1); // 1 month threshold
-
-    if (expiry < today) return "Session Expired";
-    if (expiry <= threshold) return "Below Session Threshold";
-    return "Above Session Threshold";
-};
-
-export type SessionExpiryStatus =
-    | "Session Expired"
-    | "Below Session Threshold"
-    | "Above Session Threshold";
+import { useInstituteQuery } from "@/hooks/student-list/useInstituteDetails";
+import { InstituteDetailsType } from "@/schemas/student-list/institute-schema";
+import { PageFilters } from "@/types/students/students-list-types";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
-    const setCurrentSession: Dispatch<SetStateAction<string>> = () => {};
+    const [currentSession, setCurrentSession] = useState<string>("");
     const [columnFilters, setColumnFilters] = useState<{ id: string; value: string[] }[]>([]);
     const [searchInput, setSearchInput] = useState("");
     const [clearFilters, setClearFilters] = useState<boolean>(false);
 
-    useEffect(() => {
-        setNavHeading("Students");
-    }, []);
+    const { data: instituteDetails, isError, isLoading } = useInstituteQuery();
 
-    useEffect(() => {
-        if (columnFilters.length == 0) {
-            setClearFilters(false);
-        }
-    }, [JSON.stringify(columnFilters)]);
+    const filter_titles = [
+        {
+            id: "batch" as keyof PageFilters,
+            title: "Batch",
+        },
+        {
+            id: "status" as keyof PageFilters,
+            title: "Status",
+        },
+        {
+            id: "gender" as keyof PageFilters,
+            title: "Gender",
+        },
+        {
+            id: "session_expiry" as keyof PageFilters,
+            title: "Session Expiry",
+        },
+    ];
 
-    const handleClearFilters = () => {
-        setClearFilters(true);
+    // Function to get batch names by combining level and package names
+    const getBatchNames = (selectedSession?: string) => {
+        if (!instituteDetails?.batches_for_sessions) return [];
+
+        return instituteDetails.batches_for_sessions
+            .filter((batch) => !selectedSession || batch.session.session_name === selectedSession)
+            .map((batch) => `${batch.level.level_name} ${batch.package_dto.package_name}`)
+            .sort();
+    };
+
+    // Function to get available sessions with type safety
+    const getSessions = (instituteDetails: InstituteDetailsType | undefined): string[] => {
+        return instituteDetails?.sessions?.map((session) => session.session_name) || [];
     };
 
     const handleFilterChange = (filterId: string, values: string[]) => {
@@ -55,34 +62,39 @@ export const StudentsListSection = () => {
         });
     };
 
-    const { data, isLoading, error } = useInstituteDetails();
-    if (isLoading) return <div>Loading filters...</div>;
-    if (error) return <div>Error loading filters...</div>;
-
-    const page_filters = data;
-
-    type FilterTitle = {
-        id: keyof PageFilters;
-        title: string;
+    const handleClearFilters = () => {
+        setClearFilters(true);
+        setColumnFilters([]);
     };
-    const filter_titles: FilterTitle[] = [
-        {
-            id: "batch",
-            title: "Batch",
-        },
-        {
-            id: "status",
-            title: "Status",
-        },
-        {
-            id: "gender",
-            title: "Gender",
-        },
-        {
-            id: "session_expiry",
-            title: "Session Expiry",
-        },
-    ];
+
+    useEffect(() => {
+        setNavHeading("Students");
+    }, []);
+
+    useEffect(() => {
+        const sessions = getSessions(instituteDetails);
+        if (sessions.length > 0) {
+            setCurrentSession(sessions[0] || "");
+        }
+    }, [instituteDetails]);
+
+    useEffect(() => {
+        if (columnFilters.length === 0) {
+            setClearFilters(false);
+        }
+    }, [columnFilters]);
+
+    if (isLoading) return <div>Loading...</div>;
+    if (isError) return <div>Error loading institute details</div>;
+    if (!instituteDetails) return <div>No institute details available</div>;
+
+    const page_filters: PageFilters = {
+        session: getSessions(instituteDetails),
+        batch: getBatchNames(currentSession),
+        status: instituteDetails.student_statuses || [],
+        gender: instituteDetails.genders || [],
+        session_expiry: ["Above Session Threshold", "Below Session Threshold", "Session Expired"],
+    };
 
     return (
         <section className="flex max-w-full flex-col gap-8">
@@ -97,9 +109,12 @@ export const StudentsListSection = () => {
                     <div className="flex items-center gap-2">
                         <div className="text-title">Session</div>
                         <MyDropdown
-                            currentValue={"2024-2025"}
-                            setCurrentValue={setCurrentSession}
-                            dropdownList={page_filters ? page_filters.session : []}
+                            currentValue={currentSession}
+                            setCurrentValue={(session) => {
+                                setCurrentSession(session);
+                                setColumnFilters((prev) => prev.filter((f) => f.id !== "batch"));
+                            }}
+                            dropdownList={page_filters.session || []}
                         />
                     </div>
 
@@ -115,24 +130,19 @@ export const StudentsListSection = () => {
                     </div>
 
                     {filter_titles.map((obj, key) =>
-                        page_filters ? (
-                            page_filters[obj.id] ? (
-                                <Filters
-                                    key={key}
-                                    filterDetails={{
-                                        label: obj.title,
-                                        filters: page_filters[obj.id],
-                                    }}
-                                    onFilterChange={(values) => handleFilterChange(obj.id, values)}
-                                    clearFilters={clearFilters}
-                                />
-                            ) : (
-                                <></>
-                            )
-                        ) : (
-                            <></>
-                        ),
+                        page_filters[obj.id] ? (
+                            <Filters
+                                key={key}
+                                filterDetails={{
+                                    label: obj.title,
+                                    filters: page_filters[obj.id] || [],
+                                }}
+                                onFilterChange={(values) => handleFilterChange(obj.id, values)}
+                                clearFilters={clearFilters}
+                            />
+                        ) : null,
                     )}
+
                     <div
                         className={`flex flex-wrap items-center gap-6 ${
                             columnFilters.length ? "visible" : "hidden"

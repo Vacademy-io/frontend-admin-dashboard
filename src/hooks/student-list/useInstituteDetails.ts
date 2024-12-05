@@ -1,35 +1,33 @@
+// hooks/student-list/useInstituteDetails.ts
 import { useQuery } from "@tanstack/react-query";
+import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { InstituteDetailsType } from "@/schemas/student-list/institute-schema";
+import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
 
-export type PageFilters = {
-    session: string[];
-    batch: string[];
-    status: string[];
-    gender: string[];
-    session_expiry: string[];
+const INSTITUTE_ID = "c70f40a5-e4d3-4b6c-a498-e612d0d4b133";
+const BASE_URL = "https://backend-stage.vacademy.io";
+
+const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
+    const response = await authenticatedAxiosInstance.get<InstituteDetailsType>(
+        `${BASE_URL}/admin-core-service/institute/v1/details/${INSTITUTE_ID}`,
+        {
+            headers: {
+                clientId: INSTITUTE_ID,
+            },
+        },
+    );
+    return response.data;
 };
 
-export const useInstituteDetails = () => {
-    return useQuery<PageFilters, Error>({
-        queryKey: ["pageInit"],
-        queryFn: (): PageFilters => page_setup(),
+export const useInstituteQuery = () => {
+    const setInstituteDetails = useInstituteDetailsStore((state) => state.setInstituteDetails);
+
+    return useQuery({
+        queryKey: ["institute"],
+        queryFn: async () => {
+            const data = await fetchInstituteDetails();
+            setInstituteDetails(data);
+            return data;
+        },
     });
 };
-
-export function page_setup(): PageFilters {
-    return {
-        session: ["2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"],
-        batch: [
-            "10th Premium Pro Group 1",
-            "10th Premium Pro Group 2",
-            "10th Premium Plus Group 1",
-            "10th Premium Plus Group 2",
-            "9th Premium Pro Group 1",
-            "9th Premium Pro Group 2",
-            "9th Premium Plus Group 1",
-            "9th Premium Plus Group 2",
-        ],
-        status: ["active", "inactive"],
-        gender: ["Male", "Female", "Others"],
-        session_expiry: ["Above Session Threshold", "Below Session Threshold", "Session Expired"],
-    };
-}
