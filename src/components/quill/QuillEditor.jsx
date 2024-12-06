@@ -19,48 +19,59 @@ const QuillEditor = ({ value, onChange }) => {
     const [selectedFormulaType, setSelectedFormulaType] = useState("Math");
     const operators = selectedFormulaType === "Math" ? MATH_OPERATORS : GREEK_OPERATORS;
     const reactQuillRef = useRef(null);
+    const mathQuillInitialized = useRef(false); // Flag to prevent multiple initializations
 
     const handleSelectFormulaType = (formulaType) => {
         setSelectedFormulaType(formulaType);
+
+        // Update UI for selected button
         const mathButton = document.querySelector(".math-btn");
         const greekButton = document.querySelector(".greek-btn");
         mathButton.style.borderBottom = formulaType === "Math" ? "2px solid blue" : "none";
         greekButton.style.borderBottom = formulaType === "Greek" ? "2px solid blue" : "none";
+
+        // Dynamically update operators in MathQuill
+        const quill = reactQuillRef.current?.getEditor();
+        if (quill) {
+            const formulaAuthoring = quill.getModule("formulaAuthoring");
+            if (formulaAuthoring) {
+                console.log(`Updating operators for ${formulaType}`);
+                formulaAuthoring.setOperators(operators);
+            }
+        }
     };
 
     useEffect(() => {
-        // Reinitialize MathQuill formula authoring whenever the selected type changes
-        const enableMathQuillFormulaAuthoring = mathquill4quill({ Quill, katex });
-        const quill = reactQuillRef.current?.getEditor();
-        if (quill) {
-            enableMathQuillFormulaAuthoring(quill, {
-                operators,
-            });
+        // Initialize MathQuill formula authoring only once
+        if (!mathQuillInitialized.current) {
+            const enableMathQuillFormulaAuthoring = mathquill4quill({ Quill, katex });
+            const quill = reactQuillRef.current?.getEditor();
+            if (quill) {
+                enableMathQuillFormulaAuthoring(quill, { operators });
+                mathQuillInitialized.current = true; // Mark as initialized
+            }
         }
-    }, [selectedFormulaType]);
+    }, []); // Only run on mount
 
-    // Attach the custom handler to the formula button after Quill is initialized
     useEffect(() => {
         const quill = reactQuillRef.current?.getEditor();
         const formulaTooltip = document.querySelector(".ql-tooltip");
+
         if (quill && formulaTooltip) {
-            // Create a container div with a custom class
+            // Add custom buttons only once
             const buttonContainer = document.createElement("div");
             buttonContainer.className = "custom-button-container";
 
-            // Create the "Math" button
             const mathButton = document.createElement("button");
             mathButton.innerText = "Math";
             mathButton.className = "math-btn";
             mathButton.style.borderBottom = "2px solid blue";
-
             mathButton.addEventListener("click", (e) => {
                 e.preventDefault();
                 handleSelectFormulaType("Math");
             });
             buttonContainer.appendChild(mathButton);
 
-            // Create the "Greek" button
             const greekButton = document.createElement("button");
             greekButton.innerText = "Greek";
             greekButton.className = "greek-btn";
@@ -70,19 +81,20 @@ const QuillEditor = ({ value, onChange }) => {
             });
             buttonContainer.appendChild(greekButton);
 
-            // Append the container div to the formula tooltip
             formulaTooltip.appendChild(buttonContainer);
         }
     }, []);
 
     const modules = {
-        toolbar: [
-            ["bold", "italic", "underline"], // Text formatting buttons
-            [{ align: [] }], // Alignment buttons (left, center, right)
-            [{ list: "ordered" }, { list: "bullet" }], // List buttons (numbered and dot)
-            ["formula"], // Formula button placed at the end
-        ],
-        formula: true, // Formula button to insert math expressions
+        toolbar: {
+            container: [
+                ["bold", "italic", "underline"],
+                [{ align: [] }],
+                [{ list: "ordered" }, { list: "bullet" }],
+                ["formula"], // Formula button
+            ],
+        },
+        formula: true, // Enable formula functionality
     };
 
     return (

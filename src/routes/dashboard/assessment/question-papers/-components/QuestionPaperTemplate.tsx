@@ -258,7 +258,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                         key={index}
                                                         onClick={() => handlePageClick(index)}
                                                         className={`origin-top-left scale-[0.26] rounded-xl border-4 bg-primary-50 p-6 ${
-                                                            index !== 0 ? "!mb-0 mt-[-21.8rem]" : ""
+                                                            index !== 0 ? "!mb-0 mt-[-20.2rem]" : ""
                                                         } ${
                                                             currentQuestionIndex === index
                                                                 ? "border-primary-500 bg-none"
