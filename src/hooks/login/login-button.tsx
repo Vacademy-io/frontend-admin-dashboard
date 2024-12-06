@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { LOGIN_URL } from "@/constants/urls";
+import { INSTITUTE_ID } from "@/constants/urls";
 
 // Define the request and response schemas using Zod
 const loginRequestSchema = z.object({
@@ -18,7 +20,7 @@ async function loginUser(
     username: string,
     password: string,
 ): Promise<z.infer<typeof loginResponseSchema>> {
-    const response = await fetch("https://backend-stage.vacademy.io/auth-service/v1/login-root", {
+    const response = await fetch(LOGIN_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -27,7 +29,7 @@ async function loginUser(
             user_name: username,
             password: password,
             client_name: "ADMIN_PORTAL",
-            institute_id: "c70f40a5-e4d3-4b6c-a498-e612d0d4b133",
+            institute_id: INSTITUTE_ID,
         }),
     });
 

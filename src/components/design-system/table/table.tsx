@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { myColumns } from "../utils/data/table-column-data";
-import { useTableData } from "@/hooks/student-list/useTableData";
+import { useTableData } from "@/services/student-list-section/getTableData";
 import { useEffect } from "react";
 import { PaginationDemo } from "./pagination";
 

@@ -2,13 +2,6 @@ export interface StudentListSectionProps {
     filter?: string;
 }
 
-export type PageFilters = {
-    session?: string[];
-    batch?: string[];
-    status?: string[];
-    gender?: string[];
-    session_expiry?: string[];
-};
 export interface FilterProps {
     filterDetails: {
         label: string;
@@ -16,4 +9,12 @@ export interface FilterProps {
     };
     onFilterChange?: (values: string[]) => void;
     clearFilters?: boolean;
+}
+
+type FilterId = "session" | "batch" | "status" | "gender";
+
+export interface FilterConfig {
+    id: FilterId; // Change this line
+    title: string;
+    filterList: string[];
 }
