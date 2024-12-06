@@ -170,8 +170,6 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
         toast(message);
     };
 
-    console.log(getValues());
-
     return (
         <Dialog>
             <DialogTrigger>
@@ -179,7 +177,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     Preview
                 </Button>
             </DialogTrigger>
-            <DialogContent className="no-scrollbar h-full !w-full !max-w-full overflow-y-auto p-0 [&>button]:hidden">
+            <DialogContent className="no-scrollbar h-full !w-full !max-w-full overflow-y-auto !rounded-none p-0 [&>button]:hidden">
                 <FormProvider {...form}>
                     <form
                         className="flex w-full flex-col"
@@ -238,7 +236,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                 </DialogClose>
                             </div>
                         </div>
-                        <div className="flex items-start gap-6">
+                        <div className="flex items-start gap-12">
                             <div className="flex w-24 flex-col items-start justify-between !gap-0 p-2">
                                 <Sortable
                                     value={fields}
@@ -259,7 +257,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                     <div
                                                         key={index}
                                                         onClick={() => handlePageClick(index)}
-                                                        className={`origin-top-left scale-x-[0.26] scale-y-[0.2] rounded-xl border-4 bg-primary-50 p-6 ${
+                                                        className={`origin-top-left scale-[0.26] rounded-xl border-4 bg-primary-50 p-6 ${
                                                             index !== 0 ? "!mb-0 mt-[-21.8rem]" : ""
                                                         } ${
                                                             currentQuestionIndex === index
@@ -272,7 +270,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                             <Tooltip open={hasError ? true : false}>
                                                                 <TooltipTrigger>
                                                                     <div className="flex flex-col">
-                                                                        <div className="flex items-center justify-between gap-8">
+                                                                        <div className="flex items-center justify-between gap-28">
                                                                             <h1 className="text-5xl font-bold">
                                                                                 {index + 1}
                                                                                 &nbsp;Question
@@ -328,7 +326,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                             <Separator orientation="vertical" className="ml-4 h-screen" />
                             <QuestionPaperTemplateForm
                                 form={form}
-                                className="flex w-full flex-col gap-6 pr-6 pt-4"
+                                className="-ml-6 flex w-full flex-col gap-6 pr-6 pt-4"
                                 currentQuestionIndex={currentQuestionIndex}
                                 questionPaperUploadForm={questionPaperUploadForm}
                             />
