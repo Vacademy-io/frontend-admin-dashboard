@@ -214,7 +214,7 @@ const SortableItemContext = React.createContext<SortableItemContextProps>({
     isDragging: false,
 });
 
-function useSortableItem() {
+export function useSortableItem() {
     const context = React.useContext(SortableItemContext);
 
     if (!context) {
@@ -262,7 +262,9 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
         );
         const style: React.CSSProperties = {
             opacity: isDragging ? 0.5 : 1,
-            transform: CSS.Translate.toString(transform),
+            transform: transform
+                ? `${CSS.Transform.toString(transform)} scale(0.26)` // Append scale to translate3d
+                : undefined,
             transition,
         };
 
