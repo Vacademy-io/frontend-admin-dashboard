@@ -58,32 +58,34 @@ const QuillEditor = ({ value, onChange }) => {
         const formulaTooltip = document.querySelector(".ql-tooltip");
 
         if (quill && formulaTooltip) {
-            // Add custom buttons only once
-            const buttonContainer = document.createElement("div");
-            buttonContainer.className = "custom-button-container";
+            // Avoid adding duplicate buttons
+            if (!formulaTooltip.querySelector(".custom-button-container")) {
+                const buttonContainer = document.createElement("div");
+                buttonContainer.className = "custom-button-container";
 
-            const mathButton = document.createElement("button");
-            mathButton.innerText = "Math";
-            mathButton.className = "math-btn";
-            mathButton.style.borderBottom = "2px solid blue";
-            mathButton.addEventListener("click", (e) => {
-                e.preventDefault();
-                handleSelectFormulaType("Math");
-            });
-            buttonContainer.appendChild(mathButton);
+                const mathButton = document.createElement("button");
+                mathButton.innerText = "Math";
+                mathButton.className = "math-btn";
+                mathButton.style.borderBottom = "2px solid blue";
+                mathButton.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    handleSelectFormulaType("Math");
+                });
+                buttonContainer.appendChild(mathButton);
 
-            const greekButton = document.createElement("button");
-            greekButton.innerText = "Greek";
-            greekButton.className = "greek-btn";
-            greekButton.addEventListener("click", (e) => {
-                e.preventDefault();
-                handleSelectFormulaType("Greek");
-            });
-            buttonContainer.appendChild(greekButton);
+                const greekButton = document.createElement("button");
+                greekButton.innerText = "Greek";
+                greekButton.className = "greek-btn";
+                greekButton.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    handleSelectFormulaType("Greek");
+                });
+                buttonContainer.appendChild(greekButton);
 
-            formulaTooltip.appendChild(buttonContainer);
+                formulaTooltip.appendChild(buttonContainer);
+            }
         }
-    }, []);
+    }, [handleSelectFormulaType]); // Add dependencies
 
     const modules = {
         toolbar: {
