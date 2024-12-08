@@ -21,6 +21,22 @@ export const StudentsListSection = () => {
     const sessions = useGetSessions();
     const filters = useFilters(currentSession);
 
+    useEffect(() => {
+        setNavHeading("Students");
+    }, []);
+
+    useEffect(() => {
+        if (sessions.length > 0 && sessions[0]) {
+            setCurrentSession(sessions[0]);
+        }
+    }, [sessions]);
+
+    useEffect(() => {
+        if (columnFilters.length === 0) {
+            setClearFilters(false);
+        }
+    }, [columnFilters.length]);
+
     const handleFilterChange = (filterId: string, values: string[]) => {
         setColumnFilters((prev) => {
             const existing = prev.filter((f) => f.id !== filterId);
@@ -40,22 +56,6 @@ export const StudentsListSection = () => {
             setColumnFilters((prev) => prev.filter((f) => f.id !== "batch"));
         }
     };
-
-    useEffect(() => {
-        setNavHeading("Students");
-    }, []);
-
-    useEffect(() => {
-        if (sessions.length > 0 && sessions[0]) {
-            setCurrentSession(sessions[0]);
-        }
-    }, [sessions]);
-
-    useEffect(() => {
-        if (columnFilters.length === 0) {
-            setClearFilters(false);
-        }
-    }, [columnFilters.length]);
 
     if (isLoading) return <div>Loading...</div>;
     if (isError) return <div>Error loading institute details</div>;
