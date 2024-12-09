@@ -1,7 +1,7 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import UploadImageDialogue from "./UploadImageDialogue";
 import { Button } from "@/components/ui/button";
-import { DotsThree, Image, PencilSimpleLine, TrashSimple } from "phosphor-react";
+import { DotsThree, PencilSimpleLine, TrashSimple } from "phosphor-react";
 import QuestionImagePreviewDialogue from "./QuestionImagePreviewDialogue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
@@ -15,6 +15,8 @@ import {
 import { formatStructure } from "../-utils/helper";
 import QuillEditor from "@/components/quill/QuillEditor";
 import "react-quill/dist/quill.snow.css";
+import { OptionImagePreview } from "./options/OptionImagePreview";
+import { OptionUploadImagePreview } from "./options/OptionUploadImagePreview";
 
 export const QuestionPaperTemplateForm = ({
     form,
@@ -36,6 +38,10 @@ export const QuestionPaperTemplateForm = ({
 
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
+    const option1 = getValues(`questions.${currentQuestionIndex}.option1`);
+    const option2 = getValues(`questions.${currentQuestionIndex}.option2`);
+    const option3 = getValues(`questions.${currentQuestionIndex}.option3`);
+    const option4 = getValues(`questions.${currentQuestionIndex}.option4`);
 
     const handleRemovePicture = (currentQuestionImageIndex: number) => {
         setValue(
@@ -54,6 +60,15 @@ export const QuestionPaperTemplateForm = ({
             `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageTitle`,
             "",
         );
+    };
+
+    const handleRemovePictureInOptions = (
+        option: "option1" | "option2" | "option3" | "option4",
+    ) => {
+        setValue(`questions.${currentQuestionIndex}.${option}.image.isDeleted`, true);
+        setValue(`questions.${currentQuestionIndex}.${option}.image.imageFile`, "");
+        setValue(`questions.${currentQuestionIndex}.${option}.image.imageName`, "");
+        setValue(`questions.${currentQuestionIndex}.${option}.image.imageTitle`, "");
     };
 
     const handleDeleteSlide = () => {
@@ -174,31 +189,75 @@ export const QuestionPaperTemplateForm = ({
                     <div className="flex gap-4">
                         <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
                             <div className="flex w-full items-center gap-4">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
                                     <span className="!p-0 text-sm">
                                         {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
                                     </span>
                                 </div>
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.option1.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <QuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
+                                {option1?.image?.imageFile ? (
+                                    <div className="flex w-72 flex-col">
+                                        <div className="h-64 w-72 items-center justify-center bg-black !p-0">
+                                            <img
+                                                src={option1.image.imageFile}
+                                                alt="logo"
+                                                className="h-64 w-96"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between pt-2">
+                                            <span className="text-sm">
+                                                {option1.image.imageTitle}
+                                            </span>
+                                            <div className="flex items-center gap-4">
+                                                <OptionUploadImagePreview
+                                                    form={form}
+                                                    title="Change Image"
+                                                    triggerButton={
+                                                        <Button
+                                                            variant="outline"
+                                                            className="p-0 px-2"
+                                                        >
+                                                            <PencilSimpleLine size={16} />
+                                                        </Button>
+                                                    }
+                                                    option="option1"
                                                 />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button variant="outline" className="px-2">
-                                    <Image size={32} className="!size-5" />
-                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="p-0 px-2"
+                                                    onClick={() =>
+                                                        handleRemovePictureInOptions("option1")
+                                                    }
+                                                >
+                                                    <TrashSimple
+                                                        size={32}
+                                                        className="text-red-500"
+                                                    />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <FormField
+                                        control={control}
+                                        name={`questions.${currentQuestionIndex}.option1.name`}
+                                        render={({ field }) => (
+                                            <FormItem className="w-full">
+                                                <FormControl>
+                                                    <QuillEditor
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+                                {!option1?.image?.imageFile && (
+                                    <OptionImagePreview form={form} option="option1" />
+                                )}
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
                                 <FormField
                                     control={control}
                                     name={`questions.${currentQuestionIndex}.option1.isSelected`}
@@ -223,31 +282,75 @@ export const QuestionPaperTemplateForm = ({
                         </div>
                         <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
                             <div className="flex w-full items-center gap-4">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
                                     <span className="!p-0 text-sm">
                                         {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
                                     </span>
                                 </div>
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.option2.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <QuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
+                                {option2?.image?.imageFile ? (
+                                    <div className="flex w-72 flex-col">
+                                        <div className="h-64 w-72 items-center justify-center bg-black !p-0">
+                                            <img
+                                                src={option2.image.imageFile}
+                                                alt="logo"
+                                                className="h-64 w-96"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between pt-2">
+                                            <span className="text-sm">
+                                                {option2.image.imageTitle}
+                                            </span>
+                                            <div className="flex items-center gap-4">
+                                                <OptionUploadImagePreview
+                                                    form={form}
+                                                    title="Change Image"
+                                                    triggerButton={
+                                                        <Button
+                                                            variant="outline"
+                                                            className="p-0 px-2"
+                                                        >
+                                                            <PencilSimpleLine size={16} />
+                                                        </Button>
+                                                    }
+                                                    option="option2"
                                                 />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button variant="outline" className="px-2">
-                                    <Image size={32} className="!size-5" />
-                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="p-0 px-2"
+                                                    onClick={() =>
+                                                        handleRemovePictureInOptions("option2")
+                                                    }
+                                                >
+                                                    <TrashSimple
+                                                        size={32}
+                                                        className="text-red-500"
+                                                    />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <FormField
+                                        control={control}
+                                        name={`questions.${currentQuestionIndex}.option2.name`}
+                                        render={({ field }) => (
+                                            <FormItem className="w-full">
+                                                <FormControl>
+                                                    <QuillEditor
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+                                {!option2?.image?.imageFile && (
+                                    <OptionImagePreview form={form} option="option2" />
+                                )}
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
                                 <FormField
                                     control={control}
                                     name={`questions.${currentQuestionIndex}.option2.isSelected`}
@@ -274,31 +377,75 @@ export const QuestionPaperTemplateForm = ({
                     <div className="flex gap-4">
                         <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
                             <div className="flex w-full items-center gap-4">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
                                     <span className="!p-0 text-sm">
                                         {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
                                     </span>
                                 </div>
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.option3.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <QuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
+                                {option3?.image?.imageFile ? (
+                                    <div className="flex w-72 flex-col">
+                                        <div className="h-64 w-72 items-center justify-center bg-black !p-0">
+                                            <img
+                                                src={option3.image.imageFile}
+                                                alt="logo"
+                                                className="h-64 w-96"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between pt-2">
+                                            <span className="text-sm">
+                                                {option3.image.imageTitle}
+                                            </span>
+                                            <div className="flex items-center gap-4">
+                                                <OptionUploadImagePreview
+                                                    form={form}
+                                                    title="Change Image"
+                                                    triggerButton={
+                                                        <Button
+                                                            variant="outline"
+                                                            className="p-0 px-2"
+                                                        >
+                                                            <PencilSimpleLine size={16} />
+                                                        </Button>
+                                                    }
+                                                    option="option3"
                                                 />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button variant="outline" className="px-2">
-                                    <Image size={32} className="!size-5" />
-                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="p-0 px-2"
+                                                    onClick={() =>
+                                                        handleRemovePictureInOptions("option3")
+                                                    }
+                                                >
+                                                    <TrashSimple
+                                                        size={32}
+                                                        className="text-red-500"
+                                                    />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <FormField
+                                        control={control}
+                                        name={`questions.${currentQuestionIndex}.option3.name`}
+                                        render={({ field }) => (
+                                            <FormItem className="w-full">
+                                                <FormControl>
+                                                    <QuillEditor
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+                                {!option3?.image?.imageFile && (
+                                    <OptionImagePreview form={form} option="option3" />
+                                )}
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
                                 <FormField
                                     control={control}
                                     name={`questions.${currentQuestionIndex}.option3.isSelected`}
@@ -323,31 +470,75 @@ export const QuestionPaperTemplateForm = ({
                         </div>
                         <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
                             <div className="flex w-full items-center gap-4">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
                                     <span className="!p-0 text-sm">
                                         {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
                                     </span>
                                 </div>
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.option4.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <QuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
+                                {option4?.image?.imageFile ? (
+                                    <div className="flex w-72 flex-col">
+                                        <div className="h-64 w-72 items-center justify-center bg-black !p-0">
+                                            <img
+                                                src={option4.image.imageFile}
+                                                alt="logo"
+                                                className="h-64 w-96"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between pt-2">
+                                            <span className="text-sm">
+                                                {option4.image.imageTitle}
+                                            </span>
+                                            <div className="flex items-center gap-4">
+                                                <OptionUploadImagePreview
+                                                    form={form}
+                                                    title="Change Image"
+                                                    triggerButton={
+                                                        <Button
+                                                            variant="outline"
+                                                            className="p-0 px-2"
+                                                        >
+                                                            <PencilSimpleLine size={16} />
+                                                        </Button>
+                                                    }
+                                                    option="option4"
                                                 />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button variant="outline" className="px-2">
-                                    <Image size={32} className="!size-5" />
-                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="p-0 px-2"
+                                                    onClick={() =>
+                                                        handleRemovePictureInOptions("option4")
+                                                    }
+                                                >
+                                                    <TrashSimple
+                                                        size={32}
+                                                        className="text-red-500"
+                                                    />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <FormField
+                                        control={control}
+                                        name={`questions.${currentQuestionIndex}.option4.name`}
+                                        render={({ field }) => (
+                                            <FormItem className="w-full">
+                                                <FormControl>
+                                                    <QuillEditor
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+                                {!option4?.image?.imageFile && (
+                                    <OptionImagePreview form={form} option="option4" />
+                                )}
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
                                 <FormField
                                     control={control}
                                     name={`questions.${currentQuestionIndex}.option4.isSelected`}

@@ -64,27 +64,51 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     option1: {
                         name: "",
                         isSelected: false,
-                        image: undefined,
+                        image: {
+                            imageId: "",
+                            imageName: "",
+                            imageTitle: "",
+                            imageFile: "",
+                            isDeleted: false,
+                        },
                     },
                     option2: {
                         name: "",
                         isSelected: false,
-                        image: undefined,
+                        image: {
+                            imageId: "",
+                            imageName: "",
+                            imageTitle: "",
+                            imageFile: "",
+                            isDeleted: false,
+                        },
                     },
                     option3: {
                         name: "",
                         isSelected: false,
-                        image: undefined,
+                        image: {
+                            imageId: "",
+                            imageName: "",
+                            imageTitle: "",
+                            imageFile: "",
+                            isDeleted: false,
+                        },
                     },
                     option4: {
                         name: "",
                         isSelected: false,
-                        image: undefined,
+                        image: {
+                            imageId: "",
+                            imageName: "",
+                            imageTitle: "",
+                            imageFile: "",
+                            isDeleted: false,
+                        },
                     },
                 },
             ],
         },
-        mode: "onSubmit",
+        mode: "onChange",
     });
 
     const { control, getValues, setValue, formState, watch } = form;
@@ -113,22 +137,46 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
             option1: {
                 name: "",
                 isSelected: false,
-                image: undefined,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
             },
             option2: {
                 name: "",
                 isSelected: false,
-                image: undefined,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
             },
             option3: {
                 name: "",
                 isSelected: false,
-                image: undefined,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
             },
             option4: {
                 name: "",
                 isSelected: false,
-                image: undefined,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
             },
         });
         setCurrentQuestionIndex(fields.length);
@@ -155,10 +203,50 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     questionName: "",
                     explanation: "",
                     imageDetails: [],
-                    option1: { name: "", isSelected: false, image: undefined },
-                    option2: { name: "", isSelected: false, image: undefined },
-                    option3: { name: "", isSelected: false, image: undefined },
-                    option4: { name: "", isSelected: false, image: undefined },
+                    option1: {
+                        name: "",
+                        isSelected: false,
+                        image: {
+                            imageId: "",
+                            imageName: "",
+                            imageTitle: "",
+                            imageFile: "",
+                            isDeleted: false,
+                        },
+                    },
+                    option2: {
+                        name: "",
+                        isSelected: false,
+                        image: {
+                            imageId: "",
+                            imageName: "",
+                            imageTitle: "",
+                            imageFile: "",
+                            isDeleted: false,
+                        },
+                    },
+                    option3: {
+                        name: "",
+                        isSelected: false,
+                        image: {
+                            imageId: "",
+                            imageName: "",
+                            imageTitle: "",
+                            imageFile: "",
+                            isDeleted: false,
+                        },
+                    },
+                    option4: {
+                        name: "",
+                        isSelected: false,
+                        image: {
+                            imageId: "",
+                            imageName: "",
+                            imageTitle: "",
+                            imageFile: "",
+                            isDeleted: false,
+                        },
+                    },
                 },
             ],
         });
@@ -168,6 +256,18 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
         const message =
             errors.questions?.questions?.[currentQuestionIndex]?.message ?? "An error occurred";
         toast(message);
+        if (errors.questions?.questions?.[currentQuestionIndex]?.option1) {
+            toast(errors.questions?.questions?.[currentQuestionIndex]?.option1?.message);
+        }
+        if (errors.questions?.questions?.[currentQuestionIndex]?.option2) {
+            toast(errors.questions?.questions?.[currentQuestionIndex]?.option2?.message);
+        }
+        if (errors.questions?.questions?.[currentQuestionIndex]?.option3) {
+            toast(errors.questions?.questions?.[currentQuestionIndex]?.option3?.message);
+        }
+        if (errors.questions?.questions?.[currentQuestionIndex]?.option4) {
+            toast(errors.questions?.questions?.[currentQuestionIndex]?.option4?.message);
+        }
     };
 
     return (

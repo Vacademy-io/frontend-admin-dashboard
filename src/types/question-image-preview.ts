@@ -8,3 +8,8 @@ type QuestionFormSchemaType = z.infer<typeof questionFormSchema>;
 export interface QuestionImagePreviewDialogueProps {
     form: UseFormReturn<QuestionFormSchemaType>; // Type for the form
 }
+
+export interface OptionImagePreviewDialogueProps {
+    form: UseFormReturn<QuestionFormSchemaType>; // Type for the form
+    option: "option1" | "option2" | "option3" | "option4";
+}
