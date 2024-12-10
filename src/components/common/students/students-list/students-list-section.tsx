@@ -21,6 +21,18 @@ export const StudentsListSection = () => {
     const sessions = useGetSessions();
     const filters = useFilters(currentSession);
 
+    // const studentFilters: StudentFilterRequest = {
+    //     institute_ids: ["c70f40a5-e4d3-4b6c-a498-e612d0d4b133"],
+    //     package_session_ids: ["1"],
+    //     // other optional filters...
+    // };
+
+    // // // In your component
+    // const { data: studentTableData, isLoading: loadingData, error: loadingError} = useStudentList(studentFilters, 0, 10);
+    // useEffect(()=>{
+    //     console.log(studentTableData)
+    // }, [studentTableData])
+
     useEffect(() => {
         setNavHeading("Students");
     }, []);

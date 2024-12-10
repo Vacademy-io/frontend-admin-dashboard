@@ -4,8 +4,7 @@ import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { InstituteDetailsType } from "@/schemas/student-list/institute-schema";
 import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
 import { INIT_INSTITUTE } from "@/constants/urls";
-
-const INSTITUTE_ID = "c70f40a5-e4d3-4b6c-a498-e612d0d4b133";
+import { INSTITUTE_ID } from "@/constants/urls";
 
 const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
     const response = await authenticatedAxiosInstance.get<InstituteDetailsType>(INIT_INSTITUTE, {
