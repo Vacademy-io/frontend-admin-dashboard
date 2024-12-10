@@ -13,7 +13,7 @@ export const useFilters = (currentSession?: string) => {
             filterList: batchNames,
         },
         {
-            id: "status",
+            id: "statuses",
             title: "Status",
             filterList: statuses,
         },
@@ -23,7 +23,6 @@ export const useFilters = (currentSession?: string) => {
             filterList: genders,
         },
     ];
-
     return filterData;
 };
 

@@ -11,7 +11,7 @@ export interface FilterProps {
     clearFilters?: boolean;
 }
 
-type FilterId = "session" | "batch" | "status" | "gender";
+type FilterId = "session" | "batch" | "statuses" | "gender";
 
 export interface FilterConfig {
     id: FilterId; // Change this line

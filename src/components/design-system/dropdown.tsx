@@ -5,6 +5,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    DropdownMenuPortal,
 } from "@radix-ui/react-dropdown-menu";
 import { myDropDownProps } from "./utils/types/dropdown-types";
 
@@ -13,6 +14,7 @@ export const MyDropdown = ({
     setCurrentValue,
     dropdownList,
     children,
+    onSelect,
 }: myDropDownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     return (
@@ -36,23 +38,35 @@ export const MyDropdown = ({
                     </div>
                 </DropdownMenuTrigger>
             )}
-            <DropdownMenuContent className="z-[50] mt-2 w-60 rounded-lg bg-white py-2 shadow focus:outline-none">
-                {dropdownList.map((item, key) => (
-                    <DropdownMenuItem
-                        key={key}
-                        className={`cursor-pointer px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                            currentValue == item ? "bg-primary-50" : "bg-none"
-                        } hover:outline-none`}
-                        onClick={() => {
-                            if (setCurrentValue) {
-                                setCurrentValue(item);
-                            }
-                        }}
-                    >
-                        {item}
-                    </DropdownMenuItem>
-                ))}
-            </DropdownMenuContent>
+            <DropdownMenuPortal>
+                <DropdownMenuContent
+                    className="z-[9999] mt-2 w-60 rounded-lg bg-white py-2 shadow focus:outline-none"
+                    sideOffset={5}
+                    align="start"
+                    style={{
+                        position: "relative",
+                    }}
+                >
+                    {dropdownList.map((item, key) => (
+                        <DropdownMenuItem
+                            key={key}
+                            className={`cursor-pointer px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
+                                currentValue == item ? "bg-primary-50" : "bg-none"
+                            } hover:outline-none`}
+                            onClick={() => {
+                                if (setCurrentValue) {
+                                    setCurrentValue(item);
+                                }
+                                if (onSelect) {
+                                    onSelect(item);
+                                }
+                            }}
+                        >
+                            {item}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenuPortal>
         </DropdownMenu>
     );
 };
