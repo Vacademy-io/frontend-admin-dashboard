@@ -17,29 +17,16 @@ import { Button } from "@/components/ui/button";
 import { questionFormSchema } from "../-utils/question-form-schema";
 import { Separator } from "@/components/ui/separator";
 import { SSDCLogo } from "@/svgs";
-import { QuestionPaperTemplateForm } from "./QuestionPaperTemplateForm";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { useQuestionStore } from "../-global-states/question-index";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { QuestionPaperTemplatePPTView } from "./QuestionPaperPreview/QuestionPaperTemplatePPTView";
+import { QuestionPaperTemplateMainView } from "./QuestionPaperPreview/QuestionPaperTemplateMainView";
+import { FormValues } from "@/types/error-form-values";
 
-type FormValues = {
-    title: string;
-    questions: {
-        questions: {
-            questionName: string;
-            option1: { name: string; isSelected: boolean };
-            option2: { name: string; isSelected: boolean };
-            option3: { name: string; isSelected: boolean };
-            option4: { name: string; isSelected: boolean };
-            questionId?: string;
-            explanation?: string;
-            imageDetails?: unknown; // Replace `unknown` with the appropriate type if available
-        }[];
-    };
-};
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 interface QuestionPaperTemplateProps {
     questionPaperUploadForm: UseFormReturn<QuestionPaperForm>;
@@ -60,6 +47,8 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     questionId: "",
                     questionName: "",
                     explanation: "",
+                    questionType: "MCQ (Single Correct)",
+                    questionMark: "",
                     imageDetails: [],
                     option1: {
                         name: "",
@@ -116,6 +105,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
     watch(`questions.${currentQuestionIndex}.option2`);
     watch(`questions.${currentQuestionIndex}.option3`);
     watch(`questions.${currentQuestionIndex}.option4`);
+    watch(`questions.${currentQuestionIndex}.questionType`);
 
     function onSubmit(values: z.infer<typeof questionFormSchema>) {
         console.log("Submitted Values:", values);
@@ -133,6 +123,8 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
             questionId: "",
             questionName: "",
             explanation: "",
+            questionType: "MCQ (Single Correct)",
+            questionMark: "",
             imageDetails: [],
             option1: {
                 name: "",
@@ -202,6 +194,8 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     questionId: "",
                     questionName: "",
                     explanation: "",
+                    questionType: "MCQ (Single Correct)",
+                    questionMark: "",
                     imageDetails: [],
                     option1: {
                         name: "",
@@ -337,7 +331,14 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                             </div>
                         </div>
                         <div className="flex items-start gap-12">
-                            <div className="flex w-24 flex-col items-start justify-between !gap-0 p-2">
+                            <div className="flex w-24 flex-col items-start justify-between gap-4 p-2">
+                                <Button
+                                    type="button"
+                                    className="ml-3 bg-primary-500 text-xs text-white shadow-none"
+                                    onClick={handleAddNewQuestion}
+                                >
+                                    Add Question
+                                </Button>
                                 <Sortable
                                     value={fields}
                                     onMove={({ activeIndex, overIndex }) =>
@@ -358,8 +359,6 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                         key={index}
                                                         onClick={() => handlePageClick(index)}
                                                         className={`origin-top-left scale-[0.26] rounded-xl border-4 bg-primary-50 p-6 ${
-                                                            index !== 0 ? "!mb-0 mt-[-20.2rem]" : ""
-                                                        } ${
                                                             currentQuestionIndex === index
                                                                 ? "border-primary-500 bg-none"
                                                                 : "bg-none"
@@ -370,26 +369,29 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                             <Tooltip open={hasError ? true : false}>
                                                                 <TooltipTrigger>
                                                                     <div className="flex flex-col">
-                                                                        <div className="flex items-center justify-between gap-28">
-                                                                            <h1 className="text-5xl font-bold">
+                                                                        <div className="flex items-center justify-start gap-4">
+                                                                            <h1 className="left-0 w-96 whitespace-nowrap text-4xl font-bold">
                                                                                 {index + 1}
-                                                                                &nbsp;Question
+                                                                                &nbsp;
+                                                                                {getValues(
+                                                                                    `questions.${index}.questionType`,
+                                                                                ) ||
+                                                                                    `MCQ (Single Correct)`}
                                                                             </h1>
                                                                             <SortableDragHandle
                                                                                 variant="outline"
                                                                                 size="icon"
-                                                                                className="size-24"
+                                                                                className="size-16"
                                                                             >
-                                                                                <DotsSixVertical className="text-bold !size-16" />
+                                                                                <DotsSixVertical className="text-bold !size-12" />
                                                                             </SortableDragHandle>
                                                                         </div>
-                                                                        <QuestionPaperTemplateForm
+                                                                        <QuestionPaperTemplatePPTView
                                                                             form={form}
                                                                             currentQuestionIndex={
                                                                                 index
                                                                             }
                                                                             className="relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4"
-                                                                            isSideBar={true}
                                                                             questionPaperUploadForm={
                                                                                 questionPaperUploadForm
                                                                             }
@@ -415,16 +417,9 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                         })}
                                     </div>
                                 </Sortable>
-                                <Button
-                                    type="button"
-                                    className="ml-3 bg-primary-500 text-xs text-white shadow-none"
-                                    onClick={handleAddNewQuestion}
-                                >
-                                    Add Question
-                                </Button>
                             </div>
-                            <Separator orientation="vertical" className="ml-4 h-screen" />
-                            <QuestionPaperTemplateForm
+                            <Separator orientation="vertical" className="ml-4 min-h-screen" />
+                            <QuestionPaperTemplateMainView
                                 form={form}
                                 className="-ml-6 flex w-full flex-col gap-6 pr-6 pt-4"
                                 currentQuestionIndex={currentQuestionIndex}

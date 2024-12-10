@@ -10,6 +10,5 @@ export interface QuestionPaperTemplateFormProps {
     form: UseFormReturn<QuestionFormSchemaType>;
     currentQuestionIndex: number;
     className: string;
-    isSideBar?: boolean;
     questionPaperUploadForm: UseFormReturn<QuestionPaperForm>;
 }

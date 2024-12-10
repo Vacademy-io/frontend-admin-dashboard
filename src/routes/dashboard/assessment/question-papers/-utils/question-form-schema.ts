@@ -8,6 +8,8 @@ export const questionFormSchema = z.object({
                 questionId: z.string().optional(),
                 questionName: z.string().min(1, "Question name is required"),
                 explanation: z.string().optional(),
+                questionType: z.string(),
+                questionMark: z.string(),
                 imageDetails: z
                     .array(
                         z.object({

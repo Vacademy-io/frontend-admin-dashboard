@@ -148,4 +148,8 @@
         -ms-overflow-style: none; /* IE and Edge */
         scrollbar-width: none; /* Firefox */
     }
+    .scaled-gap {
+        --scale: 0.5;
+        margin-top: calc((var(--scale) - 1) * 100%);
+    }
 }

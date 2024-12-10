@@ -15,7 +15,7 @@ import "./index.css";
 import { useEffect, useRef, useState } from "react";
 import { GREEK_OPERATORS, MATH_OPERATORS } from "./Operators";
 
-const QuillEditor = ({ value, onChange }) => {
+export const MainViewQuillEditor = ({ value, onChange }) => {
     const [selectedFormulaType, setSelectedFormulaType] = useState("Math");
     const operators = selectedFormulaType === "Math" ? MATH_OPERATORS : GREEK_OPERATORS;
     const reactQuillRef = useRef(null);
@@ -87,7 +87,7 @@ const QuillEditor = ({ value, onChange }) => {
         }
     }, [handleSelectFormulaType]); // Add dependencies
 
-    const modules = {
+    const rightBarmodules = {
         toolbar: {
             container: [
                 ["bold", "italic", "underline"],
@@ -96,18 +96,17 @@ const QuillEditor = ({ value, onChange }) => {
                 ["formula"], // Formula button
             ],
         },
-        formula: true, // Enable formula functionality
+        formula: true, // Temporary Disabling formula functionality
     };
 
     return (
         <ReactQuill
             ref={reactQuillRef}
-            modules={modules}
+            modules={rightBarmodules}
             theme="snow"
             value={value}
             onChange={onChange}
+            preserveWhitespace={true}
         />
     );
 };
-
-export default QuillEditor;

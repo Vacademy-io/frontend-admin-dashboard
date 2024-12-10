@@ -26,6 +26,7 @@ interface SelectFieldProps {
     control: any;
     disabled?: boolean;
 }
+
 const SelectField: React.FC<SelectFieldProps> = ({
     label,
     name,
@@ -39,42 +40,49 @@ const SelectField: React.FC<SelectFieldProps> = ({
     <FormField
         control={control as Control}
         name={name}
-        render={({ field }) => (
-            <FormItem className={cn("w-44", className)}>
-                <FormLabel>
-                    {label}
-                    {required && <span className="text-red-500">*</span>}
-                </FormLabel>
-                <FormControl>
-                    <Select
-                        onValueChange={(value) => {
-                            field.onChange(value);
-                            if (onSelect !== null && onSelect !== undefined) {
-                                onSelect(value);
-                            }
-                        }}
-                        disabled={disabled}
-                        {...field}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder={`Select ${label}`} />
-                        </SelectTrigger>
-                        <SelectContent className="max-w-96">
-                            {options.map((option) => (
-                                <SelectItem
-                                    className={className}
-                                    key={option._id}
-                                    value={option?.value?.toString()}
-                                >
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </FormControl>
-                <FormMessage />
-            </FormItem>
-        )}
+        render={({ field }) => {
+            // Set the default value to the first option if not already set
+            if (!field.value && options && options.length > 0) {
+                field.onChange(options[0]?.value.toString());
+            }
+
+            return (
+                <FormItem className={cn("w-44", className)}>
+                    <FormLabel>
+                        {label}
+                        {required && <span className="text-red-500">*</span>}
+                    </FormLabel>
+                    <FormControl>
+                        <Select
+                            onValueChange={(value) => {
+                                field.onChange(value);
+                                if (onSelect !== null && onSelect !== undefined) {
+                                    onSelect(value);
+                                }
+                            }}
+                            disabled={disabled}
+                            value={field.value}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder={`Select ${label}`} />
+                            </SelectTrigger>
+                            <SelectContent className="max-w-96">
+                                {options.map((option) => (
+                                    <SelectItem
+                                        className={className}
+                                        key={option._id}
+                                        value={option?.value?.toString()}
+                                    >
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            );
+        }}
     />
 );
 
