@@ -13,6 +13,7 @@ import { StudentFilterRequest } from "@/schemas/student-list/table-schema";
 import { useStudentList } from "@/services/student-list-section/getStudentTable";
 import { usePackageSessionIds } from "@/hooks/student-list-section/getPackageSessionId";
 import { INSTITUTE_ID } from "@/constants/urls";
+import { MyPagination } from "@/components/design-system/pagination";
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -29,9 +30,8 @@ export const StudentsListSection = () => {
     const [searchInput, setSearchInput] = useState<string>("");
     const [clearFilters, setClearFilters] = useState<boolean>(false);
     const [searchFilter, setSearchFilter] = useState("");
-    // const [page, setPage] = useState(0);
+    const [page, setPage] = useState(0);
     // const [pageSize, setPageSize] = useState(10);
-    const page = 0;
     const pageSize = 10;
     const [sortColumns, setSortColumns] = useState<Record<string, string>>({});
 
@@ -51,13 +51,6 @@ export const StudentsListSection = () => {
         sort_columns: sortColumns,
     };
 
-    const {
-        data: studentTableData,
-        isLoading: loadingData,
-        error: loadingError,
-        refetch,
-    } = useStudentList(studentFilters, page, pageSize);
-
     // Initial load
     useEffect(() => {
         refetch();
@@ -73,10 +66,6 @@ export const StudentsListSection = () => {
         }
         console.log("studentFilters: ", studentFilters);
     }, [columnFilters.length]);
-
-    useEffect(() => {
-        console.log(studentTableData);
-    }, [studentTableData]);
 
     const handleFilterChange = (filterId: string, values: string[]) => {
         setColumnFilters((prev) => {
@@ -126,110 +115,135 @@ export const StudentsListSection = () => {
         setTimeout(() => refetch(), 0);
     };
 
+    const handlePageChange = (newPage: number) => {
+        setPage(newPage);
+        setTimeout(() => refetch(), 0);
+    };
+
     // useEffect(()=>{
     //     console.log(studentFilters)
     // }, [columnFilters.length, sortColumns])
 
+    const {
+        data: studentTableData,
+        isLoading: loadingData,
+        error: loadingError,
+        refetch,
+    } = useStudentList(studentFilters, page, pageSize);
+
+    useEffect(() => {
+        console.log(studentTableData);
+    }, [studentTableData]);
+
     if (isLoading) return <div>Loading...</div>;
     if (isError) return <div>Error loading institute details</div>;
 
+    //to check the filters
+
     return (
         <section className="flex max-w-full flex-col gap-8 overflow-visible">
-            <div className="flex items-center justify-between">
-                <div className="text-h3 font-semibold">Students List</div>
-                <MyButton scale="large" buttonType="primary" layoutVariant="default">
-                    Enroll Student
-                </MyButton>
-            </div>
-            <div className="flex items-start justify-between">
-                <div className="flex flex-wrap items-center gap-6 gap-y-4">
-                    <div className="flex items-center gap-2">
-                        <div className="text-title">Session</div>
-                        <MyDropdown
-                            currentValue={currentSession}
-                            setCurrentValue={handleSessionChange}
-                            dropdownList={sessions}
-                        />
-                    </div>
-
-                    <div className="relative">
-                        <MyInput
-                            inputType="text"
-                            input={searchInput}
-                            setInput={setSearchInput}
-                            inputPlaceholder="Search by name, enroll..."
-                            className="pl-9 pr-9"
-                        />
-                        <MagnifyingGlass className="absolute left-3 top-1/4 size-[18px] text-neutral-600" />
-                        <KeyReturn
-                            weight="fill"
-                            className={`absolute right-3 top-1/4 size-[18px] cursor-pointer text-primary-500 ${
-                                (searchInput.length ||
-                                    (searchFilter.length && !searchInput.length)) &&
-                                searchFilter != searchInput
-                                    ? "visible"
-                                    : "hidden"
-                            }`}
-                            onClick={handleSearchEnter}
-                        />
-                        <XCircle
-                            className={`absolute right-3 top-1/4 size-[18px] cursor-pointer text-neutral-400 ${
-                                searchInput == searchFilter && searchInput != ""
-                                    ? "visible"
-                                    : "hidden"
-                            }`}
-                            onClick={handleClearSearch}
-                        />
-                    </div>
-
-                    {filters.map((filter) => (
-                        <Filters
-                            key={filter.id}
-                            filterDetails={{
-                                label: filter.title,
-                                filters: filter.filterList,
-                            }}
-                            onFilterChange={(values) => handleFilterChange(filter.id, values)}
-                            clearFilters={clearFilters}
-                        />
-                    ))}
-
-                    <div
-                        className={`flex flex-wrap items-center gap-6 ${
-                            columnFilters.length ? "visible" : "hidden"
-                        }`}
-                    >
-                        <MyButton
-                            buttonType="primary"
-                            scale="small"
-                            layoutVariant="default"
-                            className="h-8 bg-success-500 hover:bg-success-400 active:bg-success-600"
-                            onClick={handleFilterClick}
-                        >
-                            Filter
-                        </MyButton>
-                        <MyButton
-                            buttonType="primary"
-                            scale="small"
-                            layoutVariant="default"
-                            className="h-8 bg-danger-600 hover:bg-danger-400 active:bg-danger-700"
-                            onClick={handleClearFilters}
-                        >
-                            Reset
-                        </MyButton>
-                    </div>
+            <div className="flex flex-col gap-5">
+                <div className="flex items-center justify-between">
+                    <div className="text-h3 font-semibold">Students List</div>
+                    <MyButton scale="large" buttonType="primary" layoutVariant="default">
+                        Enroll Student
+                    </MyButton>
                 </div>
-                <MyButton scale="large" buttonType="secondary" layoutVariant="default">
-                    <Export />
-                    <div>Export</div>
-                </MyButton>
-            </div>
-            <div className="max-w-full">
-                <MyTable
-                    data={studentTableData}
-                    isLoading={loadingData}
-                    error={loadingError}
-                    onSort={handleSort}
+                <div className="flex items-start justify-between">
+                    <div className="flex flex-wrap items-center gap-6 gap-y-4">
+                        <div className="flex items-center gap-2">
+                            <div className="text-title">Session</div>
+                            <MyDropdown
+                                currentValue={currentSession}
+                                setCurrentValue={handleSessionChange}
+                                dropdownList={sessions}
+                            />
+                        </div>
+
+                        <div className="relative">
+                            <MyInput
+                                inputType="text"
+                                input={searchInput}
+                                setInput={setSearchInput}
+                                inputPlaceholder="Search by name, enroll..."
+                                className="pl-9 pr-9"
+                            />
+                            <MagnifyingGlass className="absolute left-3 top-1/4 size-[18px] text-neutral-600" />
+                            <KeyReturn
+                                weight="fill"
+                                className={`absolute right-3 top-1/4 size-[18px] cursor-pointer text-primary-500 ${
+                                    (searchInput.length ||
+                                        (searchFilter.length && !searchInput.length)) &&
+                                    searchFilter != searchInput
+                                        ? "visible"
+                                        : "hidden"
+                                }`}
+                                onClick={handleSearchEnter}
+                            />
+                            <XCircle
+                                className={`absolute right-3 top-1/4 size-[18px] cursor-pointer text-neutral-400 ${
+                                    searchInput == searchFilter && searchInput != ""
+                                        ? "visible"
+                                        : "hidden"
+                                }`}
+                                onClick={handleClearSearch}
+                            />
+                        </div>
+
+                        {filters.map((filter) => (
+                            <Filters
+                                key={filter.id}
+                                filterDetails={{
+                                    label: filter.title,
+                                    filters: filter.filterList,
+                                }}
+                                onFilterChange={(values) => handleFilterChange(filter.id, values)}
+                                clearFilters={clearFilters}
+                            />
+                        ))}
+
+                        <div
+                            className={`flex flex-wrap items-center gap-6 ${
+                                columnFilters.length ? "visible" : "hidden"
+                            }`}
+                        >
+                            <MyButton
+                                buttonType="primary"
+                                scale="small"
+                                layoutVariant="default"
+                                className="h-8 bg-success-500 hover:bg-success-400 active:bg-success-600"
+                                onClick={handleFilterClick}
+                            >
+                                Filter
+                            </MyButton>
+                            <MyButton
+                                buttonType="primary"
+                                scale="small"
+                                layoutVariant="default"
+                                className="h-8 bg-danger-600 hover:bg-danger-400 active:bg-danger-700"
+                                onClick={handleClearFilters}
+                            >
+                                Reset
+                            </MyButton>
+                        </div>
+                    </div>
+                    <MyButton scale="large" buttonType="secondary" layoutVariant="default">
+                        <Export />
+                        <div>Export</div>
+                    </MyButton>
+                </div>
+                <div className="max-w-full">
+                    <MyTable
+                        data={studentTableData}
+                        isLoading={loadingData}
+                        error={loadingError}
+                        onSort={handleSort}
+                    />
+                </div>
+                <MyPagination
+                    currentPage={page}
+                    totalPages={studentTableData?.total_pages || 1}
+                    onPageChange={handlePageChange}
                 />
             </div>
         </section>
