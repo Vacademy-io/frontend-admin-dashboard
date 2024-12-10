@@ -23,9 +23,9 @@ import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-f
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { QuestionPaperTemplatePPTView } from "./QuestionPaperPreview/QuestionPaperTemplatePPTView";
-import { QuestionPaperTemplateMainView } from "./QuestionPaperPreview/QuestionPaperTemplateMainView";
 import { FormValues } from "@/types/error-form-values";
+import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
+import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
 
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 interface QuestionPaperTemplateProps {
@@ -50,50 +50,106 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     questionType: "MCQ (Single Correct)",
                     questionMark: "",
                     imageDetails: [],
-                    option1: {
-                        name: "",
-                        isSelected: false,
-                        image: {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            imageFile: "",
-                            isDeleted: false,
+                    singleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
                         },
-                    },
-                    option2: {
-                        name: "",
-                        isSelected: false,
-                        image: {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            imageFile: "",
-                            isDeleted: false,
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
                         },
-                    },
-                    option3: {
-                        name: "",
-                        isSelected: false,
-                        image: {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            imageFile: "",
-                            isDeleted: false,
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
                         },
-                    },
-                    option4: {
-                        name: "",
-                        isSelected: false,
-                        image: {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            imageFile: "",
-                            isDeleted: false,
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
                         },
-                    },
+                    ],
+                    multipleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                    ],
+                    booleanOptions: [
+                        {
+                            isSelected: false,
+                        },
+                        {
+                            isSelected: false,
+                        },
+                    ],
                 },
             ],
         },
@@ -101,10 +157,10 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
     });
 
     const { control, getValues, setValue, formState, watch } = form;
-    watch(`questions.${currentQuestionIndex}.option1`);
-    watch(`questions.${currentQuestionIndex}.option2`);
-    watch(`questions.${currentQuestionIndex}.option3`);
-    watch(`questions.${currentQuestionIndex}.option4`);
+    watch(`questions.${currentQuestionIndex}`);
+    watch(`questions.${currentQuestionIndex}`);
+    watch(`questions.${currentQuestionIndex}`);
+    watch(`questions.${currentQuestionIndex}`);
     watch(`questions.${currentQuestionIndex}.questionType`);
 
     function onSubmit(values: z.infer<typeof questionFormSchema>) {
@@ -126,50 +182,106 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
             questionType: "MCQ (Single Correct)",
             questionMark: "",
             imageDetails: [],
-            option1: {
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
+            singleChoiceOptions: [
+                {
+                    name: "",
+                    isSelected: false,
+                    image: {
+                        imageId: "",
+                        imageName: "",
+                        imageTitle: "",
+                        imageFile: "",
+                        isDeleted: false,
+                    },
                 },
-            },
-            option2: {
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
+                {
+                    name: "",
+                    isSelected: false,
+                    image: {
+                        imageId: "",
+                        imageName: "",
+                        imageTitle: "",
+                        imageFile: "",
+                        isDeleted: false,
+                    },
                 },
-            },
-            option3: {
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
+                {
+                    name: "",
+                    isSelected: false,
+                    image: {
+                        imageId: "",
+                        imageName: "",
+                        imageTitle: "",
+                        imageFile: "",
+                        isDeleted: false,
+                    },
                 },
-            },
-            option4: {
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
+                {
+                    name: "",
+                    isSelected: false,
+                    image: {
+                        imageId: "",
+                        imageName: "",
+                        imageTitle: "",
+                        imageFile: "",
+                        isDeleted: false,
+                    },
                 },
-            },
+            ],
+            multipleChoiceOptions: [
+                {
+                    name: "",
+                    isSelected: false,
+                    image: {
+                        imageId: "",
+                        imageName: "",
+                        imageTitle: "",
+                        imageFile: "",
+                        isDeleted: false,
+                    },
+                },
+                {
+                    name: "",
+                    isSelected: false,
+                    image: {
+                        imageId: "",
+                        imageName: "",
+                        imageTitle: "",
+                        imageFile: "",
+                        isDeleted: false,
+                    },
+                },
+                {
+                    name: "",
+                    isSelected: false,
+                    image: {
+                        imageId: "",
+                        imageName: "",
+                        imageTitle: "",
+                        imageFile: "",
+                        isDeleted: false,
+                    },
+                },
+                {
+                    name: "",
+                    isSelected: false,
+                    image: {
+                        imageId: "",
+                        imageName: "",
+                        imageTitle: "",
+                        imageFile: "",
+                        isDeleted: false,
+                    },
+                },
+            ],
+            booleanOptions: [
+                {
+                    isSelected: false,
+                },
+                {
+                    isSelected: false,
+                },
+            ],
         });
         setCurrentQuestionIndex(fields.length);
     };
@@ -197,50 +309,106 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                     questionType: "MCQ (Single Correct)",
                     questionMark: "",
                     imageDetails: [],
-                    option1: {
-                        name: "",
-                        isSelected: false,
-                        image: {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            imageFile: "",
-                            isDeleted: false,
+                    singleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
                         },
-                    },
-                    option2: {
-                        name: "",
-                        isSelected: false,
-                        image: {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            imageFile: "",
-                            isDeleted: false,
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
                         },
-                    },
-                    option3: {
-                        name: "",
-                        isSelected: false,
-                        image: {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            imageFile: "",
-                            isDeleted: false,
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
                         },
-                    },
-                    option4: {
-                        name: "",
-                        isSelected: false,
-                        image: {
-                            imageId: "",
-                            imageName: "",
-                            imageTitle: "",
-                            imageFile: "",
-                            isDeleted: false,
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
                         },
-                    },
+                    ],
+                    multipleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                    ],
+                    booleanOptions: [
+                        {
+                            isSelected: false,
+                        },
+                        {
+                            isSelected: false,
+                        },
+                    ],
                 },
             ],
         });
@@ -386,15 +554,23 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                                                                 <DotsSixVertical className="text-bold !size-12" />
                                                                             </SortableDragHandle>
                                                                         </div>
-                                                                        <QuestionPaperTemplatePPTView
-                                                                            form={form}
-                                                                            currentQuestionIndex={
-                                                                                index
+                                                                        <PPTComponentFactory
+                                                                            type={
+                                                                                getValues(
+                                                                                    `questions.${index}.questionType`,
+                                                                                ) as
+                                                                                    | "MCQ (Single Correct)"
+                                                                                    | "MCQ (Multiple Correct)"
                                                                             }
-                                                                            className="relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4"
-                                                                            questionPaperUploadForm={
-                                                                                questionPaperUploadForm
-                                                                            }
+                                                                            props={{
+                                                                                form: form,
+                                                                                currentQuestionIndex:
+                                                                                    index,
+                                                                                className:
+                                                                                    "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
+                                                                                questionPaperUploadForm:
+                                                                                    questionPaperUploadForm,
+                                                                            }}
                                                                         />
                                                                     </div>
                                                                 </TooltipTrigger>
@@ -419,11 +595,18 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                 </Sortable>
                             </div>
                             <Separator orientation="vertical" className="ml-4 min-h-screen" />
-                            <QuestionPaperTemplateMainView
-                                form={form}
-                                className="-ml-6 flex w-full flex-col gap-6 pr-6 pt-4"
-                                currentQuestionIndex={currentQuestionIndex}
-                                questionPaperUploadForm={questionPaperUploadForm}
+                            <MainViewComponentFactory
+                                type={
+                                    getValues(`questions.${currentQuestionIndex}.questionType`) as
+                                        | "MCQ (Single Correct)"
+                                        | "MCQ (Multiple Correct)"
+                                }
+                                props={{
+                                    form: form,
+                                    className: "-ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                    currentQuestionIndex: currentQuestionIndex,
+                                    questionPaperUploadForm: questionPaperUploadForm,
+                                }}
                             />
                         </div>
                     </form>

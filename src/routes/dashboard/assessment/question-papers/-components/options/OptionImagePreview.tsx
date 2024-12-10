@@ -12,10 +12,22 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
     const { setValue, getValues } = form;
 
     const handleRemovePicture = () => {
-        setValue(`questions.${currentQuestionIndex}.${option}.image.isDeleted`, true);
-        setValue(`questions.${currentQuestionIndex}.${option}.image.imageFile`, "");
-        setValue(`questions.${currentQuestionIndex}.${option}.image.imageName`, "");
-        setValue(`questions.${currentQuestionIndex}.${option}.image.imageTitle`, "");
+        setValue(
+            `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.isDeleted`,
+            true,
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+            "",
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`,
+            "",
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageTitle`,
+            "",
+        );
     };
 
     return (
@@ -30,17 +42,21 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
                     Question Image
                 </h1>
                 <div className="relative flex h-80 w-full items-center justify-center bg-black !p-0">
-                    {getValues(`questions.${currentQuestionIndex}.${option}.image.imageFile`) && (
+                    {getValues(
+                        `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+                    ) && (
                         <img
                             src={getValues(
-                                `questions.${currentQuestionIndex}.${option}.image.imageFile`,
+                                `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
                             )}
                             alt="logo"
                             className="h-64 w-96"
                         />
                     )}
 
-                    {!getValues(`questions.${currentQuestionIndex}.${option}.image.imageFile`) && (
+                    {!getValues(
+                        `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+                    ) && (
                         <OptionUploadImagePreview
                             form={form}
                             title="Upload Image"
@@ -51,7 +67,7 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
                 <div className="flex gap-4 p-4">
                     <FormField
                         control={form.control}
-                        name={`questions.${currentQuestionIndex}.${option}.image.imageTitle`}
+                        name={`questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageTitle`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>

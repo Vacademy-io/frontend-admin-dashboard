@@ -11,5 +11,5 @@ export interface QuestionImagePreviewDialogueProps {
 
 export interface OptionImagePreviewDialogueProps {
     form: UseFormReturn<QuestionFormSchemaType>; // Type for the form
-    option: "option1" | "option2" | "option3" | "option4";
+    option: number;
 }

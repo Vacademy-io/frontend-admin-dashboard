@@ -21,50 +21,37 @@ export const questionFormSchema = z.object({
                         }),
                     )
                     .optional(),
-                option1: z.object({
-                    name: z.string().optional(),
-                    isSelected: z.boolean().optional(),
-                    image: z.object({
-                        imageId: z.string().optional(),
-                        imageName: z.string().optional(),
-                        imageTitle: z.string().optional(),
-                        imageFile: z.string().optional(),
-                        isDeleted: z.boolean().optional(),
+                singleChoiceOptions: z.array(
+                    z.object({
+                        name: z.string().optional(),
+                        isSelected: z.boolean().optional(),
+                        image: z.object({
+                            imageId: z.string().optional(),
+                            imageName: z.string().optional(),
+                            imageTitle: z.string().optional(),
+                            imageFile: z.string().optional(),
+                            isDeleted: z.boolean().optional(),
+                        }),
                     }),
-                }),
-                option2: z.object({
-                    name: z.string().optional(),
-                    isSelected: z.boolean().optional(),
-                    image: z.object({
-                        imageId: z.string().optional(),
-                        imageName: z.string().optional(),
-                        imageTitle: z.string().optional(),
-                        imageFile: z.string().optional(),
-                        isDeleted: z.boolean().optional(),
+                ),
+                multipleChoiceOptions: z.array(
+                    z.object({
+                        name: z.string().optional(),
+                        isSelected: z.boolean().optional(),
+                        image: z.object({
+                            imageId: z.string().optional(),
+                            imageName: z.string().optional(),
+                            imageTitle: z.string().optional(),
+                            imageFile: z.string().optional(),
+                            isDeleted: z.boolean().optional(),
+                        }),
                     }),
-                }),
-                option3: z.object({
-                    name: z.string().optional(),
-                    isSelected: z.boolean().optional(),
-                    image: z.object({
-                        imageId: z.string().optional(),
-                        imageName: z.string().optional(),
-                        imageTitle: z.string().optional(),
-                        imageFile: z.string().optional(),
-                        isDeleted: z.boolean().optional(),
+                ),
+                booleanOptions: z.array(
+                    z.object({
+                        isSelected: z.boolean().optional(),
                     }),
-                }),
-                option4: z.object({
-                    name: z.string().optional(),
-                    isSelected: z.boolean().optional(),
-                    image: z.object({
-                        imageId: z.string().optional(),
-                        imageName: z.string().optional(),
-                        imageTitle: z.string().optional(),
-                        imageFile: z.string().optional(),
-                        isDeleted: z.boolean().optional(),
-                    }),
-                }),
+                ),
             }),
         )
         .superRefine((questions, ctx) => {
@@ -75,24 +62,6 @@ export const questionFormSchema = z.object({
                         code: z.ZodIssueCode.custom,
                         message: `Question name is required at question no.${index + 1}`,
                         path: ["questions", index, "questionName"], // Highlights the specific question field
-                    });
-                }
-
-                // Validation for selected options
-                const hasSelectedOption = [
-                    question.option1.isSelected,
-                    question.option2.isSelected,
-                    question.option3.isSelected,
-                    question.option4.isSelected,
-                ].some((isSelected) => isSelected === true);
-
-                if (!hasSelectedOption) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: `At least one option must be selected. Error at question no.${
-                            index + 1
-                        }`,
-                        path: ["questions", index], // Highlights the specific question index
                     });
                 }
             });

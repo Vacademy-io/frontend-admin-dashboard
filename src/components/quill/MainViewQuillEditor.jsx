@@ -85,7 +85,7 @@ export const MainViewQuillEditor = ({ value, onChange }) => {
                 formulaTooltip.appendChild(buttonContainer);
             }
         }
-    }, [handleSelectFormulaType]); // Add dependencies
+    }, []); // Add dependencies
 
     const rightBarmodules = {
         toolbar: {

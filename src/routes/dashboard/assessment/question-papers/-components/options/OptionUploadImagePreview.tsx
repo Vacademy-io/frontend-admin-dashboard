@@ -19,12 +19,18 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const handleFileSubmit = (file: File) => {
-        setValue(`questions.${currentQuestionIndex}.${option}.image.imageName`, file.name);
+        setValue(
+            `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`,
+            file.name,
+        );
 
         // Generate the image preview URL
         const imageUrl = URL.createObjectURL(file);
 
-        setValue(`questions.${currentQuestionIndex}.${option}.image.imageFile`, imageUrl);
+        setValue(
+            `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+            imageUrl,
+        );
     };
 
     const handleFileSelect = () => {
@@ -45,7 +51,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                 <div className="flex items-center gap-4 px-8 py-4">
                     <FormField
                         control={form.control}
-                        name={`questions.${currentQuestionIndex}.${option}.image.imageName`}
+                        name={`questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -62,7 +68,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                         className="bg-primary-500 p-3"
                         disabled={
                             !getValues(
-                                `questions.${currentQuestionIndex}.${option}.image.imageName`,
+                                `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`,
                             )
                         }
                     >
@@ -79,7 +85,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                             fileInputRef={fileInputRef}
                             onFileSubmit={handleFileSubmit}
                             control={form.control}
-                            name={`questions.${currentQuestionIndex}.${option}.image.imageName`}
+                            name={`questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`}
                         />
                     </Button>
                 </div>

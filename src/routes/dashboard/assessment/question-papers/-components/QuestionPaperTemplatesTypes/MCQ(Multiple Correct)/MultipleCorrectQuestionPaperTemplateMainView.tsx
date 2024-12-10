@@ -7,15 +7,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
 import CustomInput from "@/components/design-system/custom-input";
-import UploadImageDialogue from "../UploadImageDialogue";
-import QuestionImagePreviewDialogue from "../QuestionImagePreviewDialogue";
-import { QuestionPaperTemplateFormProps } from "../../-utils/question-paper-template-form";
-import { formatStructure } from "../../-utils/helper";
-import { OptionImagePreview } from "../options/OptionImagePreview";
-import { OptionUploadImagePreview } from "../options/OptionUploadImagePreview";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
+import UploadImageDialogue from "../../UploadImageDialogue";
+import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
+import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
+import { formatStructure } from "../../../-utils/helper";
+import { OptionImagePreview } from "../../options/OptionImagePreview";
+import { OptionUploadImagePreview } from "../../options/OptionUploadImagePreview";
 
-export const QuestionPaperTemplateMainView = ({
+export const MultipleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
     className,
@@ -39,10 +39,11 @@ export const QuestionPaperTemplateMainView = ({
 
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
-    const option1 = getValues(`questions.${currentQuestionIndex}.option1`);
-    const option2 = getValues(`questions.${currentQuestionIndex}.option2`);
-    const option3 = getValues(`questions.${currentQuestionIndex}.option3`);
-    const option4 = getValues(`questions.${currentQuestionIndex}.option4`);
+
+    const option1 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`);
+    const option2 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`);
+    const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
+    const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
 
     const handleRemovePicture = (currentQuestionImageIndex: number) => {
         setValue(
@@ -63,13 +64,23 @@ export const QuestionPaperTemplateMainView = ({
         );
     };
 
-    const handleRemovePictureInOptions = (
-        option: "option1" | "option2" | "option3" | "option4",
-    ) => {
-        setValue(`questions.${currentQuestionIndex}.${option}.image.isDeleted`, true);
-        setValue(`questions.${currentQuestionIndex}.${option}.image.imageFile`, "");
-        setValue(`questions.${currentQuestionIndex}.${option}.image.imageName`, "");
-        setValue(`questions.${currentQuestionIndex}.${option}.image.imageTitle`, "");
+    const handleRemovePictureInOptions = (optionIndex: number) => {
+        setValue(
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.isDeleted`,
+            true,
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageFile`,
+            "",
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageName`,
+            "",
+        );
+        setValue(
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageTitle`,
+            "",
+        );
     };
 
     if (allQuestions.length === 0) {
@@ -220,14 +231,12 @@ export const QuestionPaperTemplateMainView = ({
                                                         <PencilSimpleLine size={16} />
                                                     </Button>
                                                 }
-                                                option="option1"
+                                                option={0}
                                             />
                                             <Button
                                                 variant="outline"
                                                 className="p-0 px-2"
-                                                onClick={() =>
-                                                    handleRemovePictureInOptions("option1")
-                                                }
+                                                onClick={() => handleRemovePictureInOptions(0)}
                                             >
                                                 <TrashSimple size={32} className="text-red-500" />
                                             </Button>
@@ -237,7 +246,7 @@ export const QuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.option1.name`}
+                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -252,20 +261,20 @@ export const QuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option1?.image?.imageFile && (
-                                <OptionImagePreview form={form} option="option1" />
+                                <OptionImagePreview form={form} option={0} />
                             )}
                         </div>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.option1.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -305,14 +314,12 @@ export const QuestionPaperTemplateMainView = ({
                                                         <PencilSimpleLine size={16} />
                                                     </Button>
                                                 }
-                                                option="option2"
+                                                option={1}
                                             />
                                             <Button
                                                 variant="outline"
                                                 className="p-0 px-2"
-                                                onClick={() =>
-                                                    handleRemovePictureInOptions("option2")
-                                                }
+                                                onClick={() => handleRemovePictureInOptions(1)}
                                             >
                                                 <TrashSimple size={32} className="text-red-500" />
                                             </Button>
@@ -322,7 +329,7 @@ export const QuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.option2.name`}
+                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -337,20 +344,20 @@ export const QuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option2?.image?.imageFile && (
-                                <OptionImagePreview form={form} option="option2" />
+                                <OptionImagePreview form={form} option={1} />
                             )}
                         </div>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.option2.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -392,14 +399,12 @@ export const QuestionPaperTemplateMainView = ({
                                                         <PencilSimpleLine size={16} />
                                                     </Button>
                                                 }
-                                                option="option3"
+                                                option={2}
                                             />
                                             <Button
                                                 variant="outline"
                                                 className="p-0 px-2"
-                                                onClick={() =>
-                                                    handleRemovePictureInOptions("option3")
-                                                }
+                                                onClick={() => handleRemovePictureInOptions(2)}
                                             >
                                                 <TrashSimple size={32} className="text-red-500" />
                                             </Button>
@@ -409,7 +414,7 @@ export const QuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.option3.name`}
+                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -424,20 +429,20 @@ export const QuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option3?.image?.imageFile && (
-                                <OptionImagePreview form={form} option="option3" />
+                                <OptionImagePreview form={form} option={2} />
                             )}
                         </div>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.option3.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -477,14 +482,12 @@ export const QuestionPaperTemplateMainView = ({
                                                         <PencilSimpleLine size={16} />
                                                     </Button>
                                                 }
-                                                option="option4"
+                                                option={3}
                                             />
                                             <Button
                                                 variant="outline"
                                                 className="p-0 px-2"
-                                                onClick={() =>
-                                                    handleRemovePictureInOptions("option4")
-                                                }
+                                                onClick={() => handleRemovePictureInOptions(3)}
                                             >
                                                 <TrashSimple size={32} className="text-red-500" />
                                             </Button>
@@ -494,7 +497,7 @@ export const QuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.option4.name`}
+                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -509,20 +512,20 @@ export const QuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option4?.image?.imageFile && (
-                                <OptionImagePreview form={form} option="option4" />
+                                <OptionImagePreview form={form} option={3} />
                             )}
                         </div>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.option4.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked

@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import "react-quill/dist/quill.snow.css";
 import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../-utils/question-paper-template-form";
-import { formatStructure } from "../../-utils/helper";
+import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
+import { formatStructure } from "../../../-utils/helper";
 
-export const QuestionPaperTemplatePPTView = ({
+export const SingleCorrectQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
     className,
@@ -44,14 +44,27 @@ export const QuestionPaperTemplatePPTView = ({
                 questionName: questionToDuplicate.questionName || "",
                 explanation: questionToDuplicate.explanation || "",
                 imageDetails: questionToDuplicate.imageDetails || [],
-                option1: { ...questionToDuplicate.option1 },
-                option2: { ...questionToDuplicate.option2 },
-                option3: { ...questionToDuplicate.option3 },
-                option4: { ...questionToDuplicate.option4 },
+                singleChoiceOptions: questionToDuplicate.singleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
             setValue("questions", allQuestions);
         }
+    };
+
+    const handleOptionChange = (optionIndex: number) => {
+        const options = [0, 1, 2, 3];
+
+        // Check current state of the selected option
+        const isCurrentlySelected = getValues(
+            `questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
+        );
+
+        options.forEach((option) => {
+            setValue(
+                `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
+                option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
+            );
+        });
     };
 
     return (
@@ -99,27 +112,27 @@ export const QuestionPaperTemplatePPTView = ({
                     })}
             </div>
 
-            <div className="flex w-full flex-grow flex-col gap-2">
+            <div className="flex w-full grow flex-col gap-2">
                 <div className="flex gap-2">
                     <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2">
                         <div className="flex w-full items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
                                     {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
                                 </span>
                             </div>
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.option1.isSelected`}
+                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                onCheckedChange={() => handleOptionChange(0)}
+                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -134,23 +147,23 @@ export const QuestionPaperTemplatePPTView = ({
                     </div>
                     <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2">
                         <div className="flex w-full items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
                                     {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
                                 </span>
                             </div>
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.option2.isSelected`}
+                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                onCheckedChange={() => handleOptionChange(1)}
+                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -167,23 +180,23 @@ export const QuestionPaperTemplatePPTView = ({
                 <div className="flex gap-2">
                     <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2">
                         <div className="flex w-full items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
                                     {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
                                 </span>
                             </div>
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.option3.isSelected`}
+                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                onCheckedChange={() => handleOptionChange(2)}
+                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -198,23 +211,23 @@ export const QuestionPaperTemplatePPTView = ({
                     </div>
                     <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2">
                         <div className="flex w-full items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
                                     {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
                                 </span>
                             </div>
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.option4.isSelected`}
+                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 h-5 w-5 border-2 shadow-none ${
+                                                onCheckedChange={() => handleOptionChange(3)}
+                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
