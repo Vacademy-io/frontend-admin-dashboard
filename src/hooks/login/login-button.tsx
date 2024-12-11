@@ -1,43 +1,43 @@
 import { z } from "zod";
+import { LOGIN_URL } from "@/constants/urls";
+import { INSTITUTE_ID } from "@/constants/urls";
 
 // Define the request and response schemas using Zod
 const loginRequestSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
+    user_name: z.string(),
+    password: z.string(),
+    client_name: z.literal("ADMIN_PORTAL"),
+    institute_id: z.string().uuid(),
 });
 
 const loginResponseSchema = z.object({
-    userId: z.string().optional(),
-    token: z.string().optional(),
-    status: z.enum(["success", "error"]),
-    message: z.string().optional(),
+    accessToken: z.string(),
+    refreshToken: z.string(),
 });
 
 // Dummy login function
 async function loginUser(
-    email: string,
+    username: string,
     password: string,
 ): Promise<z.infer<typeof loginResponseSchema>> {
-    // Validate the input using the request schema
-    const { email: validEmail, password: validPassword } = loginRequestSchema.parse({
-        email,
-        password,
+    const response = await fetch(LOGIN_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            user_name: username,
+            password: password,
+            client_name: "ADMIN_PORTAL",
+            institute_id: INSTITUTE_ID,
+        }),
     });
 
-    // Simulate a successful login
-    if (validEmail === "test@example.com" && validPassword === "password123") {
-        return {
-            userId: "123",
-            token: "abc123",
-            status: "success",
-        };
+    if (!response.ok) {
+        throw new Error("Login failed");
     }
 
-    // Simulate a failed login
-    return {
-        status: "error",
-        message: "Invalid email or password",
-    };
+    return response.json();
 }
 
 export { loginUser, loginRequestSchema, loginResponseSchema };

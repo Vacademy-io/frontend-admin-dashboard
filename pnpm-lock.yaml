@@ -67,6 +67,12 @@ importers:
             i18next:
                 specifier: ^23.16.4
                 version: 23.16.4
+            js-cookie:
+                specifier: ^3.0.5
+                version: 3.0.5
+            jwt-decode:
+                specifier: ^4.0.0
+                version: 4.0.0
             lodash:
                 specifier: ^4.17.21
                 version: 4.17.21
@@ -134,6 +140,9 @@ importers:
             "@testing-library/react":
                 specifier: ^14.3.1
                 version: 14.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@types/js-cookie":
+                specifier: ^3.0.6
+                version: 3.0.6
             "@types/lodash":
                 specifier: ^4.17.7
                 version: 4.17.7
@@ -1797,6 +1806,12 @@ packages:
         resolution:
             {
                 integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==,
+            }
+
+    "@types/js-cookie@3.0.6":
+        resolution:
+            {
+                integrity: sha512-wkw9yd1kEXOPnvEeEV1Go1MmxtBJL0RR79aOTAApecWFVu7w0NNXNqhcWgvw2YgZDYadliXkl14pa3WXw5jlCQ==,
             }
 
     "@types/json-schema@7.0.15":
@@ -3628,6 +3643,13 @@ packages:
             }
         hasBin: true
 
+    js-cookie@3.0.5:
+        resolution:
+            {
+                integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==,
+            }
+        engines: { node: ">=14" }
+
     js-tokens@4.0.0:
         resolution:
             {
@@ -3693,6 +3715,13 @@ packages:
                 integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==,
             }
         engines: { node: ">=4.0" }
+
+    jwt-decode@4.0.0:
+        resolution:
+            {
+                integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==,
+            }
+        engines: { node: ">=18" }
 
     keyv@4.5.4:
         resolution:
@@ -6483,6 +6512,8 @@ snapshots:
 
     "@types/estree@1.0.5": {}
 
+    "@types/js-cookie@3.0.6": {}
+
     "@types/json-schema@7.0.15": {}
 
     "@types/lodash@4.17.7": {}
@@ -7738,6 +7769,8 @@ snapshots:
 
     jiti@1.21.6: {}
 
+    js-cookie@3.0.5: {}
+
     js-tokens@4.0.0: {}
 
     js-tokens@9.0.0: {}
@@ -7764,6 +7797,8 @@ snapshots:
             array.prototype.flat: 1.3.2
             object.assign: 4.1.5
             object.values: 1.2.0
+
+    jwt-decode@4.0.0: {}
 
     keyv@4.5.4:
         dependencies:

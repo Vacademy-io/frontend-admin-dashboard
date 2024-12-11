@@ -13,19 +13,23 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { useNavigate } from "@tanstack/react-router";
+import { setAuthorizationCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 type FormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
     const { hasSeenAnimation, setHasSeenAnimation } = useAnimationStore();
+    const navigate = useNavigate();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
-            email: "",
+            username: "",
             password: "",
         },
-        mode: "onTouched", // This will show errors on blur
+        mode: "onTouched",
     });
 
     useEffect(() => {
@@ -37,20 +41,24 @@ export function LoginForm() {
     }, [hasSeenAnimation, setHasSeenAnimation]);
 
     const mutation = useMutation({
-        mutationFn: (values: FormValues) => loginUser(values.email, values.password),
+        mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
-            if (response.status != "success") {
+            if (response) {
+                setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
+                setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
+                navigate({ to: "/dashboard" });
+            } else {
                 toast.error("Login Error", {
-                    description: "Your password is incorrect or this account doesn't exist.",
+                    description: "Invalid credentials",
                     className: "error-toast",
-                    duration: 2000,
+                    duration: 3000,
                 });
                 form.reset();
             }
         },
         onError: () => {
             toast.error("Login Error", {
-                description: "Your password is incorrect or this account doesn't exist.",
+                description: "Invalid username or password",
                 className: "error-toast",
                 duration: 3000,
             });
@@ -75,19 +83,19 @@ export function LoginForm() {
                         <div className="flex w-full flex-col items-center justify-center gap-8 px-16">
                             <FormField
                                 control={form.control}
-                                name="email"
+                                name="username"
                                 render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
-                                                inputType="email"
-                                                inputPlaceholder="you@email.com"
+                                                inputType="text"
+                                                inputPlaceholder="Enter your username"
                                                 input={value}
                                                 onChangeFunction={onChange}
-                                                error={form.formState.errors.email?.message}
+                                                error={form.formState.errors.username?.message}
                                                 required={true}
                                                 size="large"
-                                                label="Email"
+                                                label="Username"
                                                 {...field}
                                             />
                                         </FormControl>
