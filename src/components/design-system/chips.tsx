@@ -7,7 +7,7 @@ import {
     ChipsWrapperProps,
 } from "./utils/types/chips-types";
 import { PlusCircle, Check } from "@phosphor-icons/react";
-import { ActivityStatusData } from "./utils/data/chips-data";
+import { ActivityStatusData } from "./utils/constants/chips-data";
 import {
     Command,
     CommandEmpty,

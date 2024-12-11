@@ -1,7 +1,7 @@
 import { FilterConfig } from "@/types/students/students-list-types";
 import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
 
-export const useFilters = (currentSession?: string) => {
+export const useFilterData = (currentSession?: string) => {
     const batchNames = useGetBatchNames(currentSession);
     const statuses = useGetStatuses();
     const genders = useGetGenders();
