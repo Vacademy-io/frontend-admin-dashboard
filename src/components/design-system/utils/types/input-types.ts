@@ -10,7 +10,7 @@ export interface FormInputProps
     inputType?: string;
     inputPlaceholder?: string;
     input: string;
-    setInput: (value: string) => void;
+    onChangeFunction: (event: React.ChangeEvent<HTMLInputElement>) => void;
     error?: string | null;
     required?: boolean;
     size?: InputSize;

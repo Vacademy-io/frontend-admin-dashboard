@@ -95,7 +95,7 @@ export function ForgotPassword() {
                                                     inputType="email"
                                                     inputPlaceholder="you@email.com"
                                                     input={value}
-                                                    setInput={onChange}
+                                                    onChangeFunction={onChange}
                                                     error={form.formState.errors.email?.message}
                                                     required={true}
                                                     size="large"

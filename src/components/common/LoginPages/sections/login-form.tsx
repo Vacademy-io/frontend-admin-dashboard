@@ -91,7 +91,7 @@ export function LoginForm() {
                                                 inputType="text"
                                                 inputPlaceholder="Enter your username"
                                                 input={value}
-                                                setInput={onChange}
+                                                onChangeFunction={onChange}
                                                 error={form.formState.errors.username?.message}
                                                 required={true}
                                                 size="large"
@@ -114,7 +114,7 @@ export function LoginForm() {
                                                     inputType="password"
                                                     inputPlaceholder="••••••••"
                                                     input={value}
-                                                    setInput={onChange}
+                                                    onChangeFunction={onChange}
                                                     error={form.formState.errors.password?.message}
                                                     required={true}
                                                     size="large"

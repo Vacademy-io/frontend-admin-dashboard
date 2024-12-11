@@ -28,7 +28,7 @@ export const MyInput = ({
     inputType,
     inputPlaceholder,
     input,
-    setInput,
+    onChangeFunction,
     error,
     required,
     className,
@@ -41,10 +41,6 @@ export const MyInput = ({
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
-    };
-
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setInput(event.target.value);
     };
 
     return (
@@ -75,7 +71,7 @@ export const MyInput = ({
                             className,
                         )}
                         value={input}
-                        onChange={handleInputChange}
+                        onChange={onChangeFunction}
                         required={required}
                         {...props}
                     />

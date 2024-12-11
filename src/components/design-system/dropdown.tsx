@@ -11,7 +11,7 @@ import { myDropDownProps } from "./utils/types/dropdown-types";
 
 export const MyDropdown = ({
     currentValue,
-    setCurrentValue,
+    handleChange,
     dropdownList,
     children,
     onSelect,
@@ -54,8 +54,8 @@ export const MyDropdown = ({
                                 currentValue == item ? "bg-primary-50" : "bg-none"
                             } hover:outline-none`}
                             onClick={() => {
-                                if (setCurrentValue) {
-                                    setCurrentValue(item);
+                                if (handleChange) {
+                                    handleChange(item);
                                 }
                                 if (onSelect) {
                                     onSelect(item);

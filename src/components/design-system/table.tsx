@@ -8,7 +8,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { myColumns } from "../utils/data/table-column-data";
+import { myColumns } from "./utils/data/table-column-data";
 import { StudentListResponse } from "@/schemas/student-list/table-schema";
 
 const headerTextCss = "p-3 border-r border-neutral-300";

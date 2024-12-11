@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { Export, MagnifyingGlass, XCircle } from "@phosphor-icons/react";
-import { MyTable } from "@/components/design-system/table/table";
+import { MyTable } from "@/components/design-system/table";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { Filters } from "./filters";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
@@ -66,6 +66,10 @@ export const StudentsListSection = () => {
         }
         console.log("studentFilters: ", studentFilters);
     }, [columnFilters.length]);
+
+    const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(event.target.value);
+    };
 
     const handleFilterChange = (filterId: string, values: string[]) => {
         setColumnFilters((prev) => {
@@ -155,7 +159,7 @@ export const StudentsListSection = () => {
                             <div className="text-title">Session</div>
                             <MyDropdown
                                 currentValue={currentSession}
-                                setCurrentValue={handleSessionChange}
+                                handleChange={handleSessionChange}
                                 dropdownList={sessions}
                             />
                         </div>
@@ -164,7 +168,7 @@ export const StudentsListSection = () => {
                             <MyInput
                                 inputType="text"
                                 input={searchInput}
-                                setInput={setSearchInput}
+                                onChangeFunction={handleSearchInputChange}
                                 inputPlaceholder="Search by name, enroll..."
                                 className="pl-9 pr-9"
                             />

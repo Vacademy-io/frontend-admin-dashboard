@@ -30,25 +30,3 @@ export const forgotPasswordSchema = z.object({
         .email("Invalid email address")
         .max(255, { message: "Email must be less than 255 characters" }),
 });
-
-// Set Password Schema with password match validation
-export const setPasswordSchema = z
-    .object({
-        password: z
-            .string({
-                required_error: "Password is required",
-            })
-            .min(4, { message: "Password must be at least 4 characters" })
-            .max(255, { message: "Password must be less than 255 characters" }),
-
-        confirmPassword: z
-            .string({
-                required_error: "Confirm Password is required",
-            })
-            .min(4, { message: "Confirm Password must be at least 4 characters" })
-            .max(255, { message: "Confirm Password must be less than 255 characters" }),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: "Passwords do not match",
-        path: ["confirmPassword"], // Specifies where the error will appear
-    });

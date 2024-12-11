@@ -21,6 +21,10 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
     const [pageInput, setPageInput] = useState("");
     const [submittedPage, setSubmittedPage] = useState("");
 
+    const handlePageInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setPageInput(event.target.value);
+    };
+
     const handlePageInputSubmit = () => {
         const newPage = parseInt(pageInput);
         if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
@@ -107,7 +111,7 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                     <MyInput
                         inputType="text"
                         input={pageInput}
-                        setInput={setPageInput}
+                        onChangeFunction={handlePageInputChange}
                         className="h-7 w-[50px] pr-7"
                     />
                     <KeyReturn
