@@ -11,13 +11,31 @@
 // Import Routes
 
 import { Route as rootRoute } from "./routes/__root"
+import { Route as LoginIndexImport } from "./routes/login/index"
 import { Route as DashboardIndexImport } from "./routes/dashboard/index"
+import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index"
+import { Route as DashboardStudentsIndexImport } from "./routes/dashboard/students/index"
 import { Route as DashboardAssessmentQuestionPapersIndexImport } from "./routes/dashboard/assessment/question-papers/index"
 
 // Create/Update Routes
 
+const LoginIndexRoute = LoginIndexImport.update({
+  path: "/login/",
+  getParentRoute: () => rootRoute,
+} as any)
+
 const DashboardIndexRoute = DashboardIndexImport.update({
   path: "/dashboard/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
+  path: "/login/forgot-password/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardStudentsIndexRoute = DashboardStudentsIndexImport.update({
+  path: "/dashboard/students/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -38,6 +56,27 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof rootRoute
     }
+    "/login/": {
+      id: "/login/"
+      path: "/login"
+      fullPath: "/login"
+      preLoaderRoute: typeof LoginIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/dashboard/students/": {
+      id: "/dashboard/students/"
+      path: "/dashboard/students"
+      fullPath: "/dashboard/students"
+      preLoaderRoute: typeof DashboardStudentsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/login/forgot-password/": {
+      id: "/login/forgot-password/"
+      path: "/login/forgot-password"
+      fullPath: "/login/forgot-password"
+      preLoaderRoute: typeof LoginForgotPasswordIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/dashboard/assessment/question-papers/": {
       id: "/dashboard/assessment/question-papers/"
       path: "/dashboard/assessment/question-papers"
@@ -52,6 +91,9 @@ declare module "@tanstack/react-router" {
 
 export const routeTree = rootRoute.addChildren({
   DashboardIndexRoute,
+  LoginIndexRoute,
+  DashboardStudentsIndexRoute,
+  LoginForgotPasswordIndexRoute,
   DashboardAssessmentQuestionPapersIndexRoute,
 })
 
@@ -64,11 +106,23 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/dashboard/",
+        "/login/",
+        "/dashboard/students/",
+        "/login/forgot-password/",
         "/dashboard/assessment/question-papers/"
       ]
     },
     "/dashboard/": {
       "filePath": "dashboard/index.tsx"
+    },
+    "/login/": {
+      "filePath": "login/index.tsx"
+    },
+    "/dashboard/students/": {
+      "filePath": "dashboard/students/index.tsx"
+    },
+    "/login/forgot-password/": {
+      "filePath": "login/forgot-password/index.tsx"
     },
     "/dashboard/assessment/question-papers/": {
       "filePath": "dashboard/assessment/question-papers/index.tsx"

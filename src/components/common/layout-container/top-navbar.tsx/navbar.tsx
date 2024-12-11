@@ -1,8 +1,9 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useState } from "react";
-import { useSidebarStore } from "@/stores/useSidebar";
 import { MagnifyingGlass, Bell, Sliders, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { usePageStore } from "@/stores/usePageStore";
+import { DummyProfile } from "@/assets/svgs";
 
 const IconContainer = ({
     children,
@@ -19,14 +20,14 @@ const IconContainer = ({
 export function Navbar() {
     const notifications = true;
     const [dropdown, setDropdown] = useState<boolean>(true);
-    const { selectedItem } = useSidebarStore();
+    const { currentPage } = usePageStore();
 
     return (
-        <div className="flex h-24 items-center justify-between bg-neutral-50 px-8">
-            <div className="flex items-center gap-3">
-                <SidebarTrigger className="" />
+        <div className="flex h-24 items-center justify-between bg-neutral-50 px-8 py-6">
+            <div className="flex items-center gap-4">
+                <SidebarTrigger />
                 <div className="border-l border-neutral-500 px-4 text-h2 font-semibold text-neutral-600">
-                    {selectedItem}
+                    {currentPage.title}
                 </div>
             </div>
             <div className="flex gap-6 text-neutral-600">
@@ -44,10 +45,9 @@ export function Navbar() {
                 </IconContainer>
                 <div className="flex items-center gap-1">
                     <IconContainer className="size-10 cursor-auto p-0">
-                        <img
-                            src="/images/dummy/profile.jpg"
-                            className="size-full rounded-full object-cover"
-                        />
+                        <div className="rounded-full object-cover">
+                            <DummyProfile />
+                        </div>
                     </IconContainer>
                     <div className="cursor-pointer">
                         {dropdown ? (

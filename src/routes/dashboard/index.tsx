@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { EmptyDashboard } from "@/components/common/students/empty-dashboard/empty-dashboard";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 
 export const Route = createFileRoute("/dashboard/")({
@@ -7,9 +6,5 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 export function Dashboard() {
-    return (
-        <LayoutContainer>
-            <EmptyDashboard />
-        </LayoutContainer>
-    );
+    return <LayoutContainer></LayoutContainer>;
 }
