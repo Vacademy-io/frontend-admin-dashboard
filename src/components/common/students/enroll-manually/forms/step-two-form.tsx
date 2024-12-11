@@ -21,13 +21,19 @@ export const StepTwoForm = () => {
     const [branch, setBranch] = useState<string>("");
     const [enrollmentNumber, setEnrollmentNumber] = useState<string>("");
     const [collegeName, setCollegeName] = useState<string>("");
-    // const [session, setSession] = useState<string>("2024-2025");
-    // const [gender, setGender] = useState<string>("Male");
-    const session = "2024-2025";
-    const gender = "Male";
+    const [session, setSession] = useState<string>("2024-2025");
+    const [gender, setGender] = useState<string>("Male");
 
     const sessionList = ["2024-2025", "2023-2024", "2022-2023"];
     const genderList = ["Male", "Female", "Others"];
+
+    const handleSessionChange = (value: string) => {
+        setSession(value);
+    };
+
+    const handleGenderChange = (value: string) => {
+        setGender(value);
+    };
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -101,6 +107,7 @@ export const StepTwoForm = () => {
                                         <MyDropdown
                                             currentValue={session}
                                             dropdownList={sessionList}
+                                            handleChange={handleSessionChange}
                                         />
                                     </div>
 
@@ -112,6 +119,7 @@ export const StepTwoForm = () => {
                                         <MyDropdown
                                             currentValue={gender}
                                             dropdownList={genderList}
+                                            handleChange={handleGenderChange}
                                         />
                                     </div>
                                 </div>

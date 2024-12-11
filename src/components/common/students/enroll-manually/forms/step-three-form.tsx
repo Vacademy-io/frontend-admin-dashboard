@@ -1,4 +1,3 @@
-// step-two-form.tsx
 import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
@@ -19,11 +18,8 @@ type FormData = z.infer<typeof formSchema>;
 export const StepThreeForm = () => {
     const [mobileNumber, setMobileNumber] = useState<string>("");
     const [email, setEmail] = useState<string>("");
-    // const [state, setState] = useState<string>("Madhya Pradesh");
-    // const [city, setCity] = useState<string>("Bhopal");
-
-    const state = "Madhya Pradesh";
-    const city = "Bhopal";
+    const [state, setState] = useState<string>("Madhya Pradesh");
+    const [city, setCity] = useState<string>("Bhopal");
 
     const stateList = ["Madhya Pradesh", "Himachal Pradesh", "Rajasthan"];
     const cityList = ["Bhopal", "Indore", "Delhi"];
@@ -39,6 +35,14 @@ export const StepThreeForm = () => {
     };
     const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(event.target.value);
+    };
+
+    const handleStateChange = (value: string) => {
+        setState(value);
+    };
+
+    const handleCityChange = (value: string) => {
+        setCity(value);
     };
 
     return (
@@ -82,7 +86,11 @@ export const StepThreeForm = () => {
                                         State{" "}
                                         <span className="text-subtitle text-danger-600">*</span>
                                     </div>
-                                    <MyDropdown currentValue={state} dropdownList={stateList} />
+                                    <MyDropdown
+                                        currentValue={state}
+                                        dropdownList={stateList}
+                                        handleChange={handleStateChange}
+                                    />
                                 </div>
 
                                 <div className="flex flex-col gap-1">
@@ -90,7 +98,11 @@ export const StepThreeForm = () => {
                                         City{" "}
                                         <span className="text-subtitle text-danger-600">*</span>
                                     </div>
-                                    <MyDropdown currentValue={city} dropdownList={cityList} />
+                                    <MyDropdown
+                                        currentValue={city}
+                                        dropdownList={cityList}
+                                        handleChange={handleCityChange}
+                                    />
                                 </div>
                             </div>
                         </FormItemWrapper>
