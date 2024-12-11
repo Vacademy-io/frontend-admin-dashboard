@@ -17,6 +17,7 @@ export const MyDropdown = ({
     onSelect,
 }: myDropDownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    console.log("Dropdown props:", { currentValue, dropdownList });
     return (
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             {children ? (
@@ -38,14 +39,11 @@ export const MyDropdown = ({
                     </div>
                 </DropdownMenuTrigger>
             )}
-            <DropdownMenuPortal>
+            <DropdownMenuPortal container={document.getElementById("portal-root")}>
                 <DropdownMenuContent
                     className="z-[9999] mt-2 w-60 rounded-lg bg-white py-2 shadow focus:outline-none"
                     sideOffset={5}
                     align="start"
-                    style={{
-                        position: "relative",
-                    }}
                 >
                     {dropdownList.map((item, key) => (
                         <DropdownMenuItem
@@ -60,6 +58,7 @@ export const MyDropdown = ({
                                 if (onSelect) {
                                     onSelect(item);
                                 }
+                                setIsOpen(false); // Add this to close dropdown after selection
                             }}
                         >
                             {item}

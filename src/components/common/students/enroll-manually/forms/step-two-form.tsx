@@ -7,8 +7,9 @@ import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetSessions, useGetGenders } from "@/hooks/student-list-section/useFilterData";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 
 const formSchema = z.object({
     step2heading: z.string(),
@@ -17,18 +18,28 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export const StepTwoForm = () => {
+    const { isLoading } = useInstituteQuery();
+    const sessionList = useGetSessions();
+    const genderList = useGetGenders();
+
     const [name, setName] = useState<string>("");
     const [branch, setBranch] = useState<string>("");
     const [enrollmentNumber, setEnrollmentNumber] = useState<string>("");
     const [collegeName, setCollegeName] = useState<string>("");
 
-    // Get lists from useFilterData hooks
-    const sessionList = useGetSessions();
-    const genderList = useGetGenders();
+    // Initialize these states after data is loaded
+    const [session, setSession] = useState<string>("");
+    const [gender, setGender] = useState<string>("");
 
-    // Set default values as first items from the lists
-    const [session, setSession] = useState<string>(sessionList[0] || "");
-    const [gender, setGender] = useState<string>(genderList[0] || "");
+    // Set initial values once data is loaded
+    useEffect(() => {
+        if (sessionList.length > 0 && !session) {
+            setSession(sessionList[0] || "");
+        }
+        if (genderList.length > 0 && !gender) {
+            setGender(genderList[0] || "");
+        }
+    }, [sessionList, genderList, session, gender]);
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -110,11 +121,15 @@ export const StepTwoForm = () => {
                                             Session{" "}
                                             <span className="text-subtitle text-danger-600">*</span>
                                         </div>
-                                        <MyDropdown
-                                            currentValue={session}
-                                            dropdownList={sessionList}
-                                            handleChange={handleChangeSession}
-                                        />
+                                        {isLoading ? (
+                                            <div>Loading...</div>
+                                        ) : (
+                                            <MyDropdown
+                                                currentValue={session}
+                                                dropdownList={sessionList}
+                                                handleChange={handleChangeSession}
+                                            />
+                                        )}
                                     </div>
 
                                     <div className="flex w-full flex-col gap-1">
@@ -122,11 +137,15 @@ export const StepTwoForm = () => {
                                             Gender{" "}
                                             <span className="text-subtitle text-danger-600">*</span>
                                         </div>
-                                        <MyDropdown
-                                            currentValue={gender}
-                                            dropdownList={genderList}
-                                            handleChange={handleChangeGender}
-                                        />
+                                        {isLoading ? (
+                                            <div>Loading...</div>
+                                        ) : (
+                                            <MyDropdown
+                                                currentValue={gender}
+                                                dropdownList={genderList}
+                                                handleChange={handleChangeGender}
+                                            />
+                                        )}
                                     </div>
                                 </div>
 
