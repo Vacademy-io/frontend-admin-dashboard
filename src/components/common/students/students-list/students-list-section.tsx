@@ -31,29 +31,52 @@ export const StudentsListSection = () => {
     const [clearFilters, setClearFilters] = useState<boolean>(false);
     const [searchFilter, setSearchFilter] = useState("");
     const [page, setPage] = useState(0);
-    // const [pageSize, setPageSize] = useState(10);
     const pageSize = 10;
     const [sortColumns, setSortColumns] = useState<Record<string, string>>({});
 
     const sessions = useGetSessions();
     const filters = useFilters(currentSession);
+    const currentPackageSessionIds = usePackageSessionIds(
+        currentSession,
+        columnFilters.find((filter) => filter.id === "batch")?.value,
+    );
 
-    const studentFilters: StudentFilterRequest = {
-        name: searchFilter,
+    const [appliedFilters, setAppliedFilters] = useState<StudentFilterRequest>({
+        name: "",
         institute_ids: [INSTITUTE_ID],
-        package_session_ids: usePackageSessionIds(
-            currentSession,
-            columnFilters.find((filter) => filter.id === "batch")?.value,
-        ),
+        package_session_ids: currentPackageSessionIds,
         group_ids: [],
-        gender: columnFilters.find((filter) => filter.id === "gender")?.value || [],
-        statuses: columnFilters.find((filter) => filter.id === "statuses")?.value || [],
-        sort_columns: sortColumns,
-    };
+        gender: [],
+        statuses: [],
+        sort_columns: {},
+    });
+
+    const {
+        data: studentTableData,
+        isLoading: loadingData,
+        error: loadingError,
+        refetch,
+    } = useStudentList(appliedFilters, page, pageSize);
+
+    // Debug logs
+    useEffect(() => {
+        console.log("Applied Filters:", appliedFilters);
+    }, [appliedFilters]);
+
+    useEffect(() => {
+        console.log("Table Data:", studentTableData);
+    }, [studentTableData]);
 
     // Initial load
     useEffect(() => {
-        refetch();
+        const initialLoad = async () => {
+            try {
+                await refetch();
+            } catch (error) {
+                console.error("Error fetching initial data:", error);
+            }
+        };
+        initialLoad();
     }, []);
 
     useEffect(() => {
@@ -64,8 +87,14 @@ export const StudentsListSection = () => {
         if (columnFilters.length === 0) {
             setClearFilters(false);
         }
-        console.log("studentFilters: ", studentFilters);
     }, [columnFilters.length]);
+
+    useEffect(() => {
+        setAppliedFilters((prev) => ({
+            ...prev,
+            package_session_ids: currentPackageSessionIds,
+        }));
+    }, [currentSession, currentPackageSessionIds]);
 
     const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(event.target.value);
@@ -79,70 +108,125 @@ export const StudentsListSection = () => {
         });
     };
 
-    const handleFilterClick = () => {
-        setTimeout(() => refetch(), 0);
+    const handleFilterClick = async () => {
+        const newAppliedFilters: StudentFilterRequest = {
+            name: searchFilter,
+            institute_ids: [INSTITUTE_ID],
+            package_session_ids: currentPackageSessionIds,
+            group_ids: [],
+            gender: columnFilters.find((filter) => filter.id === "gender")?.value || [],
+            statuses: columnFilters.find((filter) => filter.id === "statuses")?.value || [],
+            sort_columns: sortColumns,
+        };
+
+        await setAppliedFilters(newAppliedFilters);
+        try {
+            await refetch();
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
     };
 
-    const handleClearFilters = () => {
+    const handleClearFilters = async () => {
         setClearFilters(true);
         setColumnFilters([]);
         setSearchFilter("");
         setSearchInput("");
-        setTimeout(() => refetch(), 0);
-    };
 
-    const handleSessionChange = (session: string | ((prevState: string) => string)) => {
-        if (typeof session === "string") {
-            setCurrentSession(session);
-            setColumnFilters((prev) => prev.filter((f) => f.id !== "batch"));
-            setTimeout(() => refetch(), 0);
+        const clearedFilters: StudentFilterRequest = {
+            name: "",
+            institute_ids: [INSTITUTE_ID],
+            package_session_ids: currentPackageSessionIds,
+            group_ids: [],
+            gender: [],
+            statuses: [],
+            sort_columns: sortColumns,
+        };
+
+        await setAppliedFilters(clearedFilters);
+        try {
+            await refetch();
+        } catch (error) {
+            console.error("Error fetching data:", error);
         }
     };
 
-    const handleSearchEnter = () => {
-        // if (searchInput.length) {
-        setSearchFilter(searchInput);
-        setTimeout(() => refetch(), 0);
-        // }
+    const handleSessionChange = async (session: string | ((prevState: string) => string)) => {
+        if (typeof session === "string") {
+            setCurrentSession(session);
+            setColumnFilters((prev) => prev.filter((f) => f.id !== "batch"));
+
+            const sessionUpdatedFilters = {
+                ...appliedFilters,
+                package_session_ids: [], // Initially set empty array
+            };
+
+            await setAppliedFilters(sessionUpdatedFilters);
+            try {
+                await refetch();
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
     };
 
-    const handleClearSearch = () => {
+    const handleSearchEnter = async () => {
+        const newAppliedFilters = {
+            ...appliedFilters,
+            name: searchInput,
+        };
+        setSearchFilter(searchInput);
+        await setAppliedFilters(newAppliedFilters);
+        try {
+            await refetch();
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    const handleClearSearch = async () => {
+        const newAppliedFilters = {
+            ...appliedFilters,
+            name: "",
+        };
         setSearchInput("");
         setSearchFilter("");
-        setTimeout(() => refetch(), 0);
+        await setAppliedFilters(newAppliedFilters);
+        try {
+            await refetch();
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
     };
 
-    const handleSort = (columnId: string, direction: string) => {
-        setSortColumns({
+    const handleSort = async (columnId: string, direction: string) => {
+        const newSortColumns = {
             [columnId]: direction,
-        });
-        setTimeout(() => refetch(), 0);
+        };
+        setSortColumns(newSortColumns);
+        const newAppliedFilters = {
+            ...appliedFilters,
+            sort_columns: newSortColumns,
+        };
+        await setAppliedFilters(newAppliedFilters);
+        try {
+            await refetch();
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
     };
 
-    const handlePageChange = (newPage: number) => {
+    const handlePageChange = async (newPage: number) => {
         setPage(newPage);
-        setTimeout(() => refetch(), 0);
+        try {
+            await refetch();
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
     };
-
-    // useEffect(()=>{
-    //     console.log(studentFilters)
-    // }, [columnFilters.length, sortColumns])
-
-    const {
-        data: studentTableData,
-        isLoading: loadingData,
-        error: loadingError,
-        refetch,
-    } = useStudentList(studentFilters, page, pageSize);
-
-    useEffect(() => {
-        console.log(studentTableData);
-    }, [studentTableData]);
 
     if (isLoading) return <div>Loading...</div>;
     if (isError) return <div>Error loading institute details</div>;
-
-    //to check the filters
 
     return (
         <section className="flex max-w-full flex-col gap-8 overflow-visible">

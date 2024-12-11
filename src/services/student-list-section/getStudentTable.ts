@@ -30,5 +30,8 @@ export const useStudentList = (
     return useQuery({
         queryKey: ["students", pageNo, pageSize, filters],
         queryFn: () => fetchStudents({ pageNo, pageSize, filters }),
+        enabled: true, // Change this to true
+        refetchOnWindowFocus: false,
+        staleTime: Infinity, // Add this to prevent automatic refetching
     });
 };
