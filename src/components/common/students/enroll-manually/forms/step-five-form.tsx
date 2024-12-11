@@ -26,6 +26,13 @@ export const StepFiveForm = () => {
         },
     });
 
+    const handleChangeUserName = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setUserName(event.target.value);
+    };
+    const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setPassword(event.target.value);
+    };
+
     return (
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
@@ -60,7 +67,7 @@ export const StepFiveForm = () => {
                                     label="Username"
                                     inputPlaceholder="username"
                                     input={username}
-                                    setInput={setUserName}
+                                    onChangeFunction={handleChangeUserName}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -70,7 +77,7 @@ export const StepFiveForm = () => {
                                     label="Password"
                                     inputPlaceholder="....."
                                     input={password}
-                                    setInput={setPassword}
+                                    onChangeFunction={handleChangePassword}
                                     required={true}
                                     size="large"
                                     className="w-full"

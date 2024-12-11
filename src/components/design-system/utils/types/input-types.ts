@@ -9,7 +9,7 @@ export interface FormInputProps {
     inputType: string;
     inputPlaceholder?: string;
     input: string;
-    setInput: (value: string | ((prevState: string) => string)) => void; // Updated this line
+    onChangeFunction: (event: React.ChangeEvent<HTMLInputElement>) => void;
     error?: string;
     required?: boolean;
     className?: string;

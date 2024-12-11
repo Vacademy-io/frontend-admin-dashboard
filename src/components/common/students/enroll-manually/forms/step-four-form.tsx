@@ -28,6 +28,22 @@ export const StepFourForm = () => {
         },
     });
 
+    const handleChangeFatherName = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setFatherName(event.target.value);
+    };
+    const handleChangeMotherName = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMotherName(event.target.value);
+    };
+    const handleChangeGuardianName = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setGuardianName(event.target.value);
+    };
+    const handleChangeGuardianNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setGuardianMobileNumber(event.target.value);
+    };
+    const handleChangeGuardianEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setGuardianEmail(event.target.value);
+    };
+
     return (
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
@@ -44,7 +60,7 @@ export const StepFourForm = () => {
                                     label="Father's Name"
                                     inputPlaceholder="Full Name (First and Last)"
                                     input={fatherName}
-                                    setInput={setFatherName}
+                                    onChangeFunction={handleChangeFatherName}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -55,7 +71,7 @@ export const StepFourForm = () => {
                                     label="Mother's Name"
                                     inputPlaceholder="Full Name (First and Last)"
                                     input={motherName}
-                                    setInput={setMotherName}
+                                    onChangeFunction={handleChangeMotherName}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -66,7 +82,7 @@ export const StepFourForm = () => {
                                     label="Guardian's Name(if applicable)"
                                     inputPlaceholder="Full Name (First and Last)"
                                     input={guardianName}
-                                    setInput={setGuardianName}
+                                    onChangeFunction={handleChangeGuardianName}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -77,7 +93,7 @@ export const StepFourForm = () => {
                                     label="Parent/Guardian's Email"
                                     inputPlaceholder="you@email.com"
                                     input={guardianEmail}
-                                    setInput={setGuardianEmail}
+                                    onChangeFunction={handleChangeGuardianEmail}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -88,7 +104,7 @@ export const StepFourForm = () => {
                                     label="Parent/Guardian's Mobile Number"
                                     inputPlaceholder="123 456 7890"
                                     input={guardianMobileNumber}
-                                    setInput={setGuardianMobileNumber}
+                                    onChangeFunction={handleChangeGuardianNumber}
                                     required={true}
                                     size="large"
                                     className="w-full"

@@ -20,9 +20,11 @@ export const StepTwoForm = () => {
     const [name, setName] = useState<string>("");
     const [branch, setBranch] = useState<string>("");
     const [enrollmentNumber, setEnrollmentNumber] = useState<string>("");
-    const [session, setSession] = useState<string>("2024-2025");
-    const [gender, setGender] = useState<string>("Male");
     const [collegeName, setCollegeName] = useState<string>("");
+    // const [session, setSession] = useState<string>("2024-2025");
+    // const [gender, setGender] = useState<string>("Male");
+    const session = "2024-2025";
+    const gender = "Male";
 
     const sessionList = ["2024-2025", "2023-2024", "2022-2023"];
     const genderList = ["Male", "Female", "Others"];
@@ -32,6 +34,19 @@ export const StepTwoForm = () => {
             step2heading: "step 2",
         },
     });
+
+    const handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setName(event.target.value);
+    };
+    const handleChangeBranch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setBranch(event.target.value);
+    };
+    const handleChangeEnroll = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setEnrollmentNumber(event.target.value);
+    };
+    const handleChangeCollege = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setCollegeName(event.target.value);
+    };
 
     return (
         <div>
@@ -49,7 +64,7 @@ export const StepTwoForm = () => {
                                     label="Full Name"
                                     inputPlaceholder="Full name (First and Last)"
                                     input={name}
-                                    setInput={setName}
+                                    onChangeFunction={handleChangeName}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -60,7 +75,7 @@ export const StepTwoForm = () => {
                                     label="Branch"
                                     inputPlaceholder="Select Branch"
                                     input={branch}
-                                    setInput={setBranch}
+                                    onChangeFunction={handleChangeBranch}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -71,7 +86,7 @@ export const StepTwoForm = () => {
                                     label="Enrollment Number"
                                     inputPlaceholder="00000000"
                                     input={enrollmentNumber}
-                                    setInput={setEnrollmentNumber}
+                                    onChangeFunction={handleChangeEnroll}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -85,7 +100,6 @@ export const StepTwoForm = () => {
                                         </div>
                                         <MyDropdown
                                             currentValue={session}
-                                            setCurrentValue={setSession}
                                             dropdownList={sessionList}
                                         />
                                     </div>
@@ -97,7 +111,6 @@ export const StepTwoForm = () => {
                                         </div>
                                         <MyDropdown
                                             currentValue={gender}
-                                            setCurrentValue={setGender}
                                             dropdownList={genderList}
                                         />
                                     </div>
@@ -108,7 +121,7 @@ export const StepTwoForm = () => {
                                     label="College/School Name"
                                     inputPlaceholder="Enter Student's College/School Name"
                                     input={collegeName}
-                                    setInput={setCollegeName}
+                                    onChangeFunction={handleChangeCollege}
                                     required={true}
                                     size="large"
                                     className="w-full"

@@ -2,10 +2,10 @@ import { FormContainer } from "@/components/common/LoginPages/layout/form-contai
 import { Heading } from "@/components/common/LoginPages/ui/heading";
 import { MyInput } from "@/components/design-system/input";
 import { Link } from "@tanstack/react-router";
-import { forgotPasswordSchema } from "@/schemas/login";
+import { forgotPasswordSchema } from "@/schemas/login/login";
 import { z } from "zod";
-import { forgotPassword } from "@/hooks/dummy/login/send-link-button";
-import { sendResetLink } from "@/hooks/dummy/login/reset-link-click";
+import { forgotPassword } from "@/hooks/login/send-link-button";
+import { sendResetLink } from "@/hooks/login/reset-link-click";
 import { useMutation } from "@tanstack/react-query";
 import { MyButton } from "@/components/design-system/button";
 import { toast } from "sonner";
@@ -95,7 +95,7 @@ export function ForgotPassword() {
                                                     inputType="email"
                                                     inputPlaceholder="you@email.com"
                                                     input={value}
-                                                    setInput={onChange}
+                                                    onChangeFunction={onChange}
                                                     error={form.formState.errors.email?.message}
                                                     required={true}
                                                     size="large"

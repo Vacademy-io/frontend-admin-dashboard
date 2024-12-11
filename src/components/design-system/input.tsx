@@ -28,7 +28,7 @@ export const MyInput = ({
     inputType,
     inputPlaceholder,
     input,
-    setInput,
+    onChangeFunction,
     error,
     required,
     className,
@@ -43,9 +43,9 @@ export const MyInput = ({
         setShowPassword(!showPassword);
     };
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setInput(event.target.value);
-    };
+    // const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     setInput(event.target.value);
+    // };
 
     return (
         <div className="flex flex-col gap-1">
@@ -75,7 +75,7 @@ export const MyInput = ({
                             className,
                         )}
                         value={input}
-                        onChange={handleInputChange}
+                        onChange={onChangeFunction}
                         required={required}
                         {...props}
                     />

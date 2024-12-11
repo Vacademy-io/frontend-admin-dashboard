@@ -2,10 +2,10 @@ import { Heading } from "@/components/common/LoginPages/ui/heading";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { Link } from "@tanstack/react-router";
-import { loginSchema } from "@/schemas/login";
+import { loginSchema } from "@/schemas/login/login";
 import { useEffect } from "react";
 import { SplashScreen } from "@/components/common/LoginPages/layout/splash-container";
-import { loginUser } from "@/hooks/dummy/login/login-button";
+import { loginUser } from "@/hooks/login/login-button";
 import { useMutation } from "@tanstack/react-query";
 import { useAnimationStore } from "@/stores/login/animationStore";
 import { toast } from "sonner";
@@ -83,7 +83,7 @@ export function LoginForm() {
                                                 inputType="email"
                                                 inputPlaceholder="you@email.com"
                                                 input={value}
-                                                setInput={onChange}
+                                                onChangeFunction={onChange}
                                                 error={form.formState.errors.email?.message}
                                                 required={true}
                                                 size="large"
@@ -106,7 +106,7 @@ export function LoginForm() {
                                                     inputType="password"
                                                     inputPlaceholder="••••••••"
                                                     input={value}
-                                                    setInput={onChange}
+                                                    onChangeFunction={onChange}
                                                     error={form.formState.errors.password?.message}
                                                     required={true}
                                                     size="large"

@@ -19,8 +19,11 @@ type FormData = z.infer<typeof formSchema>;
 export const StepThreeForm = () => {
     const [mobileNumber, setMobileNumber] = useState<string>("");
     const [email, setEmail] = useState<string>("");
-    const [state, setState] = useState<string>("Madhya Pradesh");
-    const [city, setCity] = useState<string>("Bhopal");
+    // const [state, setState] = useState<string>("Madhya Pradesh");
+    // const [city, setCity] = useState<string>("Bhopal");
+
+    const state = "Madhya Pradesh";
+    const city = "Bhopal";
 
     const stateList = ["Madhya Pradesh", "Himachal Pradesh", "Rajasthan"];
     const cityList = ["Bhopal", "Indore", "Delhi"];
@@ -30,6 +33,13 @@ export const StepThreeForm = () => {
             step3heading: "step 3",
         },
     });
+
+    const handleChangeNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setMobileNumber(event.target.value);
+    };
+    const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setEmail(event.target.value);
+    };
 
     return (
         <div>
@@ -50,7 +60,7 @@ export const StepThreeForm = () => {
                                     label="Mobile Number"
                                     inputPlaceholder="123 456 7890"
                                     input={mobileNumber}
-                                    setInput={setMobileNumber}
+                                    onChangeFunction={handleChangeNumber}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -61,7 +71,7 @@ export const StepThreeForm = () => {
                                     label="Email"
                                     inputPlaceholder="you@email.com"
                                     input={email}
-                                    setInput={setEmail}
+                                    onChangeFunction={handleChangeEmail}
                                     required={true}
                                     size="large"
                                     className="w-full"
@@ -72,11 +82,7 @@ export const StepThreeForm = () => {
                                         State{" "}
                                         <span className="text-subtitle text-danger-600">*</span>
                                     </div>
-                                    <MyDropdown
-                                        currentValue={state}
-                                        setCurrentValue={setState}
-                                        dropdownList={stateList}
-                                    />
+                                    <MyDropdown currentValue={state} dropdownList={stateList} />
                                 </div>
 
                                 <div className="flex flex-col gap-1">
@@ -84,11 +90,7 @@ export const StepThreeForm = () => {
                                         City{" "}
                                         <span className="text-subtitle text-danger-600">*</span>
                                     </div>
-                                    <MyDropdown
-                                        currentValue={city}
-                                        setCurrentValue={setCity}
-                                        dropdownList={cityList}
-                                    />
+                                    <MyDropdown currentValue={city} dropdownList={cityList} />
                                 </div>
                             </div>
                         </FormItemWrapper>
