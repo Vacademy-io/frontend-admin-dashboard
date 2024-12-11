@@ -8,7 +8,7 @@ import { InputErrorProps } from "./utils/types/input-types";
 import { Label } from "../ui/label";
 
 const inputSizeVariants = {
-    large: "w-[348px] h-10 py-2 px-3 text-subtitle",
+    large: "w-60 h-10 py-2 px-3 text-subtitle",
     medium: "w-60 h-9 py-2 px-3 text-body",
     small: "w-60 h-6 p-2 text-caption",
 } as const;
