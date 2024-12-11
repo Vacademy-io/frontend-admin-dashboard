@@ -7,7 +7,6 @@ import {
     FieldErrors,
     FormProvider,
     SubmitErrorHandler,
-    UseFormReturn,
     useFieldArray,
     useForm,
 } from "react-hook-form";
@@ -19,18 +18,13 @@ import { Separator } from "@/components/ui/separator";
 import { SSDCLogo } from "@/svgs";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { useQuestionStore } from "../-global-states/question-index";
-import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FormValues } from "@/types/error-form-values";
 import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
 import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
-
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
-interface QuestionPaperTemplateProps {
-    questionPaperUploadForm: UseFormReturn<QuestionPaperForm>;
-}
+import { QuestionPaperTemplateProps } from "@/types/question-paper-template";
 
 export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaperTemplateProps) {
     const { getValues: getQuestionPaperUploadForm } = questionPaperUploadForm;

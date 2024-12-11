@@ -21,8 +21,7 @@ export const uploadQuestionPaperFormSchema = z.object({
         required_error: "Explanation field is required",
         invalid_type_error: "Explanation field must be a string",
     }),
-    fileUpload: z.string({
-        required_error: "Explanation field is required",
-        invalid_type_error: "Explanation field must be a string",
+    fileUpload: z.instanceof(File, {
+        message: "File upload is required and must be a valid file",
     }),
 });
