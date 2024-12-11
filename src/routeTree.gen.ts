@@ -16,7 +16,6 @@ import { Route as LoginIndexImport } from "./routes/login/index";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
-import { Route as DashboardStudentsIndexImport } from "./routes/dashboard/students/index";
 
 // Create/Update Routes
 
@@ -45,11 +44,6 @@ const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
     getParentRoute: () => rootRoute,
 } as any);
 
-const DashboardStudentsIndexRoute = DashboardStudentsIndexImport.update({
-    path: "/dashboard/students/",
-    getParentRoute: () => rootRoute,
-} as any);
-
 // Populate the FileRoutesByPath interface
 
 declare module "@tanstack/react-router" {
@@ -75,13 +69,6 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudentsIndexImport;
             parentRoute: typeof rootRoute;
         };
-        "/dashboard/students/": {
-            id: "/dashboard/students/";
-            path: "/dashboard/students";
-            fullPath: "/dashboard/students";
-            preLoaderRoute: typeof DashboardStudentsIndexImport;
-            parentRoute: typeof rootRoute;
-        };
         "/login/forgot-password/": {
             id: "/login/forgot-password/";
             path: "/login/forgot-password";
@@ -105,7 +92,6 @@ export const routeTree = rootRoute.addChildren({
     DashboardIndexRoute,
     LoginIndexRoute,
     StudentsIndexRoute,
-    DashboardStudentsIndexRoute,
     LoginForgotPasswordIndexRoute,
     StudentsStudentsListIndexRoute,
 });
@@ -121,7 +107,6 @@ export const routeTree = rootRoute.addChildren({
         "/dashboard/",
         "/login/",
         "/students/",
-        "/dashboard/students/",
         "/login/forgot-password/",
         "/students/students-list/"
       ]
@@ -134,9 +119,6 @@ export const routeTree = rootRoute.addChildren({
     },
     "/students/": {
       "filePath": "students/index.tsx"
-    },
-    "/dashboard/students/": {
-      "filePath": "dashboard/students/index.tsx"
     },
     "/login/forgot-password/": {
       "filePath": "login/forgot-password/index.tsx"

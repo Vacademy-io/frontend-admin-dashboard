@@ -8,7 +8,7 @@ import { InputErrorProps } from "./utils/types/input-types";
 import { Label } from "../ui/label";
 
 const inputSizeVariants = {
-    large: "w-[348px] h-10 py-2 px-3 text-subtitle",
+    large: "w-60 h-10 py-2 px-3 text-subtitle",
     medium: "w-60 h-9 py-2 px-3 text-body",
     small: "w-60 h-6 p-2 text-caption",
 } as const;
@@ -43,10 +43,6 @@ export const MyInput = ({
         setShowPassword(!showPassword);
     };
 
-    // const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setInput(event.target.value);
-    // };
-
     return (
         <div className="flex flex-col gap-1">
             <div className="flex flex-col gap-1">
@@ -71,7 +67,7 @@ export const MyInput = ({
                             inputSizeVariants[size],
                             error ? "border-danger-600" : "border-neutral-300",
                             inputType === "password" ? "pr-10" : "",
-                            "shadow-none placeholder:text-subtitle placeholder:font-regular hover:border-primary-200 focus:border-primary-500 focus-visible:ring-0",
+                            "text-subtitle text-neutral-600 shadow-none placeholder:text-body placeholder:font-regular hover:border-primary-200 focus:border-primary-500 focus-visible:ring-0",
                             className,
                         )}
                         value={input}

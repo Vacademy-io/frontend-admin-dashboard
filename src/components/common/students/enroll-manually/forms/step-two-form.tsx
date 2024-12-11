@@ -1,4 +1,3 @@
-// step-two-form.tsx
 import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
@@ -9,6 +8,7 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { useState } from "react";
+import { useGetSessions, useGetGenders } from "@/hooks/student-list-section/useFilterData";
 
 const formSchema = z.object({
     step2heading: z.string(),
@@ -21,19 +21,14 @@ export const StepTwoForm = () => {
     const [branch, setBranch] = useState<string>("");
     const [enrollmentNumber, setEnrollmentNumber] = useState<string>("");
     const [collegeName, setCollegeName] = useState<string>("");
-    const [session, setSession] = useState<string>("2024-2025");
-    const [gender, setGender] = useState<string>("Male");
 
-    const sessionList = ["2024-2025", "2023-2024", "2022-2023"];
-    const genderList = ["Male", "Female", "Others"];
+    // Get lists from useFilterData hooks
+    const sessionList = useGetSessions();
+    const genderList = useGetGenders();
 
-    const handleSessionChange = (value: string) => {
-        setSession(value);
-    };
-
-    const handleGenderChange = (value: string) => {
-        setGender(value);
-    };
+    // Set default values as first items from the lists
+    const [session, setSession] = useState<string>(sessionList[0] || "");
+    const [gender, setGender] = useState<string>(genderList[0] || "");
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -44,14 +39,25 @@ export const StepTwoForm = () => {
     const handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
         setName(event.target.value);
     };
+
     const handleChangeBranch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setBranch(event.target.value);
     };
+
     const handleChangeEnroll = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEnrollmentNumber(event.target.value);
     };
+
     const handleChangeCollege = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCollegeName(event.target.value);
+    };
+
+    const handleChangeSession = (value: string) => {
+        setSession(value);
+    };
+
+    const handleChangeGender = (value: string) => {
+        setGender(value);
     };
 
     return (
@@ -107,7 +113,7 @@ export const StepTwoForm = () => {
                                         <MyDropdown
                                             currentValue={session}
                                             dropdownList={sessionList}
-                                            handleChange={handleSessionChange}
+                                            handleChange={handleChangeSession}
                                         />
                                     </div>
 
@@ -119,7 +125,7 @@ export const StepTwoForm = () => {
                                         <MyDropdown
                                             currentValue={gender}
                                             dropdownList={genderList}
-                                            handleChange={handleGenderChange}
+                                            handleChange={handleChangeGender}
                                         />
                                     </div>
                                 </div>
