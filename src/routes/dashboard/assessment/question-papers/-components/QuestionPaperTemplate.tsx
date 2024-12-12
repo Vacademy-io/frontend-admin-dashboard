@@ -26,7 +26,11 @@ import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentF
 import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import { QuestionPaperTemplateProps } from "@/types/question-paper-template";
 
-export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaperTemplateProps) {
+export function QuestionPaperTemplate({
+    questionPaperUploadForm,
+    questionsData,
+}: QuestionPaperTemplateProps) {
+    console.log(questionsData);
     const { getValues: getQuestionPaperUploadForm } = questionPaperUploadForm;
     const title = getQuestionPaperUploadForm("title") || "";
     const [isHeaderEditable, setIsHeaderEditable] = useState(false); // State to toggle edit mode
@@ -295,116 +299,39 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
     useEffect(() => {
         form.reset({
             title: title,
-            questions: [
-                {
-                    questionId: "",
-                    questionName: "",
-                    explanation: "",
-                    questionType: "MCQ (Single Correct)",
-                    questionMark: "",
-                    imageDetails: [],
-                    singleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                    multipleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                    booleanOptions: [
-                        {
-                            isSelected: false,
-                        },
-                        {
-                            isSelected: false,
-                        },
-                    ],
-                },
-            ],
+            questions:
+                questionsData.length > 0
+                    ? questionsData.map((question) => ({
+                          questionId: question.questionId.toString(), // Ensure to convert ID to string if necessary
+                          questionName: question.questionHtml,
+                          explanation: question.explanationHtml,
+                          questionType: "MCQ (Single Correct)",
+                          questionMark: "", // Default or fetch this if needed
+                          imageDetails: [], // Assuming no initial images to display
+                          singleChoiceOptions: question.optionsData.map((option) => ({
+                              name: option.optionHtml, // Adjust or fetch this if required
+                              isSelected: question.answerOptionIds.includes(
+                                  option.optionId.toString(),
+                              ),
+                              image: {
+                                  imageId: "", // You may need to map/adjust this to include actual IDs or data
+                                  imageName: "", // Adjust based on your data or fetch it
+                                  imageTitle: "", // Adjust based on your data or fetch it
+                                  imageFile: "", // Adjust based on your data or fetch it
+                                  isDeleted: false,
+                              },
+                          })),
+                          multipleChoiceOptions: [], // Assuming no initial options to display
+                          booleanOptions: [
+                              {
+                                  isSelected: false,
+                              },
+                              {
+                                  isSelected: false,
+                              },
+                          ],
+                      }))
+                    : [],
         });
     }, [title, form]);
 
@@ -492,8 +419,8 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                 </DialogClose>
                             </div>
                         </div>
-                        <div className="flex items-start gap-12">
-                            <div className="flex w-24 flex-col items-start justify-between gap-4 p-2">
+                        <div className="flex h-screen items-start">
+                            <div className="flex h-screen w-52 flex-col items-start justify-between gap-4 overflow-y-auto p-2">
                                 <Button
                                     type="button"
                                     className="ml-3 bg-primary-500 text-xs text-white shadow-none"
@@ -588,7 +515,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                     </div>
                                 </Sortable>
                             </div>
-                            <Separator orientation="vertical" className="ml-4 min-h-screen" />
+                            <Separator orientation="vertical" className="min-h-screen" />
                             <MainViewComponentFactory
                                 type={
                                     getValues(`questions.${currentQuestionIndex}.questionType`) as
@@ -597,7 +524,7 @@ export function QuestionPaperTemplate({ questionPaperUploadForm }: QuestionPaper
                                 }
                                 props={{
                                     form: form,
-                                    className: "-ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                    className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
                                     currentQuestionIndex: currentQuestionIndex,
                                     questionPaperUploadForm: questionPaperUploadForm,
                                 }}

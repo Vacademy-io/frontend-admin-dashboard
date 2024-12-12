@@ -47,6 +47,7 @@ export const QuestionPaperUpload = () => {
     const isFormValid =
         !!questionIdentifier && !!optionIdentifier && !!answerIdentifier && !!fileUpload;
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [isProgress, setIsProgress] = useState(false);
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
         console.log(values);
@@ -76,6 +77,12 @@ export const QuestionPaperUpload = () => {
                 file,
                 setUploadProgress,
             ),
+        onMutate: () => {
+            setIsProgress(true);
+        },
+        onSettled: () => {
+            setIsProgress(false);
+        },
         onSuccess: (data) => {
             setQuestionsData(data);
             console.log(data);
@@ -111,7 +118,6 @@ export const QuestionPaperUpload = () => {
             fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
-
     return (
         <>
             <FormProvider {...form}>
@@ -227,8 +233,17 @@ export const QuestionPaperUpload = () => {
                         required
                     />
                     <div className="flex justify-between">
-                        {getValues("fileUpload") && questionsData && (
-                            <QuestionPaperTemplate questionPaperUploadForm={form} />
+                        {isProgress ? (
+                            <Button type="button" variant="outline" className="w-52 border-2">
+                                Loading...
+                            </Button>
+                        ) : (
+                            questionsData.length > 0 && (
+                                <QuestionPaperTemplate
+                                    questionPaperUploadForm={form}
+                                    questionsData={questionsData}
+                                />
+                            )
                         )}
                         <Button
                             disabled={!isFormValid}
