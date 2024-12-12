@@ -5,7 +5,7 @@ import { StepTwoForm } from "./forms/step-two-form";
 import { StepThreeForm } from "./forms/step-three-form";
 import { StepFourForm } from "./forms/step-four-form";
 import { StepFiveForm } from "./forms/step-five-form";
-import { useFormStore } from "@/stores/students/students-list/enroll-students-manually/enroll-manually-form-store";
+import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 
 export const EnrollManuallyButton = () => {
     const currentStep = useFormStore((state) => state.currentStep);

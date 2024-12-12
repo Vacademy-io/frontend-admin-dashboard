@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { myColumns } from "./utils/constants/table-column-data";
-import { StudentListResponse } from "@/schemas/student-list/table-schema";
+import { StudentListResponse } from "@/schemas/student/student-list/table-schema";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";

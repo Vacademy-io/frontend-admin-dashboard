@@ -7,6 +7,7 @@ import { z } from "zod";
 import { EnrollFormUploadImage } from "@/assets/svgs";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
+// import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 
 const formSchema = z.object({
     step1heading: z.string(),
@@ -15,6 +16,19 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export const StepOneForm = () => {
+    // const { stepOneData } = useFormStore();
+    // const { setStepOneData, nextStep, skipStep } = useFormStore();
+
+    // const handleFileUpload = (file: File) => {
+    //     setStepOneData({ profilePicture: file });
+    //     nextStep();
+    // };
+
+    // const handleSkip = () => {
+    //     setStepOneData({ profilePicture: null });
+    //     skipStep();
+    // };
+
     const form = useForm<FormData>({
         defaultValues: {
             step1heading: "step 1",

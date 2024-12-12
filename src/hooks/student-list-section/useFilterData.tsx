@@ -1,5 +1,5 @@
 import { FilterConfig } from "@/types/students/students-list-types";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export const useFilterData = (currentSession?: string) => {
     const batchNames = useGetBatchNames(currentSession);
@@ -26,9 +26,32 @@ export const useFilterData = (currentSession?: string) => {
     return filterData;
 };
 
+interface Session {
+    session_name: string;
+}
+
+// interface InstituteDetails {
+//     sessions?: Session[];
+//     batches_for_sessions: BatchForSession[];
+//     genders?: string[];
+//     student_statuses?: string[];
+// }
+
+interface BatchForSession {
+    session: {
+        session_name: string;
+    };
+    level: {
+        level_name: string;
+    };
+    package_dto: {
+        package_name: string;
+    };
+}
+
 export const useGetSessions = () => {
     const { instituteDetails } = useInstituteDetailsStore();
-    return instituteDetails?.sessions?.map((session) => session.session_name) || [];
+    return instituteDetails?.sessions?.map((session: Session) => session.session_name) || [];
 };
 
 export const useGetBatchNames = (selectedSession?: string) => {
@@ -36,8 +59,14 @@ export const useGetBatchNames = (selectedSession?: string) => {
 
     return (
         instituteDetails?.batches_for_sessions
-            .filter((batch) => !selectedSession || batch.session.session_name === selectedSession)
-            .map((batch) => `${batch.level.level_name} ${batch.package_dto.package_name}`)
+            .filter(
+                (batch: BatchForSession) =>
+                    !selectedSession || batch.session.session_name === selectedSession,
+            )
+            .map(
+                (batch: BatchForSession) =>
+                    `${batch.level.level_name} ${batch.package_dto.package_name}`,
+            )
             .sort() || []
     );
 };

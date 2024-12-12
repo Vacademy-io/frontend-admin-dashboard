@@ -1,6 +1,6 @@
 // stores/institute/useInstituteStore.ts
 import { create } from "zustand";
-import { InstituteDetailsType } from "@/schemas/student-list/institute-schema";
+import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
 
 interface InstituteDetailsStore {
     instituteDetails: InstituteDetailsType | null;

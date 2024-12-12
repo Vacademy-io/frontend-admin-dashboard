@@ -17,7 +17,6 @@ export const MyDropdown = ({
     onSelect,
 }: myDropDownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    console.log("Dropdown props:", { currentValue, dropdownList });
     return (
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             {children ? (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StudentFilterRequest } from "@/schemas/student-list/table-schema";
+import { StudentFilterRequest } from "@/schemas/student/student-list/table-schema";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { usePackageSessionIds } from "./getPackageSessionId";
 

@@ -1,16 +1,19 @@
 import { MyButton } from "@/components/design-system/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { useFormStore } from "@/stores/students/students-list/enroll-students-manually/enroll-manually-form-store";
+import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 
 export const FormSubmitButtons = ({
     stepNumber,
     finishButtonDisable,
+    onNext,
 }: {
     stepNumber: number;
     finishButtonDisable?: boolean;
+    onNext?: () => void;
 }) => {
-    const { nextStep, prevStep, skipStep } = useFormStore();
+    const { prevStep, skipStep } = useFormStore();
 
+    // Define the handleFirstButton function
     const handleFirstButton = () => {
         if (stepNumber === 1) {
             skipStep();
@@ -27,6 +30,7 @@ export const FormSubmitButtons = ({
                     scale="large"
                     layoutVariant="default"
                     onClick={handleFirstButton}
+                    type="button"
                 >
                     {stepNumber === 1 ? <span>Skip</span> : <span>Back</span>}
                 </MyButton>
@@ -34,8 +38,9 @@ export const FormSubmitButtons = ({
                     buttonType="primary"
                     scale="large"
                     layoutVariant="default"
-                    disabled={finishButtonDisable ? true : false}
-                    onClick={nextStep}
+                    disabled={finishButtonDisable}
+                    onClick={onNext}
+                    type="button"
                 >
                     {stepNumber === 5 ? <span>Finish</span> : <span>Next</span>}
                 </MyButton>

@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { StudentFilterRequest, StudentListResponse } from "@/schemas/student-list/table-schema";
+import {
+    StudentFilterRequest,
+    StudentListResponse,
+} from "@/schemas/student/student-list/table-schema";
 import { GET_STUDENTS } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 
