@@ -1,42 +1,51 @@
+// step-five-form.tsx
 import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
+import { StepFiveData, stepFiveSchema } from "@/types/students/enroll-students-manually";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/enroll-student";
+import { toast } from "sonner";
+import { useState } from "react";
 import { getCurrentSession } from "../../students-list/students-list-section";
-import { useState, useEffect } from "react";
-
-const formSchema = z.object({
-    username: z.string().min(1, "Username is required"),
-    password: z
-        .string()
-        .min(8, "Password must be at least 8 characters")
-        .regex(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-            "Password must contain at least one uppercase letter, one lowercase letter, and one number",
-        ),
-});
-
-export type StepFiveDataType = z.infer<typeof formSchema>;
+import { usePackageSessionIds } from "@/hooks/student-list-section/getPackageSessionId";
 
 export const StepFiveForm = () => {
     const [showCredentials, setShowCredentials] = useState(false);
-    const { stepFiveData, setStepFiveData, stepTwoData } = useFormStore();
+    const {
+        stepOneData,
+        stepTwoData,
+        stepThreeData,
+        stepFourData,
+        stepFiveData,
+        setStepFiveData,
+        resetForm,
+    } = useFormStore();
 
-    const form = useForm<StepFiveDataType>({
-        resolver: zodResolver(formSchema),
+    const packageSessionId = usePackageSessionIds(
+        stepTwoData?.session || getCurrentSession(),
+        stepTwoData?.batch ? [stepTwoData.batch] : undefined,
+    );
+
+    const queryClient = useQueryClient();
+
+    const form = useForm<StepFiveData>({
+        resolver: zodResolver(stepFiveSchema),
         defaultValues: stepFiveData || {
             username: "",
             password: "",
         },
         mode: "onChange",
     });
+
+    const mutation = useEnrollStudent();
 
     const generateUsername = () => {
         const sessionYear =
@@ -54,19 +63,16 @@ export const StepFiveForm = () => {
         const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         const numbers = "0123456789";
 
-        // Ensure at least one of each required character type
         let password = "";
         password += uppercase[Math.floor(Math.random() * uppercase.length)];
         password += lowercase[Math.floor(Math.random() * lowercase.length)];
         password += numbers[Math.floor(Math.random() * numbers.length)];
 
-        // Fill the rest with random characters
         const allChars = lowercase + uppercase + numbers;
         for (let i = password.length; i < length; i++) {
             password += allChars[Math.floor(Math.random() * allChars.length)];
         }
 
-        // Shuffle the password
         return password
             .split("")
             .sort(() => Math.random() - 0.5)
@@ -82,32 +88,50 @@ export const StepFiveForm = () => {
         setShowCredentials(true);
     };
 
-    const onSubmit = (values: StepFiveDataType) => {
+    const onSubmit = (values: StepFiveData) => {
         setStepFiveData(values);
-        // Handle final submission
+        const firstPackageSessionId = packageSessionId[0] || "";
+        mutation.mutate(
+            {
+                formData: {
+                    stepOneData,
+                    stepTwoData,
+                    stepThreeData,
+                    stepFourData,
+                    stepFiveData: values,
+                },
+                packageSessionId: firstPackageSessionId,
+            },
+            {
+                onSuccess: () => {
+                    queryClient.invalidateQueries({ queryKey: ["students"] });
+                    toast.success("Success", {
+                        description: "Student enrolled successfully",
+                        duration: 3000,
+                    });
+                    resetForm();
+                },
+                onError: (error) => {
+                    toast.error("Error", {
+                        description: "Failed to enroll student",
+                        duration: 3000,
+                    });
+                    console.log("error: ", error);
+                },
+            },
+        );
     };
-
-    //test
-    const { stepOneData, stepThreeData, stepFourData } = useFormStore();
-
-    useEffect(() => {
-        console.log("stepOneData: ", stepOneData);
-        console.log("stepTwoData: ", stepTwoData);
-        console.log("stepThreeData: ", stepThreeData);
-        console.log("stepFourData: ", stepFourData);
-        console.log("stepFiveData: ", stepFiveData);
-    }, []);
 
     return (
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-20">
-                        <FormItemWrapper<StepFiveDataType> control={form.control} name="username">
+                        <FormItemWrapper<StepFiveData> control={form.control} name="username">
                             <FormStepHeading stepNumber={5} heading="Generate Login Credentials" />
                         </FormItemWrapper>
 
-                        <FormItemWrapper<StepFiveDataType> control={form.control} name="username">
+                        <FormItemWrapper<StepFiveData> control={form.control} name="username">
                             <div className="flex flex-col items-center justify-center gap-10">
                                 <div className="text-subtitle">
                                     Auto-generate student&apos;s username and password
@@ -137,7 +161,7 @@ export const StepFiveForm = () => {
                                                     label="Username"
                                                     inputPlaceholder="username"
                                                     input={value}
-                                                    onChangeFunction={() => {}} // Read-only
+                                                    onChangeFunction={() => {}}
                                                     error={form.formState.errors.username?.message}
                                                     required={true}
                                                     size="large"

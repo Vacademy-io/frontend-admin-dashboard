@@ -5,9 +5,9 @@ import {
     DialogHeader,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Share } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";
 import { EnrollManuallyButton } from "../enroll-manually/enroll-manually-button";
+import { EnrollBulkButton } from "./enroll-bulk/enroll-bulk-button";
 
 export const EnrollStudentsButton = () => {
     return (
@@ -27,12 +27,7 @@ export const EnrollStudentsButton = () => {
                         <MyButton buttonType="secondary" scale="large" layoutVariant="default">
                             Enroll From Requests
                         </MyButton>
-                        <MyButton buttonType="primary" scale="large" layoutVariant="default">
-                            <span>
-                                <Share />
-                            </span>
-                            Enroll in Bulk
-                        </MyButton>
+                        <EnrollBulkButton />
                     </DialogDescription>
                 </DialogHeader>
             </DialogContent>

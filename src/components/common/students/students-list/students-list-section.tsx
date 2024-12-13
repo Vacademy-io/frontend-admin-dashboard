@@ -63,7 +63,7 @@ export const StudentsListSection = () => {
     return (
         <section className="flex max-w-full flex-col gap-8 overflow-visible">
             <div className="flex flex-col gap-5">
-                <StudentListHeader onEnrollClick={() => {}} />
+                <StudentListHeader />
                 <StudentFilters
                     currentSession={currentSession} // Now this will work
                     sessions={sessions}

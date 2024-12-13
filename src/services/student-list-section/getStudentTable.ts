@@ -35,6 +35,6 @@ export const useStudentList = (
         queryFn: () => fetchStudents({ pageNo, pageSize, filters }),
         enabled: true, // Change this to true
         refetchOnWindowFocus: false,
-        staleTime: Infinity, // Add this to prevent automatic refetching
+        staleTime: 3600000, // Add this to prevent automatic refetching
     });
 };

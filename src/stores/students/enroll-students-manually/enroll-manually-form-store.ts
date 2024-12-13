@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { StepTwoDataType } from "@/components/common/students/enroll-manually/forms/step-two-form";
-import { StepThreeDataType } from "@/components/common/students/enroll-manually/forms/step-three-form";
-import { StepFourDataType } from "@/components/common/students/enroll-manually/forms/step-four-form";
-import { StepFiveDataType } from "@/components/common/students/enroll-manually/forms/step-five-form";
+import { StepTwoData } from "@/types/students/enroll-students-manually";
+import { StepThreeData } from "@/types/students/enroll-students-manually";
+import { StepFourData } from "@/types/students/enroll-students-manually";
+import { StepFiveData } from "@/types/students/enroll-students-manually";
 
 // For step one, since it's just a file upload
 type StepOneDataType = {
@@ -15,10 +15,10 @@ interface FormStore {
 
     // Form data using schema types
     stepOneData: StepOneDataType | null;
-    stepTwoData: StepTwoDataType | null;
-    stepThreeData: StepThreeDataType | null;
-    stepFourData: StepFourDataType | null;
-    stepFiveData: StepFiveDataType | null;
+    stepTwoData: StepTwoData | null;
+    stepThreeData: StepThreeData | null;
+    stepFourData: StepFourData | null;
+    stepFiveData: StepFiveData | null;
 
     // Actions
     setStep: (step: number) => void;
@@ -28,10 +28,10 @@ interface FormStore {
 
     // Data setters
     setStepOneData: (data: StepOneDataType) => void;
-    setStepTwoData: (data: StepTwoDataType) => void;
-    setStepThreeData: (data: StepThreeDataType) => void;
-    setStepFourData: (data: StepFourDataType) => void;
-    setStepFiveData: (data: StepFiveDataType) => void;
+    setStepTwoData: (data: StepTwoData) => void;
+    setStepThreeData: (data: StepThreeData) => void;
+    setStepFourData: (data: StepFourData) => void;
+    setStepFiveData: (data: StepFiveData) => void;
 
     // Reset form
     resetForm: () => void;

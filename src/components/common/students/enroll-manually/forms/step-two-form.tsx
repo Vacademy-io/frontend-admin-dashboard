@@ -2,7 +2,6 @@ import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
@@ -16,17 +15,7 @@ import {
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-
-const formSchema = z.object({
-    name: z.string().min(1, "Full name is required"),
-    enrollmentNumber: z.string().min(1, "Enrollment number is required"),
-    collegeName: z.string().min(1, "College/School name is required"),
-    batch: z.string().min(1, "Batch is required"),
-    session: z.string().min(1, "Session is required"),
-    gender: z.string().min(1, "Gender is required"),
-});
-
-export type StepTwoDataType = z.infer<typeof formSchema>;
+import { StepTwoData, stepTwoSchema } from "@/types/students/enroll-students-manually";
 
 export const StepTwoForm = () => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
@@ -34,27 +23,28 @@ export const StepTwoForm = () => {
     const sessionList = useGetSessions();
     const genderList = useGetGenders();
 
-    const form = useForm<StepTwoDataType>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<StepTwoData>({
+        resolver: zodResolver(stepTwoSchema),
         defaultValues: stepTwoData || {
-            name: "",
+            fullName: "",
+            // dateOfBirth: "",
+            gender: "",
             enrollmentNumber: "",
-            collegeName: "",
             batch: "",
             session: "",
-            gender: "",
+            // sessionId: "",
+            collegeName: "",
         },
         mode: "onChange",
     });
 
     const batchList = useGetBatchNames(form.watch("session"));
 
-    const onSubmit = (values: StepTwoDataType) => {
-        setStepTwoData(values); // Store the form data
-        nextStep(); // Move to next step
+    const onSubmit = (values: StepTwoData) => {
+        setStepTwoData(values);
+        nextStep();
     };
 
-    // Set initial values once data is loaded
     useEffect(() => {
         if (sessionList.length > 0) {
             form.setValue("session", sessionList[0] || "");
@@ -72,14 +62,14 @@ export const StepTwoForm = () => {
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
-                        <FormItemWrapper<StepTwoDataType> control={form.control} name="name">
+                        <FormItemWrapper<StepTwoData> control={form.control} name="fullName">
                             <FormStepHeading stepNumber={2} heading="General Details" />
                         </FormItemWrapper>
 
                         <div className="flex flex-col gap-8">
                             <FormField
                                 control={form.control}
-                                name="name"
+                                name="fullName"
                                 render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
                                         <FormControl>
@@ -89,7 +79,7 @@ export const StepTwoForm = () => {
                                                 inputPlaceholder="Full name (First and Last)"
                                                 input={value}
                                                 onChangeFunction={onChange}
-                                                error={form.formState.errors.name?.message}
+                                                error={form.formState.errors.fullName?.message}
                                                 required={true}
                                                 size="large"
                                                 className="w-full"

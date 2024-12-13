@@ -1,32 +1,20 @@
+// step-four-form.tsx
 import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-
-const formSchema = z.object({
-    fatherName: z.string().min(1, "Father's name is required"),
-    motherName: z.string().min(1, "Mother's name is required"),
-    guardianName: z.string().optional(),
-    guardianEmail: z.string().email("Invalid email format").min(1, "Guardian's email is required"),
-    guardianMobileNumber: z
-        .string()
-        .min(1, "Guardian's mobile number is required")
-        .regex(/^\d{10}$/, "Mobile number must be 10 digits"),
-});
-
-export type StepFourDataType = z.infer<typeof formSchema>;
+import { StepFourData, stepFourSchema } from "@/types/students/enroll-students-manually";
 
 export const StepFourForm = () => {
     const { stepFourData, setStepFourData, nextStep } = useFormStore();
 
-    const form = useForm<StepFourDataType>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<StepFourData>({
+        resolver: zodResolver(stepFourSchema),
         defaultValues: stepFourData || {
             fatherName: "",
             motherName: "",
@@ -37,7 +25,7 @@ export const StepFourForm = () => {
         mode: "onChange",
     });
 
-    const onSubmit = (values: StepFourDataType) => {
+    const onSubmit = (values: StepFourData) => {
         setStepFourData(values);
         nextStep();
     };
@@ -47,7 +35,7 @@ export const StepFourForm = () => {
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
-                        <FormItemWrapper<StepFourDataType> control={form.control} name="fatherName">
+                        <FormItemWrapper<StepFourData> control={form.control} name="fatherName">
                             <FormStepHeading stepNumber={4} heading="Parent's/Guardians Details" />
                         </FormItemWrapper>
 
@@ -106,7 +94,7 @@ export const StepFourForm = () => {
                                         <FormControl>
                                             <MyInput
                                                 inputType="text"
-                                                label="Guardian's Name(if applicable)"
+                                                label="Guardian's Name (if applicable)"
                                                 inputPlaceholder="Full Name (First and Last)"
                                                 input={value || ""}
                                                 onChangeFunction={onChange}

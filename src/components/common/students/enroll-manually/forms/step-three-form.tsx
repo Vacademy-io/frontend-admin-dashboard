@@ -1,34 +1,23 @@
+// step-three-form.tsx
 import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-
-const formSchema = z.object({
-    mobileNumber: z
-        .string()
-        .min(1, "Mobile number is required")
-        .regex(/^\d{10}$/, "Mobile number must be 10 digits"),
-    email: z.string().min(1, "Email is required").email("Invalid email format"),
-    state: z.string().min(1, "State is required"),
-    city: z.string().min(1, "City is required"),
-});
-
-export type StepThreeDataType = z.infer<typeof formSchema>;
+import { StepThreeData, stepThreeSchema } from "@/types/students/enroll-students-manually";
 
 export const StepThreeForm = () => {
     const { stepThreeData, setStepThreeData, nextStep } = useFormStore();
     const stateList = ["Madhya Pradesh", "Himachal Pradesh", "Rajasthan"];
     const cityList = ["Bhopal", "Indore", "Delhi"];
 
-    const form = useForm<StepThreeDataType>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<StepThreeData>({
+        resolver: zodResolver(stepThreeSchema),
         defaultValues: stepThreeData || {
             mobileNumber: "",
             email: "",
@@ -38,7 +27,7 @@ export const StepThreeForm = () => {
         mode: "onChange",
     });
 
-    const onSubmit = (values: StepThreeDataType) => {
+    const onSubmit = (values: StepThreeData) => {
         setStepThreeData(values);
         nextStep();
     };
@@ -48,10 +37,7 @@ export const StepThreeForm = () => {
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
-                        <FormItemWrapper<StepThreeDataType>
-                            control={form.control}
-                            name="mobileNumber"
-                        >
+                        <FormItemWrapper<StepThreeData> control={form.control} name="mobileNumber">
                             <FormStepHeading
                                 stepNumber={3}
                                 heading="Contact Information and Location Details"
