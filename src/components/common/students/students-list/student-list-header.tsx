@@ -1,4 +1,4 @@
-import { EnrollStudentsButton } from "../empty-dashboard/enroll-students-button";
+import { EnrollStudentsButton } from "../enroll-students-button";
 
 export const StudentListHeader = () => (
     <div className="flex items-center justify-between">

@@ -14,3 +14,6 @@ export { SsdcLogo_Login };
 
 import LoginImage from "./login-image.svg";
 export { LoginImage };
+
+import ImportFileImage from "./import-file.svg";
+export { ImportFileImage };
