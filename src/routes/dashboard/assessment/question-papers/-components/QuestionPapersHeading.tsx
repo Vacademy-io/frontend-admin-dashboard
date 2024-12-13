@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { QuestionPaperUpload } from "./QuestionPaperUpload";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 export const QuestionPapersHeading = () => {
     const isMobile = useIsMobile();
     return (
@@ -40,9 +41,24 @@ export const QuestionPapersHeading = () => {
                         </AlertDialogCancel>
                     </div>
                     <div className="mb-6 mt-2 flex flex-col items-center justify-center gap-6">
-                        <Button variant="outline" className="w-40 text-neutral-600">
-                            Create Manually
-                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger>
+                                <Button variant="outline" className="w-40 text-neutral-600">
+                                    Create Manually
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="p-0">
+                                <div className="flex items-center justify-between rounded-md bg-primary-50">
+                                    <h1 className="rounded-sm p-4 font-bold text-primary-500">
+                                        Create Question Paper Manually
+                                    </h1>
+                                    <AlertDialogCancel className="border-none bg-primary-50 shadow-none hover:bg-primary-50">
+                                        <X className="text-neutral-600" />
+                                    </AlertDialogCancel>
+                                </div>
+                                <QuestionPaperUpload isManualCreated={true} />
+                            </AlertDialogContent>
+                        </AlertDialog>
                         <AlertDialog>
                             <AlertDialogTrigger>
                                 <Button variant="outline" className="w-40 text-neutral-600">
@@ -58,7 +74,7 @@ export const QuestionPapersHeading = () => {
                                         <X className="text-neutral-600" />
                                     </AlertDialogCancel>
                                 </div>
-                                <QuestionPaperUpload />
+                                <QuestionPaperUpload isManualCreated={false} />
                             </AlertDialogContent>
                         </AlertDialog>
                     </div>

@@ -19,8 +19,9 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
     className,
-    questionPaperUploadForm,
 }: QuestionPaperTemplateFormProps) => {
+    const { control, getValues, setValue } = form;
+
     const QuestionsLabels = [
         "MCQ (Single Correct)",
         "MCQ (Multiple Correct)",
@@ -29,13 +30,11 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
         "Match the following",
         "Short answer",
     ];
-    const { getValues: getQuestionPaperUploadForm } = questionPaperUploadForm;
-    const answersType = getQuestionPaperUploadForm("answers") || "Answer:";
-    const explanationsType = getQuestionPaperUploadForm("explanations") || "Explanation:";
-    const optionsType = getQuestionPaperUploadForm("options") || "";
-    const questionsType = getQuestionPaperUploadForm("questions") || "";
 
-    const { control, getValues, setValue } = form;
+    const answersType = getValues("answersType") || "Answer:";
+    const explanationsType = getValues("explanationsType") || "Explanation:";
+    const optionsType = getValues("optionsType") || "";
+    const questionsType = getValues("questionsType") || "";
 
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
@@ -556,7 +555,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                 </div>
             </div>
-            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+            <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField
                     control={control}

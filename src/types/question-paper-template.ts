@@ -4,8 +4,8 @@ import { z } from "zod";
 
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 export interface QuestionPaperTemplateProps {
-    questionPaperUploadForm: UseFormReturn<QuestionPaperForm>;
-    questionsData: QuestionData[];
+    form: UseFormReturn<QuestionPaperForm>;
+    questionsData?: QuestionData[];
 }
 
 interface OptionData {

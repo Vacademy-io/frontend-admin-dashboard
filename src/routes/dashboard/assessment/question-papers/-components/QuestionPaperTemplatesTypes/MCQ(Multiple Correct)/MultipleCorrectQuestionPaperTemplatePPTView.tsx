@@ -18,15 +18,13 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
     className,
-    questionPaperUploadForm,
 }: QuestionPaperTemplateFormProps) => {
-    const { getValues: getQuestionPaperUploadForm } = questionPaperUploadForm;
-    const optionsType = getQuestionPaperUploadForm("options") || "";
+    const { control, getValues, setValue } = form;
+
     const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
-    const { control, getValues, setValue } = form;
-
+    const optionsType = getValues("optionsType") || "";
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
 

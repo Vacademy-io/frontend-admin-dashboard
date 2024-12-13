@@ -66,7 +66,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
                             <SelectTrigger>
                                 <SelectValue placeholder={`Select ${label}`} />
                             </SelectTrigger>
-                            <SelectContent className="max-w-96">
+                            <SelectContent className="w-full">
                                 {options.map((option) => (
                                     <SelectItem
                                         className={className}
