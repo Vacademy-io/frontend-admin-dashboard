@@ -49,6 +49,7 @@
         "pnpm": "^9.12.3",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
+        "react-dropzone": "^14.3.5",
         "react-helmet": "^6.1.0",
         "react-hook-form": "^7.53.1",
         "react-i18next": "^15.1.0",

@@ -1,36 +1,24 @@
 import { DialogHeader } from "@/components/ui/dialog";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { useGetSessions, useGetBatchNames } from "@/hooks/student-list-section/useFilterData";
+import { useGetSessions } from "@/hooks/student-list-section/useFilterData";
 import { useState } from "react";
 import { UploadCSVButton } from "./upload-csv-button";
 import { dropdownSchema } from "@/components/design-system/utils/schema/dropdown-schema";
 
 export const EnrollBulkDialog = () => {
     const sessionList = useGetSessions();
-    const batchList = useGetBatchNames();
-
     const [currentSession, setCurrentSession] = useState("");
-    const [batch, setBatch] = useState("");
     const [isFormValid, setIsFormValid] = useState({
         session: false,
-        batch: false,
     });
 
     const handleSessionChange = (session: string) => {
         setCurrentSession(session);
     };
 
-    const handleBatchChange = (batch: string) => {
-        setBatch(batch);
-    };
-
     const handleSessionValidation = (isValid: boolean) => {
         setIsFormValid((prev) => ({ ...prev, session: isValid }));
-    };
-
-    const handleBatchValidation = (isValid: boolean) => {
-        setIsFormValid((prev) => ({ ...prev, batch: isValid }));
     };
 
     return (
@@ -52,20 +40,7 @@ export const EnrollBulkDialog = () => {
                         onValidation={handleSessionValidation}
                     />
                 </div>
-                <div className="flex w-full flex-col gap-1">
-                    <div>
-                        Batch <span className="text-subtitle text-danger-600">*</span>
-                    </div>
-                    <MyDropdown
-                        dropdownList={batchList}
-                        handleChange={handleBatchChange}
-                        placeholder="Select Batch"
-                        currentValue={batch}
-                        validation={dropdownSchema}
-                        onValidation={handleBatchValidation}
-                    />
-                </div>
-                <UploadCSVButton disable={!isFormValid.session || !isFormValid.batch} />
+                <UploadCSVButton disable={!isFormValid.session} />
             </DialogDescription>
         </DialogHeader>
     );
