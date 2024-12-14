@@ -5,8 +5,13 @@ import { QuestionPapersFilter } from "./QuestionPapersFilter";
 import { QuestionPapersSearchComponent } from "./QuestionPapersSearchComponent";
 import { QuestionPapersDateRangeComponent } from "./QuestionPapersDateRangeComponent";
 import { EmptyQuestionPapers } from "@/svgs";
+import { QuestionPapersList } from "./QuestionPapersList";
+import { useAllQuestionsStore } from "../-global-states/questions-store";
+import { countFavourites } from "../-utils/helper";
 
 export const QuestionPapersTabs = () => {
+    const { questionPaperList } = useAllQuestionsStore();
+    const totalFavouriteQuesionPaper = countFavourites(questionPaperList);
     const [selectedTab, setSelectedTab] = useState("All");
 
     const handleTabChange = (value: string) => {
@@ -42,18 +47,26 @@ export const QuestionPapersTabs = () => {
                 </div>
             </div>
             <TabsContent value="All">
-                <div className="flex h-screen flex-col items-center justify-center">
-                    <EmptyQuestionPapers />
-                    <span className="text-neutral-600">No question papers available</span>
-                </div>
+                {questionPaperList.length > 0 ? (
+                    <QuestionPapersList isFavourite={false} />
+                ) : (
+                    <div className="flex h-screen flex-col items-center justify-center">
+                        <EmptyQuestionPapers />
+                        <span className="text-neutral-600">No question papers available</span>
+                    </div>
+                )}
             </TabsContent>
             <TabsContent value="Favourites">
-                <div className="flex h-screen flex-col items-center justify-center">
-                    <EmptyQuestionPapers />
-                    <span className="text-neutral-600">
-                        No question paper has been marked as favourites yet.
-                    </span>
-                </div>
+                {totalFavouriteQuesionPaper > 0 ? (
+                    <QuestionPapersList isFavourite={true} />
+                ) : (
+                    <div className="flex h-screen flex-col items-center justify-center">
+                        <EmptyQuestionPapers />
+                        <span className="text-neutral-600">
+                            No question paper has been marked as favourites yet.
+                        </span>
+                    </div>
+                )}
             </TabsContent>
         </Tabs>
     );

@@ -4,13 +4,12 @@ import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-f
 
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
-export interface AllQuestionsState {
-    allQuestionsData: QuestionPaperForm[]; // Array of plain form data
-    setAllQuestionsData: (data: QuestionPaperForm[]) => void;
+export interface QuestionPaperListInterface {
+    questionPaperList: QuestionPaperForm[]; // Array of plain form data
+    setQuestionPaperList: (data: QuestionPaperForm[]) => void;
 }
 
-export const useAllQuestionsStore = create<AllQuestionsState>((set) => ({
-    allQuestionsData: [], // Initial state
-
-    setAllQuestionsData: (data) => set(() => ({ allQuestionsData: data })),
+export const useAllQuestionsStore = create<QuestionPaperListInterface>((set) => ({
+    questionPaperList: [], // Initial state
+    setQuestionPaperList: (data) => set(() => ({ questionPaperList: data })),
 }));

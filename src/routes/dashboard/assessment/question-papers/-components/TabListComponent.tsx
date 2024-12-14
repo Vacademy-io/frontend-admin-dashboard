@@ -1,9 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAllQuestionsStore } from "../-global-states/questions-store";
+import { countFavourites } from "../-utils/helper";
 
 export const TabListComponent = ({ selectedTab }: { selectedTab: string }) => {
+    const { questionPaperList } = useAllQuestionsStore();
+    const totalFavouriteQuesionPaper = countFavourites(questionPaperList);
     return (
-        <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-2 !bg-transparent p-0">
+        <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-[1px] !bg-transparent p-0">
             <TabsTrigger
                 value="All"
                 className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
@@ -17,7 +21,7 @@ export const TabListComponent = ({ selectedTab }: { selectedTab: string }) => {
                     className="rounded-[10px] bg-primary-500 p-0 pl-2 pr-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    125
+                    {questionPaperList.length > 0 ? questionPaperList.length : 0}
                 </Badge>
             </TabsTrigger>
             <TabsTrigger
@@ -35,7 +39,7 @@ export const TabListComponent = ({ selectedTab }: { selectedTab: string }) => {
                     className="rounded-[10px] bg-primary-500 p-0 pl-2 pr-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    125
+                    {totalFavouriteQuesionPaper}
                 </Badge>
             </TabsTrigger>
         </TabsList>

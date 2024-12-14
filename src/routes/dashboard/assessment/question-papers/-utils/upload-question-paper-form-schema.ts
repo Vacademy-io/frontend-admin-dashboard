@@ -1,10 +1,18 @@
 import { z } from "zod";
 
 export const uploadQuestionPaperFormSchema = z.object({
+    questionPaperId: z
+        .number({
+            required_error: "Question Paper ID is required",
+            invalid_type_error: "Question Paper ID must be a number",
+        })
+        .optional(),
+    isFavourite: z.boolean().default(false),
     title: z.string({
         required_error: "Title is required",
         invalid_type_error: "Title must be a string",
     }),
+    createdOn: z.date().default(() => new Date()),
     yearClass: z.string({
         required_error: "Title is required",
         invalid_type_error: "Title must be a string",

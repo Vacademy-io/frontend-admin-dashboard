@@ -19,7 +19,8 @@ import { useAllQuestionsStore } from "../-global-states/questions-store";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 
 export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: boolean }) => {
-    const { allQuestionsData, setAllQuestionsData } = useAllQuestionsStore();
+    const { questionPaperList, setQuestionPaperList } = useAllQuestionsStore();
+
     const YearClassData = ["10th Class", "9th Class", "8th Class"];
     const SubjectData = [
         "Chemistry",
@@ -45,7 +46,10 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
         defaultValues: {
+            questionPaperId: 0,
+            isFavourite: false,
             title: "",
+            createdOn: new Date(),
             yearClass: "",
             subject: "",
             questionsType: "",
@@ -58,6 +62,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
     });
 
     const { getValues, setValue } = form;
+
     const title = getValues("title");
     const yearClass = getValues("yearClass");
     const subject = getValues("subject");
@@ -80,7 +85,11 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
     const [isProgress, setIsProgress] = useState(false);
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        setAllQuestionsData([...allQuestionsData, values]);
+        const currentQuestionPaperId = questionPaperList.length + 1;
+        setQuestionPaperList([
+            ...questionPaperList,
+            { ...values, questionPaperId: currentQuestionPaperId },
+        ]);
     }
 
     const onInvalid = (err: unknown) => {
@@ -150,6 +159,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
             fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
+
     return (
         <>
             <FormProvider {...form}>
