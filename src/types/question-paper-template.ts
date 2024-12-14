@@ -1,4 +1,4 @@
-import { uploadQuestionPaperFormSchema } from "@/routes/dashboard/assessment/question-papers/-utils/upload-question-paper-form-schema";
+import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 

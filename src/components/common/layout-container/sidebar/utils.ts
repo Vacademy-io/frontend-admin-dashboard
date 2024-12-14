@@ -13,22 +13,22 @@ export const SidebarItemsData: SidebarItemsType[] = [
         subItems: [
             {
                 subItem: "Students list",
-                subItemLink: "/dashboard/students",
+                subItemLink: "/students/students-list",
             },
             {
                 subItem: "Manage Batches and Sessions",
-                subItemLink: "/dashboard/students/manage-batches",
+                subItemLink: "/students/manage-batches",
             },
             {
                 subItem: "Enroll Requests",
-                subItemLink: "/dashboard/students/enroll-requests",
+                subItemLink: "/students/enroll-requests",
             },
         ],
     },
     {
         icon: BookOpen,
         title: "Study Library",
-        to: "/dashboard/study-library",
+        to: "/study-library",
     },
     {
         icon: Scroll,
@@ -36,11 +36,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
         subItems: [
             {
                 subItem: "Tests",
-                subItemLink: "/dashboard/assessment/tests",
+                subItemLink: "/assessment/tests",
             },
             {
                 subItem: "Question Papers",
-                subItemLink: "/dashboard/assessment/question-papers",
+                subItemLink: "/assessment/question-papers",
             },
         ],
     },
