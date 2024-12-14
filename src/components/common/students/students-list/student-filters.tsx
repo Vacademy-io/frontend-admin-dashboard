@@ -4,29 +4,7 @@ import { MyDropdown } from "@/components/design-system/dropdown";
 import { Export } from "@phosphor-icons/react";
 import { Filters } from "./myFilter";
 import { StudentSearchBox } from "./student-search-box";
-
-interface Filter {
-    id: string;
-    title: string;
-    filterList: string[];
-}
-interface StudentFiltersProps {
-    currentSession: string;
-    sessions: string[];
-    filters: Filter[];
-    searchInput: string;
-    searchFilter: string;
-    columnFilters: { id: string; value: string[] }[];
-    clearFilters: boolean;
-    hasActiveFilters: boolean;
-    onSessionChange: (session: string) => void;
-    onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onSearchEnter: () => void;
-    onClearSearch: () => void;
-    onFilterChange: (filterId: string, values: string[]) => void;
-    onFilterClick: () => void;
-    onClearFilters: () => void;
-}
+import { StudentFiltersProps } from "@/types/students/students-list-types";
 
 export const StudentFilters = ({
     currentSession,
