@@ -10,6 +10,11 @@ import {
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { myColumns } from "./utils/constants/table-column-data";
 import { StudentListResponse } from "@/schemas/student/student-list/table-schema";
+import { ChangeBatchDialog } from "./table-components/student-menu-options/change-batch-dialog";
+import { ExtendSessionDialog } from "./table-components/student-menu-options/extend-session-dialog";
+import { ReRegisterDialog } from "./table-components/student-menu-options/re-register-dialog";
+import { TerminateRegistrationDialog } from "./table-components/student-menu-options/terminate-registration-dialog";
+import { useDialogStore } from "./utils/useDialogStore";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -30,7 +35,7 @@ const COLUMN_WIDTHS = {
     parents_mobile_number: "min-w-[180px]",
     parents_email: "min-w-[240px]",
     city: "min-w-[180px]",
-    state: "min-w-[180px]",
+    region: "min-w-[180px]",
     session_expiry: "min-w-[180px]",
     status: "min-w-[180px]",
     options: "min-w-[56px] sticky right-0",
@@ -44,6 +49,14 @@ interface MyTableProps {
 }
 
 export function MyTable({ data, isLoading, error, onSort }: MyTableProps) {
+    const {
+        isChangeBatchOpen,
+        isExtendSessionOpen,
+        isReRegisterOpen,
+        isTerminateRegistrationOpen,
+        closeAllDialogs,
+    } = useDialogStore();
+
     const table = useReactTable({
         data: data?.content || [],
         columns: myColumns,
@@ -59,50 +72,86 @@ export function MyTable({ data, isLoading, error, onSort }: MyTableProps) {
     if (error) return <div>Error loading students</div>;
 
     return (
-        <div className="w-full rounded-lg border">
-            <div className="max-w-full overflow-visible rounded-lg">
-                <Table className="rounded-lg">
-                    <TableHeader className="relative bg-primary-200">
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="hover:bg-primary-200">
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead
-                                        key={header.id}
-                                        className={`${headerTextCss} overflow-visible bg-primary-200 text-subtitle font-semibold text-neutral-600 ${
-                                            COLUMN_WIDTHS[
-                                                header.column.id as keyof typeof COLUMN_WIDTHS
-                                            ] || ""
-                                        }`}
-                                    >
-                                        {flexRender(
-                                            header.column.columnDef.header,
-                                            header.getContext(),
-                                        )}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows.map((row) => (
-                            <TableRow key={row.id} className="hover:bg-white">
-                                {row.getVisibleCells().map((cell) => (
-                                    <TableCell
-                                        key={cell.id}
-                                        className={`${cellCommonCss} z-10 bg-white text-body font-regular text-neutral-600 ${
-                                            COLUMN_WIDTHS[
-                                                cell.column.id as keyof typeof COLUMN_WIDTHS
-                                            ] || ""
-                                        }`}
-                                    >
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+        <>
+            <div className="w-full rounded-lg border">
+                <div className="max-w-full overflow-visible rounded-lg">
+                    <Table className="rounded-lg">
+                        <TableHeader className="relative bg-primary-200">
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id} className="hover:bg-primary-200">
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead
+                                            key={header.id}
+                                            className={`${headerTextCss} overflow-visible bg-primary-200 text-subtitle font-semibold text-neutral-600 ${
+                                                COLUMN_WIDTHS[
+                                                    header.column.id as keyof typeof COLUMN_WIDTHS
+                                                ] || ""
+                                            }`}
+                                        >
+                                            {flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext(),
+                                            )}
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows.map((row) => (
+                                <TableRow key={row.id} className="hover:bg-white">
+                                    {row.getVisibleCells().map((cell) => (
+                                        <TableCell
+                                            key={cell.id}
+                                            className={`${cellCommonCss} z-10 bg-white text-body font-regular text-neutral-600 ${
+                                                COLUMN_WIDTHS[
+                                                    cell.column.id as keyof typeof COLUMN_WIDTHS
+                                                ] || ""
+                                            }`}
+                                        >
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext(),
+                                            )}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
-        </div>
+            <ChangeBatchDialog
+                trigger={null}
+                open={isChangeBatchOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <ExtendSessionDialog
+                trigger={null}
+                open={isExtendSessionOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <ReRegisterDialog
+                trigger={null}
+                open={isReRegisterOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <TerminateRegistrationDialog
+                trigger={null}
+                open={isTerminateRegistrationOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+        </>
     );
 }

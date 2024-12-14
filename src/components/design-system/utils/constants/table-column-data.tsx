@@ -1,9 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
-import { ArrowSquareOut, DotsThree, CaretUp, CaretDown } from "@phosphor-icons/react";
+import { ArrowSquareOut, CaretUp, CaretDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MyButton } from "../../button";
 import { MyDropdown } from "../../dropdown";
+import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -105,7 +105,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         header: "City",
     },
     {
-        accessorKey: "state",
+        accessorKey: "region",
         header: "State",
     },
     {
@@ -120,15 +120,8 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: "options",
         header: "",
-        cell: () => (
-            <MyButton
-                buttonType="secondary"
-                scale="small"
-                layoutVariant="icon"
-                className="flex items-center justify-center"
-            >
-                <DotsThree />
-            </MyButton>
+        cell: ({ row }) => (
+            <StudentMenuOptions student={row.original} /> // Pass the row.original which contains the student data
         ),
     },
 ];

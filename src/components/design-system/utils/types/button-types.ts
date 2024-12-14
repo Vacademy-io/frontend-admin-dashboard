@@ -18,4 +18,5 @@ export interface MyButtonProps extends Omit<ButtonProps, "variant"> {
     scale?: ButtonScale;
     layoutVariant?: ButtonLayoutVariant; // renamed from 'variant' to avoid confusion with Shadcn's variant
     children?: React.ReactNode;
+    disable?: boolean;
 }

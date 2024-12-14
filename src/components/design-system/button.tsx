@@ -48,6 +48,7 @@ export const MyButton = ({
     scale = "medium",
     layoutVariant = "default",
     children,
+    disable,
     ...props
 }: MyButtonProps) => {
     const getButtonClasses = () => {
@@ -67,7 +68,7 @@ export const MyButton = ({
     };
 
     return (
-        <Button className={cn(getButtonClasses(), className)} {...props}>
+        <Button className={cn(getButtonClasses(), className)} {...props} disabled={disable}>
             {children}
         </Button>
     );
