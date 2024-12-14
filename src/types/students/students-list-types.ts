@@ -18,3 +18,26 @@ export interface FilterConfig {
     title: string;
     filterList: string[];
 }
+
+export interface Filter {
+    id: string;
+    title: string;
+    filterList: string[];
+}
+export interface StudentFiltersProps {
+    currentSession: string;
+    sessions: string[];
+    filters: Filter[];
+    searchInput: string;
+    searchFilter: string;
+    columnFilters: { id: string; value: string[] }[];
+    clearFilters: boolean;
+    hasActiveFilters: boolean;
+    onSessionChange: (session: string) => void;
+    onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onSearchEnter: () => void;
+    onClearSearch: () => void;
+    onFilterChange: (filterId: string, values: string[]) => void;
+    onFilterClick: () => void;
+    onClearFilters: () => void;
+}
