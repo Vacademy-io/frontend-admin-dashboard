@@ -7,14 +7,23 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MyPagination } from "@/components/design-system/pagination";
+import { useState } from "react";
 
 export const QuestionPapersList = ({ isFavourite }: { isFavourite: boolean }) => {
+    const [currentPage, setCurrentPage] = useState(0);
     const { questionPaperList, setQuestionPaperList } = useAllQuestionsStore();
 
     // Filter question papers based on isFavourite
     const filteredQuestionPapers = isFavourite
         ? questionPaperList.filter((paper) => paper.isFavourite)
         : questionPaperList;
+    const itemsPerPage = 10;
+    const startIndex = currentPage * itemsPerPage;
+    const paginatedQuestionPapers = filteredQuestionPapers.slice(
+        startIndex,
+        startIndex + itemsPerPage,
+    );
 
     const handleMarkFavourite = (questionPaperId: number | undefined) => {
         setQuestionPaperList(
@@ -31,10 +40,15 @@ export const QuestionPapersList = ({ isFavourite }: { isFavourite: boolean }) =>
             filteredQuestionPapers.filter((paper) => paper.questionPaperId !== questionPaperId),
         );
     };
+
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage);
+    };
+
     return (
         <div className="mt-5 flex flex-col gap-5">
             {filteredQuestionPapers.length > 0 ? (
-                filteredQuestionPapers.map((questionsData, index) => (
+                paginatedQuestionPapers.map((questionsData, index) => (
                     <div
                         key={index}
                         className="flex flex-col gap-2 rounded-xl border-[1.5px] bg-neutral-50 p-4"
@@ -92,6 +106,11 @@ export const QuestionPapersList = ({ isFavourite }: { isFavourite: boolean }) =>
             ) : (
                 <p className="text-center text-neutral-500">No question papers found.</p>
             )}
+            <MyPagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredQuestionPapers.length / itemsPerPage)}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 };
