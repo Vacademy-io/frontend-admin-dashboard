@@ -109,7 +109,7 @@ export const UploadCSVButton = ({ disable }: { disable: boolean }) => {
                     Upload CSV
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="p-0 font-normal">
+            <DialogContent className="w-[800px] max-w-[800px] p-0 font-normal">
                 <DialogHeader>
                     <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
                         Upload CSV
@@ -123,14 +123,14 @@ export const UploadCSVButton = ({ disable }: { disable: boolean }) => {
                             <>
                                 <div
                                     {...getRootProps()}
-                                    className={`cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${
+                                    className={`h-[270px] w-[720px] cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${
                                         isDragActive ? "bg-primary-50" : "bg-white"
                                     } transition-colors duration-200 ease-in-out`}
                                 >
                                     <input {...getInputProps()} />
-                                    <div className="flex flex-col items-center gap-4">
+                                    <div className="flex flex-col items-center justify-center gap-4">
                                         <ImportFileImage />
-                                        {fileState.file ? (
+                                        {fileState.file && (
                                             <div className="text-center">
                                                 <p className="font-medium text-primary-500">
                                                     {fileState.file.name}
@@ -138,12 +138,6 @@ export const UploadCSVButton = ({ disable }: { disable: boolean }) => {
                                                 <p className="text-sm text-neutral-500">
                                                     {(fileState.file.size / 1024).toFixed(2)} KB
                                                 </p>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center text-body">
-                                                {data.instructions.map((instruction, index) => (
-                                                    <p key={index}>{instruction}</p>
-                                                ))}
                                             </div>
                                         )}
                                         {fileState.error && (
@@ -154,9 +148,14 @@ export const UploadCSVButton = ({ disable }: { disable: boolean }) => {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col items-center text-body">
+                                <div className="flex flex-col items-center">
+                                    <div className="flex gap-1 text-center">
+                                        {data.instructions.map((instruction, index) => (
+                                            <p key={index}>{instruction}.</p>
+                                        ))}
+                                    </div>
                                     <MyButton
-                                        className="cursor-pointer font-semibold text-primary-500"
+                                        className="cursor-pointer text-[18px] font-semibold text-primary-500"
                                         buttonType="text"
                                         layoutVariant="default"
                                         scale="medium"
