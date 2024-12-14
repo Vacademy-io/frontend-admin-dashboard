@@ -1,34 +1,22 @@
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import React from "react";
 import { SidebarGroup } from "@/components/ui/sidebar";
 import { SidebarItemProps } from "../../../../types/layout-container-types";
 import { useSidebar } from "@/components/ui/sidebar";
-import { usePageStore } from "@/stores/usePageStore";
 import { Link } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 
 export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => {
     const [hover, setHover] = useState<boolean>(false);
-    // const [isSelectedInSubItems, setIsSelectedInSubItems] = useState(false);
-    const { currentPage, setCurrentPage } = usePageStore();
     const { state, toggleSidebar } = useSidebar(); // Access sidebar state and toggle function
 
     const toggleHover = () => setHover(!hover);
+    const router = useRouter();
 
-    // Track if selectedItem is within subItems
-    // useEffect(() => {
-    //     if (subItems) {
-    //         setIsSelectedInSubItems(subItems.some((item) => item.subItem === selectedItem));
-    //     }
-    // }, [selectedItem, subItems]);
-
-    const [isMatchingCurrentPage, setIsMatchingCurrentPage] = useState<boolean | undefined>(false);
-
-    useEffect(() => {
-        const matches = subItems?.some((item) => item.subItemLink === currentPage.path);
-        setIsMatchingCurrentPage(matches);
-    }, [currentPage, subItems]);
+    const currentRoute = router.state.location.pathname;
+    const routeMatches = subItems?.some((item) => item.subItemLink === currentRoute);
 
     return (
         <Collapsible
@@ -44,25 +32,21 @@ export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => 
             >
                 <div
                     className={`flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 ${
-                        hover || isMatchingCurrentPage ? "bg-white" : "bg-none"
+                        hover || routeMatches ? "bg-white" : "bg-none"
                     }`}
                 >
                     <div className="flex items-center">
                         {icon &&
                             React.createElement(icon, {
                                 className: `${state === "expanded" ? "size-7" : "size-6"} ${
-                                    hover || isMatchingCurrentPage
-                                        ? "text-primary-500"
-                                        : "text-neutral-400"
+                                    hover || routeMatches ? "text-primary-500" : "text-neutral-400"
                                 }`,
                                 weight: "fill",
                             })}
                         <SidebarGroup
                             className={`${
-                                hover || isMatchingCurrentPage
-                                    ? "text-primary-500"
-                                    : "text-neutral-600"
-                            } text-body font-regular group-data-[collapsible=icon]:hidden`}
+                                hover || routeMatches ? "text-primary-500" : "text-neutral-600"
+                            } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
                         >
                             {title}
                         </SidebarGroup>
@@ -70,9 +54,7 @@ export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => 
                     <SidebarGroup className="ml-auto w-fit group-data-[collapsible=icon]:hidden">
                         <ChevronDownIcon
                             className={`ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180 ${
-                                hover || isMatchingCurrentPage
-                                    ? "text-primary-500"
-                                    : "text-neutral-600"
+                                hover || routeMatches ? "text-primary-500" : "text-neutral-600"
                             }`}
                         />
                     </SidebarGroup>
@@ -84,11 +66,10 @@ export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => 
                         <Link to={obj.subItemLink} key={key}>
                             <div
                                 className={`cursor-pointer text-body font-regular text-neutral-600 hover:text-primary-500 ${
-                                    currentPage.path === obj.subItemLink
+                                    currentRoute === obj.subItemLink
                                         ? "text-primary-500"
                                         : "text-neutral-600"
                                 }`}
-                                onClick={() => setCurrentPage(obj.subItem, obj.subItemLink)}
                             >
                                 {obj.subItem}
                             </div>
