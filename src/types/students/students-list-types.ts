@@ -41,3 +41,52 @@ export interface StudentFiltersProps {
     onFilterClick: () => void;
     onClearFilters: () => void;
 }
+
+// types/students/student-types.ts
+export interface Student {
+    id: string;
+    username: string;
+    user_id: string;
+    email: string;
+    full_name: string;
+    address_line: string;
+    region: string;
+    city: string;
+    pin_code: string;
+    mobile_number: string;
+    date_of_birth: string;
+    gender: string;
+    father_name: string;
+    mother_name: string;
+    parents_mobile_number: string;
+    parents_email: string;
+    linked_institute_name: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface StudentListResponse {
+    content: Student[];
+    page_no: number;
+    page_size: number;
+    total_elements: number;
+    total_pages: number;
+    last: boolean;
+}
+
+export interface CsvRow {
+    [key: string]: string;
+}
+
+export interface ValidationError {
+    path: [number, string];
+    message: string;
+    resolution: string;
+    currentVal: string;
+    format: string;
+}
+
+export interface ValidationResult {
+    data: CsvRow[];
+    errors: ValidationError[];
+}
