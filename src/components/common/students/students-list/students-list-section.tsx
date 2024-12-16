@@ -69,6 +69,20 @@ export const StudentsListSection = () => {
         }));
     };
 
+    const handleResetSelections = () => {
+        setRowSelections({});
+    };
+
+    const getSelectedStudentIds = () => {
+        return Object.entries(rowSelections)
+            .flatMap(([selections]) =>
+                Object.entries(selections)
+                    .filter(([isSelected]) => isSelected)
+                    .map(([index]) => studentTableData?.content[parseInt(index)]?.id),
+            )
+            .filter(Boolean) as string[];
+    };
+
     const currentPageSelection = rowSelections[page] || {};
     const totalSelectedCount = Object.values(rowSelections).reduce(
         (count, pageSelection) => count + Object.keys(pageSelection).length,
@@ -111,7 +125,11 @@ export const StudentsListSection = () => {
                     />
                 </div>
                 <div className="flex">
-                    <BulkActions selectedCount={totalSelectedCount} />
+                    <BulkActions
+                        selectedCount={totalSelectedCount}
+                        selectedStudentIds={getSelectedStudentIds()}
+                        onReset={handleResetSelections}
+                    />
                     <MyPagination
                         currentPage={page}
                         totalPages={studentTableData?.total_pages || 1}

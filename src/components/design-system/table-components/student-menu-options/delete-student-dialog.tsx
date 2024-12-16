@@ -1,3 +1,4 @@
+// delete-student-dialog.tsx
 import { MyDialog } from "../../dialog";
 import { ReactNode } from "react";
 import { useDialogStore } from "../../utils/useDialogStore";
@@ -9,25 +10,30 @@ interface DeleteStudentDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export const DeleteStudentDialog = ({ trigger, open, onOpenChange }: DeleteStudentDialogProps) => {
-    const selectedStudent = useDialogStore((state) => state.selectedStudent);
+const DeleteStudentDialogContent = () => {
+    const { selectedStudent, bulkActionInfo, isBulkAction } = useDialogStore();
+    const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.full_name;
 
+    return (
+        <div className="flex flex-col gap-6 p-6 text-neutral-600">
+            <div>
+                Are you sure you want to delete{" "}
+                <span className="text-primary-500">{displayText}</span>?
+            </div>
+            <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                Delete
+            </MyButton>
+        </div>
+    );
+};
+
+export const DeleteStudentDialog = ({ trigger, open, onOpenChange }: DeleteStudentDialogProps) => {
     return (
         <MyDialog
             trigger={trigger}
             heading="Delete"
             dialogWidth="w-[400px] max-w-[400px]"
-            content={
-                <div className="flex flex-col gap-6 p-6 text-neutral-600">
-                    <div>
-                        Are you sure you want to delete{" "}
-                        <span className="text-primary-500">{selectedStudent?.full_name}</span>?
-                    </div>
-                    <MyButton buttonType="primary" scale="large" layoutVariant="default">
-                        Delete
-                    </MyButton>
-                </div>
-            }
+            content={<DeleteStudentDialogContent />}
             open={open}
             onOpenChange={onOpenChange}
         />
