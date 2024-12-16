@@ -7,11 +7,13 @@ interface DialogStore {
     isExtendSessionOpen: boolean;
     isReRegisterOpen: boolean;
     isTerminateRegistrationOpen: boolean;
+    isDeleteOpen: boolean;
     selectedStudent: StudentTable | null;
     openChangeBatchDialog: (student: StudentTable) => void;
     openExtendSessionDialog: (student: StudentTable) => void;
     openReRegisterDialog: (student: StudentTable) => void;
     openTerminateRegistrationDialog: (student: StudentTable) => void;
+    openDeleteDialog: (student: StudentTable) => void;
     closeAllDialogs: () => void;
 }
 
@@ -20,6 +22,7 @@ export const useDialogStore = create<DialogStore>((set) => ({
     isExtendSessionOpen: false,
     isReRegisterOpen: false,
     isTerminateRegistrationOpen: false,
+    isDeleteOpen: false,
     selectedStudent: null,
     openChangeBatchDialog: (student) =>
         set({
@@ -28,6 +31,7 @@ export const useDialogStore = create<DialogStore>((set) => ({
             isExtendSessionOpen: false,
             isReRegisterOpen: false,
             isTerminateRegistrationOpen: false,
+            isDeleteOpen: false,
         }),
     openExtendSessionDialog: (student) =>
         set({
@@ -36,6 +40,7 @@ export const useDialogStore = create<DialogStore>((set) => ({
             isChangeBatchOpen: false,
             isReRegisterOpen: false,
             isTerminateRegistrationOpen: false,
+            isDeleteOpen: false,
         }),
     openReRegisterDialog: (student) =>
         set({
@@ -44,6 +49,7 @@ export const useDialogStore = create<DialogStore>((set) => ({
             isChangeBatchOpen: false,
             isExtendSessionOpen: false,
             isTerminateRegistrationOpen: false,
+            isDeleteOpen: false,
         }),
     openTerminateRegistrationDialog: (student) =>
         set({
@@ -52,6 +58,16 @@ export const useDialogStore = create<DialogStore>((set) => ({
             isChangeBatchOpen: false,
             isExtendSessionOpen: false,
             isReRegisterOpen: false,
+            isDeleteOpen: false,
+        }),
+    openDeleteDialog: (student) =>
+        set({
+            isDeleteOpen: true,
+            selectedStudent: student,
+            isChangeBatchOpen: false,
+            isExtendSessionOpen: false,
+            isReRegisterOpen: false,
+            isTerminateRegistrationOpen: false,
         }),
     closeAllDialogs: () =>
         set({
@@ -59,6 +75,7 @@ export const useDialogStore = create<DialogStore>((set) => ({
             isExtendSessionOpen: false,
             isReRegisterOpen: false,
             isTerminateRegistrationOpen: false,
+            isDeleteOpen: false,
             selectedStudent: null,
         }),
 }));

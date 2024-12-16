@@ -1,5 +1,5 @@
 // StudentListSection.tsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useFilterData, useGetSessions } from "@/hooks/student-list-section/useFilterData";
@@ -9,6 +9,8 @@ import { StudentListHeader } from "./student-list-header";
 import { StudentFilters } from "./student-filters";
 import { useStudentFilters } from "@/hooks/student-list-section/useStudentFilters";
 import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
+import { BulkActions } from "./bulk-actions";
+import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -21,6 +23,10 @@ export const StudentsListSection = () => {
     const { isError, isLoading } = useInstituteQuery();
     const sessions = useGetSessions();
     const filters = useFilterData(getCurrentSession());
+
+    useEffect(() => {
+        setNavHeading("Students");
+    }, []);
 
     const {
         columnFilters,
@@ -47,15 +53,27 @@ export const StudentsListSection = () => {
         page,
         handleSort,
         handlePageChange,
-        refetch,
     } = useStudentTable(appliedFilters, setAppliedFilters);
 
-    useEffect(() => {
-        setNavHeading("Students");
-        // console.log("columnFilters: ", columnFilters)
-        // console.log("hasActiveFilters: ", hasActiveFilters())
-        refetch();
-    }, []);
+    const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
+
+    const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
+        const newSelection =
+            typeof updaterOrValue === "function"
+                ? updaterOrValue(rowSelections[page] || {})
+                : updaterOrValue;
+
+        setRowSelections((prev) => ({
+            ...prev,
+            [page]: newSelection,
+        }));
+    };
+
+    const currentPageSelection = rowSelections[page] || {};
+    const totalSelectedCount = Object.values(rowSelections).reduce(
+        (count, pageSelection) => count + Object.keys(pageSelection).length,
+        0,
+    );
 
     if (isLoading) return <div>Loading...</div>;
     if (isError) return <div>Error loading institute details</div>;
@@ -87,13 +105,19 @@ export const StudentsListSection = () => {
                         isLoading={loadingData}
                         error={loadingError}
                         onSort={handleSort}
+                        rowSelection={currentPageSelection}
+                        onRowSelectionChange={handleRowSelectionChange}
+                        currentPage={page}
                     />
                 </div>
-                <MyPagination
-                    currentPage={page}
-                    totalPages={studentTableData?.total_pages || 1}
-                    onPageChange={handlePageChange}
-                />
+                <div className="flex">
+                    <BulkActions selectedCount={totalSelectedCount} />
+                    <MyPagination
+                        currentPage={page}
+                        totalPages={studentTableData?.total_pages || 1}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
             </div>
         </section>
     );

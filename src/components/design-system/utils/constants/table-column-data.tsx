@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
-import { ArrowSquareOut, CaretUp, CaretDown } from "@phosphor-icons/react";
+import { ArrowSquareOut, CaretUpDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyDropdown } from "../../dropdown";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
@@ -47,8 +47,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                         <button className="flex w-full cursor-pointer items-center justify-between">
                             <div>Student Name</div>
                             <div>
-                                <CaretUp />
-                                <CaretDown />
+                                <CaretUpDown />
                             </div>
                         </button>
                     </MyDropdown>

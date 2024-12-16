@@ -20,6 +20,7 @@ export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
         openExtendSessionDialog,
         openReRegisterDialog,
         openTerminateRegistrationDialog,
+        openDeleteDialog,
     } = useDialogStore();
 
     const handleMenuOptionsChange = (value: string) => {
@@ -36,6 +37,8 @@ export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
             case "Terminate Registration":
                 openTerminateRegistrationDialog(student);
                 break;
+            case "Delete Student":
+                openDeleteDialog(student);
         }
     };
 

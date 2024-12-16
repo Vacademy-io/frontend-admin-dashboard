@@ -7,7 +7,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+    flexRender,
+    getCoreRowModel,
+    useReactTable,
+    RowSelectionState,
+    OnChangeFn,
+} from "@tanstack/react-table";
 import { myColumns } from "./utils/constants/table-column-data";
 import { StudentListResponse } from "@/schemas/student/student-list/table-schema";
 import { ChangeBatchDialog } from "./table-components/student-menu-options/change-batch-dialog";
@@ -15,6 +21,7 @@ import { ExtendSessionDialog } from "./table-components/student-menu-options/ext
 import { ReRegisterDialog } from "./table-components/student-menu-options/re-register-dialog";
 import { TerminateRegistrationDialog } from "./table-components/student-menu-options/terminate-registration-dialog";
 import { useDialogStore } from "./utils/useDialogStore";
+import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -46,23 +53,48 @@ interface MyTableProps {
     isLoading: boolean;
     error: unknown;
     onSort?: (columnId: string, direction: string) => void;
+    rowSelection: RowSelectionState;
+    onRowSelectionChange: OnChangeFn<RowSelectionState>;
+    currentPage: number;
 }
 
-export function MyTable({ data, isLoading, error, onSort }: MyTableProps) {
-    const {
-        isChangeBatchOpen,
-        isExtendSessionOpen,
-        isReRegisterOpen,
-        isTerminateRegistrationOpen,
-        closeAllDialogs,
-    } = useDialogStore();
-
+export function MyTable({
+    data,
+    isLoading,
+    error,
+    onSort,
+    rowSelection,
+    onRowSelectionChange,
+}: MyTableProps) {
     const table = useReactTable({
         data: data?.content || [],
         columns: myColumns,
         getCoreRowModel: getCoreRowModel(),
         meta: { onSort },
+        state: {
+            rowSelection,
+        },
+        enableRowSelection: true,
+        onRowSelectionChange: (updaterOrValue) => {
+            if (typeof updaterOrValue === "function") {
+                const newSelection = updaterOrValue(rowSelection);
+                onRowSelectionChange(newSelection);
+            } else {
+                onRowSelectionChange(updaterOrValue);
+            }
+        },
+        autoResetPageIndex: false,
+        // Remove autoResetRowSelection as it's not a valid option
     });
+
+    const {
+        isChangeBatchOpen,
+        isExtendSessionOpen,
+        isReRegisterOpen,
+        isTerminateRegistrationOpen,
+        isDeleteOpen,
+        closeAllDialogs,
+    } = useDialogStore();
 
     useEffect(() => {
         console.log("tableData:", data);
@@ -148,6 +180,14 @@ export function MyTable({ data, isLoading, error, onSort }: MyTableProps) {
             <TerminateRegistrationDialog
                 trigger={null}
                 open={isTerminateRegistrationOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <DeleteStudentDialog
+                trigger={null}
+                open={isDeleteOpen}
                 onOpenChange={(open) => {
                     if (!open) closeAllDialogs();
                 }}

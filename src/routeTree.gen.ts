@@ -41,13 +41,6 @@ const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
 
 const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
     path: "/login/forgot-password/",
-const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
-    path: "/login/forgot-password/",
-    getParentRoute: () => rootRoute,
-} as any);
-
-const DashboardStudentsIndexRoute = DashboardStudentsIndexImport.update({
-    path: "/dashboard/students/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -69,17 +62,11 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof LoginIndexImport;
             parentRoute: typeof rootRoute;
         };
-
         "/students/": {
             id: "/students/";
             path: "/students";
             fullPath: "/students";
             preLoaderRoute: typeof StudentsIndexImport;
-        "/dashboard/students/": {
-            id: "/dashboard/students/";
-            path: "/dashboard/students";
-            fullPath: "/dashboard/students";
-            preLoaderRoute: typeof DashboardStudentsIndexImport;
             parentRoute: typeof rootRoute;
         };
         "/login/forgot-password/": {
@@ -107,8 +94,6 @@ export const routeTree = rootRoute.addChildren({
     StudentsIndexRoute,
     LoginForgotPasswordIndexRoute,
     StudentsStudentsListIndexRoute,
-    DashboardStudentsIndexRoute,
-    LoginForgotPasswordIndexRoute,
 });
 
 /* prettier-ignore-end */
