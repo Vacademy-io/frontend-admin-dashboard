@@ -44,22 +44,13 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
 
     const handleRemovePicture = (currentQuestionImageIndex: number) => {
-        setValue(
-            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.isDeleted`,
-            true,
+        // Filter out the image to be removed
+        const updatedImageDetails = imageDetails?.filter(
+            (_, index: number) => index !== currentQuestionImageIndex,
         );
-        setValue(
-            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
-            "",
-        );
-        setValue(
-            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
-            "",
-        );
-        setValue(
-            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageTitle`,
-            "",
-        );
+
+        // Update the value with the filtered array
+        setValue(`questions.${currentQuestionIndex}.imageDetails`, updatedImageDetails);
     };
 
     const handleRemovePictureInOptions = (optionIndex: number) => {
@@ -152,51 +143,49 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                 />
             </div>
 
-            <div className="flex flex-wrap items-end gap-8">
+            <div className="flex flex-wrap items-end justify-center gap-8">
                 {Array.isArray(allQuestions) &&
                     allQuestions.length > 0 &&
                     Array.isArray(imageDetails) &&
                     imageDetails.length > 0 &&
                     imageDetails.map((imgDetail, index) => {
-                        if (imgDetail.imageFile) {
-                            return (
-                                <div className="flex w-72 flex-col" key={index}>
-                                    <div className="h-64 w-72 items-center justify-center bg-black !p-0">
-                                        <img
-                                            src={imgDetail.imageFile}
-                                            alt="logo"
-                                            className="h-64 w-96"
+                        return (
+                            <div className="flex w-72 flex-col" key={index}>
+                                <div className="h-64 w-72 items-center justify-center bg-black !p-0">
+                                    <img
+                                        src={imgDetail.imageFile}
+                                        alt="logo"
+                                        className="h-64 w-96"
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between pt-2">
+                                    <span className="text-sm">{imgDetail.imageTitle}</span>
+                                    <div className="flex items-center gap-4">
+                                        <UploadImageDialogue
+                                            form={form}
+                                            title="Change Image"
+                                            triggerButton={
+                                                <Button variant="outline" className="p-0 px-2">
+                                                    <PencilSimpleLine size={16} />
+                                                </Button>
+                                            }
                                         />
-                                    </div>
-                                    <div className="flex items-center justify-between pt-2">
-                                        <span className="text-sm">{imgDetail.imageTitle}</span>
-                                        <div className="flex items-center gap-4">
-                                            <UploadImageDialogue
-                                                form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
-                                            />
-                                            <Button
-                                                variant="outline"
-                                                className="p-0 px-2"
-                                                onClick={() => handleRemovePicture(index)}
-                                            >
-                                                <TrashSimple size={32} className="text-red-500" />
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            className="p-0 px-2"
+                                            onClick={() => handleRemovePicture(index)}
+                                        >
+                                            <TrashSimple size={32} className="text-red-500" />
+                                        </Button>
                                     </div>
                                 </div>
-                            );
-                        }
-
-                        // Return null if imageFile doesn't exist
-                        return null;
+                            </div>
+                        );
                     })}
-                <QuestionImagePreviewDialogue form={form} />
+
+                {Array.isArray(imageDetails) && imageDetails.length < 4 && (
+                    <QuestionImagePreviewDialogue form={form} />
+                )}
             </div>
 
             <div className="flex w-full flex-grow flex-col gap-4">

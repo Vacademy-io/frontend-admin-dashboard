@@ -16,23 +16,14 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
     watch(`questions.${currentQuestionIndex}.imageDetails`);
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
 
-    const handleRemovePicture = () => {
-        setValue(
-            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.isDeleted`,
-            true,
+    const handleRemovePicture = (currentQuestionImageIndex: number) => {
+        // Filter out the image to be removed
+        const updatedImageDetails = imageDetails?.filter(
+            (_, index: number) => index !== currentQuestionImageIndex,
         );
-        setValue(
-            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
-            "",
-        );
-        setValue(
-            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
-            "",
-        );
-        setValue(
-            `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageTitle`,
-            "",
-        );
+
+        // Update the value with the filtered array
+        setValue(`questions.${currentQuestionIndex}.imageDetails`, updatedImageDetails);
     };
 
     // Handle Add Image click
@@ -98,10 +89,12 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
                             </FormItem>
                         )}
                     />
-
                     <UploadImageDialogue form={form} title="Change Image" />
-
-                    <Button variant="outline" className="p-0 px-3" onClick={handleRemovePicture}>
+                    <Button
+                        variant="outline"
+                        className="p-0 px-3"
+                        onClick={() => handleRemovePicture(currentQuestionImageIndex)}
+                    >
                         <TrashSimple size={32} className="text-red-500" />
                     </Button>
                 </div>
