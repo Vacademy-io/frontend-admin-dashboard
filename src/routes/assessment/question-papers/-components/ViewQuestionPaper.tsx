@@ -44,10 +44,7 @@ export const ViewQuestionPaper = ({ questionsPaper }: { questionsPaper: Question
     }, []);
     return (
         <FormProvider {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit, onInvalid)}
-                className="scrollbar-hidden no-scrollbar max-h-[60vh] space-y-8 overflow-y-auto p-4 pt-2"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit, onInvalid)}>
                 <QuestionPaperTemplate
                     form={form}
                     questionPaperId={questionPaperId}

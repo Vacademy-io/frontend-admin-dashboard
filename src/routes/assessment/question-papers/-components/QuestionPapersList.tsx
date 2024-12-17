@@ -87,6 +87,7 @@ export const QuestionPapersList = ({ isFavourite }: { isFavourite: boolean }) =>
                                                     questionsData.questionPaperId,
                                                 )
                                             }
+                                            className="cursor-pointer"
                                         >
                                             Delete Question Paper
                                         </DropdownMenuItem>

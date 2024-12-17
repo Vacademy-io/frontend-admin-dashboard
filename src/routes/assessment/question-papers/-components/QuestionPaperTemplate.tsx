@@ -208,9 +208,19 @@ export function QuestionPaperTemplate({
     return (
         <Dialog>
             <DialogTrigger>
-                <Button type="button" variant="outline" className="w-52 border-2">
-                    Preview
-                </Button>
+                {isViewMode ? (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="m-0 border-none pl-2 font-normal shadow-none"
+                    >
+                        View Question Paper
+                    </Button>
+                ) : (
+                    <Button type="button" variant="outline" className="w-52 border-2">
+                        Preview
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
                 <div className="flex items-center justify-between bg-primary-100 p-2">
