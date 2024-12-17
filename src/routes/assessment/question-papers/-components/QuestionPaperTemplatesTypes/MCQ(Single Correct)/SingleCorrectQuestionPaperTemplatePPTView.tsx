@@ -27,6 +27,10 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
     const optionsType = getValues("optionsType") || "";
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
+    const option1 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${0}`);
+    const option2 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${1}`);
+    const option3 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${2}`);
+    const option4 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${3}`);
 
     const handleDeleteSlide = () => {
         allQuestions.splice(currentQuestionIndex, 1);
@@ -112,7 +116,11 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
 
             <div className="flex w-full grow flex-col gap-2">
                 <div className="flex gap-2">
-                    <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2">
+                    <div
+                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
+                            option1.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                        }`}
+                    >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
@@ -143,7 +151,11 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                             />
                         </div>
                     </div>
-                    <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2">
+                    <div
+                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
+                            option2.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                        }`}
+                    >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
@@ -176,7 +188,11 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2">
+                    <div
+                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
+                            option3.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                        }`}
+                    >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
@@ -207,7 +223,11 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                             />
                         </div>
                     </div>
-                    <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2">
+                    <div
+                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
+                            option4.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                        }`}
+                    >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">

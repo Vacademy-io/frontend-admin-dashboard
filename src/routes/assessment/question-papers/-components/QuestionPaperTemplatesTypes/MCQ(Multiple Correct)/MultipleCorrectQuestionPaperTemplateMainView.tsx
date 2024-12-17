@@ -202,7 +202,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
             <div className="flex w-full flex-grow flex-col gap-4">
                 <span className="-mb-3">{answersType}</span>
                 <div className="flex gap-4">
-                    <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
+                    <div
+                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
+                            option1.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                        }`}
+                    >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
@@ -285,7 +289,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             />
                         </div>
                     </div>
-                    <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
+                    <div
+                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
+                            option2.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                        }`}
+                    >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
@@ -370,7 +378,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                 </div>
                 <div className="flex gap-4">
-                    <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
+                    <div
+                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
+                            option3.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                        }`}
+                    >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
@@ -453,7 +465,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             />
                         </div>
                     </div>
-                    <div className="flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4">
+                    <div
+                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
+                            option4.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                        }`}
+                    >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
