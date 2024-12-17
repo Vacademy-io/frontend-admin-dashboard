@@ -456,7 +456,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                         : !isFormValidWhenUploaded
                                 }
                                 type="submit"
-                                className="w-56 bg-primary-500 text-white"
+                                className="ml-[1.8rem] w-56 bg-primary-500 text-white"
                             >
                                 Done
                             </Button>
