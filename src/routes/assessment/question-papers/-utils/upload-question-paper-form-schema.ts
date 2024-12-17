@@ -37,15 +37,17 @@ export const uploadQuestionPaperFormSchema = z.object({
         required_error: "Explanation field is required",
         invalid_type_error: "Explanation field must be a string",
     }),
-    fileUpload: z.instanceof(File, {
-        message: "File upload is required and must be a valid file",
-    }),
+    fileUpload: z
+        .instanceof(File, {
+            message: "File upload is required and must be a valid file",
+        })
+        .optional(),
     questions: z.array(
         z.object({
             questionId: z.string().optional(),
             questionName: z.string().min(1, "Question name is required"),
             explanation: z.string().optional(),
-            questionType: z.string(),
+            questionType: z.string().default("MCQ (Single Correct)"),
             questionMark: z.string(),
             imageDetails: z
                 .array(

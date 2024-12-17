@@ -13,9 +13,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
 import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import { QuestionPaperTemplateProps } from "@/types/question-paper-template";
+import { useAllQuestionsStore } from "../-global-states/questions-store";
+import { z } from "zod";
+import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 
-export function QuestionPaperTemplate({ form, questionsData }: QuestionPaperTemplateProps) {
+export function QuestionPaperTemplate({
+    form,
+    questionPaperId,
+    isViewMode,
+}: QuestionPaperTemplateProps) {
+    const { questionPaperList, setQuestionPaperList } = useAllQuestionsStore();
     const { control, getValues, setValue, formState, watch } = form;
+
+    const isFavourite = getValues("isFavourite") || false;
+    const questions = getValues("questions");
     const title = getValues("title") || "";
     const yearClass = getValues("yearClass") || "";
     const subject = getValues("subject") || "";
@@ -24,6 +35,8 @@ export function QuestionPaperTemplate({ form, questionsData }: QuestionPaperTemp
     const answersType = getValues("answersType") || "";
     const explanationsType = getValues("explanationsType") || "";
     const fileUpload = getValues("fileUpload");
+    const createdOn = getValues("createdOn") || new Date();
+
     const [isHeaderEditable, setIsHeaderEditable] = useState(false); // State to toggle edit mode
     const { currentQuestionIndex, setCurrentQuestionIndex } = useQuestionStore();
 
@@ -42,7 +55,7 @@ export function QuestionPaperTemplate({ form, questionsData }: QuestionPaperTemp
     // Function to handle adding a new question
     const handleAddNewQuestion = () => {
         append({
-            questionId: "",
+            questionId: String(questions.length + 1),
             questionName: "",
             explanation: "",
             questionType: "MCQ (Single Correct)",
@@ -149,12 +162,23 @@ export function QuestionPaperTemplate({ form, questionsData }: QuestionPaperTemp
                 },
             ],
         });
-        setCurrentQuestionIndex(fields.length);
+        setCurrentQuestionIndex(0);
     };
 
     // Function to handle page navigation by question number
     const handlePageClick = (pageIndex: number) => {
         setCurrentQuestionIndex(pageIndex);
+    };
+
+    const handleSaveClick = (values: z.infer<typeof uploadQuestionPaperFormSchema>) => {
+        const filteredData = questionPaperList.map((questionPaper) => {
+            if (questionPaper.questionPaperId === values.questionPaperId) {
+                return values;
+            }
+            return questionPaper;
+        });
+        setQuestionPaperList(filteredData);
+        setCurrentQuestionIndex(0);
     };
 
     useEffect(() => {
@@ -166,6 +190,9 @@ export function QuestionPaperTemplate({ form, questionsData }: QuestionPaperTemp
 
     useEffect(() => {
         form.reset({
+            createdOn: createdOn,
+            questionPaperId: questionPaperId,
+            isFavourite: isFavourite,
             title: title,
             yearClass: yearClass,
             subject: subject,
@@ -174,150 +201,9 @@ export function QuestionPaperTemplate({ form, questionsData }: QuestionPaperTemp
             answersType: answersType,
             explanationsType: explanationsType,
             fileUpload: fileUpload,
-            questions:
-                questionsData && questionsData.length > 0
-                    ? questionsData?.map((question) => ({
-                          questionId: question.questionId.toString(), // Ensure to convert ID to string if necessary
-                          questionName: question.questionHtml,
-                          explanation: question.explanationHtml || "",
-                          questionType: "MCQ (Single Correct)",
-                          questionMark: "", // Default or fetch this if needed
-                          imageDetails: [], // Assuming no initial images to display
-                          singleChoiceOptions: question.optionsData.map((option) => ({
-                              name: option.optionHtml, // Adjust or fetch this if required
-                              isSelected: question.answerOptionIds.includes(
-                                  option.optionId.toString(),
-                              ),
-                              image: {
-                                  imageId: "", // You may need to map/adjust this to include actual IDs or data
-                                  imageName: "", // Adjust based on your data or fetch it
-                                  imageTitle: "", // Adjust based on your data or fetch it
-                                  imageFile: "", // Adjust based on your data or fetch it
-                                  isDeleted: false,
-                              },
-                          })),
-                          multipleChoiceOptions: [], // Assuming no initial options to display
-                          booleanOptions: [
-                              {
-                                  isSelected: false,
-                              },
-                              {
-                                  isSelected: false,
-                              },
-                          ],
-                      }))
-                    : [
-                          {
-                              questionId: "",
-                              questionName: "",
-                              explanation: "",
-                              questionType: "MCQ (Single Correct)",
-                              questionMark: "",
-                              imageDetails: [],
-                              singleChoiceOptions: [
-                                  {
-                                      name: "",
-                                      isSelected: false,
-                                      image: {
-                                          imageId: "",
-                                          imageName: "",
-                                          imageTitle: "",
-                                          imageFile: "",
-                                          isDeleted: false,
-                                      },
-                                  },
-                                  {
-                                      name: "",
-                                      isSelected: false,
-                                      image: {
-                                          imageId: "",
-                                          imageName: "",
-                                          imageTitle: "",
-                                          imageFile: "",
-                                          isDeleted: false,
-                                      },
-                                  },
-                                  {
-                                      name: "",
-                                      isSelected: false,
-                                      image: {
-                                          imageId: "",
-                                          imageName: "",
-                                          imageTitle: "",
-                                          imageFile: "",
-                                          isDeleted: false,
-                                      },
-                                  },
-                                  {
-                                      name: "",
-                                      isSelected: false,
-                                      image: {
-                                          imageId: "",
-                                          imageName: "",
-                                          imageTitle: "",
-                                          imageFile: "",
-                                          isDeleted: false,
-                                      },
-                                  },
-                              ],
-                              multipleChoiceOptions: [
-                                  {
-                                      name: "",
-                                      isSelected: false,
-                                      image: {
-                                          imageId: "",
-                                          imageName: "",
-                                          imageTitle: "",
-                                          imageFile: "",
-                                          isDeleted: false,
-                                      },
-                                  },
-                                  {
-                                      name: "",
-                                      isSelected: false,
-                                      image: {
-                                          imageId: "",
-                                          imageName: "",
-                                          imageTitle: "",
-                                          imageFile: "",
-                                          isDeleted: false,
-                                      },
-                                  },
-                                  {
-                                      name: "",
-                                      isSelected: false,
-                                      image: {
-                                          imageId: "",
-                                          imageName: "",
-                                          imageTitle: "",
-                                          imageFile: "",
-                                          isDeleted: false,
-                                      },
-                                  },
-                                  {
-                                      name: "",
-                                      isSelected: false,
-                                      image: {
-                                          imageId: "",
-                                          imageName: "",
-                                          imageTitle: "",
-                                          imageFile: "",
-                                          isDeleted: false,
-                                      },
-                                  },
-                              ],
-                              booleanOptions: [
-                                  {
-                                      isSelected: false,
-                                  },
-                                  {
-                                      isSelected: false,
-                                  },
-                              ],
-                          },
-                      ],
+            questions: questions,
         });
-    }, [title, form]);
+    }, []);
 
     return (
         <Dialog>
@@ -358,15 +244,21 @@ export function QuestionPaperTemplate({ form, questionsData }: QuestionPaperTemp
                         </Button>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Button
-                            type="submit"
-                            variant="outline"
-                            className="w-44 bg-transparent shadow-none hover:bg-transparent"
-                        >
-                            Save
-                        </Button>
                         <DialogClose>
                             <Button
+                                type="submit"
+                                variant="outline"
+                                className="w-44 bg-transparent shadow-none hover:bg-transparent"
+                                onClick={
+                                    isViewMode ? () => handleSaveClick(form.getValues()) : undefined
+                                }
+                            >
+                                Save
+                            </Button>
+                        </DialogClose>
+                        <DialogClose>
+                            <Button
+                                type="submit"
                                 variant="outline"
                                 className="w-44 bg-transparent shadow-none hover:bg-transparent"
                             >

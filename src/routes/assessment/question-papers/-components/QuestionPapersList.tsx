@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MyPagination } from "@/components/design-system/pagination";
 import { useState } from "react";
+import ViewQuestionPaper from "./ViewQuestionPaper";
 
 export const QuestionPapersList = ({ isFavourite }: { isFavourite: boolean }) => {
     const [currentPage, setCurrentPage] = useState(0);
@@ -79,7 +80,7 @@ export const QuestionPapersList = ({ isFavourite }: { isFavourite: boolean }) =>
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        <DropdownMenuItem>View Question Paper</DropdownMenuItem>
+                                        <ViewQuestionPaper questionsPaper={questionsData} />
                                         <DropdownMenuItem
                                             onClick={() =>
                                                 handleDeleteQuestionPaper(

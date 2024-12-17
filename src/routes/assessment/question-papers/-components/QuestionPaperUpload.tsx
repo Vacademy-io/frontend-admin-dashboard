@@ -13,12 +13,14 @@ import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
 import CustomInput from "@/components/design-system/custom-input";
 import { useMutation } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
-import { QuestionData } from "@/types/question-paper-template";
 import { toast } from "sonner";
 import { useAllQuestionsStore } from "../-global-states/questions-store";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { useQuestionStore } from "../-global-states/question-index";
+import { OptionData, QuestionData } from "@/types/question-paper-template";
 
 export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: boolean }) => {
+    const { setCurrentQuestionIndex } = useQuestionStore();
     const { questionPaperList, setQuestionPaperList } = useAllQuestionsStore();
 
     const YearClassData = ["10th Class", "9th Class", "8th Class"];
@@ -38,7 +40,6 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
     const OptionsLabels = ["(a.)", "a.)", "(a)", "a)", "(A.)", "A.)", "(A)", "A)"];
     const AnswersLabels = ["Ans:", "Answer:", "Ans.", "Answer."];
     const ExplanationsLabels = ["Exp:", "Explanation:", "Exp.", "Explanation."];
-    const [questionsData, setQuestionsData] = useState<QuestionData[]>([]);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -46,7 +47,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
         defaultValues: {
-            questionPaperId: 0,
+            questionPaperId: questionPaperList.length + 1,
             isFavourite: false,
             title: "",
             createdOn: new Date(),
@@ -57,12 +58,122 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
             answersType: "",
             explanationsType: "",
             fileUpload: undefined,
-            questions: [],
+            questions: [
+                {
+                    questionId: "1",
+                    questionName: "",
+                    explanation: "",
+                    questionType: "MCQ (Single Correct)",
+                    questionMark: "",
+                    imageDetails: [],
+                    singleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                    ],
+                    multipleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                    ],
+                    booleanOptions: [
+                        {
+                            isSelected: false,
+                        },
+                        {
+                            isSelected: false,
+                        },
+                    ],
+                },
+            ],
         },
     });
 
-    const { getValues, setValue } = form;
+    const { getValues, setValue, watch } = form;
 
+    const questionPaperId = getValues("questionPaperId");
     const title = getValues("title");
     const yearClass = getValues("yearClass");
     const subject = getValues("subject");
@@ -71,15 +182,10 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
     const answerIdentifier = getValues("answersType");
     const explanationIdentifier = getValues("explanationsType");
     const fileUpload = getValues("fileUpload");
+    watch("fileUpload");
 
-    const isFormValid =
-        !!questionIdentifier &&
-        !!optionIdentifier &&
-        !!answerIdentifier &&
-        !!fileUpload &&
-        !!title &&
-        !!yearClass &&
-        !!subject;
+    const isFormValidWhenManuallyCreated = !!title && !!yearClass && !!subject;
+    const isFormValidWhenUploaded = !!title && !!yearClass && !!subject && !!fileUpload;
 
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isProgress, setIsProgress] = useState(false);
@@ -90,6 +196,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
             ...questionPaperList,
             { ...values, questionPaperId: currentQuestionPaperId },
         ]);
+        setCurrentQuestionIndex(0);
     }
 
     const onInvalid = (err: unknown) => {
@@ -127,7 +234,28 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
             setIsProgress(false);
         },
         onSuccess: (data) => {
-            setQuestionsData(data);
+            const modifiedData = data.map((question: QuestionData) => ({
+                questionId: question.questionId.toString(), // Ensure to convert ID to string
+                questionName: question.questionHtml,
+                explanation: question.explanationHtml || "",
+                questionType: "MCQ (Single Correct)", // Adjust as needed
+                questionMark: "", // Default or fetch this if required
+                imageDetails: [], // Assuming no initial images to display
+                singleChoiceOptions: question.optionsData.map((option: OptionData) => ({
+                    name: "", // Adjust or fetch this if required
+                    isSelected: question.answerOptionIds.includes(option.optionId.toString()),
+                    image: {
+                        imageId: "", // Map/adjust to include actual IDs
+                        imageName: "", // Adjust based on your data
+                        imageTitle: "", // Adjust based on your data
+                        imageFile: "", // Adjust based on your data
+                        isDeleted: false,
+                    },
+                })),
+                multipleChoiceOptions: [], // Assuming no initial options
+                booleanOptions: [{ isSelected: false }, { isSelected: false }],
+            }));
+            setValue("questions", modifiedData);
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -154,12 +282,11 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
 
     const handleRemoveQuestionPaper = () => {
         setValue("fileUpload", null as unknown as File);
-        setQuestionsData([]);
+        setValue("questions", []);
         if (fileInputRef.current) {
             fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
-
     return (
         <>
             <FormProvider {...form}>
@@ -240,7 +367,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                     <div className="flex w-full flex-col">
                                         <div className="flex items-start justify-between gap-2">
                                             <p className="break-all text-sm font-bold">
-                                                {getValues("fileUpload").name}
+                                                {getValues("fileUpload")?.name}
                                             </p>
                                             <X
                                                 size={16}
@@ -251,14 +378,16 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
 
                                         <p className="whitespace-normal text-xs">
                                             {(
-                                                ((getValues("fileUpload").size / (1024 * 1024)) *
+                                                (((getValues("fileUpload")?.size || 0) /
+                                                    (1024 * 1024)) *
                                                     uploadProgress) /
                                                 100
                                             ).toFixed(2)}{" "}
                                             MB /{" "}
-                                            {(getValues("fileUpload").size / (1024 * 1024)).toFixed(
-                                                2,
-                                            )}
+                                            {(
+                                                (getValues("fileUpload")?.size || 0) /
+                                                (1024 * 1024)
+                                            ).toFixed(2)}
                                             &nbsp;MB
                                         </p>
 
@@ -274,7 +403,6 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                             )}
                         </>
                     )}
-
                     <CustomInput
                         control={form.control}
                         name="title"
@@ -308,23 +436,25 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                             className="!w-full"
                         />
                     </div>
-
                     <div className="flex justify-between">
                         {isProgress ? (
                             <Button type="button" variant="outline" className="w-52 border-2">
                                 Loading...
                             </Button>
                         ) : (
-                            questionsData.length > 0 && (
-                                <QuestionPaperTemplate form={form} questionsData={questionsData} />
-                            )
-                        )}
-                        {isManualCreated && (
-                            <QuestionPaperTemplate form={form} questionsData={questionsData} />
+                            <QuestionPaperTemplate
+                                form={form}
+                                questionPaperId={questionPaperId}
+                                isViewMode={false}
+                            />
                         )}
                         <AlertDialogCancel className="border-none shadow-none hover:bg-transparent">
                             <Button
-                                disabled={!isFormValid}
+                                disabled={
+                                    isManualCreated
+                                        ? !isFormValidWhenManuallyCreated
+                                        : !isFormValidWhenUploaded
+                                }
                                 type="submit"
                                 className="w-56 bg-primary-500 text-white"
                             >
