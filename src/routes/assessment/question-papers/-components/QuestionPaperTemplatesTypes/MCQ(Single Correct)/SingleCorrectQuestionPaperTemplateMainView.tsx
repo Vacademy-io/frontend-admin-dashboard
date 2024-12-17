@@ -12,8 +12,8 @@ import UploadImageDialogue from "../../UploadImageDialogue";
 import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
-import { OptionImagePreview } from "../../options/OptionImagePreview";
-import { OptionUploadImagePreview } from "../../options/OptionUploadImagePreview";
+import { OptionImagePreview } from "../../options/MCQ(Single Correct)/OptionImagePreview";
+import { OptionUploadImagePreview } from "../../options/MCQ(Single Correct)/OptionUploadImagePreview";
 
 export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -205,7 +205,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                 )}
             </div>
 
-            <div className="flex w-full flex-grow flex-col gap-4">
+            <div className="flex w-full grow flex-col gap-4">
                 <span className="-mb-3">{answersType}</span>
                 <div className="flex gap-4">
                     <div
@@ -214,7 +214,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
                                     {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
                                 </span>
@@ -272,7 +272,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 <OptionImagePreview form={form} option={0} />
                             )}
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
                                 name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
@@ -301,7 +301,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
                                     {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
                                 </span>
@@ -359,7 +359,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 <OptionImagePreview form={form} option={1} />
                             )}
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
                                 name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
@@ -390,7 +390,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
                                     {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
                                 </span>
@@ -448,7 +448,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 <OptionImagePreview form={form} option={2} />
                             )}
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
                                 name={`questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
@@ -477,7 +477,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-3">
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
                                 <span className="!p-0 text-sm">
                                     {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
                                 </span>
@@ -535,7 +535,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 <OptionImagePreview form={form} option={3} />
                             )}
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white px-4">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
                                 name={`questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}

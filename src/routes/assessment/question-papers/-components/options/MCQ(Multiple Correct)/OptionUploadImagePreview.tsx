@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Check } from "phosphor-react";
 import { useRef } from "react";
 import { OptionImageDialogueProps } from "@/types/upload-image-dialogue";
-import { useQuestionStore } from "../../-global-states/question-index";
+import { useQuestionStore } from "../../../-global-states/question-index";
 
 export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
     form,
@@ -20,7 +20,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
 
     const handleFileSubmit = (file: File) => {
         setValue(
-            `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`,
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
             file.name,
         );
 
@@ -28,7 +28,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
         const imageUrl = URL.createObjectURL(file);
 
         setValue(
-            `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
             imageUrl,
         );
     };
@@ -51,7 +51,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                 <div className="flex items-center gap-4 px-8 py-4">
                     <FormField
                         control={form.control}
-                        name={`questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`}
+                        name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -68,7 +68,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                         className="bg-primary-500 p-3"
                         disabled={
                             !getValues(
-                                `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`,
+                                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
                             )
                         }
                     >
@@ -85,7 +85,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                             fileInputRef={fileInputRef}
                             onFileSubmit={handleFileSubmit}
                             control={form.control}
-                            name={`questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`}
+                            name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`}
                         />
                     </Button>
                 </div>
