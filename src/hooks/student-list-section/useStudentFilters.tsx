@@ -122,15 +122,6 @@ export const useStudentFilters = (initialSession: string) => {
             Array.isArray(appliedFilters.statuses) && appliedFilters.statuses.length > 0
         );
 
-        console.log("Filter Status:", {
-            hasName,
-            hasGender,
-            hasStatus,
-            hasBatch,
-            columnFilters,
-            appliedFilters,
-        });
-
         return hasName || hasGender || hasStatus || hasBatch;
     };
 

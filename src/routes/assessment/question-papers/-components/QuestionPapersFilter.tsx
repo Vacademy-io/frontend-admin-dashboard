@@ -8,39 +8,58 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { FilterOption, FilterProps } from "@/types/question-paper-filter";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { PlusCircle } from "phosphor-react";
-import { useState } from "react";
 
-export const QuestionPapersFilter = ({ label, data }: { label: string; data: string[] }) => {
-    const [selectedItems, setSelectedItems] = useState<string[]>([]);
-
-    const toggleSelection = (option: string) => {
-        setSelectedItems(
-            (prevSelected) =>
-                prevSelected.includes(option)
-                    ? prevSelected.filter((item) => item !== option) // Remove item
-                    : [...prevSelected, option], // Add item
-        );
+export const QuestionPapersFilter = ({
+    label,
+    data,
+    selectedItems,
+    onSelectionChange,
+}: FilterProps) => {
+    const toggleSelection = (option: FilterOption) => {
+        const updatedItems = selectedItems.some((item) => item.id === option.id)
+            ? selectedItems.filter((item) => item.id !== option.id)
+            : [...selectedItems, option];
+        onSelectionChange(updatedItems);
     };
 
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant={"outline"} className="text-neutral-600">
+                <Button
+                    variant={"outline"}
+                    className={`text-neutral-600 ${
+                        selectedItems.length > 0
+                            ? "border-primary-500 bg-primary-100 hover:bg-primary-100"
+                            : ""
+                    }`}
+                >
                     <PlusCircle size={32} />
                     {label}
+                    {selectedItems.length > 0 && (
+                        <>
+                            <Separator orientation="vertical" className="mx-2 bg-black" />
+                            <span className="rounded-md bg-primary-200 px-3 py-1 text-xs">
+                                {selectedItems.length} selected
+                            </span>
+                        </>
+                    )}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[200px] p-0" align="start">
                 <Command>
-                    <CommandInput placeholder="Type a command or search..." />
+                    <CommandInput placeholder={`Search ${label}...`} />
                     <CommandList>
                         <CommandEmpty>No results found.</CommandEmpty>
-                        <CommandGroup heading="Suggestions">
-                            {data.map((option: string, index: number) => {
-                                const isSelected = selectedItems.includes(option);
+                        <CommandGroup heading={label}>
+                            {data?.map((option, index) => {
+                                const isSelected = selectedItems.some(
+                                    (item) => item.id === option.id,
+                                );
                                 return (
                                     <CommandItem
                                         key={index}
@@ -58,7 +77,7 @@ export const QuestionPapersFilter = ({ label, data }: { label: string; data: str
                                                 className={cn("h-4 w-4 rounded-sm bg-primary-500")}
                                             />
                                         </div>
-                                        {option}
+                                        {option.name}
                                     </CommandItem>
                                 );
                             })}
