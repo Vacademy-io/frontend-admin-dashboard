@@ -11,6 +11,9 @@ import { useStudentFilters } from "@/hooks/student-list-section/useStudentFilter
 import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { StudentSidebar } from "./student-side-view/student-side-view";
+import { StudentTable } from "@/schemas/student-list/table-schema";
+import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
+import { STUDENT_LIST_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -86,11 +89,13 @@ export const StudentsListSection = () => {
                 <div className="max-w-full">
                     <div className="max-w-full">
                         <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
-                            <MyTable
+                            <MyTable<StudentTable>
                                 data={studentTableData}
+                                columns={myColumns}
                                 isLoading={loadingData}
                                 error={loadingError}
                                 onSort={handleSort}
+                                columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                             />
                             <StudentSidebar />
                         </SidebarProvider>
