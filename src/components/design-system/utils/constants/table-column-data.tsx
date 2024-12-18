@@ -4,6 +4,7 @@ import { ArrowSquareOut, DotsThree, CaretUp, CaretDown } from "@phosphor-icons/r
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyButton } from "../../button";
 import { MyDropdown } from "../../dropdown";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -30,7 +31,11 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: "details",
         header: "Details",
-        cell: () => <ArrowSquareOut className="size-6 cursor-pointer text-neutral-600" />,
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
+        ),
     },
     {
         accessorKey: "full_name",

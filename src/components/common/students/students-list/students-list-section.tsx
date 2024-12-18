@@ -9,6 +9,8 @@ import { StudentListHeader } from "./student-list-header";
 import { StudentFilters } from "./student-filters";
 import { useStudentFilters } from "@/hooks/student-list-section/useStudentFilters";
 import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { StudentSidebar } from "./student-side-view/student-side-view";
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -82,12 +84,17 @@ export const StudentsListSection = () => {
                     onClearFilters={handleClearFilters}
                 />
                 <div className="max-w-full">
-                    <MyTable
-                        data={studentTableData}
-                        isLoading={loadingData}
-                        error={loadingError}
-                        onSort={handleSort}
-                    />
+                    <div className="max-w-full">
+                        <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                            <MyTable
+                                data={studentTableData}
+                                isLoading={loadingData}
+                                error={loadingError}
+                                onSort={handleSort}
+                            />
+                            <StudentSidebar />
+                        </SidebarProvider>
+                    </div>
                 </div>
                 <MyPagination
                     currentPage={page}
