@@ -1,8 +1,8 @@
 // hooks/student-list/useInstituteDetails.ts
 import { useQuery } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { InstituteDetailsType } from "@/schemas/student-list/institute-schema";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { INIT_INSTITUTE } from "@/constants/urls";
 import { INSTITUTE_ID } from "@/constants/urls";
 

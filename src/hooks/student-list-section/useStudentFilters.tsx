@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StudentFilterRequest } from "@/schemas/student-list/table-schema";
+import { StudentFilterRequest } from "@/schemas/student/student-list/table-schema";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { usePackageSessionIds } from "./getPackageSessionId";
 
@@ -122,14 +122,14 @@ export const useStudentFilters = (initialSession: string) => {
             Array.isArray(appliedFilters.statuses) && appliedFilters.statuses.length > 0
         );
 
-        console.log("Filter Status:", {
-            hasName,
-            hasGender,
-            hasStatus,
-            hasBatch,
-            columnFilters,
-            appliedFilters,
-        });
+        // console.log("Filter Status:", {
+        //     hasName,
+        //     hasGender,
+        //     hasStatus,
+        //     hasBatch,
+        //     columnFilters,
+        //     appliedFilters,
+        // });
 
         return hasName || hasGender || hasStatus || hasBatch;
     };

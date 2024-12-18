@@ -1,5 +1,8 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { StudentFilterRequest, StudentListResponse } from "@/schemas/student-list/table-schema";
+import {
+    StudentFilterRequest,
+    StudentListResponse,
+} from "@/schemas/student/student-list/table-schema";
 import { fetchStudents } from "@/services/student-list-section/getStudentTable";
 
 export const useStudentList = (

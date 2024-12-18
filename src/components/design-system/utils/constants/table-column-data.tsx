@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { StudentTable } from "@/schemas/student-list/table-schema";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { ArrowSquareOut, DotsThree, CaretUp, CaretDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyButton } from "../../button";
