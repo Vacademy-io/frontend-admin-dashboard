@@ -11,3 +11,12 @@ export { SsdcLogo_Login };
 
 import LoginImage from "./login-image.svg";
 export { LoginImage };
+
+import Class10CardImage from "./class_10_card_photo.svg";
+export { Class10CardImage };
+
+import Class9CardImage from "./class_9_card_photo.svg";
+export { Class9CardImage };
+
+import Class8CardImage from "./class_8_card_photo.svg";
+export { Class8CardImage };

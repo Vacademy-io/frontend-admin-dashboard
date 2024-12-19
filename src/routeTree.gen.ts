@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from "./routes/__root";
+import { Route as StudyLibraryIndexImport } from "./routes/study-library/index";
 import { Route as StudentsIndexImport } from "./routes/students/index";
 import { Route as LoginIndexImport } from "./routes/login/index";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
@@ -18,6 +19,11 @@ import { Route as StudentsStudentsListIndexImport } from "./routes/students/stud
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
 
 // Create/Update Routes
+
+const StudyLibraryIndexRoute = StudyLibraryIndexImport.update({
+    path: "/study-library/",
+    getParentRoute: () => rootRoute,
+} as any);
 
 const StudentsIndexRoute = StudentsIndexImport.update({
     path: "/students/",
@@ -41,13 +47,6 @@ const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
 
 const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
     path: "/login/forgot-password/",
-const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
-    path: "/login/forgot-password/",
-    getParentRoute: () => rootRoute,
-} as any);
-
-const DashboardStudentsIndexRoute = DashboardStudentsIndexImport.update({
-    path: "/dashboard/students/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -69,17 +68,18 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof LoginIndexImport;
             parentRoute: typeof rootRoute;
         };
-
         "/students/": {
             id: "/students/";
             path: "/students";
             fullPath: "/students";
             preLoaderRoute: typeof StudentsIndexImport;
-        "/dashboard/students/": {
-            id: "/dashboard/students/";
-            path: "/dashboard/students";
-            fullPath: "/dashboard/students";
-            preLoaderRoute: typeof DashboardStudentsIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/study-library/": {
+            id: "/study-library/";
+            path: "/study-library";
+            fullPath: "/study-library";
+            preLoaderRoute: typeof StudyLibraryIndexImport;
             parentRoute: typeof rootRoute;
         };
         "/login/forgot-password/": {
@@ -105,10 +105,9 @@ export const routeTree = rootRoute.addChildren({
     DashboardIndexRoute,
     LoginIndexRoute,
     StudentsIndexRoute,
+    StudyLibraryIndexRoute,
     LoginForgotPasswordIndexRoute,
     StudentsStudentsListIndexRoute,
-    DashboardStudentsIndexRoute,
-    LoginForgotPasswordIndexRoute,
 });
 
 /* prettier-ignore-end */
@@ -122,6 +121,7 @@ export const routeTree = rootRoute.addChildren({
         "/dashboard/",
         "/login/",
         "/students/",
+        "/study-library/",
         "/login/forgot-password/",
         "/students/students-list/"
       ]
@@ -134,6 +134,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/students/": {
       "filePath": "students/index.tsx"
+    },
+    "/study-library/": {
+      "filePath": "study-library/index.tsx"
     },
     "/login/forgot-password/": {
       "filePath": "login/forgot-password/index.tsx"
