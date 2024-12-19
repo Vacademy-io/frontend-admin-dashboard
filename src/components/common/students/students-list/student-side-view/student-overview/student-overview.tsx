@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { MyButton } from "@/components/design-system/button";
 import { PencilSimpleLine } from "@phosphor-icons/react";
-import { StudentOverviewType } from "../student-view-dummy-data";
+import { StudentOverviewType } from "../student-view-dummy-data/student-view-dummy-data";
 
 interface ProgressBarProps {
     progress: number;

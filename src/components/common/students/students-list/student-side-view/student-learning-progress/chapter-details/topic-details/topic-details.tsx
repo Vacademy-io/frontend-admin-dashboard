@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChapterDetailsType } from "../../../student-view-dummy-data";
+import { ChapterDetailsType } from "../../../student-view-dummy-data/learning-progress";
 import { Topic } from "./topic";
 
 const StudyMediumToggleMenu = ({

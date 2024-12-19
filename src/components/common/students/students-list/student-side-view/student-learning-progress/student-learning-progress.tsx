@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { SubjectProgress } from "./chapter-details/subject-progress";
-import { StudentLearningProgressType } from "../student-view-dummy-data";
+import { StudentLearningProgressType } from "../student-view-dummy-data/student-view-dummy-data";
 
 export const StudentLearningProgress = ({
     learningProgressData,

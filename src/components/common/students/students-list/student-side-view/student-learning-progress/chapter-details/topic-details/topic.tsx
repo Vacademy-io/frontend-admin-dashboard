@@ -1,6 +1,6 @@
 // components/topic.tsx
 import { MyButton } from "@/components/design-system/button";
-import { TopicActivityDetails } from "../../../student-view-dummy-data";
+import { TopicActivityDetails } from "../../../student-view-dummy-data/learning-progress";
 import { StatusIcon } from "../../status-icon";
 import { ActivityLogDialog } from "./activity-log-dialog";
 import { useState } from "react";

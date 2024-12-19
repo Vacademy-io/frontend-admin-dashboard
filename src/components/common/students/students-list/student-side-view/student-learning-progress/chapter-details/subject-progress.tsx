@@ -1,6 +1,6 @@
 import { Progress } from "@/components/ui/progress";
 import { ChapterAccordian } from "./chapter-accordian";
-import { LearningProgressSubjectType } from "../../student-view-dummy-data";
+import { LearningProgressSubjectType } from "../../student-view-dummy-data/learning-progress";
 
 interface ProgressBarProps {
     progress: number;

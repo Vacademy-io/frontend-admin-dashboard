@@ -1,8 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MyTable } from "@/components/design-system/table";
 import { MyPagination } from "@/components/design-system/pagination";
-import { ActivityLogType } from "../../../student-view-dummy-data";
-import { XCircle } from "@phosphor-icons/react";
+import { ActivityLogType } from "../../../student-view-dummy-data/learning-progress";
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ACTIVITY_LOG_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
@@ -74,10 +73,6 @@ export const ActivityLogDialog = ({
                         <DialogTitle className="text-h3 font-semibold text-primary-500">
                             Activity Log ({studyType})
                         </DialogTitle>
-                        <XCircle
-                            className="size-6 cursor-pointer text-neutral-500"
-                            onClick={onClose}
-                        />
                     </div>
                     <div className="text-subtitle">{topicName}</div>
                 </DialogHeader>

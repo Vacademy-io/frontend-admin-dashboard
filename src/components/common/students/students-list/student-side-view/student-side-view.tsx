@@ -13,7 +13,7 @@ import { StatusChips } from "@/components/design-system/chips";
 import { StudentOverview } from "./student-overview/student-overview";
 import { StudentLearningProgress } from "./student-learning-progress/student-learning-progress";
 import { StudentTestRecord } from "./student-test-records/student-test-record";
-import { StudentSideViewData } from "./student-view-dummy-data";
+import { StudentSideViewData } from "./student-view-dummy-data/student-view-dummy-data";
 
 export const StudentSidebar = () => {
     const { state } = useSidebar();

@@ -1,8 +1,8 @@
-import { ChapterType } from "../../student-view-dummy-data";
 import { CaretUp, CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
 import { TopicDetails } from "./topic-details/topic-details";
 import { StatusIcon } from "../status-icon";
+import { ChapterType } from "../../student-view-dummy-data/learning-progress";
 
 export const ChapterAccordian = ({ ChapterDetails }: { ChapterDetails: ChapterType }) => {
     const [expand, setExpand] = useState(false);
