@@ -49,29 +49,25 @@ export const StudyLibrary = () => {
                         resources for 8th, 9th and 10th classes all in one place.
                     </div>
                 </div>
-                <div className="flex flex-col">
+                {/* <div className="flex flex-col">
                     <div className="text-subtitle font-semibold">E-Books</div>
                     <div className="text-h1 font-semibold text-primary-500">1658</div>
                 </div>
                 <div className="flex flex-col">
                     <div className="text-subtitle font-semibold">Videos</div>
                     <div className="text-h1 font-semibold text-primary-500">157</div>
-                </div>
+                </div> */}
+
+                <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                    <BookOpenText className="size-6" />
+                    <div>Upload Study Material</div>
+                </MyButton>
             </div>
             <div className="flex gap-12">
                 {ClassCardData.map((card, key) => (
                     <ClassCard key={key} image={card.image} classLevel={card.class} />
                 ))}
             </div>
-            <MyButton
-                buttonType="primary"
-                scale="large"
-                layoutVariant="default"
-                className="fixed bottom-8 right-8 h-14 w-fit gap-1 text-subtitle"
-            >
-                <BookOpenText className="size-6" />
-                <div>Upload Study Material</div>
-            </MyButton>
         </div>
     );
 };

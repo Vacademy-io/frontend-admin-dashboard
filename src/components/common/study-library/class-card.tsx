@@ -1,19 +1,3 @@
-// import { FC, SVGProps } from "react";
-
-// interface ClassCardProps {
-//     image: FC<SVGProps<SVGSVGElement>>;
-//     class: string;
-// }
-
-// export const ClassCard = ({image, class}: ClassCardProps) => {
-//     return(
-//         <div className="shadow shadow-[0px 1px 40px 0px rgba(0, 0, 0, 0.05)] h-full w-full flex flex-col items-center justify-center py-40">
-//             <image />
-//             <div className="text-primary-500 font-semibold text-h1">{class} Class</div>
-//         </div>
-//     )
-// }
-
 import { FC, SVGProps } from "react";
 import React from "react";
 
