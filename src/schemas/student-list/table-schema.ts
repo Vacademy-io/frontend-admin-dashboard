@@ -5,6 +5,7 @@ export interface StudentFilterRequest {
     package_session_ids?: string[];
     group_ids?: string[];
     gender?: string[];
+    session_expiry_days?: number[];
     sort_columns?: Record<string, string>;
 }
 
@@ -29,15 +30,21 @@ export interface StudentTable {
     linked_institute_name: string | null;
     created_at: string;
     updated_at: string;
-    //extra dummy
-    enrollment_no?: string;
-    school_name?: string;
-    guardian_name?: string;
-    state?: string;
-    session_expiry?: string;
-    status?: string;
-    batch_id?: string;
-    session_id?: string;
+    // //extra dummy
+    // enrollment_no?: string;
+    // school_name?: string;
+    // guardian_name?: string;
+    // state?: string;
+    // session_expiry?: string;
+    // status?: string;
+    // batch_id?: string;
+    // session_id?: string;
+    package_session_id: string;
+    institute_enrollment_id: string;
+    status: "ACTIVE" | "TEMINATED";
+    session_expiry_days: number;
+    institute_id: string;
+    expiry_date: number;
 }
 
 export interface StudentListResponse {
