@@ -169,7 +169,7 @@ export const QuestionPapersTabs = () => {
 
     const handleRefetchData = () => {
         getFilteredFavouriteData.mutate({
-            pageNo,
+            pageNo: 0,
             pageSize: 10,
             instituteId: INSTITUTE_ID,
             data: {
