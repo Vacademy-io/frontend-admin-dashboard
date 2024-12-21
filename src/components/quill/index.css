@@ -79,9 +79,26 @@
 }
 
 .mathquill4quill-operator-button {
-    margin: 0 !important;
+    margin-left: 0 !important;
 }
 
 .ql-tooltip {
     z-index: 1000;
+    border: none !important;
+    border-radius: 8px;
+    padding: 1rem !important;
+}
+
+.ql-action {
+    background-color: #ed7424;
+    color: white;
+    padding: 0.5rem 3rem 0.5rem 2rem;
+    margin-left: 1rem;
+    border-radius: 8px;
+}
+
+.mathquill4quill-mathquill-input {
+    width: 400px !important;
+    border-radius: 4px;
+    padding: 0.4rem;
 }
