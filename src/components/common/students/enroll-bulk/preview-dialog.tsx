@@ -12,28 +12,31 @@ interface PreviewDialogProps {
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
 }
 
+// PreviewDialog component
 export const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialogProps) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="w-[90vw] max-w-[1200px] p-0 font-normal">
-                <DialogHeader>
-                    <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                        Preview Data
-                    </div>
-                    <DialogDescription className="p-6">
+            <DialogContent className="h-[80vh] w-[80vw] max-w-[1200px] p-0 font-normal">
+                <div className="flex h-full flex-col">
+                    <DialogHeader>
+                        <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
+                            Preview Data
+                        </div>
+                    </DialogHeader>
+                    <DialogDescription className="flex-1 overflow-hidden p-6">
                         <BulkUploadTable headers={headers} onEdit={onEdit} />
                     </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="px-6 py-4">
-                    <MyButton
-                        buttonType="primary"
-                        scale="large"
-                        layoutVariant="default"
-                        onClick={onClose}
-                    >
-                        Close
-                    </MyButton>
-                </DialogFooter>
+                    <DialogFooter className="border-t px-6 py-4">
+                        <MyButton
+                            buttonType="primary"
+                            scale="large"
+                            layoutVariant="default"
+                            onClick={onClose}
+                        >
+                            Close
+                        </MyButton>
+                    </DialogFooter>
+                </div>
             </DialogContent>
         </Dialog>
     );

@@ -1,3 +1,4 @@
+// bulk-upload-table.tsx
 import {
     Table,
     TableBody,
@@ -17,14 +18,29 @@ import { MyButton } from "@/components/design-system/button";
 import { createAndDownloadCsv } from "./utils/csv-utils";
 import { useState, useMemo } from "react";
 
+const COLUMN_WIDTHS: ColumnWidths = {
+    status: "w-[80px]",
+    full_name: "w-[180px]",
+    username: "w-[150px]",
+    gender: "w-[100px]",
+    enrollment_date: "w-[150px]",
+    enrollment_number: "w-[150px]",
+    mobile_number: "w-[150px]",
+    date_of_birth: "w-[150px]",
+    package_session: "w-[250px]",
+    error: "w-[200px]",
+};
+
+const ITEMS_PER_PAGE = 10;
+
 interface BulkUploadTableProps {
     headers: Header[];
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
 }
 
-// types/students/bulk-upload-types.ts
-
-const ITEMS_PER_PAGE = 10;
+interface ColumnWidths {
+    [key: string]: string;
+}
 
 export function BulkUploadTable({ headers, onEdit }: BulkUploadTableProps) {
     const { csvData, csvErrors, isEditing, setIsEditing } = useBulkUploadStore();
@@ -70,14 +86,7 @@ export function BulkUploadTable({ headers, onEdit }: BulkUploadTableProps) {
         setPage(0);
     };
 
-    interface SchemaFields {
-        [key: string]: string | number | boolean;
-    }
-
-    // Create a type for rows with errors
-    interface RowWithError extends SchemaFields {
-        ERROR: string;
-    }
+    // bulk-upload-table.tsx (continued)
 
     const downloadErrorCases = () => {
         if (!csvData) return;
@@ -91,24 +100,20 @@ export function BulkUploadTable({ headers, onEdit }: BulkUploadTableProps) {
             errorMessages[rowIndex]?.push(`(${column}: ${error.message})`);
         });
 
-        // Create data with errors using the new type
         const dataWithErrors = csvData
             .map((row, index) => {
                 if (errorMessages[index]) {
-                    const errorRow: RowWithError = {
+                    return {
                         ...row,
                         ERROR: errorMessages[index]?.join(", ") || "Unknown error",
                     };
-                    return errorRow;
                 }
                 return null;
             })
-            .filter((row): row is RowWithError => row !== null);
+            .filter((row): row is typeof row & { ERROR: string } => row !== null);
 
         createAndDownloadCsv(dataWithErrors, "ERROR_CASES.csv");
     };
-
-    // types/students/bulk-upload-types.ts
 
     const downloadValidData = () => {
         if (!csvData) return;
@@ -123,7 +128,8 @@ export function BulkUploadTable({ headers, onEdit }: BulkUploadTableProps) {
     const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex h-full flex-col gap-4">
+            {/* Search and Controls Section */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <StudentSearchBox
@@ -162,59 +168,75 @@ export function BulkUploadTable({ headers, onEdit }: BulkUploadTableProps) {
                 </div>
             </div>
 
-            <div className="rounded-lg border">
-                <Table>
-                    <TableHeader className="bg-primary-50">
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead
-                                        key={header.id}
-                                        className="text-subtitle font-semibold text-neutral-600"
-                                    >
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(
-                                                  header.column.columnDef.header,
-                                                  header.getContext(),
-                                              )}
-                                    </TableHead>
+            {/* Table Section */}
+            <div className="flex-1 rounded-lg border">
+                <div className="h-full overflow-x-auto">
+                    <div className="min-w-max">
+                        {" "}
+                        {/* This ensures the table takes minimum width needed */}
+                        <Table>
+                            <TableHeader className="sticky top-0 z-10 bg-primary-200">
+                                {table.getHeaderGroups().map((headerGroup) => (
+                                    <TableRow key={headerGroup.id}>
+                                        {headerGroup.headers.map((header) => (
+                                            <TableHead
+                                                key={header.id}
+                                                className={`whitespace-nowrap border-r border-neutral-300 p-3 text-subtitle font-semibold text-neutral-600 ${
+                                                    COLUMN_WIDTHS[header.column.id] || "w-[150px]"
+                                                }`}
+                                            >
+                                                {flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext(),
+                                                )}
+                                            </TableHead>
+                                        ))}
+                                    </TableRow>
                                 ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} className="hover:bg-neutral-50">
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext(),
-                                            )}
+                            </TableHeader>
+                            <TableBody>
+                                {table.getRowModel().rows?.length ? (
+                                    table.getRowModel().rows.map((row) => (
+                                        <TableRow key={row.id} className="hover:bg-neutral-50">
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableCell
+                                                    key={cell.id}
+                                                    className={`whitespace-nowrap border-r border-neutral-300 p-3 text-body font-regular text-neutral-600 ${
+                                                        COLUMN_WIDTHS[cell.column.id] || "w-[150px]"
+                                                    }`}
+                                                >
+                                                    {flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext(),
+                                                    )}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={columns.length}
+                                            className="h-24 text-center"
+                                        >
+                                            No results.
                                         </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
             </div>
 
-            {totalPages > 1 && (
+            {/* Pagination Section */}
+            <div>
                 <MyPagination
                     currentPage={page + 1}
                     totalPages={totalPages}
                     onPageChange={(newPage) => setPage(newPage - 1)}
                 />
-            )}
+            </div>
         </div>
     );
 }
