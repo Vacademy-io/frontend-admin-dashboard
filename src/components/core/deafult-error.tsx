@@ -15,7 +15,7 @@ function RootErrorComponent() {
                 />
             </Helmet>
 
-            <div className="grid h-screen select-none place-content-center bg-base-primary px-4 text-gray-700 dark:text-gray-800">
+            <div className="bg-base-primary grid h-screen select-none place-content-center px-4 text-gray-700 dark:text-gray-800">
                 <div className="text-center">
                     <h1 className="text-9xl font-black">500</h1>
                     <p className="text-2xl font-bold tracking-tight sm:text-4xl">
@@ -28,7 +28,7 @@ function RootErrorComponent() {
                         Please try again later or contact support if the problem persists.
                     </p>
 
-                    <div className="mt-8 flex justify-center gap-5 text-base-white">
+                    <div className="text-base-white mt-8 flex justify-center gap-5">
                         <Button asChild variant="default" className="h-10 min-w-32">
                             <Link>Return Home</Link>
                         </Button>

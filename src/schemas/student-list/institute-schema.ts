@@ -18,6 +18,15 @@ const LevelSchema = z.object({
     duration_in_days: z.number().nullable(),
 });
 
+const SubjectSchema = z.object({
+    id: z.string(),
+    subject_name: z.string(),
+    subject_code: z.string(),
+    credit: z.number().nullable(),
+    created_at: z.string(), // ISO 8601 timestamp as a string
+    updated_at: z.string(), // ISO 8601 timestamp as a string
+});
+
 const PackageSchema = z.object({
     id: z.string(),
     package_name: z.string(),
@@ -54,6 +63,7 @@ const InstituteSchema = z.object({
     sessions: z.array(SessionSchema),
     batches_for_sessions: z.array(BatchForSessionSchema),
     levels: z.array(LevelSchema),
+    subjects: z.array(SubjectSchema),
     genders: z.array(z.enum(["MALE", "FEMALE", "OTHER"])),
     student_statuses: z.array(z.enum(["ACTIVE", "TERMINATED"])),
 });

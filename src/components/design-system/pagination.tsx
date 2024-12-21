@@ -22,7 +22,9 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
     const [submittedPage, setSubmittedPage] = useState("");
 
     const handlePageInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setPageInput(event.target.value);
+        const input = event.target.value;
+        const numericValue = input.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+        setPageInput(numericValue);
     };
 
     const handlePageInputSubmit = () => {
