@@ -14,27 +14,25 @@ import CustomInput from "@/components/design-system/custom-input";
 import { useMutation } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
-import { useAllQuestionsStore } from "../-global-states/questions-store";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { useQuestionStore } from "../-global-states/question-index";
-import { OptionData, QuestionData } from "@/types/question-paper-template";
+import { addQuestionPaper } from "../-utils/question-paper-services";
+import { MyQuestionPaperFormInterface } from "../../../../types/question-paper-form";
+import {
+    getIdByLevelName,
+    getIdBySubjectName,
+    transformResponseDataToMyQuestionsSchema,
+} from "../-utils/helper";
+import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useRefetchStore } from "../-global-states/refetch-store";
 
 export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: boolean }) => {
+    const handleRefetchData = useRefetchStore((state) => state.handleRefetchData);
     const { setCurrentQuestionIndex } = useQuestionStore();
-    const { questionPaperList, setQuestionPaperList } = useAllQuestionsStore();
+    const { instituteDetails } = useInstituteDetailsStore();
 
-    const YearClassData = ["10th Class", "9th Class", "8th Class"];
-    const SubjectData = [
-        "Chemistry",
-        "Biology",
-        "Physics",
-        "Olympiad",
-        "Mathematics",
-        "Civics",
-        "History",
-        "Geography",
-        "Economics",
-    ];
+    const YearClassData = instituteDetails?.levels?.map((item) => item.level_name) || [];
+    const SubjectData = instituteDetails?.subjects?.map((item) => item.subject_name) || [];
 
     const QuestionsLabels = ["(1.)", "1.)", "(1)", "1)"];
     const OptionsLabels = ["(a.)", "a.)", "(a)", "a)", "(A.)", "A.)", "(A)", "A)"];
@@ -47,7 +45,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
         defaultValues: {
-            questionPaperId: questionPaperList.length + 1,
+            questionPaperId: "1",
             isFavourite: false,
             title: "",
             createdOn: new Date(),
@@ -63,7 +61,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                     questionId: "1",
                     questionName: "",
                     explanation: "",
-                    questionType: "MCQ (Single Correct)",
+                    questionType: "MCQS",
                     questionMark: "",
                     imageDetails: [],
                     singleChoiceOptions: [
@@ -158,14 +156,6 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                             },
                         },
                     ],
-                    booleanOptions: [
-                        {
-                            isSelected: false,
-                        },
-                        {
-                            isSelected: false,
-                        },
-                    ],
                 },
             ],
         },
@@ -190,13 +180,33 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isProgress, setIsProgress] = useState(false);
 
+    // Your mutation setup
+    const handleSubmitFormData = useMutation({
+        mutationFn: ({ data }: { data: MyQuestionPaperFormInterface }) => addQuestionPaper(data),
+        onSuccess: () => {
+            setCurrentQuestionIndex(0);
+            toast.success("Question Paper added successfully", {
+                className: "success-toast",
+                duration: 2000,
+            });
+            handleRefetchData();
+        },
+        onError: (error: unknown) => {
+            console.log("Error:", error);
+            toast.error(error as string);
+        },
+    });
+
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        const currentQuestionPaperId = questionPaperList.length + 1;
-        setQuestionPaperList([
-            ...questionPaperList,
-            { ...values, questionPaperId: currentQuestionPaperId },
-        ]);
-        setCurrentQuestionIndex(0);
+        const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
+        const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
+        handleSubmitFormData.mutate({
+            data: {
+                ...values,
+                yearClass: getIdYearClass,
+                subject: getIdSubject,
+            } as MyQuestionPaperFormInterface,
+        });
     }
 
     const onInvalid = (err: unknown) => {
@@ -234,28 +244,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
             setIsProgress(false);
         },
         onSuccess: (data) => {
-            const modifiedData = data.map((question: QuestionData) => ({
-                questionId: question.questionId.toString(), // Ensure to convert ID to string
-                questionName: question.questionHtml,
-                explanation: question.explanationHtml || "",
-                questionType: "MCQ (Single Correct)", // Adjust as needed
-                questionMark: "", // Default or fetch this if required
-                imageDetails: [], // Assuming no initial images to display
-                singleChoiceOptions: question.optionsData.map((option: OptionData) => ({
-                    name: "", // Adjust or fetch this if required
-                    isSelected: question.answerOptionIds.includes(option.optionId.toString()),
-                    image: {
-                        imageId: "", // Map/adjust to include actual IDs
-                        imageName: "", // Adjust based on your data
-                        imageTitle: "", // Adjust based on your data
-                        imageFile: "", // Adjust based on your data
-                        isDeleted: false,
-                    },
-                })),
-                multipleChoiceOptions: [], // Assuming no initial options
-                booleanOptions: [{ isSelected: false }, { isSelected: false }],
-            }));
-            setValue("questions", modifiedData);
+            setValue("questions", transformResponseDataToMyQuestionsSchema(data));
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -342,18 +331,34 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                     required
                                 />
                             </div>
-                            <div
-                                className="flex w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dotted border-primary-500 p-4"
-                                onClick={handleFileSelect}
-                            >
-                                <UploadFileBg />
-                                <FileUploadComponent
-                                    fileInputRef={fileInputRef}
-                                    onFileSubmit={handleFileSubmit}
-                                    control={form.control}
-                                    name="fileUpload"
-                                />
+                            <div className="flex flex-col gap-6">
+                                <div
+                                    className="flex w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dotted border-primary-500 p-4"
+                                    onClick={handleFileSelect}
+                                >
+                                    <UploadFileBg className="mb-3" />
+                                    <FileUploadComponent
+                                        fileInputRef={fileInputRef}
+                                        onFileSubmit={handleFileSubmit}
+                                        control={form.control}
+                                        name="fileUpload"
+                                    />
+                                </div>
+                                <h1 className="-mt-4 text-xs text-red-500">
+                                    If you are having a problem while uploading docx file then
+                                    please convert your file in html{" "}
+                                    <a
+                                        href="https://convertio.co/docx-html/"
+                                        target="_blank"
+                                        className="text-blue-500"
+                                        rel="noreferrer"
+                                    >
+                                        here
+                                    </a>{" "}
+                                    and try to re-upload.
+                                </h1>
                             </div>
+
                             {getValues("fileUpload") && (
                                 <div className="flex w-full items-center gap-2 rounded-md bg-neutral-100 p-2">
                                     <div className="rounded-md bg-primary-100 p-2">
@@ -446,6 +451,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                 form={form}
                                 questionPaperId={questionPaperId}
                                 isViewMode={false}
+                                refetchData={handleRefetchData}
                             />
                         )}
                         <AlertDialogCancel className="border-none shadow-none hover:bg-transparent">

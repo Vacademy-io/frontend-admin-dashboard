@@ -22,8 +22,8 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
     const QuestionsLabels = [
-        "MCQ (Single Correct)",
-        "MCQ (Multiple Correct)",
+        "MCQS",
+        "MCQM",
         "Integer",
         "True or False",
         "Match the following",

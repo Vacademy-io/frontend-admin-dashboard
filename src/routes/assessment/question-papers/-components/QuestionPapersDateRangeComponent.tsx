@@ -46,7 +46,7 @@ export const QuestionPapersDateRangeComponent = () => {
     return (
         <Popover>
             <PopoverTrigger>
-                <Button variant="outline" className="p-0 pl-2 pr-2">
+                <Button variant="outline" className="-mt-1 p-0 pl-2 pr-2">
                     <CalendarBlank size={32} />
                 </Button>
             </PopoverTrigger>

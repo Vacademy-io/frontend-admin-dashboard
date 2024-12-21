@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const uploadQuestionPaperFormSchema = z.object({
     questionPaperId: z
-        .number({
+        .string({
             required_error: "Question Paper ID is required",
             invalid_type_error: "Question Paper ID must be a number",
         })
@@ -47,7 +47,7 @@ export const uploadQuestionPaperFormSchema = z.object({
             questionId: z.string().optional(),
             questionName: z.string().min(1, "Question name is required"),
             explanation: z.string().optional(),
-            questionType: z.string().default("MCQ (Single Correct)"),
+            questionType: z.string().default("MCQS"),
             questionMark: z.string(),
             imageDetails: z
                 .array(
@@ -84,11 +84,6 @@ export const uploadQuestionPaperFormSchema = z.object({
                         imageFile: z.string().optional(),
                         isDeleted: z.boolean().optional(),
                     }),
-                }),
-            ),
-            booleanOptions: z.array(
-                z.object({
-                    isSelected: z.boolean().optional(),
                 }),
             ),
         }),

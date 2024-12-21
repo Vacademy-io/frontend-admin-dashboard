@@ -1,17 +1,22 @@
 import { Input } from "@/components/ui/input";
 import { MagnifyingGlass, XCircle } from "phosphor-react";
-import { useState } from "react";
 
-export const QuestionPapersSearchComponent = () => {
-    const [searchText, setSearchText] = useState("");
+interface QuestionPapersSearchComponentProps {
+    onSearch: (searchValue: string) => void;
+    searchText: string;
+    setSearchText: (text: string) => void;
+    clearSearch: () => void;
+}
 
-    const clearSearch = () => {
-        setSearchText("");
-    };
-
+export const QuestionPapersSearchComponent = ({
+    onSearch,
+    searchText,
+    setSearchText,
+    clearSearch,
+}: QuestionPapersSearchComponentProps) => {
     const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
-            console.log(searchText);
+            onSearch(searchText);
         }
     };
 

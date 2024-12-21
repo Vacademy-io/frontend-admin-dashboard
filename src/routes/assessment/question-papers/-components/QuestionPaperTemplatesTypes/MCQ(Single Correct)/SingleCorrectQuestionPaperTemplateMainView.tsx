@@ -24,8 +24,8 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     console.log(getValues());
 
     const QuestionsLabels = [
-        "MCQ (Single Correct)",
-        "MCQ (Multiple Correct)",
+        "MCQS",
+        "MCQM",
         "Integer",
         "True or False",
         "Match the following",

@@ -3,13 +3,13 @@ import { QuestionPaperTemplateFormProps } from "../../-utils/question-paper-temp
 import { SingleCorrectQuestionPaperTemplateMainView } from "./MCQ(Single Correct)/SingleCorrectQuestionPaperTemplateMainView";
 import { MultipleCorrectQuestionPaperTemplateMainView } from "./MCQ(Multiple Correct)/MultipleCorrectQuestionPaperTemplateMainView";
 
-type MainViewComponentType = "MCQ (Single Correct)" | "MCQ (Multiple Correct)";
+type MainViewComponentType = "MCQS" | "MCQM";
 
 type MainViewComponent = (props: QuestionPaperTemplateFormProps) => React.ReactElement;
 
 const MainViewComponentsMap: Record<MainViewComponentType, MainViewComponent> = {
-    "MCQ (Single Correct)": SingleCorrectQuestionPaperTemplateMainView,
-    "MCQ (Multiple Correct)": MultipleCorrectQuestionPaperTemplateMainView,
+    MCQS: SingleCorrectQuestionPaperTemplateMainView,
+    MCQM: MultipleCorrectQuestionPaperTemplateMainView,
 };
 
 export const MainViewComponentFactory = (params: {

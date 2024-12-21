@@ -1,17 +1,22 @@
 import { Badge } from "@/components/ui/badge";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAllQuestionsStore } from "../-global-states/questions-store";
-import { countFavourites } from "../-utils/helper";
+import { PaginatedResponse } from "@/types/question-paper-template";
 
-export const TabListComponent = ({ selectedTab }: { selectedTab: string }) => {
-    const { questionPaperList } = useAllQuestionsStore();
-    const totalFavouriteQuesionPaper = countFavourites(questionPaperList);
+export const TabListComponent = ({
+    selectedTab,
+    questionPaperList,
+    questionPaperFavouriteList,
+}: {
+    selectedTab: string;
+    questionPaperList: PaginatedResponse;
+    questionPaperFavouriteList: PaginatedResponse;
+}) => {
     return (
         <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b-[1px] !bg-transparent p-0">
             <TabsTrigger
-                value="All"
+                value="ACTIVE"
                 className={`flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
-                    selectedTab === "All"
+                    selectedTab === "ACTIVE"
                         ? "border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50"
                         : "border-none bg-transparent"
                 }`}
@@ -21,13 +26,13 @@ export const TabListComponent = ({ selectedTab }: { selectedTab: string }) => {
                     className="rounded-[10px] bg-primary-500 p-0 pl-2 pr-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {questionPaperList.length > 0 ? questionPaperList.length : 0}
+                    {questionPaperList.total_elements}
                 </Badge>
             </TabsTrigger>
             <TabsTrigger
-                value="Favourites"
+                value="FAVOURITE"
                 className={`inline-flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
-                    selectedTab === "Favourites"
+                    selectedTab === "FAVOURITE"
                         ? "border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50"
                         : "border-none bg-transparent"
                 }`}
@@ -39,7 +44,7 @@ export const TabListComponent = ({ selectedTab }: { selectedTab: string }) => {
                     className="rounded-[10px] bg-primary-500 p-0 pl-2 pr-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {totalFavouriteQuesionPaper}
+                    {questionPaperFavouriteList.content.length}
                 </Badge>
             </TabsTrigger>
         </TabsList>

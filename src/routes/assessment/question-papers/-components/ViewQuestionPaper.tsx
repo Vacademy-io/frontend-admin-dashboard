@@ -5,31 +5,144 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
 import { useQuestionStore } from "../-global-states/question-index";
 import { useEffect } from "react";
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+import { getLevelNameById, getSubjectNameById } from "../-utils/helper";
+import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
 
-export const ViewQuestionPaper = ({ questionsPaper }: { questionsPaper: QuestionPaperForm }) => {
+export const ViewQuestionPaper = ({
+    questionPaperId,
+    title,
+    subject,
+    level,
+    refetchData,
+}: {
+    questionPaperId: string;
+    title: string;
+    subject: string | null;
+    level: string | null;
+    refetchData: () => void;
+}) => {
+    const { instituteDetails } = useInstituteDetailsStore();
     const { setCurrentQuestionIndex } = useQuestionStore();
-
     const form = useForm<z.infer<typeof uploadQuestionPaperFormSchema>>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
         defaultValues: {
-            questionPaperId: questionsPaper.questionPaperId,
-            isFavourite: questionsPaper.isFavourite,
-            title: questionsPaper.title,
-            createdOn: questionsPaper.createdOn,
-            yearClass: questionsPaper.yearClass,
-            subject: questionsPaper.subject,
-            questionsType: questionsPaper.questionsType,
-            optionsType: questionsPaper.optionsType,
-            answersType: questionsPaper.answersType,
-            explanationsType: questionsPaper.explanationsType,
-            fileUpload: questionsPaper.fileUpload,
-            questions: questionsPaper.questions,
+            questionPaperId: questionPaperId,
+            isFavourite: false,
+            title: title,
+            createdOn: new Date(),
+            yearClass: (instituteDetails && getLevelNameById(instituteDetails.levels, level)) || "",
+            subject:
+                (instituteDetails && getSubjectNameById(instituteDetails?.subjects, subject)) || "",
+            questionsType: "",
+            optionsType: "",
+            answersType: "",
+            explanationsType: "",
+            fileUpload: null as unknown as File,
+            questions: [
+                {
+                    questionId: "1",
+                    questionName: "",
+                    explanation: "",
+                    questionType: "MCQS",
+                    questionMark: "",
+                    imageDetails: [],
+                    singleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                    ],
+                    multipleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                    ],
+                },
+            ],
         },
     });
-    const { getValues } = form;
-    const questionPaperId = getValues("questionPaperId");
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
         console.log(values);
@@ -49,6 +162,7 @@ export const ViewQuestionPaper = ({ questionsPaper }: { questionsPaper: Question
                     form={form}
                     questionPaperId={questionPaperId}
                     isViewMode={true}
+                    refetchData={refetchData}
                 />
             </form>
         </FormProvider>

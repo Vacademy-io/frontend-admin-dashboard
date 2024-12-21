@@ -3,13 +3,13 @@ import { SingleCorrectQuestionPaperTemplatePPTView } from "./MCQ(Single Correct)
 import { QuestionPaperTemplateFormProps } from "../../-utils/question-paper-template-form";
 import { MultipleCorrectQuestionPaperTemplatePPTView } from "./MCQ(Multiple Correct)/MultipleCorrectQuestionPaperTemplatePPTView";
 
-type PPTComponentType = "MCQ (Single Correct)" | "MCQ (Multiple Correct)";
+type PPTComponentType = "MCQS" | "MCQM";
 
 type PPTComponent = (props: QuestionPaperTemplateFormProps) => React.ReactElement;
 
 const PPTComponentsMap: Record<PPTComponentType, PPTComponent> = {
-    "MCQ (Single Correct)": SingleCorrectQuestionPaperTemplatePPTView,
-    "MCQ (Multiple Correct)": MultipleCorrectQuestionPaperTemplatePPTView,
+    MCQS: SingleCorrectQuestionPaperTemplatePPTView,
+    MCQM: MultipleCorrectQuestionPaperTemplatePPTView,
 };
 
 export const PPTComponentFactory = (params: {

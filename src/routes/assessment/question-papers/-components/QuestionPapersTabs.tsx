@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabListComponent } from "./TabListComponent";
 import { QuestionPapersFilter } from "./QuestionPapersFilter";
@@ -6,31 +6,101 @@ import { QuestionPapersSearchComponent } from "./QuestionPapersSearchComponent";
 import { QuestionPapersDateRangeComponent } from "./QuestionPapersDateRangeComponent";
 import { EmptyQuestionPapers } from "@/svgs";
 import { QuestionPapersList } from "./QuestionPapersList";
-import { useAllQuestionsStore } from "../-global-states/questions-store";
-import { countFavourites } from "../-utils/helper";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { FilterOption } from "@/types/question-paper-filter";
 import { MyButton } from "@/components/design-system/button";
+import { getQuestionPaperDataWithFilters } from "../-utils/question-paper-services";
+import { INSTITUTE_ID } from "@/constants/urls";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useRefetchStore } from "../-global-states/refetch-store";
 
 export const QuestionPapersTabs = () => {
-    const { data } = useSuspenseQuery(useInstituteQuery());
-    const { questionPaperList } = useAllQuestionsStore();
-    const totalFavouriteQuesionPaper = countFavourites(questionPaperList);
-    const [selectedTab, setSelectedTab] = useState("All");
+    const { data: initData } = useSuspenseQuery(useInstituteQuery());
+    const [selectedTab, setSelectedTab] = useState("ACTIVE");
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
         Record<string, FilterOption[]>
     >({});
+    const [searchText, setSearchText] = useState("");
+    const [pageNo, setPageNo] = useState(0);
+    const [questionPaperList, setQuestionPaperList] = useState(null);
+    const [questionPaperFavouriteList, setQuestionPaperFavouriteList] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const setHandleRefetchData = useRefetchStore((state) => state.setHandleRefetchData);
 
-    const YearClassFilterData = data?.levels?.map((level) => ({
+    const YearClassFilterData = initData?.levels?.map((level) => ({
         id: level.id,
         name: level.level_name,
     }));
 
-    const SubjectFilterData = data?.levels?.map((level) => ({
-        id: level.id,
-        name: level.level_name,
+    const SubjectFilterData = initData?.subjects?.map((subject) => ({
+        id: subject.id,
+        name: subject.subject_name,
     }));
+
+    const getFilteredData = useMutation({
+        mutationFn: ({
+            pageNo,
+            pageSize,
+            instituteId,
+            data,
+        }: {
+            pageNo: number;
+            pageSize: number;
+            instituteId: string;
+            data: Record<string, FilterOption[]>;
+        }) => getQuestionPaperDataWithFilters(pageNo, pageSize, instituteId, data),
+        onSuccess: (data) => {
+            if (selectedTab === "FAVOURITE") {
+                setQuestionPaperFavouriteList(data);
+            } else {
+                setQuestionPaperList(data);
+            }
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const getFilteredFavouriteData = useMutation({
+        mutationFn: ({
+            pageNo,
+            pageSize,
+            instituteId,
+            data,
+        }: {
+            pageNo: number;
+            pageSize: number;
+            instituteId: string;
+            data: Record<string, FilterOption[]>;
+        }) => getQuestionPaperDataWithFilters(pageNo, pageSize, instituteId, data),
+        onSuccess: (data) => {
+            setQuestionPaperFavouriteList(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const getFilteredActiveData = useMutation({
+        mutationFn: ({
+            pageNo,
+            pageSize,
+            instituteId,
+            data,
+        }: {
+            pageNo: number;
+            pageSize: number;
+            instituteId: string;
+            data: Record<string, FilterOption[]>;
+        }) => getQuestionPaperDataWithFilters(pageNo, pageSize, instituteId, data),
+        onSuccess: (data) => {
+            setQuestionPaperList(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
 
     const handleTabChange = (value: string) => {
         setSelectedTab(value);
@@ -42,32 +112,155 @@ export const QuestionPapersTabs = () => {
             if (selectedItems.length === 0) {
                 delete updatedFilters[filterKey]; // Remove empty filters
             }
+            if (Object.entries(updatedFilters).length === 0) {
+                getFilteredData.mutate({
+                    pageNo: pageNo,
+                    pageSize: 10,
+                    instituteId: INSTITUTE_ID,
+                    data: { ...updatedFilters, statuses: [{ id: selectedTab, name: selectedTab }] },
+                });
+            }
             return updatedFilters;
         });
     };
 
     const handleResetFilters = () => {
         setSelectedQuestionPaperFilters({});
+        setSearchText("");
+        getFilteredData.mutate({
+            pageNo: pageNo,
+            pageSize: 10,
+            instituteId: INSTITUTE_ID,
+            data: {
+                statuses: [{ id: selectedTab, name: selectedTab }],
+            },
+        });
     };
 
-    console.log(selectedQuestionPaperFilters);
+    const clearSearch = () => {
+        setSearchText("");
+        delete selectedQuestionPaperFilters["name"];
+    };
+
+    const handleSubmitFilters = () => {
+        getFilteredData.mutate({
+            pageNo: pageNo,
+            pageSize: 10,
+            instituteId: INSTITUTE_ID,
+            data: {
+                ...selectedQuestionPaperFilters,
+                statuses: [{ id: selectedTab, name: selectedTab }],
+            },
+        });
+    };
+
+    const handlePageChange = (newPage: number) => {
+        setPageNo(newPage);
+        getFilteredData.mutate({
+            pageNo: newPage,
+            pageSize: 10,
+            instituteId: INSTITUTE_ID,
+            data: {
+                ...selectedQuestionPaperFilters,
+                statuses: [{ id: selectedTab, name: selectedTab }],
+            },
+        });
+    };
+
+    const handleRefetchData = () => {
+        getFilteredFavouriteData.mutate({
+            pageNo,
+            pageSize: 10,
+            instituteId: INSTITUTE_ID,
+            data: {
+                ...selectedQuestionPaperFilters,
+                statuses: [{ id: "FAVOURITE", name: "FAVOURITE" }],
+            },
+        });
+        getFilteredActiveData.mutate({
+            pageNo,
+            pageSize: 10,
+            instituteId: INSTITUTE_ID,
+            data: {
+                ...selectedQuestionPaperFilters,
+                statuses: [{ id: "ACTIVE", name: "ACTIVE" }],
+            },
+        });
+    };
+
+    // Define the handleRefetchData function here
+    useEffect(() => {
+        setHandleRefetchData(handleRefetchData);
+    }, [setHandleRefetchData]);
+
+    useEffect(() => {
+        setIsLoading(true);
+        const timeoutId = setTimeout(() => {
+            getQuestionPaperDataWithFilters(pageNo, 10, INSTITUTE_ID, {
+                ...selectedQuestionPaperFilters,
+                statuses: [{ id: "ACTIVE", name: "ACTIVE" }],
+            })
+                .then((data) => {
+                    setQuestionPaperList(data);
+                    setIsLoading(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                    setIsLoading(false);
+                });
+        }, 0);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, []);
+
+    useEffect(() => {
+        setIsLoading(true);
+        const timeoutId = setTimeout(() => {
+            getQuestionPaperDataWithFilters(pageNo, 10, INSTITUTE_ID, {
+                ...selectedQuestionPaperFilters,
+                statuses: [{ id: "FAVOURITE", name: "FAVOURITE" }],
+            })
+                .then((data) => {
+                    setQuestionPaperFavouriteList(data);
+                    setIsLoading(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                    setIsLoading(false);
+                });
+        }, 0); // Adjust delay as necessary, 0 means immediate execution in the next event loop.
+
+        return () => {
+            clearTimeout(timeoutId); // Cleanup: prevent execution of pending timeout if unmounted
+        };
+    }, []);
+
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <Tabs value={selectedTab} onValueChange={handleTabChange}>
             <div className="flex flex-wrap items-center justify-between gap-8">
                 <div className="flex flex-wrap gap-8">
-                    <TabListComponent selectedTab={selectedTab} />
+                    {questionPaperList !== null && questionPaperFavouriteList !== null && (
+                        <TabListComponent
+                            selectedTab={selectedTab}
+                            questionPaperList={questionPaperList}
+                            questionPaperFavouriteList={questionPaperFavouriteList}
+                        />
+                    )}
                     <QuestionPapersFilter
                         label="Year/Class"
                         data={YearClassFilterData}
-                        selectedItems={selectedQuestionPaperFilters["yearClass"] || []}
-                        onSelectionChange={(items) => handleFilterChange("yearClass", items)}
+                        selectedItems={selectedQuestionPaperFilters["level_ids"] || []}
+                        onSelectionChange={(items) => handleFilterChange("level_ids", items)}
                     />
                     <QuestionPapersFilter
                         label="Subject"
                         data={SubjectFilterData}
-                        selectedItems={selectedQuestionPaperFilters["subject"] || []}
-                        onSelectionChange={(items) => handleFilterChange("subject", items)}
+                        selectedItems={selectedQuestionPaperFilters["subject_ids"] || []}
+                        onSelectionChange={(items) => handleFilterChange("subject_ids", items)}
                     />
                     {Object.keys(selectedQuestionPaperFilters).length > 0 && (
                         <div className="flex gap-6">
@@ -76,6 +269,7 @@ export const QuestionPapersTabs = () => {
                                 scale="small"
                                 layoutVariant="default"
                                 className="h-8"
+                                onClick={handleSubmitFilters}
                             >
                                 Filter
                             </MyButton>
@@ -95,14 +289,35 @@ export const QuestionPapersTabs = () => {
                             Object.keys(selectedQuestionPaperFilters).length > 0 ? "mt-[-3px]" : ""
                         }`}
                     >
-                        <QuestionPapersSearchComponent />
+                        <QuestionPapersSearchComponent
+                            onSearch={(searchValue: string) => {
+                                getFilteredData.mutate({
+                                    pageNo: pageNo,
+                                    pageSize: 10,
+                                    instituteId: INSTITUTE_ID,
+                                    data: {
+                                        ...selectedQuestionPaperFilters,
+                                        statuses: [{ id: selectedTab, name: selectedTab }],
+                                        name: [{ id: searchValue, name: searchValue }],
+                                    },
+                                });
+                            }}
+                            searchText={searchText}
+                            setSearchText={setSearchText}
+                            clearSearch={clearSearch}
+                        />
                         <QuestionPapersDateRangeComponent />
                     </div>
                 </div>
             </div>
-            <TabsContent value="All">
-                {questionPaperList.length > 0 ? (
-                    <QuestionPapersList isFavourite={false} />
+            <TabsContent value="ACTIVE">
+                {questionPaperList ? (
+                    <QuestionPapersList
+                        questionPaperList={questionPaperList}
+                        pageNo={pageNo}
+                        handlePageChange={handlePageChange}
+                        refetchData={handleRefetchData}
+                    />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">
                         <EmptyQuestionPapers />
@@ -110,14 +325,19 @@ export const QuestionPapersTabs = () => {
                     </div>
                 )}
             </TabsContent>
-            <TabsContent value="Favourites">
-                {totalFavouriteQuesionPaper > 0 ? (
-                    <QuestionPapersList isFavourite={true} />
+            <TabsContent value="FAVOURITE">
+                {questionPaperFavouriteList ? (
+                    <QuestionPapersList
+                        questionPaperList={questionPaperFavouriteList}
+                        pageNo={pageNo}
+                        handlePageChange={handlePageChange}
+                        refetchData={handleRefetchData}
+                    />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">
                         <EmptyQuestionPapers />
                         <span className="text-neutral-600">
-                            No question paper has been marked as favourites yet.
+                            No question paper has been marked as favourites yet
                         </span>
                     </div>
                 )}
