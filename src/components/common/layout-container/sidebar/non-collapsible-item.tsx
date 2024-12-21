@@ -21,7 +21,7 @@ export const NonCollapsibleItem = ({ icon, title, to }: SidebarItemProps) => {
         <Link
             to={to}
             className={`flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 hover:bg-white ${
-                currentRoute == to ? "bg-white" : "bg-none"
+                to && currentRoute.includes(to) ? "bg-white" : "bg-none"
             }`}
             onMouseEnter={toggleHover}
             onMouseLeave={toggleHover}
@@ -29,14 +29,18 @@ export const NonCollapsibleItem = ({ icon, title, to }: SidebarItemProps) => {
             {icon &&
                 React.createElement(icon, {
                     className: `${state === "expanded" ? "size-7" : "size-6"} ${
-                        hover || currentRoute == to ? "text-primary-500" : "text-neutral-400"
+                        hover || (to && currentRoute.includes(to))
+                            ? "text-primary-500"
+                            : "text-neutral-400"
                     }`,
                     weight: "fill",
                 })}
 
             <SidebarGroup
                 className={`${
-                    hover || currentRoute == to ? "text-primary-500" : "text-neutral-600"
+                    hover || (to && currentRoute.includes(to))
+                        ? "text-primary-500"
+                        : "text-neutral-600"
                 } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
             >
                 {title}

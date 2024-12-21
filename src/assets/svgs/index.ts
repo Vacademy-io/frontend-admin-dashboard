@@ -20,3 +20,9 @@ export { Class9CardImage };
 
 import Class8CardImage from "./class_8_card_photo.svg";
 export { Class8CardImage };
+
+import SubjectDefaultImage from "./subject-default-image.svg";
+export { SubjectDefaultImage };
+
+import EmptySubjectMaterial from "./empty-subject-material.svg";
+export { EmptySubjectMaterial };

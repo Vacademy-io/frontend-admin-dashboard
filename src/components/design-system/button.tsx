@@ -9,7 +9,7 @@ const myButtonVariants = {
         primary:
             "bg-primary-500 !text-neutral-50 font-semibold hover:bg-primary-400 active:bg-[#be5d1d] disabled:bg-[#fad5bd] ",
         secondary:
-            "bg-white font-regular border-neutral-300 border !text-neutral-600 hover:border-primary-300 hover:bg-[#fef7ee] active:border-primary-500 active:bg-[#fdedd7] disabled:text-[#7f7f7f] disabled:bg-white disabled:border-neutral-200",
+            "bg-none font-regular border-neutral-300 border !text-neutral-600 hover:border-primary-300 hover:bg-[#fef7ee] active:border-primary-500 active:bg-[#fdedd7] disabled:text-[#7f7f7f] disabled:bg-white disabled:border-neutral-200",
         text: "shadow-none bg-transparent text-primary-500 hover:bg-primary-50 active:bg-primary-100 disabled:text-neutral-300 disabled:bg-transparent",
     },
     textStyles: {
@@ -76,9 +76,9 @@ export const MyButton = ({
 // Usage Examples:
 /*
 // Primary button
-<MyButton 
-    buttonType="primary" 
-    scale="large" 
+<MyButton
+    buttonType="primary"
+    scale="large"
     layoutVariant="default"
     onClick={() => console.log('clicked')}
 >
@@ -86,16 +86,16 @@ export const MyButton = ({
 </MyButton>
 
 // Text variant
-<MyButton 
-    buttonType="text" 
+<MyButton
+    buttonType="text"
     scale="medium"
 >
     Text Button
 </MyButton>
 
 // Icon button
-<MyButton 
-    layoutVariant="icon" 
+<MyButton
+    layoutVariant="icon"
     scale="small"
 >
     <IconComponent />

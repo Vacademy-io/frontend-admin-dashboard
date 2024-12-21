@@ -1,16 +1,16 @@
-import { MyButton } from "@/components/design-system/button";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { FC, SVGProps, useEffect } from "react";
-import { BookOpenText } from "@phosphor-icons/react";
 import { Class10CardImage } from "@/assets/svgs";
 import { Class9CardImage } from "@/assets/svgs";
 import { Class8CardImage } from "@/assets/svgs";
 import { ClassCard } from "./class-card";
+import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-material-button";
 
 interface ClassCardType {
     id: string;
     image: FC<SVGProps<SVGSVGElement>>;
     class: string;
+    route?: string;
 }
 
 export const StudyLibrary = () => {
@@ -25,6 +25,7 @@ export const StudyLibrary = () => {
             id: "1",
             image: Class10CardImage,
             class: "10th",
+            route: "/study-library/10-class-study-library",
         },
         {
             id: "2",
@@ -49,23 +50,16 @@ export const StudyLibrary = () => {
                         resources for 8th, 9th and 10th classes all in one place.
                     </div>
                 </div>
-                {/* <div className="flex flex-col">
-                    <div className="text-subtitle font-semibold">E-Books</div>
-                    <div className="text-h1 font-semibold text-primary-500">1658</div>
-                </div>
-                <div className="flex flex-col">
-                    <div className="text-subtitle font-semibold">Videos</div>
-                    <div className="text-h1 font-semibold text-primary-500">157</div>
-                </div> */}
-
-                <MyButton buttonType="primary" scale="large" layoutVariant="default">
-                    <BookOpenText className="size-6" />
-                    <div>Upload Study Material</div>
-                </MyButton>
+                <UploadStudyMaterialButton />
             </div>
             <div className="flex gap-12">
                 {ClassCardData.map((card, key) => (
-                    <ClassCard key={key} image={card.image} classLevel={card.class} />
+                    <ClassCard
+                        key={key}
+                        image={card.image}
+                        classLevel={card.class}
+                        route={card.route}
+                    />
                 ))}
             </div>
         </div>
