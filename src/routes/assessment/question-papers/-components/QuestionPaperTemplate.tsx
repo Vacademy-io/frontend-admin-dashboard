@@ -347,14 +347,14 @@ export function QuestionPaperTemplate({
                                 >
                                     Add Question
                                 </Button>
-                                <div className="flex h-screen w-40 flex-col items-start justify-between gap-4 overflow-x-hidden overflow-y-scroll p-2">
+                                <div className="flex h-[325vh] w-40 flex-col items-start justify-between gap-4 overflow-x-hidden overflow-y-scroll p-2">
                                     <Sortable
                                         value={fields}
                                         onMove={({ activeIndex, overIndex }) =>
                                             move(activeIndex, overIndex)
                                         }
                                     >
-                                        <div className="flex flex-col gap-2">
+                                        <div className="flex origin-top-left scale-[0.26] flex-col gap-8 overflow-x-hidden">
                                             {fields.map((field, index) => {
                                                 // Check if the current question has an error
                                                 const hasError =
@@ -368,7 +368,7 @@ export function QuestionPaperTemplate({
                                                         <div
                                                             key={index}
                                                             onClick={() => handlePageClick(index)}
-                                                            className={`origin-top-left scale-[0.26] rounded-xl border-4 bg-primary-50 p-6 ${
+                                                            className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                 currentQuestionIndex === index
                                                                     ? "border-primary-500 bg-none"
                                                                     : "bg-none"

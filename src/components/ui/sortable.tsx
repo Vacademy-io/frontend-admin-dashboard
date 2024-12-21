@@ -260,10 +260,19 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
             }),
             [attributes, listeners, isDragging],
         );
+
+        // Modify the transform to double the speed in Y direction
+        const modifiedTransform = transform
+            ? {
+                  ...transform,
+                  y: transform.y * 4, // Double the Y-axis translation
+              }
+            : undefined;
+
         const style: React.CSSProperties = {
             opacity: isDragging ? 0.5 : 1,
-            transform: transform
-                ? `${CSS.Transform.toString(transform)} scale(0.26)` // Append scale to translate3d
+            transform: modifiedTransform
+                ? `${CSS.Transform.toString(modifiedTransform)}`
                 : undefined,
             transition,
         };
@@ -289,6 +298,7 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
         );
     },
 );
+
 SortableItem.displayName = "SortableItem";
 
 interface SortableDragHandleProps extends ButtonProps {
