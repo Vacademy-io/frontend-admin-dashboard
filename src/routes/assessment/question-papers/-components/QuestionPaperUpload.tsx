@@ -466,7 +466,22 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                 isManualCreated={isManualCreated}
                             />
                         )}
-                        <AlertDialogCancel className="border-none shadow-none hover:bg-transparent">
+                        {fileUpload && (
+                            <AlertDialogCancel className="border-none shadow-none hover:bg-transparent">
+                                <Button
+                                    disabled={
+                                        isManualCreated
+                                            ? !isFormValidWhenManuallyCreated
+                                            : !isFormValidWhenUploaded
+                                    }
+                                    type="submit"
+                                    className="ml-[1.8rem] w-56 bg-primary-500 text-white"
+                                >
+                                    Done
+                                </Button>
+                            </AlertDialogCancel>
+                        )}
+                        {!fileUpload && (
                             <Button
                                 disabled={
                                     isManualCreated
@@ -474,11 +489,11 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                         : !isFormValidWhenUploaded
                                 }
                                 type="submit"
-                                className="ml-[1.8rem] w-56 bg-primary-500 text-white"
+                                className="w-56 bg-primary-500 text-white"
                             >
                                 Done
                             </Button>
-                        </AlertDialogCancel>
+                        )}
                     </div>
                 </form>
             </FormProvider>
