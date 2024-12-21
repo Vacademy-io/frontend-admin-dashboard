@@ -1,32 +1,92 @@
 import { EmptySubjectMaterial, SubjectDefaultImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
+import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsSixVertical, DotsThree } from "@phosphor-icons/react";
+import { useState } from "react";
+import { AddSubjectForm } from "./add-subject-form";
+import { MyDialog } from "@/components/design-system/dialog";
 
 interface Subject {
     name: string;
     imageUrl?: string;
 }
 
-const SubjectCard = ({ subject }: { subject: Subject }) => {
+interface MenuOptionsProps {
+    onDelete: () => void;
+    onEdit: () => void;
+}
+
+const MenuOptions = ({ onDelete, onEdit }: MenuOptionsProps) => {
+    const DropdownList = ["Edit Subject", "Delete Subject"];
+
+    const handleMenuOptionsChange = (value: string) => {
+        if (value === "Delete Subject") {
+            onDelete();
+        } else if (value === "Edit Subject") {
+            onEdit();
+        }
+    };
+
     return (
-        <div className="relative flex size-[300px] flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md">
-            <DotsSixVertical className="absolute right-4 top-4 size-6 cursor-pointer" />
-            <SubjectDefaultImage />
-            <div className="flex items-center justify-between gap-5">
-                <div className="text-h2 font-semibold">{subject.name}</div>
-                <MyButton buttonType="secondary" layoutVariant="icon" scale="small">
-                    <DotsThree />
-                </MyButton>
+        <MyDropdown dropdownList={DropdownList} onSelect={handleMenuOptionsChange}>
+            <MyButton
+                buttonType="secondary"
+                scale="small"
+                layoutVariant="icon"
+                className="flex items-center justify-center"
+            >
+                <DotsThree />
+            </MyButton>
+        </MyDropdown>
+    );
+};
+
+interface SubjectCardProps {
+    subject: Subject;
+    onDelete: () => void;
+    onEdit: (updatedSubject: Subject) => void;
+}
+
+const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => {
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+    return (
+        <>
+            <div className="relative flex size-[300px] flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md">
+                <DotsSixVertical className="absolute right-4 top-4 size-6 cursor-pointer" />
+                <SubjectDefaultImage />
+                <div className="flex items-center justify-between gap-5">
+                    <div className="text-h2 font-semibold">{subject.name}</div>
+                    <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
+                </div>
             </div>
-        </div>
+
+            <MyDialog
+                trigger={<></>}
+                heading="Edit Subject"
+                dialogWidth="w-[400px]"
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+            >
+                <AddSubjectForm
+                    initialValues={subject}
+                    onSubmitSuccess={(updatedSubject) => {
+                        onEdit(updatedSubject);
+                        setIsEditDialogOpen(false);
+                    }}
+                />
+            </MyDialog>
+        </>
     );
 };
 
 interface SubjectsProps {
     subjects: Subject[];
+    onDeleteSubject: (index: number) => void;
+    onEditSubject: (index: number, updatedSubject: Subject) => void;
 }
 
-export const Subjects = ({ subjects }: SubjectsProps) => {
+export const Subjects = ({ subjects, onDeleteSubject, onEditSubject }: SubjectsProps) => {
     return (
         <div className="h-full w-full">
             {!subjects.length && (
@@ -37,7 +97,12 @@ export const Subjects = ({ subjects }: SubjectsProps) => {
             )}
             <div className="grid grid-cols-4 gap-10">
                 {subjects.map((subject, index) => (
-                    <SubjectCard key={index} subject={subject} />
+                    <SubjectCard
+                        key={index}
+                        subject={subject}
+                        onDelete={() => onDeleteSubject(index)}
+                        onEdit={(updatedSubject) => onEditSubject(index, updatedSubject)}
+                    />
                 ))}
             </div>
         </div>

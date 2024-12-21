@@ -19,9 +19,18 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface AddSubjectFormProps {
     onSubmitSuccess: (subject: Subject) => void;
+    initialValues?: Subject;
 }
 
-export const AddSubjectForm = ({ onSubmitSuccess }: AddSubjectFormProps) => {
+export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFormProps) => {
+    const form = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            subjectName: initialValues?.name || "",
+            imageLink: initialValues?.imageUrl || "",
+            imageFile: null,
+        },
+    });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const onSubmit = (data: FormValues) => {
@@ -31,15 +40,6 @@ export const AddSubjectForm = ({ onSubmitSuccess }: AddSubjectFormProps) => {
         };
         onSubmitSuccess(newSubject);
     };
-
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            subjectName: "",
-            imageLink: "",
-            imageFile: null,
-        },
-    });
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

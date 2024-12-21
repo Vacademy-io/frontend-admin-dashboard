@@ -9,17 +9,24 @@ import { Subject } from "./add-subject.tsx/subjects";
 
 export const Class10StudyMaterial = () => {
     const [subjects, setSubjects] = useState<Subject[]>([]);
+
+    const handleAddSubject = (subject: Subject) => {
+        setSubjects((prev) => [...prev, subject]);
+    };
+
+    const handleDeleteSubject = (index: number) => {
+        setSubjects((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleEditSubject = (index: number, updatedSubject: Subject) => {
+        setSubjects((prev) => prev.map((subject, i) => (i === index ? updatedSubject : subject)));
+    };
     const router = useRouter();
 
     const handleBackClick = () => {
         router.navigate({
             to: "/study-library",
         });
-    };
-
-    const handleAddSubject = (subject: Subject) => {
-        setSubjects((prev) => [...prev, subject]);
-        console.log("New subject added:", subject);
     };
 
     const heading = (
@@ -48,7 +55,11 @@ export const Class10StudyMaterial = () => {
                 </div>
                 <AddSubjectButton onAddSubject={handleAddSubject} />
             </div>
-            <Subjects subjects={subjects} />
+            <Subjects
+                subjects={subjects}
+                onDeleteSubject={handleDeleteSubject}
+                onEditSubject={handleEditSubject}
+            />
         </div>
     );
 };
