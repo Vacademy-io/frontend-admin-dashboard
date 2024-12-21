@@ -8,6 +8,7 @@ export interface QuestionPaperTemplateProps {
     questionPaperId: string | undefined;
     isViewMode: boolean;
     refetchData: () => void;
+    isManualCreated?: boolean;
 }
 
 export interface QuestionData {

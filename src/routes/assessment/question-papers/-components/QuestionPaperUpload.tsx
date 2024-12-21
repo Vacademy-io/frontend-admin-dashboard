@@ -447,11 +447,23 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                 Loading...
                             </Button>
                         ) : (
+                            !isManualCreated &&
+                            fileUpload && (
+                                <QuestionPaperTemplate
+                                    form={form}
+                                    questionPaperId={questionPaperId}
+                                    isViewMode={false}
+                                    refetchData={handleRefetchData}
+                                />
+                            )
+                        )}
+                        {isManualCreated && (
                             <QuestionPaperTemplate
                                 form={form}
                                 questionPaperId={questionPaperId}
                                 isViewMode={false}
                                 refetchData={handleRefetchData}
+                                isManualCreated={isManualCreated}
                             />
                         )}
                         <AlertDialogCancel className="border-none shadow-none hover:bg-transparent">

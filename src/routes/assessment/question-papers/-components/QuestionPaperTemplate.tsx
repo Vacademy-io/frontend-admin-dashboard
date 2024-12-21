@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DotsSixVertical, PencilSimpleLine } from "phosphor-react";
+import { DotsSixVertical, PencilSimpleLine, Plus } from "phosphor-react";
 import { useEffect, useState } from "react";
 import { useFieldArray } from "react-hook-form";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -34,6 +34,7 @@ export function QuestionPaperTemplate({
     questionPaperId,
     isViewMode,
     refetchData,
+    isManualCreated,
 }: QuestionPaperTemplateProps) {
     const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
@@ -262,8 +263,14 @@ export function QuestionPaperTemplate({
                         View Question Paper
                     </Button>
                 ) : (
-                    <Button type="button" variant="outline" className="w-52 border-2">
-                        Preview
+                    <Button type="button" variant="outline" className="w-52 border-[1px]">
+                        {isManualCreated ? (
+                            <p className="flex items-center gap-1">
+                                Create <Plus className="!size-4" />
+                            </p>
+                        ) : (
+                            "Preview"
+                        )}
                     </Button>
                 )}
             </DialogTrigger>
