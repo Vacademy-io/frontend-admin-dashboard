@@ -8,13 +8,13 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
 import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import UploadImageDialogue from "../../UploadImageDialogue";
 import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
 import { OptionImagePreview } from "../../options/MCQ(Single Correct)/OptionImagePreview";
 import { OptionUploadImagePreview } from "../../options/MCQ(Single Correct)/OptionUploadImagePreview";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
+import { useQuestionImageStore } from "../../../-global-states/question-image-index";
 
 export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -22,6 +22,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
+    const { currentQuestionImageIndex } = useQuestionImageStore();
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const optionsType = getValues("optionsType") || "";
@@ -169,14 +170,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 <div className="flex items-center justify-between pt-2">
                                     <span className="text-sm">{imgDetail.imageTitle}</span>
                                     <div className="flex items-center gap-4">
-                                        <UploadImageDialogue
+                                        <QuestionImagePreviewDialogue
                                             form={form}
-                                            title="Change Image"
-                                            triggerButton={
-                                                <Button variant="outline" className="p-0 px-2">
-                                                    <PencilSimpleLine size={16} />
-                                                </Button>
-                                            }
+                                            currentQuestionImageIndex={index}
+                                            isUploadedAgain={true}
                                         />
                                         <Button
                                             variant="outline"
@@ -191,7 +188,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         );
                     })}
                 {Array.isArray(imageDetails) && imageDetails.length < 4 && (
-                    <QuestionImagePreviewDialogue form={form} />
+                    <QuestionImagePreviewDialogue
+                        form={form}
+                        currentQuestionImageIndex={currentQuestionImageIndex}
+                    />
                 )}
             </div>
 

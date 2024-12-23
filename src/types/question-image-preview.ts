@@ -7,6 +7,8 @@ type QuestionFormSchemaType = z.infer<typeof uploadQuestionPaperFormSchema>;
 
 export interface QuestionImagePreviewDialogueProps {
     form: UseFormReturn<QuestionFormSchemaType>; // Type for the form
+    currentQuestionImageIndex: number;
+    isUploadedAgain?: boolean;
 }
 
 export interface OptionImagePreviewDialogueProps {

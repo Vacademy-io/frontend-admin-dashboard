@@ -9,6 +9,7 @@ export interface UploadImageDialogueProps {
     form: UseFormReturn<QuestionFormSchemaType>; // Type for the form
     title: string; // Title for the dialogue
     triggerButton?: React.ReactNode; // Optional trigger button
+    currentQuestionImageIndex: number;
 }
 
 export interface OptionImageDialogueProps {

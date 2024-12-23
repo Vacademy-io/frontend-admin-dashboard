@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, TrashSimple } from "phosphor-react";
+import { PencilSimpleLine, Plus, TrashSimple } from "phosphor-react";
 import UploadImageDialogue from "./UploadImageDialogue";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,16 @@ import { QuestionImagePreviewDialogueProps } from "@/types/question-image-previe
 import { useQuestionStore } from "../-global-states/question-index";
 import { useQuestionImageStore } from "../-global-states/question-image-index";
 
-const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> = ({ form }) => {
+const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> = ({
+    form,
+    currentQuestionImageIndex,
+    isUploadedAgain,
+}) => {
     const { currentQuestionIndex } = useQuestionStore();
-    const { currentQuestionImageIndex, setCurrentQuestionImageIndex } = useQuestionImageStore();
+    const { setCurrentQuestionImageIndex } = useQuestionImageStore();
 
     const { setValue, getValues, watch } = form;
+    console.log(getValues());
     watch(`questions.${currentQuestionIndex}.imageDetails`);
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
 
@@ -38,7 +43,7 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
         };
 
         // Update form state to append the new image to the imageDetails array
-        if (imageDetails) {
+        if (imageDetails && !isUploadedAgain) {
             setValue(`questions.${currentQuestionIndex}.imageDetails`, [...imageDetails, newImage]);
             setCurrentQuestionImageIndex(imageDetails.length);
         }
@@ -47,9 +52,19 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
     return (
         <Dialog>
             <DialogTrigger>
-                <Button variant="outline" onClick={handleAddImage}>
-                    <Plus size={32} />
-                    Add Image
+                <Button
+                    variant="outline"
+                    onClick={handleAddImage}
+                    className={`${isUploadedAgain ? "px-2" : ""}`}
+                >
+                    {isUploadedAgain ? (
+                        <PencilSimpleLine size={16} />
+                    ) : (
+                        <>
+                            <Plus size={32} />
+                            Add Image
+                        </>
+                    )}
                 </Button>
             </DialogTrigger>
             <DialogContent className="flex h-96 w-96 flex-col !gap-0 !p-0">
@@ -71,7 +86,13 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
 
                     {!getValues(
                         `questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
-                    ) && <UploadImageDialogue form={form} title="Upload Image" />}
+                    ) && (
+                        <UploadImageDialogue
+                            form={form}
+                            title="Upload Image"
+                            currentQuestionImageIndex={currentQuestionImageIndex}
+                        />
+                    )}
                 </div>
                 <div className="flex gap-4 p-4">
                     <FormField
@@ -89,7 +110,11 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
                             </FormItem>
                         )}
                     />
-                    <UploadImageDialogue form={form} title="Change Image" />
+                    <UploadImageDialogue
+                        form={form}
+                        title="Change Image"
+                        currentQuestionImageIndex={currentQuestionImageIndex}
+                    />
                     <Button
                         variant="outline"
                         className="p-0 px-3"
