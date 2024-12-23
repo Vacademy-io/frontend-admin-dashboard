@@ -14,6 +14,7 @@ import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-t
 import { formatStructure } from "../../../-utils/helper";
 import { OptionImagePreview } from "../../options/MCQ(Single Correct)/OptionImagePreview";
 import { OptionUploadImagePreview } from "../../options/MCQ(Single Correct)/OptionUploadImagePreview";
+import { QUESTION_TYPES } from "@/constants/dummy-data";
 
 export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -21,17 +22,6 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
-    console.log(getValues());
-
-    const QuestionsLabels = [
-        "MCQS",
-        "MCQM",
-        "Integer",
-        "True or False",
-        "Match the following",
-        "Short answer",
-    ];
-
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const optionsType = getValues("optionsType") || "";
@@ -118,7 +108,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             <SelectField
                                 label="Question Type"
                                 name={`questions.${currentQuestionIndex}.questionType`}
-                                options={QuestionsLabels.map((option, index) => ({
+                                options={QUESTION_TYPES.map((option, index) => ({
                                     value: option,
                                     label: option,
                                     _id: index,

@@ -23,7 +23,7 @@ export const TabListComponent = ({
             >
                 <span className={`${selectedTab === "All" ? "text-primary-500" : ""}`}>All</span>
                 <Badge
-                    className="rounded-[10px] bg-primary-500 p-0 pl-2 pr-2 text-[9px] text-white"
+                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
                     {questionPaperList.total_elements}
@@ -31,9 +31,9 @@ export const TabListComponent = ({
             </TabsTrigger>
             <TabsTrigger
                 value="FAVOURITE"
-                className={`inline-flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
+                className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
                     selectedTab === "FAVOURITE"
-                        ? "border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
                         : "border-none bg-transparent"
                 }`}
             >

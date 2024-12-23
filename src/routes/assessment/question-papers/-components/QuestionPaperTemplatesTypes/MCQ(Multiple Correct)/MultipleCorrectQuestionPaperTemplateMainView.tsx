@@ -14,6 +14,7 @@ import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-t
 import { formatStructure } from "../../../-utils/helper";
 import { OptionUploadImagePreview } from "../../options/MCQ(Multiple Correct)/OptionUploadImagePreview";
 import { OptionImagePreview } from "../../options/MCQ(Multiple Correct)/OptionImagePreview";
+import { QUESTION_TYPES } from "@/constants/dummy-data";
 
 export const MultipleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -21,14 +22,6 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
-    const QuestionsLabels = [
-        "MCQS",
-        "MCQM",
-        "Integer",
-        "True or False",
-        "Match the following",
-        "Short answer",
-    ];
 
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
@@ -100,7 +93,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             <SelectField
                                 label="Question Type"
                                 name={`questions.${currentQuestionIndex}.questionType`}
-                                options={QuestionsLabels.map((option, index) => ({
+                                options={QUESTION_TYPES.map((option, index) => ({
                                     value: option,
                                     label: option,
                                     _id: index,

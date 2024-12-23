@@ -25,6 +25,12 @@ import {
 } from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
 import { useRefetchStore } from "../-global-states/refetch-store";
+import {
+    ANSWER_LABELS,
+    EXPLANATION_LABELS,
+    OPTIONS_LABELS,
+    QUESTION_LABELS,
+} from "@/constants/dummy-data";
 
 export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: boolean }) => {
     const handleRefetchData = useRefetchStore((state) => state.handleRefetchData);
@@ -33,11 +39,6 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
 
     const YearClassData = instituteDetails?.levels?.map((item) => item.level_name) || [];
     const SubjectData = instituteDetails?.subjects?.map((item) => item.subject_name) || [];
-
-    const QuestionsLabels = ["(1.)", "1.)", "(1)", "1)"];
-    const OptionsLabels = ["(a.)", "a.)", "(a)", "a)", "(A.)", "A.)", "(A)", "A)"];
-    const AnswersLabels = ["Ans:", "Answer:", "Ans.", "Answer."];
-    const ExplanationsLabels = ["Exp:", "Explanation:", "Exp.", "Explanation."];
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -289,7 +290,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                 <SelectField
                                     label="Questions"
                                     name="questionsType"
-                                    options={QuestionsLabels.map((option, index) => ({
+                                    options={QUESTION_LABELS.map((option, index) => ({
                                         value: option,
                                         label: option,
                                         _id: index,
@@ -300,7 +301,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                 <SelectField
                                     label="Options"
                                     name="optionsType"
-                                    options={OptionsLabels.map((option, index) => ({
+                                    options={OPTIONS_LABELS.map((option, index) => ({
                                         value: option,
                                         label: option,
                                         _id: index,
@@ -311,7 +312,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                 <SelectField
                                     label="Answers"
                                     name="answersType"
-                                    options={AnswersLabels.map((option, index) => ({
+                                    options={ANSWER_LABELS.map((option, index) => ({
                                         value: option,
                                         label: option,
                                         _id: index,
@@ -322,7 +323,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                                 <SelectField
                                     label="Explanations"
                                     name="explanationsType"
-                                    options={ExplanationsLabels.map((option, index) => ({
+                                    options={EXPLANATION_LABELS.map((option, index) => ({
                                         value: option,
                                         label: option,
                                         _id: index,
