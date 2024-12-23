@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { PencilSimpleLine, Sliders, TrashSimple, X } from "phosphor-react";
+import { Sliders, TrashSimple, X } from "phosphor-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import "react-quill/dist/quill.snow.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,7 +12,6 @@ import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
 import { OptionImagePreview } from "../../options/MCQ(Single Correct)/OptionImagePreview";
-import { OptionUploadImagePreview } from "../../options/MCQ(Single Correct)/OptionUploadImagePreview";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
 import { useQuestionImageStore } from "../../../-global-states/question-image-index";
 
@@ -221,15 +220,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-sm">{option1.image.imageTitle}</span>
                                         <div className="flex items-center gap-4">
-                                            <OptionUploadImagePreview
+                                            <OptionImagePreview
                                                 form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
                                                 option={0}
+                                                isUploadedAgain={true}
                                             />
                                             <Button
                                                 variant="outline"
@@ -308,15 +302,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-sm">{option2.image.imageTitle}</span>
                                         <div className="flex items-center gap-4">
-                                            <OptionUploadImagePreview
+                                            <OptionImagePreview
                                                 form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
                                                 option={1}
+                                                isUploadedAgain={true}
                                             />
                                             <Button
                                                 variant="outline"
@@ -397,15 +386,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-sm">{option3.image.imageTitle}</span>
                                         <div className="flex items-center gap-4">
-                                            <OptionUploadImagePreview
+                                            <OptionImagePreview
                                                 form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
                                                 option={2}
+                                                isUploadedAgain={true}
                                             />
                                             <Button
                                                 variant="outline"
@@ -484,15 +468,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-sm">{option4.image.imageTitle}</span>
                                         <div className="flex items-center gap-4">
-                                            <OptionUploadImagePreview
+                                            <OptionImagePreview
                                                 form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
                                                 option={3}
+                                                isUploadedAgain={true}
                                             />
                                             <Button
                                                 variant="outline"

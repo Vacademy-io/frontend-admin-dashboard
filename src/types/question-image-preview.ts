@@ -14,4 +14,5 @@ export interface QuestionImagePreviewDialogueProps {
 export interface OptionImagePreviewDialogueProps {
     form: UseFormReturn<QuestionFormSchemaType>; // Type for the form
     option: number;
+    isUploadedAgain?: boolean;
 }

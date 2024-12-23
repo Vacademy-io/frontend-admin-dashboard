@@ -207,15 +207,10 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-sm">{option1.image.imageTitle}</span>
                                         <div className="flex items-center gap-4">
-                                            <OptionUploadImagePreview
+                                            <OptionImagePreview
                                                 form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
                                                 option={0}
+                                                isUploadedAgain={true}
                                             />
                                             <Button
                                                 variant="outline"
@@ -294,15 +289,10 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-sm">{option2.image.imageTitle}</span>
                                         <div className="flex items-center gap-4">
-                                            <OptionUploadImagePreview
+                                            <OptionImagePreview
                                                 form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
                                                 option={1}
+                                                isUploadedAgain={true}
                                             />
                                             <Button
                                                 variant="outline"
@@ -383,15 +373,10 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-sm">{option3.image.imageTitle}</span>
                                         <div className="flex items-center gap-4">
-                                            <OptionUploadImagePreview
+                                            <OptionImagePreview
                                                 form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
                                                 option={2}
+                                                isUploadedAgain={true}
                                             />
                                             <Button
                                                 variant="outline"
@@ -470,15 +455,10 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-sm">{option4.image.imageTitle}</span>
                                         <div className="flex items-center gap-4">
-                                            <OptionUploadImagePreview
+                                            <OptionImagePreview
                                                 form={form}
-                                                title="Change Image"
-                                                triggerButton={
-                                                    <Button variant="outline" className="p-0 px-2">
-                                                        <PencilSimpleLine size={16} />
-                                                    </Button>
-                                                }
                                                 option={3}
+                                                isUploadedAgain={true}
                                             />
                                             <Button
                                                 variant="outline"

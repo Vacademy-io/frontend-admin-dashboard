@@ -1,13 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Image, TrashSimple } from "phosphor-react";
+import { Image, PencilSimpleLine, TrashSimple } from "phosphor-react";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { OptionImagePreviewDialogueProps } from "@/types/question-image-preview";
 import { useQuestionStore } from "../../../-global-states/question-index";
 import { OptionUploadImagePreview } from "./OptionUploadImagePreview";
 
-export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ form, option }) => {
+export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({
+    form,
+    option,
+    isUploadedAgain,
+}) => {
     const { currentQuestionIndex } = useQuestionStore();
     const { setValue, getValues } = form;
 
@@ -34,7 +38,11 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
         <Dialog>
             <DialogTrigger>
                 <Button variant="outline" className="px-2">
-                    <Image size={32} className="!size-5" />
+                    {isUploadedAgain ? (
+                        <PencilSimpleLine size={16} />
+                    ) : (
+                        <Image size={32} className="!size-5" />
+                    )}
                 </Button>
             </DialogTrigger>
             <DialogContent className="flex size-96 flex-col !gap-0 !p-0">
