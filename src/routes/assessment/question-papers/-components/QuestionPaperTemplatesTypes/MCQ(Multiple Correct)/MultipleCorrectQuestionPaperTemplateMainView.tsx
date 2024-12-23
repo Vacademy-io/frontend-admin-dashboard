@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { PencilSimpleLine, Sliders, TrashSimple, X } from "phosphor-react";
+import { Sliders, TrashSimple, X } from "phosphor-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import "react-quill/dist/quill.snow.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -11,7 +11,6 @@ import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
-import { OptionUploadImagePreview } from "../../options/MCQ(Multiple Correct)/OptionUploadImagePreview";
 import { OptionImagePreview } from "../../options/MCQ(Multiple Correct)/OptionImagePreview";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
 import { useQuestionImageStore } from "../../../-global-states/question-image-index";
