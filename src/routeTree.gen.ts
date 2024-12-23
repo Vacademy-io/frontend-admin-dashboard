@@ -10,106 +10,105 @@
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as StudentsIndexImport } from "./routes/students/index";
-import { Route as LoginIndexImport } from "./routes/login/index";
-import { Route as DashboardIndexImport } from "./routes/dashboard/index";
-import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
-import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
+import { Route as rootRoute } from "./routes/__root"
+import { Route as StudentsIndexImport } from "./routes/students/index"
+import { Route as LoginIndexImport } from "./routes/login/index"
+import { Route as DashboardIndexImport } from "./routes/dashboard/index"
+import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index"
+import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index"
+import { Route as AssessmentTestsIndexImport } from "./routes/assessment/tests/index"
 
 // Create/Update Routes
 
 const StudentsIndexRoute = StudentsIndexImport.update({
-    path: "/students/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/students/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const LoginIndexRoute = LoginIndexImport.update({
-    path: "/login/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/login/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const DashboardIndexRoute = DashboardIndexImport.update({
-    path: "/dashboard/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/dashboard/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
-    path: "/students/students-list/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/students/students-list/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
-    path: "/login/forgot-password/",
-const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
-    path: "/login/forgot-password/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/login/forgot-password/",
+  getParentRoute: () => rootRoute,
+} as any)
 
-const DashboardStudentsIndexRoute = DashboardStudentsIndexImport.update({
-    path: "/dashboard/students/",
-    getParentRoute: () => rootRoute,
-} as any);
+const AssessmentTestsIndexRoute = AssessmentTestsIndexImport.update({
+  path: "/assessment/tests/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module "@tanstack/react-router" {
-    interface FileRoutesByPath {
-        "/dashboard/": {
-            id: "/dashboard/";
-            path: "/dashboard";
-            fullPath: "/dashboard";
-            preLoaderRoute: typeof DashboardIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/login/": {
-            id: "/login/";
-            path: "/login";
-            fullPath: "/login";
-            preLoaderRoute: typeof LoginIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-
-        "/students/": {
-            id: "/students/";
-            path: "/students";
-            fullPath: "/students";
-            preLoaderRoute: typeof StudentsIndexImport;
-        "/dashboard/students/": {
-            id: "/dashboard/students/";
-            path: "/dashboard/students";
-            fullPath: "/dashboard/students";
-            preLoaderRoute: typeof DashboardStudentsIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/login/forgot-password/": {
-            id: "/login/forgot-password/";
-            path: "/login/forgot-password";
-            fullPath: "/login/forgot-password";
-            preLoaderRoute: typeof LoginForgotPasswordIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/students/students-list/": {
-            id: "/students/students-list/";
-            path: "/students/students-list";
-            fullPath: "/students/students-list";
-            preLoaderRoute: typeof StudentsStudentsListIndexImport;
-            parentRoute: typeof rootRoute;
-        };
+  interface FileRoutesByPath {
+    "/dashboard/": {
+      id: "/dashboard/"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof DashboardIndexImport
+      parentRoute: typeof rootRoute
     }
+    "/login/": {
+      id: "/login/"
+      path: "/login"
+      fullPath: "/login"
+      preLoaderRoute: typeof LoginIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/students/": {
+      id: "/students/"
+      path: "/students"
+      fullPath: "/students"
+      preLoaderRoute: typeof StudentsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/tests/": {
+      id: "/assessment/tests/"
+      path: "/assessment/tests"
+      fullPath: "/assessment/tests"
+      preLoaderRoute: typeof AssessmentTestsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/login/forgot-password/": {
+      id: "/login/forgot-password/"
+      path: "/login/forgot-password"
+      fullPath: "/login/forgot-password"
+      preLoaderRoute: typeof LoginForgotPasswordIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/students/students-list/": {
+      id: "/students/students-list/"
+      path: "/students/students-list"
+      fullPath: "/students/students-list"
+      preLoaderRoute: typeof StudentsStudentsListIndexImport
+      parentRoute: typeof rootRoute
+    }
+  }
 }
 
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
-    DashboardIndexRoute,
-    LoginIndexRoute,
-    StudentsIndexRoute,
-    LoginForgotPasswordIndexRoute,
-    StudentsStudentsListIndexRoute,
-    DashboardStudentsIndexRoute,
-    LoginForgotPasswordIndexRoute,
-});
+  DashboardIndexRoute,
+  LoginIndexRoute,
+  StudentsIndexRoute,
+  AssessmentTestsIndexRoute,
+  LoginForgotPasswordIndexRoute,
+  StudentsStudentsListIndexRoute,
+})
 
 /* prettier-ignore-end */
 
@@ -122,6 +121,7 @@ export const routeTree = rootRoute.addChildren({
         "/dashboard/",
         "/login/",
         "/students/",
+        "/assessment/tests/",
         "/login/forgot-password/",
         "/students/students-list/"
       ]
@@ -134,6 +134,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/students/": {
       "filePath": "students/index.tsx"
+    },
+    "/assessment/tests/": {
+      "filePath": "assessment/tests/index.tsx"
     },
     "/login/forgot-password/": {
       "filePath": "login/forgot-password/index.tsx"
