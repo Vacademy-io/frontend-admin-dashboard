@@ -9,6 +9,7 @@ import { StudentListHeader } from "./student-list-header";
 import { StudentFilters } from "./student-filters";
 import { useStudentFilters } from "@/hooks/student-list-section/useStudentFilters";
 import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -18,7 +19,7 @@ export const getCurrentSession = (): string => {
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
-    const { isError, isLoading } = useInstituteQuery();
+    const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const sessions = useGetSessions();
     const filters = useFilterData(getCurrentSession());
 
