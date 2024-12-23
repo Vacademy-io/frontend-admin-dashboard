@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DotsSixVertical, PencilSimpleLine, Plus } from "phosphor-react";
+import { DotsSixVertical, Plus } from "phosphor-react";
 import { useEffect, useState } from "react";
 import { useFieldArray } from "react-hook-form";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -28,6 +28,7 @@ import {
 import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
 import { toast } from "sonner";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { QuestionPaperEditDialog } from "./QuestionPaperEditDialogue";
 
 export function QuestionPaperTemplate({
     form,
@@ -43,7 +44,6 @@ export function QuestionPaperTemplate({
     const title = getValues("title") || "";
     const yearClass = getValues("yearClass") || "";
     const subject = getValues("subject") || "";
-    const [isHeaderEditable, setIsHeaderEditable] = useState(false); // State to toggle edit mode
     const { currentQuestionIndex, setCurrentQuestionIndex } = useQuestionStore();
     const [isQuestionDataLoading, setIsQuestionDataLoading] = useState(false);
     const [previousQuestionPaperData, setPreviousQuestionPaperData] = useState(
@@ -293,21 +293,14 @@ export function QuestionPaperTemplate({
                                                     onChange={field.onChange}
                                                     className="rounded-none border-none p-0 !text-[1.2rem] shadow-none focus-visible:ring-0 focus-visible:ring-transparent"
                                                     placeholder="Untitled"
-                                                    disabled={!isHeaderEditable}
+                                                    disabled
                                                 />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                                <Button
-                                    variant="outline"
-                                    className="border-none bg-transparent shadow-none hover:bg-transparent"
-                                    type="button"
-                                    onClick={() => setIsHeaderEditable(!isHeaderEditable)}
-                                >
-                                    <PencilSimpleLine size={16} />
-                                </Button>
+                                <QuestionPaperEditDialog form={form} />
                             </div>
                             <div className="flex items-center gap-4">
                                 <DialogClose>
