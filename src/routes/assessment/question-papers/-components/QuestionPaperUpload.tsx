@@ -31,14 +31,14 @@ import {
     OPTIONS_LABELS,
     QUESTION_LABELS,
 } from "@/constants/dummy-data";
+import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
 
 export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: boolean }) => {
     const handleRefetchData = useRefetchStore((state) => state.handleRefetchData);
     const { setCurrentQuestionIndex } = useQuestionStore();
     const { instituteDetails } = useInstituteDetailsStore();
 
-    const YearClassData = instituteDetails?.levels?.map((item) => item.level_name) || [];
-    const SubjectData = instituteDetails?.subjects?.map((item) => item.subject_name) || [];
+    const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -420,9 +420,9 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                         <SelectField
                             label="Year/class"
                             name="yearClass"
-                            options={YearClassData.map((option, index) => ({
-                                value: option,
-                                label: option,
+                            options={YearClassFilterData.map((option, index) => ({
+                                value: option.name,
+                                label: option.name,
                                 _id: index,
                             }))}
                             control={form.control}
@@ -432,9 +432,9 @@ export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: bool
                         <SelectField
                             label="Subject"
                             name="subject"
-                            options={SubjectData.map((option, index) => ({
-                                value: option,
-                                label: option,
+                            options={SubjectFilterData.map((option, index) => ({
+                                value: option.name,
+                                label: option.name,
                                 _id: index,
                             }))}
                             control={form.control}

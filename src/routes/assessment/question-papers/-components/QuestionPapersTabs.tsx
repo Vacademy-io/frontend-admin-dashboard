@@ -14,9 +14,10 @@ import { getQuestionPaperDataWithFilters } from "../-utils/question-paper-servic
 import { INSTITUTE_ID } from "@/constants/urls";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRefetchStore } from "../-global-states/refetch-store";
+import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
 
 export const QuestionPapersTabs = () => {
-    const { data: initData } = useSuspenseQuery(useInstituteQuery());
+    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const [selectedTab, setSelectedTab] = useState("ACTIVE");
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
         Record<string, FilterOption[]>
@@ -28,15 +29,7 @@ export const QuestionPapersTabs = () => {
     const [isLoading, setIsLoading] = useState(false);
     const setHandleRefetchData = useRefetchStore((state) => state.setHandleRefetchData);
 
-    const YearClassFilterData = initData?.levels?.map((level) => ({
-        id: level.id,
-        name: level.level_name,
-    }));
-
-    const SubjectFilterData = initData?.subjects?.map((subject) => ({
-        id: subject.id,
-        name: subject.subject_name,
-    }));
+    const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const getFilteredData = useMutation({
         mutationFn: ({

@@ -9,6 +9,7 @@ import { useForm, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { DialogClose } from "@radix-ui/react-dialog";
+import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
 
 interface FormData {
     title: string;
@@ -19,9 +20,7 @@ type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
 export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<QuestionPaperForm> }) => {
     const { instituteDetails } = useInstituteDetailsStore();
-    const YearClassData = instituteDetails?.levels?.map((item) => item.level_name) || [];
-    const SubjectData = instituteDetails?.subjects?.map((item) => item.subject_name) || [];
-
+    const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
     const { control, handleSubmit } = useForm<FormData>({
         defaultValues: {
             title: "",
@@ -29,8 +28,7 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
             subject: "",
         },
     });
-    const { setValue, getValues } = form;
-    console.log(getValues());
+    const { setValue } = form;
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
         // Handle form submission
@@ -64,9 +62,9 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
                         <SelectField
                             label="Year/class"
                             name="yearClass"
-                            options={YearClassData.map((option, index) => ({
-                                value: option,
-                                label: option,
+                            options={YearClassFilterData.map((option, index) => ({
+                                value: option.name,
+                                label: option.name,
                                 _id: index,
                             }))}
                             control={control}
@@ -76,9 +74,9 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
                         <SelectField
                             label="Subject"
                             name="subject"
-                            options={SubjectData.map((option, index) => ({
-                                value: option,
-                                label: option,
+                            options={SubjectFilterData.map((option, index) => ({
+                                value: option.name,
+                                label: option.name,
                                 _id: index,
                             }))}
                             control={control}
