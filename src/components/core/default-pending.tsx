@@ -1,4 +1,3 @@
-/* eslint-disable tailwindcss/no-custom-classname */
 import { Helmet } from "react-helmet";
 import { DashboardLoader } from "./dashboard-loader";
 

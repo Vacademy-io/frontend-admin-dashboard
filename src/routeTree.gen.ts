@@ -16,6 +16,7 @@ import { Route as LoginIndexImport } from "./routes/login/index"
 import { Route as DashboardIndexImport } from "./routes/dashboard/index"
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index"
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index"
+import { Route as AssessmentTestsIndexImport } from "./routes/assessment/tests/index"
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index"
 
 // Create/Update Routes
@@ -42,6 +43,11 @@ const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
 
 const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
   path: "/login/forgot-password/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AssessmentTestsIndexRoute = AssessmentTestsIndexImport.update({
+  path: "/assessment/tests/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -83,6 +89,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AssessmentQuestionPapersIndexImport
       parentRoute: typeof rootRoute
     }
+    "/assessment/tests/": {
+      id: "/assessment/tests/"
+      path: "/assessment/tests"
+      fullPath: "/assessment/tests"
+      preLoaderRoute: typeof AssessmentTestsIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/login/forgot-password/": {
       id: "/login/forgot-password/"
       path: "/login/forgot-password"
@@ -107,6 +120,7 @@ export const routeTree = rootRoute.addChildren({
   LoginIndexRoute,
   StudentsIndexRoute,
   AssessmentQuestionPapersIndexRoute,
+  AssessmentTestsIndexRoute,
   LoginForgotPasswordIndexRoute,
   StudentsStudentsListIndexRoute,
 })
@@ -123,6 +137,7 @@ export const routeTree = rootRoute.addChildren({
         "/login/",
         "/students/",
         "/assessment/question-papers/",
+        "/assessment/tests/",
         "/login/forgot-password/",
         "/students/students-list/"
       ]
@@ -138,6 +153,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/assessment/question-papers/": {
       "filePath": "assessment/question-papers/index.tsx"
+    },
+    "/assessment/tests/": {
+      "filePath": "assessment/tests/index.tsx"
     },
     "/login/forgot-password/": {
       "filePath": "login/forgot-password/index.tsx"
