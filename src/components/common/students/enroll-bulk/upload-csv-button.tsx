@@ -156,7 +156,40 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
     };
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { csvData, csvErrors } = useBulkUploadStore();
+    // const { csvData, csvErrors } = useBulkUploadStore();
+    const { csvData } = useBulkUploadStore();
+
+    // const handleDoneClick = async () => {
+    //     if (!csvData || !data?.submit_api) return;
+
+    //     try {
+    //         setIsSubmitting(true);
+
+    //         const validRows = csvData.filter(
+    //             (_, index) => !csvErrors.some((error) => error.path[0] === index),
+    //         );
+
+    //         if (validRows.length === 0) {
+    //             toast.error("No valid rows to submit");
+    //             return;
+    //         }
+
+    //         const response = await submitBulkUpload({
+    //             data: validRows,
+    //             instituteId: data.submit_api.request_params.instituteId,
+    //         });
+
+    //         console.log("Upload response:", response);
+    //         toast.success("Students enrolled successfully");
+    //         setIsOpen(false);
+    //         setCsvData(undefined);
+    //         setCsvErrors([]);
+    //     } catch (error) {
+    //         console.error("Error in handleDoneClick:", error);
+    //     } finally {
+    //         setIsSubmitting(false);
+    //     }
+    // };
 
     const handleDoneClick = async () => {
         if (!csvData || !data?.submit_api) return;
@@ -164,17 +197,9 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
         try {
             setIsSubmitting(true);
 
-            const validRows = csvData.filter(
-                (_, index) => !csvErrors.some((error) => error.path[0] === index),
-            );
-
-            if (validRows.length === 0) {
-                toast.error("No valid rows to submit");
-                return;
-            }
-
+            // Submit all rows without filtering
             const response = await submitBulkUpload({
-                data: validRows,
+                data: csvData,
                 instituteId: data.submit_api.request_params.instituteId,
             });
 
@@ -185,6 +210,7 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
             setCsvErrors([]);
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
+            toast.error("Failed to enroll students");
         } finally {
             setIsSubmitting(false);
         }
