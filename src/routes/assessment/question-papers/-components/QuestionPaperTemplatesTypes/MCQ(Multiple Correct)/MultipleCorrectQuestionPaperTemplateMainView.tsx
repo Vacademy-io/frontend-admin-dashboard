@@ -36,14 +36,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
     const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
 
-    const handleRemovePicture = (currentQuestionImageIndex: number) => {
-        // Filter out the image to be removed
-        const updatedImageDetails = imageDetails?.filter(
-            (_, index: number) => index !== currentQuestionImageIndex,
+    const handleRemovePicture = (index: number) => {
+        setValue(
+            `questions.${currentQuestionIndex}.imageDetails`,
+            imageDetails?.filter((_, i) => i !== index),
         );
-
-        // Update the value with the filtered array
-        setValue(`questions.${currentQuestionIndex}.imageDetails`, updatedImageDetails);
     };
 
     const handleRemovePictureInOptions = (optionIndex: number) => {
