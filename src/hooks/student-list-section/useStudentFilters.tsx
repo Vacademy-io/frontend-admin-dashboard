@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { StudentFilterRequest } from "@/schemas/student/student-list/table-schema";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { usePackageSessionIds } from "./getPackageSessionId";
@@ -22,15 +22,18 @@ export const useStudentFilters = (initialSession: string) => {
         group_ids: [],
         gender: [],
         statuses: [],
+        session_expiry_days: [],
         sort_columns: {},
     });
 
     useEffect(() => {
-        setAppliedFilters((prev) => ({
-            ...prev,
-            package_session_ids: currentPackageSessionIds,
-        }));
-    }, [currentSession, currentPackageSessionIds]);
+        if (currentSession) {
+            setAppliedFilters((prev) => ({
+                ...prev,
+                package_session_ids: currentPackageSessionIds,
+            }));
+        }
+    }, [currentSession]);
 
     useEffect(() => {
         if (columnFilters.length === 0) {
@@ -42,12 +45,10 @@ export const useStudentFilters = (initialSession: string) => {
         setCurrentSession(session);
         setColumnFilters((prev) => prev.filter((f) => f.id !== "batch"));
 
-        const sessionUpdatedFilters = {
-            ...appliedFilters,
+        setAppliedFilters((prev) => ({
+            ...prev,
             package_session_ids: [], // Initially set empty array
-        };
-
-        setAppliedFilters(sessionUpdatedFilters);
+        }));
     };
 
     const handleFilterChange = (filterId: string, values: string[]) => {
@@ -59,16 +60,23 @@ export const useStudentFilters = (initialSession: string) => {
     };
 
     const handleFilterClick = async () => {
-        const newAppliedFilters: StudentFilterRequest = {
+        // Extract the number from "Expiring in X days" format
+        const sessionExpiryFilter = columnFilters.find(
+            (filter) => filter.id === "session_expiry_days",
+        );
+        const sessionExpiryDays = sessionExpiryFilter?.value.map((value) => {
+            const numberMatch = value.match(/\d+/);
+            return numberMatch ? parseInt(numberMatch[0]) : 0;
+        });
+
+        setAppliedFilters((prev) => ({
+            ...prev,
             name: searchFilter,
-            institute_ids: [INSTITUTE_ID],
             package_session_ids: currentPackageSessionIds,
-            group_ids: [],
             gender: columnFilters.find((filter) => filter.id === "gender")?.value || [],
             statuses: columnFilters.find((filter) => filter.id === "statuses")?.value || [],
-            sort_columns: appliedFilters.sort_columns,
-        };
-        setAppliedFilters(newAppliedFilters);
+            session_expiry_days: sessionExpiryDays || [],
+        }));
     };
 
     const handleClearFilters = async () => {
@@ -77,16 +85,14 @@ export const useStudentFilters = (initialSession: string) => {
         setSearchFilter("");
         setSearchInput("");
 
-        const clearedFilters: StudentFilterRequest = {
+        setAppliedFilters((prev) => ({
+            ...prev,
             name: "",
-            institute_ids: [INSTITUTE_ID],
             package_session_ids: currentPackageSessionIds,
-            group_ids: [],
             gender: [],
             statuses: [],
-            sort_columns: appliedFilters.sort_columns,
-        };
-        setAppliedFilters(clearedFilters);
+            session_expiry_days: [], // Add this line
+        }));
     };
 
     const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,16 +116,19 @@ export const useStudentFilters = (initialSession: string) => {
         }));
     };
 
-    const hasActiveFilters = () => {
-        const hasBatch = !!(
-            columnFilters.find((filter) => filter.id === "batch")?.value?.length ?? 0 > 0
+    const getActiveFiltersState = useCallback(() => {
+        const batchFilter = columnFilters.find((filter) => filter.id === "batch");
+        const sessionExpiryFilter = columnFilters.find(
+            (filter) => filter.id === "session_expiry_days",
         );
-        const hasName = !!(appliedFilters.name && appliedFilters.name.trim() !== "");
-        const hasGender = !!(
-            Array.isArray(appliedFilters.gender) && appliedFilters.gender.length > 0
-        );
-        const hasStatus = !!(
-            Array.isArray(appliedFilters.statuses) && appliedFilters.statuses.length > 0
+
+        const hasBatch = Boolean(batchFilter?.value && batchFilter.value.length > 0);
+        const hasName = Boolean(appliedFilters.name?.trim());
+        const hasGender = Array.isArray(appliedFilters.gender) && appliedFilters.gender.length > 0;
+        const hasStatus =
+            Array.isArray(appliedFilters.statuses) && appliedFilters.statuses.length > 0;
+        const hasSessionExpiry = Boolean(
+            sessionExpiryFilter?.value && sessionExpiryFilter.value.length > 0,
         );
 
         // console.log("Filter Status:", {
@@ -131,8 +140,8 @@ export const useStudentFilters = (initialSession: string) => {
         //     appliedFilters,
         // });
 
-        return hasName || hasGender || hasStatus || hasBatch;
-    };
+        return Boolean(hasName || hasGender || hasStatus || hasBatch || hasSessionExpiry);
+    }, [columnFilters, appliedFilters]);
 
     return {
         columnFilters,
@@ -141,7 +150,7 @@ export const useStudentFilters = (initialSession: string) => {
         searchInput,
         searchFilter,
         currentSession,
-        hasActiveFilters,
+        getActiveFiltersState,
         handleFilterChange,
         handleFilterClick,
         handleClearFilters,

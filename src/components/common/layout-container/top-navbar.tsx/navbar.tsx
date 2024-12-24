@@ -16,7 +16,7 @@ const IconContainer = ({
     return (
         <div
             className={cn(
-                "cursor-pointer rounded-full border border-neutral-300 bg-white p-2",
+                "flex size-9 cursor-pointer items-center justify-center rounded-full border border-neutral-300",
                 className,
             )}
         >
@@ -31,7 +31,7 @@ export function Navbar() {
     const { navHeading } = useNavHeadingStore();
 
     return (
-        <div className="flex h-24 items-center justify-between bg-neutral-50 px-8 py-6">
+        <div className="flex h-[72px] items-center justify-between bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger>
                     <FiSidebar className="text-neutral-600" />
@@ -42,16 +42,16 @@ export function Navbar() {
             </div>
             <div className="flex gap-6 text-neutral-600">
                 <IconContainer>
-                    <MagnifyingGlass className="size-6" />
+                    <MagnifyingGlass className="size-5" />
                 </IconContainer>
                 <IconContainer className="relative">
-                    <Bell className="size-6" />
+                    <Bell className="size-5" />
                     {notifications && (
                         <div className="absolute right-2 top-2 size-2 rounded-full bg-primary-500"></div>
                     )}
                 </IconContainer>
                 <IconContainer>
-                    <Sliders className="size-6" />
+                    <Sliders className="size-5" />
                 </IconContainer>
                 <div className="flex items-center gap-1">
                     <IconContainer className="size-10 cursor-auto border-none p-0">

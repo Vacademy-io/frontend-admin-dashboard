@@ -1,7 +1,7 @@
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { dropdownSchema } from "@/components/design-system/utils/schema/dropdown-schema";
 import { useState } from "react";
-import { useGetBatchNames } from "@/hooks/student-list-section/useFilterData";
+import { useGetBatchNames } from "@/hooks/student-list-section/useFilters";
 
 interface BatchDropdownInterface {
     handleSessionValidation: (isValid: boolean) => void;

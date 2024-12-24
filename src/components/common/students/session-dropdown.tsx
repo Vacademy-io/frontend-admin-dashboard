@@ -1,7 +1,7 @@
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { dropdownSchema } from "@/components/design-system/utils/schema/dropdown-schema";
 import { useState } from "react";
-import { useGetSessions } from "@/hooks/student-list-section/useFilterData";
+import { useGetSessions } from "@/hooks/student-list-section/useFilters";
 
 export const SessionDropdown = ({
     handleSessionValidation,

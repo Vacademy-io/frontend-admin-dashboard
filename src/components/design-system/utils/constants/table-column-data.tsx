@@ -3,11 +3,23 @@ import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { ArrowSquareOut, CaretUpDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyDropdown } from "../../dropdown";
+import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
+import { ActivityStatus } from "../types/chips-types";
+import { StatusChips } from "../../chips";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
 }
+
+const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
+    const { packageName, levelName } = useGetStudentBatch(package_session_id);
+    return (
+        <div>
+            {levelName} {packageName}
+        </div>
+    );
+};
 
 export const myColumns: ColumnDef<StudentTable>[] = [
     {
@@ -56,11 +68,12 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         },
     },
     {
-        accessorKey: "batch_id",
+        accessorKey: "package_session_id",
         header: "Batch",
+        cell: ({ row }) => <BatchCell package_session_id={row.original.package_session_id} />,
     },
     {
-        accessorKey: "enrollment_no",
+        accessorKey: "institute_enrollment_id",
         header: "Enrollment Number",
     },
     {
@@ -108,13 +121,22 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         header: "State",
     },
     {
-        accessorKey: "session_expiry",
+        accessorKey: "session_expiry_days",
         header: "Session Expiry",
     },
     {
-        accessorKey: "status",
+        accessorKey: "region",
         header: "Status",
-        // cell: ({ row }) => <StatusChips status={row.getValue("status") as ActivityStatus} />,
+        cell: ({ row }) => {
+            const status = row.original.status;
+            const statusMapping: Record<string, ActivityStatus> = {
+                ACTIVE: "active",
+                TERMINATED: "inactive",
+            };
+
+            const mappedStatus = statusMapping[status] || "inactive";
+            return <StatusChips status={mappedStatus} />;
+        },
     },
     {
         id: "options",

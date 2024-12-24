@@ -100,6 +100,18 @@ export const FilterChips = ({
     disabled,
     clearFilters,
 }: FilterChipsProps) => {
+    const isSelected = (option: string | number) => selectedFilters.includes(String(option));
+
+    const handleSelect = (option: string | number) => {
+        if (setSelectedFilters) {
+            if (isSelected(option)) {
+                setSelectedFilters((prev) => prev.filter((item) => item !== String(option)));
+            } else {
+                setSelectedFilters((prev) => [...prev, String(option)]);
+            }
+        }
+    };
+
     const handleClearFilters = () => {
         if (setSelectedFilters) {
             setSelectedFilters([]);
@@ -166,36 +178,24 @@ export const FilterChips = ({
                     <CommandList>
                         <CommandEmpty>filters_no_results_found</CommandEmpty>
                         <CommandGroup>
-                            {filterList?.map((option) => {
-                                const isSelected = selectedFilters?.includes(option);
-                                return (
-                                    <CommandItem
-                                        key={option}
-                                        onSelect={() => {
-                                            if (isSelected && setSelectedFilters) {
-                                                setSelectedFilters((prev) =>
-                                                    prev.filter((item) => item !== option),
-                                                );
-                                            } else {
-                                                if (setSelectedFilters)
-                                                    setSelectedFilters((prev) => [...prev, option]);
-                                            }
-                                        }}
+                            {filterList?.map((option) => (
+                                <CommandItem
+                                    key={String(option)}
+                                    onSelect={() => handleSelect(option)}
+                                >
+                                    <div
+                                        className={cn(
+                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-300",
+                                            isSelected(option)
+                                                ? "text-base-white border-none bg-primary-300"
+                                                : "opacity-70 [&_svg]:invisible",
+                                        )}
                                     >
-                                        <div
-                                            className={cn(
-                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-300",
-                                                isSelected
-                                                    ? "text-base-white border-none bg-primary-300"
-                                                    : "opacity-70 [&_svg]:invisible",
-                                            )}
-                                        >
-                                            <Check className={cn("h-4 w-4")} />
-                                        </div>
-                                        <span>{option}</span>
-                                    </CommandItem>
-                                );
-                            })}
+                                        <Check className={cn("h-4 w-4")} />
+                                    </div>
+                                    <span>{option}</span>
+                                </CommandItem>
+                            ))}
                         </CommandGroup>
                         {selectedFilters.length > 0 && (
                             <>
