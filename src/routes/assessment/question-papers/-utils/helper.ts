@@ -17,14 +17,13 @@ export function transformFilterData(data: Record<string, FilterOption[]>) {
     const result: Record<string, string[] | string> = {};
 
     Object.keys(data).forEach((key) => {
-        if (data[key]) {
-            result[key] = data[key].map((item) => item.id);
-        } else {
-            result[key] = [];
-        }
+        // Safely handle undefined and assign an empty array if necessary
+        const items = data[key] || [];
+        result[key] = items.map((item) => item.id);
 
-        if (key === "name") {
-            result[key] = result[key].join("");
+        if (key === "name" && Array.isArray(result[key])) {
+            // Perform join only if result[key] is an array
+            result[key] = (result[key] as string[]).join("");
         }
     });
 
