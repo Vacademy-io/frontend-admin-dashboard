@@ -13,8 +13,12 @@ interface CustomTableMeta {
 }
 
 const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
-    const batchName = useGetStudentBatch(package_session_id);
-    return <div>{batchName}</div>;
+    const { packageName, levelName } = useGetStudentBatch(package_session_id);
+    return (
+        <div>
+            {levelName} {packageName}
+        </div>
+    );
 };
 
 export const myColumns: ColumnDef<StudentTable>[] = [
