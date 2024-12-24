@@ -1,3 +1,5 @@
+import { StudentFilterRequest } from "@/schemas/student/student-list/table-schema";
+
 export interface StudentListSectionProps {
     filter?: string;
 }
@@ -40,6 +42,9 @@ export interface StudentFiltersProps {
     onFilterChange: (filterId: string, values: string[]) => void;
     onFilterClick: () => void;
     onClearFilters: () => void;
+    appliedFilters: StudentFilterRequest;
+    page: number;
+    pageSize: number;
 }
 
 // types/students/student-types.ts

@@ -9,7 +9,7 @@ export const SIGNUP_URL = `${BASE_URL}/auth-service/v1/signup-root`;
 export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details/c70f40a5-e4d3-4b6c-a498-e612d0d4b133`;
 export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/student/get/v1/all`;
+export const GET_STUDENTS_CSV = `${BASE_URL}/admin-core-service/institute/student/get/v1/all-csv`;
 export const ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/student/v1/add-student`;
 export const INIT_CSV_BULK = `${BASE_URL}/admin-core-service/institute/student-bulk/v1/init-student-upload`;
-
-export const STUDENT_CSV_UPLOAD_URL = `${BASE_URL}/user/v1/student/csv/upload`;
+export const STUDENT_CSV_UPLOAD_URL = `${BASE_URL}/admin-core-service/institute/student-bulk/v1/upload-csv`;

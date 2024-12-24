@@ -80,6 +80,9 @@ export const StudentsListSection = () => {
                     onFilterChange={handleFilterChange}
                     onFilterClick={handleFilterClick}
                     onClearFilters={handleClearFilters}
+                    appliedFilters={appliedFilters}
+                    page={page}
+                    pageSize={10}
                 />
                 <div className="max-w-full">
                     <MyTable
