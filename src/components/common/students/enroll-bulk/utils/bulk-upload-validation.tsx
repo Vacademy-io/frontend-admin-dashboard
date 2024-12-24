@@ -7,17 +7,28 @@ export const createSchemaFromHeaders = (headers: Header[]) => {
 
     headers.forEach((header) => {
         if (header.type === "enum" && header.options && header.options.length > 0) {
-            // Handle enum type
-            const enumSchema = z.enum([header.options[0], ...header.options.slice(1)] as [
-                string,
-                ...string[],
-            ]);
-            schemaFields[header.column_name] = header.optional ? enumSchema.optional() : enumSchema;
+            // For columns with send_option_id true, we'll validate against both options and option_ids
+            if (header.send_option_id && header.option_ids) {
+                const validValues = [...header.options, ...Object.values(header.option_ids)];
+                const enumSchema = z.enum([validValues[0], ...validValues.slice(1)] as [
+                    string,
+                    ...string[],
+                ]);
+                schemaFields[header.column_name] = header.optional
+                    ? enumSchema.optional()
+                    : enumSchema;
+            } else {
+                const enumSchema = z.enum([header.options[0], ...header.options.slice(1)] as [
+                    string,
+                    ...string[],
+                ]);
+                schemaFields[header.column_name] = header.optional
+                    ? enumSchema.optional()
+                    : enumSchema;
+            }
         } else {
-            // Handle string type
             let fieldSchema = z.string();
 
-            // Add regex validation if exists
             if (header.regex) {
                 fieldSchema = fieldSchema.regex(
                     new RegExp(header.regex),
@@ -25,7 +36,6 @@ export const createSchemaFromHeaders = (headers: Header[]) => {
                 );
             }
 
-            // Add required/optional validation
             schemaFields[header.column_name] = header.optional
                 ? fieldSchema.optional()
                 : fieldSchema.min(1, `${header.column_name} is required`);

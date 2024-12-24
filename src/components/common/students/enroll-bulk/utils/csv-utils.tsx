@@ -77,6 +77,26 @@ export const validateCsvData = (file: File, schema: z.ZodType): Promise<ParseRes
     });
 };
 
+export const convertOptionsToIds = (data: SchemaFields[], headers: Header[]): SchemaFields[] => {
+    return data.map((row) => {
+        const newRow = { ...row };
+        headers.forEach((header) => {
+            if (header.send_option_id && header.option_ids && newRow[header.column_name]) {
+                // Find the option_id for the selected option
+                const selectedOption = newRow[header.column_name] as string;
+                const optionId = Object.entries(header.option_ids).find(
+                    ([value]) => value === selectedOption,
+                )?.[0];
+
+                if (optionId) {
+                    newRow[header.column_name] = optionId;
+                }
+            }
+        });
+        return newRow;
+    });
+};
+
 export const createAndDownloadCsv = (data: SchemaFields[], fileName: string): void => {
     const csv = Papa.unparse(data);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });

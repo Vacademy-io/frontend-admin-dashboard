@@ -12,7 +12,7 @@ import { ImportFileImage } from "@/assets/svgs";
 import { useBulkUploadInit } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadInit";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { validateCsvData, createAndDownloadCsv } from "./utils/csv-utils";
+import { validateCsvData, createAndDownloadCsv, convertOptionsToIds } from "./utils/csv-utils";
 import { createSchemaFromHeaders } from "./utils/bulk-upload-validation";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
 import { BulkUploadTable } from "./bulk-upload-table";
@@ -192,14 +192,16 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
     // };
 
     const handleDoneClick = async () => {
-        if (!csvData || !data?.submit_api) return;
+        if (!csvData || !data?.submit_api || !data?.headers) return;
 
         try {
             setIsSubmitting(true);
 
-            // Submit all rows without filtering
+            // Convert options to option_ids where necessary
+            const convertedData = convertOptionsToIds(csvData, data.headers);
+
             const response = await submitBulkUpload({
-                data: csvData,
+                data: convertedData,
                 instituteId: data.submit_api.request_params.instituteId,
             });
 
