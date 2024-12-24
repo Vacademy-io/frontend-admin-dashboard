@@ -33,7 +33,11 @@ import {
 } from "@/constants/dummy-data";
 import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
 
-export const QuestionPaperUpload = ({ isManualCreated }: { isManualCreated: boolean }) => {
+interface QuestionPaperUploadProps {
+    isManualCreated: boolean;
+}
+
+export const QuestionPaperUpload = ({ isManualCreated }: QuestionPaperUploadProps) => {
     const handleRefetchData = useRefetchStore((state) => state.handleRefetchData);
     const { setCurrentQuestionIndex } = useQuestionStore();
     const { instituteDetails } = useInstituteDetailsStore();
