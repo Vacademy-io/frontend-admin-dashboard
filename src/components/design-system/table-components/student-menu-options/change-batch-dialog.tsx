@@ -1,9 +1,11 @@
+// components/change-batch-dialog.tsx
 import { MyDialog } from "../../dialog";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { useDialogStore } from "../../utils/useDialogStore";
 import { BatchDropdown } from "@/components/common/students/batch-dropdown";
 import { MyButton } from "../../button";
-import { useState } from "react";
+import { useUpdateBatchMutation } from "@/services/student-list-section/useStudentOperations";
+import { useBulkUpdateBatchMutation } from "@/services/student-list-section/useBulkOperations";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface ChangeBatchDialogProps {
@@ -11,26 +13,69 @@ interface ChangeBatchDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
-// change-batch-dialog.tsx
-// change-batch-dialog.tsx
-const ChangeBatchDialogContent = () => {
-    const { selectedStudent, bulkActionInfo, isBulkAction } = useDialogStore();
-    const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.full_name;
 
+const ChangeBatchDialogContent = () => {
+    const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } = useDialogStore();
+
+    const [selectedBatchId, setSelectedBatchId] = useState<string>("");
     const [isFormValid, setIsFormValid] = useState({
         session: false,
     });
+
+    const { mutate: updateSingleBatch, isPending: isSinglePending } = useUpdateBatchMutation();
+    const { mutate: updateBulkBatch, isPending: isBulkPending } = useBulkUpdateBatchMutation();
+    const { instituteDetails } = useInstituteDetailsStore();
+
+    const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.full_name;
 
     const handleSessionValidation = (isValid: boolean) => {
         setIsFormValid((prev) => ({ ...prev, session: isValid }));
     };
 
-    // Get the current session from the package_session_id
-    const { instituteDetails } = useInstituteDetailsStore();
-    const currentBatchInfo = instituteDetails?.batches_for_sessions.find(
-        (batch) => batch.id === selectedStudent?.package_session_id,
-    );
+    const handleBatchChange = (batchId: string) => {
+        setSelectedBatchId(batchId);
+    };
+
+    const handleSubmit = () => {
+        if (isBulkAction && bulkActionInfo?.selectedStudents) {
+            updateBulkBatch(
+                {
+                    students: bulkActionInfo.selectedStudents.map((student) => ({
+                        userId: student.user_id,
+                        currentPackageSessionId: student.package_session_id || "",
+                    })),
+                    newPackageSessionId: selectedBatchId,
+                },
+                {
+                    onSuccess: closeAllDialogs,
+                },
+            );
+        } else if (selectedStudent) {
+            updateSingleBatch(
+                {
+                    students: [
+                        {
+                            userId: selectedStudent.user_id,
+                            currentPackageSessionId: selectedStudent.package_session_id || "",
+                        },
+                    ],
+                    newPackageSessionId: selectedBatchId,
+                },
+                {
+                    onSuccess: closeAllDialogs,
+                },
+            );
+        }
+    };
+
+    const currentBatchInfo = isBulkAction
+        ? null
+        : instituteDetails?.batches_for_sessions.find(
+              (batch) => batch.id === selectedStudent?.package_session_id,
+          );
+
     const currentSession = currentBatchInfo?.session.session_name;
+    const isLoading = isSinglePending || isBulkPending;
 
     return (
         <div className="flex flex-col gap-6 p-6 text-neutral-600">
@@ -44,14 +89,16 @@ const ChangeBatchDialogContent = () => {
                 currentPackageSessionId={
                     !isBulkAction ? selectedStudent?.package_session_id : undefined
                 }
+                onBatchSelect={handleBatchChange}
             />
             <MyButton
                 buttonType="primary"
                 scale="large"
                 layoutVariant="default"
-                disable={!isFormValid.session}
+                disable={!isFormValid.session || isLoading}
+                onClick={handleSubmit}
             >
-                Change Group/Batch
+                {isLoading ? "Updating..." : "Change Group/Batch"}
             </MyButton>
         </div>
     );
@@ -62,6 +109,7 @@ export const ChangeBatchDialog = ({ trigger, open, onOpenChange }: ChangeBatchDi
         <MyDialog
             trigger={trigger}
             heading="Change Batch"
+            dialogWidth="w-[400px] max-w-[400px]"
             content={<ChangeBatchDialogContent />}
             open={open}
             onOpenChange={onOpenChange}

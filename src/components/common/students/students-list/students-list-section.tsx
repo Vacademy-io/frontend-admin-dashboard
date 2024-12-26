@@ -13,6 +13,7 @@ import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
 import { BulkActions } from "./bulk-actions";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -75,14 +76,18 @@ export const StudentsListSection = () => {
         setRowSelections({});
     };
 
-    const getSelectedStudentIds = () => {
+    const getSelectedStudents = () => {
         return Object.entries(rowSelections)
             .flatMap(([selections]) =>
                 Object.entries(selections)
-                    .filter(([isSelected]) => isSelected)
-                    .map(([index]) => studentTableData?.content[parseInt(index)]?.id),
+                    .filter(([, isSelected]) => isSelected)
+                    .map(([index]) => studentTableData?.content[parseInt(index)]),
             )
-            .filter(Boolean) as string[];
+            .filter(Boolean) as StudentTable[];
+    };
+
+    const getSelectedStudentIds = () => {
+        return getSelectedStudents().map((student) => student.id);
     };
 
     const currentPageSelection = rowSelections[page] || {};
@@ -130,6 +135,7 @@ export const StudentsListSection = () => {
                     <BulkActions
                         selectedCount={totalSelectedCount}
                         selectedStudentIds={getSelectedStudentIds()}
+                        selectedStudents={getSelectedStudents()}
                         onReset={handleResetSelections}
                     />
                     <MyPagination

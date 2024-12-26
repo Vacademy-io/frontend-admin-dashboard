@@ -2,6 +2,8 @@
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { useDialogStore } from "@/components/design-system/utils/useDialogStore";
 import { BulkActionInfo } from "@/types/students/bulk-actions-types";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { ReactNode } from "react";
 
 const BulkActionDropdownList = [
     "Change Batch",
@@ -12,15 +14,17 @@ const BulkActionDropdownList = [
 ];
 
 interface BulkActionsMenuProps {
-    trigger: React.ReactNode;
-    selectedStudentIds: string[];
     selectedCount: number;
+    selectedStudentIds: string[];
+    selectedStudents: StudentTable[]; // Add this line
+    trigger: ReactNode;
 }
 
 export const BulkActionsMenu = ({
-    trigger,
-    selectedStudentIds,
     selectedCount,
+    selectedStudentIds,
+    selectedStudents, // Add this
+    trigger,
 }: BulkActionsMenuProps) => {
     const {
         openBulkChangeBatchDialog,
@@ -33,6 +37,7 @@ export const BulkActionsMenu = ({
     const handleMenuOptionsChange = (value: string) => {
         const bulkActionInfo: BulkActionInfo = {
             selectedStudentIds,
+            selectedStudents,
             displayText: `${selectedCount} students`,
         };
 

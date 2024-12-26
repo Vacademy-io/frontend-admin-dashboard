@@ -4,22 +4,25 @@ import { useState, useMemo } from "react";
 import { useGetBatchNames } from "@/hooks/student-list-section/useFilters";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
+// components/common/students/batch-dropdown.tsx
+
 interface BatchDropdownInterface {
     handleSessionValidation: (isValid: boolean) => void;
     session?: string;
     currentPackageSessionId?: string;
+    onBatchSelect: (batchId: string) => void; // Add this line
 }
 
 export const BatchDropdown = ({
     handleSessionValidation,
     session,
     currentPackageSessionId,
+    onBatchSelect, // Add this to destructuring
 }: BatchDropdownInterface) => {
     const { instituteDetails } = useInstituteDetailsStore();
     const sessionList = useGetBatchNames(session);
     const [currentBatch, setCurrentBatch] = useState("");
 
-    // Filter out the current batch from the options
     const filteredBatchList = useMemo(() => {
         if (!currentPackageSessionId) return sessionList;
 
@@ -34,8 +37,17 @@ export const BatchDropdown = ({
         return sessionList.filter((batchName) => batchName !== currentBatchName);
     }, [sessionList, currentPackageSessionId, instituteDetails]);
 
-    const handleBatchChange = (batch: string) => {
-        setCurrentBatch(batch);
+    const handleBatchChange = (batchName: string) => {
+        setCurrentBatch(batchName);
+
+        // Find the batch ID from the institute details
+        const selectedBatch = instituteDetails?.batches_for_sessions.find(
+            (batch) => `${batch.level.level_name} ${batch.package_dto.package_name}` === batchName,
+        );
+
+        if (selectedBatch) {
+            onBatchSelect(selectedBatch.id);
+        }
     };
 
     return (

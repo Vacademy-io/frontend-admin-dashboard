@@ -1,4 +1,7 @@
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
+
 export interface BulkActionInfo {
     selectedStudentIds: string[];
-    displayText: string; // For UI display (e.g., "5 students")
+    selectedStudents: StudentTable[]; // Add this
+    displayText: string;
 }
