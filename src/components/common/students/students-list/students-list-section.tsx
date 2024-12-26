@@ -58,6 +58,16 @@ export const StudentsListSection = () => {
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters);
 
+    const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
+    useEffect(() => {
+        if (studentTableData?.content) {
+            setAllPagesData((prev) => ({
+                ...prev,
+                [page]: studentTableData.content,
+            }));
+        }
+    }, [studentTableData?.content, page]);
+
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
 
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
@@ -76,17 +86,19 @@ export const StudentsListSection = () => {
         setRowSelections({});
     };
 
-    const getSelectedStudents = () => {
-        return Object.entries(rowSelections)
-            .flatMap(([selections]) =>
-                Object.entries(selections)
-                    .filter(([, isSelected]) => isSelected)
-                    .map(([index]) => studentTableData?.content[parseInt(index)]),
-            )
-            .filter(Boolean) as StudentTable[];
+    const getSelectedStudents = (): StudentTable[] => {
+        return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
+            const pageData = allPagesData[parseInt(pageNum)];
+            if (!pageData) return [];
+
+            return Object.entries(selections)
+                .filter(([, isSelected]) => isSelected)
+                .map(([index]) => pageData[parseInt(index)])
+                .filter((student): student is StudentTable => student !== undefined);
+        });
     };
 
-    const getSelectedStudentIds = () => {
+    const getSelectedStudentIds = (): string[] => {
         return getSelectedStudents().map((student) => student.id);
     };
 

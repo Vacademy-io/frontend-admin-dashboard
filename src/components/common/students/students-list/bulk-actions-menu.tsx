@@ -16,13 +16,11 @@ const BulkActionDropdownList = [
 interface BulkActionsMenuProps {
     selectedCount: number;
     selectedStudentIds: string[];
-    selectedStudents: StudentTable[]; // Add this line
+    selectedStudents: StudentTable[];
     trigger: ReactNode;
 }
 
 export const BulkActionsMenu = ({
-    selectedCount,
-    selectedStudentIds,
     selectedStudents, // Add this
     trigger,
 }: BulkActionsMenuProps) => {
@@ -35,10 +33,19 @@ export const BulkActionsMenu = ({
     } = useDialogStore();
 
     const handleMenuOptionsChange = (value: string) => {
+        const validStudents = selectedStudents.filter(
+            (student) => student && student.user_id && student.package_session_id,
+        );
+
+        if (validStudents.length === 0) {
+            console.error("No valid students selected");
+            return;
+        }
+
         const bulkActionInfo: BulkActionInfo = {
-            selectedStudentIds,
-            selectedStudents,
-            displayText: `${selectedCount} students`,
+            selectedStudentIds: validStudents.map((student) => student.id),
+            selectedStudents: validStudents,
+            displayText: `${validStudents.length} students`,
         };
 
         switch (value) {

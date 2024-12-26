@@ -43,7 +43,7 @@ const COLUMN_WIDTHS = {
     parents_email: "min-w-[240px]",
     city: "min-w-[180px]",
     region: "min-w-[180px]",
-    session_expiry_days: "min-w-[180px]",
+    expiry_date: "min-w-[180px]",
     status: "min-w-[180px]",
     options: "min-w-[56px] sticky right-0",
 };

@@ -5,6 +5,8 @@ import { useDialogStore } from "../../utils/useDialogStore";
 import { useState } from "react";
 import { MyButton } from "../../button";
 import { MyInput } from "../../input";
+import { useExtendSessionMutation } from "@/services/student-list-section/useStudentOperations";
+import { useBulkExtendSessionMutation } from "@/services/student-list-section/useBulkOperations";
 
 interface ExtendSessionDialogProps {
     trigger: ReactNode;
@@ -13,14 +15,73 @@ interface ExtendSessionDialogProps {
 }
 
 const ExtendSessionDialogContent = () => {
-    const { selectedStudent, bulkActionInfo, isBulkAction } = useDialogStore();
+    const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } = useDialogStore();
     const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.full_name;
 
     const [date, setDate] = useState("");
 
-    const handleInputChange = (value: React.ChangeEvent<HTMLInputElement>) => {
-        setDate(value.target.value);
+    const { mutate: extendSingleSession, isPending: isSinglePending } = useExtendSessionMutation();
+    const { mutate: extendBulkSession, isPending: isBulkPending } = useBulkExtendSessionMutation();
+
+    const handleSubmit = () => {
+        const formattedDate = formatDateForApi(date);
+
+        // For bulk actions
+        if (isBulkAction && bulkActionInfo?.selectedStudents) {
+            const validStudents = bulkActionInfo.selectedStudents.filter(
+                (student) => student && student.user_id && student.package_session_id,
+            );
+
+            if (validStudents.length === 0) {
+                console.error("No valid students found for bulk action");
+                return;
+            }
+
+            extendBulkSession(
+                {
+                    students: validStudents.map((student) => ({
+                        userId: student.user_id,
+                        currentPackageSessionId: student.package_session_id || "",
+                    })),
+                    newExpiryDate: formattedDate,
+                },
+                {
+                    onSuccess: closeAllDialogs,
+                },
+            );
+        }
+        // For single student
+        else if (selectedStudent?.user_id && selectedStudent?.package_session_id) {
+            extendSingleSession(
+                {
+                    students: [
+                        {
+                            userId: selectedStudent.user_id,
+                            currentPackageSessionId: selectedStudent.package_session_id,
+                        },
+                    ],
+                    newExpiryDate: formattedDate,
+                },
+                {
+                    onSuccess: closeAllDialogs,
+                },
+            );
+        }
     };
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setDate(event.target.value);
+    };
+
+    const formatDateForApi = (dateString: string) => {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    };
+
+    const isLoading = isSinglePending || isBulkPending;
 
     return (
         <div className="flex flex-col gap-6 p-6 text-neutral-600">
@@ -41,9 +102,10 @@ const ExtendSessionDialogContent = () => {
                 buttonType="primary"
                 scale="large"
                 layoutVariant="default"
-                disable={date == ""}
+                disable={!date || isLoading}
+                onClick={handleSubmit}
             >
-                Extend Session
+                {isLoading ? "Extending..." : "Extend Session"}
             </MyButton>
         </div>
     );
