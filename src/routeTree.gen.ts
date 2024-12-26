@@ -10,105 +10,120 @@
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as StudentsIndexImport } from "./routes/students/index";
-import { Route as LoginIndexImport } from "./routes/login/index";
-import { Route as DashboardIndexImport } from "./routes/dashboard/index";
-import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
-import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
-import { Route as AssessmentTestsIndexImport } from "./routes/assessment/tests/index";
+import { Route as rootRoute } from "./routes/__root"
+import { Route as StudentsIndexImport } from "./routes/students/index"
+import { Route as LoginIndexImport } from "./routes/login/index"
+import { Route as DashboardIndexImport } from "./routes/dashboard/index"
+import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index"
+import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index"
+import { Route as AssessmentTestsIndexImport } from "./routes/assessment/tests/index"
+import { Route as AssessmentTestsCreateAssessmentIndexImport } from "./routes/assessment/tests/create-assessment/index"
 
 // Create/Update Routes
 
 const StudentsIndexRoute = StudentsIndexImport.update({
-    path: "/students/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/students/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const LoginIndexRoute = LoginIndexImport.update({
-    path: "/login/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/login/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const DashboardIndexRoute = DashboardIndexImport.update({
-    path: "/dashboard/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/dashboard/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
-    path: "/students/students-list/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/students/students-list/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
-    path: "/login/forgot-password/",
-    getParentRoute: () => rootRoute,
-} as any);
+  path: "/login/forgot-password/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AssessmentTestsIndexRoute = AssessmentTestsIndexImport.update({
-    path: "/assessment/tests/",
+  path: "/assessment/tests/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AssessmentTestsCreateAssessmentIndexRoute =
+  AssessmentTestsCreateAssessmentIndexImport.update({
+    path: "/assessment/tests/create-assessment/",
     getParentRoute: () => rootRoute,
-} as any);
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module "@tanstack/react-router" {
-    interface FileRoutesByPath {
-        "/dashboard/": {
-            id: "/dashboard/";
-            path: "/dashboard";
-            fullPath: "/dashboard";
-            preLoaderRoute: typeof DashboardIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/login/": {
-            id: "/login/";
-            path: "/login";
-            fullPath: "/login";
-            preLoaderRoute: typeof LoginIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/students/": {
-            id: "/students/";
-            path: "/students";
-            fullPath: "/students";
-            preLoaderRoute: typeof StudentsIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/assessment/tests/": {
-            id: "/assessment/tests/";
-            path: "/assessment/tests";
-            fullPath: "/assessment/tests";
-            preLoaderRoute: typeof AssessmentTestsIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/login/forgot-password/": {
-            id: "/login/forgot-password/";
-            path: "/login/forgot-password";
-            fullPath: "/login/forgot-password";
-            preLoaderRoute: typeof LoginForgotPasswordIndexImport;
-            parentRoute: typeof rootRoute;
-        };
-        "/students/students-list/": {
-            id: "/students/students-list/";
-            path: "/students/students-list";
-            fullPath: "/students/students-list";
-            preLoaderRoute: typeof StudentsStudentsListIndexImport;
-            parentRoute: typeof rootRoute;
-        };
+  interface FileRoutesByPath {
+    "/dashboard/": {
+      id: "/dashboard/"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof DashboardIndexImport
+      parentRoute: typeof rootRoute
     }
+    "/login/": {
+      id: "/login/"
+      path: "/login"
+      fullPath: "/login"
+      preLoaderRoute: typeof LoginIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/students/": {
+      id: "/students/"
+      path: "/students"
+      fullPath: "/students"
+      preLoaderRoute: typeof StudentsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/tests/": {
+      id: "/assessment/tests/"
+      path: "/assessment/tests"
+      fullPath: "/assessment/tests"
+      preLoaderRoute: typeof AssessmentTestsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/login/forgot-password/": {
+      id: "/login/forgot-password/"
+      path: "/login/forgot-password"
+      fullPath: "/login/forgot-password"
+      preLoaderRoute: typeof LoginForgotPasswordIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/students/students-list/": {
+      id: "/students/students-list/"
+      path: "/students/students-list"
+      fullPath: "/students/students-list"
+      preLoaderRoute: typeof StudentsStudentsListIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/assessment/tests/create-assessment/": {
+      id: "/assessment/tests/create-assessment/"
+      path: "/assessment/tests/create-assessment"
+      fullPath: "/assessment/tests/create-assessment"
+      preLoaderRoute: typeof AssessmentTestsCreateAssessmentIndexImport
+      parentRoute: typeof rootRoute
+    }
+  }
 }
 
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
-    DashboardIndexRoute,
-    LoginIndexRoute,
-    StudentsIndexRoute,
-    AssessmentTestsIndexRoute,
-    LoginForgotPasswordIndexRoute,
-    StudentsStudentsListIndexRoute,
-});
+  DashboardIndexRoute,
+  LoginIndexRoute,
+  StudentsIndexRoute,
+  AssessmentTestsIndexRoute,
+  LoginForgotPasswordIndexRoute,
+  StudentsStudentsListIndexRoute,
+  AssessmentTestsCreateAssessmentIndexRoute,
+})
 
 /* prettier-ignore-end */
 
@@ -123,7 +138,8 @@ export const routeTree = rootRoute.addChildren({
         "/students/",
         "/assessment/tests/",
         "/login/forgot-password/",
-        "/students/students-list/"
+        "/students/students-list/",
+        "/assessment/tests/create-assessment/"
       ]
     },
     "/dashboard/": {
@@ -143,6 +159,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/students/students-list/": {
       "filePath": "students/students-list/index.tsx"
+    },
+    "/assessment/tests/create-assessment/": {
+      "filePath": "assessment/tests/create-assessment/index.tsx"
     }
   }
 }

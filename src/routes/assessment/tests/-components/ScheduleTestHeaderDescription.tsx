@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MyButton } from "@/components/design-system/button";
 import { CalendarBlank } from "phosphor-react";
+import { Link } from "@tanstack/react-router";
 
 export const ScheduleTestHeaderDescription = () => {
     const isMobile = useIsMobile();
@@ -34,10 +35,12 @@ export const ScheduleTestHeaderDescription = () => {
             </div>
             <AlertDialog>
                 <AlertDialogTrigger>
-                    <MyButton scale="large" buttonType="primary" layoutVariant="default">
-                        <CalendarBlank size={32} />
-                        Schedule Test
-                    </MyButton>
+                    <Link to="/assessment/tests/create-assessment">
+                        <MyButton scale="large" buttonType="primary" layoutVariant="default">
+                            <CalendarBlank size={32} />
+                            Schedule Test
+                        </MyButton>
+                    </Link>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
