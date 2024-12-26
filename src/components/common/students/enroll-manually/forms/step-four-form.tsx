@@ -8,7 +8,7 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepFourData, stepFourSchema } from "@/types/students/enroll-students-manually";
+import { StepFourData, stepFourSchema } from "@/types/students/schema-enroll-students-manually";
 
 export const StepFourForm = () => {
     const { stepFourData, setStepFourData, nextStep } = useFormStore();

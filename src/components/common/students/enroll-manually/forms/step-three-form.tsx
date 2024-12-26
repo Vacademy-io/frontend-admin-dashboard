@@ -9,7 +9,7 @@ import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepThreeData, stepThreeSchema } from "@/types/students/enroll-students-manually";
+import { StepThreeData, stepThreeSchema } from "@/types/students/schema-enroll-students-manually";
 
 export const StepThreeForm = () => {
     const { stepThreeData, setStepThreeData, nextStep } = useFormStore();

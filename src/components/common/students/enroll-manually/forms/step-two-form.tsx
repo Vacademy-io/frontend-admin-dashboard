@@ -15,7 +15,7 @@ import {
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepTwoData, stepTwoSchema } from "@/types/students/enroll-students-manually";
+import { StepTwoData, stepTwoSchema } from "@/types/students/schema-enroll-students-manually";
 
 export const StepTwoForm = () => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();

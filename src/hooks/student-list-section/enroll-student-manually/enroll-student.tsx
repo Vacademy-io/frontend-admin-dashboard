@@ -8,7 +8,7 @@ import {
     StepThreeData,
     StepFourData,
     StepFiveData,
-} from "@/types/students/enroll-students-manually";
+} from "@/types/students/schema-enroll-students-manually";
 
 // Define the request schema
 // const enrollStudentRequestSchema = z.object({
@@ -68,7 +68,7 @@ export const useEnrollStudent = () => {
                     date_of_birth: "",
                     gender: formData.stepTwoData?.gender || "",
                     password: formData.stepFiveData?.password || "",
-                    profile_pic_file_id: formData.stepOneData?.profilePicture?.id || "",
+                    profile_pic_file_id: formData.stepOneData?.profilePicture || "",
                     roles: ["STUDENT"],
                     root_user: false,
                 },
