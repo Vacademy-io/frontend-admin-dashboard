@@ -15,5 +15,6 @@ export interface FormInputProps
     required?: boolean;
     size?: InputSize;
     label?: string;
+    labelStyle?: string;
     disabled?: boolean;
 }
