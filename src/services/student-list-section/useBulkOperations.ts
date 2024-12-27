@@ -97,3 +97,47 @@ export const useBulkExtendSessionMutation = () => {
         },
     });
 };
+
+interface BulkTerminateRequest {
+    students: {
+        userId: string;
+        currentPackageSessionId: string;
+    }[];
+}
+
+const bulkTerminateStudents = async ({ students }: BulkTerminateRequest) => {
+    const response = await authenticatedAxiosInstance.post(STUDENT_UPDATE_OPERATION, {
+        operation: "MAKE_INACTIVE",
+        requests: students.map(({ userId, currentPackageSessionId }) => ({
+            user_id: userId,
+            new_state: "INACTIVE",
+            institute_id: INSTITUTE_ID,
+            current_package_session_id: currentPackageSessionId,
+        })),
+    });
+    return response.data;
+};
+
+export const useBulkTerminateStudentsMutation = () => {
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+
+    return useMutation({
+        mutationFn: bulkTerminateStudents,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["students"] });
+            toast({
+                title: "Success",
+                description: "Successfully terminated registrations for selected students",
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: "Failed to terminate registrations. Please try again.",
+                variant: "destructive",
+            });
+            console.error("Error in bulk termination:", error);
+        },
+    });
+};

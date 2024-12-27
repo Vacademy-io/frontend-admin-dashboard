@@ -93,3 +93,47 @@ export const useExtendSessionMutation = () => {
         },
     });
 };
+
+interface TerminateStudentRequest {
+    students: {
+        userId: string;
+        currentPackageSessionId: string;
+    }[];
+}
+
+const terminateStudent = async ({ students }: TerminateStudentRequest) => {
+    const response = await authenticatedAxiosInstance.post(STUDENT_UPDATE_OPERATION, {
+        operation: "MAKE_INACTIVE",
+        requests: students.map(({ userId, currentPackageSessionId }) => ({
+            user_id: userId,
+            new_state: "INACTIVE",
+            institute_id: INSTITUTE_ID,
+            current_package_session_id: currentPackageSessionId,
+        })),
+    });
+    return response.data;
+};
+
+export const useTerminateStudentMutation = () => {
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+
+    return useMutation({
+        mutationFn: terminateStudent,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["students"] });
+            toast({
+                title: "Success",
+                description: "Student registration terminated successfully",
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: "Failed to terminate registration. Please try again.",
+                variant: "destructive",
+            });
+            console.error("Error terminating registration:", error);
+        },
+    });
+};
