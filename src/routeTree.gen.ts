@@ -18,6 +18,7 @@ import { Route as DashboardIndexImport } from "./routes/dashboard/index";
 import { Route as StudyLibrary10ClassStudyLibraryIndexImport } from "./routes/study-library/10-class-study-library/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
+import { Route as StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexImport } from "./routes/study-library/10-class-study-library/10-class-physics/index";
 
 // Create/Update Routes
 
@@ -57,6 +58,12 @@ const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
     path: "/login/forgot-password/",
     getParentRoute: () => rootRoute,
 } as any);
+
+const StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexRoute =
+    StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexImport.update({
+        path: "/study-library/10-class-study-library/10-class-physics/",
+        getParentRoute: () => rootRoute,
+    } as any);
 
 // Populate the FileRoutesByPath interface
 
@@ -111,6 +118,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibrary10ClassStudyLibraryIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/study-library/10-class-study-library/10-class-physics/": {
+            id: "/study-library/10-class-study-library/10-class-physics/";
+            path: "/study-library/10-class-study-library/10-class-physics";
+            fullPath: "/study-library/10-class-study-library/10-class-physics";
+            preLoaderRoute: typeof StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexImport;
+            parentRoute: typeof rootRoute;
+        };
     }
 }
 
@@ -124,6 +138,7 @@ export const routeTree = rootRoute.addChildren({
     LoginForgotPasswordIndexRoute,
     StudentsStudentsListIndexRoute,
     StudyLibrary10ClassStudyLibraryIndexRoute,
+    StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexRoute,
 });
 
 /* prettier-ignore-end */
@@ -140,7 +155,8 @@ export const routeTree = rootRoute.addChildren({
         "/study-library/",
         "/login/forgot-password/",
         "/students/students-list/",
-        "/study-library/10-class-study-library/"
+        "/study-library/10-class-study-library/",
+        "/study-library/10-class-study-library/10-class-physics/"
       ]
     },
     "/dashboard/": {
@@ -163,6 +179,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/study-library/10-class-study-library/": {
       "filePath": "study-library/10-class-study-library/index.tsx"
+    },
+    "/study-library/10-class-study-library/10-class-physics/": {
+      "filePath": "study-library/10-class-study-library/10-class-physics/index.tsx"
     }
   }
 }

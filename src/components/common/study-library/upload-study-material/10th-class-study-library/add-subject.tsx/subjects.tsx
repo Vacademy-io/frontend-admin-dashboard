@@ -5,6 +5,7 @@ import { DotsSixVertical, DotsThree } from "@phosphor-icons/react";
 import { useState } from "react";
 import { AddSubjectForm } from "./add-subject-form";
 import { MyDialog } from "@/components/design-system/dialog";
+import { useRouter } from "@tanstack/react-router";
 
 interface Subject {
     name: string;
@@ -50,8 +51,16 @@ interface SubjectCardProps {
 const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+    const router = useRouter();
+
+    const handleCardClick = () => {
+        router.navigate({
+            to: "/study-library/10-class-study-library/10-class-physics",
+        });
+    };
+
     return (
-        <>
+        <div onClick={handleCardClick} className="cursor-pointer">
             <div className="relative flex size-[300px] flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md">
                 <DotsSixVertical className="absolute right-4 top-4 size-6 cursor-pointer" />
                 <SubjectDefaultImage />
@@ -76,7 +85,7 @@ const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => {
                     }}
                 />
             </MyDialog>
-        </>
+        </div>
     );
 };
 

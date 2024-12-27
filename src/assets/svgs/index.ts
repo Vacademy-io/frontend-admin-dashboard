@@ -26,3 +26,6 @@ export { SubjectDefaultImage };
 
 import EmptySubjectMaterial from "./empty-subject-material.svg";
 export { EmptySubjectMaterial };
+
+import EmptyModulesImage from "./empty_modules_image.svg";
+export { EmptyModulesImage };
