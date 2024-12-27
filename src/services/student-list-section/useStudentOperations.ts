@@ -137,3 +137,47 @@ export const useTerminateStudentMutation = () => {
         },
     });
 };
+
+interface DeleteStudentRequest {
+    students: {
+        userId: string;
+        currentPackageSessionId: string;
+    }[];
+}
+
+const deleteStudent = async ({ students }: DeleteStudentRequest) => {
+    const response = await authenticatedAxiosInstance.post(STUDENT_UPDATE_OPERATION, {
+        operation: "TERMINATE",
+        requests: students.map(({ userId, currentPackageSessionId }) => ({
+            user_id: userId,
+            new_state: "TERMINATE",
+            institute_id: INSTITUTE_ID,
+            current_package_session_id: currentPackageSessionId,
+        })),
+    });
+    return response.data;
+};
+
+export const useDeleteStudentMutation = () => {
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
+
+    return useMutation({
+        mutationFn: deleteStudent,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["students"] });
+            toast({
+                title: "Success",
+                description: "Student deleted successfully",
+            });
+        },
+        onError: (error) => {
+            toast({
+                title: "Error",
+                description: "Failed to delete student. Please try again.",
+                variant: "destructive",
+            });
+            console.error("Error deleting student:", error);
+        },
+    });
+};
