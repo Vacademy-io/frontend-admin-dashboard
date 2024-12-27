@@ -13,35 +13,7 @@ import SelectField from "@/components/design-system/select-field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { timeLimit } from "@/constants/dummy-data";
-
-const BasicInfoFormSchema = z.object({
-    testCreation: z.object({
-        assessmentName: z.string(),
-        subject: z.string(),
-        assessmentInstructions: z.string(),
-        liveDateRange: z.object({
-            startDate: z.string(), // Refine with date validation if necessary
-            endDate: z.string(),
-        }),
-    }),
-    testDuration: z.object({
-        entireTestDuration: z.object({
-            checked: z.boolean(),
-            testDuration: z.object({
-                hrs: z.string(), // Validate as a two-digit number
-                min: z.string(), // Validate as a two-digit number (0-59)
-            }),
-        }),
-        sectionWiseDuration: z.boolean(),
-    }),
-    assessmentPreview: z.object({
-        checked: z.boolean(),
-        previewTimeLimit: z.string(),
-    }),
-    switchSections: z.boolean(),
-    raiseReattemptRequest: z.boolean(),
-    raiseTimeIncreaseRequest: z.boolean(),
-});
+import { BasicInfoFormSchema } from "../../-utils/basic-info-form-schema";
 
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
@@ -82,13 +54,22 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             raiseReattemptRequest: false, // Default to true
             raiseTimeIncreaseRequest: false, // Default to false
         },
-        mode: "onChange", // Validate as user types
+        mode: "onSubmit", // Validate as user types
     });
 
-    const { handleSubmit, control, watch } = form;
-
+    const { handleSubmit, control, watch, getValues } = form;
+    // Watch form fields
+    const assessmentName = watch("testCreation.assessmentName");
+    const subject = watch("testCreation.subject");
+    const liveDateRangeStartDate = watch("testCreation.liveDateRange.startDate");
+    const liveDateRangeEndDate = watch("testCreation.liveDateRange.endDate");
+    // Determine if all fields are filled
+    const isFormValid =
+        !!assessmentName && !!subject && !!liveDateRangeStartDate && !!liveDateRangeEndDate;
+    console.log(getValues());
     const onSubmit = (data: z.infer<typeof BasicInfoFormSchema>) => {
         console.log(data);
+        handleCompleteCurrentStep();
     };
 
     const onInvalid = (err: unknown) => {
@@ -100,7 +81,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
                 <div className="m-0 flex items-center justify-between p-0">
                     <h1>Basic Information</h1>
-                    <MyButton type="submit" scale="large" buttonType="primary">
+                    <MyButton
+                        type="submit"
+                        scale="large"
+                        buttonType="primary"
+                        disabled={!isFormValid}
+                    >
                         Next
                     </MyButton>
                 </div>
@@ -134,7 +120,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         />
                         <SelectField
                             label="Subject"
-                            name="subject"
+                            name="testCreation.subject"
                             labelStyle="font-thin"
                             options={SubjectFilterData.map((option, index) => ({
                                 value: option.name,

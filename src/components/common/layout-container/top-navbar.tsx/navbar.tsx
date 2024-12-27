@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { DummyProfile } from "@/assets/svgs";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { FiSidebar } from "react-icons/fi";
+import useSidebarStore from "@/routes/assessment/tests/create-assessment/-utils/global-states";
 
 const IconContainer = ({
     children,
@@ -29,11 +30,11 @@ export function Navbar() {
     const notifications = true;
     const [dropdown, setDropdown] = useState<boolean>(true);
     const { navHeading } = useNavHeadingStore();
-
+    const { sidebarOpen, setSidebarOpen } = useSidebarStore();
     return (
         <div className="flex h-[72px] items-center justify-between bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
-                <SidebarTrigger>
+                <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
                     <FiSidebar className="text-neutral-600" />
                 </SidebarTrigger>
                 <div className="border-l border-neutral-500 px-4 text-h2 font-semibold text-neutral-600">

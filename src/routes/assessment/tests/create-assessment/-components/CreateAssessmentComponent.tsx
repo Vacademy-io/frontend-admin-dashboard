@@ -2,7 +2,7 @@ import { LayoutContainer } from "@/components/common/layout-container/layout-con
 import { useState } from "react";
 import { MainStepComponent } from "./StepComponents/MainStepComponent";
 import { CheckCircle } from "phosphor-react";
-
+import useSidebarStore from "../-utils/global-states";
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {
     steps: string[];
@@ -17,6 +17,7 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
     completedSteps,
     onStepClick,
 }) => {
+    const { sidebarOpen } = useSidebarStore();
     return (
         <>
             {steps.map((step, index) => (
@@ -39,10 +40,13 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
                                 } `
                     } focus:outline-none`}
                 >
-                    <div className="flex items-center">
-                        <span className="text-lg font-semibold">{index + 1}</span>
-                        &nbsp;&nbsp;&nbsp;&nbsp;
-                        <span className="font-thin">{step}</span>
+                    <div className="flex items-center gap-6">
+                        {!sidebarOpen && !completedSteps[index] && (
+                            <span className="text-lg font-semibold">{index + 1}</span>
+                        )}
+                        {sidebarOpen && <span className="text-lg font-semibold">{index + 1}</span>}
+                        {/* &nbsp;&nbsp;&nbsp;&nbsp; */}
+                        {sidebarOpen && <span className="font-thin">{step}</span>}
                     </div>
 
                     {completedSteps[index] && (
