@@ -76,13 +76,16 @@ export const useStudentFilters = (initialSession: string) => {
         });
 
         const statusFilter = columnFilters.find((filter) => filter.id === "statuses");
+        // If status filter is selected in UI, use those values
+        // Otherwise, use all available statuses from API
+        const statusesToApply = statusFilter?.value || instituteDetails?.student_statuses || [];
 
         setAppliedFilters((prev) => ({
             ...prev,
             name: searchFilter,
             package_session_ids: currentPackageSessionIds,
             gender: columnFilters.find((filter) => filter.id === "gender")?.value || [],
-            statuses: statusFilter?.value || instituteDetails?.student_statuses || [],
+            statuses: statusesToApply,
             session_expiry_days: sessionExpiryDays || [],
         }));
     };
@@ -127,6 +130,7 @@ export const useStudentFilters = (initialSession: string) => {
 
     const getActiveFiltersState = useCallback(() => {
         const batchFilter = columnFilters.find((filter) => filter.id === "batch");
+        const statusFilter = columnFilters.find((filter) => filter.id === "statuses");
         const sessionExpiryFilter = columnFilters.find(
             (filter) => filter.id === "session_expiry_days",
         );
@@ -134,8 +138,8 @@ export const useStudentFilters = (initialSession: string) => {
         const hasBatch = Boolean(batchFilter?.value && batchFilter.value.length > 0);
         const hasName = Boolean(appliedFilters.name?.trim());
         const hasGender = Array.isArray(appliedFilters.gender) && appliedFilters.gender.length > 0;
-        const hasStatus =
-            Array.isArray(appliedFilters.statuses) && appliedFilters.statuses.length > 0;
+        // Only consider status filter if explicitly selected in UI
+        const hasStatus = Boolean(statusFilter?.value && statusFilter.value.length > 0);
         const hasSessionExpiry = Boolean(
             sessionExpiryFilter?.value && sessionExpiryFilter.value.length > 0,
         );
