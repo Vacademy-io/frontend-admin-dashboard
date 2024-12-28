@@ -14,15 +14,46 @@ export const createSchemaFromHeaders = (headers: Header[]) => {
                 ...string[],
             ]);
             schemaFields[header.column_name] = header.optional ? enumSchema.optional() : enumSchema;
-        } else {
-            let fieldSchema = z.string();
+        } else if (header.type === "date" && header.format) {
+            const baseFieldSchema = z.string();
+            const validatedFieldSchema = header.regex
+                ? baseFieldSchema.regex(
+                      new RegExp(header.regex),
+                      header.regex_error_message ??
+                          `Invalid date format. Expected ${header.format}`,
+                  )
+                : baseFieldSchema;
 
-            if (header.regex) {
-                fieldSchema = fieldSchema.regex(
-                    new RegExp(header.regex),
-                    header.regex_error_message ?? "Invalid format",
-                );
-            }
+            schemaFields[header.column_name] = header.optional
+                ? validatedFieldSchema.optional()
+                : validatedFieldSchema.min(1, `${header.column_name} is required`);
+        } else if (header.type === "integer") {
+            const fieldSchema = z.string().transform((val) => {
+                const num = parseInt(val);
+                if (isNaN(num)) throw new Error("Not a valid number");
+                return num;
+            });
+
+            schemaFields[header.column_name] = header.optional
+                ? fieldSchema.optional()
+                : fieldSchema;
+        } else if (header.type === "regex" && header.regex) {
+            const fieldSchema = z
+                .string()
+                .regex(new RegExp(header.regex), header.regex_error_message ?? "Invalid format");
+
+            schemaFields[header.column_name] = header.optional
+                ? fieldSchema.optional()
+                : fieldSchema;
+        } else {
+            // Default string type
+            const baseFieldSchema = z.string();
+            const fieldSchema = header.regex
+                ? baseFieldSchema.regex(
+                      new RegExp(header.regex),
+                      header.regex_error_message ?? "Invalid format",
+                  )
+                : baseFieldSchema;
 
             schemaFields[header.column_name] = header.optional
                 ? fieldSchema.optional()
@@ -44,33 +75,34 @@ export const validateCsvData = (file: File, schema: z.ZodType): Promise<ParseRes
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
-                const parsedResult = schema.safeParse(results.data);
+                const allErrors: ValidationError[] = [];
 
-                if (parsedResult.success) {
-                    resolve({
-                        data: parsedResult.data as SchemaFields[],
-                        errors: [],
-                    });
-                } else {
-                    const errors = parsedResult.error.errors.map((error) => {
-                        const pathArray = Array.isArray(error.path) ? error.path : [];
-                        const rowIndex = typeof pathArray[0] === "number" ? pathArray[0] : 0;
-                        const columnName = String(pathArray[1] || "");
+                results.data.forEach((row, rowIndex) => {
+                    const validationResult = schema.safeParse(row);
 
-                        return {
-                            path: [rowIndex, columnName] as [number, string],
-                            message: error.message,
-                            resolution: `Please check the value for ${columnName}`,
-                            currentVal: String(results.data[rowIndex]?.[columnName] ?? "N/A"),
-                            format: "",
-                        };
-                    });
+                    if (!validationResult.success) {
+                        validationResult.error.errors.forEach((error) => {
+                            // Ensure we have a valid column name from the error path
+                            const columnName =
+                                typeof error.path[0] === "string"
+                                    ? error.path[0]
+                                    : Object.keys(row)[error.path[0] as number] || "";
 
-                    resolve({
-                        data: results.data,
-                        errors,
-                    });
-                }
+                            allErrors.push({
+                                path: [rowIndex, columnName],
+                                message: error.message,
+                                resolution: `Please check the value for ${columnName}`,
+                                currentVal: String(row[columnName] ?? "N/A"),
+                                format: "",
+                            });
+                        });
+                    }
+                });
+
+                resolve({
+                    data: results.data,
+                    errors: allErrors,
+                });
             },
             error: (error) => reject(error),
         });

@@ -10,32 +10,11 @@ export const createBulkUploadColumns = (
     csvErrors: ErrorType[],
     headers?: Header[],
 ): Array<ColumnDef<SchemaFields>> => {
-    const columns: Array<ColumnDef<SchemaFields>> = [
-        {
-            id: "status",
-            header: "Status",
-            cell: ({ row }) => {
-                const rowErrors = csvErrors.filter((error) => error.path[0] === row.index);
-                return (
-                    <div className="flex items-center text-xl">
-                        {rowErrors.length > 0 ? (
-                            <MyButton
-                                layoutVariant="default"
-                                scale="small"
-                                className="cursor-pointer bg-danger-500 hover:bg-danger-400 active:bg-danger-600"
-                                buttonType="primary"
-                            >
-                                Check errors
-                            </MyButton>
-                        ) : (
-                            <MdCheckCircle className="text-green-500" />
-                        )}
-                    </div>
-                );
-            },
-        },
-    ];
+    const columns: Array<ColumnDef<SchemaFields>> = [];
 
+    console.log("CSV Errors:", csvErrors);
+
+    // Add header columns first
     headers?.forEach((header) => {
         columns.push({
             accessorKey: header.column_name,
@@ -61,6 +40,32 @@ export const createBulkUploadColumns = (
         });
     });
 
+    // Add status column at the end
+    columns.push({
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+            const rowErrors = csvErrors.filter((error) => error.path[0] === row.index);
+            return (
+                <div className="flex items-center text-xl">
+                    {rowErrors.length > 0 ? (
+                        <MyButton
+                            layoutVariant="default"
+                            scale="small"
+                            className="cursor-pointer bg-danger-500 hover:bg-danger-400 active:bg-danger-600"
+                            buttonType="primary"
+                        >
+                            Check errors
+                        </MyButton>
+                    ) : (
+                        <MdCheckCircle className="text-green-500" />
+                    )}
+                </div>
+            );
+        },
+    });
+
+    // Add error column at the very end with simplified error message
     columns.push({
         id: "error",
         header: "Error",
@@ -69,7 +74,7 @@ export const createBulkUploadColumns = (
             return (
                 <div className="text-red-500">
                     {rowErrors.map((error, index) => (
-                        <div key={index}>{`${error.path[1]}: ${error.message}`}</div>
+                        <div key={index}>ERROR in [{error.path[1]}]</div>
                     ))}
                 </div>
             );

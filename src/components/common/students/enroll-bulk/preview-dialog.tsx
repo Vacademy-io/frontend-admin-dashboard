@@ -19,7 +19,7 @@ export const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialo
                 <div className="flex h-full flex-col">
                     <DialogHeader className="flex-none">
                         <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                            Preview Data
+                            Student List Preview
                         </div>
                     </DialogHeader>
 
