@@ -6,13 +6,13 @@ import { type ErrorType, type SchemaFields } from "@/types/students/bulk-upload-
 import { cn } from "@/lib/utils";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 
+// bulk-upload-columns.tsx
 export const createBulkUploadColumns = (
     csvErrors: ErrorType[],
     headers?: Header[],
+    isPostUpload: boolean = false, // Add this parameter to check if upload API was hit
 ): Array<ColumnDef<SchemaFields>> => {
     const columns: Array<ColumnDef<SchemaFields>> = [];
-
-    console.log("CSV Errors:", csvErrors);
 
     // Add header columns first
     headers?.forEach((header) => {
@@ -40,10 +40,10 @@ export const createBulkUploadColumns = (
         });
     });
 
-    // Add status column at the end
+    // Add validation status column - always visible
     columns.push({
-        id: "status",
-        header: "Status",
+        id: "validation_status",
+        header: "Validation Status",
         cell: ({ row }) => {
             const rowErrors = csvErrors.filter((error) => error.path[0] === row.index);
             return (
@@ -65,21 +65,54 @@ export const createBulkUploadColumns = (
         },
     });
 
-    // Add error column at the very end with simplified error message
-    columns.push({
-        id: "error",
-        header: "Error",
-        cell: ({ row }) => {
-            const rowErrors = csvErrors.filter((error) => error.path[0] === row.index);
-            return (
-                <div className="text-red-500">
-                    {rowErrors.map((error, index) => (
-                        <div key={index}>ERROR in [{error.path[1]}]</div>
-                    ))}
-                </div>
-            );
-        },
-    });
+    // Only add these columns if upload API was hit
+    if (isPostUpload) {
+        columns.push(
+            {
+                id: "upload_status",
+                header: "Upload Status",
+                cell: ({ row }) => {
+                    const status = row.getValue("STATUS") as string;
+                    return (
+                        <div
+                            className={cn(
+                                "text-sm font-semibold",
+                                status === "Success" ? "text-success-500" : "text-danger-500",
+                            )}
+                        >
+                            {status === "true" ? "Student Added Successfully" : "Student Not Added"}
+                        </div>
+                    );
+                },
+            },
+            // {
+            //     id: "status_message",
+            //     header: "Status Message",
+            //     cell: ({ row }) => {
+            //         const message = row.original.STATUS_MESSAGE;
+            //         return (
+            //             <div className="text-sm text-neutral-600">
+            //                 {message || ""}
+            //             </div>
+            //         );
+            //     },
+            // },
+            {
+                id: "upload_error",
+                header: "Upload Error",
+                cell: ({ row }) => {
+                    const error = row.original.ERROR; // Access directly from row.original
+                    if (!error) return null;
+
+                    return (
+                        <div className="max-w-[300px] whitespace-normal text-sm text-danger-500">
+                            {error}
+                        </div>
+                    );
+                },
+            },
+        );
+    }
 
     return columns;
 };

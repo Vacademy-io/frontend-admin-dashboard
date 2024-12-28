@@ -19,6 +19,7 @@ import { SchemaFields } from "@/types/students/bulk-upload-types";
 import { toast } from "sonner";
 import { submitBulkUpload } from "@/hooks/student-list-section/enroll-student-bulk/submit-bulk-upload";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
+import Papa from "papaparse";
 
 interface FileState {
     file: File | null;
@@ -35,6 +36,13 @@ interface PreviewDialogProps {
     file: File | null;
     headers: Header[];
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
+}
+
+interface ResponseRow {
+    STATUS: string;
+    STATUS_MESSAGE: string;
+    ERROR: string;
+    [key: string]: string; // for other potential fields
 }
 
 const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialogProps) => {
@@ -183,11 +191,26 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                 instituteId: data.submit_api.request_params.instituteId,
             });
 
-            console.log("Upload response:", response);
-            toast.success("Students enrolled successfully");
-            setIsOpen(false);
-            setCsvData(undefined);
-            setCsvErrors([]);
+            // Parse the CSV response with type safety
+            const parsedResponse = Papa.parse<ResponseRow>(response, {
+                header: true,
+            }).data;
+
+            // Update the CSV data with response information
+            const updatedCsvData = csvData.map((row, index) => {
+                const responseRow = parsedResponse[index];
+                if (!responseRow) return row;
+
+                return {
+                    ...row,
+                    STATUS: responseRow.STATUS === "true" ? "Success" : "Failed",
+                    STATUS_MESSAGE: responseRow.STATUS_MESSAGE || "",
+                    ERROR: responseRow.ERROR || "",
+                };
+            });
+
+            setCsvData(updatedCsvData);
+            setShowPreview(true);
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
             toast.error("Failed to enroll students");

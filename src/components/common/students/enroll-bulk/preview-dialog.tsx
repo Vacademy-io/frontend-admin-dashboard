@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@/components/
 import { MyButton } from "@/components/design-system/button";
 import { BulkUploadTable } from "./bulk-upload-table";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
+import { toast } from "sonner";
 
 interface PreviewDialogProps {
     isOpen: boolean;
@@ -13,37 +14,32 @@ interface PreviewDialogProps {
 
 // preview-dialog.tsx
 export const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialogProps) => {
+    const handleClose = () => {
+        onClose();
+        toast.success("Students enrollment process completed");
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="h-[80vh] p-0 font-normal">
-                <div className="flex h-full flex-col">
-                    <DialogHeader className="flex-none">
-                        <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                            Student List Preview
-                        </div>
-                    </DialogHeader>
-
-                    {/* Main content area with proper scroll containers */}
-                    <div className="flex-1 p-6">
-                        <div className="h-full">
-                            {/* Enable both horizontal and vertical scrolling */}
-                            <div className="no-scrollbar overflow-x-scroll">
-                                <BulkUploadTable headers={headers} onEdit={onEdit} />
-                            </div>
-                        </div>
+                <DialogHeader>
+                    <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
+                        Upload Results
                     </div>
-
-                    <DialogFooter className="flex-none border-t px-6 py-4">
-                        <MyButton
-                            buttonType="primary"
-                            scale="large"
-                            layoutVariant="default"
-                            onClick={onClose}
-                        >
-                            Close
-                        </MyButton>
-                    </DialogFooter>
+                </DialogHeader>
+                <div className="flex-1 overflow-auto p-6">
+                    <BulkUploadTable headers={headers} onEdit={onEdit} />
                 </div>
+                <DialogFooter className="border-t px-6 py-4">
+                    <MyButton
+                        buttonType="primary"
+                        scale="large"
+                        layoutVariant="default"
+                        onClick={handleClose}
+                    >
+                        Close
+                    </MyButton>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );

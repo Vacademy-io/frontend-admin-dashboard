@@ -23,7 +23,9 @@ export function BulkUploadTable({ headers }: BulkUploadTableProps) {
     const [searchInput, setSearchInput] = useState("");
     const [searchFilter, setSearchFilter] = useState("");
 
-    const columns = createBulkUploadColumns(csvErrors, headers);
+    const isPostUpload = csvData?.some((row) => "STATUS" in row) ?? false;
+
+    const columns = createBulkUploadColumns(csvErrors, headers, isPostUpload);
 
     const filteredData = useMemo(() => {
         if (!csvData) return [];
