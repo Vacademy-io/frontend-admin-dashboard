@@ -45,7 +45,6 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
                             <span className="text-lg font-semibold">{index + 1}</span>
                         )}
                         {sidebarOpen && <span className="text-lg font-semibold">{index + 1}</span>}
-                        {/* &nbsp;&nbsp;&nbsp;&nbsp; */}
                         {sidebarOpen && <span className="font-thin">{step}</span>}
                     </div>
 

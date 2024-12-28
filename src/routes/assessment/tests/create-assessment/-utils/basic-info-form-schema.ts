@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const BasicInfoFormSchema = z.object({
+    status: z.string(),
     testCreation: z.object({
         assessmentName: z.string(),
         subject: z.string(),
