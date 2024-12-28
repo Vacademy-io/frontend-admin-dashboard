@@ -7,34 +7,34 @@ export interface StudentListSectionProps {
 export interface FilterProps {
     filterDetails: {
         label: string;
-        filters: string[];
+        filters: string[] | number[];
     };
     onFilterChange?: (values: string[]) => void;
     clearFilters?: boolean;
 }
 
-type FilterId = "session" | "batch" | "statuses" | "gender";
+type FilterId = "session" | "batch" | "statuses" | "gender" | "session_expiry_days";
 
 export interface FilterConfig {
     id: FilterId; // Change this line
     title: string;
-    filterList: string[];
+    filterList: string[] | number[];
 }
 
-export interface Filter {
-    id: string;
-    title: string;
-    filterList: string[];
-}
+// export interface Filter {
+//     id: string;
+//     title: string;
+//     filterList: string[];
+// }
 export interface StudentFiltersProps {
     currentSession: string;
     sessions: string[];
-    filters: Filter[];
+    filters: FilterConfig[];
     searchInput: string;
     searchFilter: string;
     columnFilters: { id: string; value: string[] }[];
     clearFilters: boolean;
-    hasActiveFilters: boolean;
+    getActiveFiltersState: () => boolean;
     onSessionChange: (session: string) => void;
     onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onSearchEnter: () => void;
@@ -94,4 +94,20 @@ export interface ValidationError {
 export interface ValidationResult {
     data: CsvRow[];
     errors: ValidationError[];
+}
+
+export interface StudentSearchBoxProps {
+    searchInput: string;
+    searchFilter: string;
+    onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onSearchEnter: () => void;
+    onClearSearch: () => void;
+}
+
+export interface StudentSearchBoxProps {
+    searchInput: string;
+    searchFilter: string;
+    onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onSearchEnter: () => void;
+    onClearSearch: () => void;
 }

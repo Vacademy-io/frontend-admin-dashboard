@@ -4,10 +4,22 @@ import { ArrowSquareOut, DotsThree, CaretUp, CaretDown } from "@phosphor-icons/r
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyButton } from "../../button";
 import { MyDropdown } from "../../dropdown";
+import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
+import { ActivityStatus } from "../types/chips-types";
+import { StatusChips } from "../../chips";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
 }
+
+const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
+    const { packageName, levelName } = useGetStudentBatch(package_session_id);
+    return (
+        <div>
+            {levelName} {packageName}
+        </div>
+    );
+};
 
 export const myColumns: ColumnDef<StudentTable>[] = [
     {
@@ -57,11 +69,12 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         },
     },
     {
-        accessorKey: "batch_id",
+        accessorKey: "package_session_id",
         header: "Batch",
+        cell: ({ row }) => <BatchCell package_session_id={row.original.package_session_id} />,
     },
     {
-        accessorKey: "enrollment_no",
+        accessorKey: "institute_enrollment_id",
         header: "Enrollment Number",
     },
     {
@@ -105,17 +118,50 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         header: "City",
     },
     {
-        accessorKey: "state",
+        accessorKey: "region",
         header: "State",
     },
     {
-        accessorKey: "session_expiry",
+        accessorKey: "expiry_date",
         header: "Session Expiry",
+        cell: ({ row }) => {
+            if (row.original.expiry_date == null) return <></>;
+
+            const expiryDate = new Date(row.original.expiry_date);
+            const today = new Date();
+
+            // Use getTime() to get timestamps in milliseconds
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            return (
+                <div
+                    className={`${
+                        daysLeft < 30
+                            ? "text-danger-600"
+                            : daysLeft < 180
+                              ? "text-warning-500"
+                              : "text-success-500"
+                    }`}
+                >
+                    {daysLeft > 0 && daysLeft}
+                </div>
+            );
+        },
     },
     {
-        accessorKey: "status",
+        accessorKey: "region",
         header: "Status",
-        // cell: ({ row }) => <StatusChips status={row.getValue("status") as ActivityStatus} />,
+        cell: ({ row }) => {
+            const status = row.original.status;
+            const statusMapping: Record<string, ActivityStatus> = {
+                ACTIVE: "active",
+                TERMINATED: "inactive",
+            };
+
+            const mappedStatus = statusMapping[status] || "inactive";
+            return <StatusChips status={mappedStatus} />;
+        },
     },
     {
         id: "options",

@@ -1,6 +1,5 @@
 export const BASE_URL = "https://backend-stage.vacademy.io";
 
-//institute id
 export const INSTITUTE_ID = "c70f40a5-e4d3-4b6c-a498-e612d0d4b133";
 
 // urls

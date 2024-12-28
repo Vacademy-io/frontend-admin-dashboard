@@ -5,8 +5,7 @@ import { Export } from "@phosphor-icons/react";
 import { Filters } from "./myFilter";
 import { StudentSearchBox } from "./student-search-box";
 import { StudentFiltersProps } from "@/types/students/students-list-types";
-import { exportStudentsCsv } from "@/services/student-list-section/exportStudentsCsv";
-import { toast } from "sonner"; // Assuming you're using sonner for notifications
+import { useMemo } from "react";
 
 export const StudentFilters = ({
     currentSession,
@@ -16,7 +15,7 @@ export const StudentFilters = ({
     searchFilter,
     columnFilters,
     clearFilters,
-    hasActiveFilters,
+    getActiveFiltersState,
     onSessionChange,
     onSearchChange,
     onSearchEnter,
@@ -24,23 +23,10 @@ export const StudentFilters = ({
     onFilterChange,
     onFilterClick,
     onClearFilters,
-    appliedFilters,
-    page,
-    pageSize,
 }: StudentFiltersProps) => {
-    const handleExport = async () => {
-        try {
-            await exportStudentsCsv({
-                filters: appliedFilters,
-                pageNo: page,
-                pageSize: pageSize,
-            });
-            toast.success("Student data exported successfully");
-        } catch (error) {
-            toast.error("Failed to export student data");
-        }
-    };
-
+    const isFilterActive = useMemo(() => {
+        return getActiveFiltersState();
+    }, [columnFilters, searchFilter]);
     return (
         <div className="flex items-start justify-between">
             <div className="flex flex-wrap items-center gap-6 gap-y-4">
@@ -73,7 +59,7 @@ export const StudentFilters = ({
                     />
                 ))}
 
-                {(columnFilters.length > 0 || hasActiveFilters) && (
+                {(columnFilters.length > 0 || isFilterActive) && (
                     <div className="flex flex-wrap items-center gap-6">
                         <MyButton
                             buttonType="primary"
@@ -96,12 +82,7 @@ export const StudentFilters = ({
                     </div>
                 )}
             </div>
-            <MyButton
-                scale="large"
-                buttonType="secondary"
-                layoutVariant="default"
-                onClick={handleExport}
-            >
+            <MyButton scale="large" buttonType="secondary" layoutVariant="default">
                 <Export />
                 <div>Export</div>
             </MyButton>

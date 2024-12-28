@@ -18,8 +18,8 @@ const COLUMN_WIDTHS = {
     checkbox: "min-w-[56px] sticky left-0",
     details: "min-w-[80px] sticky left-[52px]",
     full_name: "min-w-[180px] sticky left-[130px]",
-    batch_id: "min-w-[240px]",
-    enrollment_no: "min-w-[200px]",
+    package_session_id: "min-w-[240px]",
+    institute_enrollment_id: "min-w-[200px]",
     linked_institute_name: "min-w-[240px]",
     gender: "min-w-[120px]",
     mobile_number: "min-w-[180px]",
@@ -31,8 +31,8 @@ const COLUMN_WIDTHS = {
     parents_email: "min-w-[240px]",
     city: "min-w-[180px]",
     state: "min-w-[180px]",
-    session_expiry: "min-w-[180px]",
-    status: "min-w-[180px]",
+    expiry_date: "min-w-[180px]",
+    region: "min-w-[180px]",
     options: "min-w-[56px] sticky right-0",
 };
 

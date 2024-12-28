@@ -1,7 +1,7 @@
 import { DialogHeader } from "@/components/ui/dialog";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { useGetSessions } from "@/hooks/student-list-section/useFilterData";
+import { useGetSessions } from "@/hooks/student-list-section/useFilters";
 import { useState } from "react";
 import { UploadCSVButton } from "./upload-csv-button";
 import { dropdownSchema } from "@/components/design-system/utils/schema/dropdown-schema";

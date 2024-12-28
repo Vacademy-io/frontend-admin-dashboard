@@ -32,6 +32,15 @@ const BatchForSessionSchema = z.object({
     package_dto: PackageSchema,
 });
 
+const SubjectSchema = z.object({
+    id: z.string(),
+    subject_name: z.string(),
+    subject_code: z.string(),
+    credit: z.number().nullable(),
+    created_at: z.string(),
+    updated_at: z.string(),
+});
+
 const InstituteSchema = z.object({
     institute_name: z.string(),
     id: z.string(),
@@ -56,6 +65,8 @@ const InstituteSchema = z.object({
     levels: z.array(LevelSchema),
     genders: z.array(z.enum(["MALE", "FEMALE", "OTHER"])),
     student_statuses: z.array(z.enum(["ACTIVE", "TERMINATED"])),
+    subjects: z.array(SubjectSchema),
+    session_expiry_days: z.array(z.number()),
 });
 
 export type InstituteDetailsType = z.infer<typeof InstituteSchema> | null;

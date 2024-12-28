@@ -11,15 +11,15 @@ import {
     useGetBatchNames,
     useGetSessions,
     useGetGenders,
-} from "@/hooks/student-list-section/useFilterData";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+} from "@/hooks/student-list-section/useFilters";
+// import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepTwoData, stepTwoSchema } from "@/types/students/enroll-students-manually";
 
 export const StepTwoForm = () => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
-    const { isLoading } = useInstituteQuery();
+    // const { isLoading } = useInstituteQuery();
     const sessionList = useGetSessions();
     const genderList = useGetGenders();
 
@@ -153,7 +153,7 @@ export const StepTwoForm = () => {
                                                             *
                                                         </span>
                                                     </div>
-                                                    {isLoading ? (
+                                                    {/* {isLoading ? (
                                                         <div>Loading...</div>
                                                     ) : (
                                                         <MyDropdown
@@ -161,7 +161,12 @@ export const StepTwoForm = () => {
                                                             dropdownList={sessionList}
                                                             handleChange={onChange}
                                                         />
-                                                    )}
+                                                    )} */}
+                                                    <MyDropdown
+                                                        currentValue={value}
+                                                        dropdownList={sessionList}
+                                                        handleChange={onChange}
+                                                    />
                                                 </div>
                                             </FormControl>
                                         </FormItem>
@@ -181,7 +186,7 @@ export const StepTwoForm = () => {
                                                             *
                                                         </span>
                                                     </div>
-                                                    {isLoading ? (
+                                                    {/* {isLoading ? (
                                                         <div>Loading...</div>
                                                     ) : (
                                                         <MyDropdown
@@ -189,7 +194,12 @@ export const StepTwoForm = () => {
                                                             dropdownList={genderList}
                                                             handleChange={onChange}
                                                         />
-                                                    )}
+                                                    )} */}
+                                                    <MyDropdown
+                                                        currentValue={value}
+                                                        dropdownList={genderList}
+                                                        handleChange={onChange}
+                                                    />
                                                 </div>
                                             </FormControl>
                                         </FormItem>
