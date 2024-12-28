@@ -6,6 +6,7 @@ export const STUDENT_LIST_COLUMN_WIDTHS: ColumnWidthConfig = {
     checkbox: "min-w-[56px] sticky left-0",
     details: "min-w-[80px] sticky left-[52px]",
     full_name: "min-w-[180px] sticky left-[130px]",
+    username: "min-w-[180px]",
     package_session_id: "min-w-[240px]",
     institute_enrollment_id: "min-w-[200px]",
     linked_institute_name: "min-w-[240px]",
