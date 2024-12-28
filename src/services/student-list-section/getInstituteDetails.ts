@@ -1,5 +1,4 @@
 // hooks/student-list/useInstituteDetails.ts
-import { useQuery } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
@@ -18,12 +17,13 @@ const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
 export const useInstituteQuery = () => {
     const setInstituteDetails = useInstituteDetailsStore((state) => state.setInstituteDetails);
 
-    return useQuery({
-        queryKey: ["institute"],
+    return {
+        queryKey: ["GET_INIT_INSTITUTE"],
         queryFn: async () => {
             const data = await fetchInstituteDetails();
             setInstituteDetails(data);
             return data;
         },
-    });
+        staleTime: 60 * 60 * 1000,
+    };
 };

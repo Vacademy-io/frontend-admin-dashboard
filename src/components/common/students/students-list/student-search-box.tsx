@@ -1,14 +1,7 @@
 // components/StudentSearchBox.tsx
 import { MyInput } from "@/components/design-system/input";
 import { MagnifyingGlass, KeyReturn, XCircle } from "@phosphor-icons/react";
-
-interface StudentSearchBoxProps {
-    searchInput: string;
-    searchFilter: string;
-    onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onSearchEnter: () => void;
-    onClearSearch: () => void;
-}
+import { StudentSearchBoxProps } from "@/types/students/students-list-types";
 
 export const StudentSearchBox = ({
     searchInput,
