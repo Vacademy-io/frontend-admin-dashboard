@@ -11,6 +11,9 @@ import { StudentFilters } from "./student-filters";
 import { useStudentFilters } from "@/hooks/student-list-section/useStudentFilters";
 import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
+import { STUDENT_LIST_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -85,11 +88,13 @@ export const StudentsListSection = () => {
                     pageSize={10}
                 />
                 <div className="max-w-full">
-                    <MyTable
+                    <MyTable<StudentTable>
                         data={studentTableData}
+                        columns={myColumns}
                         isLoading={loadingData}
                         error={loadingError}
                         onSort={handleSort}
+                        columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                     />
                 </div>
                 <MyPagination
