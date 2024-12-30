@@ -150,7 +150,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         },
     },
     {
-        accessorKey: "region",
+        accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
             const status = row.original.status;

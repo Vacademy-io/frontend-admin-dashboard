@@ -108,6 +108,7 @@ export const StepThreeForm = () => {
                                                     currentValue={value}
                                                     dropdownList={stateList}
                                                     handleChange={onChange}
+                                                    placeholder="Select State"
                                                 />
                                             </div>
                                         </FormControl>
@@ -132,6 +133,7 @@ export const StepThreeForm = () => {
                                                     currentValue={value}
                                                     dropdownList={cityList}
                                                     handleChange={onChange}
+                                                    placeholder="Select City"
                                                 />
                                             </div>
                                         </FormControl>
