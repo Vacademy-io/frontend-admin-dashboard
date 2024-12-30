@@ -18,7 +18,7 @@ export const Filters = ({ filterDetails, onFilterChange, clearFilters }: FilterP
                 onFilterChange(selectedFilters);
             }
         }
-    }, [selectedFilters, onFilterChange, filterDetails.label]);
+    }, [selectedFilters, filterDetails.label]);
 
     return (
         <FilterChips
