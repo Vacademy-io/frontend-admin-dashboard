@@ -3,6 +3,7 @@ import { useState } from "react";
 import { MainStepComponent } from "./StepComponents/MainStepComponent";
 import { CheckCircle } from "phosphor-react";
 import useSidebarStore from "../-utils/global-states";
+import { Helmet } from "react-helmet";
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {
     steps: string[];
@@ -89,6 +90,13 @@ const CreateAssessmentComponent = () => {
                 />
             }
         >
+            <Helmet>
+                <title>Create Assessment</title>
+                <meta
+                    name="description"
+                    content="This page is for creating an assessment for students via admin."
+                />
+            </Helmet>
             <MainStepComponent
                 currentStep={currentStep}
                 handleCompleteCurrentStep={completeCurrentStep}

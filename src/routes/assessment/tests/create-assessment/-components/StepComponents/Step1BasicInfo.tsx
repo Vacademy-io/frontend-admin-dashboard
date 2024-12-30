@@ -6,7 +6,6 @@ import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useFilterDataForAssesment } from "../../../-utils.ts/useFiltersData";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
@@ -19,13 +18,14 @@ import { getAssessmentDetails } from "../../-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { getFieldOptions, getStepKey } from "../../-utils/helper";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
-    const { instituteDetails } = useInstituteDetailsStore();
+    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
 
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
