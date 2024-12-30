@@ -18,6 +18,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getAssessmentDetails } from "../../-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { getFieldOptions, getStepKey } from "../../-utils/helper";
+import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
@@ -207,24 +208,10 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     <FormField
                         control={control}
                         name="testCreation.assessmentInstructions"
-                        render={({ field: { onChange, value, ...field } }) => (
+                        render={({ field: { onChange, value } }) => (
                             <FormItem>
                                 <FormControl>
-                                    <MyInput
-                                        inputType="text"
-                                        inputPlaceholder="Assessment Instructions"
-                                        labelStyle="font-thin"
-                                        input={value}
-                                        onChangeFunction={onChange}
-                                        error={
-                                            form.formState.errors.testCreation?.assessmentName
-                                                ?.message
-                                        }
-                                        size="large"
-                                        label="Assessment Instructions"
-                                        {...field}
-                                        className="my-1 w-full"
-                                    />
+                                    <MainViewQuillEditor onChange={onChange} value={value} />
                                 </FormControl>
                             </FormItem>
                         )}
