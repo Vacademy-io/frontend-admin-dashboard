@@ -26,14 +26,10 @@ export const getFieldOptions = ({
     key: string;
     value: string;
 }): boolean => {
-    if (
-        !assessmentDetails[currentStep] ||
-        !assessmentDetails[currentStep].field_options ||
-        !assessmentDetails[currentStep].field_options[key]
-    ) {
-        return false;
-    }
-
-    // Check if the value exists in the array for the given key
-    return assessmentDetails[currentStep].field_options[key].some((item) => item.value === value);
+    // Safely access the nested array using optional chaining
+    return (
+        assessmentDetails[currentStep]?.field_options?.[key]?.some(
+            (item) => item.value === value,
+        ) || false
+    );
 };
