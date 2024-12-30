@@ -19,7 +19,7 @@ const myButtonVariants = {
     },
     scales: {
         default: {
-            large: "min-w-60 h-10 px-4 text-subtitle ",
+            large: "min-w-60 h-10 px-4 text-caption ",
             medium: "min-w-[140px] h-9 px-3 text-body ",
             small: "min-w-[83px] h-6 px-2 text-caption",
         },
@@ -76,9 +76,9 @@ export const MyButton = ({
 // Usage Examples:
 /*
 // Primary button
-<MyButton 
-    buttonType="primary" 
-    scale="large" 
+<MyButton
+    buttonType="primary"
+    scale="large"
     layoutVariant="default"
     onClick={() => console.log('clicked')}
 >
@@ -86,16 +86,16 @@ export const MyButton = ({
 </MyButton>
 
 // Text variant
-<MyButton 
-    buttonType="text" 
+<MyButton
+    buttonType="text"
     scale="medium"
 >
     Text Button
 </MyButton>
 
 // Icon button
-<MyButton 
-    layoutVariant="icon" 
+<MyButton
+    layoutVariant="icon"
     scale="small"
 >
     <IconComponent />

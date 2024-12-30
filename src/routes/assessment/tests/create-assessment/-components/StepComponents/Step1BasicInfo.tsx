@@ -84,7 +84,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         !!assessmentName && !!subject && !!liveDateRangeStartDate && !!liveDateRangeEndDate;
 
     const onSubmit = (data: z.infer<typeof BasicInfoFormSchema>) => {
-        console.log(data);
         handleCompleteCurrentStep();
     };
 
@@ -205,13 +204,17 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             />
                         )}
                     </div>
+                    <h1 className="-mb-5 font-thin">Assessment Instructions</h1>
                     <FormField
                         control={control}
                         name="testCreation.assessmentInstructions"
-                        render={({ field: { onChange, value } }) => (
+                        render={({ field }) => (
                             <FormItem>
                                 <FormControl>
-                                    <MainViewQuillEditor onChange={onChange} value={value} />
+                                    <MainViewQuillEditor
+                                        onChange={field.onChange}
+                                        value={field.value}
+                                    />
                                 </FormControl>
                             </FormItem>
                         )}
