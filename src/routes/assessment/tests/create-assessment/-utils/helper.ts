@@ -26,8 +26,11 @@ export const getFieldOptions = ({
     key: string;
     value: string;
 }): boolean => {
-    if (!assessmentDetails[currentStep]?.field_options?.[key]) {
-        // Key does not exist in the object
+    if (
+        !assessmentDetails[currentStep] ||
+        !assessmentDetails[currentStep].field_options ||
+        !assessmentDetails[currentStep].field_options[key]
+    ) {
         return false;
     }
 

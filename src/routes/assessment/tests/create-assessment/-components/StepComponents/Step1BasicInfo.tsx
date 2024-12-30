@@ -163,15 +163,15 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         <FormField
                             control={control}
                             name="testCreation.assessmentName"
-                            render={({ field: { onChange, value, ...field } }) => (
+                            render={({ field: { ...field } }) => (
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
                                             inputType="text"
                                             inputPlaceholder="Add Title"
-                                            input={value}
+                                            input={field.value}
                                             labelStyle="font-thin"
-                                            onChangeFunction={onChange}
+                                            onChangeFunction={field.onChange}
                                             error={
                                                 form.formState.errors.testCreation?.assessmentName
                                                     ?.message
@@ -226,13 +226,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             <FormField
                                 control={control}
                                 name="testCreation.liveDateRange.startDate"
-                                render={({ field: { onChange, value, ...field } }) => (
+                                render={({ field: { ...field } }) => (
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
                                                 inputType="datetime-local"
-                                                input={value}
-                                                onChangeFunction={onChange}
+                                                input={field.value}
+                                                onChangeFunction={field.onChange}
                                                 error={
                                                     form.formState.errors.testCreation
                                                         ?.assessmentName?.message
@@ -257,13 +257,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             <FormField
                                 control={control}
                                 name="testCreation.liveDateRange.endDate"
-                                render={({ field: { onChange, value, ...field } }) => (
+                                render={({ field: { ...field } }) => (
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
                                                 inputType="datetime-local"
-                                                input={value}
-                                                onChangeFunction={onChange}
+                                                input={field.value}
+                                                onChangeFunction={field.onChange}
                                                 error={
                                                     form.formState.errors.testCreation
                                                         ?.assessmentName?.message
@@ -360,19 +360,19 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 <FormField
                                     control={control}
                                     name="testDuration.entireTestDuration.testDuration.hrs"
-                                    render={({ field: { onChange, value, ...field } }) => (
+                                    render={({ field: { ...field } }) => (
                                         <FormItem>
                                             <FormControl>
                                                 <MyInput
                                                     inputType="text"
                                                     inputPlaceholder="00"
-                                                    input={value}
+                                                    input={field.value}
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
                                                             /[^0-9]/g,
                                                             "",
                                                         ); // Remove non-numeric characters
-                                                        onChange(inputValue); // Call onChange with the sanitized value
+                                                        field.onChange(inputValue); // Call onChange with the sanitized value
                                                     }}
                                                     error={
                                                         form.formState.errors.testCreation
@@ -391,19 +391,19 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 <FormField
                                     control={control}
                                     name="testDuration.entireTestDuration.testDuration.min"
-                                    render={({ field: { onChange, value, ...field } }) => (
+                                    render={({ field: { ...field } }) => (
                                         <FormItem>
                                             <FormControl>
                                                 <MyInput
                                                     inputType="text"
                                                     inputPlaceholder="00"
-                                                    input={value}
+                                                    input={field.value}
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
                                                             /[^0-9]/g,
                                                             "",
                                                         ); // Remove non-numeric characters
-                                                        onChange(inputValue); // Call onChange with the sanitized value
+                                                        field.onChange(inputValue); // Call onChange with the sanitized value
                                                     }}
                                                     error={
                                                         form.formState.errors.testCreation
