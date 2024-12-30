@@ -20,7 +20,7 @@ export const LayoutContainer = ({
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
 
-            <div className="w-full flex-1 overflow-hidden">
+            <div className="w-full flex-1">
                 <Navbar />
                 <div className={cn("m-7 max-w-full", className)}>{children}</div>
             </div>
