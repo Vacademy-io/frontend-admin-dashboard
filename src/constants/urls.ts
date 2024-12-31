@@ -9,3 +9,9 @@ export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details/c70f40a5-e4d3-4b6c-a498-e612d0d4b133`;
 export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/student/get/v1/all`;
 export const ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/student/v1/add-student`;
+
+export const GET_QUESTION_PAPER_FILTERED_DATA = `${BASE_URL}/assessment-service/question-paper/view/v1/get-with-filters`;
+export const MARK_QUESTION_PAPER_STATUS = `${BASE_URL}/assessment-service/question-paper/manage/v1/mark-status`;
+export const GET_QUESTION_PAPER_BY_ID = `${BASE_URL}/assessment-service/question-paper/view/v1/get-by-id`;
+export const ADD_QUESTION_PAPER = `${BASE_URL}/assessment-service/question-paper/manage/v1/add`;
+export const UPDATE_QUESTION_PAPER = `${BASE_URL}/assessment-service/question-paper/manage/v1/edit`;
