@@ -6,6 +6,9 @@ export { DummyProfile };
 
 import EmptyDashboardImage from "./empty-student-dashboard.svg";
 export { EmptyDashboardImage };
+
+import EnrollFormUploadImage from "./enroll-form-upload-image.svg";
+export { EnrollFormUploadImage };
 import SsdcLogo_Login from "./ssdc_logo.svg";
 export { SsdcLogo_Login };
 

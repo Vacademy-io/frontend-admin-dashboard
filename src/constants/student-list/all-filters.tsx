@@ -1,7 +1,10 @@
 import { FilterConfig } from "@/types/students/students-list-types";
-import { useGetBatchNames, useGetSessionExpiry } from "@/hooks/student-list-section/useFilters";
-import { useGetStatuses } from "@/hooks/student-list-section/useFilters";
-import { useGetGenders } from "@/hooks/student-list-section/useFilters";
+import {
+    useGetBatchNames,
+    useGetSessionExpiry,
+    useGetStatuses,
+    useGetGenders,
+} from "@/hooks/student-list-section/useFilters";
 
 export const GetFilterData = (currentSession?: string) => {
     const batchNames = useGetBatchNames(currentSession);

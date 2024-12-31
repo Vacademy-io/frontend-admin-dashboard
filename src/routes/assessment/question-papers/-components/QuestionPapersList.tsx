@@ -12,7 +12,7 @@ import { useMutation } from "@tanstack/react-query";
 import { markQuestionPaperStatus } from "../-utils/question-paper-services";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { PaginatedResponse, QuestionPaperInterface } from "@/types/question-paper-template";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { getLevelNameById, getSubjectNameById } from "../-utils/helper";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 

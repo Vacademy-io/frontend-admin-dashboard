@@ -3,7 +3,7 @@ import CustomInput from "@/components/design-system/custom-input";
 import SelectField from "@/components/design-system/select-field";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { PencilSimpleLine } from "phosphor-react";
 import { useForm, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { z } from "zod";

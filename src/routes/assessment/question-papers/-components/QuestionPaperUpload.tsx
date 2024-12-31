@@ -23,7 +23,7 @@ import {
     getIdBySubjectName,
     transformResponseDataToMyQuestionsSchema,
 } from "../-utils/helper";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useRefetchStore } from "../-global-states/refetch-store";
 import {
     ANSWER_LABELS,

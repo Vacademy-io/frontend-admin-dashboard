@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { myColumns } from "./utils/constants/table-column-data";
-import { StudentListResponse } from "@/schemas/student-list/table-schema";
+import { StudentListResponse } from "@/schemas/student/student-list/table-schema";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -31,7 +31,7 @@ const COLUMN_WIDTHS = {
     parents_email: "min-w-[240px]",
     city: "min-w-[180px]",
     state: "min-w-[180px]",
-    session_expiry_days: "min-w-[180px]",
+    expiry_date: "min-w-[180px]",
     region: "min-w-[180px]",
     options: "min-w-[56px] sticky right-0",
 };

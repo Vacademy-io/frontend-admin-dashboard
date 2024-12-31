@@ -1,5 +1,5 @@
-import { InstituteDetailsType } from "@/schemas/student-list/institute-schema";
 import { useMemo } from "react";
+import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
 
 export const useFilterDataForAssesment = (initData: InstituteDetailsType) => {
     const BatchesFilterData = useMemo(() => {
