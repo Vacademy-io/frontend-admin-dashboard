@@ -17,6 +17,7 @@ import { Route as DashboardIndexImport } from "./routes/dashboard/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
 import { Route as AssessmentTestsIndexImport } from "./routes/assessment/tests/index";
+import { Route as AssessmentTestsCreateAssessmentIndexImport } from "./routes/assessment/tests/create-assessment/index";
 
 // Create/Update Routes
 
@@ -49,6 +50,13 @@ const AssessmentTestsIndexRoute = AssessmentTestsIndexImport.update({
     path: "/assessment/tests/",
     getParentRoute: () => rootRoute,
 } as any);
+
+const AssessmentTestsCreateAssessmentIndexRoute = AssessmentTestsCreateAssessmentIndexImport.update(
+    {
+        path: "/assessment/tests/create-assessment/",
+        getParentRoute: () => rootRoute,
+    } as any,
+);
 
 // Populate the FileRoutesByPath interface
 
@@ -96,6 +104,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudentsStudentsListIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/assessment/tests/create-assessment/": {
+            id: "/assessment/tests/create-assessment/";
+            path: "/assessment/tests/create-assessment";
+            fullPath: "/assessment/tests/create-assessment";
+            preLoaderRoute: typeof AssessmentTestsCreateAssessmentIndexImport;
+            parentRoute: typeof rootRoute;
+        };
     }
 }
 
@@ -108,6 +123,7 @@ export const routeTree = rootRoute.addChildren({
     AssessmentTestsIndexRoute,
     LoginForgotPasswordIndexRoute,
     StudentsStudentsListIndexRoute,
+    AssessmentTestsCreateAssessmentIndexRoute,
 });
 
 /* prettier-ignore-end */
@@ -123,7 +139,8 @@ export const routeTree = rootRoute.addChildren({
         "/students/",
         "/assessment/tests/",
         "/login/forgot-password/",
-        "/students/students-list/"
+        "/students/students-list/",
+        "/assessment/tests/create-assessment/"
       ]
     },
     "/dashboard/": {
@@ -143,6 +160,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/students/students-list/": {
       "filePath": "students/students-list/index.tsx"
+    },
+    "/assessment/tests/create-assessment/": {
+      "filePath": "assessment/tests/create-assessment/index.tsx"
     }
   }
 }

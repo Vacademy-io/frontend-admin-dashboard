@@ -131,14 +131,6 @@ export const useStudentFilters = (initialSession: string) => {
             sessionExpiryFilter?.value && sessionExpiryFilter.value.length > 0,
         );
 
-        // console.log("Filter Status Check:", {
-        //     hasBatch,
-        //     hasName,
-        //     hasGender,
-        //     hasStatus,
-        //     hasSessionExpiry,
-        // });
-
         return Boolean(hasName || hasGender || hasStatus || hasBatch || hasSessionExpiry);
     }, [columnFilters, appliedFilters]);
 
