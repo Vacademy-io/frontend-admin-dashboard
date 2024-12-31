@@ -54,7 +54,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         mode: "onChange",
     });
 
-    const { handleSubmit, getValues, control, setValue, watch } = form;
+    const { handleSubmit, getValues, control, watch } = form;
     const allSections = watch("section"); // Watches the `section` array for changes
     console.log(getValues());
 
@@ -94,14 +94,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             ],
         });
     }, []);
-
-    const handleDescriptionChange = (value: string, index: number) => {
-        // Update only the specific section without adding new ones
-        setValue(`section.${index}.section_description`, value, {
-            shouldValidate: true,
-            shouldDirty: true,
-        });
-    };
 
     const { append, remove } = useFieldArray({
         control,
@@ -205,12 +197,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                     <FormItem>
                                                         <FormControl>
                                                             <MainViewQuillEditor
-                                                                onChange={(value) =>
-                                                                    handleDescriptionChange(
-                                                                        value,
-                                                                        index,
-                                                                    )
-                                                                }
+                                                                onChange={field.onChange}
                                                                 value={field.value}
                                                             />
                                                         </FormControl>
@@ -239,12 +226,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                             ); // Remove non-numeric characters
                                                                         field.onChange(inputValue); // Call onChange with the sanitized value
                                                                     }}
-                                                                    error={
-                                                                        form.formState.errors
-                                                                            .testCreation
-                                                                            ?.assessmentName
-                                                                            ?.message
-                                                                    }
                                                                     size="large"
                                                                     {...field}
                                                                     className="w-11"
@@ -273,12 +254,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                             ); // Remove non-numeric characters
                                                                         field.onChange(inputValue); // Call onChange with the sanitized value
                                                                     }}
-                                                                    error={
-                                                                        form.formState.errors
-                                                                            .testCreation
-                                                                            ?.assessmentName
-                                                                            ?.message
-                                                                    }
                                                                     size="large"
                                                                     {...field}
                                                                     className="w-11"
@@ -313,11 +288,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                         ); // Remove non-numeric characters
                                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                                 }}
-                                                                error={
-                                                                    form.formState.errors
-                                                                        .testCreation
-                                                                        ?.assessmentName?.message
-                                                                }
                                                                 size="large"
                                                                 {...field}
                                                                 className="ml-3 w-11"
@@ -346,11 +316,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                         ); // Remove non-numeric characters
                                                                     field.onChange(inputValue); // Call onChange with the sanitized value
                                                                 }}
-                                                                error={
-                                                                    form.formState.errors
-                                                                        .testCreation
-                                                                        ?.assessmentName?.message
-                                                                }
                                                                 size="large"
                                                                 {...field}
                                                                 className="w-11"
@@ -388,12 +353,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                             ); // Remove non-numeric characters
                                                                         field.onChange(inputValue); // Call onChange with the sanitized value
                                                                     }}
-                                                                    error={
-                                                                        form.formState.errors
-                                                                            .testCreation
-                                                                            ?.assessmentName
-                                                                            ?.message
-                                                                    }
                                                                     size="large"
                                                                     {...field}
                                                                     className="mr-2 w-11"
@@ -461,12 +420,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                             ); // Remove non-numeric characters
                                                                         field.onChange(inputValue); // Call onChange with the sanitized value
                                                                     }}
-                                                                    error={
-                                                                        form.formState.errors
-                                                                            .testCreation
-                                                                            ?.assessmentName
-                                                                            ?.message
-                                                                    }
                                                                     size="large"
                                                                     {...field}
                                                                     className="mr-2 w-11"
