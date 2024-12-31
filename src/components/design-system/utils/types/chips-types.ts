@@ -19,13 +19,11 @@ export interface ChipsProps {
 export interface InputChipsProps extends ChipsProps {}
 
 export interface FilterChipsProps {
-    label?: React.ReactNode;
-    leadingIcon?: Icon;
-    filterList?: string[];
+    label: string;
+    filterList: (string | number)[];
     selectedFilters: string[];
-    setSelectedFilters: React.Dispatch<React.SetStateAction<string[]>>;
-    disabled?: boolean | false;
-    className?: boolean;
+    setSelectedFilters?: React.Dispatch<React.SetStateAction<string[]>>;
+    disabled?: boolean;
     clearFilters?: boolean;
 }
 

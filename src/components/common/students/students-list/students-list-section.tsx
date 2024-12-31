@@ -2,7 +2,8 @@
 import { useEffect } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useFilterData, useGetSessions } from "@/hooks/student-list-section/useFilterData";
+import { useGetSessions } from "@/hooks/student-list-section/useFilters";
+import { GetFilterData } from "@/constants/student-list/all-filters";
 import { MyTable } from "@/components/design-system/table";
 import { MyPagination } from "@/components/design-system/pagination";
 import { StudentListHeader } from "./student-list-header";
@@ -23,7 +24,7 @@ export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const sessions = useGetSessions();
-    const filters = useFilterData(getCurrentSession());
+    const filters = GetFilterData(getCurrentSession());
 
     const {
         columnFilters,
@@ -32,7 +33,7 @@ export const StudentsListSection = () => {
         searchInput,
         searchFilter,
         currentSession,
-        hasActiveFilters,
+        getActiveFiltersState,
         handleFilterChange,
         handleFilterClick,
         handleClearFilters,
@@ -50,14 +51,12 @@ export const StudentsListSection = () => {
         page,
         handleSort,
         handlePageChange,
-        refetch,
     } = useStudentTable(appliedFilters, setAppliedFilters);
 
     useEffect(() => {
         setNavHeading("Students");
         // console.log("columnFilters: ", columnFilters)
         // console.log("hasActiveFilters: ", hasActiveFilters())
-        refetch();
     }, []);
 
     if (isLoading) return <DashboardLoader />;
@@ -75,7 +74,7 @@ export const StudentsListSection = () => {
                     searchFilter={searchFilter}
                     columnFilters={columnFilters}
                     clearFilters={clearFilters}
-                    hasActiveFilters={hasActiveFilters()}
+                    getActiveFiltersState={getActiveFiltersState}
                     onSessionChange={handleSessionChange}
                     onSearchChange={handleSearchInputChange}
                     onSearchEnter={handleSearchEnter}

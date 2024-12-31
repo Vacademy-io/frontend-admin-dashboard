@@ -1,5 +1,4 @@
 // hooks/student-list/useInstituteDetails.ts
-
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { InstituteDetailsType } from "@/schemas/student-list/institute-schema";
 import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
