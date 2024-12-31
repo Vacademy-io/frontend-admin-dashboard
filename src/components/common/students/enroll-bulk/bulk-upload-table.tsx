@@ -15,6 +15,10 @@ interface BulkUploadTableProps {
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
 }
 
+interface RowWithError extends SchemaFields {
+    ERROR: string;
+}
+
 const ITEMS_PER_PAGE = 10;
 
 export function BulkUploadTable({ headers }: BulkUploadTableProps) {
@@ -63,10 +67,6 @@ export function BulkUploadTable({ headers }: BulkUploadTableProps) {
         setSearchFilter("");
         setPage(0);
     };
-
-    interface RowWithError extends SchemaFields {
-        ERROR: string;
-    }
 
     const downloadErrorCases = () => {
         if (!csvData) return;

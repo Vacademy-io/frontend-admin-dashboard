@@ -4,6 +4,11 @@ import Papa from "papaparse";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
 
+type ParseResult = {
+    data: SchemaFields[];
+    errors: ValidationError[];
+};
+
 export const convertExcelDateToDesiredFormat = (dateString: string): string => {
     // Handle Excel date format (Mon Dec 11 00:00:00 GMT X)
     if (dateString.includes("GMT")) {
@@ -74,11 +79,6 @@ export const createSchemaFromHeaders = (headers: Header[]) => {
     });
 
     return z.object(schemaFields);
-};
-
-type ParseResult = {
-    data: SchemaFields[];
-    errors: ValidationError[];
 };
 
 export const validateCsvData = (file: File, schema: z.ZodType): Promise<ParseResult> => {

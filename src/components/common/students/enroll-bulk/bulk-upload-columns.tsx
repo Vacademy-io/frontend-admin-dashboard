@@ -14,11 +14,6 @@ export const createBulkUploadColumns = (
 ): Array<ColumnDef<SchemaFields>> => {
     const columns: Array<ColumnDef<SchemaFields>> = [];
 
-    // useEffect(()=>{
-    //     console.log("CSV Error: ", csvErrors)
-    //     console.log("headers: ", headers)
-    // }, [])
-
     // Add header columns first
     headers?.forEach((header) => {
         columns.push({
@@ -98,13 +93,6 @@ export const createBulkUploadColumns = (
                     const error = row.original.ERROR;
                     if (!error) return null;
 
-                    // Format the error message for better readability
-                    // let formattedError = "";
-                    // if(typeof(error)=="string"){
-                    //     formattedError = error.includes("Cannot deserialize value")
-                    //     ? "Invalid date format. Please use DD-MM-YYYY format."
-                    //     : error;
-                    // }
                     return (
                         <div className="max-w-[300px] whitespace-normal break-words text-sm text-danger-500">
                             {error}
