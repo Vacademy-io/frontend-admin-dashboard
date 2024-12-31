@@ -162,12 +162,13 @@ export function BulkUploadTable({ headers }: BulkUploadTableProps) {
                                 {},
                             ),
                         }}
+                        currentPage={page}
                     />
                 </div>
             </div>
 
             <MyPagination
-                currentPage={page + 1}
+                currentPage={page}
                 totalPages={totalPages}
                 onPageChange={(newPage) => setPage(newPage - 1)}
             />

@@ -12,6 +12,7 @@ export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/student/ge
 export const GET_STUDENTS_CSV = `${BASE_URL}/admin-core-service/institute/student/get/v1/all-csv`;
 export const ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/student/v1/add-student`;
 export const INIT_CSV_BULK = `${BASE_URL}/admin-core-service/institute/student-bulk/v1/init-student-upload`;
+export const STUDENT_UPDATE_OPERATION = `${BASE_URL}/admin-core-service/institute/student-operation/v1/update`;
 export const STUDENT_CSV_UPLOAD_URL = `${BASE_URL}/admin-core-service/institute/student-bulk/v1/upload-csv`;
 
 export const GET_QUESTION_PAPER_FILTERED_DATA = `${BASE_URL}/assessment-service/question-paper/view/v1/get-with-filters`;

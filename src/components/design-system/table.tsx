@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -6,7 +7,20 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import {
+    flexRender,
+    getCoreRowModel,
+    useReactTable,
+    RowSelectionState,
+    OnChangeFn,
+    ColumnDef,
+} from "@tanstack/react-table";
+import { ChangeBatchDialog } from "./table-components/student-menu-options/change-batch-dialog";
+import { ExtendSessionDialog } from "./table-components/student-menu-options/extend-session-dialog";
+import { ReRegisterDialog } from "./table-components/student-menu-options/re-register-dialog";
+import { TerminateRegistrationDialog } from "./table-components/student-menu-options/terminate-registration-dialog";
+import { useDialogStore } from "./utils/useDialogStore";
+import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 import { ColumnWidthConfig } from "./utils/constants/table-layout";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
@@ -27,6 +41,9 @@ interface MyTableProps<T> {
     isLoading: boolean;
     error: unknown;
     onSort?: (columnId: string, direction: string) => void;
+    rowSelection?: RowSelectionState;
+    onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+    currentPage: number;
     columnWidths?: ColumnWidthConfig;
 }
 
@@ -37,13 +54,44 @@ export function MyTable<T>({
     error,
     onSort,
     columnWidths,
+    rowSelection,
+    onRowSelectionChange,
 }: MyTableProps<T>) {
     const table = useReactTable({
         data: data?.content || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         meta: { onSort },
+        state: {
+            rowSelection,
+        },
+        enableRowSelection: true,
+        onRowSelectionChange: (updaterOrValue) => {
+            if (typeof updaterOrValue === "function") {
+                if (rowSelection) {
+                    const newSelection = updaterOrValue(rowSelection);
+                    onRowSelectionChange && onRowSelectionChange(newSelection);
+                }
+            } else {
+                onRowSelectionChange && onRowSelectionChange(updaterOrValue);
+            }
+        },
+        autoResetPageIndex: false,
+        // Remove autoResetRowSelection as it's not a valid option
     });
+
+    const {
+        isChangeBatchOpen,
+        isExtendSessionOpen,
+        isReRegisterOpen,
+        isTerminateRegistrationOpen,
+        isDeleteOpen,
+        closeAllDialogs,
+    } = useDialogStore();
+
+    useEffect(() => {
+        console.log("tableData:", data);
+    }, [data]);
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading data</div>;
@@ -90,6 +138,45 @@ export function MyTable<T>({
                     </TableBody>
                 </Table>
             </div>
+            <ChangeBatchDialog
+                trigger={null}
+                open={isChangeBatchOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <ExtendSessionDialog
+                trigger={null}
+                open={isExtendSessionOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <ReRegisterDialog
+                trigger={null}
+                open={isReRegisterOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <TerminateRegistrationDialog
+                trigger={null}
+                open={isTerminateRegistrationOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <DeleteStudentDialog
+                trigger={null}
+                open={isDeleteOpen}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
         </div>
     );
 }
