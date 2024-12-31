@@ -4,6 +4,18 @@ import Papa from "papaparse";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
 
+export const convertExcelDateToDesiredFormat = (dateString: string): string => {
+    // Handle Excel date format (Mon Dec 11 00:00:00 GMT X)
+    if (dateString.includes("GMT")) {
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    }
+    return dateString;
+};
+
 export const createSchemaFromHeaders = (headers: Header[]) => {
     const schemaFields: Record<string, z.ZodType> = {};
 
@@ -74,6 +86,13 @@ export const validateCsvData = (file: File, schema: z.ZodType): Promise<ParseRes
         Papa.parse<SchemaFields>(file, {
             header: true,
             skipEmptyLines: true,
+            transform: (value, field) => {
+                // Check if this is a date column
+                if (field === "ENROLLMENT_DATE" || field === "DATE_OF_BIRTH") {
+                    return convertExcelDateToDesiredFormat(value);
+                }
+                return value;
+            },
             complete: (results) => {
                 const allErrors: ValidationError[] = [];
 

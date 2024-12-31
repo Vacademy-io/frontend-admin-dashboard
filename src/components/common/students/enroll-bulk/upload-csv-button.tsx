@@ -11,7 +11,11 @@ import { ImportFileImage } from "@/assets/svgs";
 import { useBulkUploadInit } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadInit";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { validateCsvData, createAndDownloadCsv } from "./utils/csv-utils";
+import {
+    validateCsvData,
+    createAndDownloadCsv,
+    convertExcelDateToDesiredFormat,
+} from "./utils/csv-utils";
 import { createSchemaFromHeaders } from "./utils/bulk-upload-validation";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
 import { BulkUploadTable } from "./bulk-upload-table";
@@ -174,12 +178,59 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
             const transformedData = csvData.map((row) => {
                 const newRow = { ...row };
                 data.headers.forEach((header) => {
-                    if (header.send_option_id && header.option_ids && row[header.column_name]) {
-                        const entry = Object.entries(header.option_ids).find(
-                            ([displayValue]) => displayValue === row[header.column_name],
-                        );
-                        if (entry) {
-                            newRow[header.column_name] = entry[0];
+                    // Handle package session IDs and other enum types
+                    if (header.type === "enum" && header.send_option_id && header.option_ids) {
+                        const displayValue = row[header.column_name] as string;
+                        if (displayValue) {
+                            for (const [id, value] of Object.entries(header.option_ids)) {
+                                if (value === displayValue) {
+                                    newRow[header.column_name] = id;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Handle date formatting if needed
+                    // if (header.type === "date" && header.format) {
+                    //     const dateValue = row[header.column_name] as string;
+                    //     if (dateValue) {
+                    //         try {
+                    //             // Parse DD-MM-YYYY format and convert to API expected format
+                    //             const [day, month, year] = dateValue.split("-").map(num => num.padStart(2, '0'));
+                    //             const formattedDate = `${year}-${month}-${day}T00:00:00.000Z`;
+                    //             newRow[header.column_name] = formattedDate;
+                    //         } catch (error) {
+                    //             console.error(`Error formatting date for ${header.column_name}:`, error);
+                    //             newRow[header.column_name] = dateValue;
+                    //         }
+                    //     }
+                    // }
+                    if (header.type === "date" && header.format) {
+                        const dateValue = row[header.column_name] as string;
+                        if (dateValue) {
+                            // First convert to desired format if it's in Excel format
+                            const formattedDateValue = convertExcelDateToDesiredFormat(dateValue);
+
+                            // Validate the format
+                            const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+                            if (!dateRegex.test(formattedDateValue)) {
+                                console.error(
+                                    `Invalid date format for ${header.column_name}: ${formattedDateValue}`,
+                                );
+                                return;
+                            }
+
+                            // Use the formatted date
+                            newRow[header.column_name] = formattedDateValue;
+                        }
+                    }
+
+                    // Handle numeric fields
+                    if (header.type === "integer") {
+                        const numValue = row[header.column_name];
+                        if (numValue) {
+                            newRow[header.column_name] = parseInt(numValue.toString(), 10);
                         }
                     }
                 });
@@ -191,7 +242,7 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                 instituteId: data.submit_api.request_params.instituteId,
             });
 
-            // Parse the CSV response with type safety
+            // Parse the CSV response
             const parsedResponse = Papa.parse<ResponseRow>(response, {
                 header: true,
             }).data;
@@ -209,8 +260,17 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                 };
             });
 
+            // Update the store with the response data
             setCsvData(updatedCsvData);
             setShowPreview(true);
+
+            // Show success toast if no errors
+            const hasErrors = parsedResponse.some((row) => row.STATUS !== "true");
+            if (!hasErrors) {
+                toast.success("All students enrolled successfully");
+            } else {
+                toast.error("Some students could not be enrolled. Please check the errors.");
+            }
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
             toast.error("Failed to enroll students");

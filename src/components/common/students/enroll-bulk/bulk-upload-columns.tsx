@@ -14,6 +14,11 @@ export const createBulkUploadColumns = (
 ): Array<ColumnDef<SchemaFields>> => {
     const columns: Array<ColumnDef<SchemaFields>> = [];
 
+    // useEffect(()=>{
+    //     console.log("CSV Error: ", csvErrors)
+    //     console.log("headers: ", headers)
+    // }, [])
+
     // Add header columns first
     headers?.forEach((header) => {
         columns.push({
@@ -72,40 +77,36 @@ export const createBulkUploadColumns = (
                 id: "upload_status",
                 header: "Upload Status",
                 cell: ({ row }) => {
-                    const status = row.getValue("STATUS") as string;
+                    const status = row.original.STATUS;
+                    const message = row.original.STATUS_MESSAGE;
                     return (
                         <div
                             className={cn(
                                 "text-sm font-semibold",
-                                status === "Success" ? "text-success-500" : "text-danger-500",
+                                status === "true" ? "text-success-500" : "text-danger-500",
                             )}
                         >
-                            {status === "true" ? "Student Added Successfully" : "Student Not Added"}
+                            {status === "true" ? message || "Success" : "Failed"}
                         </div>
                     );
                 },
             },
-            // {
-            //     id: "status_message",
-            //     header: "Status Message",
-            //     cell: ({ row }) => {
-            //         const message = row.original.STATUS_MESSAGE;
-            //         return (
-            //             <div className="text-sm text-neutral-600">
-            //                 {message || ""}
-            //             </div>
-            //         );
-            //     },
-            // },
             {
                 id: "upload_error",
                 header: "Upload Error",
                 cell: ({ row }) => {
-                    const error = row.original.ERROR; // Access directly from row.original
+                    const error = row.original.ERROR;
                     if (!error) return null;
 
+                    // Format the error message for better readability
+                    // let formattedError = "";
+                    // if(typeof(error)=="string"){
+                    //     formattedError = error.includes("Cannot deserialize value")
+                    //     ? "Invalid date format. Please use DD-MM-YYYY format."
+                    //     : error;
+                    // }
                     return (
-                        <div className="max-w-[300px] whitespace-normal text-sm text-danger-500">
+                        <div className="max-w-[300px] whitespace-normal break-words text-sm text-danger-500">
                             {error}
                         </div>
                     );
