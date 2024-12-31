@@ -7,6 +7,7 @@ import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBa
 import { ActivityStatus } from "../types/chips-types";
 import { StatusChips } from "../../chips";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -42,7 +43,11 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: "details",
         header: "Details",
-        cell: () => <ArrowSquareOut className="size-6 cursor-pointer text-neutral-600" />,
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
+        ),
     },
     {
         accessorKey: "full_name",

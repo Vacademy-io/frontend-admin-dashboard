@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -22,6 +21,7 @@ import { TerminateRegistrationDialog } from "./table-components/student-menu-opt
 import { useDialogStore } from "./utils/useDialogStore";
 import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 import { ColumnWidthConfig } from "./utils/constants/table-layout";
+import { useEffect } from "react";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";

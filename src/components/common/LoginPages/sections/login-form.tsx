@@ -97,6 +97,7 @@ export function LoginForm() {
                                                 size="large"
                                                 label="Username"
                                                 {...field}
+                                                className="w-[348px]"
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -120,6 +121,7 @@ export function LoginForm() {
                                                     size="large"
                                                     label="Password"
                                                     {...field}
+                                                    className="w-[348px]"
                                                 />
                                             </FormControl>
                                         </FormItem>
