@@ -69,6 +69,10 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         },
     },
     {
+        accessorKey: "username",
+        header: "Username",
+    },
+    {
         accessorKey: "package_session_id",
         header: "Batch",
         cell: ({ row }) => <BatchCell package_session_id={row.original.package_session_id} />,
@@ -144,7 +148,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                               : "text-success-500"
                     }`}
                 >
-                    {daysLeft > 0 ? daysLeft : "Expired"}
+                    {daysLeft > 0 && daysLeft}
                 </div>
             );
         },

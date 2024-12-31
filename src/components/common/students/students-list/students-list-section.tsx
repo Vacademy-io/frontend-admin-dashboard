@@ -10,6 +10,9 @@ import { StudentListHeader } from "./student-list-header";
 import { StudentFilters } from "./student-filters";
 import { useStudentFilters } from "@/hooks/student-list-section/useStudentFilters";
 import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
+import { STUDENT_LIST_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
@@ -82,13 +85,18 @@ export const StudentsListSection = () => {
                     onFilterChange={handleFilterChange}
                     onFilterClick={handleFilterClick}
                     onClearFilters={handleClearFilters}
+                    appliedFilters={appliedFilters}
+                    page={page}
+                    pageSize={10}
                 />
                 <div className="max-w-full">
-                    <MyTable
+                    <MyTable<StudentTable>
                         data={studentTableData}
+                        columns={myColumns}
                         isLoading={loadingData}
                         error={loadingError}
                         onSort={handleSort}
+                        columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                     />
                 </div>
                 <MyPagination

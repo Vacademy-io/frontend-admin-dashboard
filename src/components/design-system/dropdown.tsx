@@ -9,8 +9,8 @@ import {
     DropdownMenuPortal,
 } from "@radix-ui/react-dropdown-menu";
 import { myDropDownProps } from "./utils/types/dropdown-types";
-import { dropdownSchema } from "./utils/schema/dropdownSchema";
-import { z } from "zod";
+import { dropdownSchema } from "./utils/schema/dropdown-schema";
+import z from "zod";
 
 export const MyDropdown = ({
     currentValue,

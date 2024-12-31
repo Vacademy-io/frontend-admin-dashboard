@@ -6,7 +6,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
-import { EnrollManuallyButton } from "../enroll-manually/enroll-manually-button";
+import { EnrollManuallyButton } from "./enroll-manually/enroll-manually-button";
 import { EnrollBulkButton } from "./enroll-bulk/enroll-bulk-button";
 
 export const EnrollStudentsButton = () => {
