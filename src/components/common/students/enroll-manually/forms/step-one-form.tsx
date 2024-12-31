@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepOneData, stepOneSchema } from "@/types/students/enroll-students-manually";
+import { StepOneData, stepOneSchema } from "@/types/students/schema-enroll-students-manually";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EnrollFormUploadImage } from "@/assets/svgs";
 

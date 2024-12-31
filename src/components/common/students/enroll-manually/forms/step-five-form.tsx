@@ -9,13 +9,14 @@ import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepFiveData, stepFiveSchema } from "@/types/students/enroll-students-manually";
-import { useQueryClient } from "@tanstack/react-query";
-import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/enroll-student";
-import { toast } from "sonner";
+import { stepFiveSchema, StepFiveData } from "@/types/students/schema-enroll-students-manually";
+// import { useQueryClient } from "@tanstack/react-query";
+import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/useEnrollStudent";
+// import { toast } from "sonner";
 import { useState } from "react";
 import { getCurrentSession } from "../../students-list/students-list-section";
 import { usePackageSessionIds } from "@/hooks/student-list-section/getPackageSessionId";
+// import { EnrollStudentRequest } from "@/types/students/type-enroll-student-manually";
 
 export const StepFiveForm = () => {
     const [showCredentials, setShowCredentials] = useState(false);
@@ -26,7 +27,7 @@ export const StepFiveForm = () => {
         stepFourData,
         stepFiveData,
         setStepFiveData,
-        resetForm,
+        // resetForm,
     } = useFormStore();
 
     const packageSessionId = usePackageSessionIds(
@@ -34,7 +35,7 @@ export const StepFiveForm = () => {
         stepTwoData?.batch ? [stepTwoData.batch] : undefined,
     );
 
-    const queryClient = useQueryClient();
+    // const queryClient = useQueryClient();
 
     const form = useForm<StepFiveData>({
         resolver: zodResolver(stepFiveSchema),
@@ -45,7 +46,7 @@ export const StepFiveForm = () => {
         mode: "onChange",
     });
 
-    const mutation = useEnrollStudent();
+    // const mutation = useEnrollStudent();
 
     const generateUsername = () => {
         const sessionYear =
@@ -88,11 +89,13 @@ export const StepFiveForm = () => {
         setShowCredentials(true);
     };
 
-    const onSubmit = (values: StepFiveData) => {
+    const enrollStudentMutation = useEnrollStudent();
+
+    const onSubmit = async (values: StepFiveData) => {
         setStepFiveData(values);
         const firstPackageSessionId = packageSessionId[0] || "";
-        mutation.mutate(
-            {
+        try {
+            const result = await enrollStudentMutation.mutateAsync({
                 formData: {
                     stepOneData,
                     stepTwoData,
@@ -101,26 +104,48 @@ export const StepFiveForm = () => {
                     stepFiveData: values,
                 },
                 packageSessionId: firstPackageSessionId,
-            },
-            {
-                onSuccess: () => {
-                    queryClient.invalidateQueries({ queryKey: ["students"] });
-                    toast.success("Success", {
-                        description: "Student enrolled successfully",
-                        duration: 3000,
-                    });
-                    resetForm();
-                },
-                onError: (error) => {
-                    toast.error("Error", {
-                        description: "Failed to enroll student",
-                        duration: 3000,
-                    });
-                    console.log("error: ", error);
-                },
-            },
-        );
+            });
+            console.log(result);
+            // Handle success
+        } catch (error) {
+            // Handle error
+            console.error("Failed to enroll student:", error);
+        }
     };
+
+    // const onSubmit = (values: StepFiveData) => {
+    //     setStepFiveData(values);
+    //     const firstPackageSessionId = packageSessionId[0] || "";
+    //     mutation.mutate(
+    //         {
+    //             formData: {
+    //                 stepOneData,
+    //                 stepTwoData,
+    //                 stepThreeData,
+    //                 stepFourData,
+    //                 stepFiveData: values,
+    //             },
+    //             packageSessionId: firstPackageSessionId,
+    //         },
+    //         {
+    //             onSuccess: () => {
+    //                 queryClient.invalidateQueries({ queryKey: ["students"] });
+    //                 toast.success("Success", {
+    //                     description: "Student enrolled successfully",
+    //                     duration: 3000,
+    //                 });
+    //                 resetForm();
+    //             },
+    //             onError: (error) => {
+    //                 toast.error("Error", {
+    //                     description: "Failed to enroll student",
+    //                     duration: 3000,
+    //                 });
+    //                 console.log("error: ", error);
+    //             },
+    //         },
+    //     );
+    // };
 
     return (
         <div>

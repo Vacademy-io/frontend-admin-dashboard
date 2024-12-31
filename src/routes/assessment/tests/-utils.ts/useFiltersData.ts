@@ -1,5 +1,5 @@
-import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
 import { useMemo } from "react";
+import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
 
 export const useFilterDataForAssesment = (initData: InstituteDetailsType) => {
     const BatchesFilterData = useMemo(() => {
@@ -31,9 +31,19 @@ export const useFilterDataForAssesment = (initData: InstituteDetailsType) => {
         );
     }, [initData]);
 
+    const YearClassFilterData = useMemo(() => {
+        return (
+            initData?.levels?.map((level) => ({
+                id: level.id,
+                name: level.level_name,
+            })) || []
+        );
+    }, [initData]);
+
     return {
         BatchesFilterData,
         SubjectFilterData,
         StatusData,
+        YearClassFilterData,
     };
 };

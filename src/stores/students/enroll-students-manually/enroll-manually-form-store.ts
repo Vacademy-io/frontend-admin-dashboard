@@ -1,12 +1,12 @@
 import { create } from "zustand";
-import { StepTwoData } from "@/types/students/enroll-students-manually";
-import { StepThreeData } from "@/types/students/enroll-students-manually";
-import { StepFourData } from "@/types/students/enroll-students-manually";
-import { StepFiveData } from "@/types/students/enroll-students-manually";
+import { StepTwoData } from "@/types/students/schema-enroll-students-manually";
+import { StepThreeData } from "@/types/students/schema-enroll-students-manually";
+import { StepFourData } from "@/types/students/schema-enroll-students-manually";
+import { StepFiveData } from "@/types/students/schema-enroll-students-manually";
 
 // For step one, since it's just a file upload
 type StepOneDataType = {
-    profilePicture?: File | null;
+    profilePicture?: null;
 };
 
 interface FormStore {
