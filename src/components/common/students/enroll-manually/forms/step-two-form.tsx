@@ -6,7 +6,6 @@ import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { useEffect } from "react";
 import {
     useGetBatchNames,
     useGetSessions,
@@ -15,7 +14,7 @@ import {
 // import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepTwoData, stepTwoSchema } from "@/types/students/enroll-students-manually";
+import { StepTwoData, stepTwoSchema } from "@/types/students/schema-enroll-students-manually";
 
 export const StepTwoForm = () => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
@@ -45,17 +44,17 @@ export const StepTwoForm = () => {
         nextStep();
     };
 
-    useEffect(() => {
-        if (sessionList.length > 0) {
-            form.setValue("session", sessionList[0] || "");
-        }
-        if (genderList.length > 0) {
-            form.setValue("gender", genderList[0] || "");
-        }
-        if (batchList.length > 0) {
-            form.setValue("batch", batchList[0] || "");
-        }
-    }, [sessionList, genderList, batchList, form]);
+    // useEffect(() => {
+    //     if (sessionList.length > 0) {
+    //         form.setValue("session", sessionList[0] || "");
+    //     }
+    //     if (genderList.length > 0) {
+    //         form.setValue("gender", genderList[0] || "");
+    //     }
+    //     if (batchList.length > 0) {
+    //         form.setValue("batch", batchList[0] || "");
+    //     }
+    // }, [sessionList, genderList, batchList, form]);
 
     return (
         <div>
@@ -107,6 +106,7 @@ export const StepTwoForm = () => {
                                                     currentValue={value}
                                                     dropdownList={batchList}
                                                     handleChange={onChange}
+                                                    placeholder="Select batch"
                                                 />
                                             </div>
                                         </FormControl>
@@ -166,6 +166,7 @@ export const StepTwoForm = () => {
                                                         currentValue={value}
                                                         dropdownList={sessionList}
                                                         handleChange={onChange}
+                                                        placeholder="Select Session"
                                                     />
                                                 </div>
                                             </FormControl>
@@ -199,6 +200,7 @@ export const StepTwoForm = () => {
                                                         currentValue={value}
                                                         dropdownList={genderList}
                                                         handleChange={onChange}
+                                                        placeholder="Select Gender"
                                                     />
                                                 </div>
                                             </FormControl>

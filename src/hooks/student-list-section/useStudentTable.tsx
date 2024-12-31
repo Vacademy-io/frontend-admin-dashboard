@@ -1,4 +1,3 @@
-// hooks/useStudentTable.ts
 import { useState, useEffect } from "react";
 import { StudentFilterRequest } from "@/schemas/student/student-list/table-schema";
 import { useStudentList } from "@/services/student-list-section/getStudentTable";

@@ -138,6 +138,19 @@
     }
     body {
         @apply bg-background text-foreground;
+        color: #525252;
+    }
+    /* Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+    .scaled-gap {
+        --scale: 0.5;
+        margin-top: calc((var(--scale) - 1) * 100%);
     }
 
     .error-toast {
@@ -159,6 +172,17 @@
         color: #47b881 !important; /* danger-600 */
         font-weight: 600 !important;
         font-size: 16px !important;
+    }
+}
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .no-scrollbar {
+        -ms-overflow-scrollbar: none; /* For IE and Edge */
+        scrollbar-width: none; /* For Firefox */
     }
 }
 
