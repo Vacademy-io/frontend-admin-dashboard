@@ -1,14 +1,26 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { StudentTable } from "@/schemas/student-list/table-schema";
-import { ArrowSquareOut, DotsThree, CaretUp, CaretDown } from "@phosphor-icons/react";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { ArrowSquareOut, CaretUpDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MyButton } from "../../button";
 import { MyDropdown } from "../../dropdown";
+import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
+import { ActivityStatus } from "../types/chips-types";
+import { StatusChips } from "../../chips";
+import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
 }
+
+const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
+    const { packageName, levelName } = useGetStudentBatch(package_session_id);
+    return (
+        <div>
+            {levelName} {packageName}
+        </div>
+    );
+};
 
 export const myColumns: ColumnDef<StudentTable>[] = [
     {
@@ -52,8 +64,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                         <button className="flex w-full cursor-pointer items-center justify-between">
                             <div>Student Name</div>
                             <div>
-                                <CaretUp />
-                                <CaretDown />
+                                <CaretUpDown />
                             </div>
                         </button>
                     </MyDropdown>
@@ -62,11 +73,16 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         },
     },
     {
-        accessorKey: "batch_id",
-        header: "Batch",
+        accessorKey: "username",
+        header: "Username",
     },
     {
-        accessorKey: "enrollment_no",
+        accessorKey: "package_session_id",
+        header: "Batch",
+        cell: ({ row }) => <BatchCell package_session_id={row.original.package_session_id} />,
+    },
+    {
+        accessorKey: "institute_enrollment_id",
         header: "Enrollment Number",
     },
     {
@@ -110,30 +126,56 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         header: "City",
     },
     {
-        accessorKey: "state",
+        accessorKey: "region",
         header: "State",
     },
     {
-        accessorKey: "session_expiry",
+        accessorKey: "expiry_date",
         header: "Session Expiry",
+        cell: ({ row }) => {
+            if (row.original.expiry_date == null) return <></>;
+
+            const expiryDate = new Date(row.original.expiry_date);
+            const today = new Date();
+
+            // Use getTime() to get timestamps in milliseconds
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            return (
+                <div
+                    className={`${
+                        daysLeft < 30
+                            ? "text-danger-600"
+                            : daysLeft < 180
+                              ? "text-warning-500"
+                              : "text-success-500"
+                    }`}
+                >
+                    {daysLeft > 0 && daysLeft}
+                </div>
+            );
+        },
     },
     {
         accessorKey: "status",
         header: "Status",
-        // cell: ({ row }) => <StatusChips status={row.getValue("status") as ActivityStatus} />,
+        cell: ({ row }) => {
+            const status = row.original.status;
+            const statusMapping: Record<string, ActivityStatus> = {
+                ACTIVE: "active",
+                TERMINATED: "inactive",
+            };
+
+            const mappedStatus = statusMapping[status] || "inactive";
+            return <StatusChips status={mappedStatus} />;
+        },
     },
     {
         id: "options",
         header: "",
-        cell: () => (
-            <MyButton
-                buttonType="secondary"
-                scale="small"
-                layoutVariant="icon"
-                className="flex items-center justify-center"
-            >
-                <DotsThree />
-            </MyButton>
+        cell: ({ row }) => (
+            <StudentMenuOptions student={row.original} /> // Pass the row.original which contains the student data
         ),
     },
 ];

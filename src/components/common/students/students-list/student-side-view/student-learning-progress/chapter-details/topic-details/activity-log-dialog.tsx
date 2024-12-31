@@ -84,6 +84,7 @@ export const ActivityLogDialog = ({
                         isLoading={false}
                         error={null}
                         columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
+                        currentPage={currentPage}
                     />
 
                     <div className="mt-6">

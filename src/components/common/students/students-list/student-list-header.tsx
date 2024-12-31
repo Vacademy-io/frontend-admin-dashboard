@@ -1,20 +1,8 @@
-// components/StudentListHeader.tsx
-import { MyButton } from "@/components/design-system/button";
+import { EnrollStudentsButton } from "../enroll-students-button";
 
-interface StudentListHeaderProps {
-    onEnrollClick: () => void;
-}
-
-export const StudentListHeader = ({ onEnrollClick }: StudentListHeaderProps) => (
+export const StudentListHeader = () => (
     <div className="flex items-center justify-between">
         <div className="text-h3 font-semibold">Students List</div>
-        <MyButton
-            scale="large"
-            buttonType="primary"
-            layoutVariant="default"
-            onClick={onEnrollClick}
-        >
-            Enroll Student
-        </MyButton>
+        <EnrollStudentsButton />
     </div>
 );
