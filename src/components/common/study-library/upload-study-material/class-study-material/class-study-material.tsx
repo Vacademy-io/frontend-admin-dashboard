@@ -2,12 +2,17 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { CaretLeft } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { AddSubjectButton } from "./add-subject.tsx/add-subject-button";
-import { Subjects } from "./add-subject.tsx/subjects";
+import { AddSubjectButton } from "./subject-material/add-subject.tsx/add-subject-button";
+import { Subjects } from "./subject-material/add-subject.tsx/subjects";
 import { useState } from "react";
-import { Subject } from "./add-subject.tsx/subjects";
+import { Subject } from "./subject-material/add-subject.tsx/subjects";
+import { formatClassName } from "@/lib/study-library/class-formatter";
 
-export const Class10StudyMaterial = () => {
+interface ClassStudyMaterialProps {
+    classNumber: string | undefined;
+}
+
+export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => {
     const [subjects, setSubjects] = useState<Subject[]>([]);
 
     const handleAddSubject = (subject: Subject) => {
@@ -21,6 +26,7 @@ export const Class10StudyMaterial = () => {
     const handleEditSubject = (index: number, updatedSubject: Subject) => {
         setSubjects((prev) => prev.map((subject, i) => (i === index ? updatedSubject : subject)));
     };
+
     const router = useRouter();
 
     const handleBackClick = () => {
@@ -29,10 +35,12 @@ export const Class10StudyMaterial = () => {
         });
     };
 
+    const formattedClass = formatClassName(classNumber);
+
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>10th Class Study Library</div>
+            <div>{`${formattedClass} Class Study Library`}</div>
         </div>
     );
 
@@ -40,17 +48,19 @@ export const Class10StudyMaterial = () => {
 
     useEffect(() => {
         setNavHeading(heading);
-    }, []);
+    }, [classNumber]);
 
     return (
         <div className="flex h-full w-full flex-col gap-12 text-neutral-600">
             <div className="flex items-center justify-between gap-80">
                 <div className="flex w-full flex-col gap-2">
-                    <div className="text-h3 font-semibold">Manage 10th Class Resources</div>
+                    <div className="text-h3 font-semibold">
+                        {`Manage ${formattedClass} Class Resources`}
+                    </div>
                     <div className="text-subtitle">
-                        Explore and manage resources for 10th Class. Click on a subject to view and
+                        {`Explore and manage resources for ${formattedClass}th Class. Click on a subject to view and
                         organize eBooks and video lectures, or upload new content to enrich your
-                        study library.
+                        study library.`}
                     </div>
                 </div>
                 <AddSubjectButton onAddSubject={handleAddSubject} />
@@ -59,6 +69,7 @@ export const Class10StudyMaterial = () => {
                 subjects={subjects}
                 onDeleteSubject={handleDeleteSubject}
                 onEditSubject={handleEditSubject}
+                classNumber={classNumber} // Add this prop
             />
         </div>
     );

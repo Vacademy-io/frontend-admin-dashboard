@@ -15,10 +15,11 @@ import { Route as StudyLibraryIndexImport } from "./routes/study-library/index";
 import { Route as StudentsIndexImport } from "./routes/students/index";
 import { Route as LoginIndexImport } from "./routes/login/index";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
-import { Route as StudyLibrary10ClassStudyLibraryIndexImport } from "./routes/study-library/10-class-study-library/index";
+import { Route as StudyLibraryClassIndexImport } from "./routes/study-library/$class/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
-import { Route as StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexImport } from "./routes/study-library/10-class-study-library/10-class-physics/index";
+import { Route as StudyLibraryClassSubjectIndexImport } from "./routes/study-library/$class/$subject/index";
+import { Route as StudyLibraryClassSubjectModuleTsxIndexImport } from "./routes/study-library/$class/$subject/$module.tsx/index";
 
 // Create/Update Routes
 
@@ -42,12 +43,10 @@ const DashboardIndexRoute = DashboardIndexImport.update({
     getParentRoute: () => rootRoute,
 } as any);
 
-const StudyLibrary10ClassStudyLibraryIndexRoute = StudyLibrary10ClassStudyLibraryIndexImport.update(
-    {
-        path: "/study-library/10-class-study-library/",
-        getParentRoute: () => rootRoute,
-    } as any,
-);
+const StudyLibraryClassIndexRoute = StudyLibraryClassIndexImport.update({
+    path: "/study-library/$class/",
+    getParentRoute: () => rootRoute,
+} as any);
 
 const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
     path: "/students/students-list/",
@@ -59,9 +58,14 @@ const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
     getParentRoute: () => rootRoute,
 } as any);
 
-const StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexRoute =
-    StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexImport.update({
-        path: "/study-library/10-class-study-library/10-class-physics/",
+const StudyLibraryClassSubjectIndexRoute = StudyLibraryClassSubjectIndexImport.update({
+    path: "/study-library/$class/$subject/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const StudyLibraryClassSubjectModuleTsxIndexRoute =
+    StudyLibraryClassSubjectModuleTsxIndexImport.update({
+        path: "/study-library/$class/$subject/$module/tsx/",
         getParentRoute: () => rootRoute,
     } as any);
 
@@ -111,18 +115,25 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudentsStudentsListIndexImport;
             parentRoute: typeof rootRoute;
         };
-        "/study-library/10-class-study-library/": {
-            id: "/study-library/10-class-study-library/";
-            path: "/study-library/10-class-study-library";
-            fullPath: "/study-library/10-class-study-library";
-            preLoaderRoute: typeof StudyLibrary10ClassStudyLibraryIndexImport;
+        "/study-library/$class/": {
+            id: "/study-library/$class/";
+            path: "/study-library/$class";
+            fullPath: "/study-library/$class";
+            preLoaderRoute: typeof StudyLibraryClassIndexImport;
             parentRoute: typeof rootRoute;
         };
-        "/study-library/10-class-study-library/10-class-physics/": {
-            id: "/study-library/10-class-study-library/10-class-physics/";
-            path: "/study-library/10-class-study-library/10-class-physics";
-            fullPath: "/study-library/10-class-study-library/10-class-physics";
-            preLoaderRoute: typeof StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexImport;
+        "/study-library/$class/$subject/": {
+            id: "/study-library/$class/$subject/";
+            path: "/study-library/$class/$subject";
+            fullPath: "/study-library/$class/$subject";
+            preLoaderRoute: typeof StudyLibraryClassSubjectIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/study-library/$class/$subject/$module/tsx/": {
+            id: "/study-library/$class/$subject/$module/tsx/";
+            path: "/study-library/$class/$subject/$module/tsx";
+            fullPath: "/study-library/$class/$subject/$module/tsx";
+            preLoaderRoute: typeof StudyLibraryClassSubjectModuleTsxIndexImport;
             parentRoute: typeof rootRoute;
         };
     }
@@ -137,8 +148,9 @@ export const routeTree = rootRoute.addChildren({
     StudyLibraryIndexRoute,
     LoginForgotPasswordIndexRoute,
     StudentsStudentsListIndexRoute,
-    StudyLibrary10ClassStudyLibraryIndexRoute,
-    StudyLibrary10ClassStudyLibrary10ClassPhysicsIndexRoute,
+    StudyLibraryClassIndexRoute,
+    StudyLibraryClassSubjectIndexRoute,
+    StudyLibraryClassSubjectModuleTsxIndexRoute,
 });
 
 /* prettier-ignore-end */
@@ -155,8 +167,9 @@ export const routeTree = rootRoute.addChildren({
         "/study-library/",
         "/login/forgot-password/",
         "/students/students-list/",
-        "/study-library/10-class-study-library/",
-        "/study-library/10-class-study-library/10-class-physics/"
+        "/study-library/$class/",
+        "/study-library/$class/$subject/",
+        "/study-library/$class/$subject/$module/tsx/"
       ]
     },
     "/dashboard/": {
@@ -177,11 +190,14 @@ export const routeTree = rootRoute.addChildren({
     "/students/students-list/": {
       "filePath": "students/students-list/index.tsx"
     },
-    "/study-library/10-class-study-library/": {
-      "filePath": "study-library/10-class-study-library/index.tsx"
+    "/study-library/$class/": {
+      "filePath": "study-library/$class/index.tsx"
     },
-    "/study-library/10-class-study-library/10-class-physics/": {
-      "filePath": "study-library/10-class-study-library/10-class-physics/index.tsx"
+    "/study-library/$class/$subject/": {
+      "filePath": "study-library/$class/$subject/index.tsx"
+    },
+    "/study-library/$class/$subject/$module/tsx/": {
+      "filePath": "study-library/$class/$subject/$module.tsx/index.tsx"
     }
   }
 }

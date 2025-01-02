@@ -5,6 +5,7 @@ import { Class9CardImage } from "@/assets/svgs";
 import { Class8CardImage } from "@/assets/svgs";
 import { ClassCard } from "./class-card";
 import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-material-button";
+import { useNavigate } from "@tanstack/react-router";
 
 interface ClassCardType {
     id: string;
@@ -15,25 +16,30 @@ interface ClassCardType {
 
 export const StudyLibrary = () => {
     const { setNavHeading } = useNavHeadingStore();
+    const navigate = useNavigate();
 
     useEffect(() => {
         setNavHeading("Study Library");
     }, []);
 
+    const handleClassClick = (classId: string) => {
+        const routeName = `${classId}th-class-study-library`;
+        navigate({ to: `/study-library/${routeName}` });
+    };
+
     const ClassCardData: ClassCardType[] = [
         {
-            id: "1",
+            id: "10",
             image: Class10CardImage,
             class: "10th",
-            route: "/study-library/10-class-study-library",
         },
         {
-            id: "2",
+            id: "9",
             image: Class9CardImage,
             class: "9th",
         },
         {
-            id: "3",
+            id: "8",
             image: Class8CardImage,
             class: "8th",
         },
@@ -54,12 +60,9 @@ export const StudyLibrary = () => {
             </div>
             <div className="flex gap-12">
                 {ClassCardData.map((card, key) => (
-                    <ClassCard
-                        key={key}
-                        image={card.image}
-                        classLevel={card.class}
-                        route={card.route}
-                    />
+                    <div key={key} onClick={() => handleClassClick(card.id)}>
+                        <ClassCard image={card.image} classLevel={card.class} />
+                    </div>
                 ))}
             </div>
         </div>

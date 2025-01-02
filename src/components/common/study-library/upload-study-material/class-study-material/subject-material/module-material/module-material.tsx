@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { AddModulesButton } from "./add-modules.tsx/add-modules-button";
-import { Modules, ModuleType } from "./add-modules.tsx/modules";
+import { ModuleType, Modules } from "./add-modules.tsx/modules";
 import { useRouter } from "@tanstack/react-router";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "@phosphor-icons/react";
+import { formatClassName, getClassSuffix } from "@/lib/study-library/class-formatter";
 
-export const Class10PhysicsModules = () => {
+interface ModuleMaterialProps {
+    classNumber: string;
+    subject: string;
+    module: string;
+}
+
+export const ModuleMaterial = ({ classNumber, subject, module }: ModuleMaterialProps) => {
     const [modules, setModules] = useState<ModuleType[]>([]);
 
     const handleAddModule = (module: ModuleType) => {
@@ -20,17 +27,23 @@ export const Class10PhysicsModules = () => {
         setModules((prev) => prev.map((subject, i) => (i === index ? updatedSubject : subject)));
     };
     const router = useRouter();
+    const formattedClass = formatClassName(classNumber);
 
     const handleBackClick = () => {
+        const formattedClassName = `${classNumber}${getClassSuffix(
+            classNumber,
+        )}-class-study-library`;
+        const formattedSubject = subject.toLowerCase().replace(/\s+/g, "-");
+
         router.navigate({
-            to: "/study-library/10-class-study-library",
+            to: `/study-library/${formattedClassName}/${formattedSubject}`,
         });
     };
 
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>10th Class Physics</div>
+            <div>{`${formattedClass} Class ${subject} - ${module}`}</div>
         </div>
     );
 

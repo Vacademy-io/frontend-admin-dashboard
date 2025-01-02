@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AddSubjectForm } from "./add-subject-form";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useRouter } from "@tanstack/react-router";
+import { getClassSuffix } from "@/lib/study-library/class-formatter";
 
 interface Subject {
     name: string;
@@ -46,16 +47,29 @@ interface SubjectCardProps {
     subject: Subject;
     onDelete: () => void;
     onEdit: (updatedSubject: Subject) => void;
+    classNumber?: string | undefined; // Add this prop
 }
 
-const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => {
+const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
     const router = useRouter();
 
-    const handleCardClick = () => {
+    const handleCardClick = (e: React.MouseEvent) => {
+        if (
+            (e.target as HTMLElement).closest(".menu-options-container") ||
+            (e.target as HTMLElement).closest('[role="menu"]') ||
+            (e.target as HTMLElement).closest('[role="dialog"]')
+        ) {
+            return;
+        }
+
+        const subjectRoute = subject.name.toLowerCase().replace(/\s+/g, "-");
+        const formattedClassName = `${classNumber}${getClassSuffix(
+            classNumber,
+        )}-class-study-library`;
+
         router.navigate({
-            to: "/study-library/10-class-study-library/10-class-physics",
+            to: `/study-library/${formattedClassName}/${subjectRoute}`,
         });
     };
 
@@ -93,9 +107,15 @@ interface SubjectsProps {
     subjects: Subject[];
     onDeleteSubject: (index: number) => void;
     onEditSubject: (index: number, updatedSubject: Subject) => void;
+    classNumber: string | undefined; // Add this prop
 }
 
-export const Subjects = ({ subjects, onDeleteSubject, onEditSubject }: SubjectsProps) => {
+export const Subjects = ({
+    subjects,
+    onDeleteSubject,
+    onEditSubject,
+    classNumber,
+}: SubjectsProps) => {
     return (
         <div className="h-full w-full">
             {!subjects.length && (
@@ -111,6 +131,7 @@ export const Subjects = ({ subjects, onDeleteSubject, onEditSubject }: SubjectsP
                         subject={subject}
                         onDelete={() => onDeleteSubject(index)}
                         onEdit={(updatedSubject) => onEditSubject(index, updatedSubject)}
+                        classNumber={classNumber} // Pass down the classNumber
                     />
                 ))}
             </div>
