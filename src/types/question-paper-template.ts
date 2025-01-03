@@ -7,8 +7,10 @@ export interface QuestionPaperTemplateProps {
     form: UseFormReturn<QuestionPaperForm>;
     questionPaperId: string | undefined;
     isViewMode: boolean;
-    refetchData: () => void;
+    refetchData?: () => void;
     isManualCreated?: boolean;
+    buttonText: string;
+    isAssessment?: boolean;
 }
 
 export interface QuestionData {

@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { z } from "zod";
-import { FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { FormProvider } from "react-hook-form";
 import SelectField from "@/components/design-system/select-field";
 import { UploadFileBg } from "@/svgs";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
@@ -14,7 +13,6 @@ import CustomInput from "@/components/design-system/custom-input";
 import { useMutation } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
-import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { useQuestionStore } from "../-global-states/question-index";
 import { addQuestionPaper } from "../-utils/question-paper-services";
 import { MyQuestionPaperFormInterface } from "../../../../types/question-paper-form";
@@ -24,7 +22,6 @@ import {
     transformResponseDataToMyQuestionsSchema,
 } from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
-import { useRefetchStore } from "../-global-states/refetch-store";
 import {
     ANSWER_LABELS,
     EXPLANATION_LABELS,
@@ -32,13 +29,18 @@ import {
     QUESTION_LABELS,
 } from "@/constants/dummy-data";
 import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import useDialogStore from "../-global-states/question-paper-dialogue-close";
+import { useSectionForm } from "../../tests/create-assessment/-utils/useSectionForm";
+import { useUploadQuestionPaperForm } from "../-utils/question-paper-form";
+import { useUploadedQuestionPapersStore } from "../../tests/create-assessment/-utils/global-states";
 
 interface QuestionPaperUploadProps {
     isManualCreated: boolean;
+    index?: number;
 }
 
-export const QuestionPaperUpload = ({ isManualCreated }: QuestionPaperUploadProps) => {
-    const handleRefetchData = useRefetchStore((state) => state.handleRefetchData);
+export const QuestionPaperUpload = ({ isManualCreated, index }: QuestionPaperUploadProps) => {
     const { setCurrentQuestionIndex } = useQuestionStore();
     const { instituteDetails } = useInstituteDetailsStore();
 
@@ -46,127 +48,12 @@ export const QuestionPaperUpload = ({ isManualCreated }: QuestionPaperUploadProp
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const form = useForm<z.infer<typeof uploadQuestionPaperFormSchema>>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
-        defaultValues: {
-            questionPaperId: "1",
-            isFavourite: false,
-            title: "",
-            createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
-            fileUpload: undefined,
-            questions: [
-                {
-                    questionId: "1",
-                    questionName: "",
-                    explanation: "",
-                    questionType: "MCQS",
-                    questionMark: "",
-                    imageDetails: [],
-                    singleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                    multipleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                },
-            ],
-        },
-    });
-
+    const { setSectionUploadedQuestionPapers } = useUploadedQuestionPapersStore();
+    const form = useUploadQuestionPaperForm();
     const { getValues, setValue, watch } = form;
+
+    const sectionsForm = useSectionForm();
+    const { getValues: getSectionsFormValues, setValue: setSectionsFormValues } = sectionsForm;
 
     const questionPaperId = getValues("questionPaperId");
     const title = getValues("title");
@@ -184,17 +71,49 @@ export const QuestionPaperUpload = ({ isManualCreated }: QuestionPaperUploadProp
 
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isProgress, setIsProgress] = useState(false);
+    const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+    const {
+        setIsMainQuestionPaperAddDialogOpen,
+        setIsManualQuestionPaperDialogOpen,
+        setIsUploadFromDeviceDialogOpen,
+    } = useDialogStore();
 
     // Your mutation setup
     const handleSubmitFormData = useMutation({
         mutationFn: ({ data }: { data: MyQuestionPaperFormInterface }) => addQuestionPaper(data),
-        onSuccess: () => {
+        onMutate: () => {
+            setIsFormSubmitting(true);
+        },
+        onSettled: () => {
+            setIsFormSubmitting(false);
+        },
+        onSuccess: (data) => {
             setCurrentQuestionIndex(0);
             toast.success("Question Paper added successfully", {
                 className: "success-toast",
                 duration: 2000,
             });
-            handleRefetchData();
+            if (index !== undefined) {
+                // Check if index is defined
+                setSectionsFormValues(`section.${index}`, {
+                    ...getSectionsFormValues(`section.${index}`), // Keep other section data intact
+                    uploaded_question_paper: data.saved_question_paper_id,
+                });
+                setSectionUploadedQuestionPapers((prev) => {
+                    const updatedData = [...prev];
+                    if (index >= updatedData.length) {
+                        updatedData.length = index + 1;
+                    }
+                    updatedData[index] = {
+                        ...updatedData[index],
+                        questionPaperId: data.saved_question_paper_id,
+                    };
+                    return updatedData;
+                });
+                setIsMainQuestionPaperAddDialogOpen(false);
+                setIsManualQuestionPaperDialogOpen(false);
+                setIsUploadFromDeviceDialogOpen(false);
+            }
         },
         onError: (error: unknown) => {
             console.log("Error:", error);
@@ -203,15 +122,52 @@ export const QuestionPaperUpload = ({ isManualCreated }: QuestionPaperUploadProp
     });
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
+        console.log(values);
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
-        handleSubmitFormData.mutate({
-            data: {
-                ...values,
-                yearClass: getIdYearClass,
-                subject: getIdSubject,
-            } as MyQuestionPaperFormInterface,
-        });
+
+        const newQuestionPaperData = {
+            title: values.title || "",
+            subject: values.subject || "",
+            yearClass: values.yearClass || "",
+            ...(isManualCreated && { questions: values?.questions }),
+        };
+
+        if (index !== undefined) {
+            // Ensure index is defined before using it
+            setSectionUploadedQuestionPapers((prev) => {
+                const updatedData = [...prev];
+                if (index >= updatedData.length) {
+                    updatedData.length = index + 1;
+                }
+
+                updatedData[index] = {
+                    ...updatedData[index],
+                    ...newQuestionPaperData,
+                };
+
+                return updatedData;
+            });
+            setSectionsFormValues(`section.${index}`, {
+                ...getSectionsFormValues(`section.${index}`), // Keep other section data intact
+                ...(isManualCreated && {
+                    adaptive_marking_for_each_question: values.questions.map((question) => ({
+                        questionId: question.questionId,
+                        questionName: question.questionName,
+                        questionType: question.questionType,
+                        questionMark: question.questionMark,
+                        questionPenalty: "",
+                    })),
+                }),
+            });
+            handleSubmitFormData.mutate({
+                data: {
+                    ...values,
+                    yearClass: getIdYearClass,
+                    subject: getIdSubject,
+                } as MyQuestionPaperFormInterface,
+            });
+        }
     }
 
     const onInvalid = (err: unknown) => {
@@ -249,7 +205,34 @@ export const QuestionPaperUpload = ({ isManualCreated }: QuestionPaperUploadProp
             setIsProgress(false);
         },
         onSuccess: (data) => {
+            const transformQuestionsData = transformResponseDataToMyQuestionsSchema(data);
             setValue("questions", transformResponseDataToMyQuestionsSchema(data));
+            if (index !== undefined) {
+                // Check if index is defined
+                setSectionUploadedQuestionPapers((prev) => {
+                    const updatedData = [...prev];
+                    if (index >= updatedData.length) {
+                        updatedData.length = index + 1;
+                    }
+
+                    updatedData[index] = {
+                        ...updatedData[index],
+                        questions: transformQuestionsData,
+                    };
+
+                    return updatedData;
+                });
+                setSectionsFormValues(`section.${index}`, {
+                    ...getSectionsFormValues(`section.${index}`), // Keep other section data intact
+                    adaptive_marking_for_each_question: transformQuestionsData.map((question) => ({
+                        questionId: question.questionId,
+                        questionName: question.questionName,
+                        questionType: question.questionType,
+                        questionMark: question.questionMark,
+                        questionPenalty: "",
+                    })),
+                });
+            }
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -281,6 +264,7 @@ export const QuestionPaperUpload = ({ isManualCreated }: QuestionPaperUploadProp
             fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
+
     return (
         <>
             <FormProvider {...form}>
@@ -288,218 +272,228 @@ export const QuestionPaperUpload = ({ isManualCreated }: QuestionPaperUploadProp
                     onSubmit={form.handleSubmit(onSubmit, onInvalid)}
                     className="scrollbar-hidden no-scrollbar max-h-[60vh] space-y-8 overflow-y-auto p-4 pt-2"
                 >
-                    {!isManualCreated && (
+                    {!isFormSubmitting ? (
                         <>
-                            <div className="ml-4 flex flex-col gap-4">
-                                <SelectField
-                                    label="Questions"
-                                    name="questionsType"
-                                    options={QUESTION_LABELS.map((option, index) => ({
-                                        value: option,
-                                        label: option,
-                                        _id: index,
-                                    }))}
-                                    control={form.control}
-                                    required
-                                />
-                                <SelectField
-                                    label="Options"
-                                    name="optionsType"
-                                    options={OPTIONS_LABELS.map((option, index) => ({
-                                        value: option,
-                                        label: option,
-                                        _id: index,
-                                    }))}
-                                    control={form.control}
-                                    required
-                                />
-                                <SelectField
-                                    label="Answers"
-                                    name="answersType"
-                                    options={ANSWER_LABELS.map((option, index) => ({
-                                        value: option,
-                                        label: option,
-                                        _id: index,
-                                    }))}
-                                    control={form.control}
-                                    required
-                                />
-                                <SelectField
-                                    label="Explanations"
-                                    name="explanationsType"
-                                    options={EXPLANATION_LABELS.map((option, index) => ({
-                                        value: option,
-                                        label: option,
-                                        _id: index,
-                                    }))}
-                                    control={form.control}
-                                    required
-                                />
-                            </div>
-                            <div className="flex flex-col gap-6">
-                                <div
-                                    className="flex w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dotted border-primary-500 p-4"
-                                    onClick={handleFileSelect}
-                                >
-                                    <UploadFileBg className="mb-3" />
-                                    <FileUploadComponent
-                                        fileInputRef={fileInputRef}
-                                        onFileSubmit={handleFileSubmit}
-                                        control={form.control}
-                                        name="fileUpload"
-                                    />
-                                </div>
-                                <h1 className="-mt-4 text-xs text-red-500">
-                                    If you are having a problem while uploading docx file then
-                                    please convert your file in html{" "}
-                                    <a
-                                        href="https://convertio.co/docx-html/"
-                                        target="_blank"
-                                        className="text-blue-500"
-                                        rel="noreferrer"
-                                    >
-                                        here
-                                    </a>{" "}
-                                    and try to re-upload.
-                                </h1>
-                            </div>
-
-                            {getValues("fileUpload") && (
-                                <div className="flex w-full items-center gap-2 rounded-md bg-neutral-100 p-2">
-                                    <div className="rounded-md bg-primary-100 p-2">
-                                        <File
-                                            size={32}
-                                            fillOpacity={1}
-                                            weight="fill"
-                                            className="text-primary-500"
+                            {!isManualCreated && (
+                                <>
+                                    <div className="ml-4 flex flex-col gap-4">
+                                        <SelectField
+                                            label="Questions"
+                                            name="questionsType"
+                                            options={QUESTION_LABELS.map((option, index) => ({
+                                                value: option,
+                                                label: option,
+                                                _id: index,
+                                            }))}
+                                            control={form.control}
+                                            required
+                                        />
+                                        <SelectField
+                                            label="Options"
+                                            name="optionsType"
+                                            options={OPTIONS_LABELS.map((option, index) => ({
+                                                value: option,
+                                                label: option,
+                                                _id: index,
+                                            }))}
+                                            control={form.control}
+                                            required
+                                        />
+                                        <SelectField
+                                            label="Answers"
+                                            name="answersType"
+                                            options={ANSWER_LABELS.map((option, index) => ({
+                                                value: option,
+                                                label: option,
+                                                _id: index,
+                                            }))}
+                                            control={form.control}
+                                            required
+                                        />
+                                        <SelectField
+                                            label="Explanations"
+                                            name="explanationsType"
+                                            options={EXPLANATION_LABELS.map((option, index) => ({
+                                                value: option,
+                                                label: option,
+                                                _id: index,
+                                            }))}
+                                            control={form.control}
+                                            required
                                         />
                                     </div>
-                                    <div className="flex w-full flex-col">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <p className="break-all text-sm font-bold">
-                                                {getValues("fileUpload")?.name}
-                                            </p>
-                                            <X
-                                                size={16}
-                                                className="mt-[2px] cursor-pointer"
-                                                onClick={handleRemoveQuestionPaper}
+                                    <div className="flex flex-col gap-6">
+                                        <div
+                                            className="flex w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dotted border-primary-500 p-4"
+                                            onClick={handleFileSelect}
+                                        >
+                                            <UploadFileBg className="mb-3" />
+                                            <FileUploadComponent
+                                                fileInputRef={fileInputRef}
+                                                onFileSubmit={handleFileSubmit}
+                                                control={form.control}
+                                                name="fileUpload"
                                             />
                                         </div>
-
-                                        <p className="whitespace-normal text-xs">
-                                            {(
-                                                (((getValues("fileUpload")?.size || 0) /
-                                                    (1024 * 1024)) *
-                                                    uploadProgress) /
-                                                100
-                                            ).toFixed(2)}{" "}
-                                            MB /{" "}
-                                            {(
-                                                (getValues("fileUpload")?.size || 0) /
-                                                (1024 * 1024)
-                                            ).toFixed(2)}
-                                            &nbsp;MB
-                                        </p>
-
-                                        <div className="flex items-center gap-2">
-                                            <Progress
-                                                value={uploadProgress}
-                                                className="w-full bg-primary-500"
-                                            />
-                                            <span className="text-xs">{uploadProgress}%</span>
-                                        </div>
+                                        <h1 className="-mt-4 text-xs text-red-500">
+                                            If you are having a problem while uploading docx file
+                                            then please convert your file in html{" "}
+                                            <a
+                                                href="https://convertio.co/docx-html/"
+                                                target="_blank"
+                                                className="text-blue-500"
+                                                rel="noreferrer"
+                                            >
+                                                here
+                                            </a>{" "}
+                                            and try to re-upload.
+                                        </h1>
                                     </div>
-                                </div>
+
+                                    {getValues("fileUpload") && (
+                                        <div className="flex w-full items-center gap-2 rounded-md bg-neutral-100 p-2">
+                                            <div className="rounded-md bg-primary-100 p-2">
+                                                <File
+                                                    size={32}
+                                                    fillOpacity={1}
+                                                    weight="fill"
+                                                    className="text-primary-500"
+                                                />
+                                            </div>
+                                            <div className="flex w-full flex-col">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <p className="break-all text-sm font-bold">
+                                                        {getValues("fileUpload")?.name}
+                                                    </p>
+                                                    <X
+                                                        size={16}
+                                                        className="mt-[2px] cursor-pointer"
+                                                        onClick={handleRemoveQuestionPaper}
+                                                    />
+                                                </div>
+
+                                                <p className="whitespace-normal text-xs">
+                                                    {(
+                                                        (((getValues("fileUpload")?.size || 0) /
+                                                            (1024 * 1024)) *
+                                                            uploadProgress) /
+                                                        100
+                                                    ).toFixed(2)}{" "}
+                                                    MB /{" "}
+                                                    {(
+                                                        (getValues("fileUpload")?.size || 0) /
+                                                        (1024 * 1024)
+                                                    ).toFixed(2)}
+                                                    &nbsp;MB
+                                                </p>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Progress
+                                                        value={uploadProgress}
+                                                        className="w-full bg-primary-500"
+                                                    />
+                                                    <span className="text-xs">
+                                                        {uploadProgress}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
-                        </>
-                    )}
-                    <CustomInput
-                        control={form.control}
-                        name="title"
-                        label="Title"
-                        placeholder="Enter Title"
-                        required
-                    />
-                    <div className="flex items-center gap-4">
-                        <SelectField
-                            label="Year/class"
-                            name="yearClass"
-                            options={YearClassFilterData.map((option, index) => ({
-                                value: option.name,
-                                label: option.name,
-                                _id: index,
-                            }))}
-                            control={form.control}
-                            required
-                            className="!w-full"
-                        />
-                        <SelectField
-                            label="Subject"
-                            name="subject"
-                            options={SubjectFilterData.map((option, index) => ({
-                                value: option.name,
-                                label: option.name,
-                                _id: index,
-                            }))}
-                            control={form.control}
-                            required
-                            className="!w-full"
-                        />
-                    </div>
-                    <div className="flex justify-between">
-                        {isProgress ? (
-                            <Button type="button" variant="outline" className="w-52 border-2">
-                                Loading...
-                            </Button>
-                        ) : (
-                            !isManualCreated &&
-                            fileUpload && (
-                                <QuestionPaperTemplate
-                                    form={form}
-                                    questionPaperId={questionPaperId}
-                                    isViewMode={false}
-                                    refetchData={handleRefetchData}
-                                />
-                            )
-                        )}
-                        {isManualCreated && (
-                            <QuestionPaperTemplate
-                                form={form}
-                                questionPaperId={questionPaperId}
-                                isViewMode={false}
-                                refetchData={handleRefetchData}
-                                isManualCreated={isManualCreated}
+                            <CustomInput
+                                control={form.control}
+                                name="title"
+                                label="Title"
+                                placeholder="Enter Title"
+                                required
                             />
-                        )}
-                        {fileUpload && (
-                            <AlertDialogCancel className="border-none shadow-none hover:bg-transparent">
-                                <Button
-                                    disabled={
-                                        isManualCreated
-                                            ? !isFormValidWhenManuallyCreated
-                                            : !isFormValidWhenUploaded
-                                    }
-                                    type="submit"
-                                    className="ml-[1.8rem] w-56 bg-primary-500 text-white"
-                                >
-                                    Done
-                                </Button>
-                            </AlertDialogCancel>
-                        )}
-                        {!fileUpload && (
-                            <Button
-                                disabled={
-                                    isManualCreated
-                                        ? !isFormValidWhenManuallyCreated
-                                        : !isFormValidWhenUploaded
-                                }
-                                type="submit"
-                                className="w-56 bg-primary-500 text-white"
-                            >
-                                Done
-                            </Button>
-                        )}
-                    </div>
+                            <div className="flex items-center gap-4">
+                                <SelectField
+                                    label="Year/class"
+                                    name="yearClass"
+                                    options={YearClassFilterData.map((option, index) => ({
+                                        value: option.name,
+                                        label: option.name,
+                                        _id: index,
+                                    }))}
+                                    control={form.control}
+                                    required
+                                    className="!w-full"
+                                />
+                                <SelectField
+                                    label="Subject"
+                                    name="subject"
+                                    options={SubjectFilterData.map((option, index) => ({
+                                        value: option.name,
+                                        label: option.name,
+                                        _id: index,
+                                    }))}
+                                    control={form.control}
+                                    required
+                                    className="!w-full"
+                                />
+                            </div>
+                            <div className="flex justify-between">
+                                {isProgress ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-52 border-2"
+                                    >
+                                        Loading...
+                                    </Button>
+                                ) : (
+                                    !isManualCreated &&
+                                    fileUpload && (
+                                        <QuestionPaperTemplate
+                                            form={form}
+                                            questionPaperId={questionPaperId}
+                                            isViewMode={false}
+                                            buttonText="Preview"
+                                        />
+                                    )
+                                )}
+                                {isManualCreated && (
+                                    <QuestionPaperTemplate
+                                        form={form}
+                                        questionPaperId={questionPaperId}
+                                        isViewMode={false}
+                                        isManualCreated={isManualCreated}
+                                        buttonText="Create"
+                                    />
+                                )}
+                                {fileUpload && (
+                                    <Button
+                                        disabled={
+                                            isManualCreated
+                                                ? !isFormValidWhenManuallyCreated
+                                                : !isFormValidWhenUploaded
+                                        }
+                                        type="submit"
+                                        className="ml-[1.8rem] w-56 bg-primary-500 text-white"
+                                    >
+                                        Done
+                                    </Button>
+                                )}
+                                {!fileUpload && (
+                                    <Button
+                                        disabled={
+                                            isManualCreated
+                                                ? !isFormValidWhenManuallyCreated
+                                                : !isFormValidWhenUploaded
+                                        }
+                                        type="submit"
+                                        className="w-56 bg-primary-500 text-white"
+                                    >
+                                        Done
+                                    </Button>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <DashboardLoader height="40vh" />
+                    )}
                 </form>
             </FormProvider>
         </>

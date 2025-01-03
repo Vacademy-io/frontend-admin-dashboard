@@ -2,7 +2,7 @@ import { LayoutContainer } from "@/components/common/layout-container/layout-con
 import { useState } from "react";
 import { MainStepComponent } from "./StepComponents/MainStepComponent";
 import { CheckCircle } from "phosphor-react";
-import useSidebarStore from "../-utils/global-states";
+import { useSidebarStore } from "../-utils/global-states";
 import { Helmet } from "react-helmet";
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {

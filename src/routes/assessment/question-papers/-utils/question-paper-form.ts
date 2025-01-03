@@ -1,46 +1,26 @@
-import { FormProvider, useForm } from "react-hook-form";
-import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
-import { z } from "zod";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
-import { useQuestionStore } from "../-global-states/question-index";
-import { useEffect } from "react";
-import { getLevelNameById, getSubjectNameById } from "../-utils/helper";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { z } from "zod";
+import { uploadQuestionPaperFormSchema } from "./upload-question-paper-form-schema";
 
-export const ViewQuestionPaper = ({
-    questionPaperId,
-    title,
-    subject,
-    level,
-    refetchData,
-    isAssessment,
-}: {
-    questionPaperId: string | undefined;
-    title: string | undefined;
-    subject: string | null;
-    level: string | null;
-    refetchData?: () => void;
-    isAssessment?: boolean;
-}) => {
-    const { instituteDetails } = useInstituteDetailsStore();
-    const { setCurrentQuestionIndex } = useQuestionStore();
-    const form = useForm<z.infer<typeof uploadQuestionPaperFormSchema>>({
+export type UploadQuestionPaperFormType = z.infer<typeof uploadQuestionPaperFormSchema>;
+
+export const useUploadQuestionPaperForm = (): UseFormReturn<UploadQuestionPaperFormType> => {
+    return useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
         defaultValues: {
-            questionPaperId: questionPaperId,
+            questionPaperId: "1",
             isFavourite: false,
-            title: title,
+            title: "",
             createdOn: new Date(),
-            yearClass: (instituteDetails && getLevelNameById(instituteDetails.levels, level)) || "",
-            subject:
-                (instituteDetails && getSubjectNameById(instituteDetails?.subjects, subject)) || "",
+            yearClass: "",
+            subject: "",
             questionsType: "",
             optionsType: "",
             answersType: "",
             explanationsType: "",
-            fileUpload: null as unknown as File,
+            fileUpload: undefined,
             questions: [
                 {
                     questionId: "1",
@@ -52,7 +32,7 @@ export const ViewQuestionPaper = ({
                     singleChoiceOptions: [
                         {
                             name: "",
-                            isSelected: false,
+                            isSelected: true,
                             image: {
                                 imageId: "",
                                 imageName: "",
@@ -145,32 +125,4 @@ export const ViewQuestionPaper = ({
             ],
         },
     });
-
-    function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        console.log(values);
-    }
-
-    const onInvalid = (err: unknown) => {
-        console.error(err);
-    };
-
-    useEffect(() => {
-        setCurrentQuestionIndex(0);
-    }, []);
-    return (
-        <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onInvalid)}>
-                <QuestionPaperTemplate
-                    form={form}
-                    questionPaperId={questionPaperId}
-                    isViewMode={true}
-                    refetchData={refetchData}
-                    buttonText={isAssessment ? "View" : "View Question Paper"}
-                    isAssessment={isAssessment}
-                />
-            </form>
-        </FormProvider>
-    );
 };
-
-export default ViewQuestionPaper;

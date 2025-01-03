@@ -14,7 +14,7 @@ export function QuestionPapersComponent() {
             </Helmet>
             <div className="flex flex-col gap-4">
                 <QuestionPapersHeading />
-                <QuestionPapersTabs />
+                <QuestionPapersTabs isAssessment={false} />
             </div>
         </>
     );

@@ -1,3 +1,4 @@
+import { MyQuestionPaperFormInterface } from "@/types/question-paper-form";
 import { create } from "zustand";
 
 // Define the interface for the Zustand store
@@ -7,9 +8,22 @@ interface SidebarState {
 }
 
 // Create the Zustand store using the interface
-const useSidebarStore = create<SidebarState>((set) => ({
+export const useSidebarStore = create<SidebarState>((set) => ({
     sidebarOpen: true,
     setSidebarOpen: (isOpen: boolean) => set({ sidebarOpen: isOpen }),
 }));
 
-export default useSidebarStore;
+interface UploadedQuestionPapersStore {
+    sectionUploadedQuestionPapers: MyQuestionPaperFormInterface[];
+    setSectionUploadedQuestionPapers: (
+        updater: (prev: MyQuestionPaperFormInterface[]) => MyQuestionPaperFormInterface[],
+    ) => void;
+}
+
+export const useUploadedQuestionPapersStore = create<UploadedQuestionPapersStore>((set) => ({
+    sectionUploadedQuestionPapers: [],
+    setSectionUploadedQuestionPapers: (updater) =>
+        set((state) => ({
+            sectionUploadedQuestionPapers: updater(state.sectionUploadedQuestionPapers),
+        })),
+}));

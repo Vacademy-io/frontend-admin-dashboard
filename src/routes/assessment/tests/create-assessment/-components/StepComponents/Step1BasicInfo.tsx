@@ -84,6 +84,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         !!assessmentName && !!subject && !!liveDateRangeStartDate && !!liveDateRangeEndDate;
 
     const onSubmit = (data: z.infer<typeof BasicInfoFormSchema>) => {
+        console.log(data);
         handleCompleteCurrentStep();
     };
 
@@ -199,8 +200,14 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     _id: index,
                                 }))}
                                 control={form.control}
-                                required
                                 className="w-56 font-thin"
+                                required={
+                                    getStepKey({
+                                        assessmentDetails,
+                                        currentStep,
+                                        key: "subject_selection",
+                                    }) === "REQUIRED"
+                                }
                             />
                         )}
                     </div>
@@ -240,7 +247,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                     form.formState.errors.testCreation
                                                         ?.assessmentName?.message
                                                 }
-                                                required={true}
+                                                required={
+                                                    getStepKey({
+                                                        assessmentDetails,
+                                                        currentStep,
+                                                        key: "boundation_start_date",
+                                                    }) === "REQUIRED"
+                                                }
                                                 size="large"
                                                 label="Start Date & Time"
                                                 labelStyle="font-thin"
@@ -271,7 +284,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                     form.formState.errors.testCreation
                                                         ?.assessmentName?.message
                                                 }
-                                                required={true}
+                                                required={
+                                                    getStepKey({
+                                                        assessmentDetails,
+                                                        currentStep,
+                                                        key: "boundation_end_date",
+                                                    }) === "REQUIRED"
+                                                }
                                                 size="large"
                                                 label="End Date & Time"
                                                 labelStyle="font-thin"
@@ -359,7 +378,16 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             key: "duration",
                         }) && (
                             <div className="flex items-center gap-4 text-sm font-thin">
-                                <h1>Entire Test Duration</h1>
+                                <h1>
+                                    Entire Test Duration
+                                    {getStepKey({
+                                        assessmentDetails,
+                                        currentStep,
+                                        key: "duration",
+                                    }) === "REQUIRED" && (
+                                        <span className="text-subtitle text-danger-600">*</span>
+                                    )}
+                                </h1>
                                 <FormField
                                     control={control}
                                     name="testDuration.entireTestDuration.testDuration.hrs"
@@ -433,7 +461,16 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             name="assessmentPreview.checked"
                             render={({ field }) => (
                                 <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>Allow Assessment Preview</FormLabel>
+                                    <FormLabel>
+                                        Allow Assessment Preview
+                                        {getStepKey({
+                                            assessmentDetails,
+                                            currentStep,
+                                            key: "assessment_preview",
+                                        }) === "REQUIRED" && (
+                                            <span className="text-subtitle text-danger-600">*</span>
+                                        )}
+                                    </FormLabel>
                                     <FormControl>
                                         <Switch
                                             checked={field.value}
@@ -469,7 +506,16 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             name="switchSections"
                             render={({ field }) => (
                                 <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>Allow students to switch between sections</FormLabel>
+                                    <FormLabel>
+                                        Allow students to switch between sections
+                                        {getStepKey({
+                                            assessmentDetails,
+                                            currentStep,
+                                            key: "can_switch_section",
+                                        }) === "REQUIRED" && (
+                                            <span className="text-subtitle text-danger-600">*</span>
+                                        )}
+                                    </FormLabel>
                                     <FormControl>
                                         <Switch
                                             checked={field.value}
@@ -490,7 +536,16 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             name="raiseReattemptRequest"
                             render={({ field }) => (
                                 <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>Allow students to raise reattempt request</FormLabel>
+                                    <FormLabel>
+                                        Allow students to raise reattempt request
+                                        {getStepKey({
+                                            assessmentDetails,
+                                            currentStep,
+                                            key: "reattempt_consent",
+                                        }) === "REQUIRED" && (
+                                            <span className="text-subtitle text-danger-600">*</span>
+                                        )}
+                                    </FormLabel>
                                     <FormControl>
                                         <Switch
                                             checked={field.value}
@@ -513,6 +568,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 <FormItem className="flex w-1/2 items-center justify-between">
                                     <FormLabel>
                                         Allow students to raise time increase request
+                                        {getStepKey({
+                                            assessmentDetails,
+                                            currentStep,
+                                            key: "add_time_consent",
+                                        }) === "REQUIRED" && (
+                                            <span className="text-subtitle text-danger-600">*</span>
+                                        )}
                                     </FormLabel>
                                     <FormControl>
                                         <Switch

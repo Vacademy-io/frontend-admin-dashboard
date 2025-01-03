@@ -9,25 +9,40 @@ import {
 import { MyPagination } from "@/components/design-system/pagination";
 import ViewQuestionPaper from "./ViewQuestionPaper";
 import { useMutation } from "@tanstack/react-query";
-import { markQuestionPaperStatus } from "../-utils/question-paper-services";
+import { getQuestionPaperById, markQuestionPaperStatus } from "../-utils/question-paper-services";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { PaginatedResponse, QuestionPaperInterface } from "@/types/question-paper-template";
 import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
-import { getLevelNameById, getSubjectNameById } from "../-utils/helper";
+import {
+    getLevelNameById,
+    getSubjectNameById,
+    transformResponseDataToMyQuestionsSchema,
+} from "../-utils/helper";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import useDialogStore from "../-global-states/question-paper-dialogue-close";
+import { MyQuestion } from "@/types/question-paper-form";
+import { useSectionForm } from "../../tests/create-assessment/-utils/useSectionForm";
+import { useUploadedQuestionPapersStore } from "../../tests/create-assessment/-utils/global-states";
 
 export const QuestionPapersList = ({
     questionPaperList,
     pageNo,
     handlePageChange,
     refetchData,
+    isAssessment,
+    index,
 }: {
     questionPaperList: PaginatedResponse;
     pageNo: number;
     handlePageChange: (newPage: number) => void;
     refetchData: () => void;
+    isAssessment: boolean;
+    index?: number;
 }) => {
+    const sectionsForm = useSectionForm();
+    const { setIsSavedQuestionPaperDialogOpen } = useDialogStore();
     const { instituteDetails } = useInstituteDetailsStore();
+    const { setSectionUploadedQuestionPapers } = useUploadedQuestionPapersStore();
 
     const handleMarkQuestionPaperStatus = useMutation({
         mutationFn: ({
@@ -43,12 +58,11 @@ export const QuestionPapersList = ({
             refetchData();
         },
         onError: (error: unknown) => {
-            throw error;
+            console.error(error);
         },
     });
 
     const handleMarkFavourite = (questionPaperId: string, status: string) => {
-        //Need to add logic through API
         handleMarkQuestionPaperStatus.mutate({
             status: status === "FAVOURITE" ? "ACTIVE" : "FAVOURITE",
             questionPaperId,
@@ -57,7 +71,6 @@ export const QuestionPapersList = ({
     };
 
     const handleDeleteQuestionPaper = (questionPaperId: string) => {
-        //Need to add logic through API
         handleMarkQuestionPaperStatus.mutate({
             status: "DELETE",
             questionPaperId,
@@ -65,18 +78,98 @@ export const QuestionPapersList = ({
         });
     };
 
-    if (handleMarkQuestionPaperStatus.status === "pending") return <DashboardLoader />;
+    const handleGetQuestionPaperData = useMutation({
+        mutationFn: ({ id }: { id: string }) => getQuestionPaperById(id),
+        onSuccess: (data) => {
+            setIsSavedQuestionPaperDialogOpen(false);
+            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
+                data.question_dtolist,
+            );
+
+            setSectionUploadedQuestionPapers((prev) => {
+                const updatedData = [...(prev || [])];
+                if (index !== undefined) {
+                    if (index >= updatedData.length) {
+                        updatedData.length = index + 1;
+                    }
+                    updatedData[index] = {
+                        ...updatedData[index],
+                        questions: transformQuestionsData,
+                    };
+                }
+                return updatedData;
+            });
+
+            if (sectionsForm && index !== undefined) {
+                sectionsForm.setValue(`section.${index}`, {
+                    ...sectionsForm.getValues(`section.${index}`),
+                    adaptive_marking_for_each_question: transformQuestionsData.map((question) => ({
+                        questionId: question.questionId,
+                        questionName: question.questionName,
+                        questionType: question.questionType,
+                        questionMark: question.questionMark,
+                        questionPenalty: "",
+                    })),
+                });
+            }
+        },
+        onError: (error: unknown) => {
+            console.error(error);
+        },
+    });
+
+    const handleGetQuestionPaperDataById = (questionsData: QuestionPaperInterface) => {
+        const id = questionsData.id;
+        const newQuestionPaperData = {
+            questionPaperId: questionsData.id,
+            title: questionsData.title,
+            status: questionsData.status,
+            subject: getSubjectNameById(instituteDetails?.subjects || [], questionsData.subject_id),
+            yearClass: getLevelNameById(instituteDetails?.levels || [], questionsData.level_id),
+        };
+
+        setSectionUploadedQuestionPapers((prev) => {
+            const updatedData = [...(prev || [])];
+            if (index !== undefined) {
+                if (index >= updatedData.length) {
+                    updatedData.length = index + 1;
+                }
+                updatedData[index] = {
+                    ...updatedData[index],
+                    ...newQuestionPaperData,
+                    questions: updatedData[index]?.questions || [],
+                };
+            }
+            return updatedData;
+        });
+
+        if (sectionsForm && index !== undefined) {
+            sectionsForm.setValue(`section.${index}`, {
+                ...sectionsForm.getValues(`section.${index}`),
+                uploaded_question_paper: id,
+            });
+        }
+
+        handleGetQuestionPaperData.mutate({ id });
+    };
+
+    if (
+        handleMarkQuestionPaperStatus.status == "pending" ||
+        handleGetQuestionPaperData.status === "pending"
+    )
+        return <DashboardLoader />;
 
     return (
         <div className="mt-5 flex flex-col gap-5">
-            {questionPaperList?.content?.map(
-                (questionsData: QuestionPaperInterface, index: number) => (
-                    <div
-                        key={index}
-                        className="flex flex-col gap-2 rounded-xl border-[1.5px] bg-neutral-50 p-4"
-                    >
-                        <div className="flex items-center justify-between">
-                            <h1 className="font-medium">{questionsData.title}</h1>
+            {questionPaperList?.content?.map((questionsData, idx) => (
+                <div
+                    key={idx}
+                    className="flex flex-col gap-2 rounded-xl border-[1.5px] bg-neutral-50 p-4"
+                    onClick={() => handleGetQuestionPaperDataById(questionsData)}
+                >
+                    <div className="flex items-center justify-between">
+                        <h1 className="font-medium">{questionsData.title}</h1>
+                        {!isAssessment && (
                             <div className="flex items-center gap-4">
                                 <Star
                                     size={20}
@@ -119,32 +212,29 @@ export const QuestionPapersList = ({
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </div>
-                        <div className="flex w-full items-center justify-start gap-8 text-xs">
-                            <p>
-                                Created On:{" "}
-                                {new Date(questionsData.created_on).toLocaleDateString() || "N/A"}
-                            </p>
-                            <p>
-                                Year/Class:{" "}
-                                {instituteDetails &&
-                                    getLevelNameById(
-                                        instituteDetails.levels,
-                                        questionsData.level_id,
-                                    )}
-                            </p>
-                            <p>
-                                Subject:{" "}
-                                {instituteDetails &&
-                                    getSubjectNameById(
-                                        instituteDetails.subjects,
-                                        questionsData.subject_id,
-                                    )}
-                            </p>
-                        </div>
+                        )}
                     </div>
-                ),
-            )}
+                    <div className="flex w-full items-center justify-start gap-8 text-xs">
+                        <p>
+                            Created On:{" "}
+                            {new Date(questionsData.created_on).toLocaleDateString() || "N/A"}
+                        </p>
+                        <p>
+                            Year/Class:{" "}
+                            {instituteDetails &&
+                                getLevelNameById(instituteDetails.levels, questionsData.level_id)}
+                        </p>
+                        <p>
+                            Subject:{" "}
+                            {instituteDetails &&
+                                getSubjectNameById(
+                                    instituteDetails.subjects,
+                                    questionsData.subject_id,
+                                )}
+                        </p>
+                    </div>
+                </div>
+            ))}
             <MyPagination
                 currentPage={pageNo}
                 totalPages={questionPaperList.total_pages}

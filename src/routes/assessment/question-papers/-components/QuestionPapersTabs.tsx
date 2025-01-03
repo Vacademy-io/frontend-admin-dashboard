@@ -16,7 +16,12 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRefetchStore } from "../-global-states/refetch-store";
 import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
 
-export const QuestionPapersTabs = () => {
+interface QuestionPapersTabsProps {
+    isAssessment: boolean; // Flag to determine if it's an assessment
+    index?: number;
+}
+
+export const QuestionPapersTabs = ({ isAssessment, index }: QuestionPapersTabsProps) => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const [selectedTab, setSelectedTab] = useState("ACTIVE");
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
@@ -310,6 +315,8 @@ export const QuestionPapersTabs = () => {
                         pageNo={pageNo}
                         handlePageChange={handlePageChange}
                         refetchData={handleRefetchData}
+                        isAssessment={isAssessment}
+                        index={index}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">
@@ -325,6 +332,8 @@ export const QuestionPapersTabs = () => {
                         pageNo={pageNo}
                         handlePageChange={handlePageChange}
                         refetchData={handleRefetchData}
+                        isAssessment={isAssessment}
+                        index={index}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">

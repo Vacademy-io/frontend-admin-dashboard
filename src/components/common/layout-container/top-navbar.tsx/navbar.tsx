@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { DummyProfile } from "@/assets/svgs";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { FiSidebar } from "react-icons/fi";
-import useSidebarStore from "@/routes/assessment/tests/create-assessment/-utils/global-states";
+import { useSidebarStore } from "@/routes/assessment/tests/create-assessment/-utils/global-states";
 
 const IconContainer = ({
     children,
