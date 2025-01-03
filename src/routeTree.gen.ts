@@ -19,7 +19,7 @@ import { Route as StudyLibraryClassIndexImport } from "./routes/study-library/$c
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
 import { Route as StudyLibraryClassSubjectIndexImport } from "./routes/study-library/$class/$subject/index";
-import { Route as StudyLibraryClassSubjectModuleTsxIndexImport } from "./routes/study-library/$class/$subject/$module.tsx/index";
+import { Route as StudyLibraryClassSubjectModuleIndexImport } from "./routes/study-library/$class/$subject/$module/index";
 
 // Create/Update Routes
 
@@ -63,11 +63,10 @@ const StudyLibraryClassSubjectIndexRoute = StudyLibraryClassSubjectIndexImport.u
     getParentRoute: () => rootRoute,
 } as any);
 
-const StudyLibraryClassSubjectModuleTsxIndexRoute =
-    StudyLibraryClassSubjectModuleTsxIndexImport.update({
-        path: "/study-library/$class/$subject/$module/tsx/",
-        getParentRoute: () => rootRoute,
-    } as any);
+const StudyLibraryClassSubjectModuleIndexRoute = StudyLibraryClassSubjectModuleIndexImport.update({
+    path: "/study-library/$class/$subject/$module/",
+    getParentRoute: () => rootRoute,
+} as any);
 
 // Populate the FileRoutesByPath interface
 
@@ -129,11 +128,11 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibraryClassSubjectIndexImport;
             parentRoute: typeof rootRoute;
         };
-        "/study-library/$class/$subject/$module/tsx/": {
-            id: "/study-library/$class/$subject/$module/tsx/";
-            path: "/study-library/$class/$subject/$module/tsx";
-            fullPath: "/study-library/$class/$subject/$module/tsx";
-            preLoaderRoute: typeof StudyLibraryClassSubjectModuleTsxIndexImport;
+        "/study-library/$class/$subject/$module/": {
+            id: "/study-library/$class/$subject/$module/";
+            path: "/study-library/$class/$subject/$module";
+            fullPath: "/study-library/$class/$subject/$module";
+            preLoaderRoute: typeof StudyLibraryClassSubjectModuleIndexImport;
             parentRoute: typeof rootRoute;
         };
     }
@@ -150,7 +149,7 @@ export const routeTree = rootRoute.addChildren({
     StudentsStudentsListIndexRoute,
     StudyLibraryClassIndexRoute,
     StudyLibraryClassSubjectIndexRoute,
-    StudyLibraryClassSubjectModuleTsxIndexRoute,
+    StudyLibraryClassSubjectModuleIndexRoute,
 });
 
 /* prettier-ignore-end */
@@ -169,7 +168,7 @@ export const routeTree = rootRoute.addChildren({
         "/students/students-list/",
         "/study-library/$class/",
         "/study-library/$class/$subject/",
-        "/study-library/$class/$subject/$module/tsx/"
+        "/study-library/$class/$subject/$module/"
       ]
     },
     "/dashboard/": {
@@ -196,8 +195,8 @@ export const routeTree = rootRoute.addChildren({
     "/study-library/$class/$subject/": {
       "filePath": "study-library/$class/$subject/index.tsx"
     },
-    "/study-library/$class/$subject/$module/tsx/": {
-      "filePath": "study-library/$class/$subject/$module.tsx/index.tsx"
+    "/study-library/$class/$subject/$module/": {
+      "filePath": "study-library/$class/$subject/$module/index.tsx"
     }
   }
 }

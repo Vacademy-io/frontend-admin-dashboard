@@ -6,15 +6,17 @@ import { cn } from "@/lib/utils";
 export const LayoutContainer = ({
     children,
     className,
+    sidebarComponent,
 }: {
     children?: React.ReactNode;
     className?: string;
+    sidebarComponent?: React.ReactNode;
 }) => {
     const { open } = useSidebar();
     return (
         <div className={`flex w-full ${open ? "gap-12" : "gap-16"}`}>
             <div>
-                <MySidebar />
+                <MySidebar sidebarComponent={sidebarComponent} />
             </div>
 
             <div className="w-full flex-1 overflow-hidden">

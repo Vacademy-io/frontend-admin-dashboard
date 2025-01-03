@@ -6,6 +6,8 @@ import { Class8CardImage } from "@/assets/svgs";
 import { ClassCard } from "./class-card";
 import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-material-button";
 import { useNavigate } from "@tanstack/react-router";
+// import PDFViewer from "./temp-pdf-viewer";
+// import YouTubePlayer from "./temp-video-player";
 
 interface ClassCardType {
     id: string;
@@ -65,6 +67,11 @@ export const StudyLibrary = () => {
                     </div>
                 ))}
             </div>
+
+            {/* <h1>PDF Viewer</h1>
+            <PDFViewer documentId="123" /> */}
+
+            {/* <YouTubePlayer videoTitle="Youtube Video" videoId="xLaLpMeOyHk" /> */}
         </div>
     );
 };

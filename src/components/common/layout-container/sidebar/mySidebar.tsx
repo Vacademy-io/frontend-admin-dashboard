@@ -12,8 +12,9 @@ import { SidebarItem } from "./sidebar-item";
 import { SidebarItemsData } from "./utils";
 import "./scrollbarStyle.css";
 import { SSDC_Logo } from "@/assets/svgs";
+import React from "react";
 
-export const MySidebar = () => {
+export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
 
     return (
@@ -42,16 +43,18 @@ export const MySidebar = () => {
                         state == "expanded" ? "items-stretch" : "items-center"
                     }`}
                 >
-                    {SidebarItemsData.map((obj, key) => (
-                        <SidebarMenuItem key={key}>
-                            <SidebarItem
-                                icon={obj.icon}
-                                subItems={obj.subItems}
-                                title={obj.title}
-                                to={obj.to}
-                            />
-                        </SidebarMenuItem>
-                    ))}
+                    {sidebarComponent
+                        ? sidebarComponent
+                        : SidebarItemsData.map((obj, key) => (
+                              <SidebarMenuItem key={key}>
+                                  <SidebarItem
+                                      icon={obj.icon}
+                                      subItems={obj.subItems}
+                                      title={obj.title}
+                                      to={obj.to}
+                                  />
+                              </SidebarMenuItem>
+                          ))}
                 </SidebarMenu>
             </SidebarContent>
         </Sidebar>

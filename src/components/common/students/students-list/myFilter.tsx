@@ -9,7 +9,7 @@ export const Filters = ({ filterDetails, onFilterChange, clearFilters }: FilterP
         if (onFilterChange) {
             onFilterChange(selectedFilters);
         }
-    }, [selectedFilters, onFilterChange]);
+    }, [selectedFilters]);
 
     return (
         <FilterChips
