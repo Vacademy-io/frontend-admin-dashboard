@@ -28,7 +28,8 @@ function ModuleMaterialPage() {
 
     const moduleData = {
         name: formattedModuleName,
-        description: "", // You might want to store this in state management
+        description:
+            "Explore and manage chapters for 10th Class Physics. Click on a chapter to view and access eBooks, video lectures, and study resources, or add new materials to enhance your learning experience.",
     };
 
     return (

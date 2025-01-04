@@ -29,3 +29,6 @@ export { EmptySubjectMaterial };
 
 import EmptyModulesImage from "./empty_modules_image.svg";
 export { EmptyModulesImage };
+
+import EmptyChaptersImage from "./empty_chapters_image.svg";
+export { EmptyChaptersImage };
