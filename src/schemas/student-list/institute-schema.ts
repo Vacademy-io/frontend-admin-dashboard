@@ -23,7 +23,7 @@ const PackageSchema = z.object({
     package_name: z.string(),
 });
 
-const BatchForSessionSchema = z.object({
+export const BatchForSessionSchema = z.object({
     id: z.string(),
     level: LevelSchema,
     session: SessionSchema,

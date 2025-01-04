@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { z } from "zod";
-import sectionDetailsSchema from "../../-utils/question-paper-form-schema";
+import sectionDetailsSchema from "../../-utils/section-details-schema";
 import { FormProvider, useFieldArray } from "react-hook-form";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
@@ -173,7 +173,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 buttonType="primary"
                                 disabled={allSections.some(
                                     (section) =>
-                                        !section.uploaded_question_paper ||
+                                        // !section.uploaded_question_paper ||
                                         !section.section_duration?.hrs ||
                                         !section.section_duration?.min ||
                                         !section.marks_per_question,

@@ -1,7 +1,7 @@
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import sectionDetailsSchema from "./question-paper-form-schema";
+import sectionDetailsSchema from "./section-details-schema";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 

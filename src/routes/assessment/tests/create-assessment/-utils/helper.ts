@@ -1,5 +1,11 @@
 import { Steps } from "@/types/assessment-data-type";
+import { BatchData } from "@/types/batch-details";
 import { MyQuestionPaperFormInterface } from "@/types/question-paper-form";
+
+// Output data structure
+interface BatchDetails {
+    [key: string]: string[]; // Key is the batch name (e.g., "10th_batch") and value is an array of formatted package names
+}
 
 export function getStepKey({
     assessmentDetails,
@@ -75,3 +81,61 @@ export const getQuestionTypeCounts = (questionPaper: MyQuestionPaperFormInterfac
         totalQuestions,
     };
 };
+
+export const handleDownloadQRCode = () => {
+    const svg = document.getElementById("qr-code-svg");
+    if (!svg) {
+        alert("QR code not found!");
+        return;
+    }
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx?.drawImage(img, 0, 0);
+        const pngFile = canvas.toDataURL("image/png");
+
+        // Create a temporary link element to download the image
+        const downloadLink = document.createElement("a");
+        downloadLink.href = pngFile;
+        downloadLink.download = "qr-code.png";
+        downloadLink.click();
+    };
+
+    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+};
+
+export const copyToClipboard = async (text: string) => {
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch (err) {
+        console.log("Failed to copy text. Please try again.");
+    }
+};
+
+export function transformBatchData(data: BatchData[]) {
+    const batchDetails: BatchDetails = {};
+    data.forEach((item) => {
+        // Extract level name and package details
+        const levelName = item.level.level_name;
+        const packageName = item.package_dto.package_name;
+
+        // Create the batch key
+        const batchKey = `${levelName} Batch`;
+
+        // Initialize the batch key if not present
+        if (!batchDetails[batchKey]) {
+            batchDetails[batchKey] = [];
+        }
+
+        // Add the package name to the batch key
+        batchDetails[batchKey]!.push(`${levelName} ${packageName}`);
+    });
+
+    return batchDetails;
+}
