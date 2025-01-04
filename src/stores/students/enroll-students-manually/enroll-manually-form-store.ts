@@ -6,7 +6,7 @@ import { StepFiveData } from "@/types/students/schema-enroll-students-manually";
 
 // For step one, since it's just a file upload
 type StepOneDataType = {
-    profilePicture?: null;
+    profilePicture: string | null | undefined;
 };
 
 interface FormStore {

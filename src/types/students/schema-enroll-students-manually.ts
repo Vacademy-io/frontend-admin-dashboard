@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Step One Schema
 export const stepOneSchema = z.object({
-    profilePicture: z.null().optional(),
+    profilePicture: z.union([z.string(), z.null(), z.undefined()]),
 });
 
 // Step Two Schema

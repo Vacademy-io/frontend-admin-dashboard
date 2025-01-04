@@ -1,7 +1,7 @@
 // types/students/enroll-students-manually.ts
 
 export interface StepOneData {
-    profilePicture?: null;
+    profilePicture?: string | null | undefined;
 }
 
 export interface StepTwoData {
