@@ -56,25 +56,12 @@ export const StepOneForm = () => {
                             <FormStepHeading stepNumber={1} heading="Add Student Profile Picture" />
                         </FormItemWrapper>
 
-                        {/* <FormItemWrapper<StepOneData>
-                            control={form.control}
-                            name="profilePicture"
-                            className="flex items-center justify-between"
-                        >
-                            <div className="flex items-center justify-center rounded-full">
-                                <div className="rounded-full object-cover">
-                                    <EnrollFormUploadImage />
-                                </div>
-                            </div>
-
-                        </FormItemWrapper> */}
-
                         <FormItemWrapper<StepOneData>
                             control={form.control}
                             name="profilePicture"
-                            className="flex items-center justify-between"
+                            className="flex flex-col items-center justify-between"
                         >
-                            <div className="flex items-center justify-center rounded-full">
+                            <div className="items-center justify-center rounded-full">
                                 {stepOneData?.profilePicture ? (
                                     <img
                                         src={stepOneData.profilePicture}
