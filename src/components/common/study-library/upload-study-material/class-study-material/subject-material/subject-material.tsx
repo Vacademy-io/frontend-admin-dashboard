@@ -78,6 +78,8 @@ import { useRouter } from "@tanstack/react-router";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "@phosphor-icons/react";
 import { formatClassName } from "@/lib/study-library/class-formatter";
+import { SessionDropdown } from "@/components/common/session-dropdown";
+import { SearchInput } from "@/components/common/search-input";
 
 interface SubjectModulesProps {
     classNumber: string | undefined;
@@ -87,6 +89,12 @@ interface SubjectModulesProps {
 export const SubjectMaterial = ({ classNumber, subject }: SubjectModulesProps) => {
     const [modules, setModules] = useState<ModuleType[]>([]);
     const router = useRouter();
+
+    const [searchInput, setSearchInput] = useState("");
+
+    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(e.target.value);
+    };
 
     const handleAddModule = (module: ModuleType) => {
         setModules((prev) => [...prev, module]);
@@ -133,6 +141,14 @@ export const SubjectMaterial = ({ classNumber, subject }: SubjectModulesProps) =
                     </div>
                 </div>
                 <AddModulesButton onAddModule={handleAddModule} />
+            </div>
+            <div className="flex items-center gap-6">
+                <SessionDropdown className="text-title font-semibold" />
+                <SearchInput
+                    searchInput={searchInput}
+                    onSearchChange={handleSearchInputChange}
+                    placeholder="Search module"
+                />
             </div>
             <Modules
                 modules={modules}

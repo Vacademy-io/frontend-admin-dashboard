@@ -8,6 +8,8 @@ import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-
 import { useNavigate } from "@tanstack/react-router";
 // import PDFViewer from "./temp-pdf-viewer";
 // import YouTubePlayer from "./temp-video-player";
+import { SessionDropdown } from "../session-dropdown";
+import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
 
 interface ClassCardType {
     id: string;
@@ -58,8 +60,16 @@ export const StudyLibrary = () => {
                         resources for 8th, 9th and 10th classes all in one place.
                     </div>
                 </div>
-                <UploadStudyMaterialButton />
+                <div className="flex flex-col items-center gap-4">
+                    <CreateStudyDocButton />
+                    <UploadStudyMaterialButton />
+                </div>
             </div>
+
+            <div className="flex items-center gap-6">
+                <SessionDropdown className="text-title font-semibold" />
+            </div>
+
             <div className="flex gap-12">
                 {ClassCardData.map((card, key) => (
                     <div key={key} onClick={() => handleClassClick(card.id)}>

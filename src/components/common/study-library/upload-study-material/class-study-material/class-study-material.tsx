@@ -7,6 +7,8 @@ import { Subjects } from "./subject-material/add-subject.tsx/subjects";
 import { useState } from "react";
 import { Subject } from "./subject-material/add-subject.tsx/subjects";
 import { formatClassName } from "@/lib/study-library/class-formatter";
+import { SessionDropdown } from "@/components/common/session-dropdown";
+import { SearchInput } from "@/components/common/search-input";
 
 interface ClassStudyMaterialProps {
     classNumber: string | undefined;
@@ -14,6 +16,12 @@ interface ClassStudyMaterialProps {
 
 export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => {
     const [subjects, setSubjects] = useState<Subject[]>([]);
+
+    const [searchInput, setSearchInput] = useState("");
+
+    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(e.target.value);
+    };
 
     const handleAddSubject = (subject: Subject) => {
         setSubjects((prev) => [...prev, subject]);
@@ -64,6 +72,14 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
                     </div>
                 </div>
                 <AddSubjectButton onAddSubject={handleAddSubject} />
+            </div>
+            <div className="flex items-center gap-6">
+                <SessionDropdown className="text-title font-semibold" />
+                <SearchInput
+                    searchInput={searchInput}
+                    onSearchChange={handleSearchInputChange}
+                    placeholder="Search subject"
+                />
             </div>
             <Subjects
                 subjects={subjects}

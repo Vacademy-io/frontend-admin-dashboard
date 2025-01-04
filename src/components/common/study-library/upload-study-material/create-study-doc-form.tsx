@@ -13,10 +13,9 @@ const formSchema = z.object({
     subject: z.string().min(1, "Please select a Subject"),
     module: z.string().min(1, "Please select a Module"),
     chapter: z.string().min(1, "Please select a Chapter"),
-    file_type: z.string().min(1, "Please select a File Type"),
 });
 
-export const UploadStudyMaterialForm = () => {
+export const CreateStudyDocForm = () => {
     const sessionList = useGetSessions();
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -27,7 +26,6 @@ export const UploadStudyMaterialForm = () => {
             subject: "",
             module: "",
             chapter: "",
-            file_type: "",
         },
     });
 
@@ -72,12 +70,6 @@ export const UploadStudyMaterialForm = () => {
                 "Chapter 2: The Human Eye and The Colourful World",
                 "Chapter 3: Extra Numericals For Light and Human Eye",
             ],
-        },
-        {
-            fieldName: "file_type" as const,
-            label: "File Type",
-            placeholder: "Select File Type",
-            list: ["E-Book", "Video"],
         },
     ];
 
