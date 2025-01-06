@@ -4,6 +4,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsSixVertical, DotsThree, FileDoc, FilePdf, Video } from "@phosphor-icons/react";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 
 export interface ChapterType {
@@ -56,6 +57,8 @@ interface ChapterCardProps {
 const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+    const router = useRouter();
+    const navigate = useNavigate();
     const handleCardClick = (e: React.MouseEvent) => {
         if (
             (e.target as HTMLElement).closest(".menu-options-container") ||
@@ -64,7 +67,11 @@ const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
         ) {
             return;
         }
-        // Navigate to chapter details page - implement routing later
+
+        const currentPath = router.state.location.pathname;
+        const formatterChapterName = chapter.name.replace(/\s+/g, "-");
+
+        navigate({ to: `${currentPath}/${formatterChapterName}` });
     };
 
     return (

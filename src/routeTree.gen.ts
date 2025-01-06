@@ -20,6 +20,7 @@ import { Route as StudentsStudentsListIndexImport } from "./routes/students/stud
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
 import { Route as StudyLibraryClassSubjectIndexImport } from "./routes/study-library/$class/$subject/index";
 import { Route as StudyLibraryClassSubjectModuleIndexImport } from "./routes/study-library/$class/$subject/$module/index";
+import { Route as StudyLibraryClassSubjectModuleChapterIndexImport } from "./routes/study-library/$class/$subject/$module/$chapter/index";
 
 // Create/Update Routes
 
@@ -67,6 +68,12 @@ const StudyLibraryClassSubjectModuleIndexRoute = StudyLibraryClassSubjectModuleI
     path: "/study-library/$class/$subject/$module/",
     getParentRoute: () => rootRoute,
 } as any);
+
+const StudyLibraryClassSubjectModuleChapterIndexRoute =
+    StudyLibraryClassSubjectModuleChapterIndexImport.update({
+        path: "/study-library/$class/$subject/$module/$chapter/",
+        getParentRoute: () => rootRoute,
+    } as any);
 
 // Populate the FileRoutesByPath interface
 
@@ -135,6 +142,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibraryClassSubjectModuleIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/study-library/$class/$subject/$module/$chapter/": {
+            id: "/study-library/$class/$subject/$module/$chapter/";
+            path: "/study-library/$class/$subject/$module/$chapter";
+            fullPath: "/study-library/$class/$subject/$module/$chapter";
+            preLoaderRoute: typeof StudyLibraryClassSubjectModuleChapterIndexImport;
+            parentRoute: typeof rootRoute;
+        };
     }
 }
 
@@ -150,6 +164,7 @@ export const routeTree = rootRoute.addChildren({
     StudyLibraryClassIndexRoute,
     StudyLibraryClassSubjectIndexRoute,
     StudyLibraryClassSubjectModuleIndexRoute,
+    StudyLibraryClassSubjectModuleChapterIndexRoute,
 });
 
 /* prettier-ignore-end */
@@ -168,7 +183,8 @@ export const routeTree = rootRoute.addChildren({
         "/students/students-list/",
         "/study-library/$class/",
         "/study-library/$class/$subject/",
-        "/study-library/$class/$subject/$module/"
+        "/study-library/$class/$subject/$module/",
+        "/study-library/$class/$subject/$module/$chapter/"
       ]
     },
     "/dashboard/": {
@@ -197,6 +213,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/study-library/$class/$subject/$module/": {
       "filePath": "study-library/$class/$subject/$module/index.tsx"
+    },
+    "/study-library/$class/$subject/$module/$chapter/": {
+      "filePath": "study-library/$class/$subject/$module/$chapter/index.tsx"
     }
   }
 }

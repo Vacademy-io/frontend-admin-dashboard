@@ -3,7 +3,7 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { Plus } from "@phosphor-icons/react";
 import { useState } from "react";
 import { AddChapterForm } from "./add-chapter-form";
-import { ChapterType } from "./chapters";
+import { ChapterType } from "../chapters";
 
 interface AddChapterButtonProps {
     onAddChapter: (chapter: ChapterType) => void;

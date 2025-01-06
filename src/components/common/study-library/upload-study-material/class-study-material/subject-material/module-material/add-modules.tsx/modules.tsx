@@ -66,7 +66,7 @@ const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: ModuleCa
             return;
         }
 
-        const moduleRoute = module.name.toLowerCase().replace(/\s+/g, "-");
+        const moduleRoute = module.name.replace(/\s+/g, "-");
         const formattedClassName = `${classNumber}th-class-study-library`;
         const formattedSubject = subject.toLowerCase().replace(/\s+/g, "-");
 

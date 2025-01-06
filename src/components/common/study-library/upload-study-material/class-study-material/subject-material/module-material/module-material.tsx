@@ -7,7 +7,7 @@ import { ModuleType } from "./add-modules.tsx/modules";
 import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { Chapters, ChapterType } from "./chapter-material/chapters";
-import { AddChapterButton } from "./chapter-material/add-chapter-button";
+import { AddChapterButton } from "./chapter-material/add-chapters/add-chapter-button";
 
 interface ModuleMaterialProps {
     classNumber: string | undefined;
