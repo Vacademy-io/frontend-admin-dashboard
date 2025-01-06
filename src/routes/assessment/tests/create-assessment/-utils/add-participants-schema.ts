@@ -30,9 +30,6 @@ const testAccessSchema = z.object({
         name: z.string(),
         email: z.string(),
         phone: z.string(),
-        state: z.string(),
-        city: z.string(),
-        college: z.string(),
         custom_fields: customFieldsSchema, // Dynamic custom fields
     }),
     select_batch: z.object({

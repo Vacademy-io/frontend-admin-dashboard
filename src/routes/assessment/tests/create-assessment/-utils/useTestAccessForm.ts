@@ -19,9 +19,6 @@ export const useTestAccessForm = (): UseFormReturn<TestAccessFormType> => {
                 name: "",
                 email: "",
                 phone: "",
-                state: "",
-                city: "",
-                college: "",
                 custom_fields: {}, // Default to an empty object for custom fields
             },
             select_batch: {
