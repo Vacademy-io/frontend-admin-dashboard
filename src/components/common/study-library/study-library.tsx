@@ -6,8 +6,6 @@ import { Class8CardImage } from "@/assets/svgs";
 import { ClassCard } from "./class-card";
 import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-material-button";
 import { useNavigate } from "@tanstack/react-router";
-// import PDFViewer from "./temp-pdf-viewer";
-// import YouTubePlayer from "./temp-video-player";
 import { SessionDropdown } from "../session-dropdown";
 import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
 
@@ -77,11 +75,6 @@ export const StudyLibrary = () => {
                     </div>
                 ))}
             </div>
-
-            {/* <h1>PDF Viewer</h1>
-            <PDFViewer documentId="123" /> */}
-
-            {/* <YouTubePlayer videoTitle="Youtube Video" videoId="xLaLpMeOyHk" /> */}
         </div>
     );
 };
