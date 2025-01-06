@@ -9,6 +9,7 @@ export interface FilterProps {
     };
     onFilterChange?: (values: string[]) => void;
     clearFilters?: boolean;
+    isAssessment?: boolean;
 }
 
 type FilterId = "session" | "batch" | "statuses" | "gender" | "session_expiry_days";
@@ -40,6 +41,7 @@ export interface StudentFiltersProps {
     onFilterChange: (filterId: string, values: string[]) => void;
     onFilterClick: () => void;
     onClearFilters: () => void;
+    isAssessment?: boolean;
 }
 
 export interface StudentSearchBoxProps {

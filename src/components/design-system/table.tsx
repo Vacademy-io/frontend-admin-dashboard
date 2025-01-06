@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -10,6 +9,7 @@ import {
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { myColumns } from "./utils/constants/table-column-data";
 import { StudentListResponse } from "@/schemas/student-list/table-schema";
+import { myAssessmentColumns } from "@/routes/assessment/tests/create-assessment/-components/assessment-columns";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -41,19 +41,16 @@ interface MyTableProps {
     isLoading: boolean;
     error: unknown;
     onSort?: (columnId: string, direction: string) => void;
+    isAssessment?: boolean;
 }
 
-export function MyTable({ data, isLoading, error, onSort }: MyTableProps) {
+export function MyTable({ data, isLoading, error, onSort, isAssessment }: MyTableProps) {
     const table = useReactTable({
         data: data?.content || [],
-        columns: myColumns,
+        columns: isAssessment ? myAssessmentColumns : myColumns,
         getCoreRowModel: getCoreRowModel(),
         meta: { onSort },
     });
-
-    useEffect(() => {
-        console.log("tableData:", data);
-    }, [data]);
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading students</div>;

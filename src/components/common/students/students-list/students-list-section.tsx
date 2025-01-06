@@ -55,8 +55,6 @@ export const StudentsListSection = () => {
 
     useEffect(() => {
         setNavHeading("Students");
-        // console.log("columnFilters: ", columnFilters)
-        // console.log("hasActiveFilters: ", hasActiveFilters())
     }, []);
 
     if (isLoading) return <DashboardLoader />;

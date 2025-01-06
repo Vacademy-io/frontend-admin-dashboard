@@ -1,5 +1,5 @@
 // StudentListSection.tsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useGetSessions } from "@/hooks/student-list-section/useFilters";
@@ -20,6 +20,7 @@ export const getCurrentSession = (): string => {
 };
 
 export const Step3StudentList = () => {
+    const [isAssessment] = useState(true);
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const sessions = useGetSessions();
@@ -52,10 +53,25 @@ export const Step3StudentList = () => {
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters);
 
+    // const studentFilteredTableData = isAssessment
+    //     ? {
+    //           ...studentTableData,
+    //           content: studentTableData?.content.map((item) => ({
+    //               full_name: item.full_name,
+    //               package_session_id: item.package_session_id,
+    //               institute_enrollment_id: item.institute_enrollment_id,
+    //               linked_institute_name: item.linked_institute_name,
+    //               gender: item.gender,
+    //               mobile_number: item.mobile_number,
+    //               email: item.email,
+    //               city: item.city,
+    //               state: item.region,
+    //           })),
+    //       }
+    //     : studentTableData;
+
     useEffect(() => {
         setNavHeading("Students");
-        // console.log("columnFilters: ", columnFilters)
-        // console.log("hasActiveFilters: ", hasActiveFilters())
     }, []);
 
     if (isLoading) return <DashboardLoader />;
@@ -80,6 +96,7 @@ export const Step3StudentList = () => {
                     onFilterChange={handleFilterChange}
                     onFilterClick={handleFilterClick}
                     onClearFilters={handleClearFilters}
+                    isAssessment={isAssessment}
                 />
                 <div className="max-w-full">
                     <MyTable
@@ -87,6 +104,7 @@ export const Step3StudentList = () => {
                         isLoading={loadingData}
                         error={loadingError}
                         onSort={handleSort}
+                        isAssessment={isAssessment}
                     />
                 </div>
                 <MyPagination
