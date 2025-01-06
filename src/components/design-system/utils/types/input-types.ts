@@ -1,5 +1,5 @@
 export interface InputErrorProps {
-    errorMessage: string;
+    errorMessage?: string;
 }
 
 // FormInput Props
@@ -13,8 +13,8 @@ export interface FormInputProps
     onChangeFunction: (event: React.ChangeEvent<HTMLInputElement>) => void;
     error?: string | null;
     required?: boolean;
-    size?: InputSize;
-    label?: string;
-    labelStyle?: string;
+    className?: string;
+    size?: "large" | "medium" | "small";
     disabled?: boolean;
+    label?: string;
 }

@@ -21,7 +21,7 @@ import {
     getIdBySubjectName,
     transformResponseDataToMyQuestionsSchema,
 } from "../-utils/helper";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import {
     ANSWER_LABELS,
     EXPLANATION_LABELS,

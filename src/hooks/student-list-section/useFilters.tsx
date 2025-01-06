@@ -1,4 +1,30 @@
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { FilterConfig } from "@/types/students/students-list-types";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+
+export const useFilterData = (currentSession?: string) => {
+    const batchNames = useGetBatchNames(currentSession);
+    const statuses = useGetStatuses();
+    const genders = useGetGenders();
+
+    const filterData: FilterConfig[] = [
+        {
+            id: "batch",
+            title: "Batch",
+            filterList: batchNames,
+        },
+        {
+            id: "statuses",
+            title: "Status",
+            filterList: statuses,
+        },
+        {
+            id: "gender",
+            title: "Gender",
+            filterList: genders,
+        },
+    ];
+    return filterData;
+};
 
 export const useGetSessions = () => {
     const { instituteDetails } = useInstituteDetailsStore();

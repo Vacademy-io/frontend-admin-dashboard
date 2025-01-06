@@ -12,12 +12,12 @@ import { useMutation } from "@tanstack/react-query";
 import { getQuestionPaperById, markQuestionPaperStatus } from "../-utils/question-paper-services";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { PaginatedResponse, QuestionPaperInterface } from "@/types/question-paper-template";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
 import {
     getLevelNameById,
     getSubjectNameById,
     transformResponseDataToMyQuestionsSchema,
 } from "../-utils/helper";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { MyQuestion } from "@/types/question-paper-form";

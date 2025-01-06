@@ -25,7 +25,7 @@ import {
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
 } from "../../../../types/question-paper-form";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { toast } from "sonner";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { QuestionPaperEditDialog } from "./QuestionPaperEditDialogue";

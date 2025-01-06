@@ -6,7 +6,7 @@ import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
 import { useQuestionStore } from "../-global-states/question-index";
 import { useEffect } from "react";
 import { getLevelNameById, getSubjectNameById } from "../-utils/helper";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export const ViewQuestionPaper = ({
     questionPaperId,

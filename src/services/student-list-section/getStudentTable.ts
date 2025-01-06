@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { StudentFilterRequest, StudentListResponse } from "@/schemas/student-list/table-schema";
+import {
+    StudentFilterRequest,
+    StudentListResponse,
+} from "@/schemas/student/student-list/table-schema";
 import { GET_STUDENTS } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 
@@ -32,6 +35,6 @@ export const useStudentList = (
         queryFn: () => fetchStudents({ pageNo, pageSize, filters }),
         enabled: true, // Change this to true
         refetchOnWindowFocus: false,
-        staleTime: Infinity, // Add this to prevent automatic refetching
+        staleTime: 3600000, // Add this to prevent automatic refetching
     });
 };

@@ -1,5 +1,5 @@
 // hooks/student-list/useGetStudentBatch.ts
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export const useGetStudentBatch = (
     package_session_id: string,

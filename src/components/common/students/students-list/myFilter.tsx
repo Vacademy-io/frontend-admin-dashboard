@@ -23,6 +23,16 @@ export const Filters = ({
             } else {
                 onFilterChange(selectedFilters);
             }
+            // If this is a session expiry filter, extract only the numbers
+            if (filterDetails.label === "Session Expiry") {
+                const processedValues = selectedFilters.map((filter) => {
+                    const numberMatch = filter.match(/\d+/);
+                    return numberMatch ? numberMatch[0] : filter;
+                });
+                onFilterChange(processedValues);
+            } else {
+                onFilterChange(selectedFilters);
+            }
         }
     }, [selectedFilters, filterDetails.label]);
 

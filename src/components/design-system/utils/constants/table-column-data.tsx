@@ -1,12 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { StudentTable } from "@/schemas/student-list/table-schema";
-import { ArrowSquareOut, DotsThree, CaretUp, CaretDown } from "@phosphor-icons/react";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { ArrowSquareOut, CaretUpDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MyButton } from "../../button";
 import { MyDropdown } from "../../dropdown";
 import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
 import { ActivityStatus } from "../types/chips-types";
 import { StatusChips } from "../../chips";
+import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -59,14 +59,17 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                         <button className="flex w-full cursor-pointer items-center justify-between">
                             <div>Student Name</div>
                             <div>
-                                <CaretUp />
-                                <CaretDown />
+                                <CaretUpDown />
                             </div>
                         </button>
                     </MyDropdown>
                 </div>
             );
         },
+    },
+    {
+        accessorKey: "username",
+        header: "Username",
     },
     {
         accessorKey: "package_session_id",
@@ -122,11 +125,35 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         header: "State",
     },
     {
-        accessorKey: "session_expiry_days",
+        accessorKey: "expiry_date",
         header: "Session Expiry",
+        cell: ({ row }) => {
+            if (row.original.expiry_date == null) return <></>;
+
+            const expiryDate = new Date(row.original.expiry_date);
+            const today = new Date();
+
+            // Use getTime() to get timestamps in milliseconds
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            return (
+                <div
+                    className={`${
+                        daysLeft < 30
+                            ? "text-danger-600"
+                            : daysLeft < 180
+                              ? "text-warning-500"
+                              : "text-success-500"
+                    }`}
+                >
+                    {daysLeft > 0 && daysLeft}
+                </div>
+            );
+        },
     },
     {
-        accessorKey: "region",
+        accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
             const status = row.original.status;
@@ -142,15 +169,8 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: "options",
         header: "",
-        cell: () => (
-            <MyButton
-                buttonType="secondary"
-                scale="small"
-                layoutVariant="icon"
-                className="flex items-center justify-center"
-            >
-                <DotsThree />
-            </MyButton>
+        cell: ({ row }) => (
+            <StudentMenuOptions student={row.original} /> // Pass the row.original which contains the student data
         ),
     },
 ];
