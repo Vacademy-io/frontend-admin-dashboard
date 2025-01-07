@@ -18,6 +18,7 @@ import { StudentSideViewData } from "./student-view-dummy-data/student-view-dumm
 export const StudentSidebar = () => {
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
+    const { toggleSidebar } = useSidebar();
 
     useEffect(() => {
         if (state == "expanded") {
@@ -43,7 +44,12 @@ export const StudentSidebar = () => {
                             <div className="text-h3 font-semibold text-primary-500">
                                 Student Profile
                             </div>
-                            <X className="size-6 text-neutral-500" />
+                            <X
+                                className="size-6 cursor-pointer text-neutral-500"
+                                onClick={() => {
+                                    toggleSidebar();
+                                }}
+                            />
                         </div>
                         <div className="flex w-full">
                             <div
