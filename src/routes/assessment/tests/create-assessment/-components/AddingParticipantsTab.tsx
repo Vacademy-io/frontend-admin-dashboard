@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTestAccessForm } from "../-utils/useTestAccessForm";
-import { Step3StudentList } from "./Step3StudentList";
+import { StudentListTab } from "./StudentListTab";
 
 interface BatchData {
     [batchName: string]: string[];
@@ -67,7 +67,7 @@ export function AddingParticipantsTab({ batches }: { batches: BatchData }) {
                     <Step3BatchList batchData={batches} />
                 </TabsContent>
                 <TabsContent value="Individually">
-                    <Step3StudentList />
+                    <StudentListTab />
                 </TabsContent>
             </Tabs>
         </>

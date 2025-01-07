@@ -3,18 +3,6 @@ import { z } from "zod";
 // Define a dynamic object to handle custom fields
 const customFieldsSchema = z.record(z.string()); // Allows any key with a string value
 
-const studentDetailSchema = z.object({
-    student_name: z.string(),
-    batch: z.string(),
-    enrollment_number: z.string(),
-    gender: z.string(),
-    college_or_school: z.string(),
-    mobile_no: z.string(),
-    email: z.string(),
-    city: z.string(),
-    state: z.string(),
-});
-
 const notifyBeforeAssessmentGoLiveSchema = z.object({
     checked: z.boolean(),
     value: z.string(),
@@ -38,7 +26,7 @@ const testAccessSchema = z.object({
     }),
     select_individually: z.object({
         checked: z.boolean(),
-        student_details: z.array(studentDetailSchema),
+        student_details: z.array(z.string()),
     }),
     join_link: z.string(),
     show_leaderboard: z.boolean(),

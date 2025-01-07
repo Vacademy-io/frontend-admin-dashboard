@@ -21,12 +21,12 @@ import { TerminateRegistrationDialog } from "./table-components/student-menu-opt
 import { useDialogStore } from "./utils/useDialogStore";
 import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 import { ColumnWidthConfig } from "./utils/constants/table-layout";
-import { useEffect } from "react";
+import { DashboardLoader } from "../core/dashboard-loader";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
 
-interface TableData<T> {
+export interface TableData<T> {
     content: T[];
     total_pages: number;
     page_no: number;
@@ -89,36 +89,35 @@ export function MyTable<T>({
         closeAllDialogs,
     } = useDialogStore();
 
-    useEffect(() => {
-        console.log("tableData:", data);
-    }, [data]);
-
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading data</div>;
     if (!data) return null;
+    if (!table) return <DashboardLoader />;
 
     return (
         <div className="w-full overflow-visible rounded-lg border">
             <div className="max-w-full overflow-visible rounded-lg">
                 <Table className="rounded-lg">
                     <TableHeader className="relative bg-primary-200">
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="hover:bg-primary-200">
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead
-                                        key={header.id}
-                                        className={`${headerTextCss} overflow-visible bg-primary-100 text-subtitle font-semibold text-neutral-600 ${
-                                            columnWidths?.[header.column.id] || ""
-                                        }`}
-                                    >
-                                        {flexRender(
-                                            header.column.columnDef.header,
-                                            header.getContext(),
-                                        )}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
+                        {table &&
+                            table?.getHeaderGroups()?.length > 0 &&
+                            table?.getHeaderGroups()?.map((headerGroup) => (
+                                <TableRow key={headerGroup.id} className="hover:bg-primary-200">
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead
+                                            key={header.id}
+                                            className={`${headerTextCss} overflow-visible bg-primary-100 text-subtitle font-semibold text-neutral-600 ${
+                                                columnWidths?.[header.column.id] || ""
+                                            }`}
+                                        >
+                                            {flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext(),
+                                            )}
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            ))}
                     </TableHeader>
                     <TableBody>
                         {table.getRowModel().rows.map((row) => (

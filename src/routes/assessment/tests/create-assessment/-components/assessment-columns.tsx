@@ -1,11 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { StudentTable } from "@/schemas/student-list/table-schema";
 import { CaretUp, CaretDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { ActivityStatus } from "@/components/design-system/utils/types/chips-types";
-import { StatusChips } from "@/components/design-system/chips";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -94,19 +92,5 @@ export const myAssessmentColumns: ColumnDef<StudentTable>[] = [
     {
         accessorKey: "region",
         header: "State",
-    },
-    {
-        accessorKey: "region",
-        header: "Status",
-        cell: ({ row }) => {
-            const status = row.original.status;
-            const statusMapping: Record<string, ActivityStatus> = {
-                ACTIVE: "active",
-                TERMINATED: "inactive",
-            };
-
-            const mappedStatus = statusMapping[status] || "inactive";
-            return <StatusChips status={mappedStatus} />;
-        },
     },
 ];

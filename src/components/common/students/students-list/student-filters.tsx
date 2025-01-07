@@ -64,7 +64,6 @@ export const StudentFilters = ({
                         }}
                         onFilterChange={(values) => onFilterChange(filter.id, values)}
                         clearFilters={clearFilters}
-                        isAssessment={isAssessment}
                     />
                 ))}
 
@@ -91,10 +90,12 @@ export const StudentFilters = ({
                     </div>
                 )}
             </div>
-            <MyButton scale="large" buttonType="secondary" layoutVariant="default">
-                <Export />
-                <div>Export</div>
-            </MyButton>
+            {!isAssessment && (
+                <MyButton scale="large" buttonType="secondary" layoutVariant="default">
+                    <Export />
+                    <div>Export</div>
+                </MyButton>
+            )}
         </div>
     );
 };

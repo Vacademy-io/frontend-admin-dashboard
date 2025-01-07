@@ -39,13 +39,14 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/
 //     getIdByLevelName,
 //     getIdBySubjectName,
 // } from "@/routes/assessment/question-papers/-utils/helper";
-import { useInstituteDetailsStore } from "@/stores/student-list/useInstituteDetailsStore";
+
 import { getStepKey } from "../../-utils/helper";
 import { getAssessmentDetails } from "../../-services/assessment-services";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 // import { Input } from "@/components/ui/input";
 import { useSectionForm } from "../../-utils/useSectionForm";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 // import { useUploadedQuestionPapersStore } from "../../-utils/global-states";
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
