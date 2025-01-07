@@ -10,6 +10,11 @@ import { Check, Plus, X } from "phosphor-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyInput } from "@/components/design-system/input";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { getAssessmentDetails } from "../../-services/assessment-services";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { getStepKey } from "../../-utils/helper";
 
 const roles = [
     { roleId: "1", roleName: "Admin", isSelected: false },
@@ -31,7 +36,15 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
-    console.log(currentStep, completedSteps);
+    const { instituteDetails } = useInstituteDetailsStore();
+    const { data: assessmentDetails, isLoading } = useSuspenseQuery(
+        getAssessmentDetails({
+            assessmentId: "1",
+            instituteId: instituteDetails?.id,
+            type: "EXAM",
+        }),
+    );
+    console.log(completedSteps);
     const form = useAccessControlForm();
     const { handleSubmit } = form;
     const onSubmit = (data: z.infer<typeof AccessControlFormSchema>) => {
@@ -42,6 +55,8 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const onInvalid = (err: unknown) => {
         console.log(err);
     };
+
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
@@ -54,19 +69,46 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 </div>
                 <Separator className="my-4" />
                 <div className="flex flex-col gap-4">
-                    <AccessControlCards
-                        heading="Assessment Creation Access"
-                        keyVal="assessment_creation_access"
-                    />
-                    <AccessControlCards
-                        heading="Live Assessment Notification"
-                        keyVal="live_assessment_notification"
-                    />
-                    <AccessControlCards
-                        heading="Assessment Submission & Report Access"
-                        keyVal="assessment_submission_and_report_access"
-                    />
-                    <AccessControlCards heading="Evaluation Process" keyVal="evaluation_process" />
+                    {getStepKey({
+                        assessmentDetails,
+                        currentStep,
+                        key: "creation_access",
+                    }) === "REQUIRED" && (
+                        <AccessControlCards
+                            heading="Assessment Creation Access"
+                            keyVal="assessment_creation_access"
+                        />
+                    )}
+                    {getStepKey({
+                        assessmentDetails,
+                        currentStep,
+                        key: "live_assessment_access",
+                    }) === "REQUIRED" && (
+                        <AccessControlCards
+                            heading="Live Assessment Notification"
+                            keyVal="live_assessment_notification"
+                        />
+                    )}
+                    {getStepKey({
+                        assessmentDetails,
+                        currentStep,
+                        key: "report_and_submission_access",
+                    }) === "REQUIRED" && (
+                        <AccessControlCards
+                            heading="Assessment Submission & Report Access"
+                            keyVal="assessment_submission_and_report_access"
+                        />
+                    )}
+                    {getStepKey({
+                        assessmentDetails,
+                        currentStep,
+                        key: "evaluation_access",
+                    }) === "REQUIRED" && (
+                        <AccessControlCards
+                            heading="Evaluation Process"
+                            keyVal="evaluation_process"
+                        />
+                    )}
                 </div>
             </form>
         </FormProvider>
@@ -213,10 +255,12 @@ const AccessControlCards = ({
                                         <Badge
                                             key={idx}
                                             className="rounded-lg border border-neutral-300 bg-[#FFFDF5] py-1.5 shadow-none"
-                                            onClick={() => handleRemoveUsers(user.userId)}
                                         >
                                             User: {user.email}
-                                            <X className="ml-2 !size-3 cursor-pointer font-bold" />
+                                            <X
+                                                className="ml-2 !size-3 cursor-pointer font-bold"
+                                                onClick={() => handleRemoveUsers(user.userId)}
+                                            />
                                         </Badge>
                                     );
                                 })}
@@ -239,10 +283,12 @@ const AccessControlCards = ({
                             <Badge
                                 key={idx}
                                 className="rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 shadow-none"
-                                onClick={() => handleRemoveRole(role.roleId)}
                             >
                                 Role: {role.roleName}
-                                <X className="ml-2 !size-3 cursor-pointer font-bold" />
+                                <X
+                                    className="ml-2 !size-3 cursor-pointer font-bold"
+                                    onClick={() => handleRemoveRole(role.roleId)}
+                                />
                             </Badge>
                         );
                     }
@@ -254,10 +300,12 @@ const AccessControlCards = ({
                             <Badge
                                 key={idx}
                                 className="rounded-lg border border-neutral-300 bg-[#FFFDF5] py-1.5 shadow-none"
-                                onClick={() => handleRemoveUsers(user.userId)}
                             >
                                 User: {user.email}
-                                <X className="ml-2 !size-3 cursor-pointer font-bold" />
+                                <X
+                                    className="ml-2 !size-3 cursor-pointer font-bold"
+                                    onClick={() => handleRemoveUsers(user.userId)}
+                                />
                             </Badge>
                         );
                     })}
