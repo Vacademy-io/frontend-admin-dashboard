@@ -615,7 +615,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                     scale="medium"
                                                     buttonType="primary"
                                                     className="mt-4 w-fit"
-                                                    disabled
                                                 >
                                                     Register Now
                                                 </MyButton>
