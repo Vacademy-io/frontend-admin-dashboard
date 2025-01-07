@@ -86,6 +86,9 @@ export const ChapterMaterial = () => {
                     Understanding the Human Eye
                 </h3>
                 <div className="flex items-center gap-6">
+                    <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                        Stats
+                    </MyButton>
                     <MyButton buttonType="secondary" scale="large" layoutVariant="default">
                         Edit
                     </MyButton>

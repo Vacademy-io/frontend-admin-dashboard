@@ -4,9 +4,10 @@ import { ChapterMaterial } from "@/components/common/study-library/upload-study-
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { SearchInput } from "@/components/common/search-input";
-import { useState } from "react";
-import { MyButton } from "@/components/design-system/button";
-import { Plus } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import { MagnifyingGlass } from "@phosphor-icons/react";
+import { ChapterSidebarAddButton } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-sidebar/chapter-sidebar-add-button";
+import { truncateString } from "@/lib/reusable/truncateString";
 
 export const Route = createFileRoute("/study-library/$class/$subject/$module/$chapter/")({
     component: Chapters,
@@ -17,8 +18,9 @@ function Chapters() {
     const { subject, module: moduleParam, chapter: chapterParam } = Route.useParams();
     const [inputSearch, setInputSearch] = useState("");
 
+    const { open, state, toggleSidebar } = useSidebar();
+
     //Sidebar component
-    const { open } = useSidebar();
     const navigate = useNavigate();
 
     const handleSubjectRoute = () => {
@@ -45,9 +47,15 @@ function Chapters() {
         setInputSearch(e.target.value);
     };
 
+    const trucatedChapterName = truncateString(chapterParam, 15);
+
+    useEffect(() => {
+        console.log("trucatedChapterName", trucatedChapterName);
+    }, []);
+
     const SidebarComponent = (
-        <div>
-            <div className={`flex w-full flex-col gap-6 ${open ? "px-10" : "px-6"}`}>
+        <div className="flex w-full flex-col items-center">
+            <div className={`flex w-full flex-col gap-6 ${open ? "px-10" : "px-6"} -mt-10`}>
                 <div className="flex flex-wrap items-center gap-1 text-neutral-500">
                     <p
                         className={`cursor-pointer ${open ? "visible" : "hidden"}`}
@@ -63,25 +71,30 @@ function Chapters() {
                         {moduleParam}
                     </p>
                     <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
-                    <p className="cursor-pointer text-primary-500">{chapterParam}</p>
+                    <p className="cursor-pointer text-primary-500">
+                        {open ? chapterParam : trucatedChapterName}
+                    </p>
                 </div>
-                <SearchInput
-                    searchInput={inputSearch}
-                    placeholder="Search chapters"
-                    onSearchChange={handleSearchChange}
-                />
-                <div className="flex w-full flex-col gap-6"></div>
+                <div className="flex w-full flex-col items-center">
+                    {open ? (
+                        <SearchInput
+                            searchInput={inputSearch}
+                            placeholder="Search chapters"
+                            onSearchChange={handleSearchChange}
+                        />
+                    ) : (
+                        <MagnifyingGlass
+                            className="size-5 cursor-pointer text-neutral-500"
+                            onClick={() => {
+                                if (state === "collapsed") toggleSidebar();
+                            }}
+                        />
+                    )}
+                    <div className="flex w-full flex-col gap-6"></div>
+                </div>
             </div>
-            <SidebarFooter className="absolute bottom-0 right-0 flex items-center justify-center py-10">
-                <MyButton
-                    buttonType="primary"
-                    scale="large"
-                    layoutVariant={open ? "default" : "icon"}
-                    className={` ${open ? "" : ""} `}
-                >
-                    <Plus />
-                    <p className={`${open ? "visible" : "hidden"}`}>Add</p>
-                </MyButton>
+            <SidebarFooter className="absolute bottom-0 flex w-full items-center justify-center py-10">
+                <ChapterSidebarAddButton />
             </SidebarFooter>
         </div>
     );

@@ -41,7 +41,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                     <MyDropdown
                         dropdownList={["ASC", "DESC"]}
                         onSelect={(value) => {
-                            meta.onSort?.("full_name", value);
+                            if (typeof value == "string") meta.onSort?.("full_name", value);
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
