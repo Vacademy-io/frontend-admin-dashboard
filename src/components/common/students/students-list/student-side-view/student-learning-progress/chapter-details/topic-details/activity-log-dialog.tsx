@@ -2,40 +2,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { MyTable } from "@/components/design-system/table";
 import { MyPagination } from "@/components/design-system/pagination";
 import { ActivityLogType } from "../../../student-view-dummy-data/learning-progress";
-import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
 import { ACTIVITY_LOG_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
-
-interface ActivityLogDialogProps {
-    isOpen: boolean;
-    onClose: () => void;
-    activityData: ActivityLogType[];
-    topicName: string;
-    studyType: string;
-}
-
-const activityLogColumns: ColumnDef<ActivityLogType>[] = [
-    {
-        accessorKey: "activityDate",
-        header: "Activity Date",
-    },
-    {
-        accessorKey: "startTime",
-        header: "Start Time",
-    },
-    {
-        accessorKey: "endTime",
-        header: "End Time",
-    },
-    {
-        accessorKey: "duration",
-        header: "Duration",
-    },
-    {
-        accessorKey: "lastPageRead",
-        header: "Last Page Read",
-    },
-];
+import { usePaginationState } from "@/hooks/pagination";
+import { useMemo } from "react";
+import {
+    activityLogColumns,
+    ActivityLogDialogProps,
+} from "@/components/design-system/utils/constants/table-column-data";
 
 export const ActivityLogDialog = ({
     isOpen,
@@ -44,26 +17,27 @@ export const ActivityLogDialog = ({
     topicName,
     studyType,
 }: ActivityLogDialogProps) => {
-    const [currentPage, setCurrentPage] = useState(0);
-    const itemsPerPage = 10;
+    const { page, pageSize, handlePageChange } = usePaginationState({
+        initialPage: 0,
+        initialPageSize: 10,
+    });
 
-    const startIndex = currentPage * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentItems = activityData.slice(startIndex, endIndex);
-    const totalPages = Math.ceil(activityData.length / itemsPerPage);
+    // Calculate paginated data and total pages from static data
+    const tableData = useMemo(() => {
+        const startIndex = page * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedItems = activityData.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(activityData.length / pageSize);
 
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-    };
-
-    const tableData = {
-        content: currentItems,
-        total_pages: totalPages,
-        page_no: currentPage,
-        page_size: itemsPerPage,
-        total_elements: activityData.length,
-        last: currentPage === totalPages - 1,
-    };
+        return {
+            content: paginatedItems,
+            total_pages: totalPages,
+            page_no: page,
+            page_size: pageSize,
+            total_elements: activityData.length,
+            last: page === totalPages - 1,
+        };
+    }, [activityData, page, pageSize]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -84,13 +58,13 @@ export const ActivityLogDialog = ({
                         isLoading={false}
                         error={null}
                         columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
-                        currentPage={currentPage}
+                        currentPage={page}
                     />
 
                     <div className="mt-6">
                         <MyPagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
+                            currentPage={page}
+                            totalPages={tableData.total_pages}
                             onPageChange={handlePageChange}
                         />
                     </div>

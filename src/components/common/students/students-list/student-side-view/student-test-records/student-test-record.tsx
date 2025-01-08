@@ -34,55 +34,59 @@ export const StudentTestRecord = ({
                 />
             </div>
             <div className="flex flex-col gap-10">
-                {testRecordData.data.map((test, ind) => (
-                    <div
-                        className="flex w-full flex-col gap-2 rounded-lg border border-primary-300 p-4"
-                        key={ind}
-                    >
-                        <div className="flex w-full gap-4">
-                            <div className="text-subtitle">{test.name}</div>
-                            <StatusChips status={test.status} />
-                        </div>
-                        {test.status === "active" ? (
-                            <div className="flex w-full flex-col gap-8">
-                                <div className="flex items-center justify-between">
-                                    <div>Subject: {test.subject}</div>
-                                    <div>Attempted Date: {test.attemptDate}</div>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div>Marks: {test.marks}</div>
-                                    <div>Duration: {test.duration}</div>
-                                </div>
-                                <div className="flex w-full justify-end">
-                                    <MyButton
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        scale="medium"
-                                        onClick={() => handleViewReport(test)}
-                                    >
-                                        View Report
-                                    </MyButton>
-                                </div>
+                {testRecordData.data && testRecordData.data.length > 0 ? (
+                    testRecordData.data.map((test, ind) => (
+                        <div
+                            className="flex w-full flex-col gap-2 rounded-lg border border-primary-300 p-4"
+                            key={ind}
+                        >
+                            <div className="flex w-full gap-4">
+                                <div className="text-subtitle">{test.name}</div>
+                                <StatusChips status={test.status} />
                             </div>
-                        ) : (
-                            <div className="flex w-full flex-col gap-8">
-                                <div>Subject: {test.subject}</div>
-                                <div>Test Schedule: {test.testSchedule}</div>
-                                {test.status === "pending" && (
+                            {test.status === "active" ? (
+                                <div className="flex w-full flex-col gap-8">
+                                    <div className="flex items-center justify-between">
+                                        <div>Subject: {test.subject}</div>
+                                        <div>Attempted Date: {test.attemptDate}</div>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div>Marks: {test.marks}</div>
+                                        <div>Duration: {test.duration}</div>
+                                    </div>
                                     <div className="flex w-full justify-end">
                                         <MyButton
-                                            scale="medium"
                                             buttonType="secondary"
                                             layoutVariant="default"
+                                            scale="medium"
+                                            onClick={() => handleViewReport(test)}
                                         >
-                                            Send Reminder
+                                            View Report
                                         </MyButton>
                                     </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                ))}
+                                </div>
+                            ) : (
+                                <div className="flex w-full flex-col gap-8">
+                                    <div>Subject: {test.subject}</div>
+                                    <div>Test Schedule: {test.testSchedule}</div>
+                                    {test.status === "pending" && (
+                                        <div className="flex w-full justify-end">
+                                            <MyButton
+                                                scale="medium"
+                                                buttonType="secondary"
+                                                layoutVariant="default"
+                                            >
+                                                Send Reminder
+                                            </MyButton>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <p className="py-4 text-center text-subtitle">No test record available </p>
+                )}
             </div>
 
             {selectedTest?.testReport && (

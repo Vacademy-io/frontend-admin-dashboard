@@ -1,77 +1,70 @@
 import { useState } from "react";
 import { ChapterDetailsType } from "../../../student-view-dummy-data/learning-progress";
 import { Topic } from "./topic";
+import { StudyMediumToggleMenu } from "./study-medium-toggle-menu";
 
-const StudyMediumToggleMenu = ({
-    menuOption,
-    len,
-    name,
-}: {
-    menuOption: string;
-    len: number;
-    name: string;
-}) => {
-    return (
-        <div
-            className={`flex h-10 w-[200px] items-center justify-center gap-[10px] rounded-lg px-4 py-[9px] ${
-                menuOption === name ? "bg-white text-primary-500" : "bg-none text-neutral-600"
-            }`}
-        >
-            <div>{name}</div>
-            <div
-                className={`flex size-6 items-center justify-center rounded-full bg-primary-500 text-caption text-neutral-50 ${
-                    !len ? "hidden" : "visible"
-                }`}
-            >
-                {len}
-            </div>
-        </div>
-    );
-};
+// First, create interfaces/types for the components
+interface StudyMediumConfig {
+    render: (topicsData: ChapterDetailsType) => JSX.Element[];
+    getLength: (topicsData: ChapterDetailsType) => number;
+}
 
+// Create a factory class to handle different study mediums
+class StudyMediumFactory {
+    private static mediumConfig: Record<string, StudyMediumConfig> = {
+        "E-Book": {
+            render: (topicsData: ChapterDetailsType) =>
+                topicsData.e_book?.map((topicData, key) => (
+                    <Topic studyMedium="E-Book" topicData={topicData} key={key} />
+                )) || [],
+            getLength: (topicsData: ChapterDetailsType) => topicsData.e_book?.length || 0,
+        },
+        Videos: {
+            render: (topicsData: ChapterDetailsType) =>
+                topicsData.videos?.map((topicData, key) => (
+                    <Topic studyMedium="Videos" topicData={topicData} key={key} />
+                )) || [],
+            getLength: (topicsData: ChapterDetailsType) => topicsData.videos?.length || 0,
+        },
+    };
+
+    static getConfig(medium: string): StudyMediumConfig {
+        const config = this.mediumConfig[medium];
+        if (!config) {
+            // Provide a default configuration or throw an error
+            throw new Error(`Invalid study medium: ${medium}`);
+        }
+        return config;
+    }
+
+    static getAvailableMediums(topicsData: ChapterDetailsType): string[] {
+        return Object.keys(this.mediumConfig).filter((medium) => {
+            const config = this.mediumConfig[medium];
+            return config && config.getLength(topicsData) > 0;
+        });
+    }
+}
+
+// Refactored TopicDetails component
 export const TopicDetails = ({ topicsData }: { topicsData: ChapterDetailsType }) => {
     const [studyMedium, setStudyMedium] = useState("E-Book");
+    const availableMediums = StudyMediumFactory.getAvailableMediums(topicsData);
+    const currentConfig = StudyMediumFactory.getConfig(studyMedium);
 
     return (
         <div className="flex flex-col gap-4">
             <div className="flex">
-                {topicsData.e_book && (
-                    <div
-                        onClick={() => {
-                            setStudyMedium("E-Book");
-                        }}
-                    >
+                {availableMediums.map((medium) => (
+                    <div key={medium} onClick={() => setStudyMedium(medium)}>
                         <StudyMediumToggleMenu
                             menuOption={studyMedium}
-                            len={topicsData.e_book.length}
-                            name="E-Book"
+                            len={StudyMediumFactory.getConfig(medium).getLength(topicsData)}
+                            name={medium}
                         />
                     </div>
-                )}
-                {topicsData.videos && (
-                    <div
-                        onClick={() => {
-                            setStudyMedium("Videos");
-                        }}
-                    >
-                        <StudyMediumToggleMenu
-                            menuOption={studyMedium}
-                            len={topicsData.videos.length}
-                            name="Videos"
-                        />
-                    </div>
-                )}
+                ))}
             </div>
-            <div className="flex flex-col gap-4">
-                {studyMedium == "E-Book" &&
-                    topicsData.e_book?.map((topicData, key) => (
-                        <Topic studyMedium={studyMedium} topicData={topicData} key={key} />
-                    ))}
-                {studyMedium == "Videos" &&
-                    topicsData.videos?.map((topicData, key) => (
-                        <Topic studyMedium={studyMedium} topicData={topicData} key={key} />
-                    ))}
-            </div>
+            <div className="flex flex-col gap-4">{currentConfig.render(topicsData)}</div>
         </div>
     );
 };

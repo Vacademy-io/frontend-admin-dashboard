@@ -33,21 +33,25 @@ export function PieChart({ data, width, height }: PieChartProps) {
                 </ResponsiveContainer>
             </div>
             <div className="flex flex-col gap-4">
-                {data.map((obj, key) => (
-                    <div key={key} className="flex items-center gap-4">
-                        <div
-                            style={{ backgroundColor: obj.color }}
-                            className="size-6 rounded-full"
-                        ></div>
-                        <div className="flex items-center gap-2 text-subtitle">
-                            <div>{obj.name}:</div>
-                            <div>
-                                {obj.value}
-                                {obj.marks && ` (${obj.marks})`}
+                {data && data.length > 0 ? (
+                    data.map((obj, key) => (
+                        <div key={key} className="flex items-center gap-4">
+                            <div
+                                style={{ backgroundColor: obj.color }}
+                                className="size-6 rounded-full"
+                            ></div>
+                            <div className="flex items-center gap-2 text-subtitle">
+                                <div>{obj.name}:</div>
+                                <div>
+                                    {obj.value}
+                                    {obj.marks && ` (${obj.marks})`}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                ) : (
+                    <p className="py-4 text-center text-subtitle">No pie chart data available</p>
+                )}
             </div>
         </div>
     );

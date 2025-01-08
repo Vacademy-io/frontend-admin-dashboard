@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { EnrollFormUploadImage } from "@/assets/svgs";
 import { useState } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import { INSTITUTE_ID } from "@/constants/urls";
 
 export const StepOneForm = () => {
     const [isUploading, setIsUploading] = useState(false);
@@ -34,7 +35,7 @@ export const StepOneForm = () => {
                 file,
                 setIsUploading,
                 userId: "your-user-id",
-                source: "c70f40a5-e4d3-4b6c-a498-e612d0d4b133",
+                source: INSTITUTE_ID,
                 sourceId: "STUDENTS",
             });
 

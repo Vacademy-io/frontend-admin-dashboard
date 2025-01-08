@@ -1,21 +1,6 @@
-import { Progress } from "@/components/ui/progress";
 import { ChapterAccordian } from "./chapter-accordian";
 import { LearningProgressSubjectType } from "../../student-view-dummy-data/learning-progress";
-
-interface ProgressBarProps {
-    progress: number;
-}
-
-const ProgressBar = ({ progress }: ProgressBarProps) => {
-    return (
-        <div className="flex flex-col gap-1">
-            <Progress value={progress} className="w-full bg-white [&>div]:bg-primary-500" />
-            <div className="w-full text-center text-caption">
-                {progress}% of released content completed
-            </div>
-        </div>
-    );
-};
+import { ProgressBar } from "@/components/design-system/progress-bar";
 
 export const SubjectProgress = ({ subjectData }: { subjectData?: LearningProgressSubjectType }) => {
     return (

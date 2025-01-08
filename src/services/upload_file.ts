@@ -40,28 +40,10 @@ export const UploadFileInS3 = async (
                 effectiveSourceId,
             );
 
-            // const uploadResponse = await axios({
-            //     method: "PUT",
-            //     url: signedURLData.url,
-            //     data: file,
-            //     headers: {
-            //         'Content-Type': file.type,
-            //         'Access-Control-Allow-Origin': '*'
-            //     },
-            //     withCredentials: false // Important for S3 requests
-            // });
-
             const uploadResponse = await axios({
                 method: "PUT",
                 url: signedURLData.url,
                 data: file,
-                // headers: {
-                //     'Content-Type': file.type,
-                //     'Content-Disposition': 'inline'
-                // },
-                // withCredentials: false,
-                // maxBodyLength: Infinity,
-                // maxContentLength: Infinity
             });
 
             if (uploadResponse.status === StatusCode.success) {
@@ -85,15 +67,6 @@ const getSignedURL = async (
     source: string,
     source_id: string,
 ) => {
-    // const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    // // Check if access token is available
-    // if (isNullOrEmptyOrUndefined(accessToken)) {
-    //     throw new Error("User credentials not available");
-    // }
-    // const response = await authenticatedAxiosInstance({
-    //     method: "POST",
-    //     url: GET_SIGNED_URL,
-    //     data: { file_name, file_type, source, source_id },
     // });
     const requestBody = {
         file_name: file_name,
@@ -106,13 +79,6 @@ const getSignedURL = async (
 };
 
 const acknowledgeUpload = async (file_id: string, user_id: string): Promise<boolean> => {
-    // const accessToken = getTokenFromCookie(TokenKey.accessToken);
-
-    // // Construct the acknowledge URL
-    // const acknowledgeURL = `${ACKNOWLEDGE}?fileId=${fileId}&fileSize=${Math.round(
-    //     size / 1024,
-    // )}`;
-
     const requestBody = {
         file_id: file_id,
         user_id: user_id,

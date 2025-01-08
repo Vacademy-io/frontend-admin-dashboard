@@ -71,10 +71,14 @@ export function MyTable<T>({
             if (typeof updaterOrValue === "function") {
                 if (rowSelection) {
                     const newSelection = updaterOrValue(rowSelection);
-                    onRowSelectionChange && onRowSelectionChange(newSelection);
+                    if (onRowSelectionChange) {
+                        onRowSelectionChange(newSelection);
+                    }
                 }
             } else {
-                onRowSelectionChange && onRowSelectionChange(updaterOrValue);
+                if (onRowSelectionChange) {
+                    onRowSelectionChange(updaterOrValue);
+                }
             }
         },
         autoResetPageIndex: false,
@@ -91,10 +95,6 @@ export function MyTable<T>({
         isDeleteOpen,
         closeAllDialogs,
     } = useDialogStore();
-
-    useEffect(() => {
-        console.log("tableData:", data);
-    }, [data]);
 
     useEffect(() => {
         toggleSidebar();
