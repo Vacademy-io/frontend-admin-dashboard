@@ -41,7 +41,10 @@ export const StepOneForm = () => {
 
             if (fileId) {
                 const publicUrl = await getPublicUrl(fileId);
-                setStepOneData({ profilePicture: publicUrl.url }); // Access url property
+                setStepOneData({
+                    profilePicture: fileId, // Store the file ID
+                    profilePictureUrl: publicUrl, // Store the URL for display
+                });
             }
         } catch (error) {
             console.error("Upload failed:", error);
@@ -63,11 +66,11 @@ export const StepOneForm = () => {
                             className="flex flex-col items-center justify-between"
                         >
                             <div className="items-center justify-center rounded-full">
-                                {stepOneData?.profilePicture ? (
+                                {stepOneData?.profilePictureUrl ? (
                                     <img
-                                        src={stepOneData.profilePicture}
+                                        src={stepOneData.profilePictureUrl}
                                         alt="Profile"
-                                        className="h-24 w-24 rounded-full object-cover"
+                                        className="h-[300px] w-[300px] rounded-full object-cover"
                                     />
                                 ) : (
                                     <div className="rounded-full object-cover">

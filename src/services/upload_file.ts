@@ -8,9 +8,9 @@ interface SignedURLResponse {
     url: string;
 }
 
-interface PublicURLResponse {
-    url: string;
-}
+// interface PublicURLResponse {
+//     url: string;
+// }
 
 export enum StatusCode {
     success = 200,
@@ -89,9 +89,7 @@ const acknowledgeUpload = async (file_id: string, user_id: string): Promise<bool
     return response.data;
 };
 
-export const getPublicUrl = async (
-    fileId: string | undefined | null,
-): Promise<PublicURLResponse> => {
+export const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
     const response = await authenticatedAxiosInstance.get(GET_PUBLIC_URL, {
         params: { fileId, expiryDays: 1 },
     });

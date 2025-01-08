@@ -5,9 +5,10 @@ import { StepFourData } from "@/types/students/schema-enroll-students-manually";
 import { StepFiveData } from "@/types/students/schema-enroll-students-manually";
 
 // For step one, since it's just a file upload
-type StepOneDataType = {
-    profilePicture: string | null | undefined;
-};
+export interface StepOneDataType {
+    profilePicture?: string | null | undefined; // This will now store the file ID instead of URL
+    profilePictureUrl?: string | null | undefined; // For display purposes
+}
 
 interface FormStore {
     // Current step
