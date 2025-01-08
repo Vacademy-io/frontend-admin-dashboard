@@ -12,6 +12,7 @@ export const useSectionForm = (): UseFormReturn<SectionFormType> => {
             status: "",
             section: [
                 {
+                    sectionName: "",
                     uploaded_question_paper: null,
                     section_description: "",
                     section_duration: {

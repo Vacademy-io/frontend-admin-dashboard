@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { z } from "zod";
-import { FormProvider } from "react-hook-form";
+import { FormProvider, UseFormReturn } from "react-hook-form";
 import SelectField from "@/components/design-system/select-field";
 import { UploadFileBg } from "@/svgs";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
@@ -31,16 +31,22 @@ import {
 import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
-import { useSectionForm } from "../../tests/create-assessment/-utils/useSectionForm";
 import { useUploadQuestionPaperForm } from "../-utils/question-paper-form";
 import { useUploadedQuestionPapersStore } from "../../tests/create-assessment/-utils/global-states";
+import sectionDetailsSchema from "../../tests/create-assessment/-utils/section-details-schema";
+export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 interface QuestionPaperUploadProps {
     isManualCreated: boolean;
     index?: number;
+    sectionsForm?: UseFormReturn<SectionFormType>;
 }
 
-export const QuestionPaperUpload = ({ isManualCreated, index }: QuestionPaperUploadProps) => {
+export const QuestionPaperUpload = ({
+    isManualCreated,
+    index,
+    sectionsForm,
+}: QuestionPaperUploadProps) => {
     const { setCurrentQuestionIndex } = useQuestionStore();
     const { instituteDetails } = useInstituteDetailsStore();
 
@@ -51,9 +57,6 @@ export const QuestionPaperUpload = ({ isManualCreated, index }: QuestionPaperUpl
     const { setSectionUploadedQuestionPapers } = useUploadedQuestionPapersStore();
     const form = useUploadQuestionPaperForm();
     const { getValues, setValue, watch } = form;
-
-    const sectionsForm = useSectionForm();
-    const { getValues: getSectionsFormValues, setValue: setSectionsFormValues } = sectionsForm;
 
     const questionPaperId = getValues("questionPaperId");
     const title = getValues("title");
@@ -95,8 +98,8 @@ export const QuestionPaperUpload = ({ isManualCreated, index }: QuestionPaperUpl
             });
             if (index !== undefined) {
                 // Check if index is defined
-                setSectionsFormValues(`section.${index}`, {
-                    ...getSectionsFormValues(`section.${index}`), // Keep other section data intact
+                sectionsForm?.setValue(`section.${index}`, {
+                    ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
                     uploaded_question_paper: data.saved_question_paper_id,
                 });
                 setSectionUploadedQuestionPapers((prev) => {
@@ -122,7 +125,6 @@ export const QuestionPaperUpload = ({ isManualCreated, index }: QuestionPaperUpl
     });
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        console.log(values);
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
@@ -148,8 +150,9 @@ export const QuestionPaperUpload = ({ isManualCreated, index }: QuestionPaperUpl
 
                 return updatedData;
             });
-            setSectionsFormValues(`section.${index}`, {
-                ...getSectionsFormValues(`section.${index}`), // Keep other section data intact
+            sectionsForm?.setValue(`section.${index}`, {
+                ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
+                sectionName: values.subject,
                 ...(isManualCreated && {
                     adaptive_marking_for_each_question: values.questions.map((question) => ({
                         questionId: question.questionId,
@@ -222,8 +225,8 @@ export const QuestionPaperUpload = ({ isManualCreated, index }: QuestionPaperUpl
 
                     return updatedData;
                 });
-                setSectionsFormValues(`section.${index}`, {
-                    ...getSectionsFormValues(`section.${index}`), // Keep other section data intact
+                sectionsForm?.setValue(`section.${index}`, {
+                    ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
                     adaptive_marking_for_each_question: transformQuestionsData.map((question) => ({
                         questionId: question.questionId,
                         questionName: question.questionName,

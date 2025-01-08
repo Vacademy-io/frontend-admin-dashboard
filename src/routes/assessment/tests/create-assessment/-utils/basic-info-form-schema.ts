@@ -3,21 +3,28 @@ import { z } from "zod";
 export const BasicInfoFormSchema = z.object({
     status: z.string(),
     testCreation: z.object({
-        assessmentName: z.string(),
+        assessmentName: z.string().min(1, "assessName is required"),
         subject: z.string(),
         assessmentInstructions: z.string(),
-        liveDateRange: z.object({
-            startDate: z.string(), // Refine with date validation if necessary
-            endDate: z.string(),
-        }),
+        liveDateRange: z
+            .object({
+                startDate: z.string(), // Assuming these are ISO strings or formatted dates
+                endDate: z.string(),
+            })
+            .refine((data) => new Date(data.endDate) > new Date(data.startDate), {
+                message: "End date must be greater than start date",
+                path: ["endDate"], // The path to associate the error with
+            }),
     }),
     testDuration: z.object({
         entireTestDuration: z.object({
             checked: z.boolean(),
-            testDuration: z.object({
-                hrs: z.string(), // Validate as a two-digit number
-                min: z.string(), // Validate as a two-digit number (0-59)
-            }),
+            testDuration: z
+                .object({
+                    hrs: z.string(),
+                    min: z.string(),
+                })
+                .optional(),
         }),
         sectionWiseDuration: z.boolean(),
     }),

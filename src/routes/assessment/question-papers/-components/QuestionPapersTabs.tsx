@@ -15,13 +15,23 @@ import { INSTITUTE_ID } from "@/constants/urls";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRefetchStore } from "../-global-states/refetch-store";
 import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
+import { z } from "zod";
+import sectionDetailsSchema from "../../tests/create-assessment/-utils/section-details-schema";
+import { UseFormReturn } from "react-hook-form";
+
+export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 interface QuestionPapersTabsProps {
     isAssessment: boolean; // Flag to determine if it's an assessment
     index?: number;
+    sectionsForm?: UseFormReturn<SectionFormType>;
 }
 
-export const QuestionPapersTabs = ({ isAssessment, index }: QuestionPapersTabsProps) => {
+export const QuestionPapersTabs = ({
+    isAssessment,
+    index,
+    sectionsForm,
+}: QuestionPapersTabsProps) => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const [selectedTab, setSelectedTab] = useState("ACTIVE");
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
@@ -317,6 +327,7 @@ export const QuestionPapersTabs = ({ isAssessment, index }: QuestionPapersTabsPr
                         refetchData={handleRefetchData}
                         isAssessment={isAssessment}
                         index={index}
+                        sectionsForm={sectionsForm}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">
@@ -334,6 +345,7 @@ export const QuestionPapersTabs = ({ isAssessment, index }: QuestionPapersTabsPr
                         refetchData={handleRefetchData}
                         isAssessment={isAssessment}
                         index={index}
+                        sectionsForm={sectionsForm}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">

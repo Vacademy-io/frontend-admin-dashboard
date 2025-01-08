@@ -68,10 +68,10 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             raiseReattemptRequest: false, // Default to true
             raiseTimeIncreaseRequest: false, // Default to false
         },
-        mode: "onSubmit", // Validate as user types
+        mode: "onChange", // Validate as user types
     });
 
-    const { handleSubmit, control, watch } = form;
+    const { handleSubmit, control, watch, getValues } = form;
 
     // Watch form fields
     const assessmentName = watch("testCreation.assessmentName");
@@ -80,8 +80,23 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const liveDateRangeEndDate = watch("testCreation.liveDateRange.endDate");
 
     // Determine if all fields are filled
-    const isFormValid =
-        !!assessmentName && !!subject && !!liveDateRangeStartDate && !!liveDateRangeEndDate;
+    const isFormValid1 =
+        !!assessmentName &&
+        !!subject &&
+        !!liveDateRangeStartDate &&
+        !!liveDateRangeEndDate &&
+        Object.entries(form.formState.errors).length === 0 &&
+        watch("testDuration.entireTestDuration").checked &&
+        (getValues("testDuration.entireTestDuration.testDuration.hrs") ||
+            getValues("testDuration.entireTestDuration.testDuration.min"));
+
+    const isFormValid2 =
+        !!assessmentName &&
+        !!subject &&
+        !!liveDateRangeStartDate &&
+        !!liveDateRangeEndDate &&
+        Object.entries(form.formState.errors).length === 0 &&
+        watch("testDuration.sectionWiseDuration");
 
     const onSubmit = (data: z.infer<typeof BasicInfoFormSchema>) => {
         console.log(data);
@@ -152,14 +167,18 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         type="submit"
                         scale="large"
                         buttonType="primary"
-                        disabled={!isFormValid}
+                        disable={
+                            watch("testDuration.entireTestDuration").checked
+                                ? !isFormValid1
+                                : !isFormValid2
+                        }
                     >
                         Next
                     </MyButton>
                 </div>
                 <Separator className="my-4" />
                 <div className="gap- flex flex-col gap-6">
-                    <div className="flex w-full items-center justify-start gap-4">
+                    <div className="flex w-full items-start justify-start gap-4">
                         <FormField
                             control={control}
                             name="testCreation.assessmentName"
@@ -227,7 +246,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         )}
                     />
                     <h1>Live Date Range</h1>
-                    <div className="-mt-2 flex items-center gap-4">
+                    <div className="-mt-2 flex items-start gap-4">
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -245,7 +264,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                 onChangeFunction={field.onChange}
                                                 error={
                                                     form.formState.errors.testCreation
-                                                        ?.assessmentName?.message
+                                                        ?.liveDateRange?.startDate?.message
                                                 }
                                                 required={
                                                     getStepKey({
@@ -282,7 +301,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                 onChangeFunction={field.onChange}
                                                 error={
                                                     form.formState.errors.testCreation
-                                                        ?.assessmentName?.message
+                                                        ?.liveDateRange?.endDate?.message
                                                 }
                                                 required={
                                                     getStepKey({
@@ -395,19 +414,26 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                         <FormItem>
                                             <FormControl>
                                                 <MyInput
-                                                    inputType="text"
+                                                    inputType="text" // Keep the input type as text
                                                     inputPlaceholder="00"
                                                     input={field.value}
+                                                    onKeyPress={(e) => {
+                                                        const charCode = e.key;
+                                                        if (!/[0-9]/.test(charCode)) {
+                                                            e.preventDefault(); // Prevent non-numeric input
+                                                        }
+                                                    }}
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
                                                             /[^0-9]/g,
                                                             "",
-                                                        ); // Remove non-numeric characters
-                                                        field.onChange(inputValue); // Call onChange with the sanitized value
+                                                        ); // Sanitize input
+                                                        field.onChange(inputValue); // Update field value
                                                     }}
                                                     error={
-                                                        form.formState.errors.testCreation
-                                                            ?.assessmentName?.message
+                                                        form.formState.errors.testDuration
+                                                            ?.entireTestDuration?.testDuration?.hrs
+                                                            ?.message
                                                     }
                                                     size="large"
                                                     {...field}
@@ -429,6 +455,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                     inputType="text"
                                                     inputPlaceholder="00"
                                                     input={field.value}
+                                                    onKeyPress={(e) => {
+                                                        const charCode = e.key;
+                                                        if (!/[0-9]/.test(charCode)) {
+                                                            e.preventDefault(); // Prevent non-numeric input
+                                                        }
+                                                    }}
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
                                                             /[^0-9]/g,
@@ -437,8 +469,9 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                         field.onChange(inputValue); // Call onChange with the sanitized value
                                                     }}
                                                     error={
-                                                        form.formState.errors.testCreation
-                                                            ?.assessmentName?.message
+                                                        form.formState.errors.testDuration
+                                                            ?.entireTestDuration?.testDuration?.min
+                                                            ?.message
                                                     }
                                                     size="large"
                                                     {...field}

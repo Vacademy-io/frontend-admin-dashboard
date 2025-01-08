@@ -4,6 +4,7 @@ const sectionDetailsSchema = z.object({
     status: z.string(),
     section: z.array(
         z.object({
+            sectionName: z.string(),
             uploaded_question_paper: z.string().nullable(),
             section_description: z.string(),
             section_duration: z.object({

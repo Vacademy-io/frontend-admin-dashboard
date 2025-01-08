@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { z } from "zod";
 import sectionDetailsSchema from "../../-utils/section-details-schema";
-import { FormProvider, useFieldArray } from "react-hook-form";
+import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
 import { PencilSimpleLine, Plus, TrashSimple, X } from "phosphor-react";
@@ -26,28 +26,29 @@ import {
 import useDialogStore from "@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close";
 import { QuestionPapersTabs } from "@/routes/assessment/question-papers/-components/QuestionPapersTabs";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-// import {
-//     Table,
-//     TableBody,
-//     TableCell,
-//     TableHead,
-//     TableHeader,
-//     TableRow,
-// } from "@/components/ui/table";
-// import ViewQuestionPaper from "@/routes/assessment/question-papers/-components/ViewQuestionPaper";
-// import {
-//     getIdByLevelName,
-//     getIdBySubjectName,
-// } from "@/routes/assessment/question-papers/-utils/helper";
-
-import { getStepKey } from "../../-utils/helper";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import ViewQuestionPaper from "@/routes/assessment/question-papers/-components/ViewQuestionPaper";
+import {
+    getIdByLevelName,
+    getIdBySubjectName,
+} from "@/routes/assessment/question-papers/-utils/helper";
+import { getQuestionTypeCounts, getStepKey } from "../../-utils/helper";
 import { getAssessmentDetails } from "../../-services/assessment-services";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-// import { Input } from "@/components/ui/input";
-import { useSectionForm } from "../../-utils/useSectionForm";
+import { Input } from "@/components/ui/input";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-// import { useUploadedQuestionPapersStore } from "../../-utils/global-states";
+import { useUploadedQuestionPapersStore } from "../../-utils/global-states";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
     currentStep,
@@ -70,13 +71,42 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             type: "EXAM",
         }),
     );
-    // const { sectionUploadedQuestionPapers, setSectionUploadedQuestionPapers } =
-    //     useUploadedQuestionPapersStore();
+    const { sectionUploadedQuestionPapers, setSectionUploadedQuestionPapers } =
+        useUploadedQuestionPapersStore();
 
-    const form = useSectionForm();
+    const form = useForm<SectionFormType>({
+        resolver: zodResolver(sectionDetailsSchema),
+        defaultValues: {
+            status: "",
+            section: [
+                {
+                    sectionName: "",
+                    uploaded_question_paper: null,
+                    section_description: "",
+                    section_duration: {
+                        hrs: "",
+                        min: "",
+                    },
+                    marks_per_question: "",
+                    total_marks: "",
+                    negative_marking: {
+                        checked: false,
+                        value: "",
+                    },
+                    partial_marking: false,
+                    cutoff_marks: {
+                        checked: false,
+                        value: "",
+                    },
+                    problem_randomization: false,
+                    adaptive_marking_for_each_question: [],
+                },
+            ],
+        },
+        mode: "onChange",
+    });
 
-    const { handleSubmit, getValues, control, watch } = form;
-    watch(`section`);
+    const { handleSubmit, getValues, control } = form;
 
     const allSections = getValues("section"); // Watches the `section` array for changes
 
@@ -96,6 +126,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     const handleAddSection = () => {
         append({
+            sectionName: `Section ${allSections.length + 1}`,
             uploaded_question_paper: null,
             section_description: "",
             section_duration: {
@@ -123,18 +154,19 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         e.stopPropagation();
     };
 
-    // const handleRemoveQuestionPaper = (index: number) => {
-    //     setSectionUploadedQuestionPapers((prev) => {
-    //         const updatedData = prev?.filter((_, i) => i !== index);
-    //         return updatedData;
-    //     });
-    // };
+    const handleRemoveQuestionPaper = (index: number) => {
+        setSectionUploadedQuestionPapers((prev) => {
+            const updatedData = prev?.filter((_, i) => i !== index);
+            return updatedData;
+        });
+    };
 
     useEffect(() => {
         form.reset({
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
             section: [
                 {
+                    sectionName: `Section ${allSections.length + 1}`,
                     uploaded_question_paper: null,
                     section_description: "",
                     section_duration: {
@@ -163,22 +195,23 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
+            <form>
                 {allSections.length > 0 && (
                     <>
                         <div className="m-0 flex items-center justify-between p-0">
                             <h1>Add Questions</h1>
                             <MyButton
-                                type="submit"
+                                type="button"
                                 scale="large"
                                 buttonType="primary"
-                                disabled={allSections.some(
+                                disable={allSections.some(
                                     (section) =>
-                                        // !section.uploaded_question_paper ||
+                                        !section.uploaded_question_paper ||
                                         !section.section_duration?.hrs ||
                                         !section.section_duration?.min ||
                                         !section.marks_per_question,
                                 )}
+                                onClick={handleSubmit(onSubmit, onInvalid)}
                             >
                                 Next
                             </MyButton>
@@ -188,7 +221,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                             {allSections.map((_, index) => (
                                 <AccordionItem value={`section-${index}`} key={index}>
                                     <AccordionTrigger className="flex items-center justify-between">
-                                        {/* {sectionUploadedQuestionPapers?.[index] ? (
+                                        {sectionUploadedQuestionPapers?.[index] ? (
                                             <span className="flex-grow text-left text-primary-500">
                                                 {sectionUploadedQuestionPapers[index]?.subject}
                                                 <span className="ml-4 font-thin !text-neutral-600">
@@ -217,7 +250,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                             <span className="flex-grow text-left text-primary-500">
                                                 Section {index + 1}
                                             </span>
-                                        )} */}
+                                        )}
                                         <div className="flex items-center gap-4">
                                             <PencilSimpleLine
                                                 size={20}
@@ -266,6 +299,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                     <QuestionPaperUpload
                                                         isManualCreated={false}
                                                         index={index}
+                                                        sectionsForm={form}
                                                     />
                                                 </AlertDialogContent>
                                             </AlertDialog>
@@ -302,6 +336,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                     <QuestionPaperUpload
                                                         isManualCreated={true}
                                                         index={index}
+                                                        sectionsForm={form}
                                                     />
                                                 </AlertDialogContent>
                                             </AlertDialog>
@@ -339,12 +374,13 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                         <QuestionPapersTabs
                                                             isAssessment={true}
                                                             index={index}
+                                                            sectionsForm={form}
                                                         />
                                                     </div>
                                                 </DialogContent>
                                             </Dialog>
                                         </div>
-                                        {/* {sectionUploadedQuestionPapers &&
+                                        {sectionUploadedQuestionPapers &&
                                             sectionUploadedQuestionPapers?.[index] && (
                                                 <div className="flex items-center justify-between rounded-md border border-primary-200 px-4 py-1">
                                                     <h1>
@@ -381,7 +417,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                         />
                                                     </div>
                                                 </div>
-                                            )} */}
+                                            )}
                                         <div className="flex flex-col gap-2">
                                             <h1 className="font-thin">Section Description</h1>
                                             <FormField
@@ -708,7 +744,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                 </FormItem>
                                             )}
                                         />
-                                        {/* {sectionUploadedQuestionPapers &&
+                                        {sectionUploadedQuestionPapers &&
                                             sectionUploadedQuestionPapers?.[index] &&
                                             sectionUploadedQuestionPapers?.[index].questions && (
                                                 <div>
@@ -759,27 +795,16 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                                         }) => (
                                                                                             <FormItem>
                                                                                                 <FormControl>
-                                                                                                    <MyInput
-                                                                                                        inputType="text"
-                                                                                                        inputPlaceholder="00"
-                                                                                                        input={
-                                                                                                            field.value
+                                                                                                    <Input
+                                                                                                        type="text"
+                                                                                                        placeholder="00"
+                                                                                                        className="w-11"
+                                                                                                        value={getValues(
+                                                                                                            `section.${index}.marks_per_question`,
+                                                                                                        )}
+                                                                                                        onChange={
+                                                                                                            field.onChange
                                                                                                         }
-                                                                                                        onChangeFunction={(
-                                                                                                            e,
-                                                                                                        ) => {
-                                                                                                            const inputValue =
-                                                                                                                e.target.value.replace(
-                                                                                                                    /[^0-9]/g,
-                                                                                                                    "",
-                                                                                                                ); // Remove non-numeric characters
-                                                                                                            field.onChange(
-                                                                                                                inputValue,
-                                                                                                            ); // Call onChange with the sanitized value
-                                                                                                        }}
-                                                                                                        size="small"
-                                                                                                        {...field}
-                                                                                                        className="w-9"
                                                                                                     />
                                                                                                 </FormControl>
                                                                                             </FormItem>
@@ -809,7 +834,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                                                         }
                                                                                                         type="text"
                                                                                                         placeholder="00"
-                                                                                                        className="w-9"
+                                                                                                        className="w-11"
                                                                                                         value={getValues(
                                                                                                             `section.${index}.negative_marking.value`,
                                                                                                         )}
@@ -829,7 +854,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                         </TableBody>
                                                     </Table>
                                                 </div>
-                                            )} */}
+                                            )}
                                     </AccordionContent>
                                 </AccordionItem>
                             ))}

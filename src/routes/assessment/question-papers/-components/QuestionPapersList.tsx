@@ -21,9 +21,12 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { MyQuestion } from "@/types/question-paper-form";
-import { useSectionForm } from "../../tests/create-assessment/-utils/useSectionForm";
 import { useUploadedQuestionPapersStore } from "../../tests/create-assessment/-utils/global-states";
+import { z } from "zod";
+import sectionDetailsSchema from "../../tests/create-assessment/-utils/section-details-schema";
+import { UseFormReturn } from "react-hook-form";
 
+export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
     questionPaperList,
     pageNo,
@@ -31,6 +34,7 @@ export const QuestionPapersList = ({
     refetchData,
     isAssessment,
     index,
+    sectionsForm,
 }: {
     questionPaperList: PaginatedResponse;
     pageNo: number;
@@ -38,8 +42,8 @@ export const QuestionPapersList = ({
     refetchData: () => void;
     isAssessment: boolean;
     index?: number;
+    sectionsForm?: UseFormReturn<SectionFormType>;
 }) => {
-    const sectionsForm = useSectionForm();
     const { setIsSavedQuestionPaperDialogOpen } = useDialogStore();
     const { instituteDetails } = useInstituteDetailsStore();
     const { setSectionUploadedQuestionPapers } = useUploadedQuestionPapersStore();
