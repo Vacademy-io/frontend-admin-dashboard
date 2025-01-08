@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { ChapterSidebarAddButton } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-sidebar/chapter-sidebar-add-button";
 import { truncateString } from "@/lib/reusable/truncateString";
+import { ChapterSidebarSlides } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-sidebar/chapter-sidebar-slides";
 
 export const Route = createFileRoute("/study-library/$class/$subject/$module/$chapter/")({
     component: Chapters,
@@ -47,7 +48,7 @@ function Chapters() {
         setInputSearch(e.target.value);
     };
 
-    const trucatedChapterName = truncateString(chapterParam, 15);
+    const trucatedChapterName = truncateString(chapterParam, 9);
 
     useEffect(() => {
         console.log("trucatedChapterName", trucatedChapterName);
@@ -55,7 +56,7 @@ function Chapters() {
 
     const SidebarComponent = (
         <div className="flex w-full flex-col items-center">
-            <div className={`flex w-full flex-col gap-6 ${open ? "px-10" : "px-6"} -mt-10`}>
+            <div className={`flex w-full flex-col gap-6 ${open ? "px-6" : "px-6"} -mt-10`}>
                 <div className="flex flex-wrap items-center gap-1 text-neutral-500">
                     <p
                         className={`cursor-pointer ${open ? "visible" : "hidden"}`}
@@ -75,7 +76,7 @@ function Chapters() {
                         {open ? chapterParam : trucatedChapterName}
                     </p>
                 </div>
-                <div className="flex w-full flex-col items-center">
+                <div className="flex w-full flex-col items-center gap-6">
                     {open ? (
                         <SearchInput
                             searchInput={inputSearch}
@@ -90,7 +91,7 @@ function Chapters() {
                             }}
                         />
                     )}
-                    <div className="flex w-full flex-col gap-6"></div>
+                    <ChapterSidebarSlides />
                 </div>
             </div>
             <SidebarFooter className="absolute bottom-0 flex w-full items-center justify-center py-10">

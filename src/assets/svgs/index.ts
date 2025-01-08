@@ -32,3 +32,6 @@ export { EmptyModulesImage };
 
 import EmptyChaptersImage from "./empty_chapters_image.svg";
 export { EmptyChaptersImage };
+
+import ImportFileImage from "./import-file.svg";
+export { ImportFileImage };

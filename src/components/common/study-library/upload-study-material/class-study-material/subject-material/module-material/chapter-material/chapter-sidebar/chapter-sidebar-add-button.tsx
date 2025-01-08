@@ -1,10 +1,18 @@
+import { useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Plus, FilePdf, FileDoc, YoutubeLogo } from "@phosphor-icons/react";
+import { MyDialog } from "@/components/design-system/dialog";
+import { AddVideoDialog } from "./add-video-dialog";
+import { AddDocDialog } from "./add-doc-dialog";
+import { AddPdfDialog } from "./add-pdf-dialog";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
+    const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
+    const [isDocUploadDialogOpen, setIsDocUploadDialogOpen] = useState(false);
+    const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
 
     const dropdownList = [
         {
@@ -31,31 +39,63 @@ export const ChapterSidebarAddButton = () => {
     const handleSelect = (value: string) => {
         switch (value) {
             case "pdf":
-                console.log("Handle PDF upload");
+                setIsPdfDialogOpen(true);
                 break;
             case "upload-doc":
-                console.log("Handle Doc upload");
-                break;
-            case "create-doc":
-                console.log("Handle Doc creation");
+                setIsDocUploadDialogOpen(true);
                 break;
             case "video":
-                console.log("Handle Video upload");
+                setIsVideoDialogOpen(true);
                 break;
         }
     };
 
     return (
-        <MyDropdown dropdownList={dropdownList} onSelect={handleSelect}>
-            <MyButton
-                buttonType="primary"
-                scale="large"
-                layoutVariant={open ? "default" : "icon"}
-                className={`${open ? "" : ""}`}
+        <>
+            <MyDropdown dropdownList={dropdownList} onSelect={handleSelect}>
+                <MyButton
+                    buttonType="primary"
+                    scale="large"
+                    layoutVariant={open ? "default" : "icon"}
+                    className={`${open ? "" : ""}`}
+                >
+                    <Plus />
+                    <p className={`${open ? "visible" : "hidden"}`}>Add</p>
+                </MyButton>
+            </MyDropdown>
+
+            {/* PDF Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Upload PDF"
+                dialogWidth="w-[400px]"
+                open={isPdfDialogOpen}
+                onOpenChange={setIsPdfDialogOpen}
             >
-                <Plus />
-                <p className={`${open ? "visible" : "hidden"}`}>Add</p>
-            </MyButton>
-        </MyDropdown>
+                <AddPdfDialog />
+            </MyDialog>
+
+            {/* Doc Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Upload Document"
+                dialogWidth="w-[400px]"
+                open={isDocUploadDialogOpen}
+                onOpenChange={setIsDocUploadDialogOpen}
+            >
+                <AddDocDialog />
+            </MyDialog>
+
+            {/* Video Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Upload Video"
+                dialogWidth="w-[400px]"
+                open={isVideoDialogOpen}
+                onOpenChange={setIsVideoDialogOpen}
+            >
+                <AddVideoDialog />
+            </MyDialog>
+        </>
     );
 };
