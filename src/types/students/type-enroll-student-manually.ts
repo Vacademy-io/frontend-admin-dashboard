@@ -1,7 +1,8 @@
 // types/students/enroll-students-manually.ts
 
 export interface StepOneData {
-    profilePicture?: null;
+    profilePicture?: string | null | undefined; // This will now store the file ID instead of URL
+    profilePictureUrl?: string | null | undefined; // For display purposes
 }
 
 export interface StepTwoData {

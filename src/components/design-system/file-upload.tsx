@@ -1,3 +1,4 @@
+// components/FileUploadComponent.tsx
 import { FieldValues } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "../ui/form";
 import { Input } from "../ui/input";
@@ -8,13 +9,19 @@ export const FileUploadComponent = <T extends FieldValues>({
     onFileSubmit,
     control,
     name,
+    acceptedFileTypes,
 }: FileUploadComponentProps<T>) => {
     const onSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            onFileSubmit(file);
-        }
+        if (!file) return;
+        onFileSubmit(file);
     };
+
+    const accept = acceptedFileTypes
+        ? Array.isArray(acceptedFileTypes)
+            ? acceptedFileTypes.join(",")
+            : acceptedFileTypes
+        : undefined;
 
     return (
         <FormField
@@ -28,6 +35,7 @@ export const FileUploadComponent = <T extends FieldValues>({
                             onChange={onSubmit}
                             className="hidden"
                             ref={fileInputRef}
+                            accept={accept}
                         />
                     </FormControl>
                 </FormItem>

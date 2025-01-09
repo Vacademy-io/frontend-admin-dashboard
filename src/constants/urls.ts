@@ -20,3 +20,8 @@ export const MARK_QUESTION_PAPER_STATUS = `${BASE_URL}/assessment-service/questi
 export const GET_QUESTION_PAPER_BY_ID = `${BASE_URL}/assessment-service/question-paper/view/v1/get-by-id`;
 export const ADD_QUESTION_PAPER = `${BASE_URL}/assessment-service/question-paper/manage/v1/add`;
 export const UPDATE_QUESTION_PAPER = `${BASE_URL}/assessment-service/question-paper/manage/v1/edit`;
+
+export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
+export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
+export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
+export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;

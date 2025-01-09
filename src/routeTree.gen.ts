@@ -14,6 +14,7 @@ import { Route as rootRoute } from "./routes/__root";
 import { Route as StudentsIndexImport } from "./routes/students/index";
 import { Route as LoginIndexImport } from "./routes/login/index";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
+import { Route as AssessmentIndexImport } from "./routes/assessment/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
 import { Route as AssessmentTestsIndexImport } from "./routes/assessment/tests/index";
@@ -34,6 +35,11 @@ const LoginIndexRoute = LoginIndexImport.update({
 
 const DashboardIndexRoute = DashboardIndexImport.update({
     path: "/dashboard/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AssessmentIndexRoute = AssessmentIndexImport.update({
+    path: "/assessment/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -68,6 +74,13 @@ const AssessmentTestsCreateAssessmentIndexRoute = AssessmentTestsCreateAssessmen
 
 declare module "@tanstack/react-router" {
     interface FileRoutesByPath {
+        "/assessment/": {
+            id: "/assessment/";
+            path: "/assessment";
+            fullPath: "/assessment";
+            preLoaderRoute: typeof AssessmentIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/dashboard/": {
             id: "/dashboard/";
             path: "/dashboard";
@@ -130,6 +143,7 @@ declare module "@tanstack/react-router" {
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
+    AssessmentIndexRoute,
     DashboardIndexRoute,
     LoginIndexRoute,
     StudentsIndexRoute,
@@ -148,6 +162,7 @@ export const routeTree = rootRoute.addChildren({
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/assessment/",
         "/dashboard/",
         "/login/",
         "/students/",
@@ -157,6 +172,9 @@ export const routeTree = rootRoute.addChildren({
         "/students/students-list/",
         "/assessment/tests/create-assessment/"
       ]
+    },
+    "/assessment/": {
+      "filePath": "assessment/index.tsx"
     },
     "/dashboard/": {
       "filePath": "dashboard/index.tsx"

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -22,6 +21,8 @@ import { TerminateRegistrationDialog } from "./table-components/student-menu-opt
 import { useDialogStore } from "./utils/useDialogStore";
 import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 import { ColumnWidthConfig } from "./utils/constants/table-layout";
+import { useEffect } from "react";
+import { useSidebar } from "../ui/sidebar";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -70,15 +71,21 @@ export function MyTable<T>({
             if (typeof updaterOrValue === "function") {
                 if (rowSelection) {
                     const newSelection = updaterOrValue(rowSelection);
-                    onRowSelectionChange && onRowSelectionChange(newSelection);
+                    if (onRowSelectionChange) {
+                        onRowSelectionChange(newSelection);
+                    }
                 }
             } else {
-                onRowSelectionChange && onRowSelectionChange(updaterOrValue);
+                if (onRowSelectionChange) {
+                    onRowSelectionChange(updaterOrValue);
+                }
             }
         },
         autoResetPageIndex: false,
         // Remove autoResetRowSelection as it's not a valid option
     });
+
+    const { toggleSidebar } = useSidebar();
 
     const {
         isChangeBatchOpen,
@@ -90,8 +97,8 @@ export function MyTable<T>({
     } = useDialogStore();
 
     useEffect(() => {
-        console.log("tableData:", data);
-    }, [data]);
+        toggleSidebar();
+    }, []);
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading data</div>;
