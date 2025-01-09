@@ -2,19 +2,24 @@ import React, { useEffect, useRef, useState } from "react";
 import { Viewer } from "@react-pdf-viewer/core";
 import { Worker } from "@react-pdf-viewer/core";
 import { DocumentLoadEvent, PageChangeEvent } from "@react-pdf-viewer/core";
-
 import "@react-pdf-viewer/core/lib/styles/index.css";
+import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 
 interface PDFViewerProps {
     documentId?: string;
 }
 
 const PDFViewer: React.FC<PDFViewerProps> = ({ documentId }) => {
-    const samplePdfUrl: string =
-        "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf";
+    // const samplePdfUrl: string =
+    // "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf";
+
+    const { pdfUrl } = usePDFStore();
 
     const [currentPage, setCurrentPage] = useState<number>(0);
     const pageStartTime = useRef<Date>(new Date());
+
+    const defaultPdfUrl =
+        "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf";
 
     useEffect(() => {
         return () => {
@@ -60,10 +65,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ documentId }) => {
     };
 
     return (
-        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
             <div style={{ height: "750px" }}>
                 <Viewer
-                    fileUrl={samplePdfUrl}
+                    fileUrl={pdfUrl || defaultPdfUrl}
                     onDocumentLoad={handleDocumentLoad}
                     onPageChange={handlePageChange}
                 />

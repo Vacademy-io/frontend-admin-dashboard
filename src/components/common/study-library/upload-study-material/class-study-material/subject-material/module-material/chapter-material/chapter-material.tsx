@@ -30,6 +30,8 @@ import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 import { useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { DotsThree } from "@phosphor-icons/react";
+import PDFViewer from "@/components/common/study-library/temp-pdf-viewer";
+import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 //   import { WITH_BASIC_INIT_VALUE } from './initValue';
 
 const plugins = [
@@ -74,6 +76,7 @@ export const ChapterMaterial = () => {
     // const [value, setValue] = useState();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
+    const { pdfUrl } = usePDFStore();
 
     // const onChange = (newValue: YooptaContentValue, options: YooptaOnChangeOptions) => {
     //   setValue(newValue);
@@ -98,15 +101,19 @@ export const ChapterMaterial = () => {
                 </div>
             </div>
             <div className="mt-14 h-full w-full px-10">
-                <YooptaEditor
-                    editor={editor}
-                    plugins={plugins}
-                    tools={TOOLS}
-                    marks={MARKS}
-                    selectionBoxRoot={selectionRef}
-                    //   onChange={onChange}
-                    autoFocus
-                />
+                {pdfUrl ? (
+                    <PDFViewer />
+                ) : (
+                    <YooptaEditor
+                        editor={editor}
+                        plugins={plugins}
+                        tools={TOOLS}
+                        marks={MARKS}
+                        selectionBoxRoot={selectionRef}
+                        //   onChange={onChange}
+                        autoFocus
+                    />
+                )}
             </div>
         </div>
     );
