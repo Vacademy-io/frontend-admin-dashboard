@@ -9,14 +9,18 @@ import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-
 import { StepOneData, stepOneSchema } from "@/types/students/schema-enroll-students-manually";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EnrollFormUploadImage } from "@/assets/svgs";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { INSTITUTE_ID } from "@/constants/urls";
+import { FileUploadComponent } from "@/components/design-system/file-upload";
+import { MyButton } from "@/components/design-system/button";
+import { PencilSimpleLine } from "phosphor-react";
 
 export const StepOneForm = () => {
     const [isUploading, setIsUploading] = useState(false);
-    const { uploadFile, getPublicUrl } = useFileUpload();
+    const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const { stepOneData, setStepOneData } = useFormStore();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<StepOneData>({
         resolver: zodResolver(stepOneSchema),
@@ -25,12 +29,9 @@ export const StepOneForm = () => {
         },
     });
 
-    // step-one-form.tsx
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const handleFileSubmit = async (file: File) => {
         try {
+            setIsUploading(true);
             const fileId = await uploadFile({
                 file,
                 setIsUploading,
@@ -42,12 +43,14 @@ export const StepOneForm = () => {
             if (fileId) {
                 const publicUrl = await getPublicUrl(fileId);
                 setStepOneData({
-                    profilePicture: fileId, // Store the file ID
-                    profilePictureUrl: publicUrl, // Store the URL for display
+                    profilePicture: fileId,
+                    profilePictureUrl: publicUrl,
                 });
             }
         } catch (error) {
             console.error("Upload failed:", error);
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -65,7 +68,7 @@ export const StepOneForm = () => {
                             name="profilePicture"
                             className="flex flex-col items-center justify-between"
                         >
-                            <div className="items-center justify-center rounded-full">
+                            <div className="relative items-center justify-center rounded-full">
                                 {stepOneData?.profilePictureUrl ? (
                                     <img
                                         src={stepOneData.profilePictureUrl}
@@ -77,17 +80,25 @@ export const StepOneForm = () => {
                                         <EnrollFormUploadImage />
                                     </div>
                                 )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleFileChange}
-                                    disabled={isUploading}
-                                    className="hidden"
-                                    id="profile-upload"
+                                <FileUploadComponent
+                                    fileInputRef={fileInputRef}
+                                    onFileSubmit={handleFileSubmit}
+                                    control={form.control}
+                                    name="profilePicture"
+                                    acceptedFileTypes="image/*" // Optional - remove this line to accept all files
                                 />
-                                <label htmlFor="profile-upload" className="cursor-pointer">
-                                    {isUploading ? "Uploading..." : "Upload Photo"}
-                                </label>
+                                <div className="absolute bottom-2 right-14">
+                                    <MyButton
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading || isUploadingFile}
+                                        buttonType="secondary"
+                                        layoutVariant="icon"
+                                        scale="small"
+                                    >
+                                        {/* {(isUploading || isUploadingFile) ? "Uploading..." : "Upload Photo"} */}
+                                        <PencilSimpleLine />
+                                    </MyButton>
+                                </div>
                             </div>
                         </FormItemWrapper>
                     </div>
