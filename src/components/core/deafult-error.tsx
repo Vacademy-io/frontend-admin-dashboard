@@ -30,10 +30,14 @@ function RootErrorComponent() {
 
                     <div className="text-base-white mt-8 flex justify-center gap-5">
                         <Button asChild variant="default" className="h-10 min-w-32">
-                            <Link>Return Home</Link>
+                            <Link to="/">Return Home</Link>
                         </Button>
-                        <Button asChild variant="default" className="h-10 min-w-32">
-                            <Link onClick={() => router.history.back()}>Go Back</Link>
+                        <Button
+                            variant="default"
+                            className="h-10 min-w-32"
+                            onClick={() => router.history.back()}
+                        >
+                            Go Back
                         </Button>
                     </div>
                 </div>
