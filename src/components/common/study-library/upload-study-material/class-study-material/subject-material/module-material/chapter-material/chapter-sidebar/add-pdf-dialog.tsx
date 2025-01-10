@@ -109,9 +109,10 @@ export const AddPdfDialog = () => {
                         onFileSubmit={handleFileSubmit}
                         control={form.control}
                         name="pdfFile"
-                        acceptedFileTypes="application/pdf"
+                        acceptedFileTypes={["application/pdf"]}
                         isUploading={isUploading}
                         error={error}
+                        className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500"
                     >
                         <div className="pointer-events-none">
                             <ImportFileImage />
@@ -128,9 +129,6 @@ export const AddPdfDialog = () => {
                                         <p className="text-neutral-600">
                                             Drag and drop a PDF file here, or click to select
                                         </p>
-                                        <p className="text-sm text-neutral-500">
-                                            (Only PDF files are accepted)
-                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -138,7 +136,7 @@ export const AddPdfDialog = () => {
                     </FileUploadComponent>
 
                     {isUploading && (
-                        <div className="w-full">
+                        <div>
                             <Progress value={uploadProgress} className="h-2 bg-neutral-200" />
                             <p className="mt-2 text-sm text-neutral-600">
                                 Uploading... {uploadProgress}%
@@ -152,28 +150,17 @@ export const AddPdfDialog = () => {
                         </p>
                     )}
 
-                    <DialogFooter className="flex justify-end">
-                        <div className="flex gap-4">
-                            <MyButton
-                                buttonType="secondary"
-                                scale="large"
-                                layoutVariant="default"
-                                onClick={handleClose}
-                                type="button"
-                                disabled={isUploading}
-                            >
-                                Cancel
-                            </MyButton>
-                            <MyButton
-                                buttonType="primary"
-                                scale="large"
-                                layoutVariant="default"
-                                type="submit"
-                                disabled={!file || isUploading}
-                            >
-                                {isUploading ? "Uploading..." : "Upload PDF"}
-                            </MyButton>
-                        </div>
+                    <DialogFooter className="flex w-full items-center justify-center">
+                        <MyButton
+                            buttonType="primary"
+                            scale="large"
+                            layoutVariant="default"
+                            type="submit"
+                            disabled={!file || isUploading}
+                            className="mx-auto"
+                        >
+                            {isUploading ? "Uploading..." : "Upload PDF"}
+                        </MyButton>
                     </DialogFooter>
                 </form>
             </Form>

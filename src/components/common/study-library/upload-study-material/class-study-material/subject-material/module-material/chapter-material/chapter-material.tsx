@@ -30,7 +30,7 @@ import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 import { useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { DotsThree } from "@phosphor-icons/react";
-import PDFViewer from "@/components/common/study-library/temp-pdf-viewer";
+import PDFViewer from "@/components/common/study-library/pdf-viewer";
 import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 //   import { WITH_BASIC_INIT_VALUE } from './initValue';
 
