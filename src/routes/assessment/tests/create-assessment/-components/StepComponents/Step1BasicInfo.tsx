@@ -274,7 +274,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         });
     }, []);
 
-    if (isLoading) return <DashboardLoader />;
+    if (isLoading || handleSubmitStep1Form.status === "pending") return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
