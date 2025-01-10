@@ -40,12 +40,19 @@ import {
     getIdBySubjectName,
 } from "@/routes/assessment/question-papers/-utils/helper";
 import { getQuestionTypeCounts, getStepKey } from "../../-utils/helper";
-import { getAssessmentDetails } from "../../-services/assessment-services";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+    getAssessmentDetails,
+    getAssessmentDetailsData,
+    handlePostStep2Data,
+} from "../../-services/assessment-services";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Input } from "@/components/ui/input";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useUploadedQuestionPapersStore } from "../../-utils/global-states";
+import {
+    useSavedAssessmentStore,
+    useUploadedQuestionPapersStore,
+} from "../../-utils/global-states";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
@@ -55,6 +62,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const { savedAssessmentId } = useSavedAssessmentStore();
     const {
         isManualQuestionPaperDialogOpen,
         isUploadFromDeviceDialogOpen,
@@ -63,10 +71,11 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         isSavedQuestionPaperDialogOpen,
         setIsSavedQuestionPaperDialogOpen,
     } = useDialogStore();
+
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: "1",
+            assessmentId: null,
             instituteId: instituteDetails?.id,
             type: "EXAM",
         }),
@@ -110,9 +119,44 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     const allSections = getValues("section"); // Watches the `section` array for changes
 
+    const handleSubmitStep2Form = useMutation({
+        mutationFn: ({
+            data,
+            assessmentId,
+            instituteId,
+            type,
+        }: {
+            data: z.infer<typeof sectionDetailsSchema>;
+            assessmentId: string | null;
+            instituteId: string | undefined;
+            type: string;
+        }) => handlePostStep2Data(data, assessmentId, instituteId, type),
+        onSuccess: async (data) => {
+            try {
+                handleCompleteCurrentStep();
+                // Ensure data is accessed correctly
+                const responseData = await getAssessmentDetailsData({
+                    assessmentId: data?.assessment_id,
+                    instituteId: instituteDetails?.id,
+                    type: "EXAM",
+                });
+                console.log("Fetched assessment details:", responseData);
+            } catch (error) {
+                console.error("Error fetching assessment details:", error);
+            }
+        },
+        onError: (error: unknown) => {
+            console.log("Error in mutation:", error);
+        },
+    });
+
     const onSubmit = (data: z.infer<typeof sectionDetailsSchema>) => {
-        console.log(data);
-        handleCompleteCurrentStep();
+        handleSubmitStep2Form.mutate({
+            data: data,
+            assessmentId: savedAssessmentId,
+            instituteId: instituteDetails?.id,
+            type: "EXAM",
+        });
     };
 
     const onInvalid = (err: unknown) => {

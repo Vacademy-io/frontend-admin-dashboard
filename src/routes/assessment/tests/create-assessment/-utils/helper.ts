@@ -1,6 +1,9 @@
+import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
+import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
 import { Steps } from "@/types/assessment-data-type";
 import { BatchData } from "@/types/batch-details";
 import { MyQuestionPaperFormInterface } from "@/types/question-paper-form";
+import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
 
 // Output data structure
 interface BatchDetails {
@@ -139,3 +142,112 @@ export function transformBatchData(data: BatchData[]) {
 
     return batchDetails;
 }
+
+export const convertToUTCPlus530 = (dateString: string) => {
+    // Parse the input ISO 8601 date string into a Date object
+    const date = new Date(dateString);
+
+    // Get the UTC time in milliseconds and add the UTC+5:30 offset
+    const offsetMillis = 5 * 60 * 60 * 1000 + 30 * 60 * 1000; // 5 hours and 30 minutes in milliseconds
+    const utcPlus530Date = new Date(date.getTime() + offsetMillis);
+
+    // Format the date into the desired string format
+    const year = utcPlus530Date.getFullYear();
+    const month = String(utcPlus530Date.getMonth() + 1).padStart(2, "0");
+    const day = String(utcPlus530Date.getDate()).padStart(2, "0");
+    const hours = String(utcPlus530Date.getHours()).padStart(2, "0");
+    const minutes = String(utcPlus530Date.getMinutes()).padStart(2, "0");
+    const seconds = String(utcPlus530Date.getSeconds()).padStart(2, "0");
+    const milliseconds = String(utcPlus530Date.getMilliseconds()).padStart(3, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}+05:30`;
+};
+
+export const syncStep1DataWithStore = (
+    responseData: Steps,
+    currentStep: number,
+    instituteDetails: InstituteDetailsType,
+) => {
+    const setBasicInfo = useBasicInfoStore.getState().setBasicInfo;
+
+    const basicInfoData = {
+        assessmentPreview: {
+            checked: !!responseData[currentStep]?.saved_data?.assessment_preview,
+            previewTimeLimit:
+                typeof responseData[currentStep]?.saved_data?.assessment_preview === "number"
+                    ? responseData[currentStep]?.saved_data?.assessment_preview
+                    : undefined, // Ensure it's either a number or undefined
+        },
+        durationDistribution: responseData[currentStep]?.saved_data?.duration_distribution as
+            | string
+            | undefined,
+        evaluationType: responseData[currentStep]?.saved_data?.evaluation_type as
+            | string
+            | undefined,
+        raiseReattemptRequest: responseData[currentStep]?.saved_data?.reattempt_consent as
+            | boolean
+            | undefined,
+        raiseTimeIncreaseRequest: responseData[currentStep]?.saved_data?.add_time_consent as
+            | boolean
+            | undefined,
+        status: responseData[currentStep]?.status as "INCOMPLETE" | "COMPLETE" | undefined,
+        submissionType: responseData[currentStep]?.saved_data?.submission_type as
+            | string
+            | undefined,
+        switchSections: responseData[currentStep]?.saved_data?.can_switch_section as
+            | boolean
+            | undefined,
+        testCreation: {
+            assessmentInstructions: responseData[currentStep]?.saved_data?.instructions?.content as
+                | string
+                | undefined,
+            assessmentName: responseData[currentStep]?.saved_data?.name as string | undefined,
+            liveDateRange: {
+                startDate: responseData[currentStep]?.saved_data?.boundation_start_date as
+                    | string
+                    | undefined,
+                endDate: responseData[currentStep]?.saved_data?.boundation_end_date as
+                    | string
+                    | undefined,
+            },
+            subject: getSubjectNameById(
+                instituteDetails?.subjects || [],
+                responseData[currentStep]?.saved_data?.subject_selection as string | null,
+            ),
+        },
+        testDuration: {
+            entireTestDuration: {
+                checked:
+                    responseData[currentStep]?.saved_data?.duration_distribution === "ASSESSMENT",
+                testDuration: {
+                    hrs:
+                        typeof responseData[currentStep]?.saved_data?.duration === "number"
+                            ? Math.floor(responseData[currentStep]?.saved_data?.duration / 60)
+                            : 0,
+                    min:
+                        typeof responseData[currentStep]?.saved_data?.duration === "number"
+                            ? responseData[currentStep]?.saved_data?.duration % 60
+                            : 0,
+                },
+            },
+            questionWiseDuration:
+                responseData[currentStep]?.saved_data?.duration_distribution === "QUESTION",
+            sectionWiseDuration:
+                responseData[currentStep]?.saved_data?.duration_distribution === "SECTION",
+        },
+    };
+
+    // Update Zustand Store
+    setBasicInfo(basicInfoData);
+};
+
+export const formatDateTimeLocal = (dateString: string | undefined) => {
+    if (!dateString) return ""; // Handle empty or undefined values
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 16); // Extract `YYYY-MM-DDTHH:mm`
+};
+
+export const getTimeLimitString = (time: number, timeLimit: string[]) => {
+    const timeStr = timeLimit.find((limit) => limit.startsWith(time.toString()));
+    return timeStr || ""; // Returns the matching string or an empty string if no match is found
+};

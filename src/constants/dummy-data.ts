@@ -27,3 +27,5 @@ export const scheduleTestTabsData = [
 ];
 
 export const timeLimit = ["1 min", "2 min", "3 min", "5 min", "10 min", "15 min"];
+
+export const EvaluationType = ["Auto", "Manual", "PDF", "VIDEO"];

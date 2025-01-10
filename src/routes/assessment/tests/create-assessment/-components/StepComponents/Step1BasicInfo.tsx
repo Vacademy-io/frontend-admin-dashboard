@@ -13,28 +13,41 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { timeLimit } from "@/constants/dummy-data";
 import { BasicInfoFormSchema } from "../../-utils/basic-info-form-schema";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getAssessmentDetails } from "../../-services/assessment-services";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+    getAssessmentDetails,
+    getAssessmentDetailsData,
+    handlePostStep1Data,
+} from "../../-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getFieldOptions, getStepKey } from "../../-utils/helper";
+import {
+    formatDateTimeLocal,
+    getFieldOptions,
+    getStepKey,
+    getTimeLimitString,
+    syncStep1DataWithStore,
+} from "../../-utils/helper";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { getIdBySubjectName } from "@/routes/assessment/question-papers/-utils/helper";
+import { useSavedAssessmentStore } from "../../-utils/global-states";
+import { useBasicInfoStore } from "../../-utils/zustand-global-states/step1-basic-info";
 
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const storeDataStep1 = useBasicInfoStore((state) => state);
+    const { setSavedAssessmentId } = useSavedAssessmentStore();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: "1",
+            assessmentId: null,
             instituteId: instituteDetails?.id,
             type: "EXAM",
         }),
     );
-
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const form = useForm<z.infer<typeof BasicInfoFormSchema>>({
@@ -59,11 +72,15 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     }, // Default duration in HH:MM:SS
                 },
                 sectionWiseDuration: false, // Default to false
+                questionWiseDuration: false,
             },
             assessmentPreview: {
                 checked: false, // Default to true
-                previewTimeLimit: "", // Default preview time
+                previewTimeLimit: timeLimit[0], // Default preview time
             },
+            submissionType: "",
+            durationDistribution: "",
+            evaluationType: "",
             switchSections: false, // Default to false
             raiseReattemptRequest: false, // Default to true
             raiseTimeIncreaseRequest: false, // Default to false
@@ -98,9 +115,55 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         Object.entries(form.formState.errors).length === 0 &&
         watch("testDuration.sectionWiseDuration");
 
+    const handleSubmitStep1Form = useMutation({
+        mutationFn: ({
+            data,
+            assessmentId,
+            instituteId,
+            type,
+        }: {
+            data: z.infer<typeof BasicInfoFormSchema>;
+            assessmentId: string | null;
+            instituteId: string | undefined;
+            type: string;
+        }) => handlePostStep1Data(data, assessmentId, instituteId, type),
+        onSuccess: async (data) => {
+            try {
+                setSavedAssessmentId(data.assessment_id);
+                handleCompleteCurrentStep();
+                // Ensure data is accessed correctly
+                const responseData = await getAssessmentDetailsData({
+                    assessmentId: data?.assessment_id,
+                    instituteId: instituteDetails?.id,
+                    type: "EXAM",
+                });
+                syncStep1DataWithStore(responseData, currentStep, instituteDetails);
+            } catch (error) {
+                console.error("Error fetching assessment details:", error);
+            }
+        },
+        onError: (error: unknown) => {
+            console.log("Error in mutation:", error);
+        },
+    });
+
     const onSubmit = (data: z.infer<typeof BasicInfoFormSchema>) => {
-        console.log(data);
-        handleCompleteCurrentStep();
+        const modifiedData = {
+            ...data,
+            testCreation: {
+                ...data.testCreation,
+                subject: getIdBySubjectName(
+                    instituteDetails?.subjects || [],
+                    data.testCreation.subject,
+                ),
+            },
+        };
+        handleSubmitStep1Form.mutate({
+            data: modifiedData,
+            assessmentId: null,
+            instituteId: instituteDetails?.id,
+            type: "EXAM",
+        });
     };
 
     const onInvalid = (err: unknown) => {
@@ -109,48 +172,103 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     useEffect(() => {
         form.reset({
-            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
+            status: storeDataStep1.status
+                ? storeDataStep1.status
+                : completedSteps[currentStep]
+                  ? "COMPLETE"
+                  : "INCOMPLETE",
             testCreation: {
-                assessmentName: "",
-                subject: "",
-                assessmentInstructions: "",
+                assessmentName: storeDataStep1?.testCreation?.assessmentName || "",
+                subject: storeDataStep1?.testCreation?.subject || "",
+                assessmentInstructions: storeDataStep1?.testCreation?.assessmentInstructions || "",
                 liveDateRange: {
-                    startDate: "", // Default start date
-                    endDate: "", // Default end date
+                    startDate: formatDateTimeLocal(
+                        storeDataStep1?.testCreation?.liveDateRange?.startDate,
+                    ),
+                    endDate: formatDateTimeLocal(
+                        storeDataStep1?.testCreation?.liveDateRange?.endDate,
+                    ),
                 },
             },
             testDuration: {
                 entireTestDuration: {
                     checked:
-                        assessmentDetails[currentStep]?.default_values?.duration_distribution
-                            ?.value === "ASSESSMENT"
-                            ? true
-                            : false, // Default to true
+                        storeDataStep1?.durationDistribution === "ASSESSMENT"
+                            ? storeDataStep1?.testDuration?.entireTestDuration?.checked
+                            : assessmentDetails[currentStep]?.default_values?.duration_distribution
+                                    ?.value === "ASSESSMENT"
+                              ? true
+                              : false,
                     testDuration: {
-                        hrs: "",
-                        min: "",
+                        hrs:
+                            storeDataStep1?.testDuration?.entireTestDuration?.testDuration?.hrs !==
+                            undefined
+                                ? String(
+                                      storeDataStep1.testDuration.entireTestDuration.testDuration
+                                          .hrs,
+                                  )
+                                : "",
+                        min:
+                            storeDataStep1?.testDuration?.entireTestDuration?.testDuration?.min !==
+                            undefined
+                                ? String(
+                                      storeDataStep1.testDuration.entireTestDuration.testDuration
+                                          .min,
+                                  )
+                                : "",
                     },
                 },
                 sectionWiseDuration:
-                    assessmentDetails[currentStep]?.default_values?.duration_distribution?.value ===
-                    "SECTION"
-                        ? true
-                        : false, // Default to false
+                    storeDataStep1?.durationDistribution === "SECTION"
+                        ? storeDataStep1?.testDuration?.sectionWiseDuration
+                        : assessmentDetails[currentStep]?.default_values?.duration_distribution
+                                ?.value === "SECTION"
+                          ? true
+                          : false, // Default to false
+                questionWiseDuration:
+                    storeDataStep1?.durationDistribution === "QUESTION"
+                        ? storeDataStep1?.testDuration?.questionWiseDuration
+                        : assessmentDetails[currentStep]?.default_values?.duration_distribution
+                                ?.value === "QUESTION"
+                          ? true
+                          : false, // Default to false
             },
             assessmentPreview: {
                 checked:
+                    storeDataStep1?.assessmentPreview?.checked ||
                     assessmentDetails[currentStep]?.default_values?.assessment_preview
-                        ?.send_value_id || false, // Default to true
+                        ?.send_value_id ||
+                    false, // Default to true
                 previewTimeLimit:
-                    assessmentDetails[currentStep]?.default_values?.assessment_preview?.value || "", // Default preview time
+                    storeDataStep1?.assessmentPreview?.previewTimeLimit !== undefined
+                        ? getTimeLimitString(
+                              storeDataStep1?.assessmentPreview?.previewTimeLimit,
+                              timeLimit,
+                          )
+                        : timeLimit[0], // Default preview time
             },
+            submissionType:
+                storeDataStep1?.submissionType ||
+                assessmentDetails[currentStep]?.default_values?.submission_type?.value ||
+                "",
+            durationDistribution:
+                storeDataStep1?.durationDistribution ||
+                assessmentDetails[currentStep]?.default_values?.duration_distribution?.value ||
+                "",
+            evaluationType:
+                storeDataStep1?.evaluationType ||
+                assessmentDetails[currentStep]?.default_values?.evaluation_type?.value ||
+                "",
             switchSections:
+                storeDataStep1?.switchSections ||
                 assessmentDetails[currentStep]?.default_values?.can_switch_section?.send_value_id ||
                 false, // Default to false
             raiseReattemptRequest:
+                storeDataStep1?.raiseReattemptRequest ||
                 assessmentDetails[currentStep]?.default_values?.reattempt_consent?.send_value_id ||
                 false, // Default to true
             raiseTimeIncreaseRequest:
+                storeDataStep1?.raiseTimeIncreaseRequest ||
                 assessmentDetails[currentStep]?.default_values?.add_time_consent?.send_value_id ||
                 false, // Default to false
         });
@@ -160,11 +278,11 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
+            <form>
                 <div className="m-0 flex items-center justify-between p-0">
                     <h1>Basic Information</h1>
                     <MyButton
-                        type="submit"
+                        type="button"
                         scale="large"
                         buttonType="primary"
                         disable={
@@ -172,6 +290,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 ? !isFormValid1
                                 : !isFormValid2
                         }
+                        onClick={handleSubmit(onSubmit, onInvalid)}
                     >
                         Next
                     </MyButton>
@@ -346,11 +465,17 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                     "testDuration.sectionWiseDuration",
                                                     value === "SECTION",
                                                 );
+                                                form.setValue(
+                                                    "testDuration.questionWiseDuration",
+                                                    value === "QUESTION",
+                                                );
                                             }}
                                             defaultValue={
                                                 field.value.entireTestDuration.checked
                                                     ? "ASSESSMENT"
-                                                    : "SECTION"
+                                                    : field.value.sectionWiseDuration
+                                                      ? "SECTION"
+                                                      : "QUESTION"
                                             }
                                             className="flex items-center gap-6"
                                         >
@@ -381,6 +506,21 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                     </FormControl>
                                                     <FormLabel className="font-thin">
                                                         Section-Wise Duration
+                                                    </FormLabel>
+                                                </FormItem>
+                                            )}
+                                            {getFieldOptions({
+                                                assessmentDetails,
+                                                currentStep,
+                                                key: "duration_distribution",
+                                                value: "QUESTION",
+                                            }) && (
+                                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                                    <FormControl>
+                                                        <RadioGroupItem value="QUESTION" />
+                                                    </FormControl>
+                                                    <FormLabel className="font-thin">
+                                                        Question-Wise Duration
                                                     </FormLabel>
                                                 </FormItem>
                                             )}
@@ -487,6 +627,62 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     {getStepKey({
                         assessmentDetails,
                         currentStep,
+                        key: "evaluation_type",
+                    }) && (
+                        <SelectField
+                            label="Evaluation Type"
+                            name="evaluationType"
+                            options={
+                                assessmentDetails[currentStep]?.field_options?.evaluation_type?.map(
+                                    (distribution, index) => ({
+                                        value: distribution.value,
+                                        label: distribution.value,
+                                        _id: index,
+                                    }),
+                                ) || [] // Fallback to an empty array if undefined
+                            }
+                            control={form.control}
+                            className="w-56 font-thin"
+                            required={
+                                getStepKey({
+                                    assessmentDetails,
+                                    currentStep,
+                                    key: "evaluation_type",
+                                }) === "REQUIRED"
+                            }
+                        />
+                    )}
+                    {getStepKey({
+                        assessmentDetails,
+                        currentStep,
+                        key: "submission_type",
+                    }) && (
+                        <SelectField
+                            label="Submission Type"
+                            name="submissionType"
+                            options={
+                                assessmentDetails[currentStep]?.field_options?.submission_type?.map(
+                                    (distribution, index) => ({
+                                        value: distribution.value,
+                                        label: distribution.value,
+                                        _id: index,
+                                    }),
+                                ) || [] // Fallback to an empty array if undefined
+                            }
+                            control={form.control}
+                            className="w-56 font-thin"
+                            required={
+                                getStepKey({
+                                    assessmentDetails,
+                                    currentStep,
+                                    key: "submission_type",
+                                }) === "REQUIRED"
+                            }
+                        />
+                    )}
+                    {getStepKey({
+                        assessmentDetails,
+                        currentStep,
                         key: "assessment_preview",
                     }) && (
                         <FormField
@@ -514,7 +710,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             )}
                         />
                     )}
-                    {watch("assessmentPreview").checked && (
+                    {watch("assessmentPreview.checked") && (
                         <SelectField
                             label="Preview Time Limit"
                             labelStyle="font-thin"

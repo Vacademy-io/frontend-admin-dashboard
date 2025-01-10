@@ -27,3 +27,13 @@ export const useUploadedQuestionPapersStore = create<UploadedQuestionPapersStore
             sectionUploadedQuestionPapers: updater(state.sectionUploadedQuestionPapers),
         })),
 }));
+
+interface AssessmentStore {
+    savedAssessmentId: string;
+    setSavedAssessmentId: (id: string) => void;
+}
+
+export const useSavedAssessmentStore = create<AssessmentStore>((set) => ({
+    savedAssessmentId: "",
+    setSavedAssessmentId: (id: string) => set({ savedAssessmentId: id }),
+}));
