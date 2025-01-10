@@ -4,6 +4,7 @@ import { Steps } from "@/types/assessment-data-type";
 import { BatchData } from "@/types/batch-details";
 import { MyQuestionPaperFormInterface } from "@/types/question-paper-form";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
+import { AdaptiveMarkingQuestion } from "@/types/basic-details-type";
 
 // Output data structure
 interface BatchDetails {
@@ -251,3 +252,17 @@ export const getTimeLimitString = (time: number, timeLimit: string[]) => {
     const timeStr = timeLimit.find((limit) => limit.startsWith(time.toString()));
     return timeStr || ""; // Returns the matching string or an empty string if no match is found
 };
+
+export function calculateTotalMarks(questions: AdaptiveMarkingQuestion[]) {
+    let totalMarks = 0;
+
+    questions.forEach((question) => {
+        const questionMark = parseFloat(question.questionMark);
+
+        if (!isNaN(questionMark)) {
+            totalMarks += questionMark;
+        }
+    });
+
+    return String(totalMarks);
+}

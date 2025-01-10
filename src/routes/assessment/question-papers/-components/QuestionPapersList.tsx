@@ -150,6 +150,10 @@ export const QuestionPapersList = ({
         if (sectionsForm && index !== undefined) {
             sectionsForm.setValue(`section.${index}`, {
                 ...sectionsForm.getValues(`section.${index}`),
+                sectionName: getSubjectNameById(
+                    instituteDetails?.subjects || [],
+                    questionsData.subject_id,
+                ),
                 uploaded_question_paper: id,
             });
         }

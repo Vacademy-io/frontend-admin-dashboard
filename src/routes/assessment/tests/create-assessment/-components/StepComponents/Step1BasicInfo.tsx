@@ -32,6 +32,8 @@ import { useInstituteQuery } from "@/services/student-list-section/getInstituteD
 import { getIdBySubjectName } from "@/routes/assessment/question-papers/-utils/helper";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { useBasicInfoStore } from "../../-utils/zustand-global-states/step1-basic-info";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
@@ -128,22 +130,30 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             type: string;
         }) => handlePostStep1Data(data, assessmentId, instituteId, type),
         onSuccess: async (data) => {
-            try {
-                setSavedAssessmentId(data.assessment_id);
-                handleCompleteCurrentStep();
-                // Ensure data is accessed correctly
-                const responseData = await getAssessmentDetailsData({
-                    assessmentId: data?.assessment_id,
-                    instituteId: instituteDetails?.id,
-                    type: "EXAM",
-                });
-                syncStep1DataWithStore(responseData, currentStep, instituteDetails);
-            } catch (error) {
-                console.error("Error fetching assessment details:", error);
-            }
+            setSavedAssessmentId(data.assessment_id);
+            // Ensure data is accessed correctly
+            const responseData = await getAssessmentDetailsData({
+                assessmentId: data?.assessment_id,
+                instituteId: instituteDetails?.id,
+                type: "EXAM",
+            });
+            syncStep1DataWithStore(responseData, currentStep, instituteDetails);
+            toast.success("Step 1 data has been saved successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
+            handleCompleteCurrentStep();
         },
         onError: (error: unknown) => {
-            console.log("Error in mutation:", error);
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
         },
     });
 
