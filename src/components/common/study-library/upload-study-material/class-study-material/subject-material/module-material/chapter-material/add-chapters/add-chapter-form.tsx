@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { useGetBatchNames } from "@/hooks/student-list-section/useFilterData";
+import { useGetBatchNames } from "@/hooks/student-list-section/useFilters";
 
 interface CheckboxProps {
     checked?: boolean;

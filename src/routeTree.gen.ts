@@ -15,10 +15,14 @@ import { Route as StudyLibraryIndexImport } from "./routes/study-library/index";
 import { Route as StudentsIndexImport } from "./routes/students/index";
 import { Route as LoginIndexImport } from "./routes/login/index";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
+import { Route as AssessmentIndexImport } from "./routes/assessment/index";
 import { Route as StudyLibraryClassIndexImport } from "./routes/study-library/$class/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
+import { Route as AssessmentTestsIndexImport } from "./routes/assessment/tests/index";
+import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index";
 import { Route as StudyLibraryClassSubjectIndexImport } from "./routes/study-library/$class/$subject/index";
+import { Route as AssessmentTestsCreateAssessmentIndexImport } from "./routes/assessment/tests/create-assessment/index";
 import { Route as StudyLibraryClassSubjectModuleIndexImport } from "./routes/study-library/$class/$subject/$module/index";
 import { Route as StudyLibraryClassSubjectModuleChapterIndexImport } from "./routes/study-library/$class/$subject/$module/$chapter/index";
 
@@ -44,6 +48,11 @@ const DashboardIndexRoute = DashboardIndexImport.update({
     getParentRoute: () => rootRoute,
 } as any);
 
+const AssessmentIndexRoute = AssessmentIndexImport.update({
+    path: "/assessment/",
+    getParentRoute: () => rootRoute,
+} as any);
+
 const StudyLibraryClassIndexRoute = StudyLibraryClassIndexImport.update({
     path: "/study-library/$class/",
     getParentRoute: () => rootRoute,
@@ -59,10 +68,27 @@ const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
     getParentRoute: () => rootRoute,
 } as any);
 
+const AssessmentTestsIndexRoute = AssessmentTestsIndexImport.update({
+    path: "/assessment/tests/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AssessmentQuestionPapersIndexRoute = AssessmentQuestionPapersIndexImport.update({
+    path: "/assessment/question-papers/",
+    getParentRoute: () => rootRoute,
+} as any);
+
 const StudyLibraryClassSubjectIndexRoute = StudyLibraryClassSubjectIndexImport.update({
     path: "/study-library/$class/$subject/",
     getParentRoute: () => rootRoute,
 } as any);
+
+const AssessmentTestsCreateAssessmentIndexRoute = AssessmentTestsCreateAssessmentIndexImport.update(
+    {
+        path: "/assessment/tests/create-assessment/",
+        getParentRoute: () => rootRoute,
+    } as any,
+);
 
 const StudyLibraryClassSubjectModuleIndexRoute = StudyLibraryClassSubjectModuleIndexImport.update({
     path: "/study-library/$class/$subject/$module/",
@@ -79,6 +105,13 @@ const StudyLibraryClassSubjectModuleChapterIndexRoute =
 
 declare module "@tanstack/react-router" {
     interface FileRoutesByPath {
+        "/assessment/": {
+            id: "/assessment/";
+            path: "/assessment";
+            fullPath: "/assessment";
+            preLoaderRoute: typeof AssessmentIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/dashboard/": {
             id: "/dashboard/";
             path: "/dashboard";
@@ -107,6 +140,20 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibraryIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/assessment/question-papers/": {
+            id: "/assessment/question-papers/";
+            path: "/assessment/question-papers";
+            fullPath: "/assessment/question-papers";
+            preLoaderRoute: typeof AssessmentQuestionPapersIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/assessment/tests/": {
+            id: "/assessment/tests/";
+            path: "/assessment/tests";
+            fullPath: "/assessment/tests";
+            preLoaderRoute: typeof AssessmentTestsIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/login/forgot-password/": {
             id: "/login/forgot-password/";
             path: "/login/forgot-password";
@@ -126,6 +173,13 @@ declare module "@tanstack/react-router" {
             path: "/study-library/$class";
             fullPath: "/study-library/$class";
             preLoaderRoute: typeof StudyLibraryClassIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/assessment/tests/create-assessment/": {
+            id: "/assessment/tests/create-assessment/";
+            path: "/assessment/tests/create-assessment";
+            fullPath: "/assessment/tests/create-assessment";
+            preLoaderRoute: typeof AssessmentTestsCreateAssessmentIndexImport;
             parentRoute: typeof rootRoute;
         };
         "/study-library/$class/$subject/": {
@@ -155,13 +209,17 @@ declare module "@tanstack/react-router" {
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
+    AssessmentIndexRoute,
     DashboardIndexRoute,
     LoginIndexRoute,
     StudentsIndexRoute,
     StudyLibraryIndexRoute,
+    AssessmentQuestionPapersIndexRoute,
+    AssessmentTestsIndexRoute,
     LoginForgotPasswordIndexRoute,
     StudentsStudentsListIndexRoute,
     StudyLibraryClassIndexRoute,
+    AssessmentTestsCreateAssessmentIndexRoute,
     StudyLibraryClassSubjectIndexRoute,
     StudyLibraryClassSubjectModuleIndexRoute,
     StudyLibraryClassSubjectModuleChapterIndexRoute,
@@ -175,17 +233,24 @@ export const routeTree = rootRoute.addChildren({
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/assessment/",
         "/dashboard/",
         "/login/",
         "/students/",
         "/study-library/",
+        "/assessment/question-papers/",
+        "/assessment/tests/",
         "/login/forgot-password/",
         "/students/students-list/",
         "/study-library/$class/",
+        "/assessment/tests/create-assessment/",
         "/study-library/$class/$subject/",
         "/study-library/$class/$subject/$module/",
         "/study-library/$class/$subject/$module/$chapter/"
       ]
+    },
+    "/assessment/": {
+      "filePath": "assessment/index.tsx"
     },
     "/dashboard/": {
       "filePath": "dashboard/index.tsx"
@@ -199,6 +264,12 @@ export const routeTree = rootRoute.addChildren({
     "/study-library/": {
       "filePath": "study-library/index.tsx"
     },
+    "/assessment/question-papers/": {
+      "filePath": "assessment/question-papers/index.tsx"
+    },
+    "/assessment/tests/": {
+      "filePath": "assessment/tests/index.tsx"
+    },
     "/login/forgot-password/": {
       "filePath": "login/forgot-password/index.tsx"
     },
@@ -207,6 +278,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/study-library/$class/": {
       "filePath": "study-library/$class/index.tsx"
+    },
+    "/assessment/tests/create-assessment/": {
+      "filePath": "assessment/tests/create-assessment/index.tsx"
     },
     "/study-library/$class/$subject/": {
       "filePath": "study-library/$class/$subject/index.tsx"

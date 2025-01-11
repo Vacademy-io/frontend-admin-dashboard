@@ -33,6 +33,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
     {
         icon: Scroll,
         title: "Assessment Centre",
+        to: "/assessment",
         subItems: [
             {
                 subItem: "Tests",

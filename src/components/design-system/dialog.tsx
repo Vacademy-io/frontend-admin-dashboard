@@ -5,15 +5,17 @@ import { ReactNode } from "react";
 interface DialogProps {
     trigger: ReactNode;
     heading: string;
-    children: React.ReactNode;
+    content?: React.ReactNode;
     dialogWidth?: string;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    children?: React.ReactNode;
 }
 
 export const MyDialog = ({
     trigger,
     heading,
+    content,
     children,
     dialogWidth,
     open,
@@ -28,7 +30,7 @@ export const MyDialog = ({
                         {heading}
                     </div>
                     <DialogDescription asChild className=" ">
-                        <div className="p-6">{children}</div>
+                        <div className="p-6">{children || content}</div>
                     </DialogDescription>
                 </DialogHeader>
             </DialogContent>

@@ -1,6 +1,5 @@
-// hooks/useStudentTable.ts
-import { useState } from "react";
-import { StudentFilterRequest } from "@/schemas/student-list/table-schema";
+import { useState, useEffect } from "react";
+import { StudentFilterRequest } from "@/schemas/student/student-list/table-schema";
 import { useStudentList } from "@/services/student-list-section/getStudentTable";
 
 export const useStudentTable = (
@@ -17,6 +16,18 @@ export const useStudentTable = (
         error,
         refetch,
     } = useStudentList(appliedFilters, page, pageSize);
+
+    useEffect(() => {
+        // Only refetch if there are actual filters applied
+        if (
+            appliedFilters.name ||
+            appliedFilters.gender?.length ||
+            appliedFilters.statuses?.length ||
+            appliedFilters.package_session_ids?.length
+        ) {
+            refetch();
+        }
+    }, [appliedFilters, refetch]);
 
     const handleSort = async (columnId: string, direction: string) => {
         const newSortColumns = {

@@ -4,7 +4,7 @@ import { MyButton } from "@/components/design-system/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useGetSessions } from "@/hooks/student-list-section/useFilterData";
+import { useGetSessions } from "@/hooks/student-list-section/useFilters";
 
 // Form validation schema
 const formSchema = z.object({

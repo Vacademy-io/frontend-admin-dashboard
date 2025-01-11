@@ -32,6 +32,8 @@ import { MyButton } from "@/components/design-system/button";
 import { DotsThree } from "@phosphor-icons/react";
 import PDFViewer from "@/components/common/study-library/pdf-viewer";
 import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ActivityStatsSidebar } from "./activity-stats-sidebar/activity-sidebar";
 //   import { WITH_BASIC_INIT_VALUE } from './initValue';
 
 const plugins = [
@@ -83,38 +85,43 @@ export const ChapterMaterial = () => {
     // };
 
     return (
-        <div className="flex w-full flex-col" ref={selectionRef}>
-            <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
-                <h3 className="text-h3 font-semibold text-neutral-600">
-                    Understanding the Human Eye
-                </h3>
-                <div className="flex items-center gap-6">
-                    <MyButton buttonType="primary" scale="large" layoutVariant="default">
-                        Stats
-                    </MyButton>
-                    <MyButton buttonType="secondary" scale="large" layoutVariant="default">
-                        Edit
-                    </MyButton>
-                    <MyButton buttonType="secondary" scale="large" layoutVariant="icon">
-                        <DotsThree />
-                    </MyButton>
+        <SidebarProvider>
+            <div className="flex w-full flex-col" ref={selectionRef}>
+                <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
+                    <h3 className="text-h3 font-semibold text-neutral-600">
+                        Understanding the Human Eye
+                    </h3>
+                    <div className="flex items-center gap-6">
+                        <SidebarTrigger>
+                            <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                                Stats
+                            </MyButton>
+                        </SidebarTrigger>
+                        <MyButton buttonType="secondary" scale="large" layoutVariant="default">
+                            Edit
+                        </MyButton>
+                        <MyButton buttonType="secondary" scale="large" layoutVariant="icon">
+                            <DotsThree />
+                        </MyButton>
+                    </div>
+                </div>
+                <div className="mt-14 h-full w-full px-10">
+                    {pdfUrl ? (
+                        <PDFViewer />
+                    ) : (
+                        <YooptaEditor
+                            editor={editor}
+                            plugins={plugins}
+                            tools={TOOLS}
+                            marks={MARKS}
+                            selectionBoxRoot={selectionRef}
+                            //   onChange={onChange}
+                            autoFocus
+                        />
+                    )}
                 </div>
             </div>
-            <div className="mt-14 h-full w-full px-10">
-                {pdfUrl ? (
-                    <PDFViewer />
-                ) : (
-                    <YooptaEditor
-                        editor={editor}
-                        plugins={plugins}
-                        tools={TOOLS}
-                        marks={MARKS}
-                        selectionBoxRoot={selectionRef}
-                        //   onChange={onChange}
-                        autoFocus
-                    />
-                )}
-            </div>
-        </div>
+            <ActivityStatsSidebar />
+        </SidebarProvider>
     );
 };

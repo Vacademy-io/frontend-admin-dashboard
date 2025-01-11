@@ -1,6 +1,6 @@
-import { useGetSessions } from "@/hooks/student-list-section/useFilterData";
 import { MyDropdown } from "../design-system/dropdown";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { useGetSessions } from "@/hooks/student-list-section/useFilters";
+// import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 
 interface SessionDropdownProps {
     sessionDirection?: string;
@@ -8,12 +8,13 @@ interface SessionDropdownProps {
 }
 
 export const SessionDropdown = ({ sessionDirection, className }: SessionDropdownProps) => {
-    const { isError, isLoading } = useInstituteQuery();
+    // const { isError, isLoading } = useInstituteQuery();
+    // const data = useInstituteQuery();
 
     const sessionList = useGetSessions();
 
-    if (isError) return <div>Error</div>;
-    if (isLoading) return <div>Loading...</div>;
+    // if (isError) return <div>Error</div>;
+    // if (isLoading) return <div>Loading...</div>;
 
     return (
         <div className={`flex items-center gap-2 ${sessionDirection}`}>
