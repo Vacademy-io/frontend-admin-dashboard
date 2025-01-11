@@ -3,6 +3,7 @@ import { LayoutContainer } from "@/components/common/layout-container/layout-con
 import { ModuleMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/module-material";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
+import { truncateString } from "@/lib/reusable/truncateString";
 // import { SearchInput } from "@/components/common/search-input";
 // import { useState } from "react";
 
@@ -20,10 +21,6 @@ function ModuleMaterialPage() {
             id: "M1",
             name: "Live Session",
         },
-        {
-            id: "M2",
-            name: "NCERT",
-        },
     ];
     const navigate = useNavigate();
     const handleSubjectRoute = () => {
@@ -35,6 +32,8 @@ function ModuleMaterialPage() {
         });
     };
 
+    const truncatedModule = truncateString(moduleParam, 10);
+
     const SidebarComponent = (
         <div className={`flex w-full flex-col gap-6 ${open ? "px-10" : "px-6"}`}>
             <div className="flex flex-wrap items-center gap-1 text-neutral-500">
@@ -45,12 +44,14 @@ function ModuleMaterialPage() {
                     {subject}
                 </p>
                 <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
-                <p className="cursor-pointer text-primary-500">{moduleParam}</p>
+                <p className="cursor-pointer text-primary-500">
+                    {open ? moduleParam : truncatedModule}
+                </p>
             </div>
             {data.map((obj, key) => (
                 <div
                     key={key}
-                    className="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-neutral-500 hover:cursor-pointer hover:border hover:border-neutral-300 hover:bg-white hover:text-primary-500"
+                    className="flex w-full items-center gap-3 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-primary-500 hover:cursor-pointer hover:border hover:border-neutral-300 hover:bg-white hover:text-primary-500"
                 >
                     <p className="text-h3 font-semibold">{obj.id}</p>
                     <p className={`${open ? "visible" : "hidden"}`}>{obj.name}</p>

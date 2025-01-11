@@ -44,18 +44,6 @@ export const StepTwoForm = () => {
         nextStep();
     };
 
-    // useEffect(() => {
-    //     if (sessionList.length > 0) {
-    //         form.setValue("session", sessionList[0] || "");
-    //     }
-    //     if (genderList.length > 0) {
-    //         form.setValue("gender", genderList[0] || "");
-    //     }
-    //     if (batchList.length > 0) {
-    //         form.setValue("batch", batchList[0] || "");
-    //     }
-    // }, [sessionList, genderList, batchList, form]);
-
     return (
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">

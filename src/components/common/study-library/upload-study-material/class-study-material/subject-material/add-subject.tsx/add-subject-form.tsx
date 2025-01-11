@@ -1,18 +1,20 @@
 import { SubjectDefaultImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
-import { Check } from "@phosphor-icons/react";
+import { PencilSimpleLine } from "@phosphor-icons/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Subject } from "./subjects";
+import { useFileUpload } from "@/hooks/use-file-upload";
+import { INSTITUTE_ID } from "@/constants/urls";
+import { FileUploadComponent } from "@/components/design-system/file-upload";
 
 const formSchema = z.object({
     subjectName: z.string().min(1, "Subject name is required"),
-    imageLink: z.string().optional(),
-    imageFile: z.any().optional(), // Add this to handle file upload
+    imageFile: z.any().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -23,37 +25,47 @@ interface AddSubjectFormProps {
 }
 
 export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFormProps) => {
+    const [isUploading, setIsUploading] = useState(false);
+    const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [imageUrl, setImageUrl] = useState<string | undefined>(initialValues?.imageUrl);
+
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             subjectName: initialValues?.name || "",
-            imageLink: initialValues?.imageUrl || "",
             imageFile: null,
         },
     });
-    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileSubmit = async (file: File) => {
+        try {
+            setIsUploading(true);
+            const fileId = await uploadFile({
+                file,
+                setIsUploading,
+                userId: "your-user-id",
+                source: INSTITUTE_ID,
+                sourceId: "SUBJECTS",
+            });
+
+            if (fileId) {
+                const publicUrl = await getPublicUrl(fileId);
+                setImageUrl(publicUrl);
+            }
+        } catch (error) {
+            console.error("Upload failed:", error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     const onSubmit = (data: FormValues) => {
         const newSubject = {
             name: data.subjectName,
-            imageUrl: data.imageLink || undefined,
+            imageUrl: imageUrl,
         };
         onSubmitSuccess(newSubject);
-    };
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (file.type.startsWith("image/")) {
-                form.setValue("imageFile", file);
-            } else {
-                alert("Please upload an image file");
-            }
-        }
-    };
-
-    const handleUploadClick = () => {
-        fileInputRef.current?.click();
     };
 
     return (
@@ -84,66 +96,43 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                 />
 
                 <div className="flex flex-col gap-6">
-                    <div className="flex w-full items-center justify-center">
-                        <SubjectDefaultImage />
-                    </div>
-                    <div className="flex items-end justify-between gap-4">
-                        <FormField
+                    <div className="relative flex w-full items-center justify-center">
+                        {imageUrl ? (
+                            <img
+                                src={imageUrl}
+                                alt="Subject"
+                                className="h-[200px] w-[200px] rounded-lg object-cover"
+                            />
+                        ) : (
+                            <SubjectDefaultImage />
+                        )}
+                        <FileUploadComponent
+                            fileInputRef={fileInputRef}
+                            onFileSubmit={handleFileSubmit}
                             control={form.control}
-                            name="imageLink"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            label="Image Link"
-                                            required={false}
-                                            inputType="text"
-                                            inputPlaceholder="Paste Link to an image..."
-                                            className="w-[296px]"
-                                            input={field.value}
-                                            onChangeFunction={(e) => field.onChange(e.target.value)}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            name="imageFile"
+                            acceptedFileTypes="image/*"
                         />
-                        <div className="flex cursor-pointer items-center justify-center rounded-lg bg-primary-500 p-2 text-white">
-                            <Check />
+                        <div className="absolute right-[54px] top-0">
+                            <MyButton
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading || isUploadingFile}
+                                buttonType="secondary"
+                                layoutVariant="icon"
+                                scale="small"
+                            >
+                                <PencilSimpleLine />
+                            </MyButton>
                         </div>
                     </div>
-                    <div className="text-center text-subtitle">OR</div>
 
-                    {/* Hidden file input */}
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                    />
-
-                    {/* Upload button that triggers file input */}
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        layoutVariant="default"
-                        scale="large"
-                        onClick={handleUploadClick}
-                    >
-                        Upload from Device
-                    </MyButton>
-
-                    <div className="text-center text-subtitle">
-                        Recommended size is 280 x 280 pixels
-                    </div>
                     <MyButton
                         type="submit"
                         buttonType="primary"
                         layoutVariant="default"
                         scale="large"
                     >
-                        Add
+                        {initialValues ? "Save Changes" : "Add"}
                     </MyButton>
                 </div>
             </form>

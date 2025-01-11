@@ -8,11 +8,6 @@ import { AddModulesForm } from "./add-modules-form";
 import { useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 
-export interface ModuleType {
-    name: string;
-    description: string;
-}
-
 interface MenuOptionsProps {
     onDelete: () => void;
     onEdit: () => void;
@@ -53,6 +48,14 @@ interface ModuleCardProps {
     subject: string;
 }
 
+// Update the ModuleType interface
+export interface ModuleType {
+    name: string;
+    description: string;
+    imageUrl?: string;
+}
+
+// Update the ModuleCard component
 const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: ModuleCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const router = useRouter();
@@ -66,7 +69,7 @@ const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: ModuleCa
             return;
         }
 
-        const moduleRoute = module.name.replace(/\s+/g, "-");
+        const moduleRoute = module.name.toLowerCase().replace(/\s+/g, "-");
         const formattedClassName = `${classNumber}th-class-study-library`;
         const formattedSubject = subject.toLowerCase().replace(/\s+/g, "-");
 
@@ -77,15 +80,29 @@ const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: ModuleCa
 
     return (
         <div onClick={handleCardClick} className="cursor-pointer">
-            <div className="flex h-[200px] min-w-[416px] flex-col justify-center gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md">
+            <div className="flex min-w-[416px] flex-col gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md">
                 <div className="flex items-center justify-between text-h2 font-semibold">
                     <div>{module.name}</div>
                     <DotsSixVertical />
                 </div>
+
+                {module.imageUrl ? (
+                    <img
+                        src={module.imageUrl}
+                        alt={module.name}
+                        className="h-[230px] w-full rounded-lg object-cover"
+                    />
+                ) : (
+                    <div className="flex h-[100px] w-full items-center justify-center rounded-lg bg-neutral-100">
+                        <span className="text-neutral-400">No Image</span>
+                    </div>
+                )}
+
                 <div className="flex gap-2 text-title font-semibold">
                     <div className="text-primary-500">10</div>
                     <div>Chapters</div>
                 </div>
+
                 <div className="flex items-center justify-between">
                     <div className="text-body text-neutral-500">{module.description}</div>
                     <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />

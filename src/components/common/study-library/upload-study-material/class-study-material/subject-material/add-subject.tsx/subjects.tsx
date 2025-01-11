@@ -77,7 +77,15 @@ const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectCardProp
         <div onClick={handleCardClick} className="cursor-pointer">
             <div className="relative flex size-[300px] flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md">
                 <DotsSixVertical className="absolute right-4 top-4 size-6 cursor-pointer" />
-                <SubjectDefaultImage />
+                {subject.imageUrl ? (
+                    <img
+                        src={subject.imageUrl}
+                        alt={subject.name}
+                        className="h-[200px] w-[200px] rounded-lg object-cover"
+                    />
+                ) : (
+                    <SubjectDefaultImage />
+                )}
                 <div className="flex items-center justify-between gap-5">
                     <div className="text-h2 font-semibold">{subject.name}</div>
                     <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
