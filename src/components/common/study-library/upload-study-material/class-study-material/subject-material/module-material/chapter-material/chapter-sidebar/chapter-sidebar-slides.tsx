@@ -5,7 +5,7 @@ import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from "@phosphor-icons/r
 const SlidesdummyData = [
     {
         label: "pdf",
-        slide_name: "The Human Eye and the Colorful World",
+        slide_name: "Understanding the Human Eye",
     },
     {
         label: "video",
@@ -38,7 +38,11 @@ export const ChapterSidebarSlides = () => {
             {SlidesdummyData.map((obj, key) => (
                 <div
                     key={key}
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-4 py-2 hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500"
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-4 py-2 ${
+                        obj.label == "pdf"
+                            ? "border border-neutral-200 bg-white text-primary-500"
+                            : "bg-none text-neutral-600 hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500"
+                    } `}
                     title={obj.slide_name} // Show full name on hover
                 >
                     {getIcon(obj.label)}

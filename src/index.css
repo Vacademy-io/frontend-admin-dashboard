@@ -210,6 +210,24 @@
         box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.1);
     }
 
+    .yoopta-editor-custom {
+        font-size: 16px;
+    }
+
+    .yoopta-editor-custom [data-slate-placeholder="true"] {
+        font-size: 16px !important;
+    }
+
+    .yoopta-editor-custom [contenteditable="true"] {
+        font-size: 16px !important;
+    }
+
+    /* Target the command input specifically */
+    .yoopta-editor-custom [role="textbox"],
+    .yoopta-editor-custom input {
+        font-size: 16px !important;
+    }
+
     .custom-scrollbar::-webkit-scrollbar {
         height: 8px; /* for horizontal scrollbar */
         width: 8px; /* for vertical scrollbar */

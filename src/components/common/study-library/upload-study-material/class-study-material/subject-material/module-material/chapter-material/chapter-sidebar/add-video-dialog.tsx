@@ -18,20 +18,22 @@ export const AddVideoDialog = () => {
     return (
         <DialogContent className="flex flex-col items-center gap-6">
             {/* Add your Video upload form content here */}
-            <MyInput
-                required={true}
-                input={videoUrl}
-                label="Video URL"
-                placeholder="Enter YouTube video URL here"
-                onChangeFunction={handleVideoUrlChange}
-            />
-            <MyInput
-                required={true}
-                input={title}
-                label="Video URL"
-                placeholder="File name"
-                onChangeFunction={handleTitleChange}
-            />
+            <div className="flex w-full flex-col gap-6">
+                <MyInput
+                    required={true}
+                    input={videoUrl}
+                    label="Video URL"
+                    placeholder="Enter YouTube video URL here"
+                    onChangeFunction={handleVideoUrlChange}
+                />
+                <MyInput
+                    required={true}
+                    input={title}
+                    label="Video URL"
+                    placeholder="File name"
+                    onChangeFunction={handleTitleChange}
+                />
+            </div>
             <MyButton buttonType="primary" layoutVariant="default" scale="large">
                 Add Video
             </MyButton>

@@ -27,7 +27,7 @@ import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
 import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 
 //   import { uploadToCloudinary } from '@/utils/cloudinary';
-import { useMemo, useRef } from "react";
+import { CSSProperties, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { DotsThree } from "@phosphor-icons/react";
 import PDFViewer from "@/components/common/study-library/pdf-viewer";
@@ -80,10 +80,6 @@ export const ChapterMaterial = () => {
     const selectionRef = useRef(null);
     const { pdfUrl } = usePDFStore();
 
-    // const onChange = (newValue: YooptaContentValue, options: YooptaOnChangeOptions) => {
-    //   setValue(newValue);
-    // };
-
     return (
         <SidebarProvider style={{ ["--sidebar-width" as string]: "530px" }}>
             <div className="flex w-full flex-col" ref={selectionRef}>
@@ -123,6 +119,13 @@ export const ChapterMaterial = () => {
                             selectionBoxRoot={selectionRef}
                             //   onChange={onChange}
                             autoFocus
+                            style={
+                                {
+                                    fontSize: "16px",
+                                    "--yoopta-commands-font-size": "16px", // Custom CSS variable
+                                } as CSSProperties
+                            }
+                            className="yoopta-editor-custom"
                         />
                     )}
                 </div>

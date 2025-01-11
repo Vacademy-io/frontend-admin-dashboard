@@ -112,11 +112,11 @@ export const AddPdfDialog = () => {
                         acceptedFileTypes={["application/pdf"]}
                         isUploading={isUploading}
                         error={error}
-                        className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500"
+                        className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500 pb-6"
                     >
-                        <div className="pointer-events-none">
+                        <div className="pointer-events-none flex flex-col items-center gap-6">
                             <ImportFileImage />
-                            <div className="mt-4 text-center">
+                            <div className="text-center">
                                 {file ? (
                                     <>
                                         <p className="text-primary-600 font-medium">{file.name}</p>
@@ -137,7 +137,10 @@ export const AddPdfDialog = () => {
 
                     {isUploading && (
                         <div>
-                            <Progress value={uploadProgress} className="h-2 bg-neutral-200" />
+                            <Progress
+                                value={uploadProgress}
+                                className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
+                            />
                             <p className="mt-2 text-sm text-neutral-600">
                                 Uploading... {uploadProgress}%
                             </p>
