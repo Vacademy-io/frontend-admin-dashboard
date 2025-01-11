@@ -33,3 +33,12 @@ export const ACTIVITY_LOG_COLUMN_WIDTHS: ColumnWidthConfig = {
     duration: "min-w-[100px]",
     lastPageRead: "min-w-[120px]",
 };
+
+export const ACTIVITY_STATS_COLUMN_WIDTHS: ColumnWidthConfig = {
+    details: "min-w-[80px] sticky left-0",
+    full_name: "min-w-[160px] sticky left-[80px]",
+    institute_enrollment_id: "min-w-[120px]",
+    username: "min-w-[120px]",
+    time_spent: "min-w-[120px]",
+    last_active: "min-w-[120px]",
+};

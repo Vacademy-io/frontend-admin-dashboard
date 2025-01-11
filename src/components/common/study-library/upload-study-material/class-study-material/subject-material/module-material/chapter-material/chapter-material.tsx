@@ -85,21 +85,27 @@ export const ChapterMaterial = () => {
     // };
 
     return (
-        <SidebarProvider>
+        <SidebarProvider style={{ ["--sidebar-width" as string]: "530px" }}>
             <div className="flex w-full flex-col" ref={selectionRef}>
                 <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
                     <h3 className="text-h3 font-semibold text-neutral-600">
                         Understanding the Human Eye
                     </h3>
                     <div className="flex items-center gap-6">
-                        <SidebarTrigger>
-                            <MyButton buttonType="primary" scale="large" layoutVariant="default">
-                                Stats
+                        <div className="flex items-center gap-[80px]">
+                            <SidebarTrigger>
+                                <MyButton
+                                    buttonType="primary"
+                                    scale="medium"
+                                    layoutVariant="default"
+                                >
+                                    Activity Stats
+                                </MyButton>
+                            </SidebarTrigger>
+                            <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
+                                Edit
                             </MyButton>
-                        </SidebarTrigger>
-                        <MyButton buttonType="secondary" scale="large" layoutVariant="default">
-                            Edit
-                        </MyButton>
+                        </div>
                         <MyButton buttonType="secondary" scale="large" layoutVariant="icon">
                             <DotsThree />
                         </MyButton>

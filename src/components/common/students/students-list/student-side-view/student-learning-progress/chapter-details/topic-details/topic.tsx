@@ -2,49 +2,41 @@
 import { MyButton } from "@/components/design-system/button";
 import { TopicActivityDetails } from "../../../student-view-dummy-data/learning-progress";
 import { StatusIcon } from "../../status-icon";
-import { ActivityLogDialog } from "./activity-log-dialog";
-import { useState } from "react";
+import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
 
-export const Topic = ({
-    studyMedium,
-    topicData,
-}: {
+interface TopicProps {
     studyMedium: string;
     topicData: TopicActivityDetails;
-}) => {
-    const [showActivityLog, setShowActivityLog] = useState(false);
+}
+
+export const Topic = ({ studyMedium, topicData }: TopicProps) => {
+    const openDialog = useActivityStatsStore((state) => state.openDialog);
+
+    const handleOpenDialog = () => {
+        if (topicData.activity_log) {
+            openDialog(topicData.id, topicData.topic, studyMedium, topicData.activity_log);
+        }
+    };
 
     return (
-        <>
-            <div className="flex flex-col gap-2 text-body">
-                <div className="flex gap-2">
-                    <StatusIcon status={topicData.status} />
-                    <div>{topicData.topic}</div>
-                </div>
-                <div className="flex items-center justify-between">
-                    <div>Last viewed on: {topicData.last_viewed}</div>
-                    {topicData.activity_log && topicData.activity_log.length > 0 && (
-                        <MyButton
-                            buttonType="secondary"
-                            layoutVariant="default"
-                            scale="small"
-                            onClick={() => setShowActivityLog(true)}
-                        >
-                            Activity Log
-                        </MyButton>
-                    )}
-                </div>
+        <div className="flex flex-col gap-2 text-body">
+            <div className="flex gap-2">
+                <StatusIcon status={topicData.status} />
+                <div>{topicData.topic}</div>
             </div>
-
-            {topicData.activity_log && topicData.activity_log.length > 0 && (
-                <ActivityLogDialog
-                    isOpen={showActivityLog}
-                    onClose={() => setShowActivityLog(false)}
-                    activityData={topicData.activity_log}
-                    topicName={topicData.topic}
-                    studyType={studyMedium}
-                />
-            )}
-        </>
+            <div className="flex items-center justify-between">
+                <div>Last viewed on: {topicData.last_viewed}</div>
+                {topicData.activity_log && topicData.activity_log.length > 0 && (
+                    <MyButton
+                        buttonType="secondary"
+                        layoutVariant="default"
+                        scale="small"
+                        onClick={handleOpenDialog}
+                    >
+                        Activity Log
+                    </MyButton>
+                )}
+            </div>
+        </div>
     );
 };
