@@ -1,3 +1,4 @@
+// add-pdf-dialog.tsx
 import { ImportFileImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { DialogFooter, DialogContent } from "@/components/ui/dialog";
@@ -5,11 +6,12 @@ import { Progress } from "@/components/ui/progress";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useState, useRef } from "react";
 import { INSTITUTE_ID } from "@/constants/urls";
-import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 
 interface FormData {
     pdfFile: FileList | null;
@@ -20,9 +22,11 @@ export const AddPdfDialog = () => {
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
-    const [fileUrl, setFileUrl] = useState<string | null>(null);
-    const { setPdfUrl } = usePDFStore();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const addItem = useContentStore((state) => state.addItem);
+    const { setPdfUrl } = usePDFStore();
+
+    const [fileUrl, setFileUrl] = useState<string | null>(null);
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -71,9 +75,17 @@ export const AddPdfDialog = () => {
                 const url = await getPublicUrl(fileId);
                 setFileUrl(url);
                 setPdfUrl(url);
-                setUploadProgress(100);
                 setFile(null);
                 form.reset();
+                const newItem = {
+                    id: crypto.randomUUID(),
+                    type: "pdf" as const, // or 'doc' for AddDocDialog
+                    name: file.name,
+                    url: url,
+                    createdAt: new Date(),
+                };
+                addItem(newItem);
+                setUploadProgress(100);
                 toast.success("File uploaded successfully!");
             }
 
@@ -82,7 +94,6 @@ export const AddPdfDialog = () => {
             const errorMessage =
                 err instanceof Error ? err.message : "Upload failed. Please try again.";
             setError(errorMessage);
-            console.error("Upload error:", err);
             toast.error(errorMessage);
         } finally {
             setIsUploading(false);
@@ -112,7 +123,7 @@ export const AddPdfDialog = () => {
                         acceptedFileTypes={["application/pdf"]}
                         isUploading={isUploading}
                         error={error}
-                        className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500 pb-6"
+                        className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500 pb-6 focus:outline-none"
                     >
                         <div className="pointer-events-none flex flex-col items-center gap-6">
                             <ImportFileImage />
@@ -135,7 +146,7 @@ export const AddPdfDialog = () => {
                         </div>
                     </FileUploadComponent>
 
-                    {isUploading && (
+                    {fileUrl && !isUploading && (
                         <div>
                             <Progress
                                 value={uploadProgress}
@@ -145,12 +156,6 @@ export const AddPdfDialog = () => {
                                 Uploading... {uploadProgress}%
                             </p>
                         </div>
-                    )}
-
-                    {fileUrl && !isUploading && (
-                        <p className="text-sm font-medium text-green-600">
-                            File uploaded successfully!
-                        </p>
                     )}
 
                     <DialogFooter className="flex w-full items-center justify-center">

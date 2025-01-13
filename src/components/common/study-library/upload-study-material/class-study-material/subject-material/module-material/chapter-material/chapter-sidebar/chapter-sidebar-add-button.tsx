@@ -7,12 +7,14 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { AddVideoDialog } from "./add-video-dialog";
 import { AddDocDialog } from "./add-doc-dialog";
 import { AddPdfDialog } from "./add-pdf-dialog";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
     const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
     const [isDocUploadDialogOpen, setIsDocUploadDialogOpen] = useState(false);
     const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+    const addItem = useContentStore((state) => state.addItem);
 
     const dropdownList = [
         {
@@ -44,6 +46,17 @@ export const ChapterSidebarAddButton = () => {
             case "upload-doc":
                 setIsDocUploadDialogOpen(true);
                 break;
+            case "create-doc": {
+                const newDoc = {
+                    id: crypto.randomUUID(),
+                    type: "doc" as const,
+                    name: "New Document",
+                    url: "",
+                    createdAt: new Date(),
+                };
+                addItem(newDoc); // This will automatically select the new doc
+                break;
+            }
             case "video":
                 setIsVideoDialogOpen(true);
                 break;

@@ -27,14 +27,15 @@ import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
 import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 
 //   import { uploadToCloudinary } from '@/utils/cloudinary';
-import { CSSProperties, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { DotsThree } from "@phosphor-icons/react";
 import PDFViewer from "@/components/common/study-library/pdf-viewer";
-import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ActivityStatsSidebar } from "./activity-stats-sidebar/activity-sidebar";
-//   import { WITH_BASIC_INIT_VALUE } from './initValue';
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { EmptyModulesImage } from "@/assets/svgs";
+import { useState } from "react";
 
 const plugins = [
     Paragraph,
@@ -75,18 +76,90 @@ const TOOLS = {
 const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
 
 export const ChapterMaterial = () => {
-    // const [value, setValue] = useState();
+    const { items, activeItemId, setActiveItem } = useContentStore();
+    const activeItem = items.find((item) => item.id === activeItemId);
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
-    const { pdfUrl } = usePDFStore();
+    const [isEditing, setIsEditing] = useState(false);
+    const [heading, setHeading] = useState(activeItem?.name || "");
+
+    useEffect(() => {
+        if (activeItem) {
+            setHeading(activeItem.name);
+        }
+    }, [activeItem]);
+
+    const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setHeading(e.target.value);
+    };
+
+    const saveHeading = () => {
+        if (activeItem) {
+            const updatedItem = { ...activeItem, name: heading };
+            setActiveItem(updatedItem); // Use setActiveItem to update the store
+        }
+        setIsEditing(false);
+    };
+
+    const renderContent = () => {
+        if (!activeItem) {
+            return (
+                <div className="flex h-full flex-col items-center justify-center rounded-lg bg-neutral-50">
+                    <EmptyModulesImage />
+                    <p className="mt-4 text-neutral-500">No study material has been added yet</p>
+                </div>
+            );
+        }
+
+        switch (activeItem.type) {
+            case "pdf":
+                return <PDFViewer />;
+            case "video":
+                return (
+                    <iframe
+                        width="100%"
+                        height="600"
+                        src={activeItem.url}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                    />
+                );
+            case "doc":
+                return (
+                    <YooptaEditor
+                        editor={editor}
+                        plugins={plugins}
+                        tools={TOOLS}
+                        marks={MARKS}
+                        selectionBoxRoot={selectionRef}
+                        autoFocus
+                    />
+                );
+        }
+    };
 
     return (
         <SidebarProvider style={{ ["--sidebar-width" as string]: "530px" }}>
             <div className="flex w-full flex-col" ref={selectionRef}>
                 <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
-                    <h3 className="text-h3 font-semibold text-neutral-600">
-                        Understanding the Human Eye
-                    </h3>
+                    {isEditing ? (
+                        <input
+                            type="text"
+                            value={heading}
+                            onChange={handleHeadingChange}
+                            onBlur={saveHeading}
+                            className="w-full text-h3 font-semibold text-neutral-600 focus:outline-none"
+                            autoFocus
+                        />
+                    ) : (
+                        <h3
+                            className="text-h3 font-semibold text-neutral-600"
+                            onClick={() => setIsEditing(true)}
+                        >
+                            {heading || "No content selected"}
+                        </h3>
+                    )}
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-[80px]">
                             <SidebarTrigger>
@@ -107,28 +180,7 @@ export const ChapterMaterial = () => {
                         </MyButton>
                     </div>
                 </div>
-                <div className="mt-14 h-full w-full px-10">
-                    {pdfUrl ? (
-                        <PDFViewer />
-                    ) : (
-                        <YooptaEditor
-                            editor={editor}
-                            plugins={plugins}
-                            tools={TOOLS}
-                            marks={MARKS}
-                            selectionBoxRoot={selectionRef}
-                            //   onChange={onChange}
-                            autoFocus
-                            style={
-                                {
-                                    fontSize: "16px",
-                                    "--yoopta-commands-font-size": "16px", // Custom CSS variable
-                                } as CSSProperties
-                            }
-                            className="yoopta-editor-custom"
-                        />
-                    )}
-                </div>
+                <div className="mt-14 h-full w-full px-10">{renderContent()}</div>
             </div>
             <ActivityStatsSidebar />
         </SidebarProvider>
