@@ -4,7 +4,7 @@ import { ChapterMaterial } from "@/components/common/study-library/upload-study-
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { SearchInput } from "@/components/common/search-input";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { ChapterSidebarAddButton } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-sidebar/chapter-sidebar-add-button";
 import { truncateString } from "@/lib/reusable/truncateString";
@@ -49,10 +49,6 @@ function Chapters() {
     };
 
     const trucatedChapterName = truncateString(chapterParam, 9);
-
-    useEffect(() => {
-        console.log("trucatedChapterName", trucatedChapterName);
-    }, []);
 
     const SidebarComponent = (
         <div className="flex w-full flex-col items-center">

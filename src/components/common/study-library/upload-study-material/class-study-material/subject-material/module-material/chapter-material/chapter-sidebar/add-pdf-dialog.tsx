@@ -12,6 +12,7 @@ import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
+import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
 
 interface FormData {
     pdfFile: FileList | null;
@@ -77,13 +78,17 @@ export const AddPdfDialog = () => {
                 setPdfUrl(url);
                 setFile(null);
                 form.reset();
-                const newItem = {
+
+                // Updated newItem to include content property
+                const newItem: SidebarContentItem = {
                     id: crypto.randomUUID(),
-                    type: "pdf" as const, // or 'doc' for AddDocDialog
+                    type: "pdf",
                     name: file.name,
                     url: url,
+                    content: "", // Add empty string for PDF content
                     createdAt: new Date(),
                 };
+
                 addItem(newItem);
                 setUploadProgress(100);
                 toast.success("File uploaded successfully!");

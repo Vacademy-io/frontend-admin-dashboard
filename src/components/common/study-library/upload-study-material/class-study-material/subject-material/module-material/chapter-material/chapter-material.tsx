@@ -1,12 +1,14 @@
 import YooptaEditor, {
     createYooptaEditor,
+    // YooptaContentValue,
+    // YooptaOnChangeOptions,
     // Elements,
     // Blocks,
     // useYooptaEditor,
     // YooptaContentValue,
     // YooptaOnChangeOptions,
 } from "@yoopta/editor";
-
+import { YooptaPlugin, SlateElement } from "@yoopta/editor";
 import Paragraph from "@yoopta/paragraph";
 import Blockquote from "@yoopta/blockquote";
 import Embed from "@yoopta/embed";
@@ -15,12 +17,12 @@ import Link from "@yoopta/link";
 import Callout from "@yoopta/callout";
 import Video from "@yoopta/video";
 import File from "@yoopta/file";
-//   import Accordion from '@yoopta/accordion';
+import Accordion from "@yoopta/accordion";
 import { NumberedList, BulletedList, TodoList } from "@yoopta/lists";
 import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from "@yoopta/marks";
 import { HeadingOne, HeadingThree, HeadingTwo } from "@yoopta/headings";
 import Code from "@yoopta/code";
-//   import Table from '@yoopta/table';
+import Table from "@yoopta/table";
 import Divider from "@yoopta/divider";
 import ActionMenuList, { DefaultActionMenuRender } from "@yoopta/action-menu-list";
 import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
@@ -37,11 +39,11 @@ import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { EmptyModulesImage } from "@/assets/svgs";
 import { useState } from "react";
 
-const plugins = [
+const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
-    // Table,
+    Table as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
     Divider,
-    // Accordion,
+    Accordion as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
     HeadingOne,
     HeadingTwo,
     HeadingThree,
@@ -101,6 +103,11 @@ export const ChapterMaterial = () => {
         setIsEditing(false);
     };
 
+    // const handleEditorChange = (value: YooptaContentValue, options: YooptaOnChangeOptions) => {
+    //     // Handle editor content change
+
+    // };
+
     const renderContent = () => {
         if (!activeItem) {
             return (
@@ -125,7 +132,35 @@ export const ChapterMaterial = () => {
                         allowFullScreen
                     />
                 );
-            case "doc":
+
+            case "doc": {
+                if (!activeItem?.content) {
+                    return null;
+                }
+
+                const content =
+                    typeof activeItem.content === "string"
+                        ? {
+                              "block-0": {
+                                  id: crypto.randomUUID(),
+                                  type: "paragraph",
+                                  value: [
+                                      {
+                                          id: crypto.randomUUID(),
+                                          type: "paragraph",
+                                          children: [{ text: activeItem.content }],
+                                      },
+                                  ],
+                                  meta: {
+                                      order: 0,
+                                      depth: 0,
+                                  },
+                              },
+                          }
+                        : activeItem.content;
+
+                console.log("Rendering doc content:", content); // For debugging
+
                 return (
                     <YooptaEditor
                         editor={editor}
@@ -134,8 +169,16 @@ export const ChapterMaterial = () => {
                         marks={MARKS}
                         selectionBoxRoot={selectionRef}
                         autoFocus
+                        value={content}
+                        onChange={(value) => {
+                            console.log("Editor content changed:", value); // For debugging
+                            // You might want to save changes here
+                        }}
                     />
                 );
+            }
+            default:
+                return null;
         }
     };
 

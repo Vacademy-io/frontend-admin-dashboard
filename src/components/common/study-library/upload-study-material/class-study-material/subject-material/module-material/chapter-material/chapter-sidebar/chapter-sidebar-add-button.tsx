@@ -8,6 +8,8 @@ import { AddVideoDialog } from "./add-video-dialog";
 import { AddDocDialog } from "./add-doc-dialog";
 import { AddPdfDialog } from "./add-pdf-dialog";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
+import { YooptaContentValue } from "@yoopta/editor";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
@@ -47,14 +49,34 @@ export const ChapterSidebarAddButton = () => {
                 setIsDocUploadDialogOpen(true);
                 break;
             case "create-doc": {
-                const newDoc = {
+                // Create a new empty document with proper Yoopta structure
+                const emptyYooptaContent: YooptaContentValue = {
+                    "block-0": {
+                        id: crypto.randomUUID(),
+                        type: "paragraph",
+                        value: [
+                            {
+                                id: crypto.randomUUID(),
+                                type: "paragraph",
+                                children: [{ text: "" }],
+                            },
+                        ],
+                        meta: {
+                            order: 0,
+                            depth: 0,
+                        },
+                    },
+                };
+
+                const newDoc: SidebarContentItem = {
                     id: crypto.randomUUID(),
-                    type: "doc" as const,
+                    type: "doc",
                     name: "New Document",
                     url: "",
+                    content: emptyYooptaContent,
                     createdAt: new Date(),
                 };
-                addItem(newDoc); // This will automatically select the new doc
+                addItem(newDoc);
                 break;
             }
             case "video":

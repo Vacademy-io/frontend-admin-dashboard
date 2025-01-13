@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
 
 const formSchema = z.object({
     videoUrl: z
@@ -24,11 +25,12 @@ export const AddVideoDialog = () => {
     const addItem = useContentStore((state) => state.addItem);
 
     const handleSubmit = (data: FormValues) => {
-        const newItem = {
+        const newItem: SidebarContentItem = {
             id: crypto.randomUUID(),
             type: "video" as const,
             name: data.videoName,
             url: data.videoUrl,
+            content: "", // Add empty string for video content
             createdAt: new Date(),
         };
         addItem(newItem);
