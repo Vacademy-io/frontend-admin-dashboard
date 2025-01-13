@@ -4,8 +4,12 @@ const sectionDetailsSchema = z.object({
     status: z.string(),
     section: z.array(
         z.object({
+            sectionId: z.string(),
             sectionName: z.string(),
+            questionPaperTitle: z.string().optional(),
             uploaded_question_paper: z.string().nullable(),
+            subject: z.string().optional(),
+            yearClass: z.string().optional(),
             section_description: z.string(),
             section_duration: z.object({
                 hrs: z.string(),
@@ -30,6 +34,7 @@ const sectionDetailsSchema = z.object({
                     questionType: z.string(),
                     questionMark: z.string(),
                     questionPenalty: z.string(),
+                    correctOptionIdsCnt: z.number().optional(),
                 }),
             ),
         }),

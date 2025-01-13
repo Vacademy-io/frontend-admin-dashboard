@@ -21,7 +21,6 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { MyQuestion } from "@/types/question-paper-form";
-import { useUploadedQuestionPapersStore } from "../../tests/create-assessment/-utils/global-states";
 import { z } from "zod";
 import sectionDetailsSchema from "../../tests/create-assessment/-utils/section-details-schema";
 import { UseFormReturn } from "react-hook-form";
@@ -46,7 +45,6 @@ export const QuestionPapersList = ({
 }) => {
     const { setIsSavedQuestionPaperDialogOpen } = useDialogStore();
     const { instituteDetails } = useInstituteDetailsStore();
-    const { setSectionUploadedQuestionPapers } = useUploadedQuestionPapersStore();
 
     const handleMarkQuestionPaperStatus = useMutation({
         mutationFn: ({
@@ -90,20 +88,6 @@ export const QuestionPapersList = ({
                 data.question_dtolist,
             );
 
-            setSectionUploadedQuestionPapers((prev) => {
-                const updatedData = [...(prev || [])];
-                if (index !== undefined) {
-                    if (index >= updatedData.length) {
-                        updatedData.length = index + 1;
-                    }
-                    updatedData[index] = {
-                        ...updatedData[index],
-                        questions: transformQuestionsData,
-                    };
-                }
-                return updatedData;
-            });
-
             if (sectionsForm && index !== undefined) {
                 sectionsForm.setValue(`section.${index}`, {
                     ...sectionsForm.getValues(`section.${index}`),
@@ -113,6 +97,11 @@ export const QuestionPapersList = ({
                         questionType: question.questionType,
                         questionMark: question.questionMark,
                         questionPenalty: "",
+                        ...(question.questionType === "MCQM" && {
+                            correctOptionIdsCnt: question?.multipleChoiceOptions?.filter(
+                                (item) => item.isSelected,
+                            ).length,
+                        }),
                     })),
                 });
             }
@@ -124,32 +113,16 @@ export const QuestionPapersList = ({
 
     const handleGetQuestionPaperDataById = (questionsData: QuestionPaperInterface) => {
         const id = questionsData.id;
-        const newQuestionPaperData = {
-            questionPaperId: questionsData.id,
-            title: questionsData.title,
-            status: questionsData.status,
-            subject: getSubjectNameById(instituteDetails?.subjects || [], questionsData.subject_id),
-            yearClass: getLevelNameById(instituteDetails?.levels || [], questionsData.level_id),
-        };
-
-        setSectionUploadedQuestionPapers((prev) => {
-            const updatedData = [...(prev || [])];
-            if (index !== undefined) {
-                if (index >= updatedData.length) {
-                    updatedData.length = index + 1;
-                }
-                updatedData[index] = {
-                    ...updatedData[index],
-                    ...newQuestionPaperData,
-                    questions: updatedData[index]?.questions || [],
-                };
-            }
-            return updatedData;
-        });
 
         if (sectionsForm && index !== undefined) {
             sectionsForm.setValue(`section.${index}`, {
                 ...sectionsForm.getValues(`section.${index}`),
+                questionPaperTitle: questionsData.title,
+                subject: getSubjectNameById(
+                    instituteDetails?.subjects || [],
+                    questionsData.subject_id,
+                ),
+                yearClass: getLevelNameById(instituteDetails?.levels || [], questionsData.level_id),
                 sectionName: getSubjectNameById(
                     instituteDetails?.subjects || [],
                     questionsData.subject_id,

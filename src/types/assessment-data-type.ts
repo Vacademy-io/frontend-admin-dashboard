@@ -4,7 +4,7 @@ interface Instructions {
     content: string;
 }
 
-interface SavedData {
+export interface SavedData {
     instructions: Instructions;
     reattempt_consent: boolean;
     evaluation_type: string;
@@ -25,6 +25,25 @@ interface SavedData {
     name: string;
     reattempt_count: number | null;
     assessment_preview: number;
+    sections?: Section[];
+}
+
+export interface Section {
+    id: string;
+    name: string;
+    description: string | null;
+    section_type: string | null;
+    duration: number;
+    total_marks: number;
+    cutoff_marks: number;
+    section_order: number;
+    problem_randomization: boolean | null;
+    created_at: string; // ISO date string
+    updated_at: string; // ISO date string
+}
+
+export interface SectionsResponse {
+    sections: Section[];
 }
 
 interface StepKey {

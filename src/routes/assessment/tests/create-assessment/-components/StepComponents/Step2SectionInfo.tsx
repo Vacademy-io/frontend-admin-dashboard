@@ -1,6 +1,5 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import React, { useEffect, useState } from "react";
-import { useUploadedQuestionPapersStore } from "../../-utils/global-states";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { PencilSimpleLine, TrashSimple, X } from "phosphor-react";
 import {
@@ -60,8 +59,6 @@ export const Step2SectionInfo = ({
             type: "EXAM",
         }),
     );
-    const { sectionUploadedQuestionPapers, setSectionUploadedQuestionPapers } =
-        useUploadedQuestionPapersStore();
 
     const {
         isManualQuestionPaperDialogOpen,
@@ -80,52 +77,20 @@ export const Step2SectionInfo = ({
         name: "section", // Matches the key in defaultValues
     });
 
+    console.log(allSections);
     const handleDeleteSection = (e: React.MouseEvent, index: number) => {
-        remove(index); // Removes the section at the given index
         e.stopPropagation();
-        // Capture current section details
-        const currentSections = getValues("section");
-        const removedSectionName = currentSections[index]?.sectionName;
-
-        setSectionUploadedQuestionPapers((prev) => {
-            const updatedData = prev?.filter((_, i) => i !== index);
-            return updatedData;
-        });
-
-        // Get the updated sections after removal
-        const updatedSections = getValues("section").map((section, i) => {
-            if (
-                i === index &&
-                removedSectionName &&
-                !removedSectionName.toLowerCase().includes("section")
-            ) {
-                // Assign the removed section name to the immediate next section
-                return {
-                    ...section,
-                };
-            } else if (i >= index) {
-                // Rename subsequent sections if their names contain "section"
-                return {
-                    ...section,
-                    sectionName: section.sectionName.toLowerCase().includes("section")
-                        ? `Section ${i + 1}`
-                        : section.sectionName,
-                };
-            }
-
-            // Return unchanged section for other cases
-            return section;
-        });
-
-        // Update the form values with the reassigned sections
-        setValue("section", updatedSections);
+        remove(index);
     };
 
     const handleRemoveQuestionPaper = (index: number) => {
-        setSectionUploadedQuestionPapers((prev) => {
-            const updatedData = prev?.filter((_, i) => i !== index);
-            return updatedData;
-        });
+        if (allSections && allSections[index]) {
+            // Update the specific section to have uploaded_question_paper set to null
+            allSections[index].uploaded_question_paper = null;
+
+            // Optionally, update the form state if you're using React Hook Form
+            setValue("section", [...allSections]);
+        }
     };
 
     useEffect(() => {
@@ -168,7 +133,7 @@ export const Step2SectionInfo = ({
         <AccordionItem value={`section-${index}`} key={index}>
             <AccordionTrigger className="flex items-center justify-between">
                 <div className="flex w-full items-center justify-between">
-                    {sectionUploadedQuestionPapers?.[index] ? (
+                    {allSections?.[index] ? (
                         <div className="flex items-center justify-start text-primary-500">
                             <FormField
                                 control={control}
@@ -190,18 +155,29 @@ export const Step2SectionInfo = ({
                                     </FormItem>
                                 )}
                             />
-                            <span className="font-thin !text-neutral-600">
-                                (MCQ(Single Correct):&nbsp;
-                                {getQuestionTypeCounts(sectionUploadedQuestionPapers[index]).MCQS}
-                                ,&nbsp; MCQ(Multiple Correct):&nbsp;
-                                {getQuestionTypeCounts(sectionUploadedQuestionPapers[index]).MCQM}
-                                ,&nbsp; Total:&nbsp;
-                                {
-                                    getQuestionTypeCounts(sectionUploadedQuestionPapers[index])
-                                        .totalQuestions
-                                }
-                                )
-                            </span>
+                            {allSections?.[index]?.uploaded_question_paper && (
+                                <span className="font-thin !text-neutral-600">
+                                    (MCQ(Single Correct):&nbsp;
+                                    {
+                                        getQuestionTypeCounts(
+                                            allSections[index].adaptive_marking_for_each_question,
+                                        ).MCQS
+                                    }
+                                    ,&nbsp; MCQ(Multiple Correct):&nbsp;
+                                    {
+                                        getQuestionTypeCounts(
+                                            allSections[index].adaptive_marking_for_each_question,
+                                        ).MCQM
+                                    }
+                                    ,&nbsp; Total:&nbsp;
+                                    {
+                                        getQuestionTypeCounts(
+                                            allSections[index].adaptive_marking_for_each_question,
+                                        ).totalQuestions
+                                    }
+                                    )
+                                </span>
+                            )}
                         </div>
                     ) : (
                         <FormField
@@ -344,33 +320,33 @@ export const Step2SectionInfo = ({
                         </DialogContent>
                     </Dialog>
                 </div>
-                {sectionUploadedQuestionPapers && sectionUploadedQuestionPapers?.[index] && (
-                    <div className="flex items-center justify-between rounded-md border border-primary-200 px-4 py-1">
-                        <h1>{sectionUploadedQuestionPapers[index].title}</h1>
-                        <div className="flex items-center">
-                            <ViewQuestionPaper
-                                questionPaperId={
-                                    sectionUploadedQuestionPapers[index].questionPaperId
-                                }
-                                title={sectionUploadedQuestionPapers[index].title}
-                                subject={getIdBySubjectName(
-                                    instituteDetails?.subjects || [],
-                                    sectionUploadedQuestionPapers[index].subject,
-                                )}
-                                level={getIdByLevelName(
-                                    instituteDetails?.levels || [],
-                                    sectionUploadedQuestionPapers[index].yearClass,
-                                )}
-                                isAssessment={true}
-                            />
-                            <TrashSimple
-                                size={20}
-                                className="cursor-pointer text-danger-400"
-                                onClick={() => handleRemoveQuestionPaper(index)}
-                            />
+                {allSections &&
+                    allSections?.[index] &&
+                    allSections[index].uploaded_question_paper && (
+                        <div className="flex items-center justify-between rounded-md border border-primary-200 px-4 py-1">
+                            <h1>{allSections[index]?.questionPaperTitle}</h1>
+                            <div className="flex items-center">
+                                <ViewQuestionPaper
+                                    questionPaperId={allSections[index].uploaded_question_paper}
+                                    title={allSections[index]?.questionPaperTitle}
+                                    subject={getIdBySubjectName(
+                                        instituteDetails?.subjects || [],
+                                        allSections[index]?.sectionName,
+                                    )}
+                                    level={getIdByLevelName(
+                                        instituteDetails?.levels || [],
+                                        allSections[index].yearClass,
+                                    )}
+                                    isAssessment={true}
+                                />
+                                <TrashSimple
+                                    size={20}
+                                    className="cursor-pointer text-danger-400"
+                                    onClick={() => handleRemoveQuestionPaper(index)}
+                                />
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
                 <div className="flex flex-col gap-2">
                     <h1 className="font-thin">Section Description</h1>
                     <FormField
@@ -648,9 +624,9 @@ export const Step2SectionInfo = ({
                         </FormItem>
                     )}
                 />
-                {sectionUploadedQuestionPapers &&
-                    sectionUploadedQuestionPapers?.[index] &&
-                    sectionUploadedQuestionPapers?.[index].questions && (
+                {allSections &&
+                    allSections[index] &&
+                    allSections[index]?.adaptive_marking_for_each_question.length > 0 && (
                         <div>
                             <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
                             <Table>
@@ -738,7 +714,7 @@ export const Step2SectionInfo = ({
                         </div>
                     )}
                 {watch(`section.${index}.marks_per_question`) && (
-                    <div className="flex items-center justify-end gap-4">
+                    <div className="flex items-center justify-end gap-1">
                         <span>Total Marks</span>
                         <span>:</span>
                         <h1>

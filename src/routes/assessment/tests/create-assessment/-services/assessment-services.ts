@@ -2,6 +2,7 @@ import {
     GET_ASSESSMENT_DETAILS,
     STEP1_ASSESSMENT_URL,
     STEP2_ASSESSMENT_URL,
+    STEP2_QUESTIONS_URL,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { Steps } from "@/types/assessment-data-type";
@@ -106,7 +107,7 @@ export const handlePostStep2Data = async (
         added_sections: data.section.map((section, index) => ({
             section_description_html: section.section_description || "",
             section_name: section.sectionName,
-            section_id: section.uploaded_question_paper || "",
+            section_id: section.sectionId || "",
             section_duration:
                 parseInt(section.section_duration.hrs) * 60 +
                 parseInt(section.section_duration.min),
@@ -120,10 +121,27 @@ export const handlePostStep2Data = async (
                 (question, qIndex) => ({
                     question_id: question.questionId,
                     marking_json: JSON.stringify({
-                        questionMark: question.questionMark || "",
-                        questionPenalty: question.questionPenalty || "",
+                        type: question.questionType,
+                        data: {
+                            totalMark: question.questionMark || "",
+                            negativeMark: question.questionPenalty || "",
+                            negativeMarkingPercentage:
+                                question.questionMark && question.questionPenalty
+                                    ? (Number(question.questionPenalty) /
+                                          Number(question.questionMark)) *
+                                      100
+                                    : "",
+                            ...(question.questionType === "MCQM" && {
+                                partialMarking: question.correctOptionIdsCnt
+                                    ? 1 / question.correctOptionIdsCnt
+                                    : 0,
+                                partialMarkingPercentage: question.correctOptionIdsCnt
+                                    ? (1 / question.correctOptionIdsCnt) * 100
+                                    : 0,
+                            }),
+                        },
                     }),
-                    question_duration_in_min: 0, // Assuming question duration is not provided in the input
+                    question_duration_in_min: 0,
                     question_order: qIndex + 1,
                     is_added: true,
                     is_deleted: false,
@@ -141,6 +159,24 @@ export const handlePostStep2Data = async (
             assessmentId,
             instituteId,
             type,
+        },
+    });
+    return response?.data;
+};
+
+export const getQuestionsDataForStep2 = async ({
+    assessmentId,
+    sectionIds,
+}: {
+    assessmentId: string;
+    sectionIds: string;
+}) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: STEP2_QUESTIONS_URL,
+        params: {
+            assessmentId,
+            sectionIds,
         },
     });
     return response?.data;

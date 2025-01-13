@@ -14,8 +14,8 @@ import { useMutation } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
 import { useQuestionStore } from "../-global-states/question-index";
-import { addQuestionPaper } from "../-utils/question-paper-services";
-import { MyQuestionPaperFormInterface } from "../../../../types/question-paper-form";
+import { addQuestionPaper, getQuestionPaperById } from "../-utils/question-paper-services";
+import { MyQuestion, MyQuestionPaperFormInterface } from "../../../../types/question-paper-form";
 import {
     getIdByLevelName,
     getIdBySubjectName,
@@ -32,7 +32,6 @@ import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData"
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { useUploadQuestionPaperForm } from "../-utils/question-paper-form";
-import { useUploadedQuestionPapersStore } from "../../tests/create-assessment/-utils/global-states";
 import sectionDetailsSchema from "../../tests/create-assessment/-utils/section-details-schema";
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -53,8 +52,6 @@ export const QuestionPaperUpload = ({
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-    const { setSectionUploadedQuestionPapers } = useUploadedQuestionPapersStore();
     const form = useUploadQuestionPaperForm();
     const { getValues, setValue, watch } = form;
 
@@ -90,7 +87,11 @@ export const QuestionPaperUpload = ({
         onSettled: () => {
             setIsFormSubmitting(false);
         },
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
+            const getQuestionPaper = await getQuestionPaperById(data.saved_question_paper_id);
+            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
+                getQuestionPaper.question_dtolist,
+            );
             setCurrentQuestionIndex(0);
             toast.success("Question Paper added successfully", {
                 className: "success-toast",
@@ -101,17 +102,18 @@ export const QuestionPaperUpload = ({
                 sectionsForm?.setValue(`section.${index}`, {
                     ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
                     uploaded_question_paper: data.saved_question_paper_id,
-                });
-                setSectionUploadedQuestionPapers((prev) => {
-                    const updatedData = [...prev];
-                    if (index >= updatedData.length) {
-                        updatedData.length = index + 1;
-                    }
-                    updatedData[index] = {
-                        ...updatedData[index],
-                        questionPaperId: data.saved_question_paper_id,
-                    };
-                    return updatedData;
+                    adaptive_marking_for_each_question: transformQuestionsData.map((question) => ({
+                        questionId: question.questionId,
+                        questionName: question.questionName,
+                        questionType: question.questionType,
+                        questionMark: question.questionMark,
+                        questionPenalty: "",
+                        ...(question.questionType === "MCQM" && {
+                            correctOptionIdsCnt: question?.multipleChoiceOptions?.filter(
+                                (item) => item.isSelected,
+                            ).length,
+                        }),
+                    })),
                 });
                 setIsMainQuestionPaperAddDialogOpen(false);
                 setIsManualQuestionPaperDialogOpen(false);
@@ -128,40 +130,13 @@ export const QuestionPaperUpload = ({
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
-        const newQuestionPaperData = {
-            title: values.title || "",
-            subject: values.subject || "",
-            yearClass: values.yearClass || "",
-            ...(isManualCreated && { questions: values?.questions }),
-        };
-
         if (index !== undefined) {
-            // Ensure index is defined before using it
-            setSectionUploadedQuestionPapers((prev) => {
-                const updatedData = [...prev];
-                if (index >= updatedData.length) {
-                    updatedData.length = index + 1;
-                }
-
-                updatedData[index] = {
-                    ...updatedData[index],
-                    ...newQuestionPaperData,
-                };
-
-                return updatedData;
-            });
             sectionsForm?.setValue(`section.${index}`, {
                 ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
+                questionPaperTitle: values.title,
+                subject: values.subject || "",
+                yearClass: values.yearClass || "",
                 sectionName: values.subject,
-                ...(isManualCreated && {
-                    adaptive_marking_for_each_question: values.questions.map((question) => ({
-                        questionId: question.questionId,
-                        questionName: question.questionName,
-                        questionType: question.questionType,
-                        questionMark: question.questionMark,
-                        questionPenalty: "",
-                    })),
-                }),
             });
             handleSubmitFormData.mutate({
                 data: {
@@ -211,20 +186,6 @@ export const QuestionPaperUpload = ({
             const transformQuestionsData = transformResponseDataToMyQuestionsSchema(data);
             setValue("questions", transformResponseDataToMyQuestionsSchema(data));
             if (index !== undefined) {
-                // Check if index is defined
-                setSectionUploadedQuestionPapers((prev) => {
-                    const updatedData = [...prev];
-                    if (index >= updatedData.length) {
-                        updatedData.length = index + 1;
-                    }
-
-                    updatedData[index] = {
-                        ...updatedData[index],
-                        questions: transformQuestionsData,
-                    };
-
-                    return updatedData;
-                });
                 sectionsForm?.setValue(`section.${index}`, {
                     ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
                     adaptive_marking_for_each_question: transformQuestionsData.map((question) => ({

@@ -2,14 +2,53 @@ import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/h
 import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
 import { Steps } from "@/types/assessment-data-type";
 import { BatchData } from "@/types/batch-details";
-import { MyQuestionPaperFormInterface } from "@/types/question-paper-form";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
 import { AdaptiveMarkingQuestion } from "@/types/basic-details-type";
+import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questions";
+import { z } from "zod";
+import sectionDetailsSchema from "./section-details-schema";
+import { UseFormReturn } from "react-hook-form";
+type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
-// Output data structure
+export interface Section {
+    id: string;
+    name: string;
+    description: string | null;
+    section_type: string | null;
+    duration: number;
+    total_marks: number;
+    cutoff_marks: number;
+    section_order: number;
+    problem_randomization: boolean | null;
+    created_at: string; // ISO date string
+    updated_at: string; // ISO date string
+}
+
+export interface SectionsResponse {
+    sections: Section[];
+}
+
 interface BatchDetails {
     [key: string]: string[]; // Key is the batch name (e.g., "10th_batch") and value is an array of formatted package names
 }
+
+interface Question {
+    id: string;
+    type: string;
+    content: string;
+}
+
+interface QuestionData {
+    question_id: string;
+    question: Question;
+    section_id: string;
+    question_duration: number;
+    question_order: number;
+    marking_json: string; // Serialized JSON string
+    question_type: string;
+}
+
+type QuestionDataObject = Record<string, QuestionData[]>;
 
 export function getStepKey({
     assessmentDetails,
@@ -62,8 +101,7 @@ export const parseHTMLIntoString = (htmlString: string) => {
     return doc;
 };
 
-export const getQuestionTypeCounts = (questionPaper: MyQuestionPaperFormInterface) => {
-    const { questions } = questionPaper;
+export const getQuestionTypeCounts = (questions: AdaptiveMarkingQuestion[]) => {
     if (questions?.length === 0) return { MCQM: 0, MCQS: 0, totalQuestions: 0 };
 
     let mcqmCount = 0;
@@ -266,3 +304,71 @@ export function calculateTotalMarks(questions: AdaptiveMarkingQuestion[]) {
 
     return String(totalMarks);
 }
+
+export const syncStep2DataWithStore = (
+    responseData: Steps,
+    currentStep: number,
+    form: UseFormReturn<SectionFormType>,
+    questionsData: QuestionDataObject,
+) => {
+    const { getValues } = form;
+    const allSections = getValues("section");
+    const setSectionDetails = useSectionDetailsStore.getState().setSectionDetails;
+
+    const currentStepData = responseData[currentStep]?.saved_data || { sections: [] };
+
+    const sectionDetailsData = {
+        status: responseData[currentStep]?.status || "",
+        section: currentStepData?.sections?.map((section: Section, idx: number) => {
+            // Get questions for the current section
+            const questionsForSection = questionsData[section.id] || [];
+
+            // Map questions to adaptive_marking_for_each_question format
+            const adaptiveMarking = questionsForSection.map((questionData: QuestionData) => {
+                const markingJson = questionData.marking_json
+                    ? JSON.parse(questionData.marking_json)
+                    : {};
+                return {
+                    questionId: questionData.question_id || "",
+                    questionName: questionData.question?.content || "",
+                    questionType: questionData.question_type || "",
+                    questionMark: markingJson.data?.totalMark || "0",
+                    questionPenalty: markingJson.data?.negativeMark || "0",
+                };
+            });
+
+            return {
+                sectionId: section.id || null,
+                sectionName: section.name || "",
+                questionPaperTitle: allSections[idx]?.questionPaperTitle || "",
+                uploaded_question_paper: allSections[idx]?.uploaded_question_paper,
+                subject: allSections[idx]?.subject || "",
+                yearClass: allSections[idx]?.yearClass || "",
+                section_description: section.description || "",
+                section_duration: {
+                    hrs:
+                        typeof section.duration === "number"
+                            ? String(Math.floor(section.duration / 60))
+                            : "0",
+                    min: typeof section.duration === "number" ? String(section.duration % 60) : "0",
+                },
+                marks_per_question: allSections[idx]?.marks_per_question,
+                total_marks: String(section.total_marks) || "0",
+                negative_marking: {
+                    checked: allSections[idx]?.negative_marking?.checked || false,
+                    value: allSections[idx]?.negative_marking?.value || "",
+                },
+                partialMarking: allSections[idx]?.partial_marking,
+                cutoff_marks: {
+                    checked: !!section.cutoff_marks,
+                    value: String(section.cutoff_marks) || "0",
+                },
+                problem_randomization: !!section.problem_randomization,
+                adaptive_marking_for_each_question: adaptiveMarking, // Assign the adaptive marking data here
+            };
+        }),
+    };
+
+    // Update Zustand Store
+    setSectionDetails(sectionDetailsData);
+};
