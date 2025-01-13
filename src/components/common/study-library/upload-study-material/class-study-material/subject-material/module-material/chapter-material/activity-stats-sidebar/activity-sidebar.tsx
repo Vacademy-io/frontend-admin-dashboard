@@ -123,7 +123,6 @@ export const ActivityStatsSidebar = () => {
                                         label="Start Date"
                                         className="w-fit text-neutral-600"
                                     />
-                                    <p>to</p>
                                     <MyInput
                                         inputType="date"
                                         inputPlaceholder="DD/MM/YY"

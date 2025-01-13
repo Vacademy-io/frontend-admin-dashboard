@@ -24,7 +24,7 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                     className="fixed left-0 top-0 h-screen w-screen"
                 >
                     <motion.img
-                        src="src\assets\svgs\ssdc_logo.svg"
+                        src="src\assets\svgs\Background.svg"
                         alt="logo"
                         initial={
                             isAnimationEnabled
