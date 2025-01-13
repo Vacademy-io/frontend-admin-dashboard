@@ -38,6 +38,7 @@ import { ActivityStatsSidebar } from "./activity-stats-sidebar/activity-sidebar"
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { EmptyModulesImage } from "@/assets/svgs";
 import { useState } from "react";
+import YouTubePlayer from "./youtube-player";
 
 const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -122,16 +123,7 @@ export const ChapterMaterial = () => {
             case "pdf":
                 return <PDFViewer />;
             case "video":
-                return (
-                    <iframe
-                        width="100%"
-                        height="600"
-                        src={activeItem.url}
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                    />
-                );
+                return <YouTubePlayer videoUrl={activeItem.url} videoTitle={activeItem.name} />;
 
             case "doc": {
                 if (!activeItem?.content) {
