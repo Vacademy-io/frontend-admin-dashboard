@@ -8,6 +8,7 @@ import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-
 import { useNavigate } from "@tanstack/react-router";
 import { SessionDropdown } from "../session-dropdown";
 import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface ClassCardType {
     id: string;
@@ -19,6 +20,7 @@ interface ClassCardType {
 export const StudyLibrary = () => {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
+    const { open } = useSidebar();
 
     useEffect(() => {
         setNavHeading("Study Library");
@@ -68,7 +70,7 @@ export const StudyLibrary = () => {
                 <SessionDropdown className="text-title font-semibold" />
             </div>
 
-            <div className="flex gap-12">
+            <div className={`flex ${open ? "gap-4" : "gap-12"}`}>
                 {ClassCardData.map((card, key) => (
                     <div key={key} onClick={() => handleClassClick(card.id)}>
                         <ClassCard image={card.image} classLevel={card.class} />
