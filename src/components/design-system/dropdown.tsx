@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CaretDown, CaretUp, CaretRight } from "@phosphor-icons/react";
-// import { VscError } from "react-icons/vsc";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,8 +16,6 @@ import { DropdownItem } from "./utils/types/dropdown-types";
 const isDropdownItem = (item: string | DropdownItem): item is DropdownItem => {
     return typeof item !== "string" && "label" in item;
 };
-import { dropdownSchema } from "./utils/schema/dropdown-schema";
-import z from "zod";
 
 export const MyDropdown = ({
     currentValue,
@@ -28,42 +25,9 @@ export const MyDropdown = ({
     onSelect,
     placeholder = "Select an option",
     error,
-    validation = dropdownSchema,
-    onValidation,
     disable,
 }: myDropDownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [validationError, setValidationError] = useState<string>("");
-
-    // const DropdownError = ({ errorMessage }: { errorMessage: string }) => {
-    //     return (
-    //         <div className="flex items-center gap-1 pl-1 text-body font-regular text-danger-600">
-    //             <span>
-    //                 <VscError />
-    //             </span>
-    //             <span className="mt-[3px]">{errorMessage}</span>
-    //         </div>
-    //     );
-    // };
-
-    const validateValue = (value: string | undefined) => {
-        try {
-            validation.parse({ value: value || "" });
-            setValidationError("");
-            onValidation?.(true);
-            return true;
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                setValidationError(error.errors[0]?.message || "");
-                onValidation?.(false);
-            }
-            return false;
-        }
-    };
-
-    useEffect(() => {
-        validateValue(currentValue);
-    }, [currentValue]);
 
     const handleValueChange = (value: string) => {
         if (handleChange) {
@@ -72,7 +36,6 @@ export const MyDropdown = ({
         if (onSelect) {
             onSelect(value);
         }
-        validateValue(value);
         setIsOpen(false);
     };
 
@@ -137,7 +100,7 @@ export const MyDropdown = ({
                 ) : (
                     <DropdownMenuTrigger
                         className={`inline-flex h-9 min-w-60 items-center justify-between rounded-lg border px-3 py-2 text-subtitle text-neutral-600 focus:outline-none ${
-                            error || validationError
+                            error
                                 ? "border-danger-600"
                                 : isOpen
                                   ? "border-primary-500"
@@ -164,9 +127,6 @@ export const MyDropdown = ({
                     </DropdownMenuContent>
                 </DropdownMenuPortal>
             </DropdownMenu>
-            {/* {(error || validationError) && !children && (
-                <DropdownError errorMessage={error || validationError} />
-            )} */}
         </div>
     );
 };

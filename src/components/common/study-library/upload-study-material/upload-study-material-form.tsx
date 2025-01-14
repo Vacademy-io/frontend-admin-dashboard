@@ -1,4 +1,4 @@
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { MyButton } from "@/components/design-system/button";
 import { useForm } from "react-hook-form";
@@ -6,20 +6,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useGetSessions } from "@/hooks/student-list-section/useFilters";
 
-// Form validation schema
 const formSchema = z.object({
-    session: z.string().min(1, "Please select a session"),
-    year_class: z.string().min(1, "Please select a Year/Class"),
-    subject: z.string().min(1, "Please select a Subject"),
-    module: z.string().min(1, "Please select a Module"),
-    chapter: z.string().min(1, "Please select a Chapter"),
-    file_type: z.string().min(1, "Please select a File Type"),
+    session: z.string().min(1, "This field is required"),
+    year_class: z.string().min(1, "This field is required"),
+    subject: z.string().min(1, "This field is required"),
+    module: z.string().min(1, "This field is required"),
+    chapter: z.string().min(1, "This field is required"),
+    file_type: z.string().min(1, "This field is required"),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 export const UploadStudyMaterialForm = () => {
     const sessionList = useGetSessions();
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             session: "",
@@ -29,42 +30,45 @@ export const UploadStudyMaterialForm = () => {
             chapter: "",
             file_type: "",
         },
+        mode: "onTouched",
     });
 
     const { watch } = form;
-    const session = watch("session");
-    const yearClass = watch("year_class");
-    const subject = watch("subject");
-    const module = watch("module");
-    const chapter = watch("chapter");
+    const formValues = watch();
 
-    const formData = [
+    // Define the form data with explicit string arrays instead of readonly tuples
+    const formData: Array<{
+        fieldName: keyof FormValues;
+        label: string;
+        placeholder: string;
+        list: string[];
+    }> = [
         {
-            fieldName: "session" as const,
+            fieldName: "session",
             label: "Session",
             placeholder: "Select Session",
             list: sessionList,
         },
         {
-            fieldName: "year_class" as const,
+            fieldName: "year_class",
             label: "Year/Class",
             placeholder: "Select Year/Class",
             list: ["10th Class", "9th Class", "8th Class"],
         },
         {
-            fieldName: "subject" as const,
+            fieldName: "subject",
             label: "Subject",
             placeholder: "Select Subject",
             list: ["Chemistry", "Biology", "Physics", "Olympiad", "Mathematics"],
         },
         {
-            fieldName: "module" as const,
+            fieldName: "module",
             label: "Module",
             placeholder: "Select Module",
             list: ["Live Session", "NCERT"],
         },
         {
-            fieldName: "chapter" as const,
+            fieldName: "chapter",
             label: "Chapter",
             placeholder: "Select Chapter",
             list: [
@@ -74,33 +78,31 @@ export const UploadStudyMaterialForm = () => {
             ],
         },
         {
-            fieldName: "file_type" as const,
+            fieldName: "file_type",
             label: "File Type",
             placeholder: "Select File Type",
             list: ["E-Book", "Video"],
         },
     ];
 
-    const isDropdownDisabled = (index: number): boolean => {
-        switch (index) {
-            case 0:
-                return false;
-            case 1:
-                return !session;
-            case 2:
-                return !yearClass;
-            case 3:
-                return !subject;
-            case 4:
-                return !module;
-            case 5:
-                return !chapter;
-            default:
-                return false;
-        }
+    const isDropdownDisabled = (fieldName: keyof FormValues): boolean => {
+        const fields: Array<keyof FormValues> = [
+            "session",
+            "year_class",
+            "subject",
+            "module",
+            "chapter",
+            "file_type",
+        ];
+        const currentIndex = fields.indexOf(fieldName);
+        if (currentIndex === 0) return false;
+
+        // Get the previous field and ensure it exists
+        const previousField = fields[currentIndex - 1];
+        return previousField ? !formValues[previousField] : false;
     };
 
-    const onSubmit = (data: z.infer<typeof formSchema>) => {
+    const onSubmit = (data: FormValues) => {
         console.log(data);
         // Handle form submission
     };
@@ -108,28 +110,30 @@ export const UploadStudyMaterialForm = () => {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {formData.map((obj, index) => (
+                {formData.map((field) => (
                     <FormField
-                        key={obj.fieldName}
+                        key={field.fieldName}
                         control={form.control}
-                        name={obj.fieldName}
-                        render={({ field, fieldState }) => (
+                        name={field.fieldName}
+                        render={({ field: { onChange, value }, fieldState }) => (
                             <FormItem>
                                 <FormControl>
                                     <div className="flex flex-col gap-1">
-                                        <div>
-                                            {obj.label}
+                                        <div className="flex items-center gap-1">
+                                            <span>{field.label}</span>
                                             <span className="text-primary-500">*</span>
                                         </div>
                                         <MyDropdown
-                                            placeholder={obj.placeholder}
-                                            currentValue={field.value}
-                                            dropdownList={obj.list}
-                                            onSelect={field.onChange}
-                                            disable={isDropdownDisabled(index)}
+                                            placeholder={field.placeholder}
+                                            currentValue={value}
+                                            dropdownList={field.list}
+                                            onSelect={(selectedValue) => {
+                                                onChange(selectedValue);
+                                                form.trigger(field.fieldName);
+                                            }}
+                                            disable={isDropdownDisabled(field.fieldName)}
                                             error={fieldState.error?.message}
                                         />
-                                        <FormMessage className="text-danger-600" />
                                     </div>
                                 </FormControl>
                             </FormItem>
