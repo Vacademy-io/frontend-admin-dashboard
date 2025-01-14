@@ -18,7 +18,7 @@ import { useMemo, useState } from "react";
 import { ACTIVITY_STATS_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
 import { MyTable } from "@/components/design-system/table";
 import { MyButton } from "@/components/design-system/button";
-import { StudentSearchBox } from "@/components/common/students/students-list/student-search-box";
+import { StudentSearchBox } from "@/components/common/student-search-box";
 import { MyInput } from "@/components/design-system/input";
 import { ActivityLogDialog } from "@/components/common/students/students-list/student-side-view/student-learning-progress/chapter-details/topic-details/activity-log-dialog";
 

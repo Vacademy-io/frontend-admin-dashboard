@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChapterMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-material";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
-import { SearchInput } from "@/components/common/search-input";
+import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { ChapterSidebarAddButton } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-sidebar/chapter-sidebar-add-button";

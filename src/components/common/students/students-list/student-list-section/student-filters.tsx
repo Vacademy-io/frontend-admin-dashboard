@@ -2,10 +2,10 @@
 import { MyButton } from "@/components/design-system/button";
 import { Export } from "@phosphor-icons/react";
 import { Filters } from "./myFilter";
-import { StudentSearchBox } from "./student-search-box";
+import { StudentSearchBox } from "../../../student-search-box";
 import { StudentFiltersProps } from "@/types/students/students-list-types";
 import { useMemo } from "react";
-import { SessionDropdown } from "../../session-dropdown";
+import { SessionDropdown } from "../../../session-dropdown";
 
 export const StudentFilters = ({
     currentSession,

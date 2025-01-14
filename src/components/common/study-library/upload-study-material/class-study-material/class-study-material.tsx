@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Subject } from "./subject-material/add-subject.tsx/subjects";
 import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
-import { SearchInput } from "@/components/common/search-input";
+import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 
 interface ClassStudyMaterialProps {
     classNumber: string | undefined;

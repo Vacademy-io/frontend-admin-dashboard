@@ -2,7 +2,7 @@
 import { createBulkUploadColumns } from "./bulk-upload-columns";
 import { type Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
-import { StudentSearchBox } from "../students-list/student-search-box";
+import { StudentSearchBox } from "../../student-search-box";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
 import { createAndDownloadCsv } from "./utils/csv-utils";

@@ -12,13 +12,13 @@ import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
 import { STUDENT_LIST_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
-import { BulkActions } from "./bulk-actions";
+import { BulkActions } from "./bulk-actions/bulk-actions";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { StudentSidebar } from "./student-side-view/student-side-view";
+import { StudentSidebar } from "../student-side-view/student-side-view";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();

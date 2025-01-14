@@ -1,5 +1,5 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
-import { MyInput } from "../design-system/input";
+import { MyInput } from "../../../../design-system/input";
 
 interface SearchInputProps {
     searchInput: string;

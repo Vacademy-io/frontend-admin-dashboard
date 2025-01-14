@@ -7,7 +7,7 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { CaretLeft } from "@phosphor-icons/react";
 import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
-import { SearchInput } from "@/components/common/search-input";
+import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 
 interface SubjectModulesProps {
     classNumber: string | undefined;
