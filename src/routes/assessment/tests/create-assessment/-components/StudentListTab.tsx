@@ -1,4 +1,3 @@
-// StudentListSection.tsx
 import { useEffect, useState } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
@@ -22,7 +21,10 @@ import { StudentListHeader } from "@/components/common/students/students-list/st
 import { StudentFilters } from "@/components/common/students/students-list/student-filters";
 import { BulkActions } from "@/components/common/students/students-list/bulk-actions";
 import { myAssessmentColumns } from "./assessment-columns";
-import { useTestAccessForm } from "../-utils/useTestAccessForm";
+import { UseFormReturn } from "react-hook-form";
+import { z } from "zod";
+import testAccessSchema from "../-utils/add-participants-schema";
+type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -30,13 +32,12 @@ export const getCurrentSession = (): string => {
     return `${currentYear}-${currentYear + 1}`;
 };
 
-export const StudentListTab = () => {
+export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormType> }) => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const sessions = useGetSessions();
     const filters = GetFilterData(getCurrentSession());
     const [isAssessment] = useState(true);
-    const form = useTestAccessForm();
     const { setValue, getValues } = form;
     console.log(getValues());
 
@@ -132,12 +133,27 @@ export const StudentListTab = () => {
     };
 
     const getSelectedStudentIds = (): string[] => {
+        // Setting the selected student details
         setValue(
             "select_individually.student_details",
-            getSelectedStudents().map((student) => student.id),
+            getSelectedStudents().map((student) => ({
+                username: student.username || "",
+                user_id: student.user_id,
+                email: student.email,
+                full_name: student.full_name,
+                mobile_number: student.mobile_number,
+                guardian_email: student.parents_email,
+                guardian_mobile_number: student.parents_mobile_number,
+                file_id: "",
+                reattempt_count: 0,
+            })),
         );
+
+        // Returning the IDs of the selected students
         return getSelectedStudents().map((student) => student.id);
     };
+
+    console.log(getSelectedStudents());
 
     const currentPageSelection = rowSelections[page] || {};
     const totalSelectedCount = Object.values(rowSelections).reduce(

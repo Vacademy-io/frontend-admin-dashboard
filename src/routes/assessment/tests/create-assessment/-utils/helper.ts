@@ -8,7 +8,10 @@ import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questi
 import { z } from "zod";
 import sectionDetailsSchema from "./section-details-schema";
 import { UseFormReturn } from "react-hook-form";
+import testAccessSchema from "./add-participants-schema";
+import { useTestAccessStore } from "./zustand-global-states/step3-adding-participants";
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
+type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 export interface Section {
     id: string;
@@ -26,10 +29,6 @@ export interface Section {
 
 export interface SectionsResponse {
     sections: Section[];
-}
-
-interface BatchDetails {
-    [key: string]: string[]; // Key is the batch name (e.g., "10th_batch") and value is an array of formatted package names
 }
 
 interface Question {
@@ -161,22 +160,27 @@ export const copyToClipboard = async (text: string) => {
 };
 
 export function transformBatchData(data: BatchData[]) {
-    const batchDetails: BatchDetails = {};
+    const batchDetails: Record<string, { name: string; id: string }[]> = {};
+
     data.forEach((item) => {
-        // Extract level name and package details
+        // Extract level name, package name, and ID
         const levelName = item.level.level_name;
         const packageName = item.package_dto.package_name;
+        const packageId = item.id;
 
         // Create the batch key
-        const batchKey = `${levelName} Batch`;
+        const batchKey = `${levelName} Year/Class`;
 
         // Initialize the batch key if not present
         if (!batchDetails[batchKey]) {
             batchDetails[batchKey] = [];
         }
 
-        // Add the package name to the batch key
-        batchDetails[batchKey]!.push(`${levelName} ${packageName}`);
+        // Add the package details (name and id) to the batch key
+        batchDetails[batchKey].push({
+            name: `${levelName} ${packageName}`,
+            id: packageId || "",
+        });
     });
 
     return batchDetails;
@@ -201,6 +205,31 @@ export const convertToUTCPlus530 = (dateString: string) => {
 
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}+05:30`;
 };
+
+export const formatDateTimeLocal = (dateString: string | undefined) => {
+    if (!dateString) return ""; // Handle empty or undefined values
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 16); // Extract `YYYY-MM-DDTHH:mm`
+};
+
+export const getTimeLimitString = (time: number, timeLimit: string[]) => {
+    const timeStr = timeLimit.find((limit) => limit.startsWith(time.toString()));
+    return timeStr || ""; // Returns the matching string or an empty string if no match is found
+};
+
+export function calculateTotalMarks(questions: AdaptiveMarkingQuestion[]) {
+    let totalMarks = 0;
+
+    questions.forEach((question) => {
+        const questionMark = parseFloat(question.questionMark);
+
+        if (!isNaN(questionMark)) {
+            totalMarks += questionMark;
+        }
+    });
+
+    return String(totalMarks);
+}
 
 export const syncStep1DataWithStore = (
     responseData: Steps,
@@ -280,31 +309,6 @@ export const syncStep1DataWithStore = (
     setBasicInfo(basicInfoData);
 };
 
-export const formatDateTimeLocal = (dateString: string | undefined) => {
-    if (!dateString) return ""; // Handle empty or undefined values
-    const date = new Date(dateString);
-    return date.toISOString().slice(0, 16); // Extract `YYYY-MM-DDTHH:mm`
-};
-
-export const getTimeLimitString = (time: number, timeLimit: string[]) => {
-    const timeStr = timeLimit.find((limit) => limit.startsWith(time.toString()));
-    return timeStr || ""; // Returns the matching string or an empty string if no match is found
-};
-
-export function calculateTotalMarks(questions: AdaptiveMarkingQuestion[]) {
-    let totalMarks = 0;
-
-    questions.forEach((question) => {
-        const questionMark = parseFloat(question.questionMark);
-
-        if (!isNaN(questionMark)) {
-            totalMarks += questionMark;
-        }
-    });
-
-    return String(totalMarks);
-}
-
 export const syncStep2DataWithStore = (
     responseData: Steps,
     currentStep: number,
@@ -371,4 +375,42 @@ export const syncStep2DataWithStore = (
 
     // Update Zustand Store
     setSectionDetails(sectionDetailsData);
+};
+
+export const syncStep3DataWithStore = (form: UseFormReturn<TestAccessFormType>) => {
+    const setTestAccessInfo = useTestAccessStore.getState().setTestAccessInfo;
+    const { getValues } = form;
+    const testDetailsData = {
+        closed_test: getValues("closed_test"),
+        open_test: getValues("open_test"),
+        select_batch: getValues("select_batch"),
+        select_individually: getValues("select_individually"),
+        join_link: getValues("join_link"),
+        show_leaderboard: getValues("show_leaderboard"),
+        notify_student: {
+            when_assessment_created: getValues("notify_student.when_assessment_created"),
+            before_assessment_goes_live: {
+                checked: getValues("notify_student.before_assessment_goes_live.checked"),
+                value: getValues("notify_student.before_assessment_goes_live.value"),
+            },
+            when_assessment_live: getValues("notify_student.when_assessment_live"),
+            when_assessment_report_generated: getValues(
+                "notify_student.when_assessment_report_generated",
+            ),
+        },
+        notify_parent: {
+            when_assessment_created: getValues("notify_parent.when_assessment_created"),
+            before_assessment_goes_live: {
+                checked: getValues("notify_parent.before_assessment_goes_live.checked"),
+                value: getValues("notify_parent.before_assessment_goes_live.value"),
+            },
+            when_assessment_live: getValues("notify_parent.when_assessment_live"),
+            when_student_appears: getValues("notify_parent.when_student_appears"),
+            when_student_finishes_test: getValues("notify_parent.when_student_finishes_test"),
+            when_assessment_report_generated: getValues(
+                "notify_parent.when_assessment_report_generated",
+            ),
+        },
+    };
+    setTestAccessInfo(testDetailsData);
 };

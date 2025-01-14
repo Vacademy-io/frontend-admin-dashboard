@@ -4,14 +4,27 @@ import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useTestAccessForm } from "../-utils/useTestAccessForm";
 import { StudentListTab } from "./StudentListTab";
+import testAccessSchema from "../-utils/add-participants-schema";
+import { z } from "zod";
+import { UseFormReturn } from "react-hook-form";
 
-interface BatchData {
-    [batchName: string]: string[];
-}
+type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
-export function AddingParticipantsTab({ batches }: { batches: BatchData }) {
+type BatchItem = {
+    id: string;
+    name: string;
+};
+
+type BatchData = Record<string, BatchItem[]>;
+
+export function AddingParticipantsTab({
+    batches,
+    form,
+}: {
+    batches: BatchData;
+    form: UseFormReturn<TestAccessFormType>;
+}) {
     const [selectedTab, setSelectedTab] = useState("Batch");
     const handleChange = (value: string) => {
         setSelectedTab(value);
@@ -64,19 +77,24 @@ export function AddingParticipantsTab({ batches }: { batches: BatchData }) {
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="Batch" className="mt-6 flex justify-between">
-                    <Step3BatchList batchData={batches} />
+                    <Step3BatchList batchData={batches} form={form} />
                 </TabsContent>
                 <TabsContent value="Individually">
-                    <StudentListTab />
+                    <StudentListTab form={form} />
                 </TabsContent>
             </Tabs>
         </>
     );
 }
 
-const Step3BatchList = ({ batchData }: { batchData: BatchData }) => {
-    const form = useTestAccessForm();
-    const { setValue } = form;
+const Step3BatchList = ({
+    batchData,
+    form,
+}: {
+    batchData: BatchData;
+    form: UseFormReturn<TestAccessFormType>;
+}) => {
+    const { setValue, getValues } = form;
 
     // State to manage checked items using arrays
     const [checkedState, setCheckedState] = useState<Record<string, string[]>>(
@@ -90,31 +108,24 @@ const Step3BatchList = ({ batchData }: { batchData: BatchData }) => {
     );
 
     // Handle parent checkbox toggle
-    const handleParentToggle = (parent: string, isChecked: boolean) => {
+    const handleParentToggle = (parentId: string, isChecked: boolean) => {
         setCheckedState((prev) => {
             const newState = { ...prev };
-
-            // Provide fallback to an empty array if batchData[parent] is undefined
-            newState[parent] = isChecked ? [...(batchData[parent] || [])] : []; // Select all children or deselect
-
+            newState[parentId] = isChecked ? batchData[parentId]?.map((item) => item.id) || [] : [];
             return newState;
         });
     };
 
     // Handle child checkbox toggle
-    const handleChildToggle = (parent: string, child: string, isChecked: boolean) => {
+    const handleChildToggle = (parentId: string, childId: string, isChecked: boolean) => {
         setCheckedState((prev) => {
             const newState = { ...prev };
-
-            // Ensure the parent key exists and initialize it if necessary
-            const currentChildren = newState[parent] || [];
+            const currentChildren = newState[parentId] || [];
 
             if (isChecked) {
-                // Add child to the array if not already present
-                newState[parent] = [...currentChildren, child];
+                newState[parentId] = [...currentChildren, childId];
             } else {
-                // Remove child from the array
-                newState[parent] = currentChildren.filter((item) => item !== child);
+                newState[parentId] = currentChildren.filter((id) => id !== childId);
             }
 
             return newState;
@@ -122,20 +133,24 @@ const Step3BatchList = ({ batchData }: { batchData: BatchData }) => {
     };
 
     // Check if all children are selected
-    const isAllChildrenSelected = (parent: string) => {
-        const currentChildren = batchData[parent] || [];
-        const checkedChildren = checkedState[parent] || [];
-
-        // Ensure that all children are selected
+    const isAllChildrenSelected = (parentId: string) => {
+        const currentChildren = batchData[parentId]?.map((item) => item.id) || [];
+        const checkedChildren = checkedState[parentId] || [];
         return (
             currentChildren.length > 0 &&
-            currentChildren.every((child) => checkedChildren.includes(child))
+            currentChildren.every((childId) => checkedChildren.includes(childId))
         );
     };
 
     useEffect(() => {
-        setValue(`select_batch.batch_details`, checkedState);
+        // Update form with only IDs
+        setValue("select_batch.batch_details", checkedState);
     }, [checkedState]);
+
+    useEffect(() => {
+        setCheckedState(getValues("select_batch.batch_details"));
+    }, []);
+    console.log(checkedState);
 
     return (
         <div className="flex w-full justify-between">
@@ -150,8 +165,8 @@ const Step3BatchList = ({ batchData }: { batchData: BatchData }) => {
                             }
                             className={`size-4 rounded-sm border-2 shadow-none ${
                                 isAllChildrenSelected(batchName)
-                                    ? "border-none bg-primary-500 text-white" // Blue background when checked
-                                    : "" // Default styles when unchecked
+                                    ? "border-none bg-primary-500 text-white"
+                                    : ""
                             }`}
                         />
                         <span className="ml-2 font-thin">{batchName}</span>
@@ -159,21 +174,21 @@ const Step3BatchList = ({ batchData }: { batchData: BatchData }) => {
 
                     {/* Child Checkboxes */}
                     <ul className="ml-4 mt-3 flex flex-col gap-3">
-                        {packages.map((packageName) => (
-                            <li key={packageName}>
+                        {packages.map((pkg) => (
+                            <li key={pkg.id}>
                                 <label>
                                     <Checkbox
-                                        checked={checkedState[batchName]?.includes(packageName)}
+                                        checked={checkedState[batchName]?.includes(pkg.id)}
                                         onCheckedChange={(isChecked) =>
-                                            handleChildToggle(batchName, packageName, !!isChecked)
+                                            handleChildToggle(batchName, pkg.id, !!isChecked)
                                         }
                                         className={`size-4 rounded-sm border-2 shadow-none ${
-                                            checkedState[batchName]?.includes(packageName)
-                                                ? "border-none bg-primary-500 text-white" // Light blue background when checked
-                                                : "" // Default styles when unchecked
+                                            checkedState[batchName]?.includes(pkg.id)
+                                                ? "border-none bg-primary-500 text-white"
+                                                : ""
                                         }`}
                                     />
-                                    <span className="ml-2 font-thin">{packageName}</span>
+                                    <span className="ml-2 font-thin">{pkg.name}</span>
                                 </label>
                             </li>
                         ))}

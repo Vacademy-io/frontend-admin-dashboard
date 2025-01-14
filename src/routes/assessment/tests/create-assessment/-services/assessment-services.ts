@@ -3,6 +3,7 @@ import {
     STEP1_ASSESSMENT_URL,
     STEP2_ASSESSMENT_URL,
     STEP2_QUESTIONS_URL,
+    STEP3_ASSESSMENT_URL,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { Steps } from "@/types/assessment-data-type";
@@ -10,6 +11,7 @@ import { z } from "zod";
 import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-schema";
 import { convertToUTCPlus530 } from "../-utils/helper";
+import testAccessSchema from "../-utils/add-participants-schema";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -45,6 +47,24 @@ export const getAssessmentDetails = ({
         queryFn: () => getAssessmentDetailsData({ assessmentId, instituteId, type }),
         staleTime: 60 * 60 * 1000,
     };
+};
+
+export const getQuestionsDataForStep2 = async ({
+    assessmentId,
+    sectionIds,
+}: {
+    assessmentId: string;
+    sectionIds: string;
+}) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: STEP2_QUESTIONS_URL,
+        params: {
+            assessmentId,
+            sectionIds,
+        },
+    });
+    return response?.data;
 };
 
 export const handlePostStep1Data = async (
@@ -164,19 +184,144 @@ export const handlePostStep2Data = async (
     return response?.data;
 };
 
-export const getQuestionsDataForStep2 = async ({
-    assessmentId,
-    sectionIds,
-}: {
-    assessmentId: string;
-    sectionIds: string;
-}) => {
+// Type definition for each converted custom field
+interface ConvertedCustomField {
+    name: string;
+    type: string;
+    default_value: string;
+    description: string;
+    is_mandatory: boolean;
+    key: string;
+    comma_separated_options: string;
+}
+
+// Assuming customFields is an object where keys are strings and values are the custom field details
+type CustomFields = Record<
+    string,
+    {
+        type: string;
+        name: string;
+        oldKey: boolean;
+        isRequired: boolean;
+        options?: { id: number; value: string }[];
+        default_value?: string;
+        description?: string;
+        key?: string;
+        is_mandatory?: boolean;
+    }
+>;
+
+// Function that converts customFields to the desired structure
+const convertCustomFields = (customFields: CustomFields): ConvertedCustomField[] => {
+    const convertedFields = Object.values(customFields).map((field) => {
+        return {
+            name: field.name,
+            type: field.type,
+            default_value: "", // Provide a default value, if necessary
+            description: "", // Provide a description, if necessary
+            is_mandatory: field.isRequired,
+            key: "", // Use the ID as the key
+            comma_separated_options: field.options
+                ? field.options.map((opt) => opt.value).join(",")
+                : "", // Join options for dropdowns
+        };
+    });
+    return convertedFields;
+};
+
+export const handlePostStep3Data = async (
+    data: z.infer<typeof testAccessSchema>,
+    assessmentId: string | null,
+    instituteId: string | undefined,
+    type: string,
+) => {
+    const custom_fields_data = {
+        ...convertCustomFields({
+            name: {
+                type: "textfield",
+                name: "name",
+                oldKey: false, // Default value for oldKey
+                isRequired: true, // Default value for isRequired
+                default_value: "",
+                description: "",
+                key: "",
+                is_mandatory: true,
+            },
+            email: {
+                type: "textfield",
+                name: "email",
+                oldKey: false,
+                isRequired: true,
+                default_value: "",
+                description: "",
+                key: "",
+                is_mandatory: true,
+            },
+            phone: {
+                type: "textfield",
+                name: "phone",
+                oldKey: false,
+                isRequired: true,
+                default_value: "",
+                description: "",
+                key: "",
+                is_mandatory: true,
+            },
+            ...data.open_test.custom_fields, // Add any custom fields from `data.open_test.custom_fields`
+        }),
+    };
+
+    const convertedData = {
+        closed_test: data.closed_test,
+        open_test_details: data.open_test.checked
+            ? {
+                  registration_start_date: convertToUTCPlus530(data.open_test.start_date) || "",
+                  registration_end_date: convertToUTCPlus530(data.open_test.end_date) || "",
+                  instructions_html: data.open_test.instructions || "",
+                  registration_form_details: {
+                      added_custom_added_fields: Object.values(custom_fields_data),
+                      removed_custom_added_fields: [], // Default to an empty array as per example
+                  },
+              }
+            : {},
+        added_pre_register_batches_details: data.select_batch.batch_details
+            ? Object.values(data.select_batch.batch_details).flat()
+            : [],
+        deleted_pre_register_batches_details: [],
+        added_pre_register_students_details: data.select_individually.student_details
+            ? data.select_individually.student_details
+            : [],
+        deleted_pre_register_students_details: [],
+        updated_join_link: data.join_link || "",
+        notify_student: {
+            when_assessment_created: data.notify_student.when_assessment_created || false,
+            show_leaderboard: data.show_leaderboard || false,
+            before_assessment_goes_live:
+                parseInt(data.notify_student.before_assessment_goes_live.value) || 0,
+            when_assessment_live: data.notify_student.when_assessment_live || false,
+            when_assessment_report_generated:
+                data.notify_student.when_assessment_report_generated || false,
+        },
+        notify_parent: {
+            when_assessment_created: data.notify_parent.when_assessment_created || false,
+            before_assessment_goes_live:
+                parseInt(data.notify_parent.before_assessment_goes_live.value) || 0,
+            show_leaderboard: data.show_leaderboard || false,
+            when_assessment_live: data.notify_parent.when_assessment_live || false,
+            when_student_appears: data.notify_parent.when_student_appears || false,
+            when_student_finishes_test: data.notify_parent.when_student_finishes_test || false,
+            when_assessment_report_generated:
+                data.notify_parent.when_assessment_report_generated || false,
+        },
+    };
     const response = await authenticatedAxiosInstance({
-        method: "GET",
-        url: STEP2_QUESTIONS_URL,
+        method: "POST",
+        url: STEP3_ASSESSMENT_URL,
+        data: convertedData,
         params: {
             assessmentId,
-            sectionIds,
+            instituteId,
+            type,
         },
     });
     return response?.data;

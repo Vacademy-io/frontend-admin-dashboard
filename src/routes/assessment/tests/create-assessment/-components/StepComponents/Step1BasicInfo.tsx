@@ -31,7 +31,10 @@ import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { getIdBySubjectName } from "@/routes/assessment/question-papers/-utils/helper";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
-import { useBasicInfoStore } from "../../-utils/zustand-global-states/step1-basic-info";
+import {
+    useAssessmentUrlStore,
+    useBasicInfoStore,
+} from "../../-utils/zustand-global-states/step1-basic-info";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 
@@ -50,6 +53,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             type: "EXAM",
         }),
     );
+    const { setAssessmentUrl } = useAssessmentUrlStore();
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const form = useForm<z.infer<typeof BasicInfoFormSchema>>({
@@ -94,14 +98,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     // Watch form fields
     const assessmentName = watch("testCreation.assessmentName");
-    const subject = watch("testCreation.subject");
+    // const subject = watch("testCreation.subject");
     const liveDateRangeStartDate = watch("testCreation.liveDateRange.startDate");
     const liveDateRangeEndDate = watch("testCreation.liveDateRange.endDate");
 
     // Determine if all fields are filled
     const isFormValid1 =
         !!assessmentName &&
-        !!subject &&
         !!liveDateRangeStartDate &&
         !!liveDateRangeEndDate &&
         Object.entries(form.formState.errors).length === 0 &&
@@ -111,7 +114,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     const isFormValid2 =
         !!assessmentName &&
-        !!subject &&
         !!liveDateRangeStartDate &&
         !!liveDateRangeEndDate &&
         Object.entries(form.formState.errors).length === 0 &&
@@ -137,6 +139,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 instituteId: instituteDetails?.id,
                 type: "EXAM",
             });
+            setAssessmentUrl(responseData[currentStep]?.saved_data?.assessment_url ?? "");
             syncStep1DataWithStore(responseData, currentStep, instituteDetails);
             toast.success("Step 1 data has been saved successfully!", {
                 className: "success-toast",

@@ -1,7 +1,6 @@
 import { StepContentProps } from "@/types/step-content-props";
-import React, { useState } from "react";
-import { useTestAccessForm } from "../../-utils/useTestAccessForm";
-import { FormProvider } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { MyButton } from "@/components/design-system/button";
 import { z } from "zod";
 import testAccessSchema from "../../-utils/add-participants-schema";
@@ -15,6 +14,7 @@ import {
     copyToClipboard,
     getStepKey,
     handleDownloadQRCode,
+    syncStep3DataWithStore,
     transformBatchData,
 } from "../../-utils/helper";
 import { Switch } from "@/components/ui/switch";
@@ -22,13 +22,25 @@ import { Checkbox } from "@/components/ui/checkbox";
 import SelectField from "@/components/design-system/select-field";
 import { timeLimit } from "@/constants/dummy-data";
 import { AddingParticipantsTab } from "../AddingParticipantsTab";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { getAssessmentDetails } from "../../-services/assessment-services";
+import {
+    getAssessmentDetails,
+    getAssessmentDetailsData,
+    handlePostStep3Data,
+} from "../../-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { useSavedAssessmentStore } from "../../-utils/global-states";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAssessmentUrlStore } from "../../-utils/zustand-global-states/step1-basic-info";
+import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
+
+type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 interface TestInputField {
     id: number;
@@ -44,34 +56,148 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
-    console.log(currentStep, completedSteps);
+    const storeDataStep3 = useTestAccessStore((state) => state);
+    console.log("storeDataStep3", storeDataStep3);
+    const { assessmentUrl } = useAssessmentUrlStore();
+    const { savedAssessmentId } = useSavedAssessmentStore();
     const [openTestInputFields, setOpenTestInputFields] = useState<TestInputField[]>([
-        { id: 0, type: "textfield", name: "Full Name", oldKey: true, isRequired: true },
-        { id: 1, type: "textfield", name: "Email", oldKey: true, isRequired: true },
-        { id: 2, type: "textfield", name: "Phone Number", oldKey: true, isRequired: true },
+        {
+            id: 0,
+            type: "textfield",
+            name: "Full Name",
+            oldKey: true,
+            isRequired: true,
+        },
+        {
+            id: 1,
+            type: "textfield",
+            name: "Email",
+            oldKey: true,
+            isRequired: true,
+        },
+        {
+            id: 2,
+            type: "textfield",
+            name: "Phone Number",
+            oldKey: true,
+            isRequired: true,
+        },
     ]);
+    const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [textFieldValue, setTextFieldValue] = useState("");
     const [dropdownOptions, setDropdownOptions] = useState<
         {
             id: number;
             value: string;
         }[]
     >([]);
-    const form = useTestAccessForm();
+    const form = useForm<TestAccessFormType>({
+        resolver: zodResolver(testAccessSchema),
+        defaultValues: {
+            status: "",
+            closed_test: true,
+            open_test: {
+                checked: false,
+                start_date: "",
+                end_date: "",
+                instructions: "",
+                name: "",
+                email: "",
+                phone: "",
+                custom_fields: {}, // Default to an empty object for custom fields
+            },
+            select_batch: {
+                checked: false,
+                batch_details: {},
+            },
+            select_individually: {
+                checked: false,
+                student_details: [],
+            },
+            join_link: assessmentUrl,
+            show_leaderboard: false,
+            notify_student: {
+                when_assessment_created: false,
+                before_assessment_goes_live: {
+                    checked: false,
+                    value: "",
+                },
+                when_assessment_live: false,
+                when_assessment_report_generated: false,
+            },
+            notify_parent: {
+                when_assessment_created: false,
+                before_assessment_goes_live: {
+                    checked: false,
+                    value: "",
+                },
+                when_assessment_live: false,
+                when_student_appears: false,
+                when_student_finishes_test: false,
+                when_assessment_report_generated: false,
+            },
+        },
+        mode: "onChange",
+    });
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: "1",
+            assessmentId: null,
             instituteId: instituteDetails?.id,
             type: "EXAM",
         }),
     );
-    console.log(assessmentDetails);
     const { batches_for_sessions } = instituteDetails || {};
     const transformedBatches = transformBatchData(batches_for_sessions || []);
-    const { handleSubmit, getValues, control, watch } = form;
+    const { handleSubmit, getValues, control, watch, setValue } = form;
+
+    const handleSubmitStep3Form = useMutation({
+        mutationFn: ({
+            data,
+            assessmentId,
+            instituteId,
+            type,
+        }: {
+            data: z.infer<typeof testAccessSchema>;
+            assessmentId: string | null;
+            instituteId: string | undefined;
+            type: string;
+        }) => handlePostStep3Data(data, assessmentId, instituteId, type),
+        onSuccess: async (data) => {
+            const responseData = await getAssessmentDetailsData({
+                assessmentId: data?.assessment_id,
+                instituteId: instituteDetails?.id,
+                type: "EXAM",
+            });
+            console.log(responseData);
+            syncStep3DataWithStore(form);
+            toast.success("Step 3 data has been saved successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
+            handleCompleteCurrentStep();
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
+        },
+    });
+
     const onSubmit = (data: z.infer<typeof testAccessSchema>) => {
-        console.log(data);
-        handleCompleteCurrentStep();
+        handleSubmitStep3Form.mutate({
+            data: data,
+            assessmentId: savedAssessmentId,
+            instituteId: instituteDetails?.id,
+            type: "EXAM",
+        });
     };
 
     const onInvalid = (err: unknown) => {
@@ -104,6 +230,16 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 isRequired: true,
             },
         ]);
+        setValue("open_test.custom_fields", {
+            ...getValues("open_test.custom_fields"),
+            [name]: {
+                id: openTestInputFields.length,
+                type,
+                name,
+                oldKey,
+                isRequired: true,
+            },
+        });
     };
 
     const handleDeleteOpenField = (id: number) => {
@@ -119,10 +255,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         );
     };
 
-    const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [textFieldValue, setTextFieldValue] = useState("");
-
     // Function to close the dialog
     const handleCloseDialog = (type: string, name: string, oldKey: boolean) => {
         setOpenTestInputFields((prevFields) => [
@@ -136,11 +268,76 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 isRequired: true,
             },
         ]);
+        setValue("open_test.custom_fields", {
+            ...getValues("open_test.custom_fields"),
+            [name]: {
+                id: openTestInputFields.length,
+                type,
+                name,
+                oldKey,
+                ...(type === "dropdown" && { options: dropdownOptions }),
+                isRequired: true,
+            },
+        });
         setIsDialogOpen(false);
         setTextFieldValue("");
+        setDropdownOptions([]);
     };
 
-    if (isLoading) return <DashboardLoader />;
+    useEffect(() => {
+        form.reset({
+            status: storeDataStep3.status
+                ? storeDataStep3.status
+                : completedSteps[currentStep]
+                  ? "COMPLETE"
+                  : "INCOMPLETE",
+            closed_test: storeDataStep3.closed_test,
+            open_test: {
+                checked: storeDataStep3.open_test.checked,
+                start_date: storeDataStep3.open_test.start_date,
+                end_date: storeDataStep3.open_test.end_date,
+                instructions: storeDataStep3.open_test.instructions,
+                name: storeDataStep3.open_test.name,
+                email: storeDataStep3.open_test.email,
+                phone: storeDataStep3.open_test.phone,
+                custom_fields: storeDataStep3.open_test.custom_fields,
+            },
+            select_batch: {
+                checked: storeDataStep3.select_batch.checked,
+                batch_details: storeDataStep3.select_batch.batch_details,
+            },
+            select_individually: {
+                checked: storeDataStep3.select_individually.checked,
+                student_details: storeDataStep3.select_individually.student_details,
+            },
+            join_link: storeDataStep3.join_link,
+            show_leaderboard: storeDataStep3.show_leaderboard,
+            notify_student: {
+                when_assessment_created: storeDataStep3.notify_student.when_assessment_created,
+                before_assessment_goes_live: {
+                    checked: storeDataStep3.notify_student.before_assessment_goes_live.checked,
+                    value: storeDataStep3.notify_student.before_assessment_goes_live.value,
+                },
+                when_assessment_live: storeDataStep3.notify_student.when_assessment_live,
+                when_assessment_report_generated:
+                    storeDataStep3.notify_student.when_assessment_report_generated,
+            },
+            notify_parent: {
+                when_assessment_created: storeDataStep3.notify_parent.when_assessment_created,
+                before_assessment_goes_live: {
+                    checked: storeDataStep3.notify_parent.before_assessment_goes_live.checked,
+                    value: storeDataStep3.notify_parent.before_assessment_goes_live.value,
+                },
+                when_assessment_live: storeDataStep3.notify_parent.when_assessment_live,
+                when_student_appears: storeDataStep3.notify_parent.when_student_appears,
+                when_student_finishes_test: storeDataStep3.notify_parent.when_student_finishes_test,
+                when_assessment_report_generated:
+                    storeDataStep3.notify_parent.when_assessment_report_generated,
+            },
+        });
+    }, []);
+
+    if (isLoading || handleSubmitStep3Form.status === "pending") return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
@@ -692,7 +889,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                             )}
                         </>
                     )}
-                    <AddingParticipantsTab batches={transformedBatches} />
+                    <AddingParticipantsTab batches={transformedBatches} form={form} />
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col gap-2">
@@ -839,7 +1036,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                     <SelectField
                                         label="Notify Before"
                                         labelStyle="font-thin"
-                                        name="assessmentPreview.previewTimeLimit"
+                                        name="notify_student.before_assessment_goes_live.value"
                                         options={timeLimit.map((option, index) => ({
                                             value: option,
                                             label: option,
@@ -951,7 +1148,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                     <SelectField
                                         label="Notify Before"
                                         labelStyle="font-thin"
-                                        name="assessmentPreview.previewTimeLimit"
+                                        name="notify_parent.before_assessment_goes_live.value"
                                         options={timeLimit.map((option, index) => ({
                                             value: option,
                                             label: option,

@@ -40,3 +40,15 @@ export const useBasicInfoStore = create<BasicInfoState>((set, get) => ({
     setBasicInfo: (data) => set((state) => ({ ...state, ...data })),
     getBasicInfo: () => get(),
 }));
+
+// Define the store
+interface AssessmentUrlStore {
+    assessmentUrl: string;
+    setAssessmentUrl: (url: string) => void;
+}
+
+// Create the Zustand store
+export const useAssessmentUrlStore = create<AssessmentUrlStore>((set) => ({
+    assessmentUrl: "",
+    setAssessmentUrl: (url) => set({ assessmentUrl: url }),
+}));

@@ -1,7 +1,37 @@
 import { z } from "zod";
 
-// Define a dynamic object to handle custom fields
-const customFieldsSchema = z.record(z.string()); // Allows any key with a string value
+// Define TestInputField schema
+const testInputFieldSchema = z.object({
+    id: z.number(),
+    type: z.string(),
+    name: z.string(),
+    oldKey: z.boolean(),
+    isRequired: z.boolean(),
+    options: z
+        .array(
+            z.object({
+                id: z.number(),
+                value: z.string(),
+            }),
+        )
+        .optional(),
+});
+
+// Define the schema for each student
+const studentSchema = z.object({
+    username: z.string(),
+    user_id: z.string(),
+    email: z.string(),
+    full_name: z.string(),
+    mobile_number: z.string(),
+    guardian_email: z.string(),
+    guardian_mobile_number: z.string(),
+    file_id: z.string(),
+    reattempt_count: z.number(),
+});
+
+// Define a dynamic object to handle custom fields as a record of TestInputField
+const customFieldsSchema = z.record(testInputFieldSchema); // Maps field names to TestInputField definitions
 
 const notifyBeforeAssessmentGoLiveSchema = z.object({
     checked: z.boolean(),
@@ -9,6 +39,7 @@ const notifyBeforeAssessmentGoLiveSchema = z.object({
 });
 
 const testAccessSchema = z.object({
+    status: z.string(),
     closed_test: z.boolean(),
     open_test: z.object({
         checked: z.boolean(),
@@ -26,7 +57,7 @@ const testAccessSchema = z.object({
     }),
     select_individually: z.object({
         checked: z.boolean(),
-        student_details: z.array(z.string()),
+        student_details: z.array(studentSchema),
     }),
     join_link: z.string(),
     show_leaderboard: z.boolean(),

@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { syncStep2DataWithStore } from "../../-utils/helper";
 import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -30,7 +31,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     completedSteps,
 }) => {
     const storeDataStep2 = useSectionDetailsStore((state) => state);
-    console.log(storeDataStep2);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
 
@@ -231,6 +231,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                       ],
         });
     }, []);
+
+    if (handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
