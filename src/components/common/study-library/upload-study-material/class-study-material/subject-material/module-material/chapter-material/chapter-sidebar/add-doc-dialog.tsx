@@ -19,6 +19,53 @@ interface FormData {
     docFile: FileList | null;
 }
 
+/**
+ * Preprocesses raw HTML content for compatibility with Yoopta Editor.
+ * This function removes unwanted styles, normalizes tags, and ensures a cleaner structure.
+ *
+ * @param htmlString - The raw HTML string to preprocess.
+ * @returns A cleaned and normalized HTML string.
+ */
+export const preprocessHTML = (htmlString: string): string => {
+    if (!htmlString) return "";
+
+    let cleanHTML = htmlString;
+
+    // Remove inline styles to avoid breaking Yoopta formatting
+    cleanHTML = cleanHTML.replace(/style="[^"]*"/g, "");
+
+    // Normalize tags (e.g., converting `strong` to `b` or `em` to `i`)
+    cleanHTML = cleanHTML.replace(/<strong>/g, "<b>").replace(/<\/strong>/g, "</b>");
+    cleanHTML = cleanHTML.replace(/<em>/g, "<i>").replace(/<\/em>/g, "</i>");
+
+    // Remove empty or unsupported tags
+    cleanHTML = cleanHTML.replace(/<[^>]+><\/[^>]+>/g, ""); // Removes empty tags like `<p></p>`
+    cleanHTML = cleanHTML.replace(
+        /<(script|style|iframe|meta|link|object|embed|applet)[^>]*>.*?<\/\1>/g,
+        "",
+    );
+
+    // Handle images (remove or keep them in base64 format)
+    cleanHTML = cleanHTML.replace(/<img[^>]*>/g, (match) => {
+        if (match.includes('src="data:image')) {
+            return match; // Keep base64 images if needed
+        }
+        return ""; // Remove other images
+    });
+
+    // Normalize headers (e.g., convert H1–H6 to consistent tags or adjust for Yoopta needs)
+    cleanHTML = cleanHTML.replace(/<h[1-6]>/g, "<h1>").replace(/<\/h[1-6]>/g, "</h1>");
+
+    // Remove non-breaking spaces and excessive whitespace
+    cleanHTML = cleanHTML.replace(/&nbsp;/g, " ");
+    cleanHTML = cleanHTML.replace(/\s\s+/g, " ");
+
+    // Wrap plain text in <p> tags if needed
+    cleanHTML = cleanHTML.replace(/^(?!<[a-z][\s\S]*>)([\s\S]+)/i, "<p>$1</p>");
+
+    return cleanHTML.trim();
+};
+
 export const AddDocDialog = () => {
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -62,13 +109,25 @@ export const AddDocDialog = () => {
                     const arrayBuffer = reader.result as ArrayBuffer;
                     const result = await mammoth.convertToHtml({ arrayBuffer });
 
+                    console.log("Raw HTML output from mammoth:", result.value);
+
                     if (!result || !result.value) {
                         reject(new Error("Document conversion failed - no content"));
                         return;
                     }
 
-                    // Use Yoopta's HTML deserializer
-                    const yooptaContent = html.deserialize(editor, result.value);
+                    // Preprocess the HTML to handle unsupported elements
+                    const preprocessedHTML = preprocessHTML(result.value);
+                    console.log("preprocessHTML: ", preprocessedHTML);
+
+                    // Convert HTML to Yoopta format
+                    const yooptaContent = html.deserialize(editor, preprocessedHTML);
+                    console.log("Deserialized Yoopta content:", yooptaContent);
+
+                    const htmlString = "<h1>First title</h1>";
+                    const abc = html.deserialize(editor, htmlString);
+                    console.log("Deserialized Yoopta content2:", abc);
+
                     resolve(yooptaContent);
                 } catch (error) {
                     console.error("Error during conversion:", error);
@@ -134,15 +193,7 @@ export const AddDocDialog = () => {
         }
     };
 
-    // const handleClose = () => {
-    //     setFile(null);
-    //     setError(null);
-    //     setUploadProgress(0);
-    //     form.reset();
-    // };
-
     return (
-        // <DialogContent onCloseAutoFocus={handleClose}>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleUpload)} className="flex flex-col gap-6 p-6">
                 <FileUploadComponent
@@ -207,6 +258,5 @@ export const AddDocDialog = () => {
                 </DialogFooter>
             </form>
         </Form>
-        // </DialogContent>
     );
 };

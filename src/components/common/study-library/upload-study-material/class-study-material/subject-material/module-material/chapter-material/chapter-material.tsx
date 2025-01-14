@@ -126,32 +126,32 @@ export const ChapterMaterial = () => {
                 return <YouTubePlayer videoUrl={activeItem.url} videoTitle={activeItem.name} />;
 
             case "doc": {
-                if (!activeItem?.content) {
-                    return null;
-                }
+                // if (!activeItem?.content) {
+                //     return null;
+                // }
 
-                const content =
-                    typeof activeItem.content === "string"
-                        ? {
-                              "block-0": {
-                                  id: crypto.randomUUID(),
-                                  type: "paragraph",
-                                  value: [
-                                      {
-                                          id: crypto.randomUUID(),
-                                          type: "paragraph",
-                                          children: [{ text: activeItem.content }],
-                                      },
-                                  ],
-                                  meta: {
-                                      order: 0,
-                                      depth: 0,
-                                  },
-                              },
-                          }
-                        : activeItem.content;
+                // const content =
+                //     typeof activeItem.content === "string"
+                //         ? {
+                //               "block-0": {
+                //                   id: crypto.randomUUID(),
+                //                   type: "paragraph",
+                //                   value: [
+                //                       {
+                //                           id: crypto.randomUUID(),
+                //                           type: "paragraph",
+                //                           children: [{ text: activeItem.content }],
+                //                       },
+                //                   ],
+                //                   meta: {
+                //                       order: 0,
+                //                       depth: 0,
+                //                   },
+                //               },
+                //           }
+                //         : activeItem.content;
 
-                console.log("Rendering doc content:", content); // For debugging
+                // console.log("Rendering doc content:", content); // For debugging
 
                 return (
                     <YooptaEditor
@@ -161,7 +161,7 @@ export const ChapterMaterial = () => {
                         marks={MARKS}
                         selectionBoxRoot={selectionRef}
                         autoFocus
-                        value={content}
+                        // value={content}
                         onChange={(value) => {
                             console.log("Editor content changed:", value); // For debugging
                             // You might want to save changes here
