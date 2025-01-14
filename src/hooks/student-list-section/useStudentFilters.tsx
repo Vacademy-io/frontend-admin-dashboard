@@ -3,9 +3,11 @@ import { StudentFilterRequest } from "@/schemas/student/student-list/table-schem
 import { INSTITUTE_ID } from "@/constants/urls";
 import { usePackageSessionIds } from "./getPackageSessionId";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { useGetSessions } from "./useFilters";
 
-export const useStudentFilters = (initialSession: string) => {
-    const [currentSession, setCurrentSession] = useState(initialSession);
+export const useStudentFilters = () => {
+    const sessions = useGetSessions();
+    const [currentSession, setCurrentSession] = useState(sessions[0] || "");
     const [columnFilters, setColumnFilters] = useState<{ id: string; value: string[] }[]>([]);
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchFilter, setSearchFilter] = useState("");

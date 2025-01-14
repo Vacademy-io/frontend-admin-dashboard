@@ -1,15 +1,14 @@
 // components/StudentFilters.tsx
 import { MyButton } from "@/components/design-system/button";
-import { MyDropdown } from "@/components/design-system/dropdown";
 import { Export } from "@phosphor-icons/react";
 import { Filters } from "./myFilter";
 import { StudentSearchBox } from "./student-search-box";
 import { StudentFiltersProps } from "@/types/students/students-list-types";
 import { useMemo } from "react";
+import { SessionDropdown } from "../../session-dropdown";
 
 export const StudentFilters = ({
     currentSession,
-    sessions,
     filters,
     searchInput,
     searchFilter,
@@ -30,14 +29,11 @@ export const StudentFilters = ({
     return (
         <div className="flex items-start justify-between">
             <div className="flex flex-wrap items-center gap-6 gap-y-4">
-                <div className="flex items-center gap-2">
-                    <div className="text-title">Session</div>
-                    <MyDropdown
-                        currentValue={currentSession}
-                        handleChange={onSessionChange}
-                        dropdownList={sessions}
-                    />
-                </div>
+                <SessionDropdown
+                    sessionDirection="flex-row"
+                    defaultSession={currentSession}
+                    onSessionChange={onSessionChange}
+                />
 
                 <StudentSearchBox
                     searchInput={searchInput}

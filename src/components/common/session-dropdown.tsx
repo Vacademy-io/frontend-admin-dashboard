@@ -1,28 +1,33 @@
+// components/session-dropdown.tsx
 import { MyDropdown } from "../design-system/dropdown";
-import { useGetSessions } from "@/hooks/student-list-section/useFilters";
-// import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { useSessionDropdown } from "@/hooks/student-list-section/useSessionDropdown";
 
 interface SessionDropdownProps {
     sessionDirection?: string;
     className?: string;
+    defaultSession?: string;
+    onSessionChange?: (session: string) => void;
 }
 
-export const SessionDropdown = ({ sessionDirection, className }: SessionDropdownProps) => {
-    // const { isError, isLoading } = useInstituteQuery();
-    // const data = useInstituteQuery();
-
-    const sessionList = useGetSessions();
-
-    // if (isError) return <div>Error</div>;
-    // if (isLoading) return <div>Loading...</div>;
+export const SessionDropdown = ({
+    sessionDirection,
+    className,
+    defaultSession,
+    onSessionChange,
+}: SessionDropdownProps) => {
+    const { sessionList, currentSession, handleSessionChange } = useSessionDropdown({
+        defaultSession,
+        onSessionChange,
+    });
 
     return (
         <div className={`flex items-center gap-2 ${sessionDirection}`}>
             <div className={`${className}`}>Session</div>
             <MyDropdown
-                currentValue={sessionList[0]}
+                currentValue={currentSession}
                 dropdownList={sessionList}
                 placeholder="Select Session"
+                handleChange={handleSessionChange}
             />
         </div>
     );
