@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useGetSessions } from "@/hooks/student-list-section/useFilters";
 import { GetFilterData } from "@/constants/student-list/all-filters";
@@ -33,18 +32,13 @@ export const getCurrentSession = (): string => {
 };
 
 export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormType> }) => {
-    const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const sessions = useGetSessions();
     const filters = GetFilterData(getCurrentSession());
     const [isAssessment] = useState(true);
     const { setValue, getValues } = form;
-    console.log(getValues());
 
-    useEffect(() => {
-        setNavHeading("Students");
-    }, []);
-
+    console.log(getValues("select_individually.student_details"));
     const {
         columnFilters,
         appliedFilters,
@@ -93,6 +87,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         : studentTableData;
 
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
+    console.log(allPagesData);
     useEffect(() => {
         if (studentTableData?.content) {
             setAllPagesData((prev) => ({
@@ -104,6 +99,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
 
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
 
+    console.log(rowSelections);
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
             typeof updaterOrValue === "function"
@@ -152,8 +148,6 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         // Returning the IDs of the selected students
         return getSelectedStudents().map((student) => student.id);
     };
-
-    console.log(getSelectedStudents());
 
     const currentPageSelection = rowSelections[page] || {};
     const totalSelectedCount = Object.values(rowSelections).reduce(

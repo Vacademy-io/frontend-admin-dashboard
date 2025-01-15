@@ -31,7 +31,7 @@ const studentSchema = z.object({
 });
 
 // Define a dynamic object to handle custom fields as a record of TestInputField
-const customFieldsSchema = z.record(testInputFieldSchema); // Maps field names to TestInputField definitions
+const customFieldsSchema = z.array(testInputFieldSchema); // Maps field names to TestInputField definitions
 
 const notifyBeforeAssessmentGoLiveSchema = z.object({
     checked: z.boolean(),
@@ -46,9 +46,6 @@ const testAccessSchema = z.object({
         start_date: z.string(),
         end_date: z.string(),
         instructions: z.string(),
-        name: z.string(),
-        email: z.string(),
-        phone: z.string(),
         custom_fields: customFieldsSchema, // Dynamic custom fields
     }),
     select_batch: z.object({

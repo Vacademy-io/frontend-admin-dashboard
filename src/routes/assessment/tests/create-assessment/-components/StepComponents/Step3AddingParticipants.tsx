@@ -1,5 +1,5 @@
 import { StepContentProps } from "@/types/step-content-props";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { MyButton } from "@/components/design-system/button";
 import { z } from "zod";
@@ -42,47 +42,14 @@ import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-add
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
-interface TestInputField {
-    id: number;
-    type: string;
-    name: string;
-    oldKey: boolean;
-    isRequired: boolean;
-    options?: { id: number; value: string }[];
-}
-
 const Step3AddingParticipants: React.FC<StepContentProps> = ({
     currentStep,
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
     const storeDataStep3 = useTestAccessStore((state) => state);
-    console.log("storeDataStep3", storeDataStep3);
     const { assessmentUrl } = useAssessmentUrlStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
-    const [openTestInputFields, setOpenTestInputFields] = useState<TestInputField[]>([
-        {
-            id: 0,
-            type: "textfield",
-            name: "Full Name",
-            oldKey: true,
-            isRequired: true,
-        },
-        {
-            id: 1,
-            type: "textfield",
-            name: "Email",
-            oldKey: true,
-            isRequired: true,
-        },
-        {
-            id: 2,
-            type: "textfield",
-            name: "Phone Number",
-            oldKey: true,
-            isRequired: true,
-        },
-    ]);
     const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [textFieldValue, setTextFieldValue] = useState("");
@@ -92,32 +59,56 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             value: string;
         }[]
     >([]);
+
     const form = useForm<TestAccessFormType>({
         resolver: zodResolver(testAccessSchema),
         defaultValues: {
-            status: "",
-            closed_test: true,
-            open_test: {
+            status: storeDataStep3.status
+                ? storeDataStep3.status
+                : completedSteps[currentStep]
+                  ? "COMPLETE"
+                  : "INCOMPLETE",
+            closed_test: storeDataStep3?.closed_test || true,
+            open_test: storeDataStep3?.open_test || {
                 checked: false,
                 start_date: "",
                 end_date: "",
                 instructions: "",
-                name: "",
-                email: "",
-                phone: "",
-                custom_fields: {}, // Default to an empty object for custom fields
+                custom_fields: [
+                    {
+                        id: 0,
+                        type: "textfield",
+                        name: "Full Name",
+                        oldKey: true,
+                        isRequired: true,
+                    },
+                    {
+                        id: 1,
+                        type: "textfield",
+                        name: "Email",
+                        oldKey: true,
+                        isRequired: true,
+                    },
+                    {
+                        id: 2,
+                        type: "textfield",
+                        name: "Phone Number",
+                        oldKey: true,
+                        isRequired: true,
+                    },
+                ],
             },
-            select_batch: {
+            select_batch: storeDataStep3?.select_batch || {
                 checked: false,
                 batch_details: {},
             },
-            select_individually: {
+            select_individually: storeDataStep3?.select_individually || {
                 checked: false,
                 student_details: [],
             },
-            join_link: assessmentUrl,
-            show_leaderboard: false,
-            notify_student: {
+            join_link: storeDataStep3?.join_link || assessmentUrl,
+            show_leaderboard: storeDataStep3?.show_leaderboard || false,
+            notify_student: storeDataStep3?.notify_student || {
                 when_assessment_created: false,
                 before_assessment_goes_live: {
                     checked: false,
@@ -126,7 +117,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 when_assessment_live: false,
                 when_assessment_report_generated: false,
             },
-            notify_parent: {
+            notify_parent: storeDataStep3?.notify_parent || {
                 when_assessment_created: false,
                 before_assessment_goes_live: {
                     checked: false,
@@ -140,6 +131,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         },
         mode: "onChange",
     });
+
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
@@ -151,6 +143,8 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const { batches_for_sessions } = instituteDetails || {};
     const transformedBatches = transformBatchData(batches_for_sessions || []);
     const { handleSubmit, getValues, control, watch, setValue } = form;
+    const customFields = getValues("open_test.custom_fields");
+    watch("open_test.custom_fields");
 
     const handleSubmitStep3Form = useMutation({
         mutationFn: ({
@@ -205,11 +199,10 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     };
 
     const toggleIsRequired = (id: number) => {
-        setOpenTestInputFields((prevFields) =>
-            prevFields.map((field) =>
-                field.id === id ? { ...field, isRequired: !field.isRequired } : field,
-            ),
+        const updatedFields = customFields?.map((field) =>
+            field.id === id ? { ...field, isRequired: !field.isRequired } : field,
         );
+        setValue("open_test.custom_fields", updatedFields);
     };
 
     const handleAddDropdownOptions = () => {
@@ -220,32 +213,26 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     };
 
     const handleAddOpenFieldValues = (type: string, name: string, oldKey: boolean) => {
-        setOpenTestInputFields((prevFields) => [
-            ...prevFields,
+        // Add the new field to the array
+        const updatedFields = [
+            ...customFields,
             {
-                id: openTestInputFields.length,
+                id: customFields.length, // Use the current array length as the new ID
                 type,
                 name,
                 oldKey,
                 isRequired: true,
             },
-        ]);
-        setValue("open_test.custom_fields", {
-            ...getValues("open_test.custom_fields"),
-            [name]: {
-                id: openTestInputFields.length,
-                type,
-                name,
-                oldKey,
-                isRequired: true,
-            },
-        });
+        ];
+
+        // Update the form state with the new array
+        setValue("open_test.custom_fields", updatedFields);
     };
 
     const handleDeleteOpenField = (id: number) => {
-        setOpenTestInputFields((prevFields) => prevFields.filter((field) => field.id !== id));
+        const updatedFields = customFields?.filter((field) => field.id !== id);
+        setValue("open_test.custom_fields", updatedFields);
     };
-
     const handleDeleteOptionField = (id: number) => {
         setDropdownOptions(
             (prevFields) =>
@@ -257,94 +244,41 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
 
     // Function to close the dialog
     const handleCloseDialog = (type: string, name: string, oldKey: boolean) => {
-        setOpenTestInputFields((prevFields) => [
-            ...prevFields,
-            {
-                id: openTestInputFields.length,
-                type,
-                name,
-                oldKey,
-                ...(type === "dropdown" && { options: dropdownOptions }),
-                isRequired: true,
-            },
-        ]);
-        setValue("open_test.custom_fields", {
-            ...getValues("open_test.custom_fields"),
-            [name]: {
-                id: openTestInputFields.length,
-                type,
-                name,
-                oldKey,
-                ...(type === "dropdown" && { options: dropdownOptions }),
-                isRequired: true,
-            },
-        });
+        // Create the new field
+        const newField = {
+            id: customFields.length, // Use the current array length as the new ID
+            type,
+            name,
+            oldKey,
+            ...(type === "dropdown" && { options: dropdownOptions }), // Include options if type is dropdown
+            isRequired: true,
+        };
+
+        // Add the new field to the array
+        const updatedFields = [...customFields, newField];
+
+        // Update the form state
+        setValue("open_test.custom_fields", updatedFields);
+
+        // Reset dialog and temporary values
         setIsDialogOpen(false);
         setTextFieldValue("");
         setDropdownOptions([]);
     };
 
-    useEffect(() => {
-        form.reset({
-            status: storeDataStep3.status
-                ? storeDataStep3.status
-                : completedSteps[currentStep]
-                  ? "COMPLETE"
-                  : "INCOMPLETE",
-            closed_test: storeDataStep3.closed_test,
-            open_test: {
-                checked: storeDataStep3.open_test.checked,
-                start_date: storeDataStep3.open_test.start_date,
-                end_date: storeDataStep3.open_test.end_date,
-                instructions: storeDataStep3.open_test.instructions,
-                name: storeDataStep3.open_test.name,
-                email: storeDataStep3.open_test.email,
-                phone: storeDataStep3.open_test.phone,
-                custom_fields: storeDataStep3.open_test.custom_fields,
-            },
-            select_batch: {
-                checked: storeDataStep3.select_batch.checked,
-                batch_details: storeDataStep3.select_batch.batch_details,
-            },
-            select_individually: {
-                checked: storeDataStep3.select_individually.checked,
-                student_details: storeDataStep3.select_individually.student_details,
-            },
-            join_link: storeDataStep3.join_link,
-            show_leaderboard: storeDataStep3.show_leaderboard,
-            notify_student: {
-                when_assessment_created: storeDataStep3.notify_student.when_assessment_created,
-                before_assessment_goes_live: {
-                    checked: storeDataStep3.notify_student.before_assessment_goes_live.checked,
-                    value: storeDataStep3.notify_student.before_assessment_goes_live.value,
-                },
-                when_assessment_live: storeDataStep3.notify_student.when_assessment_live,
-                when_assessment_report_generated:
-                    storeDataStep3.notify_student.when_assessment_report_generated,
-            },
-            notify_parent: {
-                when_assessment_created: storeDataStep3.notify_parent.when_assessment_created,
-                before_assessment_goes_live: {
-                    checked: storeDataStep3.notify_parent.before_assessment_goes_live.checked,
-                    value: storeDataStep3.notify_parent.before_assessment_goes_live.value,
-                },
-                when_assessment_live: storeDataStep3.notify_parent.when_assessment_live,
-                when_student_appears: storeDataStep3.notify_parent.when_student_appears,
-                when_student_finishes_test: storeDataStep3.notify_parent.when_student_finishes_test,
-                when_assessment_report_generated:
-                    storeDataStep3.notify_parent.when_assessment_report_generated,
-            },
-        });
-    }, []);
-
     if (isLoading || handleSubmitStep3Form.status === "pending") return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
+            <form>
                 <div className="m-0 flex items-center justify-between p-0">
                     <h1>Add Participants</h1>
-                    <MyButton type="submit" scale="large" buttonType="primary">
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="primary"
+                        onClick={handleSubmit(onSubmit, onInvalid)}
+                    >
                         Next
                     </MyButton>
                 </div>
@@ -369,7 +303,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                     value === "OPEN_TEST",
                                                 );
                                             }}
-                                            defaultValue={"CLOSE_TEST"}
+                                            defaultValue={
+                                                getValues("closed_test")
+                                                    ? "CLOSE_TEST"
+                                                    : "OPEN_TEST"
+                                            }
                                             className="flex flex-col gap-3"
                                         >
                                             {getStepKey({
@@ -512,7 +450,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 <div className="flex w-full flex-col gap-4">
                                     <h1>Registration Input Field</h1>
                                     <div className="flex flex-col gap-4">
-                                        {openTestInputFields.map((fields, index) => {
+                                        {customFields?.map((fields, index) => {
                                             return (
                                                 <div
                                                     key={index}
@@ -568,7 +506,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                         })}
                                     </div>
                                     <div className="mt-2 flex items-center gap-6">
-                                        {!openTestInputFields.some(
+                                        {!customFields?.some(
                                             (field) => field.name === "Gender",
                                         ) && (
                                             <MyButton
@@ -586,9 +524,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 <Plus size={32} /> Add Gender
                                             </MyButton>
                                         )}
-                                        {!openTestInputFields.some(
-                                            (field) => field.name === "State",
-                                        ) && (
+                                        {!customFields?.some((field) => field.name === "State") && (
                                             <MyButton
                                                 type="button"
                                                 scale="medium"
@@ -604,9 +540,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 <Plus size={32} /> Add State
                                             </MyButton>
                                         )}
-                                        {!openTestInputFields.some(
-                                            (field) => field.name === "City",
-                                        ) && (
+                                        {!customFields?.some((field) => field.name === "City") && (
                                             <MyButton
                                                 type="button"
                                                 scale="medium"
@@ -622,7 +556,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 <Plus size={32} /> Add City
                                             </MyButton>
                                         )}
-                                        {!openTestInputFields.some(
+                                        {!customFields?.some(
                                             (field) => field.name === "School/College",
                                         ) && (
                                             <MyButton
@@ -814,7 +748,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 Preview Registration Form
                                             </h1>
                                             <div className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto px-4 py-2">
-                                                {openTestInputFields.map((testInputFields, idx) => {
+                                                {customFields?.map((testInputFields, idx) => {
                                                     return (
                                                         <div
                                                             className="flex flex-col items-start gap-4"

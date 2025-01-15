@@ -1,7 +1,6 @@
 import { StepContentProps } from "@/types/step-content-props";
-import React, { useEffect, useState } from "react";
-import { useAccessControlForm } from "../../-utils/useAccessControlForm";
-import { FormProvider } from "react-hook-form";
+import React, { useState } from "react";
+import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { AccessControlFormSchema } from "../../-utils/access-control-form-schema";
 import { MyButton } from "@/components/design-system/button";
@@ -10,17 +9,26 @@ import { Check, Plus, X } from "phosphor-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyInput } from "@/components/design-system/input";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getAssessmentDetails } from "../../-services/assessment-services";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+    getAssessmentDetails,
+    getAssessmentDetailsData,
+    handlePostStep4Data,
+} from "../../-services/assessment-services";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getStepKey } from "../../-utils/helper";
+import { getStepKey, syncStep4DataWithStore } from "../../-utils/helper";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSavedAssessmentStore } from "../../-utils/global-states";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { useAccessControlStore } from "../../-utils/zustand-global-states/step4-access-control";
 
 const roles = [
-    { roleId: "1", roleName: "Admin", isSelected: false },
-    { roleId: "2", roleName: "Editor", isSelected: false },
-    { roleId: "3", roleName: "Viewer", isSelected: false },
-    { roleId: "4", roleName: "Contributor", isSelected: false },
+    { roleId: "1", roleName: "All Admins", isSelected: false },
+    { roleId: "2", roleName: "All Educators", isSelected: false },
+    { roleId: "3", roleName: "All Creators", isSelected: false },
+    { roleId: "4", roleName: "All Evaluators", isSelected: false },
 ];
 
 const users = [
@@ -31,25 +39,99 @@ const users = [
     { userId: "u5", email: "chris.jackson@example.com" },
 ];
 
+// Define the type from the schema for better TypeScript inference
+type AccessControlFormValues = z.infer<typeof AccessControlFormSchema>;
 const Step4AccessControl: React.FC<StepContentProps> = ({
     currentStep,
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const storeDataStep4 = useAccessControlStore((state) => state);
+    const { savedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: "1",
+            assessmentId: null,
             instituteId: instituteDetails?.id,
             type: "EXAM",
         }),
     );
-    console.log(completedSteps);
-    const form = useAccessControlForm();
+    const form = useForm<AccessControlFormValues>({
+        resolver: zodResolver(AccessControlFormSchema),
+        defaultValues: {
+            status: storeDataStep4.status
+                ? storeDataStep4.status
+                : completedSteps[currentStep]
+                  ? "COMPLETE"
+                  : "INCOMPLETE",
+            assessment_creation_access: storeDataStep4.assessment_creation_access || {
+                roles: [...roles],
+                users: [...users],
+            },
+            live_assessment_notification: storeDataStep4.live_assessment_notification || {
+                roles: [...roles],
+                users: [...users],
+            },
+            assessment_submission_and_report_access:
+                storeDataStep4.assessment_submission_and_report_access || {
+                    roles: [...roles],
+                    users: [...users],
+                },
+            evaluation_process: storeDataStep4.evaluation_process || {
+                roles: [...roles],
+                users: [...users],
+            },
+        },
+        mode: "onChange",
+    });
     const { handleSubmit } = form;
+
+    const handleSubmitStep4Form = useMutation({
+        mutationFn: ({
+            data,
+            assessmentId,
+            instituteId,
+            type,
+        }: {
+            data: z.infer<typeof AccessControlFormSchema>;
+            assessmentId: string | null;
+            instituteId: string | undefined;
+            type: string;
+        }) => handlePostStep4Data(data, assessmentId, instituteId, type),
+        onSuccess: async (data) => {
+            const responseData = await getAssessmentDetailsData({
+                assessmentId: data?.assessment_id,
+                instituteId: instituteDetails?.id,
+                type: "EXAM",
+            });
+            console.log(responseData);
+            syncStep4DataWithStore(form);
+            toast.success("Step 4 data has been saved successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
+            handleCompleteCurrentStep();
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
+        },
+    });
+
     const onSubmit = (data: z.infer<typeof AccessControlFormSchema>) => {
-        console.log(data);
-        handleCompleteCurrentStep();
+        handleSubmitStep4Form.mutate({
+            data: data,
+            assessmentId: savedAssessmentId,
+            instituteId: instituteDetails?.id,
+            type: "EXAM",
+        });
     };
 
     const onInvalid = (err: unknown) => {
@@ -60,10 +142,15 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
 
     return (
         <FormProvider {...form}>
-            <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
+            <form>
                 <div className="m-0 flex items-center justify-between p-0">
                     <h1>Access Control</h1>
-                    <MyButton type="submit" scale="large" buttonType="primary">
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="primary"
+                        onClick={handleSubmit(onSubmit, onInvalid)}
+                    >
                         Next
                     </MyButton>
                 </div>
@@ -77,6 +164,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                         <AccessControlCards
                             heading="Assessment Creation Access"
                             keyVal="assessment_creation_access"
+                            form={form}
                         />
                     )}
                     {getStepKey({
@@ -87,6 +175,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                         <AccessControlCards
                             heading="Live Assessment Notification"
                             keyVal="live_assessment_notification"
+                            form={form}
                         />
                     )}
                     {getStepKey({
@@ -97,6 +186,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                         <AccessControlCards
                             heading="Assessment Submission & Report Access"
                             keyVal="assessment_submission_and_report_access"
+                            form={form}
                         />
                     )}
                     {getStepKey({
@@ -107,6 +197,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                         <AccessControlCards
                             heading="Evaluation Process"
                             keyVal="evaluation_process"
+                            form={form}
                         />
                     )}
                 </div>
@@ -118,6 +209,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
 const AccessControlCards = ({
     heading,
     keyVal,
+    form,
 }: {
     heading: string;
     keyVal:
@@ -125,9 +217,9 @@ const AccessControlCards = ({
         | "live_assessment_notification"
         | "assessment_submission_and_report_access"
         | "evaluation_process";
+    form: UseFormReturn<AccessControlFormValues>;
 }) => {
     const [inviteUserEmailInput, setInviteUserEmailInput] = useState("");
-    const form = useAccessControlForm();
     const { getValues, setValue, watch } = form;
     const getKeyVal = getValues(keyVal);
     watch(keyVal);
@@ -169,34 +261,13 @@ const AccessControlCards = ({
         });
     };
 
-    useEffect(() => {
-        form.reset({
-            assessment_creation_access: {
-                roles: [...roles],
-                users: [...users],
-            },
-            live_assessment_notification: {
-                roles: [...roles],
-                users: [...users],
-            },
-            assessment_submission_and_report_access: {
-                roles: [...roles],
-                users: [...users],
-            },
-            evaluation_process: {
-                roles: [...roles],
-                users: [...users],
-            },
-        });
-    }, []);
-
     return (
         <div className="flex flex-col gap-4 rounded-xl border p-4">
             <div className="flex items-center justify-between">
                 <h1>{heading}</h1>
                 <Dialog>
                     <DialogTrigger>
-                        <MyButton type="submit" scale="medium" buttonType="secondary">
+                        <MyButton type="button" scale="medium" buttonType="secondary">
                             <Plus size={32} />
                             Add
                         </MyButton>

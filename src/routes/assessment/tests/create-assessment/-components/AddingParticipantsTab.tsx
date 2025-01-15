@@ -94,18 +94,11 @@ const Step3BatchList = ({
     batchData: BatchData;
     form: UseFormReturn<TestAccessFormType>;
 }) => {
-    const { setValue, getValues } = form;
+    const { setValue } = form;
+    const batchDetails = form.getValues("select_batch.batch_details");
 
     // State to manage checked items using arrays
-    const [checkedState, setCheckedState] = useState<Record<string, string[]>>(
-        Object.keys(batchData).reduce(
-            (acc, key) => {
-                acc[key] = []; // Initialize each batch with an empty array
-                return acc;
-            },
-            {} as Record<string, string[]>,
-        ),
-    );
+    const [checkedState, setCheckedState] = useState(batchDetails);
 
     // Handle parent checkbox toggle
     const handleParentToggle = (parentId: string, isChecked: boolean) => {
@@ -146,11 +139,6 @@ const Step3BatchList = ({
         // Update form with only IDs
         setValue("select_batch.batch_details", checkedState);
     }, [checkedState]);
-
-    useEffect(() => {
-        setCheckedState(getValues("select_batch.batch_details"));
-    }, []);
-    console.log(checkedState);
 
     return (
         <div className="flex w-full justify-between">

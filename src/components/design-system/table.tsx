@@ -77,7 +77,6 @@ export function MyTable<T>({
             }
         },
         autoResetPageIndex: false,
-        // Remove autoResetRowSelection as it's not a valid option
     });
 
     const {

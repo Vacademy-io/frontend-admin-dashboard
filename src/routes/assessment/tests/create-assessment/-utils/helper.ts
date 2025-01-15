@@ -5,49 +5,17 @@ import { BatchData } from "@/types/batch-details";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
 import { AdaptiveMarkingQuestion } from "@/types/basic-details-type";
 import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questions";
-import { z } from "zod";
-import sectionDetailsSchema from "./section-details-schema";
 import { UseFormReturn } from "react-hook-form";
-import testAccessSchema from "./add-participants-schema";
 import { useTestAccessStore } from "./zustand-global-states/step3-adding-participants";
-type SectionFormType = z.infer<typeof sectionDetailsSchema>;
-type TestAccessFormType = z.infer<typeof testAccessSchema>;
-
-export interface Section {
-    id: string;
-    name: string;
-    description: string | null;
-    section_type: string | null;
-    duration: number;
-    total_marks: number;
-    cutoff_marks: number;
-    section_order: number;
-    problem_randomization: boolean | null;
-    created_at: string; // ISO date string
-    updated_at: string; // ISO date string
-}
-
-export interface SectionsResponse {
-    sections: Section[];
-}
-
-interface Question {
-    id: string;
-    type: string;
-    content: string;
-}
-
-interface QuestionData {
-    question_id: string;
-    question: Question;
-    section_id: string;
-    question_duration: number;
-    question_order: number;
-    marking_json: string; // Serialized JSON string
-    question_type: string;
-}
-
-type QuestionDataObject = Record<string, QuestionData[]>;
+import { useAccessControlStore } from "./zustand-global-states/step4-access-control";
+import { SectionFormType } from "./useSectionForm";
+import {
+    AccessControlFormValues,
+    QuestionData,
+    QuestionDataObject,
+    Section,
+    TestAccessFormType,
+} from "@/types/assessment-steps";
 
 export function getStepKey({
     assessmentDetails,
@@ -413,4 +381,18 @@ export const syncStep3DataWithStore = (form: UseFormReturn<TestAccessFormType>) 
         },
     };
     setTestAccessInfo(testDetailsData);
+};
+
+export const syncStep4DataWithStore = (form: UseFormReturn<AccessControlFormValues>) => {
+    const setAccessControlData = useAccessControlStore.getState().setAccessControlData;
+    const { getValues } = form;
+    const testAccessData = {
+        assessment_creation_access: getValues("assessment_creation_access"),
+        live_assessment_notification: getValues("live_assessment_notification"),
+        assessment_submission_and_report_access: getValues(
+            "assessment_submission_and_report_access",
+        ),
+        evaluation_process: getValues("evaluation_process"),
+    };
+    setAccessControlData(testAccessData);
 };

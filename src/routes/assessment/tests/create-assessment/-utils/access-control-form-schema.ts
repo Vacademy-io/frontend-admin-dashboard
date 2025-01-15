@@ -21,6 +21,7 @@ const accessTypeSchema = z.object({
 
 // Define the schema for the entire object
 export const AccessControlFormSchema = z.object({
+    status: z.string(),
     assessment_creation_access: accessTypeSchema,
     live_assessment_notification: accessTypeSchema,
     assessment_submission_and_report_access: accessTypeSchema,

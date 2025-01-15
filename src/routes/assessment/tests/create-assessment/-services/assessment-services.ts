@@ -12,6 +12,7 @@ import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-schema";
 import { convertToUTCPlus530 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
+import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -196,24 +197,21 @@ interface ConvertedCustomField {
 }
 
 // Assuming customFields is an object where keys are strings and values are the custom field details
-type CustomFields = Record<
-    string,
-    {
-        type: string;
-        name: string;
-        oldKey: boolean;
-        isRequired: boolean;
-        options?: { id: number; value: string }[];
-        default_value?: string;
-        description?: string;
-        key?: string;
-        is_mandatory?: boolean;
-    }
->;
+type CustomFields = {
+    type: string;
+    name: string;
+    oldKey: boolean;
+    isRequired: boolean;
+    options?: { id: number; value: string }[];
+    default_value?: string;
+    description?: string;
+    key?: string;
+    is_mandatory?: boolean;
+}[];
 
 // Function that converts customFields to the desired structure
 const convertCustomFields = (customFields: CustomFields): ConvertedCustomField[] => {
-    const convertedFields = Object.values(customFields).map((field) => {
+    const convertedFields = customFields.map((field) => {
         return {
             name: field.name,
             type: field.type,
@@ -235,42 +233,6 @@ export const handlePostStep3Data = async (
     instituteId: string | undefined,
     type: string,
 ) => {
-    const custom_fields_data = {
-        ...convertCustomFields({
-            name: {
-                type: "textfield",
-                name: "name",
-                oldKey: false, // Default value for oldKey
-                isRequired: true, // Default value for isRequired
-                default_value: "",
-                description: "",
-                key: "",
-                is_mandatory: true,
-            },
-            email: {
-                type: "textfield",
-                name: "email",
-                oldKey: false,
-                isRequired: true,
-                default_value: "",
-                description: "",
-                key: "",
-                is_mandatory: true,
-            },
-            phone: {
-                type: "textfield",
-                name: "phone",
-                oldKey: false,
-                isRequired: true,
-                default_value: "",
-                description: "",
-                key: "",
-                is_mandatory: true,
-            },
-            ...data.open_test.custom_fields, // Add any custom fields from `data.open_test.custom_fields`
-        }),
-    };
-
     const convertedData = {
         closed_test: data.closed_test,
         open_test_details: data.open_test.checked
@@ -279,7 +241,7 @@ export const handlePostStep3Data = async (
                   registration_end_date: convertToUTCPlus530(data.open_test.end_date) || "",
                   instructions_html: data.open_test.instructions || "",
                   registration_form_details: {
-                      added_custom_added_fields: Object.values(custom_fields_data),
+                      added_custom_added_fields: convertCustomFields(data.open_test.custom_fields),
                       removed_custom_added_fields: [], // Default to an empty array as per example
                   },
               }
@@ -312,6 +274,45 @@ export const handlePostStep3Data = async (
             when_student_finishes_test: data.notify_parent.when_student_finishes_test || false,
             when_assessment_report_generated:
                 data.notify_parent.when_assessment_report_generated || false,
+        },
+    };
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: STEP3_ASSESSMENT_URL,
+        data: convertedData,
+        params: {
+            assessmentId,
+            instituteId,
+            type,
+        },
+    });
+    return response?.data;
+};
+
+export const handlePostStep4Data = async (
+    data: z.infer<typeof AccessControlFormSchema>,
+    assessmentId: string | null,
+    instituteId: string | undefined,
+    type: string,
+) => {
+    const convertedData = {
+        assessment_creation_access: {
+            roles: data.assessment_creation_access.roles.filter((role) => role.isSelected),
+            user_ids: data.assessment_creation_access.users,
+        },
+        live_assessment_notification_access: {
+            roles: data.live_assessment_notification.roles.filter((role) => role.isSelected),
+            user_ids: data.live_assessment_notification.users,
+        },
+        assessment_submission_and_report_access: {
+            roles: data.assessment_submission_and_report_access.roles.filter(
+                (role) => role.isSelected,
+            ),
+            user_ids: data.assessment_submission_and_report_access.users,
+        },
+        evaluation_process_access: {
+            roles: data.evaluation_process.roles.filter((role) => role.isSelected),
+            user_ids: data.evaluation_process.users,
         },
     };
     const response = await authenticatedAxiosInstance({
