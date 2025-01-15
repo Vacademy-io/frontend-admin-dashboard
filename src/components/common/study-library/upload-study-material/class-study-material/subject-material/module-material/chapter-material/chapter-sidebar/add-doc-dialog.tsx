@@ -2,7 +2,7 @@ import { ImportFileImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { DialogFooter } from "@/components/ui/dialog";
 // import { DialogContent } from "@radix-ui/react-dialog";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
@@ -11,60 +11,11 @@ import { toast } from "sonner";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import mammoth from "mammoth";
 import { FileType } from "@/types/file-upload";
-import { html } from "@yoopta/exports";
-import { createYooptaEditor, YooptaContentValue, YooEditor } from "@yoopta/editor";
 import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
 
 interface FormData {
     docFile: FileList | null;
 }
-
-/**
- * Preprocesses raw HTML content for compatibility with Yoopta Editor.
- * This function removes unwanted styles, normalizes tags, and ensures a cleaner structure.
- *
- * @param htmlString - The raw HTML string to preprocess.
- * @returns A cleaned and normalized HTML string.
- */
-export const preprocessHTML = (htmlString: string): string => {
-    if (!htmlString) return "";
-
-    let cleanHTML = htmlString;
-
-    // Remove inline styles to avoid breaking Yoopta formatting
-    cleanHTML = cleanHTML.replace(/style="[^"]*"/g, "");
-
-    // Normalize tags (e.g., converting `strong` to `b` or `em` to `i`)
-    cleanHTML = cleanHTML.replace(/<strong>/g, "<b>").replace(/<\/strong>/g, "</b>");
-    cleanHTML = cleanHTML.replace(/<em>/g, "<i>").replace(/<\/em>/g, "</i>");
-
-    // Remove empty or unsupported tags
-    cleanHTML = cleanHTML.replace(/<[^>]+><\/[^>]+>/g, ""); // Removes empty tags like `<p></p>`
-    cleanHTML = cleanHTML.replace(
-        /<(script|style|iframe|meta|link|object|embed|applet)[^>]*>.*?<\/\1>/g,
-        "",
-    );
-
-    // Handle images (remove or keep them in base64 format)
-    cleanHTML = cleanHTML.replace(/<img[^>]*>/g, (match) => {
-        if (match.includes('src="data:image')) {
-            return match; // Keep base64 images if needed
-        }
-        return ""; // Remove other images
-    });
-
-    // Normalize headers (e.g., convert H1–H6 to consistent tags or adjust for Yoopta needs)
-    cleanHTML = cleanHTML.replace(/<h[1-6]>/g, "<h1>").replace(/<\/h[1-6]>/g, "</h1>");
-
-    // Remove non-breaking spaces and excessive whitespace
-    cleanHTML = cleanHTML.replace(/&nbsp;/g, " ");
-    cleanHTML = cleanHTML.replace(/\s\s+/g, " ");
-
-    // Wrap plain text in <p> tags if needed
-    cleanHTML = cleanHTML.replace(/^(?!<[a-z][\s\S]*>)([\s\S]+)/i, "<p>$1</p>");
-
-    return cleanHTML.trim();
-};
 
 export const AddDocDialog = () => {
     const [file, setFile] = useState<File | null>(null);
@@ -73,7 +24,6 @@ export const AddDocDialog = () => {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const addItem = useContentStore((state) => state.addItem);
-    const editor = useMemo(() => createYooptaEditor(), []);
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -98,9 +48,7 @@ export const AddDocDialog = () => {
         toast.success("File selected successfully");
     };
 
-    const convertDocToHtml = async (file: File, editor: YooEditor): Promise<YooptaContentValue> => {
-        console.log("Starting document conversion...", file.type);
-
+    const convertDocToHtml = async (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
 
@@ -109,34 +57,25 @@ export const AddDocDialog = () => {
                     const arrayBuffer = reader.result as ArrayBuffer;
                     const result = await mammoth.convertToHtml({ arrayBuffer });
 
-                    console.log("Raw HTML output from mammoth:", result.value);
-
                     if (!result || !result.value) {
                         reject(new Error("Document conversion failed - no content"));
                         return;
                     }
 
-                    // Preprocess the HTML to handle unsupported elements
-                    const preprocessedHTML = preprocessHTML(result.value);
-                    console.log("preprocessHTML: ", preprocessedHTML);
+                    // Add basic HTML structure if missing
+                    const processedHTML = `
+                        <div>
+                            ${result.value}
+                        </div>
+                    `;
 
-                    // Convert HTML to Yoopta format
-                    const yooptaContent = html.deserialize(editor, preprocessedHTML);
-                    console.log("Deserialized Yoopta content:", yooptaContent);
-
-                    const htmlString = "<h1>First title</h1>";
-                    const abc = html.deserialize(editor, htmlString);
-                    console.log("Deserialized Yoopta content2:", abc);
-
-                    resolve(yooptaContent);
+                    // Convert to Yoopta format
+                    // const yooptaContent = html.deserialize(editor, processedHTML);
+                    resolve(processedHTML);
                 } catch (error) {
                     console.error("Error during conversion:", error);
                     reject(error);
                 }
-            };
-
-            reader.onerror = () => {
-                reject(new Error("Failed to read document file"));
             };
 
             reader.readAsArrayBuffer(file);
@@ -160,7 +99,7 @@ export const AddDocDialog = () => {
         try {
             console.log("Starting upload process for file:", file.name);
 
-            const yooptaContent = await convertDocToHtml(file, editor);
+            const yooptaContent = await convertDocToHtml(file);
             console.log("Document successfully converted to Yoopta format:", yooptaContent);
 
             // Cast the content to solve type issue
@@ -169,7 +108,7 @@ export const AddDocDialog = () => {
                 type: "doc",
                 name: file.name,
                 url: "",
-                content: yooptaContent as YooptaContentValue,
+                content: yooptaContent as string,
                 createdAt: new Date(),
             };
 

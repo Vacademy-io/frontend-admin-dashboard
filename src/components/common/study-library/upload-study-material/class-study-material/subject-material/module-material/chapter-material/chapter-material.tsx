@@ -33,12 +33,12 @@ import { useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { DotsThree } from "@phosphor-icons/react";
 import PDFViewer from "@/components/common/study-library/pdf-viewer";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ActivityStatsSidebar } from "./activity-stats-sidebar/activity-sidebar";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { EmptyModulesImage } from "@/assets/svgs";
 import { useState } from "react";
 import YouTubePlayer from "./youtube-player";
+import { html } from "@yoopta/exports";
 
 const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -126,47 +126,30 @@ export const ChapterMaterial = () => {
                 return <YouTubePlayer videoUrl={activeItem.url} videoTitle={activeItem.name} />;
 
             case "doc": {
-                // if (!activeItem?.content) {
-                //     return null;
-                // }
+                console.log("Rendering doc content:", activeItem.content); // For debugging
 
-                // const content =
-                //     typeof activeItem.content === "string"
-                //         ? {
-                //               "block-0": {
-                //                   id: crypto.randomUUID(),
-                //                   type: "paragraph",
-                //                   value: [
-                //                       {
-                //                           id: crypto.randomUUID(),
-                //                           type: "paragraph",
-                //                           children: [{ text: activeItem.content }],
-                //                       },
-                //                   ],
-                //                   meta: {
-                //                       order: 0,
-                //                       depth: 0,
-                //                   },
-                //               },
-                //           }
-                //         : activeItem.content;
-
-                // console.log("Rendering doc content:", content); // For debugging
+                const content =
+                    typeof activeItem.content === "string"
+                        ? html.deserialize(editor, activeItem.content)
+                        : activeItem.content;
+                editor.setEditorValue(content);
 
                 return (
-                    <YooptaEditor
-                        editor={editor}
-                        plugins={plugins}
-                        tools={TOOLS}
-                        marks={MARKS}
-                        selectionBoxRoot={selectionRef}
-                        autoFocus
-                        // value={content}
-                        onChange={(value) => {
-                            console.log("Editor content changed:", value); // For debugging
-                            // You might want to save changes here
-                        }}
-                    />
+                    <div className="w-full">
+                        <YooptaEditor
+                            editor={editor}
+                            plugins={plugins}
+                            tools={TOOLS}
+                            marks={MARKS}
+                            selectionBoxRoot={selectionRef}
+                            autoFocus
+                            onChange={(value) => {
+                                console.log("Editor content changed:", value); // For debugging
+                                // You might want to save changes here
+                            }}
+                            className=""
+                        />
+                    </div>
                 );
             }
             default:
@@ -175,29 +158,29 @@ export const ChapterMaterial = () => {
     };
 
     return (
-        <SidebarProvider style={{ ["--sidebar-width" as string]: "530px" }}>
-            <div className="flex w-full flex-col" ref={selectionRef}>
-                <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
-                    {isEditing ? (
-                        <input
-                            type="text"
-                            value={heading}
-                            onChange={handleHeadingChange}
-                            onBlur={saveHeading}
-                            className="w-full text-h3 font-semibold text-neutral-600 focus:outline-none"
-                            autoFocus
-                        />
-                    ) : (
-                        <h3
-                            className="text-h3 font-semibold text-neutral-600"
-                            onClick={() => setIsEditing(true)}
-                        >
-                            {heading || "No content selected"}
-                        </h3>
-                    )}
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-[80px]">
-                            <SidebarTrigger>
+        // <SidebarProvider style={{ ["--sidebar-width" as string]: "530px" }}>
+        <div className="flex w-full flex-col" ref={selectionRef}>
+            <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
+                {isEditing ? (
+                    <input
+                        type="text"
+                        value={heading}
+                        onChange={handleHeadingChange}
+                        onBlur={saveHeading}
+                        className="w-full text-h3 font-semibold text-neutral-600 focus:outline-none"
+                        autoFocus
+                    />
+                ) : (
+                    <h3
+                        className="text-h3 font-semibold text-neutral-600"
+                        onClick={() => setIsEditing(true)}
+                    >
+                        {heading || "No content selected"}
+                    </h3>
+                )}
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-[80px]">
+                        {/* <SidebarTrigger>
                                 <MyButton
                                     buttonType="primary"
                                     scale="medium"
@@ -205,19 +188,19 @@ export const ChapterMaterial = () => {
                                 >
                                     Activity Stats
                                 </MyButton>
-                            </SidebarTrigger>
-                            <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
-                                Edit
-                            </MyButton>
-                        </div>
-                        <MyButton buttonType="secondary" scale="large" layoutVariant="icon">
-                            <DotsThree />
+                            </SidebarTrigger> */}
+                        <ActivityStatsSidebar />
+                        <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
+                            Edit
                         </MyButton>
                     </div>
+                    <MyButton buttonType="secondary" scale="large" layoutVariant="icon">
+                        <DotsThree />
+                    </MyButton>
                 </div>
-                <div className="mt-14 h-full w-full px-10">{renderContent()}</div>
             </div>
-            <ActivityStatsSidebar />
-        </SidebarProvider>
+            <div className="mt-14 h-full w-full px-10">{renderContent()}</div>
+        </div>
+        // </SidebarProvider>
     );
 };
