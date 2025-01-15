@@ -147,7 +147,8 @@ export const ChapterMaterial = () => {
                                 console.log("Editor content changed:", value); // For debugging
                                 // You might want to save changes here
                             }}
-                            className=""
+                            className="h-full w-full"
+                            style={{ width: "100%", height: "100%" }}
                         />
                     </div>
                 );
@@ -179,16 +180,7 @@ export const ChapterMaterial = () => {
                     </h3>
                 )}
                 <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-[80px]">
-                        {/* <SidebarTrigger>
-                                <MyButton
-                                    buttonType="primary"
-                                    scale="medium"
-                                    layoutVariant="default"
-                                >
-                                    Activity Stats
-                                </MyButton>
-                            </SidebarTrigger> */}
+                    <div className="flex items-center gap-6">
                         <ActivityStatsSidebar />
                         <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
                             Edit
