@@ -306,6 +306,16 @@ export const syncStep2DataWithStore = (
                     questionType: questionData.question_type || "",
                     questionMark: markingJson.data?.totalMark || "0",
                     questionPenalty: markingJson.data?.negativeMark || "0",
+                    questionDuration: {
+                        hrs:
+                            typeof questionData.question_duration === "number"
+                                ? String(Math.floor(questionData.question_duration / 60))
+                                : "0",
+                        min:
+                            typeof questionData.question_duration === "number"
+                                ? String(questionData.question_duration % 60)
+                                : "0",
+                    },
                 };
             });
 
@@ -317,6 +327,13 @@ export const syncStep2DataWithStore = (
                 subject: allSections[idx]?.subject || "",
                 yearClass: allSections[idx]?.yearClass || "",
                 section_description: section.description || "",
+                question_duration: {
+                    hrs:
+                        typeof section.duration === "number"
+                            ? String(Math.floor(section.duration / 60))
+                            : "0",
+                    min: typeof section.duration === "number" ? String(section.duration % 60) : "0",
+                },
                 section_duration: {
                     hrs:
                         typeof section.duration === "number"

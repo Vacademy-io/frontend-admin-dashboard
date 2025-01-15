@@ -102,6 +102,10 @@ export const QuestionPapersList = ({
                                 (item) => item.isSelected,
                             ).length,
                         }),
+                        questionDuration: {
+                            hrs: "",
+                            min: "",
+                        },
                     })),
                 });
             }

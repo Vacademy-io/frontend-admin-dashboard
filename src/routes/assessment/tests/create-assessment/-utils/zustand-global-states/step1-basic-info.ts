@@ -52,3 +52,13 @@ export const useAssessmentUrlStore = create<AssessmentUrlStore>((set) => ({
     assessmentUrl: "",
     setAssessmentUrl: (url) => set({ assessmentUrl: url }),
 }));
+
+interface DurationStore {
+    durationDistribution: string;
+    setDurationDistribution: (value: string) => void;
+}
+
+export const useDurationDistributionStore = create<DurationStore>((set) => ({
+    durationDistribution: "",
+    setDurationDistribution: (value) => set({ durationDistribution: value }),
+}));

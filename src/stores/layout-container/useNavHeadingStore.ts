@@ -1,8 +1,8 @@
-import create from "zustand";
+import { create } from "zustand";
 
 interface navHeadingState {
-    navHeading: string;
-    setNavHeading: (newNavHeading: string) => void;
+    navHeading: string | React.ReactNode;
+    setNavHeading: (newNavHeading: string | React.ReactNode) => void;
 }
 
 export const useNavHeadingStore = create<navHeadingState>((set) => ({

@@ -162,7 +162,9 @@ export const handlePostStep2Data = async (
                             }),
                         },
                     }),
-                    question_duration_in_min: 0,
+                    question_duration_in_min:
+                        parseInt(section.question_duration.hrs) * 60 +
+                            parseInt(section.question_duration.min) || 0,
                     question_order: qIndex + 1,
                     is_added: true,
                     is_deleted: false,

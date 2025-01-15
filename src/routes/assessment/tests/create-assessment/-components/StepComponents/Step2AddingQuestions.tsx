@@ -22,6 +22,7 @@ import { AxiosError } from "axios";
 import { syncStep2DataWithStore } from "../../-utils/helper";
 import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useDurationDistributionStore } from "../../-utils/zustand-global-states/step1-basic-info";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -30,6 +31,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const { durationDistribution } = useDurationDistributionStore();
     const storeDataStep2 = useSectionDetailsStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
@@ -46,6 +48,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                     subject: "",
                     yearClass: "",
                     uploaded_question_paper: null,
+                    question_duration: {
+                        hrs: "",
+                        min: "",
+                    },
                     section_description: "",
                     section_duration: {
                         hrs: "",
@@ -147,6 +153,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             subject: "",
             yearClass: "",
             uploaded_question_paper: null,
+            question_duration: {
+                hrs: "",
+                min: "",
+            },
             section_description: "",
             section_duration: {
                 hrs: "",
@@ -181,6 +191,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                           uploaded_question_paper: sectionDetails.uploaded_question_paper,
                           subject: sectionDetails.subject,
                           yearClass: sectionDetails.yearClass,
+                          question_duration: {
+                              hrs: sectionDetails.question_duration?.hrs || "",
+                              min: sectionDetails.question_duration?.min || "",
+                          },
                           section_description: sectionDetails.section_description || "",
                           section_duration: {
                               hrs: sectionDetails.section_duration?.hrs || "",
@@ -209,6 +223,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                               subject: "",
                               yearClass: "",
                               uploaded_question_paper: null,
+                              question_duration: {
+                                  hrs: "",
+                                  min: "",
+                              },
                               section_description: "",
                               section_duration: {
                                   hrs: "",
@@ -245,13 +263,33 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 type="button"
                                 scale="large"
                                 buttonType="primary"
-                                disable={allSections.some(
-                                    (section) =>
-                                        !section.uploaded_question_paper ||
-                                        !section.section_duration?.hrs ||
-                                        !section.section_duration?.min ||
-                                        !section.marks_per_question,
-                                )}
+                                disable={allSections.some((section) => {
+                                    // Check if the question paper is uploaded
+                                    const isQuestionPaperMissing = !section.uploaded_question_paper;
+
+                                    // Check if section duration fields are valid based on durationDistribution
+                                    const isSectionDurationMissing =
+                                        durationDistribution === "SECTION" &&
+                                        !section.section_duration?.hrs &&
+                                        !section.section_duration?.min;
+
+                                    // Check if question duration fields are valid based on durationDistribution
+                                    const isQuestionDurationMissing =
+                                        durationDistribution === "QUESTION" &&
+                                        !section.question_duration?.hrs &&
+                                        !section.question_duration?.min;
+
+                                    // Check if marks per question is provided
+                                    const isMarksPerQuestionMissing = !section.marks_per_question;
+
+                                    // Return true if any of the above conditions are true
+                                    return (
+                                        isQuestionPaperMissing ||
+                                        isSectionDurationMissing ||
+                                        isQuestionDurationMissing ||
+                                        isMarksPerQuestionMissing
+                                    );
+                                })}
                                 onClick={handleSubmit(onSubmit, onInvalid)}
                             >
                                 Next

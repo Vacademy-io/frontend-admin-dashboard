@@ -10,6 +10,10 @@ const sectionDetailsSchema = z.object({
             uploaded_question_paper: z.string().nullable(),
             subject: z.string().optional(),
             yearClass: z.string().optional(),
+            question_duration: z.object({
+                hrs: z.string(),
+                min: z.string(),
+            }),
             section_description: z.string(),
             section_duration: z.object({
                 hrs: z.string(),
@@ -35,6 +39,10 @@ const sectionDetailsSchema = z.object({
                     questionMark: z.string(),
                     questionPenalty: z.string(),
                     correctOptionIdsCnt: z.number().optional(),
+                    questionDuration: z.object({
+                        hrs: z.string(),
+                        min: z.string(),
+                    }),
                 }),
             ),
         }),

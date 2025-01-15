@@ -41,13 +41,21 @@ const notifyBeforeAssessmentGoLiveSchema = z.object({
 const testAccessSchema = z.object({
     status: z.string(),
     closed_test: z.boolean(),
-    open_test: z.object({
-        checked: z.boolean(),
-        start_date: z.string(),
-        end_date: z.string(),
-        instructions: z.string(),
-        custom_fields: customFieldsSchema, // Dynamic custom fields
-    }),
+    open_test: z
+        .object({
+            checked: z.boolean(),
+            start_date: z.string(),
+            end_date: z.string(),
+            instructions: z.string(),
+            custom_fields: customFieldsSchema, // Dynamic custom fields
+        })
+        .refine(
+            (data) => new Date(data.end_date) > new Date(data.start_date), // Custom validation logic
+            {
+                message: "End date must be greater than start date.",
+                path: ["end_date"], // Associate error with `end_date`
+            },
+        ),
     select_batch: z.object({
         checked: z.boolean(),
         batch_details: z.record(z.array(z.string())),

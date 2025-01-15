@@ -34,16 +34,28 @@ import { useSavedAssessmentStore } from "../../-utils/global-states";
 import {
     useAssessmentUrlStore,
     useBasicInfoStore,
+    useDurationDistributionStore,
 } from "../../-utils/zustand-global-states/step1-basic-info";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { CaretLeft } from "phosphor-react";
+
+const heading = (
+    <div className="flex items-center gap-4">
+        <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
+        <h1 className="text-lg">Create Assessment</h1>
+    </div>
+);
 
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const { setNavHeading } = useNavHeadingStore();
     const storeDataStep1 = useBasicInfoStore((state) => state);
+    const { setDurationDistribution } = useDurationDistributionStore();
     const { setSavedAssessmentId } = useSavedAssessmentStore();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
@@ -113,11 +125,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             getValues("testDuration.entireTestDuration.testDuration.min"));
 
     const isFormValid2 =
-        !!assessmentName &&
-        !!liveDateRangeStartDate &&
-        !!liveDateRangeEndDate &&
-        Object.entries(form.formState.errors).length === 0 &&
-        watch("testDuration.sectionWiseDuration");
+        (!!assessmentName &&
+            !!liveDateRangeStartDate &&
+            !!liveDateRangeEndDate &&
+            Object.entries(form.formState.errors).length === 0 &&
+            watch("testDuration.sectionWiseDuration")) ||
+        watch("testDuration.questionWiseDuration");
 
     const handleSubmitStep1Form = useMutation({
         mutationFn: ({
@@ -140,6 +153,9 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 type: "EXAM",
             });
             setAssessmentUrl(responseData[currentStep]?.saved_data?.assessment_url ?? "");
+            setDurationDistribution(
+                responseData[currentStep]?.saved_data?.duration_distribution ?? "",
+            );
             syncStep1DataWithStore(responseData, currentStep, instituteDetails);
             toast.success("Step 1 data has been saved successfully!", {
                 className: "success-toast",
@@ -182,6 +198,10 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const onInvalid = (err: unknown) => {
         console.log(err);
     };
+
+    useEffect(() => {
+        setNavHeading(heading);
+    }, []);
 
     useEffect(() => {
         form.reset({

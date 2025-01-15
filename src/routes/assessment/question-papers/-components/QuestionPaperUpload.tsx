@@ -113,6 +113,10 @@ export const QuestionPaperUpload = ({
                                 (item) => item.isSelected,
                             ).length,
                         }),
+                        questionDuration: {
+                            hrs: "",
+                            min: "",
+                        },
                     })),
                 });
                 setIsMainQuestionPaperAddDialogOpen(false);
@@ -194,6 +198,10 @@ export const QuestionPaperUpload = ({
                         questionType: question.questionType,
                         questionMark: question.questionMark,
                         questionPenalty: "",
+                        questionDuration: {
+                            hrs: "",
+                            min: "",
+                        },
                     })),
                 });
             }

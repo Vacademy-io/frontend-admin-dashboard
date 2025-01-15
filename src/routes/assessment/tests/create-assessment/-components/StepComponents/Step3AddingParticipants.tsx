@@ -8,7 +8,14 @@ import { Separator } from "@/components/ui/separator";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MyInput } from "@/components/design-system/input";
-import { Copy, DotsSixVertical, DownloadSimple, Plus, TrashSimple } from "phosphor-react";
+import {
+    Copy,
+    DotsSixVertical,
+    DownloadSimple,
+    PencilSimple,
+    Plus,
+    TrashSimple,
+} from "phosphor-react";
 import QRCode from "react-qr-code";
 import {
     copyToClipboard,
@@ -57,6 +64,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         {
             id: number;
             value: string;
+            disabled: boolean;
         }[]
     >([]);
 
@@ -145,6 +153,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const { handleSubmit, getValues, control, watch, setValue } = form;
     const customFields = getValues("open_test.custom_fields");
     watch("open_test.custom_fields");
+    console.log(getValues());
 
     const handleSubmitStep3Form = useMutation({
         mutationFn: ({
@@ -208,7 +217,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const handleAddDropdownOptions = () => {
         setDropdownOptions((prevOptions) => [
             ...prevOptions,
-            { id: prevOptions.length, value: `option ${prevOptions.length + 1}` },
+            { id: prevOptions.length, value: `option ${prevOptions.length + 1}`, disabled: true },
         ]);
     };
 
@@ -234,12 +243,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         setValue("open_test.custom_fields", updatedFields);
     };
     const handleDeleteOptionField = (id: number) => {
-        setDropdownOptions(
-            (prevFields) =>
-                prevFields
-                    .filter((field) => field.id !== id)
-                    .map((field, index) => ({ id: index, value: `option ${index + 1}` })), // Recalculate IDs and values
-        );
+        setDropdownOptions((prevFields) => prevFields.filter((field) => field.id !== id));
     };
 
     // Function to close the dialog
@@ -264,6 +268,22 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         setIsDialogOpen(false);
         setTextFieldValue("");
         setDropdownOptions([]);
+    };
+
+    const handleValueChange = (id: number, newValue: string) => {
+        setDropdownOptions((prevOptions) =>
+            prevOptions.map((option) =>
+                option.id === id ? { ...option, value: newValue } : option,
+            ),
+        );
+    };
+
+    const handleEditClick = (id: number) => {
+        setDropdownOptions((prevOptions) =>
+            prevOptions.map((option) =>
+                option.id === id ? { ...option, disabled: !option.disabled } : option,
+            ),
+        );
     };
 
     if (isLoading || handleSubmitStep3Form.status === "pending") return <DashboardLoader />;
@@ -360,7 +380,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         <>
                             <div className="mt-2 flex flex-col gap-4">
                                 <h1>Assessment Registration</h1>
-                                <div className="-mt-2 flex items-center gap-4">
+                                <div className="-mt-2 flex items-start gap-4">
                                     {getStepKey({
                                         assessmentDetails,
                                         currentStep,
@@ -668,13 +688,46 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                                 {dropdownOptions.map((option) => {
                                                                     return (
                                                                         <div
-                                                                            className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2"
+                                                                            className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1"
                                                                             key={option.id} // Use unique identifier
                                                                         >
-                                                                            <h1 className="text-sm">
-                                                                                {option.value}
-                                                                            </h1>
+                                                                            <MyInput
+                                                                                inputType="text"
+                                                                                inputPlaceholder={
+                                                                                    option.value
+                                                                                }
+                                                                                input={option.value}
+                                                                                onChangeFunction={(
+                                                                                    e,
+                                                                                ) =>
+                                                                                    handleValueChange(
+                                                                                        option.id,
+                                                                                        e.target
+                                                                                            .value,
+                                                                                    )
+                                                                                }
+                                                                                size="large"
+                                                                                disabled={
+                                                                                    option.disabled
+                                                                                }
+                                                                                className="border-none pl-0"
+                                                                            />
                                                                             <div className="flex items-center gap-6">
+                                                                                <MyButton
+                                                                                    type="button"
+                                                                                    scale="medium"
+                                                                                    buttonType="secondary"
+                                                                                    className="h-6 min-w-6 !rounded-sm px-1"
+                                                                                    onClick={() =>
+                                                                                        handleEditClick(
+                                                                                            option.id,
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <PencilSimple
+                                                                                        size={32}
+                                                                                    />
+                                                                                </MyButton>
                                                                                 {dropdownOptions.length >
                                                                                     1 && (
                                                                                     <MyButton
@@ -758,7 +811,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                                 <SelectField
                                                                     label={testInputFields.name}
                                                                     labelStyle="font-normal"
-                                                                    name={"dje"}
+                                                                    name={testInputFields.name}
                                                                     options={
                                                                         testInputFields?.options?.map(
                                                                             (option, index) => ({
@@ -812,6 +865,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                         scale="medium"
                                                         buttonType="primary"
                                                         className="mt-4 w-fit"
+                                                        disable
                                                     >
                                                         Register Now
                                                     </MyButton>

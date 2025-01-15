@@ -9,6 +9,10 @@ interface SectionDetailsState {
         subject: string;
         yearClass: string;
         uploaded_question_paper?: string | null;
+        question_duration: {
+            hrs: string;
+            min: string;
+        };
         section_description: string;
         section_duration: {
             hrs: string;
@@ -32,6 +36,10 @@ interface SectionDetailsState {
             questionType: string;
             questionMark: string;
             questionPenalty: string;
+            questionDuration: {
+                hrs: string;
+                min: string;
+            };
         }[];
     }[];
     setSectionDetails: (data: Partial<SectionDetailsState>) => void;

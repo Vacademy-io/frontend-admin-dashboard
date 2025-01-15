@@ -38,6 +38,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import sectionDetailsSchema from "../../-utils/section-details-schema";
+import { useDurationDistributionStore } from "../../-utils/zustand-global-states/step1-basic-info";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -50,6 +51,7 @@ export const Step2SectionInfo = ({
     index: number;
     currentStep: number;
 }) => {
+    const { durationDistribution } = useDurationDistributionStore();
     const [enableSectionName, setEnableSectionName] = useState(true);
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
@@ -77,7 +79,6 @@ export const Step2SectionInfo = ({
         name: "section", // Matches the key in defaultValues
     });
 
-    console.log(allSections);
     const handleDeleteSection = (e: React.MouseEvent, index: number) => {
         e.stopPropagation();
         remove(index);
@@ -126,6 +127,28 @@ export const Step2SectionInfo = ({
         // Update the section's adaptive_marking_for_each_question
         setValue(`section.${index}.adaptive_marking_for_each_question`, updatedQuestions);
     }, [watch(`section.${index}.negative_marking.value`)]);
+
+    useEffect(() => {
+        const questionDurationHrs = getValues(`section.${index}`).question_duration?.hrs;
+        const questionDurationMin = getValues(`section.${index}`).question_duration?.min;
+
+        // Loop through adaptive_marking_for_each_question and assign questionMark
+        const updatedQuestions = getValues(
+            `section.${index}`,
+        ).adaptive_marking_for_each_question.map((question) => ({
+            ...question,
+            questionDuration: {
+                hrs: questionDurationHrs,
+                min: questionDurationMin,
+            },
+        }));
+
+        // Update the section's adaptive_marking_for_each_question
+        setValue(`section.${index}.adaptive_marking_for_each_question`, updatedQuestions);
+    }, [
+        watch(`section.${index}.question_duration.hrs`),
+        watch(`section.${index}.question_duration.min`),
+    ]);
 
     if (isLoading) return <DashboardLoader />;
 
@@ -364,73 +387,144 @@ export const Step2SectionInfo = ({
                         )}
                     />
                 </div>
-                <div className="flex w-96 items-center justify-between text-sm font-thin">
-                    <h1 className="font-normal">
-                        Section Duration{" "}
-                        {getStepKey({
-                            assessmentDetails,
-                            currentStep,
-                            key: "section_duration",
-                        }) === "REQUIRED" && (
-                            <span className="text-subtitle text-danger-600">*</span>
-                        )}
-                    </h1>
-                    <div className="flex items-center gap-4">
-                        <FormField
-                            control={control}
-                            name={`section.${index}.section_duration.hrs`}
-                            render={({ field: { ...field } }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            inputType="text"
-                                            inputPlaceholder="00"
-                                            input={field.value}
-                                            onChangeFunction={(e) => {
-                                                const inputValue = e.target.value.replace(
-                                                    /[^0-9]/g,
-                                                    "",
-                                                ); // Remove non-numeric characters
-                                                field.onChange(inputValue); // Call onChange with the sanitized value
-                                            }}
-                                            size="large"
-                                            {...field}
-                                            className="w-11"
-                                        />
-                                    </FormControl>
-                                </FormItem>
+                {durationDistribution === "QUESTION" && (
+                    <div className="flex w-96 items-center justify-between text-sm font-thin">
+                        <h1 className="font-normal">
+                            Question Duration{" "}
+                            {getStepKey({
+                                assessmentDetails,
+                                currentStep,
+                                key: "section_duration",
+                            }) === "REQUIRED" && (
+                                <span className="text-subtitle text-danger-600">*</span>
                             )}
-                        />
-                        <span>hrs</span>
-                        <span>:</span>
-                        <FormField
-                            control={control}
-                            name={`section.${index}.section_duration.min`}
-                            render={({ field: { ...field } }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            inputType="text"
-                                            inputPlaceholder="00"
-                                            input={field.value}
-                                            onChangeFunction={(e) => {
-                                                const inputValue = e.target.value.replace(
-                                                    /[^0-9]/g,
-                                                    "",
-                                                ); // Remove non-numeric characters
-                                                field.onChange(inputValue); // Call onChange with the sanitized value
-                                            }}
-                                            size="large"
-                                            {...field}
-                                            className="w-11"
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <span>minutes</span>
+                        </h1>
+                        <div className="flex items-center gap-4">
+                            <FormField
+                                control={control}
+                                name={`section.${index}.question_duration.hrs`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onChangeFunction={(e) => {
+                                                    const inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        "",
+                                                    ); // Remove non-numeric characters
+                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                }}
+                                                size="large"
+                                                {...field}
+                                                className="w-11"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <span>hrs</span>
+                            <span>:</span>
+                            <FormField
+                                control={control}
+                                name={`section.${index}.question_duration.min`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onChangeFunction={(e) => {
+                                                    const inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        "",
+                                                    ); // Remove non-numeric characters
+                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                }}
+                                                size="large"
+                                                {...field}
+                                                className="w-11"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <span>minutes</span>
+                        </div>
                     </div>
-                </div>
+                )}
+                {durationDistribution === "SECTION" && (
+                    <div className="flex w-96 items-center justify-between text-sm font-thin">
+                        <h1 className="font-normal">
+                            Section Duration{" "}
+                            {getStepKey({
+                                assessmentDetails,
+                                currentStep,
+                                key: "section_duration",
+                            }) === "REQUIRED" && (
+                                <span className="text-subtitle text-danger-600">*</span>
+                            )}
+                        </h1>
+                        <div className="flex items-center gap-4">
+                            <FormField
+                                control={control}
+                                name={`section.${index}.section_duration.hrs`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onChangeFunction={(e) => {
+                                                    const inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        "",
+                                                    ); // Remove non-numeric characters
+                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                }}
+                                                size="large"
+                                                {...field}
+                                                className="w-11"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <span>hrs</span>
+                            <span>:</span>
+                            <FormField
+                                control={control}
+                                name={`section.${index}.section_duration.min`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onChangeFunction={(e) => {
+                                                    const inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        "",
+                                                    ); // Remove non-numeric characters
+                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                }}
+                                                size="large"
+                                                {...field}
+                                                className="w-11"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <span>minutes</span>
+                        </div>
+                    </div>
+                )}
                 <div className="flex items-center gap-4 text-sm font-thin">
                     <div className="flex flex-col font-normal">
                         <h1>
@@ -637,6 +731,7 @@ export const Step2SectionInfo = ({
                                         <TableHead>Question Type</TableHead>
                                         <TableHead>Marks</TableHead>
                                         <TableHead>Penalty</TableHead>
+                                        <TableHead>Time</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody className="bg-neutral-50">
@@ -704,6 +799,57 @@ export const Step2SectionInfo = ({
                                                                     </FormItem>
                                                                 )}
                                                             />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-2">
+                                                                <FormField
+                                                                    control={control}
+                                                                    name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.hrs`}
+                                                                    render={({
+                                                                        field: { ...field },
+                                                                    }) => (
+                                                                        <FormItem>
+                                                                            <FormControl>
+                                                                                <Input
+                                                                                    type="text"
+                                                                                    placeholder="00"
+                                                                                    className="w-11"
+                                                                                    value={
+                                                                                        field.value
+                                                                                    }
+                                                                                    onChange={
+                                                                                        field.onChange
+                                                                                    }
+                                                                                />
+                                                                            </FormControl>
+                                                                        </FormItem>
+                                                                    )}
+                                                                />
+                                                                <span>:</span>
+                                                                <FormField
+                                                                    control={control}
+                                                                    name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.min`}
+                                                                    render={({
+                                                                        field: { ...field },
+                                                                    }) => (
+                                                                        <FormItem>
+                                                                            <FormControl>
+                                                                                <Input
+                                                                                    type="text"
+                                                                                    placeholder="00"
+                                                                                    className="w-11"
+                                                                                    value={
+                                                                                        field.value
+                                                                                    }
+                                                                                    onChange={
+                                                                                        field.onChange
+                                                                                    }
+                                                                                />
+                                                                            </FormControl>
+                                                                        </FormItem>
+                                                                    )}
+                                                                />
+                                                            </div>
                                                         </TableCell>
                                                     </TableRow>
                                                 );
