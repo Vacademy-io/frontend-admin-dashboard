@@ -34,5 +34,8 @@ export { EmptyChaptersImage };
 import ImportFileImage from "./import-file.svg";
 export { ImportFileImage };
 
+import EmptySlideMaterial from "./empty-slide-material.svg";
+export { EmptySlideMaterial };
+
 import SSDC_Logo from "./Background.svg";
 export { SSDC_Logo };

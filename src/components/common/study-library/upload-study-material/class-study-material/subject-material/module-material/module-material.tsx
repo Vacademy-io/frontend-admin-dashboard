@@ -62,7 +62,7 @@ export const ModuleMaterial = ({ classNumber, subject, module }: ModuleMaterialP
     };
 
     return (
-        <div className="flex h-full w-full flex-col gap-12 text-neutral-600">
+        <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
             <div className="flex items-center justify-between gap-80">
                 <div className="flex items-center justify-between gap-80">
                     <div className="flex w-full flex-col gap-2">

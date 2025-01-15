@@ -35,7 +35,7 @@ import { DotsThree } from "@phosphor-icons/react";
 import PDFViewer from "@/components/common/study-library/pdf-viewer";
 import { ActivityStatsSidebar } from "./activity-stats-sidebar/activity-sidebar";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { EmptyModulesImage } from "@/assets/svgs";
+import { EmptySlideMaterial } from "@/assets/svgs";
 import { useState } from "react";
 import YouTubePlayer from "./youtube-player";
 import { html } from "@yoopta/exports";
@@ -112,8 +112,8 @@ export const ChapterMaterial = () => {
     const renderContent = () => {
         if (!activeItem) {
             return (
-                <div className="flex h-full flex-col items-center justify-center rounded-lg bg-neutral-50">
-                    <EmptyModulesImage />
+                <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
+                    <EmptySlideMaterial />
                     <p className="mt-4 text-neutral-500">No study material has been added yet</p>
                 </div>
             );

@@ -50,7 +50,7 @@ export const StudyLibrary = () => {
     ];
 
     return (
-        <div className="relative flex flex-col gap-12 text-neutral-600">
+        <div className="relative flex flex-col gap-8 text-neutral-600">
             <div className="flex items-center gap-20">
                 <div className="flex flex-col gap-2">
                     <div className="text-h3 font-semibold">Class & Resource Management</div>

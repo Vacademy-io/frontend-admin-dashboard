@@ -128,8 +128,9 @@ export const Chapters = ({
     return (
         <div className="h-full w-full">
             {!chapters.length && (
-                <div className="flex h-[500px] w-full flex-col items-center justify-center gap-8 rounded-lg bg-neutral-100">
+                <div className="flex w-full flex-col items-center justify-center gap-8 rounded-lg py-10">
                     <EmptyChaptersImage />
+                    <div>No Modules have been added yet.</div>
                 </div>
             )}
             <div className="flex flex-col gap-6">
