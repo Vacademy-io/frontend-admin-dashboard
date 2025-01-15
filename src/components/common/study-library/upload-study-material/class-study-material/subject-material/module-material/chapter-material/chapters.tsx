@@ -1,11 +1,10 @@
 // chapters.tsx
 import { EmptyChaptersImage } from "@/assets/svgs";
-import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { MyDropdown } from "@/components/design-system/dropdown";
-import { DotsSixVertical, DotsThree, FileDoc, FilePdf, Video } from "@phosphor-icons/react";
+import { DotsSixVertical, FileDoc, FilePdf, Video } from "@phosphor-icons/react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import { ChapterMenuOptions } from "./chapter-menu-options/chapter-menu-options";
 
 export interface ChapterType {
     name: string;
@@ -15,38 +14,6 @@ export interface ChapterType {
         videos: number;
     };
 }
-
-interface MenuOptionsProps {
-    onDelete: () => void;
-    onEdit: () => void;
-}
-
-const MenuOptions = ({ onDelete, onEdit }: MenuOptionsProps) => {
-    const DropdownList = ["Edit Chapter", "Delete Chapter"];
-
-    const handleMenuOptionsChange = (value: string) => {
-        if (value === "Delete Chapter") {
-            onDelete();
-        } else if (value === "Edit Chapter") {
-            onEdit();
-        }
-    };
-
-    return (
-        <div className="menu-options-container">
-            <MyDropdown dropdownList={DropdownList} onSelect={handleMenuOptionsChange}>
-                <MyButton
-                    buttonType="secondary"
-                    scale="small"
-                    layoutVariant="icon"
-                    className="flex items-center justify-center"
-                >
-                    <DotsThree />
-                </MyButton>
-            </MyDropdown>
-        </div>
-    );
-};
 
 interface ChapterCardProps {
     chapter: ChapterType;
@@ -80,7 +47,7 @@ const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
                 <div className="flex items-center justify-between text-subtitle font-semibold">
                     <div>{chapter.name}</div>
                     <div className="flex items-center gap-6">
-                        <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
+                        <ChapterMenuOptions onDelete={onDelete} />
                         <DotsSixVertical />
                     </div>
                 </div>

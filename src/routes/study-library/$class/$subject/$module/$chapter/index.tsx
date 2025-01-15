@@ -6,9 +6,9 @@ import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
-import { ChapterSidebarAddButton } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-sidebar/chapter-sidebar-add-button";
+import { ChapterSidebarAddButton } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
 import { truncateString } from "@/lib/reusable/truncateString";
-import { ChapterSidebarSlides } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-sidebar/chapter-sidebar-slides";
+import { ChapterSidebarSlides } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
 
 export const Route = createFileRoute("/study-library/$class/$subject/$module/$chapter/")({
     component: Chapters,

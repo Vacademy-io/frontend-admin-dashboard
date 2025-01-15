@@ -1,13 +1,4 @@
-import YooptaEditor, {
-    createYooptaEditor,
-    // YooptaContentValue,
-    // YooptaOnChangeOptions,
-    // Elements,
-    // Blocks,
-    // useYooptaEditor,
-    // YooptaContentValue,
-    // YooptaOnChangeOptions,
-} from "@yoopta/editor";
+import YooptaEditor, { createYooptaEditor } from "@yoopta/editor";
 import { YooptaPlugin, SlateElement } from "@yoopta/editor";
 import Paragraph from "@yoopta/paragraph";
 import Blockquote from "@yoopta/blockquote";
@@ -31,14 +22,14 @@ import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 //   import { uploadToCloudinary } from '@/utils/cloudinary';
 import { useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
-import { DotsThree } from "@phosphor-icons/react";
 import PDFViewer from "@/components/common/study-library/pdf-viewer";
-import { ActivityStatsSidebar } from "./activity-stats-sidebar/activity-sidebar";
+import { ActivityStatsSidebar } from "./slides-material/stats-dialog/activity-sidebar";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { EmptySlideMaterial } from "@/assets/svgs";
 import { useState } from "react";
-import YouTubePlayer from "./youtube-player";
+import YouTubePlayer from "./slides-material/youtube-player";
 import { html } from "@yoopta/exports";
+import { SlidesMenuOption } from "./slides-material/slides-menu-options/slildes-menu-option";
 
 const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -104,11 +95,6 @@ export const ChapterMaterial = () => {
         setIsEditing(false);
     };
 
-    // const handleEditorChange = (value: YooptaContentValue, options: YooptaOnChangeOptions) => {
-    //     // Handle editor content change
-
-    // };
-
     const renderContent = () => {
         if (!activeItem) {
             return (
@@ -159,7 +145,6 @@ export const ChapterMaterial = () => {
     };
 
     return (
-        // <SidebarProvider style={{ ["--sidebar-width" as string]: "530px" }}>
         <div className="flex w-full flex-col" ref={selectionRef}>
             <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
                 {isEditing ? (
@@ -186,13 +171,10 @@ export const ChapterMaterial = () => {
                             Edit
                         </MyButton>
                     </div>
-                    <MyButton buttonType="secondary" scale="large" layoutVariant="icon">
-                        <DotsThree />
-                    </MyButton>
+                    <SlidesMenuOption />
                 </div>
             </div>
             <div className="mt-14 h-full w-full px-10">{renderContent()}</div>
         </div>
-        // </SidebarProvider>
     );
 };

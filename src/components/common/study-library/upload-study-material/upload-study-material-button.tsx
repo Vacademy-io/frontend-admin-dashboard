@@ -2,7 +2,7 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { BookOpenText } from "@phosphor-icons/react";
 import { useState } from "react";
-import { UploadStudyMaterialForm } from "./upload-study-material-form";
+import { StudyMaterialDetailsForm } from "./study-material-details-form";
 
 export const UploadStudyMaterialButton = () => {
     const [openDialog, setOpenDialog] = useState(false);
@@ -28,7 +28,11 @@ export const UploadStudyMaterialButton = () => {
             open={openDialog}
             onOpenChange={handleOpenChange}
         >
-            <UploadStudyMaterialForm />
+            <StudyMaterialDetailsForm
+                fields={["session", "year_class", "subject", "module", "chapter", "file_type"]}
+                onFormSubmit={() => {}}
+                submitButtonName="Submit"
+            />
         </MyDialog>
     );
 };

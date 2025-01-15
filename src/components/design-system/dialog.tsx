@@ -3,7 +3,7 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { ReactNode } from "react";
 
 interface DialogProps {
-    trigger: ReactNode;
+    trigger?: ReactNode;
     heading: string;
     content?: React.ReactNode;
     dialogWidth?: string;
