@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { EmptyScheduleTest } from "@/svgs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { ScheduleTestFilters } from "./ScheduleTestFilters";
@@ -12,8 +12,10 @@ import { ScheduleTestHeaderDescription } from "./ScheduleTestHeaderDescription";
 import ScheduleTestTabList from "./ScheduleTestTabList";
 import ScheduleTestFilterButtons from "./ScheduleTestFilterButtons";
 import { scheduleTestTabsData } from "@/constants/dummy-data";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 
 export const ScheduleTestMainComponent = () => {
+    const { setNavHeading } = useNavHeadingStore();
     const [selectedTab, setSelectedTab] = useState("liveTests");
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { BatchesFilterData, SubjectFilterData, StatusData } =
@@ -57,6 +59,10 @@ export const ScheduleTestMainComponent = () => {
     const handleSubmitFilters = () => {
         console.log("Filter Clicked!");
     };
+
+    useEffect(() => {
+        setNavHeading(<h1 className="text-lg">Assessments List</h1>);
+    }, []);
 
     return (
         <>

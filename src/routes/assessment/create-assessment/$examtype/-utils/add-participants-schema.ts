@@ -49,13 +49,19 @@ const testAccessSchema = z.object({
             instructions: z.string(),
             custom_fields: customFieldsSchema, // Dynamic custom fields
         })
-        .refine(
-            (data) => new Date(data.end_date) > new Date(data.start_date), // Custom validation logic
-            {
-                message: "End date must be greater than start date.",
-                path: ["end_date"], // Associate error with `end_date`
-            },
-        ),
+        .superRefine((data, ctx) => {
+            if (data.checked) {
+                const startDate = new Date(data.start_date);
+                const endDate = new Date(data.end_date);
+                if (endDate <= startDate) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "End date must be greater than start date.",
+                        path: ["end_date"], // Associate the error with `end_date`
+                    });
+                }
+            }
+        }),
     select_batch: z.object({
         checked: z.boolean(),
         batch_details: z.record(z.array(z.string())),

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useFilterDataForAssesment } from "../../../-utils.ts/useFiltersData";
+import { useFilterDataForAssesment } from "../../../../exam/-utils.ts/useFiltersData";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "phosphor-react";
+import { useParams } from "@tanstack/react-router";
 
 const heading = (
     <div className="flex items-center gap-4">
@@ -53,6 +54,8 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const params = useParams({ strict: false });
+    const examType = params.examtype;
     const { setNavHeading } = useNavHeadingStore();
     const storeDataStep1 = useBasicInfoStore((state) => state);
     const { setDurationDistribution } = useDurationDistributionStore();
@@ -62,7 +65,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         getAssessmentDetails({
             assessmentId: null,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
+            type: examType,
         }),
     );
     const { setAssessmentUrl } = useAssessmentUrlStore();
@@ -142,7 +145,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             data: z.infer<typeof BasicInfoFormSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
-            type: string;
+            type: string | undefined;
         }) => handlePostStep1Data(data, assessmentId, instituteId, type),
         onSuccess: async (data) => {
             setSavedAssessmentId(data.assessment_id);
@@ -150,7 +153,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             const responseData = await getAssessmentDetailsData({
                 assessmentId: data?.assessment_id,
                 instituteId: instituteDetails?.id,
-                type: "EXAM",
+                type: examType,
             });
             setAssessmentUrl(responseData[currentStep]?.saved_data?.assessment_url ?? "");
             setDurationDistribution(
@@ -191,7 +194,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             data: modifiedData,
             assessmentId: null,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
+            type: examType,
         });
     };
 

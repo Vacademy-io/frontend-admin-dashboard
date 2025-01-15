@@ -21,7 +21,7 @@ export const getAssessmentDetailsData = async ({
 }: {
     assessmentId: string | null;
     instituteId: string | undefined;
-    type: string;
+    type: string | undefined;
 }): Promise<Steps> => {
     const response = await authenticatedAxiosInstance({
         method: "GET",
@@ -41,7 +41,7 @@ export const getAssessmentDetails = ({
 }: {
     assessmentId: string | null;
     instituteId: string | undefined;
-    type: string;
+    type: string | undefined;
 }) => {
     return {
         queryKey: ["GET_ASSESSMENT_DETAILS", assessmentId, instituteId, type],
@@ -72,7 +72,7 @@ export const handlePostStep1Data = async (
     data: z.infer<typeof BasicInfoFormSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
-    type: string,
+    type: string | undefined,
 ) => {
     const transformedData = {
         status: data.status,
@@ -122,7 +122,7 @@ export const handlePostStep2Data = async (
     data: z.infer<typeof sectionDetailsSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
-    type: string,
+    type: string | undefined,
 ) => {
     const convertedData = {
         added_sections: data.section.map((section, index) => ({
@@ -233,7 +233,7 @@ export const handlePostStep3Data = async (
     data: z.infer<typeof testAccessSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
-    type: string,
+    type: string | undefined,
 ) => {
     const convertedData = {
         closed_test: data.closed_test,
@@ -295,7 +295,7 @@ export const handlePostStep4Data = async (
     data: z.infer<typeof AccessControlFormSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
-    type: string,
+    type: string | undefined,
 ) => {
     const convertedData = {
         assessment_creation_access: {

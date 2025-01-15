@@ -23,6 +23,7 @@ import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useAccessControlStore } from "../../-utils/zustand-global-states/step4-access-control";
+import { useParams } from "@tanstack/react-router";
 
 const roles = [
     { roleId: "1", roleName: "All Admins", isSelected: false },
@@ -46,6 +47,8 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const params = useParams({ strict: false });
+    const examType = params.examtype;
     const storeDataStep4 = useAccessControlStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
@@ -53,7 +56,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
         getAssessmentDetails({
             assessmentId: null,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
+            type: examType,
         }),
     );
     const form = useForm<AccessControlFormValues>({
@@ -96,13 +99,13 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             data: z.infer<typeof AccessControlFormSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
-            type: string;
+            type: string | undefined;
         }) => handlePostStep4Data(data, assessmentId, instituteId, type),
         onSuccess: async (data) => {
             const responseData = await getAssessmentDetailsData({
                 assessmentId: data?.assessment_id,
                 instituteId: instituteDetails?.id,
-                type: "EXAM",
+                type: examType,
             });
             console.log(responseData);
             syncStep4DataWithStore(form);
@@ -130,7 +133,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             data: data,
             assessmentId: savedAssessmentId,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
+            type: examType,
         });
     };
 

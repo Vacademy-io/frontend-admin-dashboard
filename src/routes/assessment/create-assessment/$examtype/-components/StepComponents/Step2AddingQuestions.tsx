@@ -23,6 +23,7 @@ import { syncStep2DataWithStore } from "../../-utils/helper";
 import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useDurationDistributionStore } from "../../-utils/zustand-global-states/step1-basic-info";
+import { useParams } from "@tanstack/react-router";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -31,6 +32,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const params = useParams({ strict: false });
+    const examType = params.examtype;
     const { durationDistribution } = useDurationDistributionStore();
     const storeDataStep2 = useSectionDetailsStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
@@ -90,14 +93,14 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             data: z.infer<typeof sectionDetailsSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
-            type: string;
+            type: string | undefined;
         }) => handlePostStep2Data(data, assessmentId, instituteId, type),
         onSuccess: async (data) => {
             // Ensure data is accessed correctly
             const responseData = await getAssessmentDetailsData({
                 assessmentId: data?.assessment_id,
                 instituteId: instituteDetails?.id,
-                type: "EXAM",
+                type: examType,
             });
             const sectionIds =
                 responseData[currentStep]?.saved_data?.sections
@@ -132,7 +135,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             data: data,
             assessmentId: savedAssessmentId,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
+            type: examType,
         });
     };
 

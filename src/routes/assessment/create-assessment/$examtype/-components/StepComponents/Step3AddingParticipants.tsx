@@ -46,6 +46,7 @@ import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAssessmentUrlStore } from "../../-utils/zustand-global-states/step1-basic-info";
 import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
+import { useParams } from "@tanstack/react-router";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -54,6 +55,8 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const params = useParams({ strict: false });
+    const examType = params.examtype;
     const storeDataStep3 = useTestAccessStore((state) => state);
     const { assessmentUrl } = useAssessmentUrlStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
@@ -145,7 +148,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         getAssessmentDetails({
             assessmentId: null,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
+            type: examType,
         }),
     );
     const { batches_for_sessions } = instituteDetails || {};
@@ -165,13 +168,13 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             data: z.infer<typeof testAccessSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
-            type: string;
+            type: string | undefined;
         }) => handlePostStep3Data(data, assessmentId, instituteId, type),
         onSuccess: async (data) => {
             const responseData = await getAssessmentDetailsData({
                 assessmentId: data?.assessment_id,
                 instituteId: instituteDetails?.id,
-                type: "EXAM",
+                type: examType,
             });
             console.log(responseData);
             syncStep3DataWithStore(form);
@@ -199,7 +202,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             data: data,
             assessmentId: savedAssessmentId,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
+            type: examType,
         });
     };
 
