@@ -11,14 +11,12 @@ import {
     useGetSessions,
     useGetGenders,
 } from "@/hooks/student-list-section/useFilters";
-// import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepTwoData, stepTwoSchema } from "@/types/students/schema-enroll-students-manually";
 
 export const StepTwoForm = () => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
-    // const { isLoading } = useInstituteQuery();
     const sessionList = useGetSessions();
     const genderList = useGetGenders();
 

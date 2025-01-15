@@ -13,9 +13,12 @@ import { SidebarItemsData } from "./utils";
 import "./scrollbarStyle.css";
 import { SSDC_Logo } from "@/assets/svgs";
 import React from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
+    useSuspenseQuery(useInstituteQuery());
 
     return (
         <Sidebar collapsible="icon">
