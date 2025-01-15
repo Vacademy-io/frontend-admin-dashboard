@@ -127,6 +127,7 @@ export const MyDropdown = ({
                     </DropdownMenuContent>
                 </DropdownMenuPortal>
             </DropdownMenu>
+            {error && <p className="text-caption text-danger-500">This field is required</p>}
         </div>
     );
 };

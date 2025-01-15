@@ -12,6 +12,7 @@ import { INSTITUTE_ID } from "@/constants/urls";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { PencilSimpleLine } from "@phosphor-icons/react";
 import { SubjectDefaultImage } from "@/assets/svgs";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 const formSchema = z.object({
     moduleName: z.string().min(1, "Module name is required"),
@@ -99,7 +100,11 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
                 />
 
                 <div className="relative flex w-full items-center justify-center">
-                    {imageUrl ? (
+                    {isUploading ? (
+                        <div className="inset-0 flex h-[150px] w-[150px] items-center justify-center bg-white">
+                            <DashboardLoader />
+                        </div>
+                    ) : imageUrl ? (
                         <img
                             src={imageUrl}
                             alt="Module"
@@ -115,13 +120,18 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
                         name="imageFile"
                         acceptedFileTypes="image/*"
                     />
-                    <div className="absolute right-[54px] top-0">
+                    <div
+                        className={`absolute right-[54px] top-0 ${
+                            isUploading ? "hidden" : "visible"
+                        }`}
+                    >
                         <MyButton
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isUploading || isUploadingFile}
                             buttonType="secondary"
                             layoutVariant="icon"
                             scale="small"
+                            type="button"
                         >
                             <PencilSimpleLine />
                         </MyButton>

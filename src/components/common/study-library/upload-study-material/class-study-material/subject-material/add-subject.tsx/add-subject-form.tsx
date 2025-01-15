@@ -11,6 +11,7 @@ import { Subject } from "./subjects";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 const formSchema = z.object({
     subjectName: z.string().min(1, "Subject name is required"),
@@ -97,7 +98,11 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
 
                 <div className="flex flex-col gap-6">
                     <div className="relative flex w-full items-center justify-center">
-                        {imageUrl ? (
+                        {isUploading ? (
+                            <div className="inset-0 flex h-[200px] w-[200px] items-center justify-center bg-white">
+                                <DashboardLoader />
+                            </div>
+                        ) : imageUrl ? (
                             <img
                                 src={imageUrl}
                                 alt="Subject"
@@ -113,13 +118,18 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                             name="imageFile"
                             acceptedFileTypes="image/*"
                         />
-                        <div className="absolute right-[54px] top-0">
+                        <div
+                            className={`absolute right-[54px] top-0 ${
+                                isUploading ? "hidden" : "visible"
+                            }`}
+                        >
                             <MyButton
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isUploading || isUploadingFile}
                                 buttonType="secondary"
                                 layoutVariant="icon"
                                 scale="small"
+                                type="button"
                             >
                                 <PencilSimpleLine />
                             </MyButton>

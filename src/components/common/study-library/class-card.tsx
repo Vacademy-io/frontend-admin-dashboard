@@ -1,3 +1,4 @@
+import { useSidebar } from "@/components/ui/sidebar";
 import { FC, SVGProps } from "react";
 import React from "react";
 
@@ -8,9 +9,12 @@ interface ClassCardProps {
 }
 
 export const ClassCard = ({ image, classLevel }: ClassCardProps) => {
+    const { open } = useSidebar();
     return (
         <div className="flex cursor-pointer flex-col items-center justify-center rounded-xl py-5 shadow-xl">
-            {React.createElement(image)}
+            {React.createElement(image, {
+                className: open ? "w-[360px] h-[250px]" : "w-[420px] h-[250px]",
+            })}
             <div className="text-h1 font-semibold text-primary-500">{classLevel} Class</div>
         </div>
     );

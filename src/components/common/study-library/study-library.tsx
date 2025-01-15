@@ -70,7 +70,7 @@ export const StudyLibrary = () => {
                 <SessionDropdown className="text-title font-semibold" />
             </div>
 
-            <div className={`flex ${open ? "gap-4" : "gap-12"}`}>
+            <div className={`flex ${open ? "gap-4" : "gap-8"} justify-between`}>
                 {ClassCardData.map((card, key) => (
                     <div key={key} onClick={() => handleClassClick(card.id)}>
                         <ClassCard image={card.image} classLevel={card.class} />
