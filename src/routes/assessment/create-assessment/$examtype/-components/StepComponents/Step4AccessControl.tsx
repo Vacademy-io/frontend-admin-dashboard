@@ -23,7 +23,7 @@ import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useAccessControlStore } from "../../-utils/zustand-global-states/step4-access-control";
-import { useParams } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 
 const roles = [
     { roleId: "1", roleName: "All Admins", isSelected: false },
@@ -47,6 +47,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const navigate = useNavigate();
     const params = useParams({ strict: false });
     const examType = params.examtype;
     const storeDataStep4 = useAccessControlStore((state) => state);
@@ -114,6 +115,9 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 duration: 2000,
             });
             handleCompleteCurrentStep();
+            navigate({
+                to: "/assessment/exam",
+            });
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
