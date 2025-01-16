@@ -6,3 +6,5 @@ export { default as Examination } from "./examination.svg";
 export { default as Mock } from "./mock.svg";
 export { default as Practice } from "./practice.svg";
 export { default as Survey } from "./survey.svg";
+export { default as DotIcon } from "./dotIcon.svg";
+export { default as DotIconOffline } from "./dotIconOffline.svg";

@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { scheduleTestTabsData } from "@/constants/dummy-data";
 
 const ScheduleTestTabList = ({ selectedTab }: { selectedTab: string }) => {
     return (
@@ -13,13 +14,13 @@ const ScheduleTestTabList = ({ selectedTab }: { selectedTab: string }) => {
                 }`}
             >
                 <span className={`${selectedTab === "liveTests" ? "text-primary-500" : ""}`}>
-                    Live Tests
+                    Live
                 </span>
                 <Badge
                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {0}
+                    {scheduleTestTabsData[0]?.data.length}
                 </Badge>
             </TabsTrigger>
             <TabsTrigger
@@ -31,13 +32,13 @@ const ScheduleTestTabList = ({ selectedTab }: { selectedTab: string }) => {
                 }`}
             >
                 <span className={`${selectedTab === "upcomingTests" ? "text-primary-500" : ""}`}>
-                    Upcoming Tests
+                    Upcoming
                 </span>
                 <Badge
                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {0}
+                    {scheduleTestTabsData[1]?.data.length}
                 </Badge>
             </TabsTrigger>
             <TabsTrigger
@@ -49,13 +50,31 @@ const ScheduleTestTabList = ({ selectedTab }: { selectedTab: string }) => {
                 }`}
             >
                 <span className={`${selectedTab === "previousTests" ? "text-primary-500" : ""}`}>
-                    Previous Tests
+                    Previous
                 </span>
                 <Badge
                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {0}
+                    {scheduleTestTabsData[2]?.data.length}
+                </Badge>
+            </TabsTrigger>
+            <TabsTrigger
+                value="draftTests"
+                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                    selectedTab === "draftTests"
+                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                        : "border-none bg-transparent"
+                }`}
+            >
+                <span className={`${selectedTab === "liveTests" ? "text-primary-500" : ""}`}>
+                    Drafts
+                </span>
+                <Badge
+                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                    variant="outline"
+                >
+                    {scheduleTestTabsData[3]?.data.length}
                 </Badge>
             </TabsTrigger>
         </TabsList>

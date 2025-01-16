@@ -91,8 +91,8 @@ export const getQuestionTypeCounts = (questions: AdaptiveMarkingQuestion[]) => {
     };
 };
 
-export const handleDownloadQRCode = () => {
-    const svg = document.getElementById("qr-code-svg");
+export const handleDownloadQRCode = (elementName: string) => {
+    const svg = document.getElementById(elementName);
     if (!svg) {
         alert("QR code not found!");
         return;

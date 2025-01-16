@@ -947,7 +947,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                         scale="small"
                                         buttonType="secondary"
                                         className="h-10 min-w-10"
-                                        onClick={handleDownloadQRCode}
+                                        onClick={() => handleDownloadQRCode("qr-code-svg")}
                                     >
                                         <DownloadSimple size={32} />
                                     </MyButton>
