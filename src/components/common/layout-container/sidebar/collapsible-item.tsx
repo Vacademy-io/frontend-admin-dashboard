@@ -8,7 +8,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 import { useRouter } from "@tanstack/react-router";
 
-export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => {
+export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps) => {
     const [hover, setHover] = useState<boolean>(false);
     const { state, toggleSidebar } = useSidebar(); // Access sidebar state and toggle function
 
@@ -16,7 +16,8 @@ export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => 
     const router = useRouter();
 
     const currentRoute = router.state.location.pathname;
-    const routeMatches = subItems?.some((item) => item.subItemLink === currentRoute);
+    const routeMatches =
+        subItems?.some((item) => item.subItemLink === currentRoute) || currentRoute === to;
 
     return (
         <Collapsible
@@ -24,42 +25,46 @@ export const CollapsibleItem = ({ icon, title, subItems }: SidebarItemProps) => 
             onMouseEnter={toggleHover}
             onMouseLeave={toggleHover}
         >
-            <CollapsibleTrigger
-                className="flex w-full items-center justify-between"
-                onClick={() => {
-                    if (state === "collapsed") toggleSidebar(); // Open sidebar if it’s collapsed
-                }}
-            >
-                <div
-                    className={`flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 ${
-                        hover || routeMatches ? "bg-white" : "bg-none"
-                    }`}
+            <Link to={to}>
+                <CollapsibleTrigger
+                    className="flex w-full items-center justify-between"
+                    onClick={() => {
+                        if (state === "collapsed") toggleSidebar(); // Open sidebar if it’s collapsed
+                    }}
                 >
-                    <div className="flex items-center">
-                        {icon &&
-                            React.createElement(icon, {
-                                className: `${state === "expanded" ? "size-7" : "size-6"} ${
-                                    hover || routeMatches ? "text-primary-500" : "text-neutral-400"
-                                }`,
-                                weight: "fill",
-                            })}
-                        <SidebarGroup
-                            className={`${
-                                hover || routeMatches ? "text-primary-500" : "text-neutral-600"
-                            } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
-                        >
-                            {title}
+                    <div
+                        className={`flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 ${
+                            hover || routeMatches ? "bg-white" : "bg-none"
+                        }`}
+                    >
+                        <div className="flex items-center">
+                            {icon &&
+                                React.createElement(icon, {
+                                    className: `${state === "expanded" ? "size-7" : "size-6"} ${
+                                        hover || routeMatches
+                                            ? "text-primary-500"
+                                            : "text-neutral-400"
+                                    }`,
+                                    weight: "fill",
+                                })}
+                            <SidebarGroup
+                                className={`${
+                                    hover || routeMatches ? "text-primary-500" : "text-neutral-600"
+                                } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
+                            >
+                                {title}
+                            </SidebarGroup>
+                        </div>
+                        <SidebarGroup className="ml-auto w-fit group-data-[collapsible=icon]:hidden">
+                            <ChevronDownIcon
+                                className={`ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180 ${
+                                    hover || routeMatches ? "text-primary-500" : "text-neutral-600"
+                                }`}
+                            />
                         </SidebarGroup>
                     </div>
-                    <SidebarGroup className="ml-auto w-fit group-data-[collapsible=icon]:hidden">
-                        <ChevronDownIcon
-                            className={`ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180 ${
-                                hover || routeMatches ? "text-primary-500" : "text-neutral-600"
-                            }`}
-                        />
-                    </SidebarGroup>
-                </div>
-            </CollapsibleTrigger>
+                </CollapsibleTrigger>
+            </Link>
             <CollapsibleContent>
                 <SidebarGroup className="flex flex-col gap-1 pl-12 group-data-[collapsible=icon]:hidden">
                     {subItems?.map((obj, key) => (

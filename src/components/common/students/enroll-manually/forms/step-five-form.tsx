@@ -113,40 +113,6 @@ export const StepFiveForm = () => {
         }
     };
 
-    // const onSubmit = (values: StepFiveData) => {
-    //     setStepFiveData(values);
-    //     const firstPackageSessionId = packageSessionId[0] || "";
-    //     mutation.mutate(
-    //         {
-    //             formData: {
-    //                 stepOneData,
-    //                 stepTwoData,
-    //                 stepThreeData,
-    //                 stepFourData,
-    //                 stepFiveData: values,
-    //             },
-    //             packageSessionId: firstPackageSessionId,
-    //         },
-    //         {
-    //             onSuccess: () => {
-    //                 queryClient.invalidateQueries({ queryKey: ["students"] });
-    //                 toast.success("Success", {
-    //                     description: "Student enrolled successfully",
-    //                     duration: 3000,
-    //                 });
-    //                 resetForm();
-    //             },
-    //             onError: (error) => {
-    //                 toast.error("Error", {
-    //                     description: "Failed to enroll student",
-    //                     duration: 3000,
-    //                 });
-    //                 console.log("error: ", error);
-    //             },
-    //         },
-    //     );
-    // };
-
     return (
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">

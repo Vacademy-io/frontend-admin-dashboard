@@ -18,6 +18,8 @@ import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { StudentSidebar } from "./student-side-view/student-side-view";
 
 export const getCurrentSession = (): string => {
     const currentDate = new Date();
@@ -140,17 +142,22 @@ export const StudentsListSection = () => {
                     pageSize={10}
                 />
                 <div className="max-w-full">
-                    <MyTable<StudentTable>
-                        data={studentTableData}
-                        columns={myColumns}
-                        isLoading={loadingData}
-                        error={loadingError}
-                        onSort={handleSort}
-                        columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
-                        rowSelection={currentPageSelection}
-                        onRowSelectionChange={handleRowSelectionChange}
-                        currentPage={page}
-                    />
+                    <div className="max-w-full">
+                        <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                            <MyTable<StudentTable>
+                                data={studentTableData}
+                                columns={myColumns}
+                                isLoading={loadingData}
+                                error={loadingError}
+                                onSort={handleSort}
+                                columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
+                                rowSelection={currentPageSelection}
+                                onRowSelectionChange={handleRowSelectionChange}
+                                currentPage={page}
+                            />
+                            <StudentSidebar />
+                        </SidebarProvider>
+                    </div>
                 </div>
                 <div className="flex">
                     <BulkActions

@@ -24,3 +24,7 @@ export const STEP1_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/b
 export const STEP2_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/add-questions/create/v1/submit`;
 export const STEP2_QUESTIONS_URL = `${BASE_URL}/assessment-service/assessment/add-questions/create/v1/questions-of-sections`;
 export const STEP3_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/add-participants/create/v1/submit`;
+export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
+export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
+export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
+export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;

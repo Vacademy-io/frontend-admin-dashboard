@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
     InputChipsProps,
@@ -214,14 +214,33 @@ export const FilterChips = ({
     );
 };
 
-export const StatusChips = ({ status }: { status: ActivityStatus }) => {
+export const StatusChips = ({
+    status,
+    children,
+    className,
+    showIcon = true,
+}: {
+    status: ActivityStatus;
+    children?: ReactNode;
+    className?: string;
+    showIcon?: boolean;
+}) => {
     const statusData = ActivityStatusData[status];
     const StatusIcon = statusData.icon;
 
     return (
         <ChipsWrapper className={cn(statusData.color.bg, "")}>
-            <StatusIcon className={cn(statusData.color.icon, "size-[18px]")} weight="fill" />
-            <div className="text-body capitalize text-neutral-600">{status}</div>
+            <div className="flex items-center">
+                {showIcon && (
+                    <StatusIcon
+                        className={cn(statusData.color.icon, "size-[18px]")}
+                        weight="fill"
+                    />
+                )}
+                <div className={cn("text-body capitalize text-neutral-600", className)}>
+                    {children ? children : status}
+                </div>
+            </div>
         </ChipsWrapper>
     );
 };

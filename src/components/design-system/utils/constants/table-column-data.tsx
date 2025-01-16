@@ -7,6 +7,8 @@ import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBa
 import { ActivityStatus } from "../types/chips-types";
 import { StatusChips } from "../../chips";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ActivityLogType } from "@/components/common/students/students-list/student-side-view/student-view-dummy-data/learning-progress";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -42,7 +44,11 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: "details",
         header: "Details",
-        cell: () => <ArrowSquareOut className="size-6 cursor-pointer text-neutral-600" />,
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
+        ),
     },
     {
         accessorKey: "full_name",
@@ -172,5 +178,36 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         cell: ({ row }) => (
             <StudentMenuOptions student={row.original} /> // Pass the row.original which contains the student data
         ),
+    },
+];
+
+export interface ActivityLogDialogProps {
+    isOpen: boolean;
+    onClose: () => void;
+    activityData: ActivityLogType[];
+    topicName: string;
+    studyType: string;
+}
+
+export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
+    {
+        accessorKey: "activityDate",
+        header: "Activity Date",
+    },
+    {
+        accessorKey: "startTime",
+        header: "Start Time",
+    },
+    {
+        accessorKey: "endTime",
+        header: "End Time",
+    },
+    {
+        accessorKey: "duration",
+        header: "Duration",
+    },
+    {
+        accessorKey: "lastPageRead",
+        header: "Last Page Read",
     },
 ];

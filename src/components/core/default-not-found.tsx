@@ -31,8 +31,12 @@ function RootNotFoundComponent() {
                         <Button asChild variant={"default"} className="h-10 min-w-32">
                             <Link to="/">Return Home</Link>
                         </Button>
-                        <Button asChild variant={"default"} className="h-10 min-w-32">
-                            <Link onClick={() => router.history.back()}>Go Back</Link>
+                        <Button
+                            variant={"default"}
+                            className="h-10 min-w-32"
+                            onClick={() => router.history.back()}
+                        >
+                            Go Back
                         </Button>
                     </div>
                 </div>
