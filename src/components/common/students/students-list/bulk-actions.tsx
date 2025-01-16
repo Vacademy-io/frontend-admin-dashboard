@@ -10,6 +10,7 @@ interface BulkActionsProps {
     selectedStudentIds: string[];
     selectedStudents: StudentTable[]; // Add this prop
     onReset: () => void;
+    isAssessment?: boolean;
 }
 
 export const BulkActions = ({
@@ -17,6 +18,7 @@ export const BulkActions = ({
     selectedStudentIds,
     selectedStudents, // Add this
     onReset,
+    isAssessment,
 }: BulkActionsProps) => {
     //   const { toast } = useToast();
 
@@ -42,22 +44,24 @@ export const BulkActions = ({
                     <XCircle />
                 </MyButton>
 
-                <BulkActionsMenu
-                    selectedCount={selectedCount}
-                    selectedStudentIds={selectedStudentIds}
-                    selectedStudents={selectedStudents} // Pass the selected students
-                    trigger={
-                        <MyButton
-                            buttonType="primary"
-                            scale="medium"
-                            layoutVariant="default"
-                            className="flex w-full cursor-pointer items-center justify-between"
-                        >
-                            <div>Bulk Actions</div>
-                            <CaretUpDown />
-                        </MyButton>
-                    }
-                />
+                {!isAssessment && (
+                    <BulkActionsMenu
+                        selectedCount={selectedCount}
+                        selectedStudentIds={selectedStudentIds}
+                        selectedStudents={selectedStudents} // Pass the selected students
+                        trigger={
+                            <MyButton
+                                buttonType="primary"
+                                scale="medium"
+                                layoutVariant="default"
+                                className="flex w-full cursor-pointer items-center justify-between"
+                            >
+                                <div>Bulk Actions</div>
+                                <CaretUpDown />
+                            </MyButton>
+                        }
+                    />
+                )}
             </div>
         </div>
     );

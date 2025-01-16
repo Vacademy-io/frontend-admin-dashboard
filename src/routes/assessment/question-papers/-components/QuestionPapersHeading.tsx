@@ -8,9 +8,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { QuestionPaperUpload } from "./QuestionPaperUpload";
 import { useIsMobile } from "@/hooks/use-mobile";
+import useDialogStore from "../-global-states/question-paper-dialogue-close";
 
 export const QuestionPapersHeading = () => {
     const isMobile = useIsMobile();
+    const {
+        isMainQuestionPaperAddDialogOpen,
+        isManualQuestionPaperDialogOpen,
+        isUploadFromDeviceDialogOpen,
+        setIsMainQuestionPaperAddDialogOpen,
+        setIsManualQuestionPaperDialogOpen,
+        setIsUploadFromDeviceDialogOpen,
+    } = useDialogStore();
+
     return (
         <div
             className={`flex items-center justify-between gap-10 ${
@@ -26,7 +36,10 @@ export const QuestionPapersHeading = () => {
                     Easily browse and organize papers to support smooth exam preparation.
                 </p>
             </div>
-            <AlertDialog>
+            <AlertDialog
+                open={isMainQuestionPaperAddDialogOpen}
+                onOpenChange={setIsMainQuestionPaperAddDialogOpen}
+            >
                 <AlertDialogTrigger>
                     <Button className="bg-primary-500 text-white">
                         <Plus />
@@ -36,12 +49,19 @@ export const QuestionPapersHeading = () => {
                 <AlertDialogContent className="p-0">
                     <div className="flex items-center justify-between rounded-md bg-primary-50">
                         <h1 className="rounded-sm p-4 text-primary-500">Add Question Paper</h1>
-                        <AlertDialogCancel className="border-none bg-primary-50 shadow-none hover:bg-primary-50">
+                        <AlertDialogCancel
+                            onClick={() => setIsMainQuestionPaperAddDialogOpen(false)}
+                            className="border-none bg-primary-50 shadow-none hover:bg-primary-50"
+                        >
                             <X className="text-neutral-600" />
                         </AlertDialogCancel>
                     </div>
                     <div className="mb-6 mt-2 flex flex-col items-center justify-center gap-6">
-                        <AlertDialog>
+                        {/* Create Manually Dialog */}
+                        <AlertDialog
+                            open={isManualQuestionPaperDialogOpen}
+                            onOpenChange={setIsManualQuestionPaperDialogOpen}
+                        >
                             <AlertDialogTrigger>
                                 <Button variant="outline" className="w-40 text-neutral-600">
                                     Create Manually
@@ -52,14 +72,22 @@ export const QuestionPapersHeading = () => {
                                     <h1 className="rounded-sm p-4 font-bold text-primary-500">
                                         Create Question Paper Manually
                                     </h1>
-                                    <AlertDialogCancel className="border-none bg-primary-50 shadow-none hover:bg-primary-50">
+                                    <AlertDialogCancel
+                                        onClick={() => setIsManualQuestionPaperDialogOpen(false)}
+                                        className="border-none bg-primary-50 shadow-none hover:bg-primary-50"
+                                    >
                                         <X className="text-neutral-600" />
                                     </AlertDialogCancel>
                                 </div>
                                 <QuestionPaperUpload isManualCreated={true} />
                             </AlertDialogContent>
                         </AlertDialog>
-                        <AlertDialog>
+
+                        {/* Upload from Device Dialog */}
+                        <AlertDialog
+                            open={isUploadFromDeviceDialogOpen}
+                            onOpenChange={setIsUploadFromDeviceDialogOpen}
+                        >
                             <AlertDialogTrigger>
                                 <Button variant="outline" className="w-40 text-neutral-600">
                                     Upload from Device
@@ -70,7 +98,10 @@ export const QuestionPapersHeading = () => {
                                     <h1 className="rounded-sm p-4 font-bold text-primary-500">
                                         Upload Question Paper From Device
                                     </h1>
-                                    <AlertDialogCancel className="border-none bg-primary-50 shadow-none hover:bg-primary-50">
+                                    <AlertDialogCancel
+                                        onClick={() => setIsUploadFromDeviceDialogOpen(false)}
+                                        className="border-none bg-primary-50 shadow-none hover:bg-primary-50"
+                                    >
                                         <X className="text-neutral-600" />
                                     </AlertDialogCancel>
                                 </div>

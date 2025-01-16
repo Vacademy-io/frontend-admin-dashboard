@@ -1,20 +1,20 @@
 export interface MyQuestionPaperFormInterface {
     questionPaperId?: string; // Optional string
     isFavourite?: boolean; // Default value: false
-    title: string; // Required string
+    title?: string; // Required string
     createdOn?: Date; // Default value: current date
-    yearClass: string; // Required string
-    subject: string; // Required string
-    questionsType: string; // Required string
-    optionsType: string; // Required string
-    answersType: string; // Required string
-    explanationsType: string; // Required string
+    yearClass?: string; // Required string
+    subject?: string; // Required string
+    questionsType?: string; // Required string
+    optionsType?: string; // Required string
+    answersType?: string; // Required string
+    explanationsType?: string; // Required string
     fileUpload?: File; // Optional file
-    questions: MyQuestion[];
+    questions?: MyQuestion[]; // Required array of questions
 }
 
 export interface MyQuestion {
-    questionId: string | undefined; // Optional string
+    questionId?: string; // Optional string
     questionName: string; // Required string, must have at least 1 character
     explanation?: string; // Optional string
     questionType: string; // Default value: "MCQS"
@@ -24,7 +24,7 @@ export interface MyQuestion {
     multipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
 }
 
-interface MyImageDetail {
+export interface MyImageDetail {
     imageId?: string; // Optional string
     imageName: string; // Required string, must have at least 1 character
     imageTitle?: string; // Optional string
@@ -32,19 +32,19 @@ interface MyImageDetail {
     isDeleted?: boolean; // Optional boolean
 }
 
-interface MySingleChoiceOption {
-    name: string; // Optional string
+export interface MySingleChoiceOption {
+    name?: string; // Optional string
     isSelected?: boolean; // Optional boolean
     image: MyImage; // Required image object
 }
 
-interface MyMultipleChoiceOption {
-    name: string; // Optional string
+export interface MyMultipleChoiceOption {
+    name?: string; // Optional string
     isSelected?: boolean; // Optional boolean
     image: MyImage; // Required image object
 }
 
-interface MyImage {
+export interface MyImage {
     imageId?: string; // Optional string
     imageName?: string; // Optional string
     imageTitle?: string; // Optional string

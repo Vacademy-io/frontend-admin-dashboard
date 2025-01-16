@@ -18,6 +18,7 @@ interface Options {
 interface SelectFieldProps {
     className?: string;
     label: string;
+    labelStyle?: string;
     name: string;
     options: Options[];
     required?: boolean;
@@ -29,6 +30,7 @@ interface SelectFieldProps {
 
 const SelectField: React.FC<SelectFieldProps> = ({
     label,
+    labelStyle,
     name,
     options,
     required = false,
@@ -48,7 +50,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
 
             return (
                 <FormItem className={cn("w-44", className)}>
-                    <FormLabel>
+                    <FormLabel className={labelStyle}>
                         {label}
                         {required && <span className="text-red-500">*</span>}
                     </FormLabel>

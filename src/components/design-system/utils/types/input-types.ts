@@ -17,4 +17,5 @@ export interface FormInputProps
     size?: "large" | "medium" | "small";
     disabled?: boolean;
     label?: string;
+    labelStyle?: string;
 }

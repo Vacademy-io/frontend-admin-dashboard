@@ -12,7 +12,7 @@ export interface SidebarItemsType {
     subItems?: subItemsType[];
 }
 export interface SidebarItemProps {
-    icon: React.FC<IconProps>;
+    icon?: React.FC<IconProps>;
     title: string;
     to?: string;
     subItems?: subItemsType[];

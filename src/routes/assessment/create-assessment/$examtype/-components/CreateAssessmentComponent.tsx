@@ -1,6 +1,9 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { useState } from "react";
-
+import { MainStepComponent } from "./StepComponents/MainStepComponent";
+import { CheckCircle } from "phosphor-react";
+import { Helmet } from "react-helmet";
+import { useSidebar } from "@/components/ui/sidebar";
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {
     steps: string[];
@@ -15,25 +18,40 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
     completedSteps,
     onStepClick,
 }) => {
+    const { open } = useSidebar();
     return (
         <>
             {steps.map((step, index) => (
                 <div
                     key={index}
                     onClick={() => onStepClick(index)}
-                    className={`${
+                    className={`mx-6 flex items-center justify-between px-6 py-3 ${
                         index <= currentStep || completedSteps[index - 1]
                             ? "cursor-pointer"
                             : "cursor-not-allowed"
                     } ${
                         currentStep === index
-                            ? "bg-blue-500"
+                            ? "rounded-lg border-2 bg-white !text-primary-500"
                             : completedSteps[index]
-                              ? "bg-green-500"
-                              : "bg-gray-300"
-                    } text-white focus:outline-none`}
+                              ? "bg-transparent text-black"
+                              : `bg-transparent ${
+                                    index > 0 && completedSteps[index - 1]
+                                        ? "text-black"
+                                        : "text-gray-300"
+                                } `
+                    } focus:outline-none`}
                 >
-                    {step}
+                    <div className="flex items-center gap-6">
+                        {!open && !completedSteps[index] && (
+                            <span className="text-lg font-semibold">{index + 1}</span>
+                        )}
+                        {open && <span className="text-lg font-semibold">{index + 1}</span>}
+                        {open && <span className="font-thin">{step}</span>}
+                    </div>
+
+                    {completedSteps[index] && (
+                        <CheckCircle size={24} weight="fill" className="!text-green-500" />
+                    )}
                 </div>
             ))}
         </>
@@ -41,7 +59,7 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
 };
 
 const CreateAssessmentComponent = () => {
-    const steps = ["Step 1", "Step 2", "Step 3", "Step 4"];
+    const steps = ["Basic Info", "Add Question", "Add Participants", "Access Control"];
     const [currentStep, setCurrentStep] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([false, false, false, false]);
 
@@ -72,12 +90,18 @@ const CreateAssessmentComponent = () => {
                 />
             }
         >
-            <h2>{steps[currentStep]}</h2>
-            <p>Details for {steps[currentStep]} go here.</p>
-
-            {currentStep < steps.length && (
-                <button onClick={completeCurrentStep}>Complete Step</button>
-            )}
+            <Helmet>
+                <title>Create Assessment</title>
+                <meta
+                    name="description"
+                    content="This page is for creating an assessment for students via admin."
+                />
+            </Helmet>
+            <MainStepComponent
+                currentStep={currentStep}
+                handleCompleteCurrentStep={completeCurrentStep}
+                completedSteps={completedSteps}
+            />
         </LayoutContainer>
     );
 };

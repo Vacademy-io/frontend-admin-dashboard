@@ -38,7 +38,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     </div>
                 </SidebarHeader>
                 <SidebarMenu
-                    className={`flex flex-shrink-0 flex-col justify-center gap-6 py-4 ${
+                    className={`flex shrink-0 flex-col justify-center gap-6 py-4 ${
                         state == "expanded" ? "items-stretch" : "items-center"
                     }`}
                 >

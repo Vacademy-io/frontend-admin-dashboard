@@ -9,6 +9,19 @@ export interface StudentFilterRequest {
     sort_columns?: Record<string, string>;
 }
 
+export interface StudentAssessmentTable {
+    id: string;
+    full_name: string;
+    package_session_id: string;
+    institute_enrollment_id: string;
+    linked_institute_name: string | null;
+    gender: string;
+    mobile_number: string;
+    email: string;
+    city: string;
+    state: string | null;
+}
+
 // Response types
 export interface StudentTable {
     id: string;
@@ -30,15 +43,6 @@ export interface StudentTable {
     linked_institute_name: string | null;
     created_at: string;
     updated_at: string;
-    // //extra dummy
-    // enrollment_no?: string;
-    // school_name?: string;
-    // guardian_name?: string;
-    // state?: string;
-    // session_expiry?: string;
-    // status?: string;
-    // batch_id?: string;
-    // session_id?: string;
     package_session_id: string;
     institute_enrollment_id: string;
     status: "ACTIVE" | "TEMINATED";

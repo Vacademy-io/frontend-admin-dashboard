@@ -36,8 +36,20 @@ export const SidebarItemsData: SidebarItemsType[] = [
         to: "/assessment",
         subItems: [
             {
-                subItem: "Tests",
-                subItemLink: "/assessment/tests",
+                subItem: "Examination",
+                subItemLink: "/assessment/exam",
+            },
+            {
+                subItem: "Mock Test",
+                subItemLink: "/assessment/create-assessment/LIVE_QUIZ",
+            },
+            {
+                subItem: "Practice Test",
+                subItemLink: "/assessment/create-assessment/PRACTICE",
+            },
+            {
+                subItem: "Survey",
+                subItemLink: "/assessment/create-assessment/SURVEY",
             },
             {
                 subItem: "Question Papers",

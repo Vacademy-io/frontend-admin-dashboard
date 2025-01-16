@@ -14,9 +14,24 @@ import { getQuestionPaperDataWithFilters } from "../-utils/question-paper-servic
 import { INSTITUTE_ID } from "@/constants/urls";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRefetchStore } from "../-global-states/refetch-store";
-import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
+import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
+import { z } from "zod";
+import sectionDetailsSchema from "../../create-assessment/$examtype/-utils/section-details-schema";
+import { UseFormReturn } from "react-hook-form";
 
-export const QuestionPapersTabs = () => {
+export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
+
+interface QuestionPapersTabsProps {
+    isAssessment: boolean; // Flag to determine if it's an assessment
+    index?: number;
+    sectionsForm?: UseFormReturn<SectionFormType>;
+}
+
+export const QuestionPapersTabs = ({
+    isAssessment,
+    index,
+    sectionsForm,
+}: QuestionPapersTabsProps) => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const [selectedTab, setSelectedTab] = useState("ACTIVE");
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
@@ -310,6 +325,9 @@ export const QuestionPapersTabs = () => {
                         pageNo={pageNo}
                         handlePageChange={handlePageChange}
                         refetchData={handleRefetchData}
+                        isAssessment={isAssessment}
+                        index={index}
+                        sectionsForm={sectionsForm}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">
@@ -325,6 +343,9 @@ export const QuestionPapersTabs = () => {
                         pageNo={pageNo}
                         handlePageChange={handlePageChange}
                         refetchData={handleRefetchData}
+                        isAssessment={isAssessment}
+                        index={index}
+                        sectionsForm={sectionsForm}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">

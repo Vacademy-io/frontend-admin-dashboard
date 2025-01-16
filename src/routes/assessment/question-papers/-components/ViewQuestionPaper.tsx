@@ -14,12 +14,14 @@ export const ViewQuestionPaper = ({
     subject,
     level,
     refetchData,
+    isAssessment,
 }: {
-    questionPaperId: string;
-    title: string;
+    questionPaperId: string | undefined;
+    title: string | undefined;
     subject: string | null;
     level: string | null;
-    refetchData: () => void;
+    refetchData?: () => void;
+    isAssessment?: boolean;
 }) => {
     const { instituteDetails } = useInstituteDetailsStore();
     const { setCurrentQuestionIndex } = useQuestionStore();
@@ -163,6 +165,8 @@ export const ViewQuestionPaper = ({
                     questionPaperId={questionPaperId}
                     isViewMode={true}
                     refetchData={refetchData}
+                    buttonText={isAssessment ? "View" : "View Question Paper"}
+                    isAssessment={isAssessment}
                 />
             </form>
         </FormProvider>

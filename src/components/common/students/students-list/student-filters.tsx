@@ -23,21 +23,29 @@ export const StudentFilters = ({
     onFilterChange,
     onFilterClick,
     onClearFilters,
+    isAssessment,
 }: StudentFiltersProps) => {
     const isFilterActive = useMemo(() => {
         return getActiveFiltersState();
     }, [columnFilters, searchFilter]);
+
+    // Filtered data based on isAssessment
+    const filteredData = isAssessment
+        ? filters.filter((item) => item.id === "batch" || item.id === "gender")
+        : filters;
     return (
         <div className="flex items-start justify-between">
             <div className="flex flex-wrap items-center gap-6 gap-y-4">
-                <div className="flex items-center gap-2">
-                    <div className="text-title">Session</div>
-                    <MyDropdown
-                        currentValue={currentSession}
-                        handleChange={onSessionChange}
-                        dropdownList={sessions}
-                    />
-                </div>
+                {!isAssessment && (
+                    <div className="flex items-center gap-2">
+                        <div className="text-title">Session</div>
+                        <MyDropdown
+                            currentValue={currentSession}
+                            handleChange={onSessionChange}
+                            dropdownList={sessions}
+                        />
+                    </div>
+                )}
 
                 <StudentSearchBox
                     searchInput={searchInput}
@@ -47,7 +55,7 @@ export const StudentFilters = ({
                     onClearSearch={onClearSearch}
                 />
 
-                {filters.map((filter) => (
+                {filteredData.map((filter) => (
                     <Filters
                         key={filter.id}
                         filterDetails={{
@@ -82,10 +90,12 @@ export const StudentFilters = ({
                     </div>
                 )}
             </div>
-            <MyButton scale="large" buttonType="secondary" layoutVariant="default">
-                <Export />
-                <div>Export</div>
-            </MyButton>
+            {!isAssessment && (
+                <MyButton scale="large" buttonType="secondary" layoutVariant="default">
+                    <Export />
+                    <div>Export</div>
+                </MyButton>
+            )}
         </div>
     );
 };

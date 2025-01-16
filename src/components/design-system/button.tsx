@@ -77,9 +77,9 @@ export const MyButton = ({
 // Usage Examples:
 /*
 // Primary button
-<MyButton 
-    buttonType="primary" 
-    scale="large" 
+<MyButton
+    buttonType="primary"
+    scale="large"
     layoutVariant="default"
     onClick={() => console.log('clicked')}
 >
@@ -87,16 +87,16 @@ export const MyButton = ({
 </MyButton>
 
 // Text variant
-<MyButton 
-    buttonType="text" 
+<MyButton
+    buttonType="text"
     scale="medium"
 >
     Text Button
 </MyButton>
 
 // Icon button
-<MyButton 
-    layoutVariant="icon" 
+<MyButton
+    layoutVariant="icon"
     scale="small"
 >
     <IconComponent />
