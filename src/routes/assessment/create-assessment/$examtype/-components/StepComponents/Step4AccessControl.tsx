@@ -25,21 +25,6 @@ import { AxiosError } from "axios";
 import { useAccessControlStore } from "../../-utils/zustand-global-states/step4-access-control";
 import { useNavigate, useParams } from "@tanstack/react-router";
 
-const roles = [
-    { roleId: "1", roleName: "All Admins", isSelected: false },
-    { roleId: "2", roleName: "All Educators", isSelected: false },
-    { roleId: "3", roleName: "All Creators", isSelected: false },
-    { roleId: "4", roleName: "All Evaluators", isSelected: false },
-];
-
-const users = [
-    { userId: "u1", email: "john.doe@example.com" },
-    { userId: "u2", email: "jane.smith@example.com" },
-    { userId: "u3", email: "michael.brown@example.com" },
-    { userId: "u4", email: "susan.jones@example.com" },
-    { userId: "u5", email: "chris.jackson@example.com" },
-];
-
 // Define the type from the schema for better TypeScript inference
 type AccessControlFormValues = z.infer<typeof AccessControlFormSchema>;
 const Step4AccessControl: React.FC<StepContentProps> = ({
@@ -60,6 +45,11 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             type: examType,
         }),
     );
+    const roles = assessmentDetails[currentStep]?.field_options?.roles?.map((item, index) => ({
+        roleId: (index + 1).toString(),
+        roleName: item.value,
+        isSelected: false,
+    }));
     const form = useForm<AccessControlFormValues>({
         resolver: zodResolver(AccessControlFormSchema),
         defaultValues: {
@@ -69,21 +59,21 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                   ? "COMPLETE"
                   : "INCOMPLETE",
             assessment_creation_access: storeDataStep4.assessment_creation_access || {
-                roles: [...roles],
-                users: [...users],
+                roles: roles,
+                users: [],
             },
             live_assessment_notification: storeDataStep4.live_assessment_notification || {
-                roles: [...roles],
-                users: [...users],
+                roles: roles,
+                users: [],
             },
             assessment_submission_and_report_access:
                 storeDataStep4.assessment_submission_and_report_access || {
-                    roles: [...roles],
-                    users: [...users],
+                    roles: roles,
+                    users: [],
                 },
             evaluation_process: storeDataStep4.evaluation_process || {
-                roles: [...roles],
-                users: [...users],
+                roles: roles,
+                users: [],
             },
         },
         mode: "onChange",
@@ -307,7 +297,7 @@ const AccessControlCards = ({
                                 </h1>
                                 <div className="flex w-full items-center justify-between gap-4">
                                     <MyInput
-                                        inputType="text"
+                                        inputType="email"
                                         inputPlaceholder="you@email.com"
                                         input={inviteUserEmailInput}
                                         onChangeFunction={(e) =>
@@ -328,7 +318,7 @@ const AccessControlCards = ({
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-4">
-                                {getKeyVal.users.map((user, idx) => {
+                                {getKeyVal?.users?.map((user, idx) => {
                                     return (
                                         <Badge
                                             key={idx}
@@ -355,7 +345,7 @@ const AccessControlCards = ({
                 </Dialog>
             </div>
             <div className="flex flex-wrap gap-4">
-                {getKeyVal.roles.map((role, idx) => {
+                {getKeyVal?.roles?.map((role, idx) => {
                     if (role.isSelected) {
                         return (
                             <Badge
