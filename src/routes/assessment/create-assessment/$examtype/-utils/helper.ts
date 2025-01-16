@@ -8,12 +8,12 @@ import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questi
 import { UseFormReturn } from "react-hook-form";
 import { useTestAccessStore } from "./zustand-global-states/step3-adding-participants";
 import { useAccessControlStore } from "./zustand-global-states/step4-access-control";
-import { SectionFormType } from "./useSectionForm";
 import {
     AccessControlFormValues,
     QuestionData,
     QuestionDataObject,
     Section,
+    SectionFormType,
     TestAccessFormType,
 } from "@/types/assessment-steps";
 
@@ -145,7 +145,7 @@ export function transformBatchData(data: BatchData[]) {
         }
 
         // Add the package details (name and id) to the batch key
-        batchDetails[batchKey].push({
+        batchDetails[batchKey]!.push({
             name: `${levelName} ${packageName}`,
             id: packageId || "",
         });
@@ -256,14 +256,8 @@ export const syncStep1DataWithStore = (
                 checked:
                     responseData[currentStep]?.saved_data?.duration_distribution === "ASSESSMENT",
                 testDuration: {
-                    hrs:
-                        typeof responseData[currentStep]?.saved_data?.duration === "number"
-                            ? Math.floor(responseData[currentStep]?.saved_data?.duration / 60)
-                            : 0,
-                    min:
-                        typeof responseData[currentStep]?.saved_data?.duration === "number"
-                            ? responseData[currentStep]?.saved_data?.duration % 60
-                            : 0,
+                    hrs: Math.floor((responseData[currentStep]?.saved_data?.duration ?? 0) / 60),
+                    min: (responseData[currentStep]?.saved_data?.duration ?? 0) % 60,
                 },
             },
             questionWiseDuration:

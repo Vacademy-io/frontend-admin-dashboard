@@ -85,12 +85,9 @@ export const Step2SectionInfo = ({
     };
 
     const handleRemoveQuestionPaper = (index: number) => {
-        if (allSections && allSections[index]) {
-            // Update the specific section to have uploaded_question_paper set to null
-            allSections[index].uploaded_question_paper = null;
-
-            // Optionally, update the form state if you're using React Hook Form
-            setValue("section", [...allSections]);
+        if (allSections?.[index]) {
+            allSections[index]!.uploaded_question_paper = null;
+            setValue("section", [...allSections]); // Ensure form state updates correctly
         }
     };
 
@@ -181,23 +178,26 @@ export const Step2SectionInfo = ({
                             {allSections?.[index]?.uploaded_question_paper && (
                                 <span className="font-thin !text-neutral-600">
                                     (MCQ(Single Correct):&nbsp;
-                                    {
-                                        getQuestionTypeCounts(
-                                            allSections[index].adaptive_marking_for_each_question,
-                                        ).MCQS
-                                    }
+                                    {allSections?.[index]?.adaptive_marking_for_each_question
+                                        ? getQuestionTypeCounts(
+                                              allSections[index]!
+                                                  .adaptive_marking_for_each_question,
+                                          ).MCQS
+                                        : 0}
                                     ,&nbsp; MCQ(Multiple Correct):&nbsp;
-                                    {
-                                        getQuestionTypeCounts(
-                                            allSections[index].adaptive_marking_for_each_question,
-                                        ).MCQM
-                                    }
+                                    {allSections?.[index]?.adaptive_marking_for_each_question
+                                        ? getQuestionTypeCounts(
+                                              allSections[index]!
+                                                  .adaptive_marking_for_each_question,
+                                          ).MCQM
+                                        : 0}
                                     ,&nbsp; Total:&nbsp;
-                                    {
-                                        getQuestionTypeCounts(
-                                            allSections[index].adaptive_marking_for_each_question,
-                                        ).totalQuestions
-                                    }
+                                    {allSections?.[index]?.adaptive_marking_for_each_question
+                                        ? getQuestionTypeCounts(
+                                              allSections[index]!
+                                                  .adaptive_marking_for_each_question,
+                                          ).totalQuestions
+                                        : 0}
                                     )
                                 </span>
                             )}
@@ -343,33 +343,33 @@ export const Step2SectionInfo = ({
                         </DialogContent>
                     </Dialog>
                 </div>
-                {allSections &&
-                    allSections?.[index] &&
-                    allSections[index].uploaded_question_paper && (
-                        <div className="flex items-center justify-between rounded-md border border-primary-200 px-4 py-1">
-                            <h1>{allSections[index]?.questionPaperTitle}</h1>
-                            <div className="flex items-center">
-                                <ViewQuestionPaper
-                                    questionPaperId={allSections[index].uploaded_question_paper}
-                                    title={allSections[index]?.questionPaperTitle}
-                                    subject={getIdBySubjectName(
-                                        instituteDetails?.subjects || [],
-                                        allSections[index]?.sectionName,
-                                    )}
-                                    level={getIdByLevelName(
-                                        instituteDetails?.levels || [],
-                                        allSections[index].yearClass,
-                                    )}
-                                    isAssessment={true}
-                                />
-                                <TrashSimple
-                                    size={20}
-                                    className="cursor-pointer text-danger-400"
-                                    onClick={() => handleRemoveQuestionPaper(index)}
-                                />
-                            </div>
+                {allSections?.[index]?.uploaded_question_paper && (
+                    <div className="flex items-center justify-between rounded-md border border-primary-200 px-4 py-1">
+                        <h1>{allSections[index]?.questionPaperTitle}</h1>
+                        <div className="flex items-center">
+                            <ViewQuestionPaper
+                                questionPaperId={
+                                    allSections[index]?.uploaded_question_paper ?? undefined
+                                }
+                                title={allSections[index]?.questionPaperTitle}
+                                subject={getIdBySubjectName(
+                                    instituteDetails?.subjects || [],
+                                    allSections[index]?.sectionName,
+                                )}
+                                level={getIdByLevelName(
+                                    instituteDetails?.levels || [],
+                                    allSections[index]?.yearClass,
+                                )}
+                                isAssessment={true}
+                            />
+                            <TrashSimple
+                                size={20}
+                                className="cursor-pointer text-danger-400"
+                                onClick={() => handleRemoveQuestionPaper(index)}
+                            />
                         </div>
-                    )}
+                    </div>
+                )}
                 <div className="flex flex-col gap-2">
                     <h1 className="font-thin">Section Description</h1>
                     <FormField
@@ -718,39 +718,83 @@ export const Step2SectionInfo = ({
                         </FormItem>
                     )}
                 />
-                {allSections &&
-                    allSections[index] &&
-                    allSections[index]?.adaptive_marking_for_each_question.length > 0 && (
-                        <div>
-                            <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
-                            <Table>
-                                <TableHeader className="bg-primary-200">
-                                    <TableRow>
-                                        <TableHead>Q.No.</TableHead>
-                                        <TableHead>Question</TableHead>
-                                        <TableHead>Question Type</TableHead>
-                                        <TableHead>Marks</TableHead>
-                                        <TableHead>Penalty</TableHead>
-                                        <TableHead>Time</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody className="bg-neutral-50">
-                                    {allSections[index] &&
-                                        allSections[index]?.adaptive_marking_for_each_question?.map(
-                                            (question, idx) => {
-                                                return (
-                                                    <TableRow key={idx}>
-                                                        <TableCell>{idx + 1}</TableCell>
-                                                        <TableCell>
-                                                            {question.questionName}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {question.questionType}
-                                                        </TableCell>
-                                                        <TableCell>
+                {Boolean(allSections?.[index]?.adaptive_marking_for_each_question?.length) && (
+                    <div>
+                        <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
+                        <Table>
+                            <TableHeader className="bg-primary-200">
+                                <TableRow>
+                                    <TableHead>Q.No.</TableHead>
+                                    <TableHead>Question</TableHead>
+                                    <TableHead>Question Type</TableHead>
+                                    <TableHead>Marks</TableHead>
+                                    <TableHead>Penalty</TableHead>
+                                    <TableHead>Time</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="bg-neutral-50">
+                                {allSections[index] &&
+                                    allSections[index]?.adaptive_marking_for_each_question?.map(
+                                        (question, idx) => {
+                                            return (
+                                                <TableRow key={idx}>
+                                                    <TableCell>{idx + 1}</TableCell>
+                                                    <TableCell>{question.questionName}</TableCell>
+                                                    <TableCell>{question.questionType}</TableCell>
+                                                    <TableCell>
+                                                        <FormField
+                                                            control={control}
+                                                            name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionMark`}
+                                                            render={({ field: { ...field } }) => (
+                                                                <FormItem>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            type="text"
+                                                                            placeholder="00"
+                                                                            className="w-11"
+                                                                            value={field.value}
+                                                                            onChange={
+                                                                                field.onChange
+                                                                            }
+                                                                        />
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <FormField
+                                                            control={control}
+                                                            name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionPenalty`}
+                                                            render={({ field: { ...field } }) => (
+                                                                <FormItem>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            disabled={
+                                                                                form.getValues(
+                                                                                    `section.${index}.negative_marking.checked`,
+                                                                                )
+                                                                                    ? false
+                                                                                    : true
+                                                                            }
+                                                                            type="text"
+                                                                            placeholder="00"
+                                                                            className="w-11"
+                                                                            value={field.value}
+                                                                            onChange={
+                                                                                field.onChange
+                                                                            }
+                                                                        />
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
                                                             <FormField
                                                                 control={control}
-                                                                name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionMark`}
+                                                                name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.hrs`}
                                                                 render={({
                                                                     field: { ...field },
                                                                 }) => (
@@ -769,24 +813,16 @@ export const Step2SectionInfo = ({
                                                                     </FormItem>
                                                                 )}
                                                             />
-                                                        </TableCell>
-                                                        <TableCell>
+                                                            <span>:</span>
                                                             <FormField
                                                                 control={control}
-                                                                name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionPenalty`}
+                                                                name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.min`}
                                                                 render={({
                                                                     field: { ...field },
                                                                 }) => (
                                                                     <FormItem>
                                                                         <FormControl>
                                                                             <Input
-                                                                                disabled={
-                                                                                    form.getValues(
-                                                                                        `section.${index}.negative_marking.checked`,
-                                                                                    )
-                                                                                        ? false
-                                                                                        : true
-                                                                                }
                                                                                 type="text"
                                                                                 placeholder="00"
                                                                                 className="w-11"
@@ -799,66 +835,16 @@ export const Step2SectionInfo = ({
                                                                     </FormItem>
                                                                 )}
                                                             />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex items-center gap-2">
-                                                                <FormField
-                                                                    control={control}
-                                                                    name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.hrs`}
-                                                                    render={({
-                                                                        field: { ...field },
-                                                                    }) => (
-                                                                        <FormItem>
-                                                                            <FormControl>
-                                                                                <Input
-                                                                                    type="text"
-                                                                                    placeholder="00"
-                                                                                    className="w-11"
-                                                                                    value={
-                                                                                        field.value
-                                                                                    }
-                                                                                    onChange={
-                                                                                        field.onChange
-                                                                                    }
-                                                                                />
-                                                                            </FormControl>
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                                <span>:</span>
-                                                                <FormField
-                                                                    control={control}
-                                                                    name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.min`}
-                                                                    render={({
-                                                                        field: { ...field },
-                                                                    }) => (
-                                                                        <FormItem>
-                                                                            <FormControl>
-                                                                                <Input
-                                                                                    type="text"
-                                                                                    placeholder="00"
-                                                                                    className="w-11"
-                                                                                    value={
-                                                                                        field.value
-                                                                                    }
-                                                                                    onChange={
-                                                                                        field.onChange
-                                                                                    }
-                                                                                />
-                                                                            </FormControl>
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                            </div>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            },
-                                        )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        },
+                                    )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
                 {watch(`section.${index}.marks_per_question`) && (
                     <div className="flex items-center justify-end gap-1">
                         <span>Total Marks</span>

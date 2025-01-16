@@ -110,7 +110,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             });
             console.log(responseData);
             syncStep4DataWithStore(form);
-            toast.success("Step 4 data has been saved successfully!", {
+            toast.success("Your assessment has been saved successfully!", {
                 className: "success-toast",
                 duration: 2000,
             });
@@ -145,7 +145,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
         console.log(err);
     };
 
-    if (isLoading) return <DashboardLoader />;
+    if (isLoading || handleSubmitStep4Form.status === "pending") return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
