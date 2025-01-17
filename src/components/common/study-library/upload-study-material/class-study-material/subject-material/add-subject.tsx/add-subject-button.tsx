@@ -4,6 +4,12 @@ import { useState } from "react";
 import { AddSubjectForm } from "./add-subject-form";
 import { Subject } from "./subjects";
 
+const triggerButton = (
+    <MyButton buttonType="primary" layoutVariant="default" scale="large">
+        Add Subject
+    </MyButton>
+);
+
 interface AddSubjectButtonProps {
     onAddSubject: (subject: Subject) => void;
 }
@@ -14,12 +20,6 @@ export const AddSubjectButton = ({ onAddSubject }: AddSubjectButtonProps) => {
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
     };
-
-    const triggerButton = (
-        <MyButton buttonType="primary" layoutVariant="default" scale="large">
-            Add Subject
-        </MyButton>
-    );
 
     return (
         <MyDialog

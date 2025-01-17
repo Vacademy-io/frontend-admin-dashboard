@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
-import { ModuleType } from "./modules";
+import { ModuleType } from "./module-card";
 import { useRef, useState } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { INSTITUTE_ID } from "@/constants/urls";

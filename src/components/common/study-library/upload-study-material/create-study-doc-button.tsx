@@ -4,26 +4,26 @@ import { FileDoc } from "@phosphor-icons/react";
 import { useState } from "react";
 import { CreateStudyDocForm } from "./create-study-doc-form";
 
+const triggerButton = (
+    <MyButton
+        buttonType="secondary"
+        scale="large"
+        layoutVariant="default"
+        className="flex items-center gap-2"
+    >
+        <span>
+            <FileDoc />
+        </span>
+        <p>Create Study Doc</p>
+    </MyButton>
+);
+
 export const CreateStudyDocButton = () => {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
     };
-
-    const triggerButton = (
-        <MyButton
-            buttonType="secondary"
-            scale="large"
-            layoutVariant="default"
-            className="flex items-center gap-2"
-        >
-            <span>
-                <FileDoc />
-            </span>
-            <p>Create Study Doc</p>
-        </MyButton>
-    );
 
     return (
         <MyDialog

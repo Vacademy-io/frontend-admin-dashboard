@@ -92,14 +92,6 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ documentId }) => {
         const timeSpent = exitTime.getTime() - pageStartTime.current.getTime();
         const timeSpentInSeconds = Math.round(timeSpent / 1000);
 
-        console.log("Page change detected!", {
-            previousPage: currentPage,
-            enteredAt: pageStartTime.current.toISOString(),
-            exitedAt: exitTime.toISOString(),
-            timeSpentOnPage: `${timeSpentInSeconds} seconds`,
-            newPage: e.currentPage,
-        });
-
         if (timeSpentInSeconds >= 10) console.log("Call API");
 
         setCurrentPage(e.currentPage);

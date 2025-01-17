@@ -2,35 +2,12 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsThree } from "phosphor-react";
 import { useState } from "react";
-import { DropdownItem } from "@/components/design-system/utils/types/dropdown-types";
+import { dropdownList } from "@/constants/study-library/chapter-menu-options";
 import { MoveToDialog } from "./move-dialog";
 import { CopyToDialog } from "./copy-dialog";
 
 export const ChapterMenuOptions = ({ onDelete }: { onDelete: () => void }) => {
     const [openDialog, setOpenDialog] = useState<"copy" | "move" | "delete" | null>(null);
-
-    const dropdownList: DropdownItem[] = [
-        {
-            label: "View Chapter",
-            value: "view",
-        },
-        {
-            label: "Edit Chapter Details",
-            value: "edit",
-        },
-        {
-            label: "Copy to",
-            value: "copy",
-        },
-        {
-            label: "Move to",
-            value: "move",
-        },
-        {
-            label: "Delete",
-            value: "delete",
-        },
-    ];
 
     const handleSelect = (value: string) => {
         switch (value) {

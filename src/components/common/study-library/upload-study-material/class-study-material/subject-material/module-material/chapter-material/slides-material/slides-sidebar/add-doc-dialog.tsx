@@ -1,7 +1,6 @@
 import { ImportFileImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { DialogFooter } from "@/components/ui/dialog";
-// import { DialogContent } from "@radix-ui/react-dialog";
 import { useState, useRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
@@ -9,9 +8,9 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import mammoth from "mammoth";
 import { FileType } from "@/types/file-upload";
 import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
+import { convertDocToHtml } from "./utils/doc-to-html";
 
 interface FormData {
     docFile: FileList | null;
@@ -46,40 +45,6 @@ export const AddDocDialog = () => {
         setFile(selectedFile);
         form.setValue("docFile", [selectedFile] as unknown as FileList);
         toast.success("File selected successfully");
-    };
-
-    const convertDocToHtml = async (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = async () => {
-                try {
-                    const arrayBuffer = reader.result as ArrayBuffer;
-                    const result = await mammoth.convertToHtml({ arrayBuffer });
-
-                    if (!result || !result.value) {
-                        reject(new Error("Document conversion failed - no content"));
-                        return;
-                    }
-
-                    // Add basic HTML structure if missing
-                    const processedHTML = `
-                        <div>
-                            ${result.value}
-                        </div>
-                    `;
-
-                    // Convert to Yoopta format
-                    // const yooptaContent = html.deserialize(editor, processedHTML);
-                    resolve(processedHTML);
-                } catch (error) {
-                    console.error("Error during conversion:", error);
-                    reject(error);
-                }
-            };
-
-            reader.readAsArrayBuffer(file);
-        });
     };
 
     const handleUpload = async () => {

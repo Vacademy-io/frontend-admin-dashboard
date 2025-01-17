@@ -6,6 +6,8 @@ import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { useGetBatchNames } from "@/hooks/student-list-section/useFilters";
+import { BatchCheckboxGroup } from "./batches";
+import { organizeBatchesByClass } from "./utils/organize-batches";
 
 interface CheckboxProps {
     checked?: boolean;
@@ -28,6 +30,7 @@ export const MyCheckbox = ({ checked, indeterminate, onCheckedChange }: Checkbox
         />
     );
 };
+
 // Form schema
 const formSchema = z.object({
     chapterName: z.string().min(1, "Chapter name is required"),
@@ -60,91 +63,6 @@ interface AddChapterFormProps {
     initialValues?: ChapterType;
     onSubmitSuccess: (chapter: ChapterType) => void;
 }
-
-// Helper function to organize batches by class
-interface OrganizedBatches {
-    "10th Year/Class": string[];
-    "9th Year/Class": string[];
-    "8th Year/Class": string[];
-}
-
-const organizeBatchesByClass = (batches: string[]) => {
-    const organized: OrganizedBatches = {
-        "10th Year/Class": [],
-        "9th Year/Class": [],
-        "8th Year/Class": [],
-    };
-
-    batches.forEach((batch) => {
-        if (batch.startsWith("10th")) {
-            organized["10th Year/Class"].push(batch);
-        } else if (batch.startsWith("9th")) {
-            organized["9th Year/Class"].push(batch);
-        } else if (batch.startsWith("8th")) {
-            organized["8th Year/Class"].push(batch);
-        }
-    });
-
-    return organized;
-};
-
-interface BatchCheckboxGroupProps {
-    classLevel: string;
-    batches: string[];
-    selectedBatches: string[];
-    onChange: (batches: string[]) => void;
-}
-
-const BatchCheckboxGroup = ({
-    classLevel,
-    batches,
-    selectedBatches,
-    onChange,
-}: BatchCheckboxGroupProps) => {
-    const handleMainCheckboxChange = (checked: boolean) => {
-        if (checked) {
-            onChange(batches);
-        } else {
-            onChange([]);
-        }
-    };
-
-    const handleBatchCheckboxChange = (batch: string, checked: boolean) => {
-        if (checked) {
-            onChange([...selectedBatches, batch]);
-        } else {
-            onChange(selectedBatches.filter((b) => b !== batch));
-        }
-    };
-
-    const isMainChecked =
-        batches.length > 0 && batches.every((batch) => selectedBatches.includes(batch));
-    const isIndeterminate = selectedBatches.length > 0 && !isMainChecked;
-
-    return (
-        <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-                <MyCheckbox
-                    checked={isMainChecked}
-                    indeterminate={isIndeterminate}
-                    onCheckedChange={handleMainCheckboxChange}
-                />
-                <span className="font-semibold">{classLevel}</span>
-            </div>
-            <div className="ml-6 flex flex-col gap-2">
-                {batches.map((batch, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                        <MyCheckbox
-                            checked={selectedBatches.includes(batch)}
-                            onCheckedChange={(checked) => handleBatchCheckboxChange(batch, checked)}
-                        />
-                        <span>{batch}</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
 
 export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFormProps) => {
     const batches = useGetBatchNames();

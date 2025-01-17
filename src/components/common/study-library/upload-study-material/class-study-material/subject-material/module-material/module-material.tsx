@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
-import { ModuleType } from "./add-modules.tsx/modules";
+import { ModuleType } from "./add-modules.tsx/module-card";
 import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { Chapters, ChapterType } from "./chapter-material/chapters";

@@ -1,7 +1,8 @@
 // subject-material.tsx
 import { useEffect, useState } from "react";
 import { AddModulesButton } from "./module-material/add-modules.tsx/add-modules-button";
-import { ModuleType, Modules } from "./module-material/add-modules.tsx/modules";
+import { Modules } from "./module-material/add-modules.tsx/modules";
+import { ModuleType } from "./module-material/add-modules.tsx/module-card";
 import { useRouter } from "@tanstack/react-router";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "@phosphor-icons/react";

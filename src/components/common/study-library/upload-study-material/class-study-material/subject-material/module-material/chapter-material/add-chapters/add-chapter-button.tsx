@@ -5,6 +5,12 @@ import { useState } from "react";
 import { ChapterType } from "../chapters";
 import { AddChapterForm } from "./add-chapter-form";
 
+const triggerButton = (
+    <MyButton scale="large">
+        <Plus /> Add Chapter
+    </MyButton>
+);
+
 interface AddChapterButtonProps {
     onAddChapter: (chapter: ChapterType) => void;
 }
@@ -15,12 +21,6 @@ export const AddChapterButton = ({ onAddChapter }: AddChapterButtonProps) => {
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
     };
-
-    const triggerButton = (
-        <MyButton scale="large">
-            <Plus /> Add Chapter
-        </MyButton>
-    );
 
     const handleSubmitSuccess = (chapter: ChapterType) => {
         onAddChapter(chapter);

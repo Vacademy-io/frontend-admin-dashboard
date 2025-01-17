@@ -22,7 +22,7 @@ export const SessionDropdown = ({
 
     return (
         <div className={`flex items-center gap-2 ${sessionDirection}`}>
-            <div className={`${className}`}>Session</div>
+            <p className={`${className}`}>Session</p>
             <MyDropdown
                 currentValue={currentSession}
                 dropdownList={sessionList}

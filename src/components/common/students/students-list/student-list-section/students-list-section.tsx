@@ -106,12 +106,6 @@ export const StudentsListSection = () => {
         0,
     );
 
-    // useEffect(()=>{
-    //     console.log("Applied filters: ", appliedFilters);
-    //     console.log("Column filters: ", columnFilters);
-    //     console.log("Active filter state filters: ", getActiveFiltersState());
-    // }, [columnFilters])
-
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
 

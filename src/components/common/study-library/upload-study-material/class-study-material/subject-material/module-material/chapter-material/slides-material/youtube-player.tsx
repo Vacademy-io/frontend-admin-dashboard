@@ -1,24 +1,11 @@
 // components/common/study-library/youtube-player.tsx
 import React, { useEffect, useRef } from "react";
 
-// interface YTPlayerState {
-//     ENDED: number;
-//     PLAYING: number;
-//     PAUSED: number;
-//     BUFFERING: number;
-//     CUED: number;
-// }
-
 interface YTPlayer {
     destroy(): void;
     getCurrentTime(): number;
     getDuration(): number;
 }
-
-// interface YTPlayerEvent {
-//     target: YTPlayer;
-//     data: number;
-// }
 
 declare global {
     interface Window {

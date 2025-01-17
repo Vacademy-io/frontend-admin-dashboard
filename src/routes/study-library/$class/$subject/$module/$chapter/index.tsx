@@ -1,6 +1,6 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChapterMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/chapter-material";
+import { ChapterMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/add-chapters/chapter-material";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
