@@ -9,7 +9,7 @@ import { useForm, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { useFilterDataForAssesment } from "../../tests/-utils.ts/useFiltersData";
+import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
 
 interface FormData {
     title: string;

@@ -36,7 +36,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
         institute_id: INSTITUTE_ID, // Assuming there's no direct mapping for institute_id
         level_id: data.yearClass, // Assuming there's no direct mapping for level_id
         subject_id: data.subject, // Assuming there's no direct mapping for subject_id
-        questions: data.questions.map((question) => {
+        questions: data?.questions?.map((question) => {
             const options =
                 question.questionType === "MCQS"
                     ? question.singleChoiceOptions.map((opt, idx) => ({
@@ -46,7 +46,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                           text: {
                               id: null, // Assuming no direct mapping for option text ID
                               type: "HTML", // Assuming option content is HTML
-                              content: opt.name.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                              content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
                           media_id: null, // Assuming no direct mapping for option media ID
                           option_order: null,
@@ -65,7 +65,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                           text: {
                               id: null, // Assuming no direct mapping for option text ID
                               type: "HTML", // Assuming option content is HTML
-                              content: opt.name.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                              content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
                           media_id: null, // Assuming no direct mapping for option media ID
                           option_order: null,
@@ -139,7 +139,7 @@ export function transformQuestionPaperEditData(
         institute_id: INSTITUTE_ID,
         ...(data.yearClass !== "N/A" && { level_id: data.yearClass }),
         ...(data.subject !== "N/A" && { subject_id: data.subject }),
-        questions: data.questions.map((question) => {
+        questions: data?.questions?.map((question) => {
             // Check if the current question ID exists in the previous data
             const isNewQuestion = !previousQuestionIds.includes(question.questionId);
 
@@ -152,7 +152,7 @@ export function transformQuestionPaperEditData(
                           text: {
                               id: null, // Assuming no mapping for text ID
                               type: "HTML",
-                              content: opt.name.replace(/<\/?p>/g, ""),
+                              content: opt?.name?.replace(/<\/?p>/g, ""),
                           },
                           media_id: null,
                           option_order: null,
@@ -171,7 +171,7 @@ export function transformQuestionPaperEditData(
                           text: {
                               id: null,
                               type: "HTML",
-                              content: opt.name.replace(/<\/?p>/g, ""),
+                              content: opt?.name?.replace(/<\/?p>/g, ""),
                           },
                           media_id: null,
                           option_order: null,
@@ -239,12 +239,15 @@ export const getSubjectNameById = (subjects: Subject[], id: string | null): stri
     return subject?.subject_name || "N/A";
 };
 
-export const getIdByLevelName = (levels: Level[], name: string | null): string => {
+export const getIdByLevelName = (levels: Level[], name: string | null | undefined): string => {
     const level = levels.find((item) => item.level_name === name);
     return level?.id || "N/A";
 };
 
-export const getIdBySubjectName = (subjects: Subject[], name: string | null): string => {
+export const getIdBySubjectName = (
+    subjects: Subject[],
+    name: string | null | undefined,
+): string => {
     const subject = subjects.find((item) => item.subject_name === name);
     return subject?.id || "N/A";
 };

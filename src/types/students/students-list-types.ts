@@ -45,6 +45,7 @@ export interface StudentFiltersProps {
     appliedFilters: StudentFilterRequest;
     page: number;
     pageSize: number;
+    isAssessment?: boolean;
 }
 
 // types/students/student-types.ts

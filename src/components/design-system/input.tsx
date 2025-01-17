@@ -35,6 +35,7 @@ export const MyInput = ({
     size = "medium",
     disabled,
     label,
+    labelStyle,
     ...props
 }: FormInputProps) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -47,7 +48,7 @@ export const MyInput = ({
         <div className="flex flex-col gap-1">
             <div className="flex flex-col gap-1">
                 {label && (
-                    <Label className="text-subtitle font-regular">
+                    <Label className={`text-subtitle font-regular ${labelStyle}`}>
                         {label}
                         {required && <span className="text-subtitle text-danger-600">*</span>}
                     </Label>

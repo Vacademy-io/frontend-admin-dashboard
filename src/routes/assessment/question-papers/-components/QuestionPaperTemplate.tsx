@@ -29,14 +29,17 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { toast } from "sonner";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { QuestionPaperEditDialog } from "./QuestionPaperEditDialogue";
+import { useRefetchStore } from "../-global-states/refetch-store";
 
 export function QuestionPaperTemplate({
     form,
     questionPaperId,
     isViewMode,
-    refetchData,
     isManualCreated,
+    buttonText,
+    isAssessment,
 }: QuestionPaperTemplateProps) {
+    const { handleRefetchData } = useRefetchStore();
     const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
     const { control, getValues, setValue, formState, watch } = form;
@@ -182,7 +185,7 @@ export function QuestionPaperTemplate({
         }) => updateQuestionPaper(data, previousQuestionPaperData),
         onSuccess: () => {
             setCurrentQuestionIndex(0);
-            refetchData();
+            handleRefetchData();
             toast.success("Question Paper updated successfully", {
                 className: "success-toast",
                 duration: 2000,
@@ -257,19 +260,21 @@ export function QuestionPaperTemplate({
                     <Button
                         type="button"
                         variant="outline"
-                        className="m-0 border-none pl-2 font-normal shadow-none"
+                        className={`m-0 border-none pl-2 font-normal shadow-none ${
+                            isAssessment ? "text-primary-500" : ""
+                        }`}
                         onClick={handleViewQuestionPaper}
                     >
-                        View Question Paper
+                        {buttonText}
                     </Button>
                 ) : (
                     <Button type="button" variant="outline" className="w-52 border-[1px]">
                         {isManualCreated ? (
                             <p className="flex items-center gap-1">
-                                Create <Plus className="!size-4" />
+                                {buttonText} <Plus className="!size-4" />
                             </p>
                         ) : (
-                            "Preview"
+                            buttonText
                         )}
                     </Button>
                 )}
