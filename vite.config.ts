@@ -9,6 +9,7 @@ import svgr from "vite-plugin-svgr";
 // https://vitejs.dev/config https://vitest.dev/config
 export default defineConfig({
     plugins: [react(), tsconfigPaths(), TanStackRouterVite(), svgr({ include: "**/*.svg" })],
+    // plugins: [react(), tsconfigPaths(), svgr({ include: "**/*.svg" })],
     resolve: {
         alias: {
             "@": path.resolve(__dirname, "./src"),

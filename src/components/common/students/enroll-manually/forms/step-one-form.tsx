@@ -87,13 +87,14 @@ export const StepOneForm = () => {
                                     name="profilePicture"
                                     acceptedFileTypes="image/*" // Optional - remove this line to accept all files
                                 />
-                                <div className="absolute bottom-2 right-14">
+                                <div className="absolute bottom-2 right-20">
                                     <MyButton
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isUploading || isUploadingFile}
                                         buttonType="secondary"
                                         layoutVariant="icon"
                                         scale="small"
+                                        className="bg-white"
                                     >
                                         {/* {(isUploading || isUploadingFile) ? "Uploading..." : "Upload Photo"} */}
                                         <PencilSimpleLine />

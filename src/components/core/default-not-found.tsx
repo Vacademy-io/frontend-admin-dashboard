@@ -29,7 +29,7 @@ function RootNotFoundComponent() {
                     </p>
                     <div className="text-base-white mt-8 flex justify-center gap-5">
                         <Button asChild variant={"default"} className="h-10 min-w-32">
-                            <Link to="/">Return Home</Link>
+                            <Link to="/dashboard">Return Home</Link>
                         </Button>
                         <Button
                             variant={"default"}

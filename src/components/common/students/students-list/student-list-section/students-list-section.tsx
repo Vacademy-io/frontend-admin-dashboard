@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useGetSessions } from "@/hooks/student-list-section/useFilters";
 import { GetFilterData } from "@/constants/student-list/all-filters";
 import { MyTable } from "@/components/design-system/table";
 import { MyPagination } from "@/components/design-system/pagination";
@@ -13,25 +12,17 @@ import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
 import { STUDENT_LIST_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
-import { BulkActions } from "./bulk-actions";
+import { BulkActions } from "./bulk-actions/bulk-actions";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { StudentSidebar } from "./student-side-view/student-side-view";
-
-export const getCurrentSession = (): string => {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    return `${currentYear}-${currentYear + 1}`;
-};
+import { StudentSidebar } from "../student-side-view/student-side-view";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
-    const sessions = useGetSessions();
-    const filters = GetFilterData(getCurrentSession());
 
     useEffect(() => {
         setNavHeading("Students");
@@ -53,7 +44,8 @@ export const StudentsListSection = () => {
         handleClearSearch,
         setAppliedFilters,
         handleSessionChange,
-    } = useStudentFilters(getCurrentSession());
+    } = useStudentFilters();
+    const filters = GetFilterData(currentSession);
 
     const {
         studentTableData,
@@ -122,8 +114,7 @@ export const StudentsListSection = () => {
             <div className="flex flex-col gap-5">
                 <StudentListHeader />
                 <StudentFilters
-                    currentSession={currentSession} // Now this will work
-                    sessions={sessions}
+                    currentSession={currentSession}
                     filters={filters}
                     searchInput={searchInput}
                     searchFilter={searchFilter}

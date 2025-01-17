@@ -1,8 +1,10 @@
-// components/FileUploadComponent.tsx
+// src/components/design-system/file-upload.tsx
+
 import { FieldValues } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "../ui/form";
-import { Input } from "../ui/input";
 import { FileUploadComponentProps } from "@/types/file-upload";
+import { useDropzone } from "react-dropzone";
+import { useCallback } from "react";
 
 export const FileUploadComponent = <T extends FieldValues>({
     fileInputRef,
@@ -10,18 +12,38 @@ export const FileUploadComponent = <T extends FieldValues>({
     control,
     name,
     acceptedFileTypes,
+    children,
+    isUploading,
+    error,
+    className,
 }: FileUploadComponentProps<T>) => {
-    const onSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        onFileSubmit(file);
+    const onDrop = useCallback(
+        (acceptedFiles: File[]) => {
+            const file = acceptedFiles[0];
+            if (file) {
+                onFileSubmit(file);
+            }
+        },
+        [onFileSubmit],
+    );
+
+    const handleClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click(); // Programmatically click the file input
+        }
     };
 
-    const accept = acceptedFileTypes
-        ? Array.isArray(acceptedFileTypes)
-            ? acceptedFileTypes.join(",")
-            : acceptedFileTypes
-        : undefined;
+    const { getRootProps, getInputProps } = useDropzone({
+        onDrop,
+        accept: acceptedFileTypes
+            ? Array.isArray(acceptedFileTypes)
+                ? Object.fromEntries(acceptedFileTypes.map((type) => [type, []]))
+                : { [acceptedFileTypes]: [] }
+            : undefined,
+        maxFiles: 1,
+        multiple: false,
+        disabled: isUploading,
+    });
 
     return (
         <FormField
@@ -30,13 +52,25 @@ export const FileUploadComponent = <T extends FieldValues>({
             render={() => (
                 <FormItem>
                     <FormControl>
-                        <Input
-                            type="file"
-                            onChange={onSubmit}
-                            className="hidden"
-                            ref={fileInputRef}
-                            accept={accept}
-                        />
+                        <div
+                            {...getRootProps({
+                                onClick: handleClick, // Trigger file input on click
+                            })}
+                            className={`cursor-pointer bg-white ${className}`}
+                        >
+                            <input
+                                {...getInputProps()}
+                                ref={fileInputRef}
+                                accept={
+                                    Array.isArray(acceptedFileTypes)
+                                        ? acceptedFileTypes.join(",")
+                                        : acceptedFileTypes
+                                }
+                                className="outline-none"
+                            />
+                            {children}
+                            {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+                        </div>
                     </FormControl>
                 </FormItem>
             )}

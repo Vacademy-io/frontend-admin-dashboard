@@ -16,8 +16,8 @@ import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
-import { StudentListHeader } from "@/components/common/students/students-list/student-list-header";
-import { StudentFilters } from "@/components/common/students/students-list/student-filters";
+import { StudentListHeader } from "@/components/common/students/students-list/student-list-section/student-list-header";
+import { StudentFilters } from "@/components/common/students/students-list/student-list-section/student-filters";
 import { BulkActions } from "@/components/common/students/students-list/bulk-actions";
 import { myAssessmentColumns } from "./assessment-columns";
 import { UseFormReturn } from "react-hook-form";
@@ -55,7 +55,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         handleClearSearch,
         setAppliedFilters,
         handleSessionChange,
-    } = useStudentFilters(getCurrentSession());
+    } = useStudentFilters();
 
     const {
         studentTableData,
