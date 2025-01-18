@@ -1,24 +1,21 @@
 // components/session-dropdown.tsx
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { useSessionDropdown } from "@/hooks/student-list-section/useSessionDropdown";
+import { getSessionNames } from "@/services/study-library/getStudyLibrarySessions";
 
 interface SessionDropdownProps {
     sessionDirection?: string;
     className?: string;
-    defaultSession?: string;
+    currentSession?: string;
     onSessionChange?: (session: string) => void;
 }
 
 export const SessionDropdown = ({
     sessionDirection,
     className,
-    defaultSession,
+    currentSession,
     onSessionChange,
 }: SessionDropdownProps) => {
-    const { sessionList, currentSession, handleSessionChange } = useSessionDropdown({
-        defaultSession,
-        onSessionChange,
-    });
+    const sessionList = getSessionNames();
 
     return (
         <div className={`flex items-center gap-2 ${sessionDirection}`}>
@@ -27,7 +24,7 @@ export const SessionDropdown = ({
                 currentValue={currentSession}
                 dropdownList={sessionList}
                 placeholder="Select Session"
-                handleChange={handleSessionChange}
+                handleChange={onSessionChange}
             />
         </div>
     );

@@ -15,10 +15,12 @@ import { SSDC_Logo } from "@/assets/svgs";
 import React from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { useStudyLibraryQuery } from "@/services/study-library/getStudyLibraryDetails";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
     useSuspenseQuery(useInstituteQuery());
+    useSuspenseQuery(useStudyLibraryQuery());
 
     return (
         <Sidebar collapsible="icon">
