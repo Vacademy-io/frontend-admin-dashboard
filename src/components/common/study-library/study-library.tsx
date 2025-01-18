@@ -50,7 +50,6 @@ export const StudyLibrary = () => {
 
     useEffect(() => {
         setNavHeading("Study Library");
-        console.log("LevelList: ", LevelList);
     }, []);
 
     return (

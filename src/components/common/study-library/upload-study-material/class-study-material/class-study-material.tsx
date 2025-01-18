@@ -1,3 +1,4 @@
+// class-study-material.tsx
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
@@ -6,18 +7,25 @@ import { AddSubjectButton } from "./subject-material/add-subject.tsx/add-subject
 import { Subjects } from "./subject-material/add-subject.tsx/subjects";
 import { useState } from "react";
 import { Subject } from "./subject-material/add-subject.tsx/subjects";
-import { formatClassName } from "@/lib/study-library/class-formatter";
-import { SessionDropdown } from "@/components/common/session-dropdown";
+import { SessionDropdown } from "../../study-library-session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
+import { getSessionNames } from "@/services/study-library/getStudyLibrarySessions";
+import { getSessionSubjects } from "@/services/study-library/getSessionSubjects";
 
 interface ClassStudyMaterialProps {
-    classNumber: string | undefined;
+    classNumber: string;
 }
 
 export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => {
     const [subjects, setSubjects] = useState<Subject[]>([]);
-
     const [searchInput, setSearchInput] = useState("");
+    const sessionList = getSessionNames();
+    const [currentSession, setCurrentSession] = useState(sessionList[0] || "");
+    const mysubjects = getSessionSubjects(currentSession, classNumber);
+
+    const handleSessionChange = (value: string) => {
+        setCurrentSession(value);
+    };
 
     const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
@@ -43,12 +51,10 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
         });
     };
 
-    const formattedClass = formatClassName(classNumber);
-
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${formattedClass} Class Study Library`}</div>
+            <div>{`${classNumber} Class Study Library`}</div>
         </div>
     );
 
@@ -56,6 +62,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
 
     useEffect(() => {
         setNavHeading(heading);
+        console.log("Subjects: ", mysubjects);
     }, [classNumber]);
 
     return (
@@ -63,10 +70,10 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
             <div className="flex items-center justify-between gap-80">
                 <div className="flex w-full flex-col gap-2">
                     <div className="text-h3 font-semibold">
-                        {`Manage ${formattedClass} Class Resources`}
+                        {`Manage ${classNumber} Class Resources`}
                     </div>
                     <div className="text-subtitle">
-                        {`Explore and manage resources for ${formattedClass}th Class. Click on a subject to view and
+                        {`Explore and manage resources for ${classNumber} Class. Click on a subject to view and
                         organize eBooks and video lectures, or upload new content to enrich your
                         study library.`}
                     </div>
@@ -74,7 +81,11 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
                 <AddSubjectButton onAddSubject={handleAddSubject} />
             </div>
             <div className="flex items-center gap-6">
-                <SessionDropdown className="text-title font-semibold" />
+                <SessionDropdown
+                    currentSession={currentSession}
+                    onSessionChange={handleSessionChange}
+                    className="text-title font-semibold"
+                />
                 <SearchInput
                     searchInput={searchInput}
                     onSearchChange={handleSearchInputChange}
@@ -85,7 +96,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
                 subjects={subjects}
                 onDeleteSubject={handleDeleteSubject}
                 onEditSubject={handleEditSubject}
-                classNumber={classNumber} // Add this prop
+                classNumber={classNumber}
             />
         </div>
     );

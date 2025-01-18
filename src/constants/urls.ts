@@ -29,3 +29,6 @@ export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
 export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
+export const UPDATE_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/update-subject`;
+export const ADD_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/add-subject`;
+export const DELETE_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/delete-subject`;
