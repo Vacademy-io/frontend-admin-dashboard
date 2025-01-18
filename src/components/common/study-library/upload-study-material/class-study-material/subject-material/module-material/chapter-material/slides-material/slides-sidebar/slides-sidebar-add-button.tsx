@@ -107,7 +107,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isPdfDialogOpen}
                 onOpenChange={setIsPdfDialogOpen}
             >
-                <AddPdfDialog />
+                <AddPdfDialog openState={setIsPdfDialogOpen} />
             </MyDialog>
 
             {/* Doc Upload Dialog */}
@@ -118,7 +118,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isDocUploadDialogOpen}
                 onOpenChange={setIsDocUploadDialogOpen}
             >
-                <AddDocDialog />
+                <AddDocDialog openState={setIsDocUploadDialogOpen} />
             </MyDialog>
 
             {/* Video Upload Dialog */}
@@ -129,7 +129,7 @@ export const ChapterSidebarAddButton = () => {
                 open={isVideoDialogOpen}
                 onOpenChange={setIsVideoDialogOpen}
             >
-                <AddVideoDialog />
+                <AddVideoDialog openState={setIsVideoDialogOpen} />
             </MyDialog>
         </>
     );

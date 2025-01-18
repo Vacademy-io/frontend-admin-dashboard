@@ -1,22 +1,27 @@
+// subject-card.tsx
 import { DotsSixVertical } from "@phosphor-icons/react";
 import { useState } from "react";
 import { AddSubjectForm } from "./add-subject-form";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useRouter } from "@tanstack/react-router";
-import { getClassSuffix } from "@/lib/study-library/class-formatter";
 import { MenuOptions } from "./subject-menu-options";
 import { SubjectDefaultImage } from "@/assets/svgs";
 
 export interface Subject {
+    id: string;
     name: string;
-    imageUrl?: string;
+    code: string | null; // Made optional
+    credit: number | null; // Made optional
+    imageId: string | null;
+    createdAt: string | null;
+    updatedAt: string | null;
 }
 
 interface SubjectCardProps {
     subject: Subject;
     onDelete: () => void;
     onEdit: (updatedSubject: Subject) => void;
-    classNumber?: string | undefined; // Add this prop
+    classNumber: string;
 }
 
 export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectCardProps) => {
@@ -33,9 +38,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
         }
 
         const subjectRoute = subject.name.toLowerCase().replace(/\s+/g, "-");
-        const formattedClassName = `${classNumber}${getClassSuffix(
-            classNumber,
-        )}-class-study-library`;
+        const formattedClassName = `${classNumber}-class-study-library`;
 
         router.navigate({
             to: `/study-library/${formattedClassName}/${subjectRoute}`,
@@ -46,9 +49,9 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
         <div onClick={handleCardClick} className="cursor-pointer">
             <div className="relative flex size-[300px] flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md">
                 <DotsSixVertical className="absolute right-4 top-4 size-6 cursor-pointer" />
-                {subject.imageUrl ? (
+                {subject.imageId ? (
                     <img
-                        src={subject.imageUrl}
+                        src={`/api/images/${subject.imageId}`} // Update this with your actual image URL pattern
                         alt={subject.name}
                         className="h-[200px] w-[200px] rounded-lg object-cover"
                     />

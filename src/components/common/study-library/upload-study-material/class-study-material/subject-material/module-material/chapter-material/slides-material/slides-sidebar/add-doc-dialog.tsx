@@ -16,7 +16,11 @@ interface FormData {
     docFile: FileList | null;
 }
 
-export const AddDocDialog = () => {
+export const AddDocDialog = ({
+    openState,
+}: {
+    openState?: ((open: boolean) => void) | undefined;
+}) => {
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -85,6 +89,7 @@ export const AddDocDialog = () => {
 
             setFile(null);
             form.reset();
+            openState && openState(false);
         } catch (err) {
             console.error("Upload handling error:", err);
             const errorMessage =

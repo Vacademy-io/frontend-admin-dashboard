@@ -18,7 +18,11 @@ interface FormData {
     pdfFile: FileList | null;
 }
 
-export const AddPdfDialog = () => {
+export const AddPdfDialog = ({
+    openState,
+}: {
+    openState?: ((open: boolean) => void) | undefined;
+}) => {
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -95,6 +99,7 @@ export const AddPdfDialog = () => {
             }
 
             clearInterval(progressInterval);
+            openState && openState(false);
         } catch (err) {
             const errorMessage =
                 err instanceof Error ? err.message : "Upload failed. Please try again.";

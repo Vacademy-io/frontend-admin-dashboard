@@ -1,3 +1,4 @@
+// add-subject-form.tsx
 import { SubjectDefaultImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
@@ -29,7 +30,9 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [imageUrl, setImageUrl] = useState<string | undefined>(initialValues?.imageUrl);
+    const [imageUrl, setImageUrl] = useState<string | undefined>(
+        initialValues?.imageId || undefined,
+    );
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -62,10 +65,16 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
     };
 
     const onSubmit = (data: FormValues) => {
-        const newSubject = {
+        const newSubject: Subject = {
+            id: initialValues?.id || crypto.randomUUID(), // Generate a new ID if not editing
             name: data.subjectName,
-            imageUrl: imageUrl,
+            code: null, // Default null
+            credit: null, // Default null
+            imageId: imageUrl || null, // Use the uploaded image ID or null
+            createdAt: initialValues?.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         };
+
         onSubmitSuccess(newSubject);
     };
 

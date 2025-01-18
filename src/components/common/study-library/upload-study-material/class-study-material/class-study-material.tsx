@@ -11,36 +11,117 @@ import { SessionDropdown } from "../../study-library-session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { getSessionNames } from "@/services/study-library/getStudyLibrarySessions";
 import { getSessionSubjects } from "@/services/study-library/getSessionSubjects";
+import { getPackageSessionIds } from "@/services/study-library/getLevelPackageSessionIds";
+import { ADD_SUBJECT, DELETE_SUBJECT, UPDATE_SUBJECT } from "@/constants/urls";
+import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ClassStudyMaterialProps {
     classNumber: string;
 }
-
+// class-study-material.tsx
 export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => {
-    const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [searchInput, setSearchInput] = useState("");
     const sessionList = getSessionNames();
     const [currentSession, setCurrentSession] = useState(sessionList[0] || "");
-    const mysubjects = getSessionSubjects(currentSession, classNumber);
+    const apiSubjects = getSessionSubjects(currentSession, classNumber);
+    const [searchInput, setSearchInput] = useState("");
+    const queryClient = useQueryClient();
 
     const handleSessionChange = (value: string) => {
         setCurrentSession(value);
     };
 
+    const mappedSubjects = apiSubjects.map((subject) => ({
+        id: subject.id,
+        name: subject.subject_name,
+        code: subject.subject_code,
+        credit: subject.credit,
+        imageId: subject.thumbnail_id,
+        createdAt: subject.created_at,
+        updatedAt: subject.updated_at,
+    }));
+
     const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
     };
 
-    const handleAddSubject = (subject: Subject) => {
-        setSubjects((prev) => [...prev, subject]);
+    const handleAddSubject = async (newSubject: Subject) => {
+        try {
+            const packageSessionIds = getPackageSessionIds(classNumber, currentSession);
+            if (packageSessionIds.length === 0) {
+                console.error("No package session IDs found");
+                return;
+            }
+
+            const payload = {
+                id: newSubject.id,
+                subject_name: newSubject.name,
+                subject_code: newSubject.code,
+                credit: newSubject.credit,
+                thumbnail_id: newSubject.imageId,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            };
+
+            const response = await authenticatedAxiosInstance.post(
+                `${ADD_SUBJECT}?packageSessionId=${packageSessionIds[0]}`,
+                payload,
+            );
+
+            if (response.status === 200) {
+                await queryClient.invalidateQueries({
+                    queryKey: ["GET_INIT_STUDY_LIBRARY"],
+                });
+            }
+        } catch (error) {
+            console.error("Failed to add subject:", error);
+            // Handle error (show error message to user)
+        }
     };
 
-    const handleDeleteSubject = (index: number) => {
-        setSubjects((prev) => prev.filter((_, i) => i !== index));
+    const handleDeleteSubject = async (subjectId: string) => {
+        try {
+            const response = await authenticatedAxiosInstance.delete(
+                `${DELETE_SUBJECT}?subjectId=${subjectId}`,
+            );
+
+            if (response.status === 200) {
+                await queryClient.invalidateQueries({
+                    queryKey: ["GET_INIT_STUDY_LIBRARY"],
+                });
+            }
+        } catch (error) {
+            console.error("Failed to delete subject:", error);
+            // Handle error (show error message to user)
+        }
     };
 
-    const handleEditSubject = (index: number, updatedSubject: Subject) => {
-        setSubjects((prev) => prev.map((subject, i) => (i === index ? updatedSubject : subject)));
+    const handleEditSubject = async (subjectId: string, updatedSubject: Subject) => {
+        try {
+            const payload = {
+                id: subjectId,
+                subject_name: updatedSubject.name,
+                subject_code: updatedSubject.code,
+                credit: updatedSubject.credit,
+                thumbnail_id: updatedSubject.imageId,
+                created_at: updatedSubject.createdAt,
+                updated_at: new Date().toISOString(),
+            };
+
+            const response = await authenticatedAxiosInstance.put(
+                `${UPDATE_SUBJECT}?subjectId=${subjectId}`,
+                payload,
+            );
+
+            if (response.status === 200) {
+                await queryClient.invalidateQueries({
+                    queryKey: ["GET_INIT_STUDY_LIBRARY"],
+                });
+            }
+        } catch (error) {
+            console.error("Failed to update subject:", error);
+            // Handle error (show error message to user)
+        }
     };
 
     const router = useRouter();
@@ -62,7 +143,6 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
 
     useEffect(() => {
         setNavHeading(heading);
-        console.log("Subjects: ", mysubjects);
     }, [classNumber]);
 
     return (
@@ -93,7 +173,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
                 />
             </div>
             <Subjects
-                subjects={subjects}
+                subjects={mappedSubjects}
                 onDeleteSubject={handleDeleteSubject}
                 onEditSubject={handleEditSubject}
                 classNumber={classNumber}
@@ -101,3 +181,13 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
         </div>
     );
 };
+
+export interface SubjectType {
+    id: string;
+    name: string;
+    code: string;
+    credit: number;
+    imageId: string | null;
+    createdAt: string | null;
+    updatedAt: string | null;
+}

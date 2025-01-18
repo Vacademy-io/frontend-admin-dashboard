@@ -21,7 +21,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export const AddVideoDialog = () => {
+export const AddVideoDialog = ({
+    openState,
+}: {
+    openState?: ((open: boolean) => void) | undefined;
+}) => {
     const addItem = useContentStore((state) => state.addItem);
 
     const handleSubmit = (data: FormValues) => {
@@ -34,6 +38,7 @@ export const AddVideoDialog = () => {
             createdAt: new Date(),
         };
         addItem(newItem);
+        openState && openState(false);
     };
 
     const form = useForm<FormValues>({
