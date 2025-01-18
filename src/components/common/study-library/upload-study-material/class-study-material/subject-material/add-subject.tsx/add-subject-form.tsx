@@ -2,7 +2,7 @@
 import { SubjectDefaultImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
-import { PencilSimpleLine } from "@phosphor-icons/react";
+import { PencilSimpleLine } from "phosphor-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -30,9 +30,8 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [imageUrl, setImageUrl] = useState<string | undefined>(
-        initialValues?.imageId || undefined,
-    );
+    const [fileId, setFileId] = useState<string | null>(initialValues?.imageId || null);
+    const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -45,7 +44,7 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
     const handleFileSubmit = async (file: File) => {
         try {
             setIsUploading(true);
-            const fileId = await uploadFile({
+            const uploadedFileId = await uploadFile({
                 file,
                 setIsUploading,
                 userId: "your-user-id",
@@ -53,9 +52,11 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                 sourceId: "SUBJECTS",
             });
 
-            if (fileId) {
-                const publicUrl = await getPublicUrl(fileId);
-                setImageUrl(publicUrl);
+            if (uploadedFileId) {
+                setFileId(uploadedFileId);
+                // Get public URL only for preview purposes
+                const publicUrl = await getPublicUrl(uploadedFileId);
+                setPreviewUrl(publicUrl);
             }
         } catch (error) {
             console.error("Upload failed:", error);
@@ -66,11 +67,11 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
 
     const onSubmit = (data: FormValues) => {
         const newSubject: Subject = {
-            id: initialValues?.id || crypto.randomUUID(), // Generate a new ID if not editing
+            id: initialValues?.id || crypto.randomUUID(),
             name: data.subjectName,
-            code: null, // Default null
-            credit: null, // Default null
-            imageId: imageUrl || null, // Use the uploaded image ID or null
+            code: null,
+            credit: null,
+            imageId: fileId, // Use fileId instead of URL
             createdAt: initialValues?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
@@ -111,9 +112,9 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
                             <div className="inset-0 flex h-[200px] w-[200px] items-center justify-center bg-white">
                                 <DashboardLoader />
                             </div>
-                        ) : imageUrl ? (
+                        ) : previewUrl ? (
                             <img
-                                src={imageUrl}
+                                src={previewUrl}
                                 alt="Subject"
                                 className="h-[200px] w-[200px] rounded-lg object-cover"
                             />
