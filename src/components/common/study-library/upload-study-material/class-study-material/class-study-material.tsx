@@ -10,7 +10,7 @@ import { Subject } from "./subject-material/add-subject.tsx/subjects";
 import { SessionDropdown } from "../../study-library-session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { getSessionNames } from "@/services/study-library/getStudyLibrarySessions";
-import { getSessionSubjects } from "@/services/study-library/getSessionSubjects";
+import { useSessionSubjects } from "@/services/study-library/getSessionSubjects";
 import { getPackageSessionIds } from "@/services/study-library/getLevelPackageSessionIds";
 import { ADD_SUBJECT, DELETE_SUBJECT, UPDATE_SUBJECT } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
@@ -23,7 +23,7 @@ interface ClassStudyMaterialProps {
 export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => {
     const sessionList = getSessionNames();
     const [currentSession, setCurrentSession] = useState(sessionList[0] || "");
-    const apiSubjects = getSessionSubjects(currentSession, classNumber);
+    const apiSubjects = useSessionSubjects(currentSession, classNumber);
     const [searchInput, setSearchInput] = useState("");
     const queryClient = useQueryClient();
 
@@ -75,7 +75,6 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
             }
         } catch (error) {
             console.error("Failed to add subject:", error);
-            // Handle error (show error message to user)
         }
     };
 

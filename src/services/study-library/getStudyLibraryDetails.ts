@@ -3,7 +3,7 @@ import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { INIT_STUDY_LIBRARY, INSTITUTE_ID } from "@/constants/urls";
 import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
 
-const fetchStudyLibraryDetails = async () => {
+export const fetchStudyLibraryDetails = async () => {
     const response = await authenticatedAxiosInstance.get(INIT_STUDY_LIBRARY, {
         params: {
             instituteId: INSTITUTE_ID,

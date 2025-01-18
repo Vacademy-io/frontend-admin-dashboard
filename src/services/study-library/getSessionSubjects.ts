@@ -1,5 +1,5 @@
-// utils/study-library/getSessionSubjects.ts
 import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
+import { useMemo } from "react";
 
 interface Subject {
     id: string;
@@ -11,28 +11,31 @@ interface Subject {
     updated_at: string | null;
 }
 
-export const getSessionSubjects = (sessionName: string, levelName: string): Subject[] => {
-    const studyLibraryData = useStudyLibraryStore.getState().studyLibraryData;
+// Create a custom hook for reactive updates
+export const useSessionSubjects = (sessionName: string, levelName: string): Subject[] => {
+    const studyLibraryData = useStudyLibraryStore((state) => state.studyLibraryData);
 
-    if (!studyLibraryData) {
-        return [];
-    }
+    return useMemo(() => {
+        if (!studyLibraryData) {
+            return [];
+        }
 
-    // Find the session
-    const sessionData = studyLibraryData.find(
-        (item) => item.session_dto.session_name === sessionName,
-    );
+        // Find the session
+        const sessionData = studyLibraryData.find(
+            (item) => item.session_dto.session_name === sessionName,
+        );
 
-    if (!sessionData) {
-        return [];
-    }
+        if (!sessionData) {
+            return [];
+        }
 
-    // Find the level within that session
-    const levelData = sessionData.level_with_details.find((level) => level.name === levelName);
+        // Find the level within that session
+        const levelData = sessionData.level_with_details.find((level) => level.name === levelName);
 
-    if (!levelData) {
-        return [];
-    }
+        if (!levelData) {
+            return [];
+        }
 
-    return levelData.subjects;
+        return levelData.subjects;
+    }, [studyLibraryData, sessionName, levelName]);
 };
