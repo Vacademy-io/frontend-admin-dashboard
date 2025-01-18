@@ -9,6 +9,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { SessionDropdown } from "../session-dropdown";
 import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useStudyLibraryQuery } from "@/services/study-library/getStudyLibraryDetails";
+import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
+import RootErrorComponent from "@/components/core/deafult-error";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 interface ClassCardType {
     id: string;
@@ -21,9 +26,12 @@ export const StudyLibrary = () => {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
     const { open } = useSidebar();
+    const { isError, isLoading } = useSuspenseQuery(useStudyLibraryQuery());
+    const studyLibraryData = useStudyLibraryStore((state) => state.studyLibraryData);
 
     useEffect(() => {
         setNavHeading("Study Library");
+        console.log("Init study library response: ", studyLibraryData);
     }, []);
 
     const handleClassClick = (classId: string) => {
@@ -48,6 +56,9 @@ export const StudyLibrary = () => {
             class: "8th",
         },
     ];
+
+    if (isLoading) return <DashboardLoader />;
+    if (isError) return <RootErrorComponent />;
 
     return (
         <div className="relative flex flex-col gap-8 text-neutral-600">

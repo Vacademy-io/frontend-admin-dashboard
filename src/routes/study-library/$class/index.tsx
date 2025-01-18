@@ -9,6 +9,7 @@ export const Route = createFileRoute("/study-library/$class/")({
             "10th-class-study-library",
             "9th-class-study-library",
             "8th-class-study-library",
+            "11th-class-study-library",
         ];
 
         if (!validClassNames.includes(params.class)) {
