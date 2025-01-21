@@ -25,7 +25,7 @@ export const Modules = ({
                     <div>No Modules have been added yet.</div>
                 </div>
             )}
-            <div className="grid grid-cols-4 gap-10">
+            <div className="grid grid-cols-3 gap-10">
                 {modules.map((module, index) => (
                     <ModuleCard
                         key={index}

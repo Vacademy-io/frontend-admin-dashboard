@@ -117,7 +117,13 @@ export const ChapterMaterial = () => {
                     <SlidesMenuOption />
                 </div>
             </div>
-            <div className="mt-14 h-full w-full px-10">{renderContent()}</div>
+            <div
+                className={`mx-auto mt-14 ${
+                    activeItem?.type == "pdf" ? "h-[calc(100vh-200px)]" : "h-full"
+                } w-full overflow-hidden px-10`}
+            >
+                {renderContent()}
+            </div>
         </div>
     );
 };

@@ -100,7 +100,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ documentId }) => {
 
     return (
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-            <div className="h-screen">
+            <div className="h-full w-full">
                 <Viewer
                     fileUrl={pdfUrl || defaultPdfUrl}
                     onDocumentLoad={handleDocumentLoad}

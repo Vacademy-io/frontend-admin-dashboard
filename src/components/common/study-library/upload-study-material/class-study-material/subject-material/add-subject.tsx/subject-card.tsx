@@ -7,6 +7,7 @@ import { useRouter } from "@tanstack/react-router";
 import { MenuOptions } from "./subject-menu-options";
 import { SubjectDefaultImage } from "@/assets/svgs";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export interface Subject {
     id: string;
@@ -30,6 +31,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
     const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
     const { getPublicUrl } = useFileUpload();
     const router = useRouter();
+    const { open } = useSidebar();
 
     useEffect(() => {
         const fetchImageUrl = async () => {
@@ -65,16 +67,24 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
 
     return (
         <div onClick={handleCardClick} className="cursor-pointer">
-            <div className="relative flex size-[300px] flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md">
+            <div
+                className={`relative flex ${
+                    open ? "size-[260px]" : "size-[300px]"
+                } flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md`}
+            >
                 <DotsSixVertical className="absolute right-4 top-4 size-6 cursor-pointer" />
                 {imageUrl ? (
                     <img
                         src={imageUrl}
                         alt={subject.name}
-                        className="h-[200px] w-[200px] rounded-lg object-cover"
+                        className={`${
+                            open ? "h-[150px] w-[150px]" : "h-[200px] w-[200px]"
+                        } rounded-lg object-cover`}
                     />
                 ) : (
-                    <SubjectDefaultImage />
+                    <SubjectDefaultImage
+                        className={`${open ? "h-[150px] w-[150px]" : "h-[200px] w-[200px]"}`}
+                    />
                 )}
                 <div className="flex items-center justify-between gap-5">
                     <div className="text-h2 font-semibold">{subject.name}</div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MenuOptions } from "./module-menu-options";
 import { MyDialog } from "@/components/design-system/dialog";
 import { AddModulesForm } from "./add-modules-form";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface ModuleCardProps {
     module: ModuleType;
@@ -24,6 +25,7 @@ export interface ModuleType {
 export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: ModuleCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const router = useRouter();
+    const { open } = useSidebar();
 
     const handleCardClick = (e: React.MouseEvent) => {
         if (
@@ -45,7 +47,11 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
 
     return (
         <div onClick={handleCardClick} className="cursor-pointer">
-            <div className="flex min-w-[416px] flex-col gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md">
+            <div
+                className={`flex ${
+                    open ? "w-[370px]" : "w-[416px]"
+                } flex-col gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md`}
+            >
                 <div className="flex items-center justify-between text-h2 font-semibold">
                     <div>{module.name}</div>
                     <DotsSixVertical />
@@ -55,16 +61,16 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
                     <img
                         src={module.imageUrl}
                         alt={module.name}
-                        className="h-[230px] w-full rounded-lg object-cover"
+                        className="h-[300px] w-full rounded-lg object-cover"
                     />
                 ) : (
-                    <div className="flex h-[100px] w-full items-center justify-center rounded-lg bg-neutral-100">
+                    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-neutral-100">
                         <span className="text-neutral-400">No Image</span>
                     </div>
                 )}
 
                 <div className="flex gap-2 text-title font-semibold">
-                    <div className="text-primary-500">10</div>
+                    <div className="text-primary-500">0</div>
                     <div>Chapters</div>
                 </div>
 
