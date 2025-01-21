@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { LanguageDropdown } from "../../localization/language-dropdown";
 import { SplashScreenProps } from "../../../../types/loginTypes";
 import { LoginImage } from "@/assets/svgs";
+import LOGO from "@/assets/svgs/Background.svg";
 
 export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps) => {
     return (
@@ -23,9 +24,7 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                     }}
                     className="fixed left-0 top-0 h-screen w-screen"
                 >
-                    <motion.img
-                        src="src\assets\svgs\Background.svg"
-                        alt="logo"
+                    <motion.div
                         initial={
                             isAnimationEnabled
                                 ? { x: "35vw", y: "25vh", scale: 1 }
@@ -42,8 +41,12 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                             ease: "easeInOut",
                         }}
                         className="left-8 top-8 size-full max-h-80 max-w-80 origin-top-left object-cover"
-                    />
+                    >
+                        <LOGO className="h-full w-full" />
+                    </motion.div>
+                    ;
                 </motion.div>
+                ;
                 {/* <img src="/svgs/login/login-image.svg" alt="login image" width={400} height={400} /> */}
                 <LoginImage />
             </div>
