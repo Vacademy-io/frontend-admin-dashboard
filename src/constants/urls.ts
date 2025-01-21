@@ -28,3 +28,5 @@ export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
 export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
 export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
+export const GET_ASSESSMENT_INIT_DETAILS = `${BASE_URL}/assessment-service/assessment/add-participants/create/v1/assessment-admin-list-init`;
+export const GET_ASSESSMENT_LISTS = `${BASE_URL}/assessment-service/assessment/add-participants/create/v1/assessment-admin-list-filter`;

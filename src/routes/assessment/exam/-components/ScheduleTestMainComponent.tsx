@@ -13,6 +13,9 @@ import ScheduleTestFilterButtons from "./ScheduleTestFilterButtons";
 import { scheduleTestTabsData } from "@/constants/dummy-data";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import ScheduleTestLists from "./ScheduleTestLists";
+import { getAssessmentListWithFilters } from "../-services/assessment-services";
+import { INSTITUTE_ID } from "@/constants/urls";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const ScheduleTestMainComponent = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -23,8 +26,10 @@ export const ScheduleTestMainComponent = () => {
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
         Record<string, MyFilterOption[]>
     >({});
+    console.log(selectedQuestionPaperFilters);
     const [searchText, setSearchText] = useState("");
     const [pageNo, setPageNo] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleFilterChange = (filterKey: string, selectedItems: MyFilterOption[]) => {
         setSelectedQuestionPaperFilters((prev) => {
@@ -66,9 +71,29 @@ export const ScheduleTestMainComponent = () => {
     };
 
     useEffect(() => {
+        setIsLoading(true);
+        const timeoutId = setTimeout(() => {
+            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, selectedQuestionPaperFilters)
+                .then((data) => {
+                    console.log(data);
+                    setIsLoading(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                    setIsLoading(false);
+                });
+        }, 0);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, []);
+
+    useEffect(() => {
         setNavHeading(<h1 className="text-lg">Assessments List</h1>);
     }, []);
 
+    if (isLoading) return <DashboardLoader />;
     return (
         <>
             <Helmet>

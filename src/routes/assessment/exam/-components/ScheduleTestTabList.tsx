@@ -67,7 +67,7 @@ const ScheduleTestTabList = ({ selectedTab }: { selectedTab: string }) => {
                         : "border-none bg-transparent"
                 }`}
             >
-                <span className={`${selectedTab === "liveTests" ? "text-primary-500" : ""}`}>
+                <span className={`${selectedTab === "draftTests" ? "text-primary-500" : ""}`}>
                     Drafts
                 </span>
                 <Badge

@@ -168,7 +168,13 @@ export function QuestionInsightsComponent() {
                                                             <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                                 Correct Respondents
                                                             </h1>
-                                                            <QuestionAssessmentStatus />
+                                                            <QuestionAssessmentStatus
+                                                                type="question"
+                                                                studentsListData={
+                                                                    question.studentResponseList
+                                                                        .correctResponse
+                                                                }
+                                                            />
                                                         </DialogContent>
                                                     </Dialog>
                                                 </div>
@@ -215,7 +221,13 @@ export function QuestionInsightsComponent() {
                                                             <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                                 Partially Correct Respondents
                                                             </h1>
-                                                            <QuestionAssessmentStatus />
+                                                            <QuestionAssessmentStatus
+                                                                type="question"
+                                                                studentsListData={
+                                                                    question.studentResponseList
+                                                                        .partiallyCorrect
+                                                                }
+                                                            />
                                                         </DialogContent>
                                                     </Dialog>
                                                 </div>
@@ -262,7 +274,13 @@ export function QuestionInsightsComponent() {
                                                             <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                                 Wrong Respondents
                                                             </h1>
-                                                            <QuestionAssessmentStatus />
+                                                            <QuestionAssessmentStatus
+                                                                type="question"
+                                                                studentsListData={
+                                                                    question.studentResponseList
+                                                                        .wrongResponse
+                                                                }
+                                                            />
                                                         </DialogContent>
                                                     </Dialog>
                                                 </div>
@@ -306,7 +324,13 @@ export function QuestionInsightsComponent() {
                                                             <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                                 Skipped Respondents
                                                             </h1>
-                                                            <QuestionAssessmentStatus />
+                                                            <QuestionAssessmentStatus
+                                                                type="question"
+                                                                studentsListData={
+                                                                    question.studentResponseList
+                                                                        .skipped
+                                                                }
+                                                            />
                                                         </DialogContent>
                                                     </Dialog>
                                                 </div>

@@ -5,7 +5,7 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-import { overviewTabCloseTestData } from "../-utils/dummy-data";
+import { overviewTabCloseTestData, overviewTabOpenTestData } from "../-utils/dummy-data";
 import { MyButton } from "@/components/design-system/button";
 import { DotOutline } from "@phosphor-icons/react";
 import { Crown, Person } from "@/svgs";
@@ -132,7 +132,14 @@ export function QuestionsPieChart() {
                             <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                 Assessment Status
                             </h1>
-                            <QuestionAssessmentStatus />
+                            <QuestionAssessmentStatus
+                                type="open"
+                                studentsListData={overviewTabOpenTestData.assessmentStatus}
+                            />
+                            {/* <QuestionAssessmentStatus
+                                type="close"
+                                studentsListData={overviewTabCloseTestData.assessmentStatus}
+                            /> */}
                         </DialogContent>
                     </Dialog>
                 </div>
