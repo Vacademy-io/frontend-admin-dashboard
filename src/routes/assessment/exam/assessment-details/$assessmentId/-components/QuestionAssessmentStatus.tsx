@@ -5,7 +5,11 @@ import {
     assessmentStatusStudentOngoingColumns,
     assessmentStatusStudentPendingColumns,
 } from "../-utils/student-columns";
-import { overviewTabCloseTestData, overviewTabOpenTestData } from "../-utils/dummy-data";
+import {
+    overviewTabCloseTestData,
+    overviewTabOpenTestData,
+    questionInsightsData,
+} from "../-utils/dummy-data";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,52 +25,66 @@ const QuestionAssessmentStatus = () => {
     const currentPageSelection = rowSelections[page] || {};
 
     const studentTableData =
-        overviewTabOpenTestData.assessmentStatus
-            ?.find((status) => status.participantsType === selectedParticipantsTab) // First filter by internal/external
-            ?.studentsData?.find((data) => data.type === selectedTab) // Then filter by Attempted, Pending, Ongoing
-            ?.studentDetails?.map((student) => {
-                switch (selectedTab) {
-                    case "Attempted":
-                        return {
-                            status: selectedTab,
-                            id: student.userId,
-                            full_name: student.name,
-                            package_session_id: student.batch || "-", // Batch might not exist for external users
-                            institute_enrollment_id: student.enrollmentNumber || "-", // Enrollment number might be missing
-                            gender: student.gender,
-                            attempt_date: student.attemptDate,
-                            start_time: student.startTime,
-                            end_time: student.endTime,
-                            duration: student.duration,
-                            marks: `${student.scoredMarks}/${student.totalMarks}`,
-                        };
-                    case "Pending":
-                        return {
-                            status: selectedTab,
-                            id: student.userId,
-                            full_name: student.name,
-                            package_session_id: student.batch || "-",
-                            institute_enrollment_id: student.enrollmentNumber || "-",
-                            gender: student.gender,
-                            mobile_number: student.phoneNo,
-                            email: student.email,
-                            city: student.city,
-                            state: student.state,
-                        };
-                    case "Ongoing":
-                        return {
-                            status: selectedTab,
-                            id: student.userId,
-                            full_name: student.name,
-                            package_session_id: student.batch || "-",
-                            institute_enrollment_id: student.enrollmentNumber || "-",
-                            gender: student.gender,
-                            start_time: student.startTime,
-                        };
-                    default:
-                        return {};
-                }
-            }) || [];
+        questionInsightsData[0]?.questions[0]?.studentResponseList.correctResponse
+            ?.find((data) => data.type === selectedParticipantsTab)
+            ?.studentDetails.map((student) => {
+                return {
+                    id: student.userId,
+                    full_name: student.name,
+                    package_session_id: student.batch, // Batch might not exist for external users
+                    institute_enrollment_id: student.enrollmentNumber, // Enrollment number might be missing
+                    gender: student.gender,
+                    response_time: student.responseTime,
+                };
+            });
+
+    // const studentTableData =
+    //     overviewTabOpenTestData.assessmentStatus
+    //         ?.find((status) => status.participantsType === selectedParticipantsTab) // First filter by internal/external
+    //         ?.studentsData?.find((data) => data.type === selectedTab) // Then filter by Attempted, Pending, Ongoing
+    //         ?.studentDetails?.map((student) => {
+    //             switch (selectedTab) {
+    //                 case "Attempted":
+    //                     return {
+    //                         status: selectedTab,
+    //                         id: student.userId,
+    //                         full_name: student.name,
+    //                         package_session_id: student.batch || "-", // Batch might not exist for external users
+    //                         institute_enrollment_id: student.enrollmentNumber || "-", // Enrollment number might be missing
+    //                         gender: student.gender,
+    //                         attempt_date: student.attemptDate,
+    //                         start_time: student.startTime,
+    //                         end_time: student.endTime,
+    //                         duration: student.duration,
+    //                         marks: `${student.scoredMarks}/${student.totalMarks}`,
+    //                     };
+    //                 case "Pending":
+    //                     return {
+    //                         status: selectedTab,
+    //                         id: student.userId,
+    //                         full_name: student.name,
+    //                         package_session_id: student.batch || "-",
+    //                         institute_enrollment_id: student.enrollmentNumber || "-",
+    //                         gender: student.gender,
+    //                         mobile_number: student.phoneNo,
+    //                         email: student.email,
+    //                         city: student.city,
+    //                         state: student.state,
+    //                     };
+    //                 case "Ongoing":
+    //                     return {
+    //                         status: selectedTab,
+    //                         id: student.userId,
+    //                         full_name: student.name,
+    //                         package_session_id: student.batch || "-",
+    //                         institute_enrollment_id: student.enrollmentNumber || "-",
+    //                         gender: student.gender,
+    //                         start_time: student.startTime,
+    //                     };
+    //                 default:
+    //                     return {};
+    //             }
+    //         }) || [];
 
     // const studentTableData =
     //     overviewTabCloseTestData.assessmentStatus

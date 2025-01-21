@@ -6,6 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { MyButton } from "@/components/design-system/button";
 import { ArrowCounterClockwise, Export } from "phosphor-react";
 import { QuestionInsightsAnalysisChartComponent } from "./QuestionInsightsAnalysisChartComponent";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import QuestionAssessmentStatus from "./QuestionAssessmentStatus";
 
 interface CorrectOption {
     optionId: string;
@@ -134,7 +136,7 @@ export function QuestionInsightsComponent() {
                                                         weight="fill"
                                                         className="text-success-400"
                                                     />
-                                                    <p>Correct Responses: </p>
+                                                    <p>Correct Respondents: </p>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <p>
@@ -156,9 +158,19 @@ export function QuestionInsightsComponent() {
                                                             : "N/A"}
                                                         )
                                                     </p>
-                                                    <p className="text-sm text-primary-500">
-                                                        View List
-                                                    </p>
+                                                    <Dialog>
+                                                        <DialogTrigger>
+                                                            <p className="text-sm text-primary-500">
+                                                                View List
+                                                            </p>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
+                                                            <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
+                                                                Correct Respondents
+                                                            </h1>
+                                                            <QuestionAssessmentStatus />
+                                                        </DialogContent>
+                                                    </Dialog>
                                                 </div>
                                             </div>
                                             <div className="-mb-8 flex items-center justify-between gap-4">
@@ -193,9 +205,19 @@ export function QuestionInsightsComponent() {
                                                             : "N/A"}
                                                         )
                                                     </p>
-                                                    <p className="text-sm text-primary-500">
-                                                        View List
-                                                    </p>
+                                                    <Dialog>
+                                                        <DialogTrigger>
+                                                            <p className="text-sm text-primary-500">
+                                                                View List
+                                                            </p>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
+                                                            <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
+                                                                Partially Correct Respondents
+                                                            </h1>
+                                                            <QuestionAssessmentStatus />
+                                                        </DialogContent>
+                                                    </Dialog>
                                                 </div>
                                             </div>
                                             <div className="-mb-8 flex items-center justify-between">
@@ -230,9 +252,19 @@ export function QuestionInsightsComponent() {
                                                             : "N/A"}
                                                         )
                                                     </p>
-                                                    <p className="text-sm text-primary-500">
-                                                        View List
-                                                    </p>
+                                                    <Dialog>
+                                                        <DialogTrigger>
+                                                            <p className="text-sm text-primary-500">
+                                                                View List
+                                                            </p>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
+                                                            <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
+                                                                Wrong Respondents
+                                                            </h1>
+                                                            <QuestionAssessmentStatus />
+                                                        </DialogContent>
+                                                    </Dialog>
                                                 </div>
                                             </div>
                                             <div className="flex items-center justify-between">
@@ -264,9 +296,19 @@ export function QuestionInsightsComponent() {
                                                             : "N/A"}
                                                         )
                                                     </p>
-                                                    <p className="text-sm text-primary-500">
-                                                        View List
-                                                    </p>
+                                                    <Dialog>
+                                                        <DialogTrigger>
+                                                            <p className="text-sm text-primary-500">
+                                                                View List
+                                                            </p>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
+                                                            <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
+                                                                Skipped Respondents
+                                                            </h1>
+                                                            <QuestionAssessmentStatus />
+                                                        </DialogContent>
+                                                    </Dialog>
                                                 </div>
                                             </div>
                                         </div>
