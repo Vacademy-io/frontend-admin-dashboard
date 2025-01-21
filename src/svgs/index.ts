@@ -8,3 +8,5 @@ export { default as Practice } from "./practice.svg";
 export { default as Survey } from "./survey.svg";
 export { default as DotIcon } from "./dotIcon.svg";
 export { default as DotIconOffline } from "./dotIconOffline.svg";
+export { default as Crown } from "./crown.svg";
+export { default as Person } from "./person.svg";

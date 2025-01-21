@@ -372,8 +372,8 @@ const AccessControlCards = ({
                     }
                     return null;
                 })}
-                {getKeyVal.roles.some((role) => role.isSelected) &&
-                    getKeyVal.users.map((user, idx) => {
+                {getKeyVal?.roles?.some((role) => role.isSelected) &&
+                    getKeyVal?.users?.map((user, idx) => {
                         return (
                             <Badge
                                 key={idx}

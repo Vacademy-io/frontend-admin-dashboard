@@ -20,6 +20,7 @@ import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-p
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index"
 import { Route as AssessmentExamIndexImport } from "./routes/assessment/exam/index"
 import { Route as AssessmentCreateAssessmentExamtypeIndexImport } from "./routes/assessment/create-assessment/$examtype/index"
+import { Route as AssessmentExamAssessmentDetailsAssessmentIdIndexImport } from "./routes/assessment/exam/assessment-details/$assessmentId/index"
 
 // Create/Update Routes
 
@@ -67,6 +68,12 @@ const AssessmentExamIndexRoute = AssessmentExamIndexImport.update({
 const AssessmentCreateAssessmentExamtypeIndexRoute =
   AssessmentCreateAssessmentExamtypeIndexImport.update({
     path: "/assessment/create-assessment/$examtype/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const AssessmentExamAssessmentDetailsAssessmentIdIndexRoute =
+  AssessmentExamAssessmentDetailsAssessmentIdIndexImport.update({
+    path: "/assessment/exam/assessment-details/$assessmentId/",
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -137,6 +144,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AssessmentCreateAssessmentExamtypeIndexImport
       parentRoute: typeof rootRoute
     }
+    "/assessment/exam/assessment-details/$assessmentId/": {
+      id: "/assessment/exam/assessment-details/$assessmentId/"
+      path: "/assessment/exam/assessment-details/$assessmentId"
+      fullPath: "/assessment/exam/assessment-details/$assessmentId"
+      preLoaderRoute: typeof AssessmentExamAssessmentDetailsAssessmentIdIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -152,6 +166,7 @@ export const routeTree = rootRoute.addChildren({
   LoginForgotPasswordIndexRoute,
   StudentsStudentsListIndexRoute,
   AssessmentCreateAssessmentExamtypeIndexRoute,
+  AssessmentExamAssessmentDetailsAssessmentIdIndexRoute,
 })
 
 /* prettier-ignore-end */
@@ -170,7 +185,8 @@ export const routeTree = rootRoute.addChildren({
         "/assessment/question-papers/",
         "/login/forgot-password/",
         "/students/students-list/",
-        "/assessment/create-assessment/$examtype/"
+        "/assessment/create-assessment/$examtype/",
+        "/assessment/exam/assessment-details/$assessmentId/"
       ]
     },
     "/assessment/": {
@@ -199,6 +215,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/assessment/create-assessment/$examtype/": {
       "filePath": "assessment/create-assessment/$examtype/index.tsx"
+    },
+    "/assessment/exam/assessment-details/$assessmentId/": {
+      "filePath": "assessment/exam/assessment-details/$assessmentId/index.tsx"
     }
   }
 }
