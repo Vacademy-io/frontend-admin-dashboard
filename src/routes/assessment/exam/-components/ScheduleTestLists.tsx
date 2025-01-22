@@ -26,6 +26,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "@tanstack/react-router";
+import { convertToLocalDateTime } from "@/constants/helper";
 
 const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, handlePageChange }) => {
     const navigate = useNavigate();
@@ -41,7 +42,7 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
         <TabsContent
             key={tab.value}
             value={tab.value}
-            className="my-4 flex flex-col gap-6 rounded-xl"
+            // className="my-4 flex flex-col gap-6 rounded-xl"
         >
             {tab.data.length === 0 ? (
                 <div className="flex h-screen flex-col items-center justify-center">
@@ -50,35 +51,37 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
                 </div>
             ) : (
                 <>
-                    {tab.data.map((item, index) => (
+                    {tab.data.content.map((item, index) => (
                         <div
                             key={index}
-                            className="flex flex-col gap-4 rounded-xl border bg-neutral-50 p-4"
+                            className="my-6 flex flex-col gap-4 rounded-xl border bg-neutral-50 p-4"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <h1 className="font-semibold">{item.questionPaperTitle}</h1>
+                                    <h1 className="font-semibold">{item.name}</h1>
                                     <Badge
                                         className={`rounded-md border border-neutral-300 ${
-                                            item.type === "close" ? "bg-primary-50" : "bg-info-50"
+                                            item.assessment_visibility === "PRIVATE"
+                                                ? "bg-primary-50"
+                                                : "bg-info-50"
                                         } py-1.5 shadow-none`}
                                     >
                                         <LockSimple size={16} className="mr-2" />
-                                        {item.type}
+                                        {item.assessment_visibility}
                                     </Badge>
                                     <Badge
                                         className={`rounded-md border border-neutral-300 ${
-                                            item.mode === "offline"
+                                            item.play_mode !== "EXAM"
                                                 ? "bg-neutral-50"
                                                 : "bg-success-50"
                                         } py-1.5 shadow-none`}
                                     >
-                                        {item.mode === "online" ? (
+                                        {item.play_mode === "EXAM" ? (
                                             <DotIcon className="mr-2" />
                                         ) : (
                                             <DotIconOffline className="mr-2" />
                                         )}
-                                        {item.mode}
+                                        {item.play_mode}
                                     </Badge>
                                     <Separator
                                         orientation="vertical"
@@ -86,12 +89,12 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
                                     />
                                     <Badge
                                         className={`rounded-md border ${
-                                            item.status === "active"
+                                            item.status === "PUBLISHED"
                                                 ? "bg-success-50"
                                                 : "bg-neutral-100"
                                         } border-neutral-300 py-1.5 shadow-none`}
                                     >
-                                        {item.status === "active" ? (
+                                        {item.status === "PUBLISHED" ? (
                                             <CheckCircle
                                                 size={16}
                                                 weight="fill"
@@ -126,7 +129,9 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
                                         <DropdownMenuContent>
                                             <DropdownMenuItem
                                                 className="cursor-pointer"
-                                                onClick={() => handleNavigateAssessment(item.id)}
+                                                onClick={() =>
+                                                    handleNavigateAssessment(item.assessment_id)
+                                                }
                                             >
                                                 View Assessment Details
                                             </DropdownMenuItem>
@@ -143,18 +148,24 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
                                     </DropdownMenu>
                                 </div>
                             </div>
-                            <div className="flex w-3/4 items-center justify-between text-sm text-neutral-500">
+                            <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
                                 <div className="flex flex-col gap-4">
-                                    <p>Created on: {item.createdOn}</p>
-                                    <p>Subject: {item.subject}</p>
+                                    <p>Created on: {convertToLocalDateTime(item.created_at)}</p>
+                                    <p>Subject: </p>
                                 </div>
                                 <div className="flex flex-col gap-4">
-                                    <p>Start Date and Time: {item.startDate}</p>
+                                    <p>
+                                        Start Date and Time:{" "}
+                                        {convertToLocalDateTime(item.bound_start_time)}
+                                    </p>
                                     <p>Duration: {item.duration} min</p>
                                 </div>
                                 <div className="flex flex-col gap-4">
-                                    <p>End Date and Time: {item.endDate}</p>
-                                    <p>Total Participants: {item.totalParticipants}</p>
+                                    <p>
+                                        End Date and Time:{" "}
+                                        {convertToLocalDateTime(item.bound_end_time)}
+                                    </p>
+                                    <p>Total Participants: {item.user_registrations}</p>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between gap-8 text-sm text-neutral-500">
@@ -162,39 +173,44 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
                                 <p>Pending: {item.remainingParticipants}</p>
                             </div>
                             <ReverseProgressBar
-                                value={(item.remainingParticipants / item.totalParticipants) * 100}
+                                value={
+                                    item.expected_participants && item.user_registrations
+                                        ? (item.user_registrations / item.expected_participants) *
+                                          100
+                                        : 0 // Default value if `expected_participants` or `user_registrations` is missing
+                                }
                                 className="-mt-3 w-full border"
                             />
                             <div className="flex justify-between">
                                 <div className="flex items-center gap-2 text-sm text-neutral-500">
                                     <h1 className="!font-normal text-black">Join Link:</h1>
-                                    <p>{item.joinLink}</p>
+                                    {/* <p>{item.joinLink}</p> */}
                                     <MyButton
                                         type="button"
                                         scale="small"
                                         buttonType="secondary"
                                         className="h-8 min-w-8"
-                                        onClick={() => copyToClipboard(item.joinLink)}
+                                        // onClick={() => copyToClipboard(item.joinLink)}
                                     >
                                         <Copy size={32} />
                                     </MyButton>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <QRCode
+                                    {/* <QRCode
                                         value={item.joinLink}
                                         className="size-16"
                                         id={`qr-code-svg-assessment-list-${item.id}`}
-                                    />
+                                    /> */}
                                     <MyButton
                                         type="button"
                                         scale="small"
                                         buttonType="secondary"
                                         className="h-8 min-w-8"
-                                        onClick={() =>
-                                            handleDownloadQRCode(
-                                                `qr-code-svg-assessment-list-${item.id}`,
-                                            )
-                                        }
+                                        // onClick={() =>
+                                        //     handleDownloadQRCode(
+                                        //         `qr-code-svg-assessment-list-${item.id}`,
+                                        //     )
+                                        // }
                                     >
                                         <DownloadSimple size={32} />
                                     </MyButton>
@@ -204,7 +220,7 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
                     ))}
                     <MyPagination
                         currentPage={pageNo}
-                        totalPages={tab.data.length}
+                        totalPages={Math.ceil(tab.data.total_pages)}
                         onPageChange={handlePageChange}
                     />
                 </>

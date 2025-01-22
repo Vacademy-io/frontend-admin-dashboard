@@ -22,6 +22,38 @@ export const getInitAssessmentDetails = (instituteId: string | undefined) => {
     };
 };
 
+export function transformFilterAssessmentData(
+    data: Record<string, FilterOption[] | string | boolean>,
+) {
+    const result: Record<string, string[] | string | boolean> = {};
+
+    Object.keys(data).forEach((key) => {
+        const items = data[key];
+
+        // If key is one of the specified ones, map to 'name' instead of 'id'
+        if (["access_statuses", "assessment_modes", "assessment_statuses"].includes(key)) {
+            result[key] = Array.isArray(items)
+                ? items.map((item) => (typeof item === "object" && "name" in item ? item.name : ""))
+                : items;
+            return;
+        }
+
+        if (Array.isArray(items)) {
+            result[key] = items.map((item) =>
+                typeof item === "object" && "id" in item ? item.id : String(item),
+            );
+        } else {
+            result[key] = items; // Keep primitive values (string, boolean) as is
+        }
+
+        if (key === "name" && Array.isArray(result[key])) {
+            result[key] = (result[key] as string[]).join("");
+        }
+    });
+
+    return result;
+}
+
 export const getAssessmentListWithFilters = async (
     pageNo: number,
     pageSize: number,
@@ -36,7 +68,7 @@ export const getAssessmentListWithFilters = async (
             instituteId,
             pageSize,
         },
-        data: transformFilterData(data),
+        data: transformFilterAssessmentData(data),
     });
     return response?.data;
 };

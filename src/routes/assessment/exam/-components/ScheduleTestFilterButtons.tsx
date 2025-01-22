@@ -12,9 +12,30 @@ const ScheduleTestFilterButtons = ({
     handleSubmitFilters,
     handleResetFilters,
 }: ScheduleTestFilterButtonsProps) => {
+    const isButtonEnabled = () => {
+        const {
+            name,
+            batch_ids,
+            subjects_ids,
+            tag_ids,
+            assessment_statuses,
+            assessment_modes,
+            access_statuses,
+        } = selectedQuestionPaperFilters;
+
+        return (
+            name.trim() !== "" ||
+            batch_ids?.length > 0 ||
+            subjects_ids?.length > 0 ||
+            tag_ids?.length > 0 ||
+            assessment_statuses?.length > 0 ||
+            assessment_modes?.length > 0 ||
+            access_statuses?.length > 0
+        );
+    };
     return (
         <>
-            {Object.keys(selectedQuestionPaperFilters).length > 0 && (
+            {!!isButtonEnabled() && (
                 <div className="flex gap-6">
                     <MyButton
                         buttonType="primary"
