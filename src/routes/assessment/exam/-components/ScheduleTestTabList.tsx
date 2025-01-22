@@ -1,12 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScheduleTestTab } from "@/types/assessment-list";
 
 const ScheduleTestTabList = ({
     selectedTab,
     scheduleTestTabsData,
 }: {
     selectedTab: string;
-    scheduleTestTabsData: any;
+    scheduleTestTabsData: ScheduleTestTab[];
 }) => {
     return (
         <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
@@ -25,8 +26,8 @@ const ScheduleTestTabList = ({
                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {(scheduleTestTabsData[0].data &&
-                        scheduleTestTabsData[0]?.data?.content?.length > 0) > 0
+                    {scheduleTestTabsData[0]?.data?.content &&
+                    scheduleTestTabsData[0]?.data?.content.length > 0
                         ? scheduleTestTabsData[0]?.data?.total_elements
                         : 0}
                 </Badge>
@@ -46,9 +47,8 @@ const ScheduleTestTabList = ({
                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {(scheduleTestTabsData[1].data &&
-                        scheduleTestTabsData[1]?.data?.content?.length > 0) > 0
-                        ? scheduleTestTabsData[1]?.data?.total_elements
+                    {scheduleTestTabsData[1]?.data?.content?.length
+                        ? scheduleTestTabsData[1]?.data?.total_elements ?? 0
                         : 0}
                 </Badge>
             </TabsTrigger>
@@ -67,9 +67,8 @@ const ScheduleTestTabList = ({
                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {(scheduleTestTabsData[2].data &&
-                        scheduleTestTabsData[2]?.data?.content?.length > 0) > 0
-                        ? scheduleTestTabsData[2]?.data?.total_elements
+                    {scheduleTestTabsData[2]?.data?.content?.length
+                        ? scheduleTestTabsData[2]?.data?.total_elements ?? 0
                         : 0}
                 </Badge>
             </TabsTrigger>
@@ -88,9 +87,8 @@ const ScheduleTestTabList = ({
                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                     variant="outline"
                 >
-                    {(scheduleTestTabsData[3].data &&
-                        scheduleTestTabsData[3]?.data?.content?.length > 0) > 0
-                        ? scheduleTestTabsData[3]?.data?.total_elements
+                    {scheduleTestTabsData[3]?.data?.content?.length
+                        ? scheduleTestTabsData[3]?.data?.total_elements ?? 0
                         : 0}
                 </Badge>
             </TabsTrigger>

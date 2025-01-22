@@ -5,7 +5,6 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-import { overviewTabCloseTestData, overviewTabOpenTestData } from "../-utils/dummy-data";
 import { MyButton } from "@/components/design-system/button";
 import { DotOutline } from "@phosphor-icons/react";
 import { Crown, Person } from "@/svgs";
@@ -14,6 +13,8 @@ import { useState } from "react";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import QuestionAssessmentStatus from "./QuestionAssessmentStatus";
+import { overviewTabCloseTestData } from "../-utils/dummy-data-close";
+import { overviewTabOpenTestData } from "../-utils/dummy-data-open";
 
 const chartData = [
     {

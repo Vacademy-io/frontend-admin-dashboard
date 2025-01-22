@@ -6,7 +6,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { overviewTabCloseTestData } from "../-utils/dummy-data";
+import { overviewTabCloseTestData } from "../-utils/dummy-data-close";
 
 const AssessmentDetailsRankMarkTable = () => {
     return (

@@ -12,11 +12,11 @@ import {
     LockSimple,
     PauseCircle,
 } from "phosphor-react";
-import {
-    copyToClipboard,
-    handleDownloadQRCode,
-} from "../../create-assessment/$examtype/-utils/helper";
-import QRCode from "react-qr-code";
+// import {
+//     copyToClipboard,
+//     handleDownloadQRCode,
+// } from "../../create-assessment/$examtype/-utils/helper";
+// import QRCode from "react-qr-code";
 import { MyPagination } from "@/components/design-system/pagination";
 import { ScheduleTestListsProps } from "@/types/schedule-test-list";
 import {
@@ -39,12 +39,8 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
         });
     };
     return (
-        <TabsContent
-            key={tab.value}
-            value={tab.value}
-            // className="my-4 flex flex-col gap-6 rounded-xl"
-        >
-            {tab.data.length === 0 ? (
+        <TabsContent key={tab.value} value={tab.value}>
+            {tab.data.content.length === 0 ? (
                 <div className="flex h-screen flex-col items-center justify-center">
                     <EmptyScheduleTest />
                     <span className="text-neutral-600">{tab.message}</span>
@@ -169,8 +165,8 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
                                 </div>
                             </div>
                             <div className="flex items-center justify-between gap-8 text-sm text-neutral-500">
-                                <p>Attempted by: {item.attemptedParticipants}</p>
-                                <p>Pending: {item.remainingParticipants}</p>
+                                <p>Attempted by: </p>
+                                <p>Pending: </p>
                             </div>
                             <ReverseProgressBar
                                 value={

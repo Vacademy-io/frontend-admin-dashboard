@@ -1,4 +1,29 @@
-export const convertMarksRankData = (leaderboard) => {
+import {
+    ResponseQuestionList,
+    ResponseQuestionListClose,
+    ResponseQuestionListOpen,
+} from "@/types/assessment-overview";
+import {
+    assessmentStatusStudentAttemptedColumnsExternal,
+    assessmentStatusStudentAttemptedColumnsInternal,
+    assessmentStatusStudentOngoingColumnsExternal,
+    assessmentStatusStudentOngoingColumnsInternal,
+    assessmentStatusStudentPendingColumnsExternal,
+    assessmentStatusStudentPendingColumnsInternal,
+    assessmentStatusStudentQuestionResponseExternal,
+    assessmentStatusStudentQuestionResponseInternal,
+} from "./student-columns";
+
+interface StudentLeaderboardEntry {
+    userId: string;
+    rank: string;
+    name: string;
+    batch: string;
+    percentile: string;
+    scoredMarks: number;
+    totalMarks: number;
+}
+export const convertMarksRankData = (leaderboard: StudentLeaderboardEntry[]) => {
     const rankMap = new Map();
 
     leaderboard.forEach(({ rank, scoredMarks, percentile }) => {
@@ -14,4 +39,171 @@ export const convertMarksRankData = (leaderboard) => {
     });
 
     return Array.from(rankMap.values());
+};
+
+export const getAssessmentFilteredDataForAssessmentStatus = (
+    studentsListData:
+        | ResponseQuestionList[]
+        | ResponseQuestionListOpen[]
+        | ResponseQuestionListClose[],
+    type: string,
+    selectedParticipantsTab: string,
+    selectedTab: string,
+) => {
+    switch (type) {
+        case "open": {
+            const openData = (studentsListData as ResponseQuestionListOpen[])
+                ?.find((status) => status.participantsType === selectedParticipantsTab)
+                ?.studentsData?.find((data) => data.type === selectedTab)?.studentDetails;
+
+            if (!openData) return [];
+
+            return openData.map((student) => {
+                if (selectedTab === "Attempted" && "attemptDate" in student) {
+                    return {
+                        status: selectedTab,
+                        id: student.userId,
+                        full_name: student.name,
+                        package_session_id: student.batch,
+                        institute_enrollment_id: student.enrollmentNumber,
+                        gender: student.gender,
+                        attempt_date: student.attemptDate,
+                        start_time: student.startTime,
+                        end_time: student.endTime,
+                        duration: student.duration,
+                        marks:
+                            student.scoredMarks !== undefined && student.totalMarks !== undefined
+                                ? `${student.scoredMarks}/${student.totalMarks}`
+                                : undefined,
+                    };
+                } else if (selectedTab === "Pending" && "phoneNo" in student) {
+                    return {
+                        status: selectedTab,
+                        id: student.userId,
+                        full_name: student.name,
+                        package_session_id: student.batch,
+                        institute_enrollment_id: student.enrollmentNumber,
+                        gender: student.gender,
+                        mobile_number: student.phoneNo,
+                        email: student.email,
+                        city: student.city,
+                        state: student.state,
+                    };
+                } else if (selectedTab === "Ongoing" && "startTime" in student) {
+                    return {
+                        status: selectedTab,
+                        id: student.userId,
+                        full_name: student.name,
+                        package_session_id: student.batch,
+                        institute_enrollment_id: student.enrollmentNumber,
+                        gender: student.gender,
+                        start_time: student.startTime,
+                    };
+                }
+                return {};
+            });
+        }
+
+        case "close": {
+            const closeData = (studentsListData as ResponseQuestionListClose[])?.find(
+                (status) => status.type === selectedTab,
+            )?.studentDetails;
+
+            if (!closeData) return [];
+
+            return closeData.map((student) => {
+                if (selectedTab === "Attempted" && "attemptDate" in student) {
+                    return {
+                        status: selectedTab,
+                        id: student.userId,
+                        full_name: student.name,
+                        package_session_id: student.batch,
+                        institute_enrollment_id: student.enrollmentNumber,
+                        gender: student.gender,
+                        attempt_date: student.attemptDate,
+                        start_time: student.startTime,
+                        end_time: student.endTime,
+                        duration: student.duration,
+                        marks:
+                            student.scoredMarks !== undefined && student.totalMarks !== undefined
+                                ? `${student.scoredMarks}/${student.totalMarks}`
+                                : undefined,
+                    };
+                } else if (selectedTab === "Pending" && "phoneNo" in student) {
+                    return {
+                        status: selectedTab,
+                        id: student.userId,
+                        full_name: student.name,
+                        package_session_id: student.batch,
+                        institute_enrollment_id: student.enrollmentNumber,
+                        gender: student.gender,
+                        mobile_number: student.phoneNo,
+                        email: student.email,
+                        city: student.city,
+                        state: student.state,
+                    };
+                } else if (selectedTab === "Ongoing" && "startTime" in student) {
+                    return {
+                        status: selectedTab,
+                        id: student.userId,
+                        full_name: student.name,
+                        package_session_id: student.batch,
+                        institute_enrollment_id: student.enrollmentNumber,
+                        gender: student.gender,
+                        start_time: student.startTime,
+                    };
+                }
+                return {};
+            });
+        }
+
+        case "question": {
+            const questionData = (studentsListData as ResponseQuestionList[])?.find(
+                (data) => data.type === selectedParticipantsTab,
+            )?.studentDetails;
+
+            if (!questionData) return [];
+
+            return questionData.map((student) => ({
+                id: student.userId,
+                full_name: student.name,
+                ...(selectedParticipantsTab === "internal" && {
+                    package_session_id: student.batch,
+                    institute_enrollment_id: student.enrollmentNumber,
+                }),
+                gender: student.gender,
+                response_time: student.responseTime,
+            }));
+        }
+
+        default:
+            return [];
+    }
+};
+
+export const getAllColumnsForTable = (type: string, selectedParticipantsTab: string) => {
+    if (type === "open") {
+        if (selectedParticipantsTab === "internal")
+            return {
+                Attempted: assessmentStatusStudentAttemptedColumnsInternal,
+                Pending: assessmentStatusStudentPendingColumnsInternal,
+                Ongoing: assessmentStatusStudentOngoingColumnsInternal,
+            };
+        return {
+            Attempted: assessmentStatusStudentAttemptedColumnsExternal,
+            Pending: assessmentStatusStudentPendingColumnsExternal,
+            Ongoing: assessmentStatusStudentOngoingColumnsExternal,
+        };
+    } else if (type === "close") {
+        return {
+            Attempted: assessmentStatusStudentAttemptedColumnsInternal,
+            Pending: assessmentStatusStudentPendingColumnsInternal,
+            Ongoing: assessmentStatusStudentOngoingColumnsInternal,
+        };
+    } else {
+        return {
+            internal: assessmentStatusStudentQuestionResponseInternal,
+            external: assessmentStatusStudentQuestionResponseExternal,
+        };
+    }
 };

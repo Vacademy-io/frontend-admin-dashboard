@@ -1,8 +1,8 @@
 import { MyButton } from "@/components/design-system/button";
-import { MyFilterOption } from "@/types/my-filter";
+import { SelectedQuestionPaperFilters } from "./ScheduleTestMainComponent";
 
 interface ScheduleTestFilterButtonsProps {
-    selectedQuestionPaperFilters: Record<string, MyFilterOption[]>;
+    selectedQuestionPaperFilters: SelectedQuestionPaperFilters;
     handleSubmitFilters: () => void;
     handleResetFilters: () => void;
 }
@@ -23,8 +23,11 @@ const ScheduleTestFilterButtons = ({
             access_statuses,
         } = selectedQuestionPaperFilters;
 
+        // Check if 'name' is a string and call trim on it, otherwise check if it's an array
+        const isNameValid = typeof name === "string" ? name.trim() !== "" : name.length > 0;
+
         return (
-            name.trim() !== "" ||
+            isNameValid ||
             batch_ids?.length > 0 ||
             subjects_ids?.length > 0 ||
             tag_ids?.length > 0 ||

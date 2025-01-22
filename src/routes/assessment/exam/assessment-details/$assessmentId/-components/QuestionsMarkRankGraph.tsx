@@ -5,10 +5,10 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-import { overviewTabCloseTestData } from "../-utils/dummy-data";
 import { MyButton } from "@/components/design-system/button";
 import { ArrowCounterClockwise, Export } from "phosphor-react";
 import AssessmentDetailsRankMarkTable from "./QuestionsRankMarkTable";
+import { overviewTabCloseTestData } from "../-utils/dummy-data-close";
 
 const chartData = overviewTabCloseTestData.marksRankData.map(({ rank, marks }) => ({
     rank,

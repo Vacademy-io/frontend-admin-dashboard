@@ -21,8 +21,21 @@ import {
 } from "../-services/assessment-services";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { FilterOption } from "@/types/question-paper-filter";
 import { ScheduleTestTab } from "@/types/assessment-list";
+
+export interface SelectedQuestionPaperFilters {
+    name: string | { id: string; name: string }[];
+    batch_ids: MyFilterOption[];
+    subjects_ids: MyFilterOption[];
+    tag_ids: MyFilterOption[];
+    get_live_assessments: boolean;
+    get_passed_assessments: boolean;
+    get_upcoming_assessments: boolean;
+    institute_ids: string[];
+    assessment_statuses: MyFilterOption[];
+    assessment_modes: MyFilterOption[];
+    access_statuses: MyFilterOption[];
+}
 
 export const ScheduleTestMainComponent = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -32,21 +45,22 @@ export const ScheduleTestMainComponent = () => {
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
     const { AssessmentTypeData, AssessmentStatusData, ModeData } =
         useFilterDataForAssesmentInitData(initAssessmentData);
-    const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
-        Record<string, MyFilterOption[]>
-    >({
-        name: "",
-        batch_ids: [],
-        subjects_ids: [],
-        tag_ids: [],
-        get_live_assessments: false,
-        get_passed_assessments: false,
-        get_upcoming_assessments: false,
-        institute_ids: [initData?.id],
-        assessment_statuses: [],
-        assessment_modes: [],
-        access_statuses: [],
-    });
+
+    const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] =
+        useState<SelectedQuestionPaperFilters>({
+            name: "",
+            batch_ids: [],
+            subjects_ids: [],
+            tag_ids: [],
+            get_live_assessments: false,
+            get_passed_assessments: false,
+            get_upcoming_assessments: false,
+            institute_ids: [initData?.id || ""],
+            assessment_statuses: [],
+            assessment_modes: [],
+            access_statuses: [],
+        });
+
     const [scheduleTestTabsData, setScheduleTestTabsData] = useState<ScheduleTestTab[]>([
         {
             value: "liveTests",
@@ -105,9 +119,6 @@ export const ScheduleTestMainComponent = () => {
     const handleFilterChange = (filterKey: string, selectedItems: MyFilterOption[]) => {
         setSelectedQuestionPaperFilters((prev) => {
             const updatedFilters = { ...prev, [filterKey]: selectedItems };
-            if (selectedItems.length === 0) {
-                delete updatedFilters[filterKey];
-            }
             return updatedFilters;
         });
     };
@@ -145,7 +156,7 @@ export const ScheduleTestMainComponent = () => {
             get_live_assessments: false,
             get_passed_assessments: false,
             get_upcoming_assessments: false,
-            institute_ids: [initData?.id],
+            institute_ids: [initData?.id || ""],
             assessment_statuses: [],
             assessment_modes: [],
             access_statuses: [],
@@ -163,7 +174,7 @@ export const ScheduleTestMainComponent = () => {
                 get_live_assessments: selectedTab === "liveTests" ? true : false,
                 get_passed_assessments: selectedTab === "previousTests" ? true : false,
                 get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
-                institute_ids: [initData?.id],
+                institute_ids: [initData?.id || ""],
                 assessment_statuses: [],
                 assessment_modes: [],
                 access_statuses: [],
@@ -181,7 +192,7 @@ export const ScheduleTestMainComponent = () => {
             pageNo: number;
             pageSize: number;
             instituteId: string;
-            data: Record<string, FilterOption[]>;
+            data: SelectedQuestionPaperFilters;
         }) => getAssessmentListWithFilters(pageNo, pageSize, instituteId, data),
         onSuccess: (data) => {
             setScheduleTestTabsData((prevTabs) =>

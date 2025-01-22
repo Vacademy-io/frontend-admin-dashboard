@@ -68,7 +68,7 @@ export const AssessmentStatusOptions = ({ student }: { student: StudentTable }) 
     );
 };
 
-const ProvideReattemptComponent = ({ student }: { student: any }) => {
+const ProvideReattemptComponent = ({ student }: { student: StudentTable }) => {
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Provide Reattempt</h1>
@@ -97,7 +97,7 @@ const ProvideReattemptComponent = ({ student }: { student: any }) => {
     );
 };
 
-const SendReminderComponent = ({ student }: { student: any }) => {
+const SendReminderComponent = ({ student }: { student: StudentTable }) => {
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Send Reminder</h1>
@@ -126,7 +126,7 @@ const SendReminderComponent = ({ student }: { student: any }) => {
     );
 };
 
-const RemoveParticipantsComponent = ({ student }: { student: any }) => {
+const RemoveParticipantsComponent = ({ student }: { student: StudentTable }) => {
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Remove Participant</h1>
@@ -155,7 +155,7 @@ const RemoveParticipantsComponent = ({ student }: { student: any }) => {
     );
 };
 
-const CloseSubmissionComponent = ({ student }: { student: any }) => {
+const CloseSubmissionComponent = ({ student }: { student: StudentTable }) => {
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Close Submission</h1>
@@ -183,8 +183,9 @@ const CloseSubmissionComponent = ({ student }: { student: any }) => {
     );
 };
 
-const IncreaseAssessmentTimeComponent = ({ student }: { student: any }) => {
-    const [selectedSection, setSelectedSection] = useState<string>(timeLimit[0]);
+const IncreaseAssessmentTimeComponent = ({ student }: { student: StudentTable }) => {
+    console.log(student);
+    const [selectedSection, setSelectedSection] = useState<string>(timeLimit[0] as string);
     const durationDistribution1 = "ASSESSMENT";
     const durationDistribution2 = "SECTION";
     const durationDistribution3 = "QUESTION";

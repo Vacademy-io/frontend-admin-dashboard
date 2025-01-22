@@ -30,3 +30,4 @@ export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const GET_ASSESSMENT_INIT_DETAILS = `${BASE_URL}/assessment-service/assessment/admin/assessment-admin-list-init`;
 export const GET_ASSESSMENT_LISTS = `${BASE_URL}/assessment-service/assessment/admin/assessment-admin-list-filter`;
+export const PUBLISH_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/publish/v1/`;

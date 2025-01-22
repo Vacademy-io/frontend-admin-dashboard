@@ -14,6 +14,7 @@ import {
     getAssessmentDetails,
     getAssessmentDetailsData,
     handlePostStep4Data,
+    publishAssessment,
 } from "../../-services/assessment-services";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
@@ -51,7 +52,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const params = useParams({ strict: false });
     const examType = params.examtype;
     const storeDataStep4 = useAccessControlStore((state) => state);
-    const { savedAssessmentId } = useSavedAssessmentStore();
+    const { savedAssessmentId, setSavedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
@@ -141,6 +142,50 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
         });
     };
 
+    const handlePublishAssessmentMutation = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+            type,
+        }: {
+            assessmentId: string | null;
+            instituteId: string | undefined;
+            type: string | undefined;
+        }) => publishAssessment({ assessmentId, instituteId, type }),
+        onSuccess: async (data) => {
+            console.log(data);
+            syncStep4DataWithStore(form);
+            toast.success("Your assessment has been published successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
+            handleCompleteCurrentStep();
+            setSavedAssessmentId("");
+            navigate({
+                to: "/assessment/exam",
+            });
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
+        },
+    });
+
+    const handlePublishAssessment = () => {
+        handlePublishAssessmentMutation.mutate({
+            assessmentId: savedAssessmentId,
+            instituteId: instituteDetails?.id,
+            type: examType,
+        });
+    };
+
     const onInvalid = (err: unknown) => {
         console.log(err);
     };
@@ -152,14 +197,24 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             <form>
                 <div className="m-0 flex items-center justify-between p-0">
                     <h1>Access Control</h1>
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="primary"
-                        onClick={handleSubmit(onSubmit, onInvalid)}
-                    >
-                        Next
-                    </MyButton>
+                    <div className="flex items-center gap-6">
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="secondary"
+                            onClick={handleSubmit(onSubmit, onInvalid)}
+                        >
+                            Save
+                        </MyButton>
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="primary"
+                            onClick={handlePublishAssessment}
+                        >
+                            Publish
+                        </MyButton>
+                    </div>
                 </div>
                 <Separator className="my-4" />
                 <div className="flex flex-col gap-4">

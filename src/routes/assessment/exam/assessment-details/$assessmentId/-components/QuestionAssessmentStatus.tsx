@@ -1,182 +1,34 @@
 import { useState } from "react";
 import { MyTable } from "@/components/design-system/table";
-import {
-    assessmentStatusStudentAttemptedColumnsExternal,
-    assessmentStatusStudentAttemptedColumnsInternal,
-    assessmentStatusStudentOngoingColumnsExternal,
-    assessmentStatusStudentOngoingColumnsInternal,
-    assessmentStatusStudentPendingColumnsExternal,
-    assessmentStatusStudentPendingColumnsInternal,
-    assessmentStatusStudentQuestionResponseExternal,
-    assessmentStatusStudentQuestionResponseInternal,
-} from "../-utils/student-columns";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-
-const getAllColumnsForTable = (type: string, selectedParticipantsTab: string) => {
-    if (type === "open") {
-        if (selectedParticipantsTab === "internal")
-            return {
-                Attempted: assessmentStatusStudentAttemptedColumnsInternal,
-                Pending: assessmentStatusStudentPendingColumnsInternal,
-                Ongoing: assessmentStatusStudentOngoingColumnsInternal,
-            };
-        return {
-            Attempted: assessmentStatusStudentAttemptedColumnsExternal,
-            Pending: assessmentStatusStudentPendingColumnsExternal,
-            Ongoing: assessmentStatusStudentOngoingColumnsExternal,
-        };
-    } else if (type === "close") {
-        return {
-            Attempted: assessmentStatusStudentAttemptedColumnsInternal,
-            Pending: assessmentStatusStudentPendingColumnsInternal,
-            Ongoing: assessmentStatusStudentOngoingColumnsInternal,
-        };
-    } else {
-        return {
-            internal: assessmentStatusStudentQuestionResponseInternal,
-            external: assessmentStatusStudentQuestionResponseExternal,
-        };
-    }
-};
-
-const getAssessmentFilteredDataForAssessmentStatus = (
-    studentsListData: any,
-    type: string,
-    selectedParticipantsTab: string,
-    selectedTab: string,
-) => {
-    switch (type) {
-        case "open":
-            return (
-                studentsListData
-                    ?.find((status) => status.participantsType === selectedParticipantsTab) // First filter by internal/external
-                    ?.studentsData?.find((data) => data.type === selectedTab) // Then filter by Attempted, Pending, Ongoing
-                    ?.studentDetails?.map((student) => {
-                        switch (selectedTab) {
-                            case "Attempted":
-                                return {
-                                    status: selectedTab,
-                                    id: student.userId,
-                                    full_name: student.name,
-                                    package_session_id: student.batch,
-                                    institute_enrollment_id: student.enrollmentNumber,
-                                    gender: student.gender,
-                                    attempt_date: student.attemptDate,
-                                    start_time: student.startTime,
-                                    end_time: student.endTime,
-                                    duration: student.duration,
-                                    marks: `${student.scoredMarks}/${student.totalMarks}`,
-                                };
-                            case "Pending":
-                                return {
-                                    status: selectedTab,
-                                    id: student.userId,
-                                    full_name: student.name,
-                                    package_session_id: student.batch,
-                                    institute_enrollment_id: student.enrollmentNumber,
-                                    gender: student.gender,
-                                    mobile_number: student.phoneNo,
-                                    email: student.email,
-                                    city: student.city,
-                                    state: student.state,
-                                };
-                            case "Ongoing":
-                                return {
-                                    status: selectedTab,
-                                    id: student.userId,
-                                    full_name: student.name,
-                                    package_session_id: student.batch,
-                                    institute_enrollment_id: student.enrollmentNumber,
-                                    gender: student.gender,
-                                    start_time: student.startTime,
-                                };
-                            default:
-                                return {};
-                        }
-                    }) || []
-            );
-        case "close":
-            return (
-                studentsListData
-                    ?.find((status) => status.type === selectedTab)
-                    ?.studentDetails?.map((student) => {
-                        switch (selectedTab) {
-                            case "Attempted":
-                                return {
-                                    status: selectedTab,
-                                    id: student.userId,
-                                    full_name: student.name,
-                                    package_session_id: student.batch,
-                                    institute_enrollment_id: student.enrollmentNumber,
-                                    gender: student.gender,
-                                    attempt_date: student.attemptDate,
-                                    start_time: student.startTime,
-                                    end_time: student.endTime,
-                                    duration: student.duration,
-                                    marks: `${student.scoredMarks}/${student.totalMarks}`,
-                                };
-                            case "Pending":
-                                return {
-                                    status: selectedTab,
-                                    id: student.userId,
-                                    full_name: student.name,
-                                    package_session_id: student.batch,
-                                    institute_enrollment_id: student.enrollmentNumber,
-                                    gender: student.gender,
-                                    mobile_number: student.phoneNo,
-                                    email: student.email,
-                                    city: student.city,
-                                    state: student.state,
-                                };
-                            case "Ongoing":
-                                return {
-                                    status: selectedTab,
-                                    id: student.userId,
-                                    full_name: student.name,
-                                    package_session_id: student.batch,
-                                    institute_enrollment_id: student.enrollmentNumber,
-                                    gender: student.gender,
-                                    start_time: student.startTime,
-                                };
-                            default:
-                                return {};
-                        }
-                    }) || []
-            );
-        case "question":
-            return (
-                studentsListData
-                    ?.find((data) => data.type === selectedParticipantsTab)
-                    ?.studentDetails?.map((student) => ({
-                        id: student.userId,
-                        full_name: student.name,
-                        ...(selectedParticipantsTab === "internal" && {
-                            package_session_id: student.batch,
-                            institute_enrollment_id: student.enrollmentNumber,
-                        }),
-                        gender: student.gender,
-                        response_time: student.responseTime,
-                    })) || []
-            );
-        default:
-            return [];
-    }
-};
+import {
+    ResponseQuestionList,
+    ResponseQuestionListClose,
+    ResponseQuestionListOpen,
+} from "@/types/assessment-overview";
+import {
+    getAllColumnsForTable,
+    getAssessmentFilteredDataForAssessmentStatus,
+} from "../-utils/helper";
 
 const QuestionAssessmentStatus = ({
     type,
     studentsListData,
 }: {
     type: string;
-    studentsListData: any;
+    studentsListData:
+        | ResponseQuestionList[]
+        | ResponseQuestionListOpen[]
+        | ResponseQuestionListClose[];
 }) => {
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
     const [selectedTab, setSelectedTab] = useState("Attempted");
     const [page, setPage] = useState(1);
+    console.log(setPage);
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
 
     const currentPageSelection = rowSelections[page] || {};
@@ -281,7 +133,9 @@ const QuestionAssessmentStatus = ({
                     <Tabs
                         value={selectedParticipantsTab}
                         onValueChange={setSelectedParticipantsTab}
-                        className="flex justify-end rounded-lg bg-white p-0 pr-4 shadow-none"
+                        className={`flex justify-end rounded-lg bg-white p-0 pr-4 shadow-none ${
+                            type === "question" ? "mt-6" : ""
+                        }`}
                     >
                         <TabsList className="flex h-auto flex-wrap justify-start border border-gray-500 !bg-transparent p-0">
                             <TabsTrigger
@@ -330,11 +184,19 @@ const QuestionAssessmentStatus = ({
                             data={{
                                 content: studentTableData,
                                 total_pages: Math.ceil(studentTableData.length / 10),
+                                page_no: page,
+                                page_size: 10,
+                                total_elements: studentTableData.length,
+                                last: false,
                             }}
                             columns={
                                 type === "question"
-                                    ? getAssessmentColumn[selectedParticipantsTab]
-                                    : getAssessmentColumn[selectedTab]
+                                    ? getAssessmentColumn[
+                                          selectedParticipantsTab as keyof typeof getAssessmentColumn
+                                      ] || []
+                                    : getAssessmentColumn[
+                                          selectedTab as keyof typeof getAssessmentColumn
+                                      ] || []
                             }
                             rowSelection={currentPageSelection}
                             onRowSelectionChange={handleRowSelectionChange}

@@ -1,5 +1,6 @@
 import {
     GET_ASSESSMENT_DETAILS,
+    PUBLISH_ASSESSMENT_URL,
     STEP1_ASSESSMENT_URL,
     STEP2_ASSESSMENT_URL,
     STEP2_QUESTIONS_URL,
@@ -326,6 +327,28 @@ export const handlePostStep4Data = async (
             instituteId,
             type,
         },
+    });
+    return response?.data;
+};
+
+export const publishAssessment = async ({
+    assessmentId,
+    instituteId,
+    type,
+}: {
+    assessmentId: string | null;
+    instituteId: string | undefined;
+    type: string | undefined;
+}) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: PUBLISH_ASSESSMENT_URL,
+        params: {
+            assessmentId,
+            instituteId,
+            type,
+        },
+        data: {},
     });
     return response?.data;
 };

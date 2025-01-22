@@ -1,7 +1,6 @@
 import { GET_ASSESSMENT_INIT_DETAILS, GET_ASSESSMENT_LISTS } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { FilterOption } from "@/types/question-paper-filter";
-import { transformFilterData } from "../../question-papers/-utils/helper";
+import { SelectedQuestionPaperFilters } from "../-components/ScheduleTestMainComponent";
 
 const fetchInitAssessmentDetails = async (instituteId: string | undefined) => {
     const response = await authenticatedAxiosInstance({
@@ -22,15 +21,11 @@ export const getInitAssessmentDetails = (instituteId: string | undefined) => {
     };
 };
 
-export function transformFilterAssessmentData(
-    data: Record<string, FilterOption[] | string | boolean>,
-) {
-    const result: Record<string, string[] | string | boolean> = {};
+export function transformFilterAssessmentData(data: SelectedQuestionPaperFilters) {
+    const result: Record<string, string[] | string | boolean | undefined> = {};
 
     Object.keys(data).forEach((key) => {
-        const items = data[key];
-
-        // If key is one of the specified ones, map to 'name' instead of 'id'
+        const items = data[key as keyof SelectedQuestionPaperFilters];
         if (["access_statuses", "assessment_modes", "assessment_statuses"].includes(key)) {
             result[key] = Array.isArray(items)
                 ? items.map((item) => (typeof item === "object" && "name" in item ? item.name : ""))
@@ -43,7 +38,7 @@ export function transformFilterAssessmentData(
                 typeof item === "object" && "id" in item ? item.id : String(item),
             );
         } else {
-            result[key] = items; // Keep primitive values (string, boolean) as is
+            result[key] = items;
         }
 
         if (key === "name" && Array.isArray(result[key])) {
@@ -58,7 +53,7 @@ export const getAssessmentListWithFilters = async (
     pageNo: number,
     pageSize: number,
     instituteId: string,
-    data: Record<string, FilterOption[]>,
+    data: SelectedQuestionPaperFilters,
 ) => {
     const response = await authenticatedAxiosInstance({
         method: "POST",
