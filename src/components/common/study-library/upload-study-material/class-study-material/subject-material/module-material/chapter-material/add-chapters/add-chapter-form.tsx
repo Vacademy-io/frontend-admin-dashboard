@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
-import { MyDropdown } from "@/components/design-system/dropdown";
+// import { MyDropdown } from "@/components/design-system/dropdown";
 import { useGetBatchNames } from "@/hooks/student-list-section/useFilters";
 import { BatchCheckboxGroup } from "./batches";
 import { organizeBatchesByClass } from "./utils/organize-batches";
@@ -34,7 +34,7 @@ export const MyCheckbox = ({ checked, indeterminate, onCheckedChange }: Checkbox
 // Form schema
 const formSchema = z.object({
     chapterName: z.string().min(1, "Chapter name is required"),
-    studyLibraryVersion: z.string().min(1, "Study library version is required"),
+    // studyLibraryVersion: z.string().min(1, "Study library version is required"),
     visibility: z.object({
         tenthClass: z.string().array(),
         ninthClass: z.string().array(),
@@ -47,7 +47,7 @@ type FormValues = z.infer<typeof formSchema>;
 export interface ChapterType {
     name: string;
     description: string;
-    studyLibraryVersion: string;
+    // studyLibraryVersion: string;
     visibility: {
         tenthClass: string[];
         ninthClass: string[];
@@ -72,7 +72,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
         resolver: zodResolver(formSchema),
         defaultValues: {
             chapterName: initialValues?.name || "",
-            studyLibraryVersion: initialValues?.studyLibraryVersion || "Default",
+            // studyLibraryVersion: initialValues?.studyLibraryVersion || "Default",
             visibility: {
                 tenthClass: initialValues?.visibility.tenthClass || [],
                 ninthClass: initialValues?.visibility.ninthClass || [],
@@ -84,14 +84,14 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
     const onSubmit = (data: FormValues) => {
         const newChapter = {
             name: data.chapterName,
-            studyLibraryVersion: data.studyLibraryVersion,
+            // studyLibraryVersion: data.studyLibraryVersion,
             visibility: data.visibility,
             description: "Click to view and access eBooks and video lectures for this chapter.", // Add default description
         };
         onSubmitSuccess(newChapter);
     };
 
-    const studyLibraryVersions = ["Default", "Version 1", "Version 2"];
+    // const studyLibraryVersions = ["Default", "Version 1", "Version 2"];
 
     return (
         <Form {...form}>
@@ -156,7 +156,9 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
                     </div>
                 </div>
 
-                <FormField
+                {/* This will be used in case of Vacademy */}
+
+                {/* <FormField
                     control={form.control}
                     name="studyLibraryVersion"
                     render={({ field }) => (
@@ -174,15 +176,15 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
                             </FormControl>
                         </FormItem>
                     )}
-                />
+                /> */}
 
-                <div className="w-full px-6 py-4">
+                <div className="flex w-full items-center justify-end px-6 py-4">
                     <MyButton
                         type="submit"
                         buttonType="primary"
                         scale="large"
                         layoutVariant="default"
-                        className="w-full"
+                        className="w-fit"
                     >
                         Save
                     </MyButton>
