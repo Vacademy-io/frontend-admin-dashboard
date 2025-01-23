@@ -68,9 +68,25 @@ interface TestAccessState {
     };
     setTestAccessInfo: (data: Partial<TestAccessState>) => void;
     getTestAccessInfo: () => TestAccessState;
+    reset: () => void;
 }
 
+// ✅ Define the initial empty state (excluding functions)
+const initialState: Omit<TestAccessState, "setTestAccessInfo" | "getTestAccessInfo" | "reset"> = {
+    status: undefined,
+    closed_test: undefined,
+    open_test: undefined,
+    select_batch: undefined,
+    select_individually: undefined,
+    join_link: undefined,
+    show_leaderboard: undefined,
+    notify_student: undefined,
+    notify_parent: undefined,
+};
+
 export const useTestAccessStore = create<TestAccessState>((set, get) => ({
+    ...initialState,
     setTestAccessInfo: (data) => set((state) => ({ ...state, ...data })),
     getTestAccessInfo: () => get(),
+    reset: () => set(() => ({ ...initialState })), // ✅ Properly resets to initial state
 }));

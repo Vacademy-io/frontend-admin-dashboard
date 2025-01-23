@@ -14,28 +14,14 @@ import { Switch } from "@/components/ui/switch";
 import { timeLimit } from "@/constants/dummy-data";
 import { BasicInfoFormSchema } from "../../-utils/basic-info-form-schema";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import {
-    getAssessmentDetails,
-    getAssessmentDetailsData,
-    handlePostStep1Data,
-} from "../../-services/assessment-services";
+import { getAssessmentDetails, handlePostStep1Data } from "../../-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import {
-    formatDateTimeLocal,
-    getFieldOptions,
-    getStepKey,
-    getTimeLimitString,
-    syncStep1DataWithStore,
-} from "../../-utils/helper";
+import { getFieldOptions, getStepKey, syncStep1DataWithStore } from "../../-utils/helper";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { getIdBySubjectName } from "@/routes/assessment/question-papers/-utils/helper";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
-import {
-    useAssessmentUrlStore,
-    useBasicInfoStore,
-    useDurationDistributionStore,
-} from "../../-utils/zustand-global-states/step1-basic-info";
+import { useBasicInfoStore } from "../../-utils/zustand-global-states/step1-basic-info";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
@@ -58,7 +44,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const examType = params.examtype;
     const { setNavHeading } = useNavHeadingStore();
     const storeDataStep1 = useBasicInfoStore((state) => state);
-    const { setDurationDistribution } = useDurationDistributionStore();
     const { setSavedAssessmentId } = useSavedAssessmentStore();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
@@ -68,43 +53,45 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             type: examType,
         }),
     );
-    const { setAssessmentUrl } = useAssessmentUrlStore();
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const form = useForm<z.infer<typeof BasicInfoFormSchema>>({
         resolver: zodResolver(BasicInfoFormSchema),
         defaultValues: {
-            status: "",
+            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
             testCreation: {
-                assessmentName: "",
-                subject: "",
-                assessmentInstructions: "",
+                assessmentName: storeDataStep1.testCreation?.assessmentName || "",
+                subject: storeDataStep1.testCreation?.subject || "",
+                assessmentInstructions: storeDataStep1.testCreation?.assessmentInstructions || "",
                 liveDateRange: {
-                    startDate: "", // Default start date
-                    endDate: "", // Default end date
+                    startDate: storeDataStep1.testCreation?.liveDateRange?.startDate || "", // Default start date
+                    endDate: storeDataStep1.testCreation?.liveDateRange?.endDate || "", // Default end date
                 },
             },
             testDuration: {
                 entireTestDuration: {
-                    checked: true, // Default to true
+                    checked: storeDataStep1.testDuration?.entireTestDuration.checked || true, // Default to true
                     testDuration: {
-                        hrs: "",
-                        min: "",
+                        hrs:
+                            storeDataStep1.testDuration?.entireTestDuration.testDuration?.hrs || "",
+                        min:
+                            storeDataStep1.testDuration?.entireTestDuration.testDuration?.min || "",
                     }, // Default duration in HH:MM:SS
                 },
-                sectionWiseDuration: false, // Default to false
-                questionWiseDuration: false,
+                sectionWiseDuration: storeDataStep1.testDuration?.sectionWiseDuration || false, // Default to false
+                questionWiseDuration: storeDataStep1.testDuration?.questionWiseDuration || false,
             },
             assessmentPreview: {
-                checked: false, // Default to true
-                previewTimeLimit: timeLimit[0], // Default preview time
+                checked: storeDataStep1.assessmentPreview?.checked || false, // Default to true
+                previewTimeLimit:
+                    storeDataStep1.assessmentPreview?.previewTimeLimit || timeLimit[0], // Default preview time
             },
-            submissionType: "",
-            durationDistribution: "",
-            evaluationType: "",
-            switchSections: false, // Default to false
-            raiseReattemptRequest: false, // Default to true
-            raiseTimeIncreaseRequest: false, // Default to false
+            submissionType: storeDataStep1.submissionType || "",
+            durationDistribution: storeDataStep1.durationDistribution || "",
+            evaluationType: storeDataStep1.evaluationType || "",
+            switchSections: storeDataStep1.switchSections || false, // Default to false
+            raiseReattemptRequest: storeDataStep1.raiseReattemptRequest || false, // Default to true
+            raiseTimeIncreaseRequest: storeDataStep1.raiseTimeIncreaseRequest || false, // Default to false
         },
         mode: "onChange", // Validate as user types
     });
@@ -149,17 +136,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         }) => handlePostStep1Data(data, assessmentId, instituteId, type),
         onSuccess: async (data) => {
             setSavedAssessmentId(data.assessment_id);
-            // Ensure data is accessed correctly
-            const responseData = await getAssessmentDetailsData({
-                assessmentId: data?.assessment_id,
-                instituteId: instituteDetails?.id,
-                type: examType,
-            });
-            setAssessmentUrl(responseData[currentStep]?.saved_data?.assessment_url ?? "");
-            setDurationDistribution(
-                responseData[currentStep]?.saved_data?.duration_distribution ?? "",
-            );
-            syncStep1DataWithStore(responseData, currentStep, instituteDetails);
+            syncStep1DataWithStore(form);
             toast.success("Step 1 data has been saved successfully!", {
                 className: "success-toast",
                 duration: 2000,
@@ -204,110 +181,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     useEffect(() => {
         setNavHeading(heading);
-    }, []);
-
-    useEffect(() => {
-        form.reset({
-            status: storeDataStep1.status
-                ? storeDataStep1.status
-                : completedSteps[currentStep]
-                  ? "COMPLETE"
-                  : "INCOMPLETE",
-            testCreation: {
-                assessmentName: storeDataStep1?.testCreation?.assessmentName || "",
-                subject: storeDataStep1?.testCreation?.subject || "",
-                assessmentInstructions: storeDataStep1?.testCreation?.assessmentInstructions || "",
-                liveDateRange: {
-                    startDate: formatDateTimeLocal(
-                        storeDataStep1?.testCreation?.liveDateRange?.startDate,
-                    ),
-                    endDate: formatDateTimeLocal(
-                        storeDataStep1?.testCreation?.liveDateRange?.endDate,
-                    ),
-                },
-            },
-            testDuration: {
-                entireTestDuration: {
-                    checked:
-                        storeDataStep1?.durationDistribution === "ASSESSMENT"
-                            ? storeDataStep1?.testDuration?.entireTestDuration?.checked
-                            : assessmentDetails[currentStep]?.default_values?.duration_distribution
-                                    ?.value === "ASSESSMENT"
-                              ? true
-                              : false,
-                    testDuration: {
-                        hrs:
-                            storeDataStep1?.testDuration?.entireTestDuration?.testDuration?.hrs !==
-                            undefined
-                                ? String(
-                                      storeDataStep1.testDuration.entireTestDuration.testDuration
-                                          .hrs,
-                                  )
-                                : "",
-                        min:
-                            storeDataStep1?.testDuration?.entireTestDuration?.testDuration?.min !==
-                            undefined
-                                ? String(
-                                      storeDataStep1.testDuration.entireTestDuration.testDuration
-                                          .min,
-                                  )
-                                : "",
-                    },
-                },
-                sectionWiseDuration:
-                    storeDataStep1?.durationDistribution === "SECTION"
-                        ? storeDataStep1?.testDuration?.sectionWiseDuration
-                        : assessmentDetails[currentStep]?.default_values?.duration_distribution
-                                ?.value === "SECTION"
-                          ? true
-                          : false, // Default to false
-                questionWiseDuration:
-                    storeDataStep1?.durationDistribution === "QUESTION"
-                        ? storeDataStep1?.testDuration?.questionWiseDuration
-                        : assessmentDetails[currentStep]?.default_values?.duration_distribution
-                                ?.value === "QUESTION"
-                          ? true
-                          : false, // Default to false
-            },
-            assessmentPreview: {
-                checked:
-                    storeDataStep1?.assessmentPreview?.checked ||
-                    assessmentDetails[currentStep]?.default_values?.assessment_preview
-                        ?.send_value_id ||
-                    false, // Default to true
-                previewTimeLimit:
-                    storeDataStep1?.assessmentPreview?.previewTimeLimit !== undefined
-                        ? getTimeLimitString(
-                              storeDataStep1?.assessmentPreview?.previewTimeLimit,
-                              timeLimit,
-                          )
-                        : timeLimit[0], // Default preview time
-            },
-            submissionType:
-                storeDataStep1?.submissionType ||
-                assessmentDetails[currentStep]?.default_values?.submission_type?.value ||
-                "",
-            durationDistribution:
-                storeDataStep1?.durationDistribution ||
-                assessmentDetails[currentStep]?.default_values?.duration_distribution?.value ||
-                "",
-            evaluationType:
-                storeDataStep1?.evaluationType ||
-                assessmentDetails[currentStep]?.default_values?.evaluation_type?.value ||
-                "",
-            switchSections:
-                storeDataStep1?.switchSections ||
-                assessmentDetails[currentStep]?.default_values?.can_switch_section?.send_value_id ||
-                false, // Default to false
-            raiseReattemptRequest:
-                storeDataStep1?.raiseReattemptRequest ||
-                assessmentDetails[currentStep]?.default_values?.reattempt_consent?.send_value_id ||
-                false, // Default to true
-            raiseTimeIncreaseRequest:
-                storeDataStep1?.raiseTimeIncreaseRequest ||
-                assessmentDetails[currentStep]?.default_values?.add_time_consent?.send_value_id ||
-                false, // Default to false
-        });
     }, []);
 
     if (isLoading || handleSubmitStep1Form.status === "pending") return <DashboardLoader />;

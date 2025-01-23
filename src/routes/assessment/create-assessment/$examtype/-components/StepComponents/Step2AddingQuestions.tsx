@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { z } from "zod";
 import sectionDetailsSchema from "../../-utils/section-details-schema";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -7,12 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Plus } from "phosphor-react";
 import { Accordion } from "@/components/ui/accordion";
 import { StepContentProps } from "@/types/step-content-props";
-import {
-    getAssessmentDetailsData,
-    getQuestionsDataForStep2,
-    handlePostStep2Data,
-} from "../../-services/assessment-services";
-import { useMutation } from "@tanstack/react-query";
+import { getAssessmentDetails, handlePostStep2Data } from "../../-services/assessment-services";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +18,6 @@ import { AxiosError } from "axios";
 import { syncStep2DataWithStore } from "../../-utils/helper";
 import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useDurationDistributionStore } from "../../-utils/zustand-global-states/step1-basic-info";
 import { useParams } from "@tanstack/react-router";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
@@ -34,19 +29,25 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 }) => {
     const params = useParams({ strict: false });
     const examType = params.examtype;
-    const { durationDistribution } = useDurationDistributionStore();
     const storeDataStep2 = useSectionDetailsStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
+    const { data: assessmentDetails, isLoading } = useSuspenseQuery(
+        getAssessmentDetails({
+            assessmentId: savedAssessmentId,
+            instituteId: instituteDetails?.id,
+            type: "EXAM",
+        }),
+    );
 
     const form = useForm<SectionFormType>({
         resolver: zodResolver(sectionDetailsSchema),
         defaultValues: {
-            status: "",
-            section: [
+            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
+            section: storeDataStep2.section || [
                 {
                     sectionId: "",
-                    sectionName: "",
+                    sectionName: "Section 1",
                     questionPaperTitle: "",
                     subject: "",
                     yearClass: "",
@@ -95,22 +96,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             instituteId: string | undefined;
             type: string | undefined;
         }) => handlePostStep2Data(data, assessmentId, instituteId, type),
-        onSuccess: async (data) => {
-            // Ensure data is accessed correctly
-            const responseData = await getAssessmentDetailsData({
-                assessmentId: data?.assessment_id,
-                instituteId: instituteDetails?.id,
-                type: examType,
-            });
-            const sectionIds =
-                responseData[currentStep]?.saved_data?.sections
-                    ?.map((section) => section?.id)
-                    .join(",") || "";
-            const questionsData = await getQuestionsDataForStep2({
-                assessmentId: data?.assessment_id,
-                sectionIds: sectionIds,
-            });
-            syncStep2DataWithStore(responseData, currentStep, form, questionsData);
+        onSuccess: async () => {
+            syncStep2DataWithStore(form);
             toast.success("Step 2 data has been saved successfully!", {
                 className: "success-toast",
                 duration: 2000,
@@ -181,79 +168,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         });
     };
 
-    useEffect(() => {
-        form.reset({
-            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            section:
-                storeDataStep2.section.length > 0
-                    ? storeDataStep2.section.map((sectionDetails) => ({
-                          sectionId: sectionDetails.sectionId || "", // Default empty if not available
-                          sectionName:
-                              sectionDetails.sectionName || `Section ${allSections.length}`,
-                          questionPaperTitle: sectionDetails.questionPaperTitle,
-                          uploaded_question_paper: sectionDetails.uploaded_question_paper,
-                          subject: sectionDetails.subject,
-                          yearClass: sectionDetails.yearClass,
-                          question_duration: {
-                              hrs: sectionDetails.question_duration?.hrs || "",
-                              min: sectionDetails.question_duration?.min || "",
-                          },
-                          section_description: sectionDetails.section_description || "",
-                          section_duration: {
-                              hrs: sectionDetails.section_duration?.hrs || "",
-                              min: sectionDetails.section_duration?.min || "",
-                          },
-                          marks_per_question: sectionDetails.marks_per_question,
-                          total_marks: sectionDetails.total_marks || "",
-                          negative_marking: {
-                              checked: sectionDetails?.negative_marking?.checked,
-                              value: sectionDetails?.negative_marking?.value,
-                          },
-                          partial_marking: sectionDetails?.partial_marking,
-                          cutoff_marks: {
-                              checked: sectionDetails.cutoff_marks?.checked || false,
-                              value: sectionDetails.cutoff_marks?.value || "",
-                          },
-                          problem_randomization: sectionDetails.problem_randomization || false,
-                          adaptive_marking_for_each_question:
-                              sectionDetails?.adaptive_marking_for_each_question,
-                      }))
-                    : [
-                          {
-                              sectionId: "",
-                              sectionName: `Section ${allSections.length}`,
-                              questionPaperTitle: "",
-                              subject: "",
-                              yearClass: "",
-                              uploaded_question_paper: null,
-                              question_duration: {
-                                  hrs: "",
-                                  min: "",
-                              },
-                              section_description: "",
-                              section_duration: {
-                                  hrs: "",
-                                  min: "",
-                              },
-                              marks_per_question: "",
-                              total_marks: "",
-                              negative_marking: {
-                                  checked: false,
-                                  value: "",
-                              },
-                              partial_marking: false,
-                              cutoff_marks: {
-                                  checked: false,
-                                  value: "",
-                              },
-                              problem_randomization: false,
-                              adaptive_marking_for_each_question: [],
-                          },
-                      ],
-        });
-    }, []);
-
-    if (handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
+    if (isLoading || handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
@@ -272,13 +187,15 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
                                     // Check if section duration fields are valid based on durationDistribution
                                     const isSectionDurationMissing =
-                                        durationDistribution === "SECTION" &&
+                                        assessmentDetails[currentStep - 1]?.saved_data
+                                            ?.duration_distribution === "SECTION" &&
                                         !section.section_duration?.hrs &&
                                         !section.section_duration?.min;
 
                                     // Check if question duration fields are valid based on durationDistribution
                                     const isQuestionDurationMissing =
-                                        durationDistribution === "QUESTION" &&
+                                        assessmentDetails[currentStep - 1]?.saved_data
+                                            ?.duration_distribution === "QUESTION" &&
                                         !section.question_duration?.hrs &&
                                         !section.question_duration?.min;
 

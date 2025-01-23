@@ -1,4 +1,4 @@
-interface TestContent {
+export interface TestContent {
     assessment_id: string;
     name: string;
     about: string | null;

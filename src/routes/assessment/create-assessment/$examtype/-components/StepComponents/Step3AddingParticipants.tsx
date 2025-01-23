@@ -34,11 +34,7 @@ import { useInstituteQuery } from "@/services/student-list-section/getInstituteD
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-    getAssessmentDetails,
-    getAssessmentDetailsData,
-    handlePostStep3Data,
-} from "../../-services/assessment-services";
+import { getAssessmentDetails, handlePostStep3Data } from "../../-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
@@ -71,14 +67,21 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         }[]
     >([]);
 
+    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+    const { data: assessmentDetails, isLoading } = useSuspenseQuery(
+        getAssessmentDetails({
+            assessmentId: savedAssessmentId,
+            instituteId: instituteDetails?.id,
+            type: examType,
+        }),
+    );
+    const { batches_for_sessions } = instituteDetails || {};
+    const transformedBatches = transformBatchData(batches_for_sessions || []);
+
     const form = useForm<TestAccessFormType>({
         resolver: zodResolver(testAccessSchema),
         defaultValues: {
-            status: storeDataStep3.status
-                ? storeDataStep3.status
-                : completedSteps[currentStep]
-                  ? "COMPLETE"
-                  : "INCOMPLETE",
+            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
             closed_test: storeDataStep3?.closed_test || true,
             open_test: storeDataStep3?.open_test || {
                 checked: false,
@@ -143,20 +146,9 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         mode: "onChange",
     });
 
-    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-    const { data: assessmentDetails, isLoading } = useSuspenseQuery(
-        getAssessmentDetails({
-            assessmentId: null,
-            instituteId: instituteDetails?.id,
-            type: examType,
-        }),
-    );
-    const { batches_for_sessions } = instituteDetails || {};
-    const transformedBatches = transformBatchData(batches_for_sessions || []);
     const { handleSubmit, getValues, control, watch, setValue } = form;
     const customFields = getValues("open_test.custom_fields");
     watch("open_test.custom_fields");
-    console.log(getValues());
 
     const handleSubmitStep3Form = useMutation({
         mutationFn: ({
@@ -170,13 +162,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             instituteId: string | undefined;
             type: string | undefined;
         }) => handlePostStep3Data(data, assessmentId, instituteId, type),
-        onSuccess: async (data) => {
-            const responseData = await getAssessmentDetailsData({
-                assessmentId: data?.assessment_id,
-                instituteId: instituteDetails?.id,
-                type: examType,
-            });
-            console.log(responseData);
+        onSuccess: async () => {
             syncStep3DataWithStore(form);
             toast.success("Step 3 data has been saved successfully!", {
                 className: "success-toast",

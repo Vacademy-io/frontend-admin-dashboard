@@ -12,7 +12,6 @@ import { MyInput } from "@/components/design-system/input";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import {
     getAssessmentDetails,
-    getAssessmentDetailsData,
     handlePostStep4Data,
     publishAssessment,
 } from "../../-services/assessment-services";
@@ -25,21 +24,9 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useAccessControlStore } from "../../-utils/zustand-global-states/step4-access-control";
 import { useNavigate, useParams } from "@tanstack/react-router";
-
-const roles = [
-    { roleId: "1", roleName: "All Admins", isSelected: false },
-    { roleId: "2", roleName: "All Educators", isSelected: false },
-    { roleId: "3", roleName: "All Creators", isSelected: false },
-    { roleId: "4", roleName: "All Evaluators", isSelected: false },
-];
-
-const users = [
-    { userId: "u1", email: "john.doe@example.com" },
-    { userId: "u2", email: "jane.smith@example.com" },
-    { userId: "u3", email: "michael.brown@example.com" },
-    { userId: "u4", email: "susan.jones@example.com" },
-    { userId: "u5", email: "chris.jackson@example.com" },
-];
+import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
+import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
+import { useBasicInfoStore } from "../../-utils/zustand-global-states/step1-basic-info";
 
 // Define the type from the schema for better TypeScript inference
 type AccessControlFormValues = z.infer<typeof AccessControlFormSchema>;
@@ -56,35 +43,37 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: null,
+            assessmentId: savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         }),
     );
+    const roles =
+        assessmentDetails[currentStep]?.field_options?.roles?.map((role, index) => ({
+            roleId: (index + 1).toString(),
+            roleName: role.value,
+            isSelected: false,
+        })) || [];
     const form = useForm<AccessControlFormValues>({
         resolver: zodResolver(AccessControlFormSchema),
         defaultValues: {
-            status: storeDataStep4.status
-                ? storeDataStep4.status
-                : completedSteps[currentStep]
-                  ? "COMPLETE"
-                  : "INCOMPLETE",
+            status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
             assessment_creation_access: storeDataStep4.assessment_creation_access || {
                 roles: [...roles],
-                users: [...users],
+                users: [],
             },
             live_assessment_notification: storeDataStep4.live_assessment_notification || {
                 roles: [...roles],
-                users: [...users],
+                users: [],
             },
             assessment_submission_and_report_access:
                 storeDataStep4.assessment_submission_and_report_access || {
                     roles: [...roles],
-                    users: [...users],
+                    users: [],
                 },
             evaluation_process: storeDataStep4.evaluation_process || {
                 roles: [...roles],
-                users: [...users],
+                users: [],
             },
         },
         mode: "onChange",
@@ -103,14 +92,14 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             instituteId: string | undefined;
             type: string | undefined;
         }) => handlePostStep4Data(data, assessmentId, instituteId, type),
-        onSuccess: async (data) => {
-            const responseData = await getAssessmentDetailsData({
-                assessmentId: data?.assessment_id,
-                instituteId: instituteDetails?.id,
-                type: examType,
-            });
-            console.log(responseData);
+        onSuccess: async () => {
             syncStep4DataWithStore(form);
+            // Reset all Zustand stores
+            setSavedAssessmentId("");
+            useBasicInfoStore.getState().reset();
+            useSectionDetailsStore.getState().reset();
+            useTestAccessStore.getState().reset();
+            useAccessControlStore.getState().reset();
             toast.success("Your assessment has been saved successfully!", {
                 className: "success-toast",
                 duration: 2000,
@@ -152,15 +141,18 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             instituteId: string | undefined;
             type: string | undefined;
         }) => publishAssessment({ assessmentId, instituteId, type }),
-        onSuccess: async (data) => {
-            console.log(data);
+        onSuccess: async () => {
             syncStep4DataWithStore(form);
+            setSavedAssessmentId("");
+            useBasicInfoStore.getState().reset();
+            useSectionDetailsStore.getState().reset();
+            useTestAccessStore.getState().reset();
+            useAccessControlStore.getState().reset();
             toast.success("Your assessment has been published successfully!", {
                 className: "success-toast",
                 duration: 2000,
             });
             handleCompleteCurrentStep();
-            setSavedAssessmentId("");
             navigate({
                 to: "/assessment/exam",
             });
@@ -178,14 +170,27 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
         },
     });
 
-    const handlePublishAssessment = () => {
-        handlePublishAssessmentMutation.mutate({
-            assessmentId: savedAssessmentId,
-            instituteId: instituteDetails?.id,
-            type: examType,
-        });
-    };
+    const handlePublishAssessment = async () => {
+        try {
+            // Get the form values using form.getValues() or whatever method is appropriate
+            const formData = form.getValues(); // or form.data, if applicable
 
+            // Trigger the onSubmit first with the correct form data
+            await new Promise<void>((resolve) => {
+                onSubmit(formData); // pass the form data here
+                resolve();
+            });
+
+            // After successful form submission, trigger the publish mutation
+            handlePublishAssessmentMutation.mutate({
+                assessmentId: savedAssessmentId,
+                instituteId: instituteDetails?.id,
+                type: examType,
+            });
+        } catch (error) {
+            console.error("Error during form submission or publish mutation", error);
+        }
+    };
     const onInvalid = (err: unknown) => {
         console.log(err);
     };
@@ -410,7 +415,7 @@ const AccessControlCards = ({
                 </Dialog>
             </div>
             <div className="flex flex-wrap gap-4">
-                {getKeyVal.roles.map((role, idx) => {
+                {getKeyVal?.roles?.map((role, idx) => {
                     if (role.isSelected) {
                         return (
                             <Badge

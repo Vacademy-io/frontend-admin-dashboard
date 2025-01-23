@@ -2,13 +2,13 @@ import { create } from "zustand";
 
 interface SectionDetailsState {
     status?: string;
-    section: {
-        sectionId: string | null;
+    section?: {
+        sectionId: string;
         sectionName: string;
-        questionPaperTitle: string;
-        subject: string;
-        yearClass: string;
+        questionPaperTitle?: string;
         uploaded_question_paper?: string | null;
+        subject?: string;
+        yearClass?: string;
         question_duration: {
             hrs: string;
             min: string;
@@ -18,24 +18,25 @@ interface SectionDetailsState {
             hrs: string;
             min: string;
         };
-        marks_per_question?: string;
+        marks_per_question: string;
         total_marks: string;
         negative_marking: {
             checked: boolean;
             value: string;
         };
-        partial_marking?: boolean;
-        cutoff_marks?: {
+        partial_marking: boolean;
+        cutoff_marks: {
             checked: boolean;
             value: string;
         };
-        problem_randomization?: boolean;
-        adaptive_marking_for_each_question?: {
+        problem_randomization: boolean;
+        adaptive_marking_for_each_question: {
             questionId?: string;
             questionName: string;
             questionType: string;
             questionMark: string;
             questionPenalty: string;
+            correctOptionIdsCnt?: number;
             questionDuration: {
                 hrs: string;
                 min: string;
@@ -44,15 +45,19 @@ interface SectionDetailsState {
     }[];
     setSectionDetails: (data: Partial<SectionDetailsState>) => void;
     getSectionDetails: () => SectionDetailsState;
+    reset: () => void;
 }
 
+// ✅ Define the initial empty state (excluding functions)
+const initialState: Omit<SectionDetailsState, "setSectionDetails" | "getSectionDetails" | "reset"> =
+    {
+        status: undefined,
+        section: undefined,
+    };
+
 export const useSectionDetailsStore = create<SectionDetailsState>((set, get) => ({
-    status: "",
-    section: [],
-    setSectionDetails: (data) =>
-        set((state) => ({
-            ...state,
-            ...data,
-        })),
+    ...initialState,
+    setSectionDetails: (data) => set((state) => ({ ...state, ...data })),
     getSectionDetails: () => get(),
+    reset: () => set(() => ({ ...initialState })), // ✅ Properly resets to initial state
 }));

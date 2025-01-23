@@ -38,7 +38,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import sectionDetailsSchema from "../../-utils/section-details-schema";
-import { useDurationDistributionStore } from "../../-utils/zustand-global-states/step1-basic-info";
+import { useSavedAssessmentStore } from "../../-utils/global-states";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -51,12 +51,12 @@ export const Step2SectionInfo = ({
     index: number;
     currentStep: number;
 }) => {
-    const { durationDistribution } = useDurationDistributionStore();
     const [enableSectionName, setEnableSectionName] = useState(true);
     const { instituteDetails } = useInstituteDetailsStore();
+    const { savedAssessmentId } = useSavedAssessmentStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: null,
+            assessmentId: savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: "EXAM",
         }),
@@ -387,7 +387,8 @@ export const Step2SectionInfo = ({
                         )}
                     />
                 </div>
-                {durationDistribution === "QUESTION" && (
+                {assessmentDetails[currentStep - 1]?.saved_data?.duration_distribution ===
+                    "QUESTION" && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
                             Question Duration{" "}
@@ -456,7 +457,8 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
-                {durationDistribution === "SECTION" && (
+                {assessmentDetails[currentStep - 1]?.saved_data?.duration_distribution ===
+                    "SECTION" && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
                             Section Duration{" "}

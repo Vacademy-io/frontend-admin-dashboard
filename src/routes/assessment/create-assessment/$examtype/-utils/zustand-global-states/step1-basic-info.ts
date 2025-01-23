@@ -3,13 +3,13 @@ import { create } from "zustand";
 interface BasicInfoState {
     assessmentPreview?: {
         checked: boolean;
-        previewTimeLimit?: number; // Ensure this is explicitly a number
+        previewTimeLimit?: string;
     };
     durationDistribution?: string;
     evaluationType?: string;
     raiseReattemptRequest?: boolean;
     raiseTimeIncreaseRequest?: boolean;
-    status?: "INCOMPLETE" | "COMPLETE";
+    status?: string;
     submissionType?: string;
     switchSections?: boolean;
     testCreation?: {
@@ -19,14 +19,14 @@ interface BasicInfoState {
             startDate?: string;
             endDate?: string;
         };
-        subject?: string | null;
+        subject?: string;
     };
     testDuration?: {
         entireTestDuration: {
             checked: boolean;
-            testDuration: {
-                hrs: number;
-                min: number;
+            testDuration?: {
+                hrs: string;
+                min: string;
             };
         };
         questionWiseDuration: boolean;
@@ -34,11 +34,28 @@ interface BasicInfoState {
     };
     setBasicInfo: (data: Partial<BasicInfoState>) => void;
     getBasicInfo: () => BasicInfoState;
+    reset: () => void;
 }
 
+// ✅ Define the initial empty state
+const initialState: Omit<BasicInfoState, "setBasicInfo" | "getBasicInfo" | "reset"> = {
+    assessmentPreview: undefined,
+    durationDistribution: undefined,
+    evaluationType: undefined,
+    raiseReattemptRequest: undefined,
+    raiseTimeIncreaseRequest: undefined,
+    status: undefined,
+    submissionType: undefined,
+    switchSections: undefined,
+    testCreation: undefined,
+    testDuration: undefined,
+};
+
 export const useBasicInfoStore = create<BasicInfoState>((set, get) => ({
+    ...initialState,
     setBasicInfo: (data) => set((state) => ({ ...state, ...data })),
     getBasicInfo: () => get(),
+    reset: () => set(() => ({ ...initialState })), // ✅ Properly resets the state
 }));
 
 // Define the store
@@ -51,14 +68,4 @@ interface AssessmentUrlStore {
 export const useAssessmentUrlStore = create<AssessmentUrlStore>((set) => ({
     assessmentUrl: "",
     setAssessmentUrl: (url) => set({ assessmentUrl: url }),
-}));
-
-interface DurationStore {
-    durationDistribution: string;
-    setDurationDistribution: (value: string) => void;
-}
-
-export const useDurationDistributionStore = create<DurationStore>((set) => ({
-    durationDistribution: "",
-    setDurationDistribution: (value) => set({ durationDistribution: value }),
 }));

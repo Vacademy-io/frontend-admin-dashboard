@@ -1,5 +1,3 @@
-import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
-import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
 import { Steps } from "@/types/assessment-data-type";
 import { BatchData } from "@/types/batch-details";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
@@ -10,9 +8,7 @@ import { useTestAccessStore } from "./zustand-global-states/step3-adding-partici
 import { useAccessControlStore } from "./zustand-global-states/step4-access-control";
 import {
     AccessControlFormValues,
-    QuestionData,
-    QuestionDataObject,
-    Section,
+    BasicSectionFormType,
     SectionFormType,
     TestAccessFormType,
 } from "@/types/assessment-steps";
@@ -199,157 +195,31 @@ export function calculateTotalMarks(questions: AdaptiveMarkingQuestion[]) {
     return String(totalMarks);
 }
 
-export const syncStep1DataWithStore = (
-    responseData: Steps,
-    currentStep: number,
-    instituteDetails: InstituteDetailsType,
-) => {
+export const syncStep1DataWithStore = (form: UseFormReturn<BasicSectionFormType>) => {
     const setBasicInfo = useBasicInfoStore.getState().setBasicInfo;
-
+    const { getValues } = form;
     const basicInfoData = {
-        assessmentPreview: {
-            checked: !!responseData[currentStep]?.saved_data?.assessment_preview,
-            previewTimeLimit:
-                typeof responseData[currentStep]?.saved_data?.assessment_preview === "number"
-                    ? responseData[currentStep]?.saved_data?.assessment_preview
-                    : undefined, // Ensure it's either a number or undefined
-        },
-        durationDistribution: responseData[currentStep]?.saved_data?.duration_distribution as
-            | string
-            | undefined,
-        evaluationType: responseData[currentStep]?.saved_data?.evaluation_type as
-            | string
-            | undefined,
-        raiseReattemptRequest: responseData[currentStep]?.saved_data?.reattempt_consent as
-            | boolean
-            | undefined,
-        raiseTimeIncreaseRequest: responseData[currentStep]?.saved_data?.add_time_consent as
-            | boolean
-            | undefined,
-        status: responseData[currentStep]?.status as "INCOMPLETE" | "COMPLETE" | undefined,
-        submissionType: responseData[currentStep]?.saved_data?.submission_type as
-            | string
-            | undefined,
-        switchSections: responseData[currentStep]?.saved_data?.can_switch_section as
-            | boolean
-            | undefined,
-        testCreation: {
-            assessmentInstructions: responseData[currentStep]?.saved_data?.instructions?.content as
-                | string
-                | undefined,
-            assessmentName: responseData[currentStep]?.saved_data?.name as string | undefined,
-            liveDateRange: {
-                startDate: responseData[currentStep]?.saved_data?.boundation_start_date as
-                    | string
-                    | undefined,
-                endDate: responseData[currentStep]?.saved_data?.boundation_end_date as
-                    | string
-                    | undefined,
-            },
-            subject: getSubjectNameById(
-                instituteDetails?.subjects || [],
-                responseData[currentStep]?.saved_data?.subject_selection as string | null,
-            ),
-        },
-        testDuration: {
-            entireTestDuration: {
-                checked:
-                    responseData[currentStep]?.saved_data?.duration_distribution === "ASSESSMENT",
-                testDuration: {
-                    hrs: Math.floor((responseData[currentStep]?.saved_data?.duration ?? 0) / 60),
-                    min: (responseData[currentStep]?.saved_data?.duration ?? 0) % 60,
-                },
-            },
-            questionWiseDuration:
-                responseData[currentStep]?.saved_data?.duration_distribution === "QUESTION",
-            sectionWiseDuration:
-                responseData[currentStep]?.saved_data?.duration_distribution === "SECTION",
-        },
+        status: getValues("status"),
+        testCreation: getValues("testCreation"),
+        testDuration: getValues("testDuration"),
+        assessmentPreview: getValues("assessmentPreview"),
+        submissionType: getValues("submissionType"),
+        durationDistribution: getValues("durationDistribution"),
+        evaluationType: getValues("evaluationType"),
+        switchSections: getValues("switchSections"),
+        raiseReattemptRequest: getValues("raiseReattemptRequest"),
+        raiseTimeIncreaseRequest: getValues("raiseTimeIncreaseRequest"),
     };
-
-    // Update Zustand Store
     setBasicInfo(basicInfoData);
 };
 
-export const syncStep2DataWithStore = (
-    responseData: Steps,
-    currentStep: number,
-    form: UseFormReturn<SectionFormType>,
-    questionsData: QuestionDataObject,
-) => {
-    const { getValues } = form;
-    const allSections = getValues("section");
+export const syncStep2DataWithStore = (form: UseFormReturn<SectionFormType>) => {
     const setSectionDetails = useSectionDetailsStore.getState().setSectionDetails;
-
-    const currentStepData = responseData[currentStep]?.saved_data || { sections: [] };
+    const { getValues } = form;
 
     const sectionDetailsData = {
-        status: responseData[currentStep]?.status || "",
-        section: currentStepData?.sections?.map((section: Section, idx: number) => {
-            // Get questions for the current section
-            const questionsForSection = questionsData[section.id] || [];
-
-            // Map questions to adaptive_marking_for_each_question format
-            const adaptiveMarking = questionsForSection.map((questionData: QuestionData) => {
-                const markingJson = questionData.marking_json
-                    ? JSON.parse(questionData.marking_json)
-                    : {};
-                return {
-                    questionId: questionData.question_id || "",
-                    questionName: questionData.question?.content || "",
-                    questionType: questionData.question_type || "",
-                    questionMark: markingJson.data?.totalMark || "0",
-                    questionPenalty: markingJson.data?.negativeMark || "0",
-                    questionDuration: {
-                        hrs:
-                            typeof questionData.question_duration === "number"
-                                ? String(Math.floor(questionData.question_duration / 60))
-                                : "0",
-                        min:
-                            typeof questionData.question_duration === "number"
-                                ? String(questionData.question_duration % 60)
-                                : "0",
-                    },
-                };
-            });
-
-            return {
-                sectionId: section.id || null,
-                sectionName: section.name || "",
-                questionPaperTitle: allSections[idx]?.questionPaperTitle || "",
-                uploaded_question_paper: allSections[idx]?.uploaded_question_paper,
-                subject: allSections[idx]?.subject || "",
-                yearClass: allSections[idx]?.yearClass || "",
-                section_description: section.description || "",
-                question_duration: {
-                    hrs:
-                        typeof section.duration === "number"
-                            ? String(Math.floor(section.duration / 60))
-                            : "0",
-                    min: typeof section.duration === "number" ? String(section.duration % 60) : "0",
-                },
-                section_duration: {
-                    hrs:
-                        typeof section.duration === "number"
-                            ? String(Math.floor(section.duration / 60))
-                            : "0",
-                    min: typeof section.duration === "number" ? String(section.duration % 60) : "0",
-                },
-                marks_per_question: allSections[idx]?.marks_per_question,
-                total_marks: String(section.total_marks) || "0",
-                negative_marking: {
-                    checked: allSections[idx]?.negative_marking?.checked || false,
-                    value: allSections[idx]?.negative_marking?.value || "",
-                },
-                partialMarking: allSections[idx]?.partial_marking,
-                cutoff_marks: {
-                    checked: !!section.cutoff_marks,
-                    value: String(section.cutoff_marks) || "0",
-                },
-                problem_randomization: !!section.problem_randomization,
-                adaptive_marking_for_each_question: adaptiveMarking, // Assign the adaptive marking data here
-            };
-        }),
+        status: getValues("status"),
+        section: getValues("section"),
     };
 
     // Update Zustand Store

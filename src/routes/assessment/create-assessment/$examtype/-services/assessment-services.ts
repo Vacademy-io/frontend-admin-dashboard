@@ -300,22 +300,28 @@ export const handlePostStep4Data = async (
 ) => {
     const convertedData = {
         assessment_creation_access: {
-            roles: data.assessment_creation_access.roles.filter((role) => role.isSelected),
-            user_ids: data.assessment_creation_access.users,
+            roles: data.assessment_creation_access.roles
+                .filter((role) => role.isSelected)
+                .map((role) => role.roleName),
+            user_ids: data.assessment_creation_access.users.map((user) => user.email),
         },
         live_assessment_notification_access: {
-            roles: data.live_assessment_notification.roles.filter((role) => role.isSelected),
-            user_ids: data.live_assessment_notification.users,
+            roles: data.live_assessment_notification.roles
+                .filter((role) => role.isSelected)
+                .map((role) => role.roleName),
+            user_ids: data.live_assessment_notification.users.map((user) => user.email),
         },
         assessment_submission_and_report_access: {
-            roles: data.assessment_submission_and_report_access.roles.filter(
-                (role) => role.isSelected,
-            ),
-            user_ids: data.assessment_submission_and_report_access.users,
+            roles: data.assessment_submission_and_report_access.roles
+                .filter((role) => role.isSelected)
+                .map((role) => role.roleName),
+            user_ids: data.assessment_submission_and_report_access.users.map((user) => user.email),
         },
         evaluation_process_access: {
-            roles: data.evaluation_process.roles.filter((role) => role.isSelected),
-            user_ids: data.evaluation_process.users,
+            roles: data.evaluation_process.roles
+                .filter((role) => role.isSelected)
+                .map((role) => role.roleName),
+            user_ids: data.evaluation_process.users.map((user) => user.email),
         },
     };
     const response = await authenticatedAxiosInstance({
