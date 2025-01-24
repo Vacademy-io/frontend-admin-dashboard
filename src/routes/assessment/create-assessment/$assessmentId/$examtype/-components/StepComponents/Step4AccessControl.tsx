@@ -38,12 +38,13 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const navigate = useNavigate();
     const params = useParams({ strict: false });
     const examType = params.examtype;
+    const assessmentId = params.assessmentId;
     const storeDataStep4 = useAccessControlStore((state) => state);
     const { savedAssessmentId, setSavedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: savedAssessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         }),

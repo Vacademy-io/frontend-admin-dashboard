@@ -53,6 +53,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
 }) => {
     const params = useParams({ strict: false });
     const examType = params.examtype;
+    const assessmentId = params.assessmentId;
     const storeDataStep3 = useTestAccessStore((state) => state);
     const { assessmentUrl } = useAssessmentUrlStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
@@ -70,7 +71,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: savedAssessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         }),

@@ -20,7 +20,7 @@ export const getAssessmentDetailsData = async ({
     instituteId,
     type,
 }: {
-    assessmentId: string | null;
+    assessmentId: string | null | undefined;
     instituteId: string | undefined;
     type: string | undefined;
 }): Promise<Steps> => {
@@ -40,7 +40,7 @@ export const getAssessmentDetails = ({
     instituteId,
     type,
 }: {
-    assessmentId: string | null;
+    assessmentId: string | null | undefined;
     instituteId: string | undefined;
     type: string | undefined;
 }) => {

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useFilterDataForAssesment } from "../../../../exam/-utils.ts/useFiltersData";
+import { useFilterDataForAssesment } from "../../../../../exam/-utils.ts/useFiltersData";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
@@ -42,13 +42,14 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 }) => {
     const params = useParams({ strict: false });
     const examType = params.examtype;
+    const assessmentId = params.assessmentId;
     const { setNavHeading } = useNavHeadingStore();
     const storeDataStep1 = useBasicInfoStore((state) => state);
     const { setSavedAssessmentId } = useSavedAssessmentStore();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: null,
+            assessmentId: assessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         }),

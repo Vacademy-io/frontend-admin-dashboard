@@ -4,6 +4,8 @@ import { MainStepComponent } from "./StepComponents/MainStepComponent";
 import { CheckCircle } from "phosphor-react";
 import { Helmet } from "react-helmet";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Route } from "..";
+import { useNavigate } from "@tanstack/react-router";
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {
     steps: string[];
@@ -59,8 +61,11 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
 };
 
 const CreateAssessmentComponent = () => {
+    const navigate = useNavigate();
+    const { assessmentId, examtype } = Route.useParams();
+    const { currentStep: presentStep } = Route.useSearch();
     const steps = ["Basic Info", "Add Question", "Add Participants", "Access Control"];
-    const [currentStep, setCurrentStep] = useState(0);
+    const [currentStep, setCurrentStep] = useState(presentStep);
     const [completedSteps, setCompletedSteps] = useState([false, false, false, false]);
 
     const completeCurrentStep = () => {
@@ -71,6 +76,17 @@ const CreateAssessmentComponent = () => {
         });
         if (currentStep < steps.length - 1) {
             setCurrentStep((prev) => prev + 1);
+            // Update URL `currentStep` without reloading
+            navigate({
+                to: "/assessment/create-assessment/$assessmentId/$examtype",
+                params: {
+                    assessmentId: assessmentId,
+                    examtype: examtype,
+                },
+                search: {
+                    currentStep: currentStep,
+                },
+            });
         }
     };
 

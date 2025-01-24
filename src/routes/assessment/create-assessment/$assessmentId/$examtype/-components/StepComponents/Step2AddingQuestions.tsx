@@ -29,12 +29,13 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 }) => {
     const params = useParams({ strict: false });
     const examType = params.examtype;
+    const assessmentId = params.assessmentId;
     const storeDataStep2 = useSectionDetailsStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: savedAssessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: "EXAM",
         }),

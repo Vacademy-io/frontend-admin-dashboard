@@ -30,9 +30,10 @@ const ScheduleTestDetails = ({ scheduleTestContent }: { scheduleTestContent: Tes
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/exam/assessment-details/$assessmentId",
+            to: "/assessment/exam/assessment-details/$assessmentId/$examType",
             params: {
                 assessmentId: assessmentId,
+                examType: scheduleTestContent.play_mode,
             },
         });
     };

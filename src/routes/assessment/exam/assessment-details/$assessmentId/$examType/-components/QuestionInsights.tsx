@@ -1,5 +1,4 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { questionInsightsData } from "../-utils/dummy-data";
 import { useState } from "react";
 import { DotOutline } from "@phosphor-icons/react";
 import { Separator } from "@/components/ui/separator";
@@ -8,6 +7,7 @@ import { ArrowCounterClockwise, Export } from "phosphor-react";
 import { QuestionInsightsAnalysisChartComponent } from "./QuestionInsightsAnalysisChartComponent";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import QuestionAssessmentStatus from "./QuestionAssessmentStatus";
+import { questionInsightsData } from "../-utils/dummy-data";
 
 interface CorrectOption {
     optionId: string;

@@ -5,7 +5,6 @@ import { MyDropdown } from "@/components/design-system/dropdown";
 import { MyButton } from "@/components/design-system/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { WarningCircle } from "phosphor-react";
-import { asssessmentDetailsData } from "../-utils/dummy-data";
 import {
     Select,
     SelectContent,
@@ -14,6 +13,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { timeLimit } from "@/constants/dummy-data";
+import { asssessmentDetailsData } from "../-utils/dummy-data";
 
 const getMenuOptions = (status: string) => {
     if (status === "Attempted") {

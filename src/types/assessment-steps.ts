@@ -1,7 +1,7 @@
-import { AccessControlFormSchema } from "@/routes/assessment/create-assessment/$examtype/-utils/access-control-form-schema";
-import testAccessSchema from "@/routes/assessment/create-assessment/$examtype/-utils/add-participants-schema";
-import { BasicInfoFormSchema } from "@/routes/assessment/create-assessment/$examtype/-utils/basic-info-form-schema";
-import sectionDetailsSchema from "@/routes/assessment/create-assessment/$examtype/-utils/section-details-schema";
+import { AccessControlFormSchema } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/access-control-form-schema";
+import testAccessSchema from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/add-participants-schema";
+import { BasicInfoFormSchema } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/basic-info-form-schema";
+import sectionDetailsSchema from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 import { z } from "zod";
 
 export type BasicSectionFormType = z.infer<typeof BasicInfoFormSchema>;
