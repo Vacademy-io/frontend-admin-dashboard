@@ -13,6 +13,10 @@ import { QuestionAnalysisChart } from "./-components/QuestionAnalysisChart";
 import { Helmet } from "react-helmet";
 import { asssessmentDetailsData } from "./-utils/dummy-data";
 import { QuestionsPieChart } from "./-components/QuestionsPieChart";
+import { AssessmentBasicInfoTab } from "./-components/AssessmentBasicInfoTab";
+import AssessmentParticipantsTab from "./-components/AssessmentParticipantsTab";
+import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab";
+import { AssessmentQuestionsTab } from "./-components/AssessmentQuestionsTab";
 
 export const Route = createFileRoute("/assessment/exam/assessment-details/$assessmentId/")({
     component: () => (
@@ -83,6 +87,7 @@ const AssessmentDetailsComponent = () => {
                         Preview Assessment
                     </MyButton>
                 </div>
+                <Separator className="mt-4" />
                 <Tabs value={selectedTab} onValueChange={setSelectedTab}>
                     <TabsList className="mb-2 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
                         <TabsTrigger
@@ -175,16 +180,16 @@ const AssessmentDetailsComponent = () => {
                             <QuestionAnalysisChart />
                         </TabsContent>
                         <TabsContent value="basicInfo">
-                            <h1>basicInfo</h1>
+                            <AssessmentBasicInfoTab />
                         </TabsContent>
                         <TabsContent value="questions">
-                            <h1>questions</h1>
+                            <AssessmentQuestionsTab />
                         </TabsContent>
                         <TabsContent value="participants">
-                            <h1>participants</h1>
+                            <AssessmentParticipantsTab />
                         </TabsContent>
                         <TabsContent value="accessControl">
-                            <h1>accessControl</h1>
+                            <AssessmentAccessControlTab />
                         </TabsContent>
                     </div>
                 </Tabs>

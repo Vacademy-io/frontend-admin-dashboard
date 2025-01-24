@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
-import { AssessmentStatusOptions } from "../-components/Assessment-Status-Options";
+import { AssessmentStatusOptions } from "../-components/AssessmentStatusOptions";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
