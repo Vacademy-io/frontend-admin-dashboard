@@ -3,9 +3,9 @@ import { MyButton } from "@/components/design-system/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { DotIconOffline } from "@/svgs";
+import { DotIcon, DotIconOffline } from "@/svgs";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CaretLeft, LockSimple, PauseCircle, PencilSimpleLine } from "phosphor-react";
+import { CaretLeft, CheckCircle, LockSimple, PauseCircle, PencilSimpleLine } from "phosphor-react";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QuestionsMarkRankGraph } from "./-components/QuestionsMarkRankGraph";
@@ -16,7 +16,10 @@ import { AssessmentBasicInfoTab } from "./-components/AssessmentBasicInfoTab";
 import AssessmentParticipantsTab from "./-components/AssessmentParticipantsTab";
 import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab";
 import { AssessmentQuestionsTab } from "./-components/AssessmentQuestionsTab";
-import { asssessmentDetailsData } from "./-utils/dummy-data";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const Route = createFileRoute(
     "/assessment/exam/assessment-details/$assessmentId/$examType/",
@@ -37,6 +40,15 @@ const heading = (
 
 const AssessmentDetailsComponent = () => {
     const { assessmentId, examType } = Route.useParams();
+    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+    const { data: assessmentDetails, isLoading } = useSuspenseQuery(
+        getAssessmentDetails({
+            assessmentId: assessmentId,
+            instituteId: instituteDetails?.id,
+            type: examType,
+        }),
+    );
+
     const navigate = useNavigate();
     const [selectedTab, setSelectedTab] = useState("overview");
     const { setNavHeading } = useNavHeadingStore();
@@ -65,6 +77,8 @@ const AssessmentDetailsComponent = () => {
         setNavHeading(heading);
     }, []);
 
+    if (isLoading) return <DashboardLoader />;
+
     return (
         <>
             <Helmet>
@@ -77,29 +91,53 @@ const AssessmentDetailsComponent = () => {
             <div>
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <h1 className="font-semibold">{asssessmentDetailsData.title}</h1>
+                        <h1 className="font-semibold">{assessmentDetails[0]?.saved_data.name}</h1>
                         <Badge
-                            className={`rounded-md border border-neutral-300 py-1.5 shadow-none`}
+                            className={`rounded-md border border-neutral-300 ${
+                                assessmentDetails[0]?.saved_data.assessment_visibility === "PRIVATE"
+                                    ? "bg-primary-50"
+                                    : "bg-info-50"
+                            } py-1.5 shadow-none`}
                         >
                             <LockSimple size={16} className="mr-2" />
-                            {asssessmentDetailsData.type}
+                            {assessmentDetails[0]?.saved_data.assessment_visibility}
                         </Badge>
                         <Badge
-                            className={`rounded-md border border-neutral-300 py-1.5 shadow-none`}
+                            className={`rounded-md border border-neutral-300 ${
+                                assessmentDetails[0]?.saved_data.assessment_mode !== "EXAM"
+                                    ? "bg-neutral-50"
+                                    : "bg-success-50"
+                            } py-1.5 shadow-none`}
                         >
-                            <DotIconOffline className="mr-2" />
-                            {asssessmentDetailsData.mode}
+                            {assessmentDetails[0]?.saved_data.assessment_mode === "EXAM" ? (
+                                <DotIcon className="mr-2" />
+                            ) : (
+                                <DotIconOffline className="mr-2" />
+                            )}
+                            {assessmentDetails[0]?.saved_data.assessment_mode}
                         </Badge>
                         <Separator orientation="vertical" className="h-8 w-px bg-neutral-300" />
                         <Badge
-                            className={`rounded-md border border-neutral-300 py-1.5 shadow-none`}
+                            className={`rounded-md border ${
+                                assessmentDetails?.[0]?.status === "COMPLETED"
+                                    ? "bg-success-50"
+                                    : "bg-neutral-100"
+                            } border-neutral-300 py-1.5 shadow-none`}
                         >
-                            <PauseCircle
-                                size={16}
-                                weight="fill"
-                                className="mr-2 text-neutral-400"
-                            />
-                            {asssessmentDetailsData.status}
+                            {assessmentDetails?.[0]?.status === "COMPLETED" ? (
+                                <CheckCircle
+                                    size={16}
+                                    weight="fill"
+                                    className="mr-2 text-success-600"
+                                />
+                            ) : (
+                                <PauseCircle
+                                    size={16}
+                                    weight="fill"
+                                    className="mr-2 text-neutral-400"
+                                />
+                            )}
+                            {assessmentDetails?.[0]?.status}
                         </Badge>
                     </div>
                     <MyButton

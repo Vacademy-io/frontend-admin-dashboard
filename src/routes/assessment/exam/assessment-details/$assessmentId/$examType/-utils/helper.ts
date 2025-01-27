@@ -207,3 +207,37 @@ export const getAllColumnsForTable = (type: string, selectedParticipantsTab: str
         };
     }
 };
+
+interface PreBatchRegistration {
+    id: string;
+    batchId: string;
+    instituteId: string;
+    registrationTime: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+}
+export function getBatchDetails(
+    batchData: Record<string, { name: string; id: string }[]>,
+    batchList: PreBatchRegistration[] | undefined,
+) {
+    const result: {
+        id: string;
+        name: string | undefined;
+    }[] = [];
+
+    // Flatten batchData into a single array of objects
+    const allBatches = Object.values(batchData).flat();
+
+    // Create a lookup map for quick access
+    const batchMap = new Map(allBatches.map((batch) => [batch.id, batch.name]));
+
+    // Filter and map the batchList based on batchId
+    batchList?.forEach(({ batchId }) => {
+        if (batchMap.has(batchId)) {
+            result.push({ id: batchId, name: batchMap.get(batchId) });
+        }
+    });
+
+    return result;
+}

@@ -39,6 +39,8 @@ import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import sectionDetailsSchema from "../../-utils/section-details-schema";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
+import { Route } from "../..";
+import { useQuestionsForSection } from "../../-hooks/getQuestionsDataForSection";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -51,15 +53,22 @@ export const Step2SectionInfo = ({
     index: number;
     currentStep: number;
 }) => {
+    const { assessmentId, examtype } = Route.useParams();
     const [enableSectionName, setEnableSectionName] = useState(true);
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: savedAssessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
-            type: "EXAM",
+            type: examtype,
         }),
+    );
+
+    // Map questions to adaptive_marking_for_each_question format
+    const adaptiveMarking = useQuestionsForSection(
+        assessmentId,
+        form.getValues(`section.${index}.sectionId`),
     );
 
     const {
@@ -147,7 +156,16 @@ export const Step2SectionInfo = ({
         watch(`section.${index}.question_duration.min`),
     ]);
 
-    if (isLoading) return <DashboardLoader />;
+    useEffect(() => {
+        if (assessmentId !== "defaultId") {
+            setValue(
+                `section.${index}.adaptive_marking_for_each_question`,
+                adaptiveMarking.adaptiveMarking,
+            );
+        }
+    }, []);
+
+    if (isLoading || adaptiveMarking.isLoading) return <DashboardLoader />;
 
     return (
         <AccordionItem value={`section-${index}`} key={index}>
@@ -847,17 +865,20 @@ export const Step2SectionInfo = ({
                         </Table>
                     </div>
                 )}
-                {watch(`section.${index}.marks_per_question`) && (
-                    <div className="flex items-center justify-end gap-1">
-                        <span>Total Marks</span>
-                        <span>:</span>
-                        <h1>
-                            {calculateTotalMarks(
-                                getValues(`section.${index}.adaptive_marking_for_each_question`),
-                            )}
-                        </h1>
-                    </div>
-                )}
+                {watch(`section.${index}.marks_per_question`) ||
+                    (assessmentId !== "defaultId" && (
+                        <div className="flex items-center justify-end gap-1">
+                            <span>Total Marks</span>
+                            <span>:</span>
+                            <h1>
+                                {calculateTotalMarks(
+                                    getValues(
+                                        `section.${index}.adaptive_marking_for_each_question`,
+                                    ),
+                                )}
+                            </h1>
+                        </div>
+                    ))}
             </AccordionContent>
         </AccordionItem>
     );

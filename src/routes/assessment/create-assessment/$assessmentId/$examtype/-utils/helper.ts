@@ -12,6 +12,33 @@ import {
     SectionFormType,
     TestAccessFormType,
 } from "@/types/assessment-steps";
+import { z } from "zod";
+import sectionDetailsSchema from "./section-details-schema";
+
+interface Role {
+    roleId: string;
+    roleName: string;
+    isSelected: boolean;
+}
+
+export const getUsersStep4 = (users: string[]) => {
+    return (
+        users?.map((user, index) => ({
+            userId: index.toString(),
+            email: user,
+        })) || []
+    );
+};
+
+export const getSelectedRoles = (roles: Role[], selectedRoles: string[]) => {
+    const rolesData =
+        roles?.map((role) => ({
+            roleId: role.roleId,
+            roleName: role.roleName,
+            isSelected: selectedRoles.includes(role.roleName),
+        })) || [];
+    return rolesData;
+};
 
 export function getStepKey({
     assessmentDetails,
@@ -277,3 +304,185 @@ export const syncStep4DataWithStore = (form: UseFormReturn<AccessControlFormValu
     };
     setAccessControlData(testAccessData);
 };
+
+export const convertStep2OldData = (data: SectionFormType["section"]) => {
+    return data.map((section, index) => ({
+        section_description_html: section.section_description || "",
+        section_name: section.sectionName,
+        section_id: section.sectionId || "",
+        section_duration:
+            parseInt(section.section_duration.hrs) * 60 + parseInt(section.section_duration.min),
+        section_order: index + 1,
+        total_marks: parseInt(section.total_marks) || 0,
+        cutoff_marks: section.cutoff_marks.checked ? parseInt(section.cutoff_marks.value) || 0 : 0,
+        problem_randomization: section.problem_randomization,
+        question_and_marking: section.adaptive_marking_for_each_question.map(
+            (question, qIndex) => ({
+                question_id: question.questionId,
+                marking_json: JSON.stringify({
+                    type: question.questionType,
+                    data: {
+                        totalMark: question.questionMark || "",
+                        negativeMark: question.questionPenalty || "",
+                        negativeMarkingPercentage:
+                            question.questionMark && question.questionPenalty
+                                ? (Number(question.questionPenalty) /
+                                      Number(question.questionMark)) *
+                                  100
+                                : "",
+                        ...(question.questionType === "MCQM" && {
+                            partialMarking: question.correctOptionIdsCnt
+                                ? 1 / question.correctOptionIdsCnt
+                                : 0,
+                            partialMarkingPercentage: question.correctOptionIdsCnt
+                                ? (1 / question.correctOptionIdsCnt) * 100
+                                : 0,
+                        }),
+                    },
+                }),
+                question_duration_in_min:
+                    parseInt(section.question_duration.hrs) * 60 +
+                        parseInt(section.question_duration.min) || 0,
+                question_order: qIndex + 1,
+                is_added: true,
+                is_deleted: false,
+            }),
+        ),
+    }));
+};
+
+export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => {
+    return data.section.map((section, index) => ({
+        section_description_html: section.section_description || "",
+        section_name: section.sectionName,
+        section_id: section.sectionId || "",
+        section_duration:
+            parseInt(section.section_duration.hrs) * 60 + parseInt(section.section_duration.min),
+        section_order: index + 1,
+        total_marks: parseInt(section.total_marks) || 0,
+        cutoff_marks: section.cutoff_marks.checked ? parseInt(section.cutoff_marks.value) || 0 : 0,
+        problem_randomization: section.problem_randomization,
+        question_and_marking: section.adaptive_marking_for_each_question.map(
+            (question, qIndex) => ({
+                question_id: question.questionId,
+                marking_json: JSON.stringify({
+                    type: question.questionType,
+                    data: {
+                        totalMark: question.questionMark || "",
+                        negativeMark: question.questionPenalty || "",
+                        negativeMarkingPercentage:
+                            question.questionMark && question.questionPenalty
+                                ? (Number(question.questionPenalty) /
+                                      Number(question.questionMark)) *
+                                  100
+                                : "",
+                        ...(question.questionType === "MCQM" && {
+                            partialMarking: question.correctOptionIdsCnt
+                                ? 1 / question.correctOptionIdsCnt
+                                : 0,
+                            partialMarkingPercentage: question.correctOptionIdsCnt
+                                ? (1 / question.correctOptionIdsCnt) * 100
+                                : 0,
+                        }),
+                    },
+                }),
+                question_duration_in_min:
+                    parseInt(section.question_duration.hrs) * 60 +
+                        parseInt(section.question_duration.min) || 0,
+                question_order: qIndex + 1,
+                is_added: true,
+                is_deleted: false,
+            }),
+        ),
+    }));
+};
+
+interface QuestionAndMarking {
+    question_id: string | undefined;
+    marking_json: string;
+    question_duration_in_min: number;
+    question_order: number;
+    is_added: boolean;
+    is_deleted: boolean;
+}
+
+interface Section {
+    section_description_html: string;
+    section_name: string;
+    section_id: string;
+    section_duration: number;
+    section_order: number;
+    total_marks: number;
+    cutoff_marks: number;
+    problem_randomization: boolean;
+    question_and_marking: QuestionAndMarking[];
+}
+
+export function classifySections(oldSectionData: Section[], newSectionData: Section[]) {
+    const added_sections: Section[] = [];
+    const updated_sections: Section[] = [];
+    const deleted_sections: Section[] = [];
+
+    // Step 1: Create a map for easy lookup by sectionId
+    const oldSectionMap = oldSectionData.reduce(
+        (acc, section) => {
+            acc[section.section_id] = section;
+            return acc;
+        },
+        {} as { [key: string]: Section },
+    );
+
+    // Step 2: Process new sections
+    newSectionData.forEach((newSection, index) => {
+        if (newSection.section_id === "") {
+            // Case 1: New section with no sectionId - add to added_sections
+            added_sections.push({
+                section_description_html: newSection.section_description_html,
+                section_name: newSection.section_name,
+                section_id: newSection.section_id,
+                section_duration: newSection.section_duration,
+                section_order: index + 1,
+                total_marks: newSection.total_marks || 0,
+                cutoff_marks: newSection.cutoff_marks,
+                problem_randomization: newSection.problem_randomization,
+                question_and_marking: newSection.question_and_marking,
+            });
+        } else {
+            // Case 2: Section with sectionId - check for update
+            const oldSection = oldSectionMap[newSection.section_id];
+            if (oldSection) {
+                // Case 3: If sectionId matches in oldSectionData and newSectionData, update the section
+                updated_sections.push({
+                    section_description_html: newSection.section_description_html || "",
+                    section_name: newSection.section_name,
+                    section_id: newSection.section_id,
+                    section_duration: newSection.section_duration,
+                    section_order: index + 1,
+                    total_marks: newSection.total_marks,
+                    cutoff_marks: newSection.cutoff_marks,
+                    problem_randomization: newSection.problem_randomization,
+                    question_and_marking: newSection.question_and_marking,
+                });
+            }
+        }
+    });
+
+    // Step 3: Check for deleted sections (sections present in oldSectionData but not in newSectionData)
+    oldSectionData.forEach((oldSection) => {
+        if (!newSectionData.some((newSection) => newSection.section_id === oldSection.section_id)) {
+            deleted_sections.push({
+                section_description_html: oldSection.section_description_html,
+                section_name: oldSection.section_name,
+                section_id: oldSection.section_id,
+                section_duration: oldSection.section_duration,
+                section_order: oldSection.section_order,
+                total_marks: oldSection.total_marks,
+                cutoff_marks: oldSection.cutoff_marks,
+                problem_randomization: oldSection.problem_randomization,
+                question_and_marking: oldSection.question_and_marking,
+            });
+        }
+    });
+
+    return { added_sections, updated_sections, deleted_sections };
+}

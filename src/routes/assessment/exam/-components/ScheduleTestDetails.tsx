@@ -12,11 +12,7 @@ import {
     LockSimple,
     PauseCircle,
 } from "phosphor-react";
-// import {
-//     copyToClipboard,
-//     handleDownloadQRCode,
-// } from "../../create-assessment/$examtype/-utils/helper";
-// import QRCode from "react-qr-code";
+import QRCode from "react-qr-code";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -25,8 +21,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "@tanstack/react-router";
 import { convertToLocalDateTime } from "@/constants/helper";
+import { getSubjectNameById } from "../../question-papers/-utils/helper";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import {
+    copyToClipboard,
+    handleDownloadQRCode,
+} from "../../create-assessment/$assessmentId/$examtype/-utils/helper";
 
 const ScheduleTestDetails = ({ scheduleTestContent }: { scheduleTestContent: TestContent }) => {
+    console.log(scheduleTestContent);
+    const { data: instituteDetails, isLoading } = useSuspenseQuery(useInstituteQuery());
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
@@ -37,6 +43,7 @@ const ScheduleTestDetails = ({ scheduleTestContent }: { scheduleTestContent: Tes
             },
         });
     };
+    if (isLoading) return <DashboardLoader />;
     return (
         <div className="my-6 flex flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
             <div className="flex items-center justify-between">
@@ -131,7 +138,13 @@ const ScheduleTestDetails = ({ scheduleTestContent }: { scheduleTestContent: Tes
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
                 <div className="flex flex-col gap-4">
                     <p>Created on: {convertToLocalDateTime(scheduleTestContent.created_at)}</p>
-                    <p>Subject: </p>
+                    <p>
+                        Subject:{" "}
+                        {getSubjectNameById(
+                            instituteDetails?.subjects || [],
+                            scheduleTestContent.subject_id || "",
+                        )}
+                    </p>
                 </div>
                 <div className="flex flex-col gap-4">
                     <p>
@@ -166,33 +179,33 @@ const ScheduleTestDetails = ({ scheduleTestContent }: { scheduleTestContent: Tes
             <div className="flex justify-between">
                 <div className="flex items-center gap-2 text-sm text-neutral-500">
                     <h1 className="!font-normal text-black">Join Link:</h1>
-                    {/* <p>{scheduleTestContent.joinLink}</p> */}
+                    <p>{scheduleTestContent.join_link}</p>
                     <MyButton
                         type="button"
                         scale="small"
                         buttonType="secondary"
                         className="h-8 min-w-8"
-                        // onClick={() => copyToClipboard(scheduleTestContent.joinLink)}
+                        onClick={() => copyToClipboard(scheduleTestContent.join_link)}
                     >
                         <Copy size={32} />
                     </MyButton>
                 </div>
                 <div className="flex items-center gap-4">
-                    {/* <QRCode
-                value={scheduleTestContent.joinLink}
-                className="size-16"
-                id={`qr-code-svg-assessment-list-${scheduleTestContent.id}`}
-            /> */}
+                    <QRCode
+                        value={scheduleTestContent.join_link}
+                        className="size-16"
+                        id={`qr-code-svg-assessment-list-${scheduleTestContent.assessment_id}`}
+                    />
                     <MyButton
                         type="button"
                         scale="small"
                         buttonType="secondary"
                         className="h-8 min-w-8"
-                        // onClick={() =>
-                        //     handleDownloadQRCode(
-                        //         `qr-code-svg-assessment-list-${scheduleTestContent.id}`,
-                        //     )
-                        // }
+                        onClick={() =>
+                            handleDownloadQRCode(
+                                `qr-code-svg-assessment-list-${scheduleTestContent.assessment_id}`,
+                            )
+                        }
                     >
                         <DownloadSimple size={32} />
                     </MyButton>

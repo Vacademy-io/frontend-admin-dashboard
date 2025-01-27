@@ -9,10 +9,72 @@ import {
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CheckCircle } from "phosphor-react";
 import { Section } from "@/types/assessment-data-type";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Route } from "..";
+import {
+    getAssessmentDetails,
+    getQuestionDataForSection,
+} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { QuestionData } from "@/types/assessment-steps";
+import { getQuestionTypeCounts } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
+
+interface QuestionDuration {
+    hrs: string;
+    min: string;
+}
+
+interface Question {
+    questionId: string;
+    questionName: string;
+    questionType: string; // You can use a union type like `"MCQM" | "SCQ" | "TF"` if needed
+    questionMark: string;
+    questionPenalty: string;
+    questionDuration: QuestionDuration;
+}
 
 const AssessmentQuestionsSection = ({ section, index }: { section: Section; index: number }) => {
+    const { assessmentId, examType } = Route.useParams();
+    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+    const { data: assessmentDetails, isLoading: isAssessmentDetailsLoading } = useSuspenseQuery(
+        getAssessmentDetails({
+            assessmentId: assessmentId,
+            instituteId: instituteDetails?.id,
+            type: examType,
+        }),
+    );
+    const { data: questionsData, isLoading } = useSuspenseQuery(
+        getQuestionDataForSection({ assessmentId, sectionIds: section.id }),
+    );
+
+    const questionsForSection = questionsData[section.id] || [];
+
+    // Map questions to adaptive_marking_for_each_question format
+    const adaptiveMarking = questionsForSection.map((questionData: QuestionData) => {
+        const markingJson = questionData.marking_json ? JSON.parse(questionData.marking_json) : {};
+        return {
+            questionId: questionData.question_id || "",
+            questionName: questionData.question?.content || "",
+            questionType: questionData.question_type || "",
+            questionMark: markingJson.data?.totalMark || "0",
+            questionPenalty: markingJson.data?.negativeMark || "0",
+            questionDuration: {
+                hrs:
+                    typeof questionData.question_duration === "number"
+                        ? String(Math.floor(questionData.question_duration / 60))
+                        : "0",
+                min:
+                    typeof questionData.question_duration === "number"
+                        ? String(questionData.question_duration % 60)
+                        : "0",
+            },
+        };
+    });
+
+    if (isLoading || isAssessmentDetailsLoading) return <DashboardLoader />;
     return (
-        <AccordionItem value={`section-1-${index}`} key={index}>
+        <AccordionItem value={`section-${index}`} key={index}>
             <AccordionTrigger className="flex items-center justify-between">
                 <div className="flex w-full items-center justify-between">
                     <div className="flex items-center justify-start text-primary-500">
@@ -20,8 +82,12 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                             {section.name}
                         </h1>
                         <span className="font-thin !text-neutral-600">
-                            (MCQ(Single Correct):&nbsp; ,&nbsp; MCQ(Multiple Correct):&nbsp; ,&nbsp;{" "}
-                            <span className="font-semibold">Total:&nbsp;</span> )
+                            (MCQ(Single Correct):&nbsp;
+                            {getQuestionTypeCounts(adaptiveMarking).MCQS}
+                            ,&nbsp; MCQ(Multiple Correct):&nbsp;
+                            {getQuestionTypeCounts(adaptiveMarking).MCQM}
+                            ,&nbsp; <span className="font-semibold">Total:&nbsp;</span>
+                            {getQuestionTypeCounts(adaptiveMarking).totalQuestions})
                         </span>
                     </div>
                 </div>
@@ -35,33 +101,32 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                 </div>
                 <div className="flex flex-col gap-2">
                     <h1>Section Description</h1>
-                    <p className="font-thin">
-                        Challenge your understanding of the chapter Human Eye with this test. Dive
-                        into topics such as the structure of the eye, vision mechanisms, common
-                        visual defects, and their corrections. Sharpen your knowledge and prepare
-                        effectively!
-                    </p>
+                    <p className="font-thin">{section.description}</p>
                 </div>
-                <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
-                    <h1 className="font-normal">Question Duration:</h1>
-                    <div className="flex items-center gap-1">
-                        <span>2</span>
-                        <span>hrs</span>
-                        <span>:</span>
-                        <span>30</span>
-                        <span>minutes</span>
+                {assessmentDetails[0]?.saved_data?.duration_distribution === "QUESTION" && (
+                    <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
+                        <h1 className="font-normal">Question Duration:</h1>
+                        <div className="flex items-center gap-1">
+                            <span>{Math.floor(section.duration / 60)}</span>
+                            <span>hrs</span>
+                            <span>:</span>
+                            <span>{section.duration % 60}</span>
+                            <span>minutes</span>
+                        </div>
                     </div>
-                </div>
-                <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
-                    <h1 className="font-normal">Section Duration:</h1>
-                    <div className="flex items-center gap-1">
-                        <span>2</span>
-                        <span>hrs</span>
-                        <span>:</span>
-                        <span>30</span>
-                        <span>minutes</span>
+                )}
+                {assessmentDetails[0]?.saved_data?.duration_distribution === "SECTION" && (
+                    <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
+                        <h1 className="font-normal">Section Duration:</h1>
+                        <div className="flex items-center gap-1">
+                            <span>{Math.floor(section.duration / 60)}</span>
+                            <span>hrs</span>
+                            <span>:</span>
+                            <span>{section.duration % 60}</span>
+                            <span>minutes</span>
+                        </div>
                     </div>
-                </div>
+                )}
                 <div className="flex items-start gap-8 text-sm font-thin">
                     <h1 className="font-normal">Marks Per Question (Default):</h1>
                     <span>2</span>
@@ -77,15 +142,21 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                     <h1>Partial Marking:</h1>
                     <CheckCircle size={22} weight="fill" className="text-success-600" />
                 </div>
-                <div className="flex w-1/2 items-center justify-between">
-                    <h1>Cutoff Marking:</h1>
-                    <CheckCircle size={22} weight="fill" className="text-success-600" />
-                </div>
-                <div className="flex w-1/2 items-center justify-between">
-                    <h1>Problem Randamization:</h1>
-                    <CheckCircle size={22} weight="fill" className="text-success-600" />
-                </div>
-
+                {section.cutoff_marks > 0 && (
+                    <div className="flex w-1/2 items-center justify-between">
+                        <div className="flex w-52 items-center justify-start gap-8">
+                            <h1>Cutoff Marking:</h1>
+                            <span className="font-thin">{section.cutoff_marks}</span>
+                        </div>
+                        <CheckCircle size={22} weight="fill" className="text-success-600" />
+                    </div>
+                )}
+                {section.problem_randomization && (
+                    <div className="flex w-1/2 items-center justify-between">
+                        <h1>Problem Randamization:</h1>
+                        <CheckCircle size={22} weight="fill" className="text-success-600" />
+                    </div>
+                )}
                 <div>
                     <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
                     <Table>
@@ -100,25 +171,31 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                             </TableRow>
                         </TableHeader>
                         <TableBody className="bg-neutral-50">
-                            <TableRow>
-                                <TableCell>1</TableCell>
-                                <TableCell>Test Question Name 1</TableCell>
-                                <TableCell>MCQM</TableCell>
-                                <TableCell>2</TableCell>
-                                <TableCell>1</TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        2<span>:</span>3
-                                    </div>
-                                </TableCell>
-                            </TableRow>
+                            {adaptiveMarking.map((question: Question, index: number) => {
+                                return (
+                                    <TableRow key={index}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell>{question.questionName}</TableCell>
+                                        <TableCell>{question.questionType}</TableCell>
+                                        <TableCell>{question.questionMark}</TableCell>
+                                        <TableCell>{question.questionPenalty}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {question.questionDuration.hrs}
+                                                <span>:</span>
+                                                {question.questionDuration.min}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </div>
                 <div className="flex items-center justify-end gap-1">
                     <span>Total Marks</span>
                     <span>:</span>
-                    <h1>20</h1>
+                    <h1>{section.total_marks}</h1>
                 </div>
             </AccordionContent>
         </AccordionItem>

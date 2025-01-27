@@ -19,6 +19,8 @@ interface TestContent {
     admin_accesses: string | null;
     created_at: string;
     updated_at: string;
+    join_link: string;
+    subject_id: string;
 }
 
 export interface ScheduleTestTab {

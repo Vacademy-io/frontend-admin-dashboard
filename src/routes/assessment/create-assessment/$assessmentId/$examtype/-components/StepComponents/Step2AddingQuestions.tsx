@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { z } from "zod";
 import sectionDetailsSchema from "../../-utils/section-details-schema";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -8,7 +8,7 @@ import { Plus } from "phosphor-react";
 import { Accordion } from "@/components/ui/accordion";
 import { StepContentProps } from "@/types/step-content-props";
 import { getAssessmentDetails, handlePostStep2Data } from "../../-services/assessment-services";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,8 @@ import { syncStep2DataWithStore } from "../../-utils/helper";
 import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useParams } from "@tanstack/react-router";
-
+import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
+import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
@@ -27,9 +28,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const queryClient = useQueryClient();
     const params = useParams({ strict: false });
-    const examType = params.examtype;
-    const assessmentId = params.assessmentId;
+    const examType = params.examtype ?? ""; // Ensure it's a string
+    const assessmentId = params.assessmentId ?? ""; // Ensure it's string | null
     const storeDataStep2 = useSectionDetailsStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
@@ -82,28 +84,41 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     });
 
     const { handleSubmit, getValues, control } = form;
-
+    // Store initial data in useRef to ensure it remains constant throughout the form updates
+    const oldData = useRef(getValues());
     const allSections = getValues("section");
 
     const handleSubmitStep2Form = useMutation({
         mutationFn: ({
+            oldData,
             data,
             assessmentId,
             instituteId,
             type,
         }: {
+            oldData: SectionFormType["section"];
             data: z.infer<typeof sectionDetailsSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
             type: string | undefined;
-        }) => handlePostStep2Data(data, assessmentId, instituteId, type),
+        }) => handlePostStep2Data(oldData, data, assessmentId, instituteId, type),
         onSuccess: async () => {
-            syncStep2DataWithStore(form);
-            toast.success("Step 2 data has been saved successfully!", {
-                className: "success-toast",
-                duration: 2000,
-            });
-            handleCompleteCurrentStep();
+            if (assessmentId !== "defaultId") {
+                useTestAccessStore.getState().reset();
+                window.history.back();
+                toast.success("Step 2 data has been updated successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+            } else {
+                syncStep2DataWithStore(form);
+                toast.success("Step 2 data has been saved successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                handleCompleteCurrentStep();
+            }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -120,8 +135,9 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     const onSubmit = (data: z.infer<typeof sectionDetailsSchema>) => {
         handleSubmitStep2Form.mutate({
+            oldData: oldData.current.section,
             data: data,
-            assessmentId: savedAssessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         });
@@ -169,6 +185,86 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         });
     };
 
+    useEffect(() => {
+        if (assessmentId !== "defaultId") {
+            form.reset({
+                status: assessmentDetails[currentStep]?.status,
+                section:
+                    assessmentDetails[currentStep]?.saved_data?.sections &&
+                    assessmentDetails[currentStep]?.saved_data?.sections?.length > 0
+                        ? assessmentDetails[currentStep]?.saved_data?.sections.map(
+                              (sectionDetails) => ({
+                                  sectionId: sectionDetails.id || "", // Default empty if not available
+                                  sectionName: sectionDetails.name || "",
+                                  questionPaperTitle: "",
+                                  uploaded_question_paper: "",
+                                  subject: getSubjectNameById(
+                                      instituteDetails?.subjects || [],
+                                      assessmentDetails[0]?.saved_data?.subject_selection ?? "",
+                                  ),
+                                  yearClass: "",
+                                  question_duration: {
+                                      hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
+                                      min: String(sectionDetails.duration % 60) || "",
+                                  },
+                                  section_description: sectionDetails.description || "",
+                                  section_duration: {
+                                      hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
+                                      min: String(sectionDetails.duration % 60) || "",
+                                  },
+                                  marks_per_question: "",
+                                  total_marks: String(sectionDetails.total_marks) || "",
+                                  negative_marking: {
+                                      checked: false,
+                                      value: "",
+                                  },
+                                  partial_marking: false,
+                                  cutoff_marks: {
+                                      checked: sectionDetails.cutoff_marks > 0 ? true : false,
+                                      value: String(sectionDetails.cutoff_marks) || "",
+                                  },
+                                  problem_randomization:
+                                      sectionDetails.problem_randomization || false,
+                                  // eslint-disable-next-line react-hooks/rules-of-hooks
+                                  adaptive_marking_for_each_question: [],
+                              }),
+                          )
+                        : [
+                              {
+                                  sectionId: "",
+                                  sectionName: `Section ${allSections.length}`,
+                                  questionPaperTitle: "",
+                                  subject: "",
+                                  yearClass: "",
+                                  uploaded_question_paper: null,
+                                  question_duration: {
+                                      hrs: "",
+                                      min: "",
+                                  },
+                                  section_description: "",
+                                  section_duration: {
+                                      hrs: "",
+                                      min: "",
+                                  },
+                                  marks_per_question: "",
+                                  total_marks: "",
+                                  negative_marking: {
+                                      checked: false,
+                                      value: "",
+                                  },
+                                  partial_marking: false,
+                                  cutoff_marks: {
+                                      checked: false,
+                                      value: "",
+                                  },
+                                  problem_randomization: false,
+                                  adaptive_marking_for_each_question: [],
+                              },
+                          ],
+            });
+        }
+    }, []);
+
     if (isLoading || handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
 
     return (
@@ -182,35 +278,41 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 type="button"
                                 scale="large"
                                 buttonType="primary"
-                                disable={allSections.some((section) => {
-                                    // Check if the question paper is uploaded
-                                    const isQuestionPaperMissing = !section.uploaded_question_paper;
+                                disable={
+                                    assessmentId === "defaultId"
+                                        ? allSections.some((section) => {
+                                              // Check if the question paper is uploaded
+                                              const isQuestionPaperMissing =
+                                                  !section.uploaded_question_paper;
 
-                                    // Check if section duration fields are valid based on durationDistribution
-                                    const isSectionDurationMissing =
-                                        assessmentDetails[currentStep - 1]?.saved_data
-                                            ?.duration_distribution === "SECTION" &&
-                                        !section.section_duration?.hrs &&
-                                        !section.section_duration?.min;
+                                              // Check if section duration fields are valid based on durationDistribution
+                                              const isSectionDurationMissing =
+                                                  assessmentDetails[currentStep - 1]?.saved_data
+                                                      ?.duration_distribution === "SECTION" &&
+                                                  !section.section_duration?.hrs &&
+                                                  !section.section_duration?.min;
 
-                                    // Check if question duration fields are valid based on durationDistribution
-                                    const isQuestionDurationMissing =
-                                        assessmentDetails[currentStep - 1]?.saved_data
-                                            ?.duration_distribution === "QUESTION" &&
-                                        !section.question_duration?.hrs &&
-                                        !section.question_duration?.min;
+                                              // Check if question duration fields are valid based on durationDistribution
+                                              const isQuestionDurationMissing =
+                                                  assessmentDetails[currentStep - 1]?.saved_data
+                                                      ?.duration_distribution === "QUESTION" &&
+                                                  !section.question_duration?.hrs &&
+                                                  !section.question_duration?.min;
 
-                                    // Check if marks per question is provided
-                                    const isMarksPerQuestionMissing = !section.marks_per_question;
+                                              // Check if marks per question is provided
+                                              const isMarksPerQuestionMissing =
+                                                  !section.marks_per_question;
 
-                                    // Return true if any of the above conditions are true
-                                    return (
-                                        isQuestionPaperMissing ||
-                                        isSectionDurationMissing ||
-                                        isQuestionDurationMissing ||
-                                        isMarksPerQuestionMissing
-                                    );
-                                })}
+                                              // Return true if any of the above conditions are true
+                                              return (
+                                                  isQuestionPaperMissing ||
+                                                  isSectionDurationMissing ||
+                                                  isQuestionDurationMissing ||
+                                                  isMarksPerQuestionMissing
+                                              );
+                                          })
+                                        : false
+                                }
                                 onClick={handleSubmit(onSubmit, onInvalid)}
                             >
                                 Next

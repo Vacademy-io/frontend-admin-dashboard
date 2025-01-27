@@ -13,13 +13,21 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { timeLimit } from "@/constants/dummy-data";
 import { BasicInfoFormSchema } from "../../-utils/basic-info-form-schema";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { getAssessmentDetails, handlePostStep1Data } from "../../-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getFieldOptions, getStepKey, syncStep1DataWithStore } from "../../-utils/helper";
+import {
+    getFieldOptions,
+    getStepKey,
+    getTimeLimitString,
+    syncStep1DataWithStore,
+} from "../../-utils/helper";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { getIdBySubjectName } from "@/routes/assessment/question-papers/-utils/helper";
+import {
+    getIdBySubjectName,
+    getSubjectNameById,
+} from "@/routes/assessment/question-papers/-utils/helper";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { useBasicInfoStore } from "../../-utils/zustand-global-states/step1-basic-info";
 import { toast } from "sonner";
@@ -28,10 +36,23 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { CaretLeft } from "phosphor-react";
 import { useParams } from "@tanstack/react-router";
 
+export function convertDateFormat(dateStr: string) {
+    const date = new Date(dateStr);
+    const isoString = date.toISOString();
+    return isoString.slice(0, 16); // Extracts the "YYYY-MM-DDTHH:mm" part
+}
+
 const heading = (
     <div className="flex items-center gap-4">
         <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
         <h1 className="text-lg">Create Assessment</h1>
+    </div>
+);
+
+const headingUpdate = (
+    <div className="flex items-center gap-4">
+        <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
+        <h1 className="text-lg">Update Assessment</h1>
     </div>
 );
 
@@ -40,6 +61,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const queryClient = useQueryClient();
     const params = useParams({ strict: false });
     const examType = params.examtype;
     const assessmentId = params.assessmentId;
@@ -49,7 +71,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
-            assessmentId: assessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : null,
             instituteId: instituteDetails?.id,
             type: examType,
         }),
@@ -131,18 +153,28 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             type,
         }: {
             data: z.infer<typeof BasicInfoFormSchema>;
-            assessmentId: string | null;
+            assessmentId: string | null | undefined;
             instituteId: string | undefined;
             type: string | undefined;
         }) => handlePostStep1Data(data, assessmentId, instituteId, type),
         onSuccess: async (data) => {
-            setSavedAssessmentId(data.assessment_id);
-            syncStep1DataWithStore(form);
-            toast.success("Step 1 data has been saved successfully!", {
-                className: "success-toast",
-                duration: 2000,
-            });
-            handleCompleteCurrentStep();
+            if (assessmentId !== "defaultId") {
+                useBasicInfoStore.getState().reset();
+                window.history.back();
+                toast.success("Step 1 data has been updated successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+            } else {
+                setSavedAssessmentId(data.assessment_id);
+                syncStep1DataWithStore(form);
+                toast.success("Step 1 data has been saved successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                handleCompleteCurrentStep();
+            }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -170,7 +202,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         };
         handleSubmitStep1Form.mutate({
             data: modifiedData,
-            assessmentId: null,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : null,
             instituteId: instituteDetails?.id,
             type: examType,
         });
@@ -181,7 +213,107 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     };
 
     useEffect(() => {
-        setNavHeading(heading);
+        if (assessmentId !== "defaultId") {
+            setNavHeading(headingUpdate);
+        } else {
+            setNavHeading(heading);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (assessmentId !== "defaultId") {
+            form.reset({
+                status: assessmentDetails[currentStep]?.status,
+                testCreation: {
+                    assessmentName: assessmentDetails[currentStep]?.saved_data?.name || "",
+                    subject:
+                        getSubjectNameById(
+                            instituteDetails?.subjects || [],
+                            assessmentDetails[currentStep]?.saved_data?.subject_selection || "",
+                        ) || "",
+                    assessmentInstructions:
+                        assessmentDetails[currentStep]?.saved_data?.instructions.content || "",
+                    liveDateRange: {
+                        startDate:
+                            convertDateFormat(
+                                assessmentDetails[currentStep]?.saved_data?.boundation_start_date ||
+                                    "",
+                            ) || "",
+                        endDate:
+                            convertDateFormat(
+                                assessmentDetails[currentStep]?.saved_data?.boundation_end_date ||
+                                    "",
+                            ) || "",
+                    },
+                },
+                testDuration: {
+                    entireTestDuration: {
+                        checked:
+                            assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
+                            "ASSESSMENT"
+                                ? true
+                                : false,
+                        testDuration: {
+                            hrs:
+                                assessmentDetails[currentStep]?.saved_data
+                                    ?.duration_distribution === "ASSESSMENT" &&
+                                assessmentDetails[currentStep]?.saved_data?.duration != null &&
+                                assessmentDetails[currentStep].saved_data.duration > 0
+                                    ? String(
+                                          Math.floor(
+                                              (assessmentDetails[currentStep]?.saved_data
+                                                  ?.duration ?? 0) / 60,
+                                          ),
+                                      )
+                                    : "",
+                            min:
+                                assessmentDetails[currentStep]?.saved_data
+                                    ?.duration_distribution === "ASSESSMENT" &&
+                                assessmentDetails[currentStep]?.saved_data?.duration != null &&
+                                assessmentDetails[currentStep].saved_data.duration > 0
+                                    ? String(
+                                          (assessmentDetails[currentStep]?.saved_data?.duration ??
+                                              0) % 60,
+                                      )
+                                    : "",
+                        },
+                    },
+                    sectionWiseDuration:
+                        assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
+                        "SECTION"
+                            ? true
+                            : false, // Default to false
+                    questionWiseDuration:
+                        assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
+                        "QUESTION"
+                            ? true
+                            : false, // Default to false
+                },
+                assessmentPreview: {
+                    checked:
+                        (assessmentDetails[currentStep]?.saved_data?.assessment_preview ?? 0) > 0
+                            ? true
+                            : false, // Default to false if undefined or 0
+                    previewTimeLimit:
+                        assessmentDetails[currentStep]?.saved_data?.assessment_preview !== undefined
+                            ? getTimeLimitString(
+                                  assessmentDetails[currentStep]?.saved_data?.assessment_preview,
+                                  timeLimit,
+                              )
+                            : timeLimit[0], // Default preview time
+                },
+                submissionType: assessmentDetails[currentStep]?.saved_data?.submission_type || "",
+                durationDistribution:
+                    assessmentDetails[currentStep]?.saved_data?.duration_distribution || "",
+                evaluationType: assessmentDetails[currentStep]?.saved_data?.evaluation_type || "",
+                switchSections:
+                    assessmentDetails[currentStep]?.saved_data?.can_switch_section || false, // Default to false
+                raiseReattemptRequest:
+                    assessmentDetails[currentStep]?.saved_data?.reattempt_consent || false, // Default to true
+                raiseTimeIncreaseRequest:
+                    assessmentDetails[currentStep]?.saved_data?.add_time_consent || false, // Default to false
+            });
+        }
     }, []);
 
     if (isLoading || handleSubmitStep1Form.status === "pending") return <DashboardLoader />;
@@ -196,9 +328,11 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         scale="large"
                         buttonType="primary"
                         disable={
-                            watch("testDuration.entireTestDuration").checked
-                                ? !isFormValid1
-                                : !isFormValid2
+                            assessmentId === "defaultId"
+                                ? watch("testDuration.entireTestDuration").checked
+                                    ? !isFormValid1
+                                    : !isFormValid2
+                                : false
                         }
                         onClick={handleSubmit(onSubmit, onInvalid)}
                     >

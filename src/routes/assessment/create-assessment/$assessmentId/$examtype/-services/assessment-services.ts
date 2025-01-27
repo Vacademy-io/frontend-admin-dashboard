@@ -11,9 +11,15 @@ import { Steps } from "@/types/assessment-data-type";
 import { z } from "zod";
 import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-schema";
-import { convertToUTCPlus530 } from "../-utils/helper";
+import {
+    classifySections,
+    convertStep2Data,
+    convertStep2OldData,
+    convertToUTCPlus530,
+} from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
+import { SectionFormType } from "@/types/assessment-steps";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -69,9 +75,26 @@ export const getQuestionsDataForStep2 = async ({
     return response?.data;
 };
 
+export const getQuestionDataForSection = ({
+    assessmentId,
+    sectionIds,
+}: {
+    assessmentId: string;
+    sectionIds: string;
+}) => {
+    return {
+        queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS", assessmentId, sectionIds],
+        queryFn: async () => {
+            const data = await getQuestionsDataForStep2({ assessmentId, sectionIds });
+            return data;
+        },
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
 export const handlePostStep1Data = async (
     data: z.infer<typeof BasicInfoFormSchema>,
-    assessmentId: string | null,
+    assessmentId: string | null | undefined,
     instituteId: string | undefined,
     type: string | undefined,
 ) => {
@@ -120,60 +143,19 @@ export const handlePostStep1Data = async (
 };
 
 export const handlePostStep2Data = async (
+    oldData: SectionFormType["section"],
     data: z.infer<typeof sectionDetailsSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
     type: string | undefined,
 ) => {
+    const convertedOldData = convertStep2OldData(oldData);
+    const convertedNewData = convertStep2Data(data);
+    const classifiedSections = classifySections(convertedOldData, convertedNewData);
     const convertedData = {
-        added_sections: data.section.map((section, index) => ({
-            section_description_html: section.section_description || "",
-            section_name: section.sectionName,
-            section_id: section.sectionId || "",
-            section_duration:
-                parseInt(section.section_duration.hrs) * 60 +
-                parseInt(section.section_duration.min),
-            section_order: index + 1,
-            total_marks: parseInt(section.total_marks) || 0,
-            cutoff_marks: section.cutoff_marks.checked
-                ? parseInt(section.cutoff_marks.value) || 0
-                : 0,
-            problem_randomization: section.problem_randomization,
-            question_and_marking: section.adaptive_marking_for_each_question.map(
-                (question, qIndex) => ({
-                    question_id: question.questionId,
-                    marking_json: JSON.stringify({
-                        type: question.questionType,
-                        data: {
-                            totalMark: question.questionMark || "",
-                            negativeMark: question.questionPenalty || "",
-                            negativeMarkingPercentage:
-                                question.questionMark && question.questionPenalty
-                                    ? (Number(question.questionPenalty) /
-                                          Number(question.questionMark)) *
-                                      100
-                                    : "",
-                            ...(question.questionType === "MCQM" && {
-                                partialMarking: question.correctOptionIdsCnt
-                                    ? 1 / question.correctOptionIdsCnt
-                                    : 0,
-                                partialMarkingPercentage: question.correctOptionIdsCnt
-                                    ? (1 / question.correctOptionIdsCnt) * 100
-                                    : 0,
-                            }),
-                        },
-                    }),
-                    question_duration_in_min:
-                        parseInt(section.question_duration.hrs) * 60 +
-                            parseInt(section.question_duration.min) || 0,
-                    question_order: qIndex + 1,
-                    is_added: true,
-                    is_deleted: false,
-                }),
-            ),
-        })),
-        updated_sections: [],
-        deleted_sections: [],
+        added_sections: classifiedSections.added_sections,
+        updated_sections: classifiedSections.updated_sections,
+        deleted_sections: classifiedSections.deleted_sections,
     };
     const response = await authenticatedAxiosInstance({
         method: "POST",

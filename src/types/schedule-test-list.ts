@@ -1,4 +1,5 @@
 export interface TestContent {
+    join_link: string;
     assessment_id: string;
     name: string;
     about: string | null;
@@ -17,6 +18,7 @@ export interface TestContent {
     user_registrations: number;
     batch_registrations: number;
     admin_accesses: string | null;
+    subject_id: string | null;
     created_at: string;
     updated_at: string;
 }

@@ -1,5 +1,5 @@
 import { StepContentProps } from "@/types/step-content-props";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { AccessControlFormSchema } from "../../-utils/access-control-form-schema";
@@ -9,7 +9,7 @@ import { Check, Plus, X } from "phosphor-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyInput } from "@/components/design-system/input";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
     getAssessmentDetails,
     handlePostStep4Data,
@@ -17,7 +17,12 @@ import {
 } from "../../-services/assessment-services";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getStepKey, syncStep4DataWithStore } from "../../-utils/helper";
+import {
+    getSelectedRoles,
+    getStepKey,
+    getUsersStep4,
+    syncStep4DataWithStore,
+} from "../../-utils/helper";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { toast } from "sonner";
@@ -35,10 +40,11 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const params = useParams({ strict: false });
-    const examType = params.examtype;
-    const assessmentId = params.assessmentId;
+    const examType = params.examtype ?? ""; // Ensure it's a string
+    const assessmentId = params.assessmentId ?? null; // Ensure it's string | null
     const storeDataStep4 = useAccessControlStore((state) => state);
     const { savedAssessmentId, setSavedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
@@ -94,21 +100,30 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => handlePostStep4Data(data, assessmentId, instituteId, type),
         onSuccess: async () => {
-            syncStep4DataWithStore(form);
-            // Reset all Zustand stores
-            setSavedAssessmentId("");
-            useBasicInfoStore.getState().reset();
-            useSectionDetailsStore.getState().reset();
-            useTestAccessStore.getState().reset();
-            useAccessControlStore.getState().reset();
-            toast.success("Your assessment has been saved successfully!", {
-                className: "success-toast",
-                duration: 2000,
-            });
-            handleCompleteCurrentStep();
-            navigate({
-                to: "/assessment/exam",
-            });
+            if (assessmentId !== "defaultId") {
+                useAccessControlStore.getState().reset();
+                window.history.back();
+                toast.success("Your assessment has been updated successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+            } else {
+                syncStep4DataWithStore(form);
+                setSavedAssessmentId("");
+                useBasicInfoStore.getState().reset();
+                useSectionDetailsStore.getState().reset();
+                useTestAccessStore.getState().reset();
+                useAccessControlStore.getState().reset();
+                toast.success("Your assessment has been saved successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                handleCompleteCurrentStep();
+                navigate({
+                    to: "/assessment/exam",
+                });
+            }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -126,7 +141,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const onSubmit = (data: z.infer<typeof AccessControlFormSchema>) => {
         handleSubmitStep4Form.mutate({
             data: data,
-            assessmentId: savedAssessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         });
@@ -143,20 +158,30 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => publishAssessment({ assessmentId, instituteId, type }),
         onSuccess: async () => {
-            syncStep4DataWithStore(form);
-            setSavedAssessmentId("");
-            useBasicInfoStore.getState().reset();
-            useSectionDetailsStore.getState().reset();
-            useTestAccessStore.getState().reset();
-            useAccessControlStore.getState().reset();
-            toast.success("Your assessment has been published successfully!", {
-                className: "success-toast",
-                duration: 2000,
-            });
-            handleCompleteCurrentStep();
-            navigate({
-                to: "/assessment/exam",
-            });
+            if (assessmentId !== "defaultId") {
+                useAccessControlStore.getState().reset();
+                window.history.back();
+                toast.success("Your assessment has been updated and published successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+            } else {
+                syncStep4DataWithStore(form);
+                setSavedAssessmentId("");
+                useBasicInfoStore.getState().reset();
+                useSectionDetailsStore.getState().reset();
+                useTestAccessStore.getState().reset();
+                useAccessControlStore.getState().reset();
+                toast.success("Your assessment has been published successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                handleCompleteCurrentStep();
+                navigate({
+                    to: "/assessment/exam",
+                });
+            }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -184,7 +209,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
 
             // After successful form submission, trigger the publish mutation
             handlePublishAssessmentMutation.mutate({
-                assessmentId: savedAssessmentId,
+                assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
                 instituteId: instituteDetails?.id,
                 type: examType,
             });
@@ -195,6 +220,74 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const onInvalid = (err: unknown) => {
         console.log(err);
     };
+
+    useEffect(() => {
+        if (assessmentId !== "defaultId") {
+            form.reset({
+                status: assessmentDetails[currentStep]?.status,
+                assessment_creation_access: {
+                    roles: [
+                        ...getSelectedRoles(
+                            roles,
+                            assessmentDetails[currentStep]?.saved_data?.creation_access?.roles ??
+                                [],
+                        ),
+                    ],
+                    users: [
+                        ...getUsersStep4(
+                            assessmentDetails[currentStep]?.saved_data?.creation_access?.user_ids ??
+                                [],
+                        ),
+                    ],
+                },
+                live_assessment_notification: {
+                    roles: [
+                        ...getSelectedRoles(
+                            roles,
+                            assessmentDetails[currentStep]?.saved_data?.live_assessment_access
+                                ?.roles ?? [],
+                        ),
+                    ],
+                    users: [
+                        ...getUsersStep4(
+                            assessmentDetails[currentStep]?.saved_data?.live_assessment_access
+                                ?.user_ids ?? [],
+                        ),
+                    ],
+                },
+                assessment_submission_and_report_access: {
+                    roles: [
+                        ...getSelectedRoles(
+                            roles,
+                            assessmentDetails[currentStep]?.saved_data?.report_and_submission_access
+                                ?.roles ?? [],
+                        ),
+                    ],
+                    users: [
+                        ...getUsersStep4(
+                            assessmentDetails[currentStep]?.saved_data?.report_and_submission_access
+                                ?.user_ids ?? [],
+                        ),
+                    ],
+                },
+                evaluation_process: {
+                    roles: [
+                        ...getSelectedRoles(
+                            roles,
+                            assessmentDetails[currentStep]?.saved_data?.evaluation_access?.roles ??
+                                [],
+                        ),
+                    ],
+                    users: [
+                        ...getUsersStep4(
+                            assessmentDetails[currentStep]?.saved_data?.evaluation_access
+                                ?.user_ids ?? [],
+                        ),
+                    ],
+                },
+            });
+        }
+    }, []);
 
     if (isLoading || handleSubmitStep4Form.status === "pending") return <DashboardLoader />;
 
