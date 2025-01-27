@@ -11,18 +11,27 @@ export const QUESTION_LABELS = ["(1.)", "1.)", "(1)", "1)"];
 export const OPTIONS_LABELS = ["(a.)", "a.)", "(a)", "a)", "(A.)", "A.)", "(A)", "A)"];
 export const ANSWER_LABELS = ["Ans:", "Answer:", "Ans.", "Answer."];
 export const EXPLANATION_LABELS = ["Exp:", "Explanation:", "Exp.", "Explanation."];
+
 export const scheduleTestTabsData = [
     {
         value: "liveTests",
         message: "No tests are currently live.",
+        data: [],
     },
     {
         value: "upcomingTests",
         message: "No upcoming tests scheduled.",
+        data: [],
     },
     {
         value: "previousTests",
         message: "No previous tests available.",
+        data: [],
+    },
+    {
+        value: "draftTests",
+        message: "No draft tests available.",
+        data: [],
     },
 ];
 

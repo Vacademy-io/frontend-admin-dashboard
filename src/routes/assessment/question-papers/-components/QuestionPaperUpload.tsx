@@ -32,7 +32,7 @@ import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { useUploadQuestionPaperForm } from "../-utils/question-paper-form";
-import sectionDetailsSchema from "../../create-assessment/$examtype/-utils/section-details-schema";
+import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 interface QuestionPaperUploadProps {

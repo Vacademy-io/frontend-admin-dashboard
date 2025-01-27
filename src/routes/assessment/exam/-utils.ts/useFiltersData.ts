@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { InstituteDetailsType } from "@/schemas/student/student-list/institute-schema";
+import { AssessmentDetailsType } from "@/schemas/assessment/assessment-schema";
 
 export const useFilterDataForAssesment = (initData: InstituteDetailsType) => {
     const BatchesFilterData = useMemo(() => {
@@ -22,15 +23,6 @@ export const useFilterDataForAssesment = (initData: InstituteDetailsType) => {
         );
     }, [initData]);
 
-    const StatusData = useMemo(() => {
-        return (
-            initData?.student_statuses?.map((status, index) => ({
-                id: String(index),
-                name: status,
-            })) || []
-        );
-    }, [initData]);
-
     const YearClassFilterData = useMemo(() => {
         return (
             initData?.levels?.map((level) => ({
@@ -43,7 +35,51 @@ export const useFilterDataForAssesment = (initData: InstituteDetailsType) => {
     return {
         BatchesFilterData,
         SubjectFilterData,
-        StatusData,
+
         YearClassFilterData,
+    };
+};
+
+export const useFilterDataForAssesmentInitData = (initData: AssessmentDetailsType) => {
+    const AssessmentTypeData = useMemo(() => {
+        return (
+            initData?.assessment_access_statuses?.map((data, idx) => ({
+                id: String(idx),
+                name: data,
+            })) || []
+        );
+    }, [initData]);
+
+    const ModeData = useMemo(() => {
+        return (
+            initData?.assessment_mode_types?.map((data, idx) => ({
+                id: String(idx),
+                name: data,
+            })) || []
+        );
+    }, [initData]);
+
+    const AssessmentStatusData = useMemo(() => {
+        return (
+            initData?.assessment_statuses?.map((data, idx) => ({
+                id: String(idx),
+                name: data,
+            })) || []
+        );
+    }, [initData]);
+
+    const EvaluationTypeData = useMemo(() => {
+        return (
+            initData?.evaluation_types?.map((data, idx) => ({
+                id: String(idx),
+                name: data,
+            })) || []
+        );
+    }, [initData]);
+    return {
+        AssessmentTypeData,
+        AssessmentStatusData,
+        ModeData,
+        EvaluationTypeData,
     };
 };

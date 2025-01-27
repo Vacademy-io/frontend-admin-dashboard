@@ -19,9 +19,13 @@ function AssessmentPage() {
 
     const handleRedirectRoute = (type: string) => {
         navigate({
-            to: "/assessment/create-assessment/$examtype",
+            to: "/assessment/create-assessment/$assessmentId/$examtype",
             params: {
+                assessmentId: "defaultId",
                 examtype: type,
+            },
+            search: {
+                currentStep: 0,
             },
         });
     };

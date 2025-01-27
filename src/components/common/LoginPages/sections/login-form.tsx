@@ -53,7 +53,6 @@ export function LoginForm() {
                     className: "error-toast",
                     duration: 3000,
                 });
-                form.reset();
             }
         },
         onError: () => {
@@ -62,7 +61,6 @@ export function LoginForm() {
                 className: "error-toast",
                 duration: 3000,
             });
-            form.reset();
         },
     });
 
