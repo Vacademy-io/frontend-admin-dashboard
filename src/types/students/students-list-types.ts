@@ -28,7 +28,7 @@ export interface FilterConfig {
 // }
 export interface StudentFiltersProps {
     currentSession: string;
-    sessions: string[];
+    sessions?: string[];
     filters: FilterConfig[];
     searchInput: string;
     searchFilter: string;

@@ -9,6 +9,8 @@ import { StatusChips } from "../../chips";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ActivityLogType } from "@/components/common/students/students-list/student-side-view/student-view-dummy-data/learning-progress";
+import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
+import { ActivityLog } from "@/components/common/students/students-list/student-side-view/student-view-dummy-data/learning-progress";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -59,7 +61,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                     <MyDropdown
                         dropdownList={["ASC", "DESC"]}
                         onSelect={(value) => {
-                            meta.onSort?.("full_name", value);
+                            if (typeof value == "string") meta.onSort?.("full_name", value);
                         }}
                     >
                         <button className="flex w-full cursor-pointer items-center justify-between">
@@ -209,5 +211,61 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
     {
         accessorKey: "lastPageRead",
         header: "Last Page Read",
+    },
+];
+
+export interface ActivityStatsColumnsType {
+    id: string;
+    user_id: string;
+    full_name: string;
+    institute_enrollment_id: string;
+    username: string;
+    time_spent: string;
+    last_active: string;
+}
+
+export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
+    {
+        accessorKey: "details",
+        header: "Details",
+        cell: ({ row }) => {
+            // Create a regular function to handle the click
+            const handleClick = () => {
+                const store = useActivityStatsStore.getState();
+                store.openDialog(
+                    row.original.user_id,
+                    "Activity Details",
+                    "Activity Stats",
+                    ActivityLog,
+                );
+            };
+
+            return (
+                <ArrowSquareOut
+                    className="size-5 cursor-pointer text-neutral-500"
+                    onClick={handleClick}
+                />
+            );
+        },
+    },
+    {
+        accessorKey: "full_name",
+        header: "Student Name",
+    },
+    {
+        accessorKey: "institute_enrollment_id",
+        header: "Enrollment Number",
+    },
+    {
+        accessorKey: "username",
+        header: "User Name",
+    },
+    {
+        accessorKey: "time_spent",
+        header: "Time Spent",
+    },
+    {
+        accessorKey: "last_active",
+        header: "Last Active",
     },
 ];

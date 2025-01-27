@@ -11,14 +11,12 @@ import {
     useGetSessions,
     useGetGenders,
 } from "@/hooks/student-list-section/useFilters";
-// import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepTwoData, stepTwoSchema } from "@/types/students/schema-enroll-students-manually";
 
 export const StepTwoForm = () => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
-    // const { isLoading } = useInstituteQuery();
     const sessionList = useGetSessions();
     const genderList = useGetGenders();
 
@@ -43,18 +41,6 @@ export const StepTwoForm = () => {
         setStepTwoData(values);
         nextStep();
     };
-
-    // useEffect(() => {
-    //     if (sessionList.length > 0) {
-    //         form.setValue("session", sessionList[0] || "");
-    //     }
-    //     if (genderList.length > 0) {
-    //         form.setValue("gender", genderList[0] || "");
-    //     }
-    //     if (batchList.length > 0) {
-    //         form.setValue("batch", batchList[0] || "");
-    //     }
-    // }, [sessionList, genderList, batchList, form]);
 
     return (
         <div>

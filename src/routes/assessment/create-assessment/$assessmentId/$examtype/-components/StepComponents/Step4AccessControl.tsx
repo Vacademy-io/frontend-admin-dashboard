@@ -461,7 +461,7 @@ const AccessControlCards = ({
                                 </h1>
                                 <div className="flex w-full items-center justify-between gap-4">
                                     <MyInput
-                                        inputType="text"
+                                        inputType="email"
                                         inputPlaceholder="you@email.com"
                                         input={inviteUserEmailInput}
                                         onChangeFunction={(e) =>
@@ -482,7 +482,7 @@ const AccessControlCards = ({
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-4">
-                                {getKeyVal.users.map((user, idx) => {
+                                {getKeyVal?.users?.map((user, idx) => {
                                     return (
                                         <Badge
                                             key={idx}

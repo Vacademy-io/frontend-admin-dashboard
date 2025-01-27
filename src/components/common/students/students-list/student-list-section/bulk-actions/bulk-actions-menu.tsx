@@ -4,14 +4,7 @@ import { useDialogStore } from "@/components/design-system/utils/useDialogStore"
 import { BulkActionInfo } from "@/types/students/bulk-actions-types";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { ReactNode } from "react";
-
-const BulkActionDropdownList = [
-    "Change Batch",
-    "Extend Session",
-    "Re-register for Next Session",
-    "Terminate Registration",
-    "Delete",
-];
+import { BulkActionDropdownList } from "@/constants/student-list/bulk-actions-menu-options";
 
 interface BulkActionsMenuProps {
     selectedCount: number;
@@ -20,10 +13,7 @@ interface BulkActionsMenuProps {
     trigger: ReactNode;
 }
 
-export const BulkActionsMenu = ({
-    selectedStudents, // Add this
-    trigger,
-}: BulkActionsMenuProps) => {
+export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuProps) => {
     const {
         openBulkChangeBatchDialog,
         openBulkExtendSessionDialog,

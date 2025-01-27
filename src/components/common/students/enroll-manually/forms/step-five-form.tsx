@@ -14,7 +14,7 @@ import { stepFiveSchema, StepFiveData } from "@/types/students/schema-enroll-stu
 import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/useEnrollStudent";
 // import { toast } from "sonner";
 import { useState } from "react";
-import { getCurrentSession } from "../../students-list/students-list-section";
+import { getCurrentSession } from "../../students-list/utills/getCurrentSession";
 import { usePackageSessionIds } from "@/hooks/student-list-section/getPackageSessionId";
 // import { EnrollStudentRequest } from "@/types/students/type-enroll-student-manually";
 

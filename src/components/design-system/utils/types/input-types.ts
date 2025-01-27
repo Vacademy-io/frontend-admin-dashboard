@@ -9,7 +9,7 @@ export interface FormInputProps
     extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange"> {
     inputType?: string;
     inputPlaceholder?: string;
-    input: string;
+    input: string | undefined;
     onChangeFunction: (event: React.ChangeEvent<HTMLInputElement>) => void;
     error?: string | null;
     required?: boolean;

@@ -2,7 +2,7 @@
 import { MyDialog } from "../../dialog";
 import { ReactNode, useState } from "react";
 import { useDialogStore } from "../../utils/useDialogStore";
-import { BatchDropdown } from "@/components/common/students/batch-dropdown";
+import { BatchDropdown } from "@/components/common/batch-dropdown";
 import { MyButton } from "../../button";
 import { useUpdateBatchMutation } from "@/services/student-list-section/useStudentOperations";
 import { useBulkUpdateBatchMutation } from "@/services/student-list-section/useBulkOperations";

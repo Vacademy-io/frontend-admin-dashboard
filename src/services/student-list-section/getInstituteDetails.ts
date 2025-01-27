@@ -24,6 +24,6 @@ export const useInstituteQuery = () => {
             setInstituteDetails(data);
             return data;
         },
-        staleTime: 60 * 60 * 1000,
+        staleTime: 3600000,
     };
 };

@@ -49,18 +49,11 @@ export const ACTIVITY_LOG_COLUMN_WIDTHS: ColumnWidthConfig = {
     lastPageRead: "min-w-[120px]",
 };
 
-export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_LIST: ColumnWidthConfig = {
-    checkbox: "min-w-[56px] sticky left-0",
-    full_name: "min-w-[180px] sticky left-[52px]",
-    username: "min-w-[180px]",
-    package_session_id: "min-w-[240px]",
-    institute_enrollment_id: "min-w-[200px]",
-    linked_institute_name: "min-w-[240px]",
-    gender: "min-w-[120px]",
-    mobile_number: "min-w-[180px]",
-    email: "min-w-[240px]",
-    city: "min-w-[180px]",
-    region: "min-w-[180px]",
-    status: "min-w-[180px]",
-    options: "min-w-[56px] sticky right-0",
+export const ACTIVITY_STATS_COLUMN_WIDTHS: ColumnWidthConfig = {
+    details: "min-w-[80px] sticky left-0",
+    full_name: "min-w-[160px] sticky left-[80px]",
+    institute_enrollment_id: "min-w-[120px]",
+    username: "min-w-[120px]",
+    time_spent: "min-w-[120px]",
+    last_active: "min-w-[120px]",
 };

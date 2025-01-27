@@ -12,9 +12,13 @@ import { SidebarItem } from "./sidebar-item";
 import { SidebarItemsData } from "./utils";
 import "./scrollbarStyle.css";
 import { SSDC_Logo } from "@/assets/svgs";
+import React from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
+    useSuspenseQuery(useInstituteQuery());
 
     return (
         <Sidebar collapsible="icon">
@@ -38,7 +42,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     </div>
                 </SidebarHeader>
                 <SidebarMenu
-                    className={`flex shrink-0 flex-col justify-center gap-6 py-4 ${
+                    className={`flex flex-shrink-0 flex-col justify-center gap-6 py-4 ${
                         state == "expanded" ? "items-stretch" : "items-center"
                     }`}
                 >

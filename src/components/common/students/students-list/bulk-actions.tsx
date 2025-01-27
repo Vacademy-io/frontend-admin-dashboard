@@ -1,14 +1,13 @@
 // components/bulk-actions.tsx
 import { MyButton } from "@/components/design-system/button";
 import { CaretUpDown, XCircle } from "@phosphor-icons/react";
-import { BulkActionsMenu } from "./bulk-actions-menu";
-// import { useToast } from "@/hooks/use-toast";
+import { BulkActionsMenu } from "./student-list-section/bulk-actions/bulk-actions-menu";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
 interface BulkActionsProps {
     selectedCount: number;
     selectedStudentIds: string[];
-    selectedStudents: StudentTable[]; // Add this prop
+    selectedStudents: StudentTable[];
     onReset: () => void;
     isAssessment?: boolean;
 }
@@ -16,12 +15,10 @@ interface BulkActionsProps {
 export const BulkActions = ({
     selectedCount,
     selectedStudentIds,
-    selectedStudents, // Add this
+    selectedStudents,
     onReset,
     isAssessment,
 }: BulkActionsProps) => {
-    //   const { toast } = useToast();
-
     if (selectedCount === 0) {
         return null;
     }
@@ -48,7 +45,7 @@ export const BulkActions = ({
                     <BulkActionsMenu
                         selectedCount={selectedCount}
                         selectedStudentIds={selectedStudentIds}
-                        selectedStudents={selectedStudents} // Pass the selected students
+                        selectedStudents={selectedStudents}
                         trigger={
                             <MyButton
                                 buttonType="primary"
@@ -56,7 +53,7 @@ export const BulkActions = ({
                                 layoutVariant="default"
                                 className="flex w-full cursor-pointer items-center justify-between"
                             >
-                                <div>Bulk Actions</div>
+                                <p>Bulk Actions</p>
                                 <CaretUpDown />
                             </MyButton>
                         }

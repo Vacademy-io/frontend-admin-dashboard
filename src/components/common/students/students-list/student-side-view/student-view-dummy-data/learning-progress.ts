@@ -1,4 +1,5 @@
 export interface TopicActivityDetails {
+    id: string;
     topic: string;
     status: "done" | "pending";
     last_viewed: string;
@@ -136,18 +137,21 @@ export const ActivityLog: ActivityLogType[] = [
 export const ChapterDetails: ChapterDetailsType = {
     e_book: [
         {
+            id: "sdfa",
             topic: "Understanding the Human Eye",
             status: "done",
             last_viewed: "13/10/2024, 11:00AM",
             activity_log: ActivityLog, // Add the activity log data instead of empty string
         },
         {
+            id: "sdfa",
             topic: "Defects of Vision and Their Correction",
             status: "done",
             last_viewed: "13/10/2024, 11:00AM",
             activity_log: ActivityLog,
         },
         {
+            id: "sdfa",
             topic: "Refraction of Light Through the Eye",
             status: "pending",
             last_viewed: "13/10/2024, 11:00AM",
@@ -156,12 +160,14 @@ export const ChapterDetails: ChapterDetailsType = {
     ],
     videos: [
         {
+            id: "sdfa",
             topic: "Understanding the Human Eye",
             status: "done",
             last_viewed: "13/10/2024, 11:00AM",
             activity_log: ActivityLog,
         },
         {
+            id: "sdfa",
             topic: "Refraction of Light Through the Eye",
             status: "pending",
             last_viewed: "13/10/2024, 11:00AM",
