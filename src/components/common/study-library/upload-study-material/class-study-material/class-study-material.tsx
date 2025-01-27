@@ -64,7 +64,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
             };
 
             const response = await authenticatedAxiosInstance.post(
-                `${ADD_SUBJECT}?packageSessionId=${packageSessionIds}`,
+                `${ADD_SUBJECT}?commaSeparatedPackageSessionIds=${packageSessionIds}`,
                 payload,
             );
 
