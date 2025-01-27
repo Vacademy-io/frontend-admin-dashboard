@@ -4,6 +4,34 @@ interface Instructions {
     content: string;
 }
 
+interface AccessControl {
+    batch_ids: string[] | null;
+    roles: string[] | null;
+    user_ids: string[];
+}
+
+interface RegistrationFormField {
+    id: string;
+    fieldName: string;
+    fieldKey: string;
+    commaSeparatedOptions: string;
+    status: string;
+    isMandatory: boolean;
+    fieldType: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface PreBatchRegistration {
+    id: string;
+    batchId: string;
+    instituteId: string;
+    registrationTime: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface SavedData {
     instructions: Instructions;
     reattempt_consent: boolean;
@@ -26,6 +54,15 @@ export interface SavedData {
     reattempt_count: number | null;
     assessment_preview: number;
     sections?: Section[];
+    creation_access: AccessControl;
+    report_and_submission_access: AccessControl;
+    live_assessment_access: AccessControl;
+    evaluation_access: AccessControl;
+    pre_user_registrations: number;
+    registration_form_fields: RegistrationFormField[];
+    registration_open_date: string | null;
+    pre_batch_registrations: PreBatchRegistration[];
+    registration_close_date: string | null;
 }
 
 export interface Section {
@@ -66,7 +103,7 @@ interface FieldOption {
 
 interface StepData {
     step_name: string;
-    status: "INCOMPLETE" | "COMPLETE";
+    status: string;
     institute_id: string | null;
     type: string;
     saved_data: SavedData;

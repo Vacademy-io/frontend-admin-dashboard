@@ -41,15 +41,15 @@ export const SidebarItemsData: SidebarItemsType[] = [
             },
             {
                 subItem: "Mock Test",
-                subItemLink: "/assessment/create-assessment/LIVE_QUIZ",
+                subItemLink: "/assessment/create-assessment/null/LIVE_QUIZ",
             },
             {
                 subItem: "Practice Test",
-                subItemLink: "/assessment/create-assessment/PRACTICE",
+                subItemLink: "/assessment/create-assessment/null/PRACTICE",
             },
             {
                 subItem: "Survey",
-                subItemLink: "/assessment/create-assessment/SURVEY",
+                subItemLink: "/assessment/create-assessment/null/SURVEY",
             },
             {
                 subItem: "Question Papers",

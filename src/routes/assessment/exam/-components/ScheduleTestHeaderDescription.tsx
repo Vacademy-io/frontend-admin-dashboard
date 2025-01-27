@@ -8,9 +8,13 @@ export const ScheduleTestHeaderDescription = () => {
     const navigate = useNavigate();
     const handleSubjectRoute = () => {
         navigate({
-            to: "/assessment/create-assessment/$examtype",
+            to: "/assessment/create-assessment/$assessmentId/$examtype",
             params: {
+                assessmentId: "defaultId",
                 examtype: "EXAM",
+            },
+            search: {
+                currentStep: 0,
             },
         });
     };

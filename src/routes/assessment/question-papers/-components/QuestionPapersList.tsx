@@ -22,7 +22,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { MyQuestion } from "@/types/question-paper-form";
 import { z } from "zod";
-import sectionDetailsSchema from "../../create-assessment/$examtype/-utils/section-details-schema";
+import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 import { UseFormReturn } from "react-hook-form";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;

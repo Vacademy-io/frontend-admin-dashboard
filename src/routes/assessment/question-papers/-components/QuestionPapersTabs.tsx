@@ -16,7 +16,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRefetchStore } from "../-global-states/refetch-store";
 import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
 import { z } from "zod";
-import sectionDetailsSchema from "../../create-assessment/$examtype/-utils/section-details-schema";
+import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 import { UseFormReturn } from "react-hook-form";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
