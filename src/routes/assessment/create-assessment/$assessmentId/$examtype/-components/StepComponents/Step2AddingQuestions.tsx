@@ -187,48 +187,45 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     useEffect(() => {
         if (assessmentId !== "defaultId") {
+            const sections = assessmentDetails[currentStep]?.saved_data?.sections;
+
             form.reset({
                 status: assessmentDetails[currentStep]?.status,
                 section:
-                    assessmentDetails[currentStep]?.saved_data?.sections &&
-                    assessmentDetails[currentStep]?.saved_data?.sections?.length > 0
-                        ? assessmentDetails[currentStep]?.saved_data?.sections.map(
-                              (sectionDetails) => ({
-                                  sectionId: sectionDetails.id || "", // Default empty if not available
-                                  sectionName: sectionDetails.name || "",
-                                  questionPaperTitle: "",
-                                  uploaded_question_paper: "",
-                                  subject: getSubjectNameById(
-                                      instituteDetails?.subjects || [],
-                                      assessmentDetails[0]?.saved_data?.subject_selection ?? "",
-                                  ),
-                                  yearClass: "",
-                                  question_duration: {
-                                      hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
-                                      min: String(sectionDetails.duration % 60) || "",
-                                  },
-                                  section_description: sectionDetails.description || "",
-                                  section_duration: {
-                                      hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
-                                      min: String(sectionDetails.duration % 60) || "",
-                                  },
-                                  marks_per_question: "",
-                                  total_marks: String(sectionDetails.total_marks) || "",
-                                  negative_marking: {
-                                      checked: false,
-                                      value: "",
-                                  },
-                                  partial_marking: false,
-                                  cutoff_marks: {
-                                      checked: sectionDetails.cutoff_marks > 0 ? true : false,
-                                      value: String(sectionDetails.cutoff_marks) || "",
-                                  },
-                                  problem_randomization:
-                                      sectionDetails.problem_randomization || false,
-                                  // eslint-disable-next-line react-hooks/rules-of-hooks
-                                  adaptive_marking_for_each_question: [],
-                              }),
-                          )
+                    Array.isArray(sections) && sections.length > 0
+                        ? sections.map((sectionDetails) => ({
+                              sectionId: sectionDetails.id || "", // Default empty if not available
+                              sectionName: sectionDetails.name || "",
+                              questionPaperTitle: "",
+                              uploaded_question_paper: "",
+                              subject: getSubjectNameById(
+                                  instituteDetails?.subjects || [],
+                                  assessmentDetails[0]?.saved_data?.subject_selection ?? "",
+                              ),
+                              yearClass: "",
+                              question_duration: {
+                                  hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
+                                  min: String(sectionDetails.duration % 60) || "",
+                              },
+                              section_description: sectionDetails.description || "",
+                              section_duration: {
+                                  hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
+                                  min: String(sectionDetails.duration % 60) || "",
+                              },
+                              marks_per_question: "",
+                              total_marks: String(sectionDetails.total_marks) || "",
+                              negative_marking: {
+                                  checked: false,
+                                  value: "",
+                              },
+                              partial_marking: false,
+                              cutoff_marks: {
+                                  checked: sectionDetails.cutoff_marks > 0 ? true : false,
+                                  value: String(sectionDetails.cutoff_marks) || "",
+                              },
+                              problem_randomization: sectionDetails.problem_randomization || false,
+                              adaptive_marking_for_each_question: [],
+                          }))
                         : [
                               {
                                   sectionId: "",

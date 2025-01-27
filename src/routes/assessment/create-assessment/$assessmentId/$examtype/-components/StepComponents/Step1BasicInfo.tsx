@@ -258,7 +258,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 assessmentDetails[currentStep]?.saved_data
                                     ?.duration_distribution === "ASSESSMENT" &&
                                 assessmentDetails[currentStep]?.saved_data?.duration != null &&
-                                assessmentDetails[currentStep].saved_data.duration > 0
+                                (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
                                     ? String(
                                           Math.floor(
                                               (assessmentDetails[currentStep]?.saved_data
@@ -270,10 +270,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 assessmentDetails[currentStep]?.saved_data
                                     ?.duration_distribution === "ASSESSMENT" &&
                                 assessmentDetails[currentStep]?.saved_data?.duration != null &&
-                                assessmentDetails[currentStep].saved_data.duration > 0
+                                (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
                                     ? String(
-                                          (assessmentDetails[currentStep]?.saved_data?.duration ??
-                                              0) % 60,
+                                          Math.floor(
+                                              (assessmentDetails[currentStep]?.saved_data
+                                                  ?.duration ?? 0) % 60,
+                                          ),
                                       )
                                     : "",
                         },
@@ -297,7 +299,8 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     previewTimeLimit:
                         assessmentDetails[currentStep]?.saved_data?.assessment_preview !== undefined
                             ? getTimeLimitString(
-                                  assessmentDetails[currentStep]?.saved_data?.assessment_preview,
+                                  assessmentDetails[currentStep]?.saved_data?.assessment_preview ??
+                                      0, // Default to 0 if undefined
                                   timeLimit,
                               )
                             : timeLimit[0], // Default preview time

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { MyTable } from "@/components/design-system/table";
-import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+// import { MyTable } from "@/components/design-system/table";
+// import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
+// import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -11,7 +11,7 @@ import {
     ResponseQuestionListOpen,
 } from "@/types/assessment-overview";
 import {
-    getAllColumnsForTable,
+    // getAllColumnsForTable,
     getAssessmentFilteredDataForAssessmentStatus,
 } from "../-utils/helper";
 
@@ -28,10 +28,10 @@ const QuestionAssessmentStatus = ({
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
     const [selectedTab, setSelectedTab] = useState("Attempted");
     const [page, setPage] = useState(1);
-    console.log(setPage);
-    const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
+    console.log(page, setPage);
+    // const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
 
-    const currentPageSelection = rowSelections[page] || {};
+    // const currentPageSelection = rowSelections[page] || {};
 
     const studentTableData = getAssessmentFilteredDataForAssessmentStatus(
         studentsListData,
@@ -40,25 +40,25 @@ const QuestionAssessmentStatus = ({
         selectedTab,
     );
 
-    const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
-        const newSelection =
-            typeof updaterOrValue === "function"
-                ? updaterOrValue(rowSelections[page] || {})
-                : updaterOrValue;
+    // const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
+    //     const newSelection =
+    //         typeof updaterOrValue === "function"
+    //             ? updaterOrValue(rowSelections[page] || {})
+    //             : updaterOrValue;
 
-        setRowSelections((prev) => ({
-            ...prev,
-            [page]: newSelection,
-        }));
-    };
+    //     setRowSelections((prev) => ({
+    //         ...prev,
+    //         [page]: newSelection,
+    //     }));
+    // };
 
-    const getAssessmentColumn = {
-        Attempted: getAllColumnsForTable(type, selectedParticipantsTab).Attempted,
-        Pending: getAllColumnsForTable(type, selectedParticipantsTab).Pending,
-        Ongoing: getAllColumnsForTable(type, selectedParticipantsTab).Ongoing,
-        internal: getAllColumnsForTable(type, selectedParticipantsTab).internal,
-        external: getAllColumnsForTable(type, selectedParticipantsTab).external,
-    };
+    // const getAssessmentColumn = {
+    //     Attempted: getAllColumnsForTable(type, selectedParticipantsTab).Attempted,
+    //     Pending: getAllColumnsForTable(type, selectedParticipantsTab).Pending,
+    //     Ongoing: getAllColumnsForTable(type, selectedParticipantsTab).Ongoing,
+    //     internal: getAllColumnsForTable(type, selectedParticipantsTab).internal,
+    //     external: getAllColumnsForTable(type, selectedParticipantsTab).external,
+    // };
 
     return (
         <>
@@ -180,7 +180,7 @@ const QuestionAssessmentStatus = ({
                 )}
                 <div className="max-h-[72vh] overflow-y-auto p-4">
                     <TabsContent value={selectedTab}>
-                        <MyTable<StudentTable>
+                        {/* <MyTable<StudentTable>
                             data={{
                                 content: studentTableData,
                                 total_pages: Math.ceil(studentTableData.length / 10),
@@ -201,7 +201,7 @@ const QuestionAssessmentStatus = ({
                             rowSelection={currentPageSelection}
                             onRowSelectionChange={handleRowSelectionChange}
                             currentPage={page}
-                        />
+                        /> */}
                     </TabsContent>
                 </div>
             </Tabs>
