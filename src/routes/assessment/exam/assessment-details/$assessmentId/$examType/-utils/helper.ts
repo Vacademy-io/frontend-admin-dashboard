@@ -241,3 +241,35 @@ export function getBatchDetails(
 
     return result;
 }
+
+interface Question {
+    questionId: string;
+    questionName: string;
+    questionType: string; // You can use a union type like `"MCQM" | "SCQ" | "TF"` if needed
+    questionMark: string;
+    questionPenalty: string;
+    questionDuration: {
+        hrs: string;
+        min: string;
+    };
+}
+
+export function calculateAverageMarks(questions: Question[]): number {
+    if (questions.length === 0) return 0;
+
+    const totalMarks = questions.reduce(
+        (sum, question) => sum + parseFloat(question.questionMark),
+        0,
+    );
+    return totalMarks / questions.length;
+}
+
+export function calculateAveragePenalty(questions: Question[]): number {
+    if (questions.length === 0) return 0;
+
+    const totalPenalty = questions.reduce(
+        (sum, question) => sum + parseFloat(question.questionPenalty),
+        0,
+    );
+    return totalPenalty / questions.length;
+}

@@ -40,4 +40,5 @@ export interface ScheduleTestListsProps {
     tab: ScheduleTestTab;
     pageNo: number;
     handlePageChange: (page: number) => void;
+    selectedTab: string;
 }

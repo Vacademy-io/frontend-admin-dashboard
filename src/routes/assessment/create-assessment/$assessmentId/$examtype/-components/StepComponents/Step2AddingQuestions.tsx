@@ -188,7 +188,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     useEffect(() => {
         if (assessmentId !== "defaultId") {
             const sections = assessmentDetails[currentStep]?.saved_data?.sections;
-
             form.reset({
                 status: assessmentDetails[currentStep]?.status,
                 section:
@@ -317,7 +316,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                         </div>
                         <Separator className="my-4" />
                         <Accordion type="single" collapsible>
-                            {allSections.map((_, index) => (
+                            {allSections.map((section, index) => (
                                 <Step2SectionInfo
                                     key={index}
                                     form={form}

@@ -19,6 +19,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { QuestionData } from "@/types/assessment-steps";
 import { getQuestionTypeCounts } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
+import { calculateAverageMarks, calculateAveragePenalty } from "../-utils/helper";
 
 interface QuestionDuration {
     hrs: string;
@@ -93,16 +94,12 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                 </div>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-8">
-                <div className="flex items-center justify-between rounded-md border border-primary-200 px-4 py-2">
-                    <h1>The Human Eye and The Colourful World</h1>
-                    <div className="flex items-center">
-                        <span className="text-primary-500">View</span>
+                {section.description && (
+                    <div className="flex flex-col gap-2">
+                        <h1>Section Description</h1>
+                        <p className="font-thin">{section.description}</p>
                     </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                    <h1>Section Description</h1>
-                    <p className="font-thin">{section.description}</p>
-                </div>
+                )}
                 {assessmentDetails[0]?.saved_data?.duration_distribution === "QUESTION" && (
                     <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
                         <h1 className="font-normal">Question Duration:</h1>
@@ -129,19 +126,25 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                 )}
                 <div className="flex items-start gap-8 text-sm font-thin">
                     <h1 className="font-normal">Marks Per Question (Default):</h1>
-                    <span>2</span>
+                    <span>{calculateAverageMarks(adaptiveMarking)}</span>
                 </div>
-                <div className="flex w-1/2 items-center justify-between">
-                    <div className="flex w-52 items-center justify-start gap-8">
-                        <h1>Negative Marking:</h1>
-                        <span className="font-thin">2</span>
+                {calculateAveragePenalty(adaptiveMarking) > 0 && (
+                    <div className="flex w-1/2 items-center justify-between">
+                        <div className="flex w-52 items-center justify-start gap-8">
+                            <h1>Negative Marking:</h1>
+                            <span className="font-thin">
+                                {calculateAveragePenalty(adaptiveMarking)}
+                            </span>
+                        </div>
+                        <CheckCircle size={22} weight="fill" className="text-success-600" />
                     </div>
-                    <CheckCircle size={22} weight="fill" className="text-success-600" />
-                </div>
-                <div className="flex w-1/2 items-center justify-between">
-                    <h1>Partial Marking:</h1>
-                    <CheckCircle size={22} weight="fill" className="text-success-600" />
-                </div>
+                )}
+                {section.partial_marking && (
+                    <div className="flex w-1/2 items-center justify-between">
+                        <h1>Partial Marking:</h1>
+                        <CheckCircle size={22} weight="fill" className="text-success-600" />
+                    </div>
+                )}
                 {section.cutoff_marks > 0 && (
                     <div className="flex w-1/2 items-center justify-between">
                         <div className="flex w-52 items-center justify-start gap-8">
