@@ -21,6 +21,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useParams } from "@tanstack/react-router";
 import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
+import { cloneDeep } from "lodash";
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
@@ -96,7 +97,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             instituteId,
             type,
         }: {
-            oldData: SectionFormType["section"];
+            oldData: z.infer<typeof sectionDetailsSchema>;
             data: z.infer<typeof sectionDetailsSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
@@ -135,7 +136,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     const onSubmit = (data: z.infer<typeof sectionDetailsSchema>) => {
         handleSubmitStep2Form.mutate({
-            oldData: oldData.current.section,
+            oldData: oldData.current,
             data: data,
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
@@ -206,7 +207,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                   hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
                                   min: String(sectionDetails.duration % 60) || "",
                               },
-                              section_description: sectionDetails.description || "",
+                              section_description: sectionDetails.description?.content || "",
                               section_duration: {
                                   hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
                                   min: String(sectionDetails.duration % 60) || "",
@@ -258,6 +259,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                               },
                           ],
             });
+            // Deep clone the form values to prevent modification
+            oldData.current = cloneDeep(form.getValues());
         }
     }, []);
 
@@ -316,12 +319,13 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                         </div>
                         <Separator className="my-4" />
                         <Accordion type="single" collapsible>
-                            {allSections.map((section, index) => (
+                            {allSections.map((_, index) => (
                                 <Step2SectionInfo
                                     key={index}
                                     form={form}
                                     index={index}
                                     currentStep={currentStep}
+                                    oldData={oldData}
                                 />
                             ))}
                         </Accordion>

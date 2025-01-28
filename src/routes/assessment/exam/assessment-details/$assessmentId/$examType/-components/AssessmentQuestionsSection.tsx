@@ -19,7 +19,11 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { QuestionData } from "@/types/assessment-steps";
 import { getQuestionTypeCounts } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
-import { calculateAverageMarks, calculateAveragePenalty } from "../-utils/helper";
+import {
+    calculateAverageMarks,
+    calculateAveragePenalty,
+    parseHtmlToString,
+} from "../-utils/helper";
 
 interface QuestionDuration {
     hrs: string;
@@ -94,10 +98,12 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                 </div>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-8">
-                {section.description && (
+                {section?.description?.content && (
                     <div className="flex flex-col gap-2">
                         <h1>Section Description</h1>
-                        <p className="font-thin">{section.description}</p>
+                        <p className="font-thin">
+                            {parseHtmlToString(section.description.content)}
+                        </p>
                     </div>
                 )}
                 {assessmentDetails[0]?.saved_data?.duration_distribution === "QUESTION" && (

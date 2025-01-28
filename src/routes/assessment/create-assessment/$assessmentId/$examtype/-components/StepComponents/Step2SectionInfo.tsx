@@ -1,5 +1,5 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import React, { useEffect, useState } from "react";
+import React, { MutableRefObject, useEffect, useState } from "react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { PencilSimpleLine, TrashSimple, X } from "phosphor-react";
 import {
@@ -40,6 +40,7 @@ import {
     calculateAverageMarks,
     calculateAveragePenalty,
 } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/-utils/helper";
+import { cloneDeep } from "lodash";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -47,10 +48,12 @@ export const Step2SectionInfo = ({
     form,
     index,
     currentStep,
+    oldData,
 }: {
     form: UseFormReturn<SectionFormType>;
     index: number;
     currentStep: number;
+    oldData: MutableRefObject<SectionFormType>;
 }) => {
     const { assessmentId, examtype } = Route.useParams();
     const [enableSectionName, setEnableSectionName] = useState(true);
@@ -165,6 +168,8 @@ export const Step2SectionInfo = ({
                 `section.${index}.negative_marking.value`,
                 String(calculateAveragePenalty(adaptiveMarking.adaptiveMarking)),
             );
+            // Deep clone the form values to prevent modification
+            oldData.current = cloneDeep(form.getValues());
         }
     }, [watch(`section.${index}`)]);
 

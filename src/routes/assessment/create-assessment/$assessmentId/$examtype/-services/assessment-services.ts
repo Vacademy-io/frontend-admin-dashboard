@@ -11,16 +11,9 @@ import { Steps } from "@/types/assessment-data-type";
 import { z } from "zod";
 import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-schema";
-import {
-    classifySections,
-    convertStep2Data,
-    convertStep2OldData,
-    convertToUTCPlus530,
-} from "../-utils/helper";
+import { classifySections, convertStep2Data, convertToUTCPlus530 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
-import { SectionFormType } from "@/types/assessment-steps";
-
 export const getAssessmentDetailsData = async ({
     assessmentId,
     instituteId,
@@ -143,14 +136,16 @@ export const handlePostStep1Data = async (
 };
 
 export const handlePostStep2Data = async (
-    oldData: SectionFormType["section"],
+    oldData: z.infer<typeof sectionDetailsSchema>,
     data: z.infer<typeof sectionDetailsSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
     type: string | undefined,
 ) => {
-    const convertedOldData = convertStep2OldData(oldData);
+    const convertedOldData = convertStep2Data(oldData);
     const convertedNewData = convertStep2Data(data);
+    console.log("convertedOldData", convertedOldData);
+    console.log("convertedNewData", convertedNewData);
     const classifiedSections = classifySections(convertedOldData, convertedNewData);
     const convertedData = {
         added_sections: classifiedSections.added_sections,

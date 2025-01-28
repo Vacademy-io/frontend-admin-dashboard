@@ -273,3 +273,8 @@ export function calculateAveragePenalty(questions: Question[]): number {
     );
     return totalPenalty / questions.length;
 }
+
+export function parseHtmlToString(html: string) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent || doc.body.innerText || "";
+}

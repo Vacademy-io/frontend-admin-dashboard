@@ -305,52 +305,6 @@ export const syncStep4DataWithStore = (form: UseFormReturn<AccessControlFormValu
     setAccessControlData(testAccessData);
 };
 
-export const convertStep2OldData = (data: SectionFormType["section"]) => {
-    return data.map((section, index) => ({
-        section_description_html: section.section_description || "",
-        section_name: section.sectionName,
-        section_id: section.sectionId || "",
-        section_duration:
-            parseInt(section.section_duration.hrs) * 60 + parseInt(section.section_duration.min),
-        section_order: index + 1,
-        total_marks: parseInt(section.total_marks) || 0,
-        cutoff_marks: section.cutoff_marks.checked ? parseInt(section.cutoff_marks.value) || 0 : 0,
-        problem_randomization: section.problem_randomization,
-        question_and_marking: section.adaptive_marking_for_each_question.map(
-            (question, qIndex) => ({
-                question_id: question.questionId,
-                marking_json: JSON.stringify({
-                    type: question.questionType,
-                    data: {
-                        totalMark: question.questionMark || "",
-                        negativeMark: question.questionPenalty || "",
-                        negativeMarkingPercentage:
-                            question.questionMark && question.questionPenalty
-                                ? (Number(question.questionPenalty) /
-                                      Number(question.questionMark)) *
-                                  100
-                                : "",
-                        ...(question.questionType === "MCQM" && {
-                            partialMarking: question.correctOptionIdsCnt
-                                ? 1 / question.correctOptionIdsCnt
-                                : 0,
-                            partialMarkingPercentage: question.correctOptionIdsCnt
-                                ? (1 / question.correctOptionIdsCnt) * 100
-                                : 0,
-                        }),
-                    },
-                }),
-                question_duration_in_min:
-                    parseInt(section.question_duration.hrs) * 60 +
-                        parseInt(section.question_duration.min) || 0,
-                question_order: qIndex + 1,
-                is_added: true,
-                is_deleted: false,
-            }),
-        ),
-    }));
-};
-
 export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => {
     return data.section.map((section, index) => ({
         section_description_html: section.section_description || "",
@@ -445,7 +399,11 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
                 total_marks: newSection.total_marks || 0,
                 cutoff_marks: newSection.cutoff_marks,
                 problem_randomization: newSection.problem_randomization,
-                question_and_marking: newSection.question_and_marking,
+                question_and_marking: newSection.question_and_marking?.map((item) => ({
+                    ...item,
+                    is_added: true,
+                    is_deleted: false,
+                })),
             });
         } else {
             // Case 2: Section with sectionId - check for update
@@ -461,7 +419,11 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
                     total_marks: newSection.total_marks,
                     cutoff_marks: newSection.cutoff_marks,
                     problem_randomization: newSection.problem_randomization,
-                    question_and_marking: newSection.question_and_marking,
+                    question_and_marking: newSection.question_and_marking?.map((item) => ({
+                        ...item,
+                        is_added: true,
+                        is_deleted: false,
+                    })),
                 });
             }
         }
@@ -479,7 +441,11 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
                 total_marks: oldSection.total_marks,
                 cutoff_marks: oldSection.cutoff_marks,
                 problem_randomization: oldSection.problem_randomization,
-                question_and_marking: oldSection.question_and_marking,
+                question_and_marking: oldSection.question_and_marking?.map((item) => ({
+                    ...item,
+                    is_added: false,
+                    is_deleted: true,
+                })),
             });
         }
     });
