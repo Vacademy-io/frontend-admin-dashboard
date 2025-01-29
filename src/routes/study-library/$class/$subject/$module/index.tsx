@@ -73,6 +73,7 @@ function ModuleMaterialPage() {
         .join(" ");
 
     const moduleData = {
+        id: "123",
         name: formattedModuleName,
         description:
             "Explore and manage chapters for 10th Class Physics. Click on a chapter to view and access eBooks, video lectures, and study resources, or add new materials to enhance your learning experience.",

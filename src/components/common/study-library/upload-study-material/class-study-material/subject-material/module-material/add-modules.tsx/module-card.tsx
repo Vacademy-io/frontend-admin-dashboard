@@ -5,6 +5,7 @@ import { MenuOptions } from "./module-menu-options";
 import { MyDialog } from "@/components/design-system/dialog";
 import { AddModulesForm } from "./add-modules-form";
 import { useSidebar } from "@/components/ui/sidebar";
+import { SortableDragHandle } from "@/components/ui/sortable";
 
 interface ModuleCardProps {
     module: ModuleType;
@@ -16,6 +17,7 @@ interface ModuleCardProps {
 
 // Update the ModuleType interface
 export interface ModuleType {
+    id: string;
     name: string;
     description: string;
     imageUrl?: string;
@@ -29,9 +31,10 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
 
     const handleCardClick = (e: React.MouseEvent) => {
         if (
-            (e.target as HTMLElement).closest(".menu-options-container") ||
-            (e.target as HTMLElement).closest('[role="menu"]') ||
-            (e.target as HTMLElement).closest('[role="dialog"]')
+            e.target instanceof Element &&
+            (e.target.closest(".drag-handle-container") ||
+                e.target.closest('[role="menu"]') ||
+                e.target.closest('[role="dialog"]'))
         ) {
             return;
         }
@@ -54,7 +57,16 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
             >
                 <div className="flex items-center justify-between text-h2 font-semibold">
                     <div>{module.name}</div>
-                    <DotsSixVertical />
+                    <div className="drag-handle-container">
+                        <SortableDragHandle
+                            variant="ghost"
+                            size="icon"
+                            className="cursor-grab hover:bg-neutral-100"
+                            // onClick={(e) => e.stopPropagation()}
+                        >
+                            <DotsSixVertical className="size-6" />
+                        </SortableDragHandle>
+                    </div>
                 </div>
 
                 {module.imageUrl ? (

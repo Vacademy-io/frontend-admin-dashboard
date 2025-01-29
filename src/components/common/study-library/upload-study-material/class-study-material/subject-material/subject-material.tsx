@@ -18,6 +18,8 @@ interface SubjectModulesProps {
 export const SubjectMaterial = ({ classNumber, subject }: SubjectModulesProps) => {
     const [modules, setModules] = useState<ModuleType[]>([]);
     const router = useRouter();
+    // const [isModuleLoading, setIsModuleLoading] = useState(false);
+    const isModuleLoading = false;
 
     const [searchInput, setSearchInput] = useState("");
 
@@ -85,6 +87,7 @@ export const SubjectMaterial = ({ classNumber, subject }: SubjectModulesProps) =
                 onEditModule={handleEditModule}
                 classNumber={classNumber || ""}
                 subject={subject}
+                isLoading={isModuleLoading}
             />
         </div>
     );
