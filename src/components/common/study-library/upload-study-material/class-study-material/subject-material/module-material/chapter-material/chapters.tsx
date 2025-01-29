@@ -51,7 +51,10 @@ export const Chapters = ({
         move(activeIndex, overIndex);
 
         // Create order payload after move
-        const orderPayload = fields.map((chapter, index) => ({
+        const updatedFields = form.getValues("chapters");
+
+        // Create order payload with the updated order
+        const orderPayload = updatedFields.map((chapter, index) => ({
             chapter_id: chapter.id,
             chapter_name: chapter.name,
             package_session_id: "",
@@ -59,6 +62,7 @@ export const Chapters = ({
         }));
         console.log("order payload: ", orderPayload);
 
+        // Call onOrderChange with the updated order
         onOrderChange?.(orderPayload);
     };
 

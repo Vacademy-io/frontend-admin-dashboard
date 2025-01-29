@@ -44,12 +44,14 @@ export const useContentStore = create<ContentStore>((set) => ({
             }
 
             const newItems = [...state.items];
-
-            // Explicitly type the movedItem as SidebarContentItem to avoid type issues
             const movedItem: SidebarContentItem = newItems[oldIndex]!;
             newItems.splice(oldIndex, 1);
             newItems.splice(newIndex, 0, movedItem);
 
-            return { items: newItems };
+            // Return both the updated items and maintain other state
+            return {
+                ...state,
+                items: newItems,
+            };
         }),
 }));
