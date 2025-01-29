@@ -1,3 +1,4 @@
+// routes/study-library/$class/$subject/$module/$chapter/index.tsx
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChapterMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/add-chapters/chapter-material";
@@ -18,10 +19,7 @@ function Chapters() {
     const params = Route.useParams();
     const { subject, module: moduleParam, chapter: chapterParam } = Route.useParams();
     const [inputSearch, setInputSearch] = useState("");
-
     const { open, state, toggleSidebar } = useSidebar();
-
-    //Sidebar component
     const navigate = useNavigate();
 
     const handleSubjectRoute = () => {
@@ -35,6 +33,7 @@ function Chapters() {
             hash: "",
         });
     };
+
     const handleModuleRoute = () => {
         navigate({
             to: "..",
