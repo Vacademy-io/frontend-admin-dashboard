@@ -3,7 +3,8 @@ import { EmptySubjectMaterial } from "@/assets/svgs";
 import { Subject, SubjectCard } from "./subject-card";
 import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { closestCorners } from "@dnd-kit/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 interface SubjectsProps {
     subjects: Subject[];
@@ -13,6 +14,7 @@ interface SubjectsProps {
     onOrderChange?: (
         updatedOrder: { subject_id: string; package_session_id: string; subject_order: number }[],
     ) => void;
+    isLoading?: boolean;
 }
 
 export const Subjects = ({
@@ -21,6 +23,7 @@ export const Subjects = ({
     onEditSubject,
     classNumber,
     onOrderChange,
+    isLoading = false,
 }: SubjectsProps) => {
     const [subjects, setSubjects] = useState(initialSubjects);
 
@@ -39,6 +42,14 @@ export const Subjects = ({
 
         onOrderChange?.(orderPayload);
     };
+
+    useEffect(() => {
+        setSubjects(initialSubjects);
+    }, [initialSubjects]);
+
+    if (isLoading) {
+        return <DashboardLoader />;
+    }
 
     return (
         <div className="h-full w-full">

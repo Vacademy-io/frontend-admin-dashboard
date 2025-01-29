@@ -26,6 +26,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
     const apiSubjects = useSessionSubjects(currentSession, classNumber);
     const [searchInput, setSearchInput] = useState("");
     const queryClient = useQueryClient();
+    const [isSubjectsLoading, setIsSubjectsLoading] = useState(false);
 
     const handleSessionChange = (value: string) => {
         setCurrentSession(value);
@@ -47,6 +48,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
 
     const handleAddSubject = async (newSubject: Subject) => {
         try {
+            setIsSubjectsLoading(true);
             const packageSessionIds = getPackageSessionIds(classNumber, currentSession);
             if (packageSessionIds.length === 0) {
                 console.error("No package session IDs found");
@@ -75,11 +77,14 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
             }
         } catch (error) {
             console.error("Failed to add subject:", error);
+        } finally {
+            setIsSubjectsLoading(false);
         }
     };
 
     const handleDeleteSubject = async (subjectId: string) => {
         try {
+            setIsSubjectsLoading(true);
             const response = await authenticatedAxiosInstance.delete(
                 `${DELETE_SUBJECT}?subjectId=${subjectId}`,
             );
@@ -92,11 +97,14 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
         } catch (error) {
             console.error("Failed to delete subject:", error);
             // Handle error (show error message to user)
+        } finally {
+            setIsSubjectsLoading(false);
         }
     };
 
     const handleEditSubject = async (subjectId: string, updatedSubject: Subject) => {
         try {
+            setIsSubjectsLoading(true);
             const payload = {
                 id: subjectId,
                 subject_name: updatedSubject.name,
@@ -120,6 +128,8 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
         } catch (error) {
             console.error("Failed to update subject:", error);
             // Handle error (show error message to user)
+        } finally {
+            setIsSubjectsLoading(false);
         }
     };
 
@@ -176,6 +186,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
                 onDeleteSubject={handleDeleteSubject}
                 onEditSubject={handleEditSubject}
                 classNumber={classNumber}
+                isLoading={isSubjectsLoading}
             />
         </div>
     );

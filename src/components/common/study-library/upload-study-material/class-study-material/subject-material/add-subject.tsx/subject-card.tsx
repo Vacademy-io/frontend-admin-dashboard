@@ -75,23 +75,22 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
 
     return (
         <div className="relative">
-            <div className="drag-handle-container absolute right-4 top-4 z-10">
-                <SortableDragHandle
-                    variant="ghost"
-                    size="icon"
-                    className="cursor-grab hover:bg-neutral-100"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <DotsSixVertical className="size-6" />
-                </SortableDragHandle>
-            </div>
-
             <div
                 onClick={handleCardClick}
                 className={`relative flex ${
                     open ? "size-[260px]" : "size-[300px]"
                 } cursor-pointer flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md`}
             >
+                <div className="drag-handle-container absolute right-4 top-4 z-10">
+                    <SortableDragHandle
+                        variant="ghost"
+                        size="icon"
+                        className="cursor-grab hover:bg-neutral-100"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <DotsSixVertical className="size-6" />
+                    </SortableDragHandle>
+                </div>
                 {imageUrl ? (
                     <img
                         src={imageUrl}
