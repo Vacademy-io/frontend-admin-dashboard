@@ -65,6 +65,7 @@ export const Subjects = ({
                     value={subjects}
                     onValueChange={handleValueChange}
                     overlay={<div className="bg-primary/10 size-full rounded-md" />}
+                    fast={false}
                 >
                     <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
                         {subjects.map((subject) => (

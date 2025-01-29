@@ -66,6 +66,7 @@ export const Modules = ({
                 value={modules}
                 onValueChange={handleValueChange}
                 overlay={<div className="bg-primary/10 size-full rounded-md" />}
+                fast={false}
             >
                 <div className="grid grid-cols-3 gap-10">
                     {modules.map((module, index) => (

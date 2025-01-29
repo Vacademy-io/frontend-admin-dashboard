@@ -4,6 +4,7 @@ import { DotsSixVertical, FileDoc, FilePdf, Video } from "@phosphor-icons/react"
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChapterMenuOptions } from "./chapter-menu-options/chapter-menu-options";
+import { SortableDragHandle } from "@/components/ui/sortable";
 
 interface ChapterCardProps {
     chapter: ChapterType;
@@ -20,6 +21,7 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
         if (
             (e.target as HTMLElement).closest(".menu-options-container") ||
             (e.target as HTMLElement).closest('[role="menu"]') ||
+            (e.target as HTMLElement).closest(".drag-handle-container") ||
             (e.target as HTMLElement).closest('[role="dialog"]')
         ) {
             return;
@@ -38,7 +40,13 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
                     <div>{chapter.name}</div>
                     <div className="flex items-center gap-6">
                         <ChapterMenuOptions onDelete={onDelete} />
-                        <DotsSixVertical />
+                        <SortableDragHandle
+                            variant="ghost"
+                            size="icon"
+                            className="cursor-grab hover:bg-neutral-100 active:cursor-grabbing"
+                        >
+                            <DotsSixVertical className="size-4" />
+                        </SortableDragHandle>
                     </div>
                 </div>
                 <div className="flex gap-4 text-title font-semibold">

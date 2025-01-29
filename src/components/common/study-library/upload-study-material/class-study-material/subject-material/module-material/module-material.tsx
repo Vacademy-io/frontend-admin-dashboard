@@ -8,6 +8,7 @@ import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { Chapters, ChapterType } from "./chapter-material/chapters";
 import { AddChapterButton } from "./chapter-material/add-chapters/add-chapter-button";
+import { useForm } from "react-hook-form";
 
 interface ModuleMaterialProps {
     classNumber: string | undefined;
@@ -15,9 +16,21 @@ interface ModuleMaterialProps {
     module: ModuleType;
 }
 
+export interface FormValues {
+    chapters: ChapterType[];
+}
+
 export const ModuleMaterial = ({ classNumber, subject, module }: ModuleMaterialProps) => {
     const router = useRouter();
     const { setNavHeading } = useNavHeadingStore();
+    // const [isChapterLoading, setIsChapterLoading] = useState(false);
+    const isChapterLoading = false;
+
+    const form = useForm<FormValues>({
+        defaultValues: {
+            chapters: [] as ChapterType[],
+        },
+    });
 
     const formattedClass = formatClassName(classNumber);
 
@@ -40,19 +53,19 @@ export const ModuleMaterial = ({ classNumber, subject, module }: ModuleMaterialP
     }, []);
 
     const [chapters, setChapters] = useState<ChapterType[]>([]);
+    console.log(chapters);
 
     const handleAddChapter = (chapter: ChapterType) => {
         const newChapter = {
             ...chapter,
-            description: "Click to view and access eBooks and video lectures for this chapter.", // Add default description
+            description: "Click to view and access eBooks and video lectures for this chapter.",
             resourceCount: {
                 ebooks: 0,
                 videos: 0,
             },
         };
-        setChapters((prev) => [...prev, newChapter]);
+        form.setValue("chapters", [...form.getValues("chapters"), newChapter]);
     };
-
     const handleDeleteChapter = (index: number) => {
         setChapters((prev) => prev.filter((_, i) => i !== index));
     };
@@ -75,9 +88,11 @@ export const ModuleMaterial = ({ classNumber, subject, module }: ModuleMaterialP
             <SessionDropdown className="text-title font-semibold" />
             {/* Add your module content here */}
             <Chapters
-                chapters={chapters}
+                form={form}
+                chapters={form.watch("chapters")}
                 onDeleteChapter={handleDeleteChapter}
                 onEditChapter={handleEditChapter}
+                isLoading={isChapterLoading}
             />
         </div>
     );

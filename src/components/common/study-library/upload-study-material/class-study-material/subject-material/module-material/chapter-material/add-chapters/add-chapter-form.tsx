@@ -45,6 +45,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export interface ChapterType {
+    id: string;
     name: string;
     description: string;
     // studyLibraryVersion: string;
@@ -83,6 +84,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
 
     const onSubmit = (data: FormValues) => {
         const newChapter = {
+            id: crypto.randomUUID(),
             name: data.chapterName,
             // studyLibraryVersion: data.studyLibraryVersion,
             visibility: data.visibility,
