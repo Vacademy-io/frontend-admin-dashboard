@@ -1,20 +1,45 @@
 // subjects.tsx
 import { EmptySubjectMaterial } from "@/assets/svgs";
 import { Subject, SubjectCard } from "./subject-card";
+import { Sortable, SortableItem } from "@/components/ui/sortable";
+import { closestCorners } from "@dnd-kit/core";
+import { useState } from "react";
 
 interface SubjectsProps {
     subjects: Subject[];
     onDeleteSubject: (subjectId: string) => void;
     onEditSubject: (subjectId: string, updatedSubject: Subject) => void;
     classNumber: string;
+    onOrderChange?: (
+        updatedOrder: { subject_id: string; package_session_id: string; subject_order: number }[],
+    ) => void;
 }
 
 export const Subjects = ({
-    subjects,
+    subjects: initialSubjects,
     onDeleteSubject,
     onEditSubject,
     classNumber,
+    onOrderChange,
 }: SubjectsProps) => {
+    const [subjects, setSubjects] = useState(initialSubjects);
+
+    const handleValueChange = (updatedSubjects: Subject[]) => {
+        setSubjects(updatedSubjects);
+
+        // Create the order payload
+        const orderPayload = updatedSubjects.map((subject, index) => ({
+            subject_id: subject.id,
+            subject_name: subject.name,
+            package_session_id: "", // This needs to be filled with actual package session id
+            subject_order: index,
+        }));
+
+        console.log("Updated order: ", orderPayload);
+
+        onOrderChange?.(orderPayload);
+    };
+
     return (
         <div className="h-full w-full">
             {!subjects.length ? (
@@ -23,17 +48,30 @@ export const Subjects = ({
                     <div>No subjects have been added yet.</div>
                 </div>
             ) : (
-                <div className="grid grid-cols-4 gap-10">
-                    {subjects.map((subject) => (
-                        <SubjectCard
-                            key={subject.id}
-                            subject={subject}
-                            onDelete={() => onDeleteSubject(subject.id)}
-                            onEdit={(updatedSubject) => onEditSubject(subject.id, updatedSubject)}
-                            classNumber={classNumber}
-                        />
-                    ))}
-                </div>
+                <Sortable
+                    orientation="mixed"
+                    collisionDetection={closestCorners}
+                    value={subjects}
+                    onValueChange={handleValueChange}
+                    overlay={<div className="bg-primary/10 size-full rounded-md" />}
+                >
+                    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
+                        {subjects.map((subject) => (
+                            <SortableItem key={subject.id} value={subject.id} asChild>
+                                <div className="cursor-grab active:cursor-grabbing">
+                                    <SubjectCard
+                                        subject={subject}
+                                        onDelete={() => onDeleteSubject(subject.id)}
+                                        onEdit={(updatedSubject) =>
+                                            onEditSubject(subject.id, updatedSubject)
+                                        }
+                                        classNumber={classNumber}
+                                    />
+                                </div>
+                            </SortableItem>
+                        ))}
+                    </div>
+                </Sortable>
             )}
         </div>
     );

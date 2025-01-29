@@ -8,6 +8,7 @@ import { MenuOptions } from "./subject-menu-options";
 import { SubjectDefaultImage } from "@/assets/svgs";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useSidebar } from "@/components/ui/sidebar";
+import { SortableDragHandle } from "@/components/ui/sortable";
 
 export interface Subject {
     id: string;
@@ -49,10 +50,13 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
     }, [subject.imageId]);
 
     const handleCardClick = (e: React.MouseEvent) => {
+        // Check if the click is on or within the menu options or drag handle
         if (
-            (e.target as HTMLElement).closest(".menu-options-container") ||
-            (e.target as HTMLElement).closest('[role="menu"]') ||
-            (e.target as HTMLElement).closest('[role="dialog"]')
+            e.target instanceof Element &&
+            (e.target.closest(".menu-options-container") ||
+                e.target.closest(".drag-handle-container") ||
+                e.target.closest('[role="menu"]') ||
+                e.target.closest('[role="dialog"]'))
         ) {
             return;
         }
@@ -65,14 +69,29 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
         });
     };
 
+    const handleMenuOptionClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    };
+
     return (
-        <div onClick={handleCardClick} className="cursor-pointer">
+        <div className="relative">
+            <div className="drag-handle-container absolute right-4 top-4 z-10">
+                <SortableDragHandle
+                    variant="ghost"
+                    size="icon"
+                    className="cursor-grab hover:bg-neutral-100"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <DotsSixVertical className="size-6" />
+                </SortableDragHandle>
+            </div>
+
             <div
+                onClick={handleCardClick}
                 className={`relative flex ${
                     open ? "size-[260px]" : "size-[300px]"
-                } flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md`}
+                } cursor-pointer flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md`}
             >
-                <DotsSixVertical className="absolute right-4 top-4 size-6 cursor-pointer" />
                 {imageUrl ? (
                     <img
                         src={imageUrl}
@@ -88,7 +107,9 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
                 )}
                 <div className="flex items-center justify-between gap-5">
                     <div className="text-h2 font-semibold">{subject.name}</div>
-                    <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
+                    <div onClick={handleMenuOptionClick} className="menu-options-container">
+                        <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
+                    </div>
                 </div>
             </div>
 
