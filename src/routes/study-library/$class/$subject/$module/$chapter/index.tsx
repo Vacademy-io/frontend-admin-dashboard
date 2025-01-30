@@ -11,12 +11,22 @@ import { ChapterSidebarAddButton } from "@/components/common/study-library/uploa
 import { truncateString } from "@/lib/reusable/truncateString";
 import { ChapterSidebarSlides } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
 
+interface ChapterSearchParams {
+    subjectId: string;
+}
+
 export const Route = createFileRoute("/study-library/$class/$subject/$module/$chapter/")({
     component: Chapters,
+    validateSearch: (search: Record<string, unknown>): ChapterSearchParams => {
+        return {
+            subjectId: search.subjectId as string,
+        };
+    },
 });
 
 function Chapters() {
     const params = Route.useParams();
+    const { subjectId } = Route.useSearch();
     const { subject, module: moduleParam, chapter: chapterParam } = Route.useParams();
     const [inputSearch, setInputSearch] = useState("");
     const { open, state, toggleSidebar } = useSidebar();
@@ -29,7 +39,7 @@ function Chapters() {
                 class: params.class,
                 subject: params.subject,
             },
-            search: {},
+            search: { subjectId },
             hash: "",
         });
     };

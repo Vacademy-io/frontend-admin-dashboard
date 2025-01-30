@@ -4,8 +4,6 @@ import { ModuleMaterial } from "@/components/common/study-library/upload-study-m
 import { useSidebar } from "@/components/ui/sidebar";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { truncateString } from "@/lib/reusable/truncateString";
-// import { SearchInput } from "@/components/common/search-input";
-// import { useState } from "react";
 
 export const Route = createFileRoute("/study-library/$class/$subject/$module/")({
     component: ModuleMaterialPage,
@@ -74,9 +72,11 @@ function ModuleMaterialPage() {
 
     const moduleData = {
         id: "123",
-        name: formattedModuleName,
+        module_name: formattedModuleName,
         description:
             "Explore and manage chapters for 10th Class Physics. Click on a chapter to view and access eBooks, video lectures, and study resources, or add new materials to enhance your learning experience.",
+        status: "",
+        thumbnail_id: "",
     };
 
     return (

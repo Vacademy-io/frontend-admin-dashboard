@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useState } from "react";
 import { AddModulesForm } from "./add-modules-form";
-import { ModuleType } from "./module-card";
+import { Module } from "@/types/study-library/modules-with-chapters";
 
 const triggerButton = (
     <MyButton buttonType="primary" scale="large" layoutVariant="default">
@@ -11,7 +11,7 @@ const triggerButton = (
 );
 
 interface AddModuleButtonProps {
-    onAddModule: (module: ModuleType) => void;
+    onAddModule: (module: Module) => void;
 }
 
 export const AddModulesButton = ({ onAddModule }: AddModuleButtonProps) => {

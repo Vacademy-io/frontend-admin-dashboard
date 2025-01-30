@@ -9,8 +9,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { SessionDropdown } from "./study-library-session-dropdown";
 import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
-import { getSessionNames } from "@/services/study-library/getStudyLibrarySessions";
-import { getSessionLevels } from "@/services/study-library/getSessionLevels";
+import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/getStudyLibrarySessions";
+import { getSessionLevels } from "@/utils/helpers/study-library-helpers.ts/getSessionLevels";
 
 interface ClassCardType {
     levelId: string;

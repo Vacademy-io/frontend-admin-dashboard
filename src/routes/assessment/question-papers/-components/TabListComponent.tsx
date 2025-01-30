@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PaginatedResponse } from "@/types/question-paper-template";
+import { PaginatedResponse } from "@/types/assessments/question-paper-template";
 
 export const TabListComponent = ({
     selectedTab,

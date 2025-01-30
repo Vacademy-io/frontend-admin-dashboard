@@ -6,21 +6,14 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { AddModulesForm } from "./add-modules-form";
 import { useSidebar } from "@/components/ui/sidebar";
 import { SortableDragHandle } from "@/components/ui/sortable";
+import { Module } from "@/types/study-library/modules-with-chapters";
 
 interface ModuleCardProps {
-    module: ModuleType;
+    module: Module;
     onDelete: () => void;
-    onEdit: (updatedModule: ModuleType) => void;
+    onEdit: (updatedModule: Module) => void;
     classNumber: string;
     subject: string;
-}
-
-// Update the ModuleType interface
-export interface ModuleType {
-    id: string;
-    name: string;
-    description: string;
-    imageUrl?: string;
 }
 
 // Update the ModuleCard component
@@ -39,7 +32,7 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
             return;
         }
 
-        const moduleRoute = module.name.toLowerCase().replace(/\s+/g, "-");
+        const moduleRoute = module.module_name.toLowerCase().replace(/\s+/g, "-");
         const formattedClassName = `${classNumber}th-class-study-library`;
         const formattedSubject = subject.toLowerCase().replace(/\s+/g, "-");
 
@@ -56,7 +49,7 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
                 } flex-col gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md`}
             >
                 <div className="flex items-center justify-between text-h2 font-semibold">
-                    <div>{module.name}</div>
+                    <div>{module.module_name}</div>
                     <div className="drag-handle-container">
                         <SortableDragHandle
                             variant="ghost"
@@ -69,10 +62,10 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
                     </div>
                 </div>
 
-                {module.imageUrl ? (
+                {module.thumbnail_id ? (
                     <img
-                        src={module.imageUrl}
-                        alt={module.name}
+                        src={module.thumbnail_id}
+                        alt={module.module_name}
                         className="h-[300px] w-full rounded-lg object-cover"
                     />
                 ) : (

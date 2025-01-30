@@ -1,0 +1,25 @@
+// services/study-library/getModulesWithChapters.ts
+import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { GET_MODULES_WITH_CHAPTERS } from "@/constants/urls";
+import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
+
+export const fetchModulesWithChapters = async (subjectId: string) => {
+    const response = await authenticatedAxiosInstance.get(
+        `${GET_MODULES_WITH_CHAPTERS}/${subjectId}`,
+    );
+    return response.data;
+};
+
+export const useModulesWithChaptersQuery = (subjectId: string) => {
+    const setModulesData = useModulesWithChaptersStore((state) => state.setModulesWithChaptersData);
+
+    return {
+        queryKey: ["GET_MODULES_WITH_CHAPTERS", subjectId],
+        queryFn: async () => {
+            const data = await fetchModulesWithChapters(subjectId);
+            setModulesData(data);
+            return data;
+        },
+        staleTime: 3600000,
+    };
+};

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
-import { ModuleType } from "./add-modules.tsx/module-card";
+import { Module } from "@/types/study-library/modules-with-chapters";
 import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { Chapters, ChapterType } from "./chapter-material/chapters";
@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 interface ModuleMaterialProps {
     classNumber: string | undefined;
     subject: string;
-    module: ModuleType;
+    module: Module;
 }
 
 export interface FormValues {
@@ -79,7 +79,7 @@ export const ModuleMaterial = ({ classNumber, subject, module }: ModuleMaterialP
             <div className="flex items-center justify-between gap-80">
                 <div className="flex items-center justify-between gap-80">
                     <div className="flex w-full flex-col gap-2">
-                        <div className="text-h3 font-semibold">{module.name}</div>
+                        <div className="text-h3 font-semibold">{module.module_name}</div>
                         <div className="text-subtitle">{module.description} </div>
                     </div>
                     <AddChapterButton onAddChapter={handleAddChapter} />

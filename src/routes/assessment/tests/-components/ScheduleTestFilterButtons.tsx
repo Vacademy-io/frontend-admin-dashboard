@@ -1,5 +1,5 @@
 import { MyButton } from "@/components/design-system/button";
-import { MyFilterOption } from "@/types/my-filter";
+import { MyFilterOption } from "@/types/assessments/my-filter";
 
 interface ScheduleTestFilterButtonsProps {
     selectedQuestionPaperFilters: Record<string, MyFilterOption[]>;

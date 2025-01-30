@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { LanguageDropdown } from "../../localization/language-dropdown";
-import { SplashScreenProps } from "../../../../types/loginTypes";
+import { SplashScreenProps } from "../../../../types/login/loginTypes";
 import { LoginImage } from "@/assets/svgs";
 import LOGO from "@/assets/svgs/Background.svg";
 

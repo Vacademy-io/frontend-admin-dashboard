@@ -1,15 +1,16 @@
 // modules.tsx
 import { EmptyModulesImage } from "@/assets/svgs";
-import { ModuleCard, ModuleType } from "./module-card";
+import { ModuleCard } from "./module-card";
 import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { closestCorners } from "@dnd-kit/core";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Module, ModulesWithChapters } from "@/types/study-library/modules-with-chapters";
 
 interface ModulesProps {
-    modules: ModuleType[];
+    modules: ModulesWithChapters[] | null;
     onDeleteModule: (index: number) => void;
-    onEditModule: (index: number, updatedModule: ModuleType) => void;
+    onEditModule: (index: number, updatedModule: Module) => void;
     classNumber: string;
     subject: string;
     onOrderChange?: (
@@ -27,34 +28,27 @@ export const Modules = ({
     subject,
     isLoading = false,
 }: ModulesProps) => {
-    const [modules, setModules] = useState(initialModules);
+    const [modules, setModules] = useState<ModulesWithChapters[] | null>(initialModules);
 
-    const handleValueChange = (updatedModules: ModuleType[]) => {
+    const handleValueChange = (updatedModules: ModulesWithChapters[]) => {
         setModules(updatedModules);
 
         // Create the order payload
-        const orderPayload = updatedModules.map((module, index) => ({
-            module_id: module.id,
-            module_name: module.name,
-            subject_id: "", // This needs to be filled with actual package session id
+        const orderPayload = updatedModules.map((moduleWithChapters, index) => ({
+            module_id: moduleWithChapters.module.id,
+            module_name: moduleWithChapters.module.module_name,
+            subject_id: "",
             module_order: index,
         }));
-
-        console.log("Updated order: ", orderPayload);
 
         onOrderChange?.(orderPayload);
     };
 
-    useEffect(() => {
-        setModules(initialModules);
-    }, [initialModules]);
+    if (isLoading) return <DashboardLoader />;
 
-    if (isLoading) {
-        return <DashboardLoader />;
-    }
     return (
         <div className="h-full w-full">
-            {!modules.length && (
+            {(!modules || !modules.length) && (
                 <div className="flex w-full flex-col items-center justify-center gap-8 rounded-lg py-10">
                     <EmptyModulesImage />
                     <div>No Modules have been added yet.</div>
@@ -63,18 +57,30 @@ export const Modules = ({
             <Sortable
                 orientation="mixed"
                 collisionDetection={closestCorners}
-                value={modules}
-                onValueChange={handleValueChange}
+                value={modules?.map((m) => m.module) || []} // Pass only the modules for sorting
+                onValueChange={(sortedModules) => {
+                    // Reconstruct the ModulesWithChapters array with sorted modules
+                    if (modules) {
+                        const newOrder = sortedModules.map(
+                            (sortedModule) => modules.find((m) => m.module.id === sortedModule.id)!,
+                        );
+                        handleValueChange(newOrder);
+                    }
+                }}
                 overlay={<div className="bg-primary/10 size-full rounded-md" />}
                 fast={false}
             >
                 <div className="grid grid-cols-3 gap-10">
-                    {modules.map((module, index) => (
-                        <SortableItem key={module.id} value={module.id} asChild>
+                    {modules?.map((moduleWithChapters, index) => (
+                        <SortableItem
+                            key={moduleWithChapters.module.id}
+                            value={moduleWithChapters.module.id}
+                            asChild
+                        >
                             <div className="cursor-grab active:cursor-grabbing">
                                 <ModuleCard
                                     key={index}
-                                    module={module}
+                                    module={moduleWithChapters.module}
                                     onDelete={() => onDeleteModule(index)}
                                     onEdit={(updatedModule) => onEditModule(index, updatedModule)}
                                     classNumber={classNumber}

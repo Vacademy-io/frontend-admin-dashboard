@@ -11,7 +11,10 @@ import ViewQuestionPaper from "./ViewQuestionPaper";
 import { useMutation } from "@tanstack/react-query";
 import { getQuestionPaperById, markQuestionPaperStatus } from "../-utils/question-paper-services";
 import { INSTITUTE_ID } from "@/constants/urls";
-import { PaginatedResponse, QuestionPaperInterface } from "@/types/question-paper-template";
+import {
+    PaginatedResponse,
+    QuestionPaperInterface,
+} from "@/types/assessments/question-paper-template";
 import {
     getLevelNameById,
     getSubjectNameById,
@@ -20,7 +23,7 @@ import {
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
-import { MyQuestion } from "@/types/question-paper-form";
+import { MyQuestion } from "@/types/assessments/question-paper-form";
 import { z } from "zod";
 import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 import { UseFormReturn } from "react-hook-form";

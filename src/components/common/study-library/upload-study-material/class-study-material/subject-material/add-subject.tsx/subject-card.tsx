@@ -50,7 +50,6 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
     }, [subject.imageId]);
 
     const handleCardClick = (e: React.MouseEvent) => {
-        // Check if the click is on or within the menu options or drag handle
         if (
             e.target instanceof Element &&
             (e.target.closest(".menu-options-container") ||
@@ -66,6 +65,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
 
         router.navigate({
             to: `/study-library/${formattedClassName}/${subjectRoute}`,
+            search: { subjectId: subject.id }, // Add subject ID to the URL search params
         });
     };
 

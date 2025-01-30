@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
-import { ModuleType } from "./module-card";
+import { Module } from "@/types/study-library/modules-with-chapters";
 import { useRef, useState } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { INSTITUTE_ID } from "@/constants/urls";
@@ -23,20 +23,20 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface AddModulesFormProps {
-    initialValues?: ModuleType;
-    onSubmitSuccess: (module: ModuleType) => void;
+    initialValues?: Module;
+    onSubmitSuccess: (module: Module) => void;
 }
 
 export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFormProps) => {
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [imageUrl, setImageUrl] = useState<string | undefined>(initialValues?.imageUrl);
+    const [imageUrl, setImageUrl] = useState<string | undefined>(initialValues?.thumbnail_id);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            moduleName: initialValues?.name || "",
+            moduleName: initialValues?.module_name || "",
             description: initialValues?.description || "",
             imageFile: null,
         },
@@ -67,9 +67,10 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
     const onSubmit = (data: FormValues) => {
         const newModule = {
             id: crypto.randomUUID(),
-            name: data.moduleName,
+            module_name: data.moduleName,
             description: data.description || "",
-            imageUrl: imageUrl,
+            status: "",
+            thumbnail_id: imageUrl || "",
         };
         onSubmitSuccess(newModule);
     };

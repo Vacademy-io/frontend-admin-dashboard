@@ -15,7 +15,10 @@ import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
 import { useQuestionStore } from "../-global-states/question-index";
 import { addQuestionPaper, getQuestionPaperById } from "../-utils/question-paper-services";
-import { MyQuestion, MyQuestionPaperFormInterface } from "../../../../types/question-paper-form";
+import {
+    MyQuestion,
+    MyQuestionPaperFormInterface,
+} from "../../../../types/assessments/question-paper-form";
 import {
     getIdByLevelName,
     getIdBySubjectName,

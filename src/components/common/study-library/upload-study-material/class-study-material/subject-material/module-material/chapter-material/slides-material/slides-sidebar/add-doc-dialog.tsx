@@ -8,7 +8,7 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { FileType } from "@/types/file-upload";
+import { FileType } from "@/types/common/file-upload";
 import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
 import { convertDocToHtml } from "./utils/doc-to-html";
 
