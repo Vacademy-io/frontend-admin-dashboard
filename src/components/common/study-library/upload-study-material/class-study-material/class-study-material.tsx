@@ -20,7 +20,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 interface ClassStudyMaterialProps {
     classNumber: string;
 }
-// class-study-material.tsx
+
 export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => {
     const sessionList = getSessionNames();
     const [currentSession, setCurrentSession] = useState(sessionList[0] || "");

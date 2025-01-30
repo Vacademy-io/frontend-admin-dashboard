@@ -21,8 +21,6 @@ interface SubjectModulesProps {
 
 export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModulesProps) => {
     const router = useRouter();
-    const isModuleLoading = false;
-    // const { modulesWithChaptersData, setModulesWithChaptersData } = useModulesWithChaptersStore();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
 
     const addModuleMutation = useAddModule();
@@ -64,6 +62,11 @@ export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModu
 
     const { setNavHeading } = useNavHeadingStore();
 
+    const isLoading =
+        addModuleMutation.isPending ||
+        deleteModuleMutation.isPending ||
+        updateModuleMutation.isPending;
+
     useEffect(() => {
         setNavHeading(heading);
     }, []);
@@ -95,7 +98,7 @@ export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModu
                 onEditModule={handleEditModule}
                 classNumber={classNumber || ""}
                 subject={subject}
-                isLoading={isModuleLoading}
+                isLoading={isLoading}
             />
         </div>
     );

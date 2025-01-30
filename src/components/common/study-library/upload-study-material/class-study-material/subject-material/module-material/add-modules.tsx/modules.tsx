@@ -4,7 +4,7 @@ import { ModuleCard } from "./module-card";
 import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { closestCorners } from "@dnd-kit/core";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Module, ModulesWithChapters } from "@/types/study-library/modules-with-chapters";
 
 interface ModulesProps {
@@ -43,6 +43,10 @@ export const Modules = ({
 
         onOrderChange?.(orderPayload);
     };
+
+    useEffect(() => {
+        setModules(initialModules);
+    }, [initialModules]);
 
     if (isLoading) return <DashboardLoader />;
 
