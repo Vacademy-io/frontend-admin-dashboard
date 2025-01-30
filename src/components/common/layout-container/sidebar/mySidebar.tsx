@@ -20,7 +20,6 @@ import { useInstituteQuery } from "@/services/student-list-section/getInstituteD
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
     useSuspenseQuery(useInstituteQuery());
-    // useSuspenseQuery(useStudyLibraryQuery());
 
     return (
         <Sidebar collapsible="icon">

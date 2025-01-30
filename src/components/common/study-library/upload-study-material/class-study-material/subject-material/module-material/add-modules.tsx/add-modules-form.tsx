@@ -31,7 +31,8 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [imageUrl, setImageUrl] = useState<string | undefined>(initialValues?.thumbnail_id);
+    const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+    const [imageId, setImageId] = useState<string | null>(initialValues?.thumbnail_id || null);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -54,6 +55,7 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
             });
 
             if (fileId) {
+                setImageId(fileId);
                 const publicUrl = await getPublicUrl(fileId);
                 setImageUrl(publicUrl);
             }
@@ -70,7 +72,7 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
             module_name: data.moduleName,
             description: data.description || "",
             status: "",
-            thumbnail_id: imageUrl || "",
+            thumbnail_id: imageId || "",
         };
         onSubmitSuccess(newModule);
     };

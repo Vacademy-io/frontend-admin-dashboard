@@ -1,12 +1,13 @@
 import { useRouter } from "@tanstack/react-router";
 import { DotsSixVertical } from "phosphor-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MenuOptions } from "./module-menu-options";
 import { MyDialog } from "@/components/design-system/dialog";
 import { AddModulesForm } from "./add-modules-form";
 import { useSidebar } from "@/components/ui/sidebar";
 import { SortableDragHandle } from "@/components/ui/sortable";
 import { Module } from "@/types/study-library/modules-with-chapters";
+import { getPublicUrl } from "@/services/upload_file";
 
 interface ModuleCardProps {
     module: Module;
@@ -21,6 +22,7 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const router = useRouter();
     const { open } = useSidebar();
+    const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
 
     const handleCardClick = (e: React.MouseEvent) => {
         if (
@@ -40,6 +42,21 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
             to: `/study-library/${formattedClassName}/${formattedSubject}/${moduleRoute}`,
         });
     };
+
+    useEffect(() => {
+        const fetchImageUrl = async () => {
+            if (module.thumbnail_id) {
+                try {
+                    const url = await getPublicUrl(module.thumbnail_id);
+                    setImageUrl(url);
+                } catch (error) {
+                    console.error("Failed to fetch image URL:", error);
+                }
+            }
+        };
+
+        fetchImageUrl();
+    }, [module.thumbnail_id]);
 
     return (
         <div onClick={handleCardClick} className="cursor-pointer">
@@ -62,9 +79,9 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
                     </div>
                 </div>
 
-                {module.thumbnail_id ? (
+                {imageUrl ? (
                     <img
-                        src={module.thumbnail_id}
+                        src={imageUrl}
                         alt={module.module_name}
                         className="h-[300px] w-full rounded-lg object-cover"
                     />

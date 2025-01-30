@@ -34,21 +34,6 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
     const router = useRouter();
     const { open } = useSidebar();
 
-    useEffect(() => {
-        const fetchImageUrl = async () => {
-            if (subject.imageId) {
-                try {
-                    const url = await getPublicUrl(subject.imageId);
-                    setImageUrl(url);
-                } catch (error) {
-                    console.error("Failed to fetch image URL:", error);
-                }
-            }
-        };
-
-        fetchImageUrl();
-    }, [subject.imageId]);
-
     const handleCardClick = (e: React.MouseEvent) => {
         if (
             e.target instanceof Element &&
@@ -72,6 +57,20 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
     const handleMenuOptionClick = (e: React.MouseEvent) => {
         e.stopPropagation();
     };
+    useEffect(() => {
+        const fetchImageUrl = async () => {
+            if (subject.imageId) {
+                try {
+                    const url = await getPublicUrl(subject.imageId);
+                    setImageUrl(url);
+                } catch (error) {
+                    console.error("Failed to fetch image URL:", error);
+                }
+            }
+        };
+
+        fetchImageUrl();
+    }, [subject.imageId]);
 
     return (
         <div className="relative">
