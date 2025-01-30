@@ -11,10 +11,11 @@ import { SearchInput } from "@/components/common/students/students-list/student-
 import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
 import { useSessionSubjects } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getSessionSubjects";
 import { getPackageSessionIds } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getLevelPackageSessionIds";
-import { ADD_SUBJECT, DELETE_SUBJECT, UPDATE_SUBJECT } from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { useQueryClient } from "@tanstack/react-query";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
+import { useAddSubject } from "@/services/study-library/subject-operations/addSubject";
+import { useUpdateSubject } from "@/services/study-library/subject-operations/updateSubject";
+import { useDeleteSubject } from "@/services/study-library/subject-operations/deleteSubject";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 interface ClassStudyMaterialProps {
     classNumber: string;
@@ -25,113 +26,10 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
     const [currentSession, setCurrentSession] = useState(sessionList[0] || "");
     const apiSubjects = useSessionSubjects(currentSession, classNumber);
     const [searchInput, setSearchInput] = useState("");
-    const queryClient = useQueryClient();
-    const [isSubjectsLoading, setIsSubjectsLoading] = useState(false);
 
-    const handleSessionChange = (value: string) => {
-        setCurrentSession(value);
-    };
-
-    const mappedSubjects = apiSubjects.map((subject) => ({
-        id: subject.id,
-        subject_name: subject.subject_name,
-        subject_code: subject.subject_code,
-        credit: subject.credit,
-        thumbnail_id: subject.thumbnail_id,
-        created_at: subject.created_at,
-        updated_at: subject.updated_at,
-    }));
-
-    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchInput(e.target.value);
-    };
-
-    const handleAddSubject = async (newSubject: SubjectType) => {
-        try {
-            setIsSubjectsLoading(true);
-            const packageSessionIds = getPackageSessionIds(classNumber, currentSession);
-            if (packageSessionIds.length === 0) {
-                console.error("No package session IDs found");
-                return;
-            }
-
-            const payload = {
-                id: newSubject.id,
-                subject_name: newSubject.subject_name,
-                subject_code: newSubject.subject_code,
-                credit: newSubject.credit,
-                thumbnail_id: newSubject.thumbnail_id,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            };
-
-            const response = await authenticatedAxiosInstance.post(
-                `${ADD_SUBJECT}?commaSeparatedPackageSessionIds=${packageSessionIds}`,
-                payload,
-            );
-
-            if (response.status === 200) {
-                await queryClient.invalidateQueries({
-                    queryKey: ["GET_INIT_STUDY_LIBRARY"],
-                });
-            }
-        } catch (error) {
-            console.error("Failed to add subject:", error);
-        } finally {
-            setIsSubjectsLoading(false);
-        }
-    };
-
-    const handleDeleteSubject = async (subjectId: string) => {
-        try {
-            setIsSubjectsLoading(true);
-            const response = await authenticatedAxiosInstance.delete(
-                `${DELETE_SUBJECT}?subjectId=${subjectId}`,
-            );
-
-            if (response.status === 200) {
-                await queryClient.invalidateQueries({
-                    queryKey: ["GET_INIT_STUDY_LIBRARY"],
-                });
-            }
-        } catch (error) {
-            console.error("Failed to delete subject:", error);
-            // Handle error (show error message to user)
-        } finally {
-            setIsSubjectsLoading(false);
-        }
-    };
-
-    const handleEditSubject = async (subjectId: string, updatedSubject: SubjectType) => {
-        try {
-            setIsSubjectsLoading(true);
-            const payload = {
-                id: subjectId,
-                subject_name: updatedSubject.subject_name,
-                subject_code: updatedSubject.subject_code,
-                credit: updatedSubject.credit,
-                thumbnail_id: updatedSubject.thumbnail_id,
-                created_at: updatedSubject.created_at,
-                updated_at: new Date().toISOString(),
-            };
-
-            const response = await authenticatedAxiosInstance.put(
-                `${UPDATE_SUBJECT}?subjectId=${subjectId}`,
-                payload,
-            );
-
-            if (response.status === 200) {
-                await queryClient.invalidateQueries({
-                    queryKey: ["GET_INIT_STUDY_LIBRARY"],
-                });
-            }
-        } catch (error) {
-            console.error("Failed to update subject:", error);
-            // Handle error (show error message to user)
-        } finally {
-            setIsSubjectsLoading(false);
-        }
-    };
+    const addSubjectMutation = useAddSubject();
+    const updateSubjectMutation = useUpdateSubject();
+    const deleteSubjectMutation = useDeleteSubject();
 
     const router = useRouter();
 
@@ -153,6 +51,57 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
     useEffect(() => {
         setNavHeading(heading);
     }, [classNumber]);
+
+    const handleSessionChange = (value: string) => {
+        setCurrentSession(value);
+    };
+
+    const mappedSubjects = apiSubjects.map((subject) => ({
+        id: subject.id,
+        subject_name: subject.subject_name,
+        subject_code: subject.subject_code,
+        credit: subject.credit,
+        thumbnail_id: subject.thumbnail_id,
+        created_at: subject.created_at,
+        updated_at: subject.updated_at,
+    }));
+
+    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(e.target.value);
+    };
+
+    const handleAddSubject = async (newSubject: SubjectType) => {
+        const packageSessionIds = getPackageSessionIds(classNumber, currentSession);
+        if (packageSessionIds.length === 0) {
+            console.error("No package session IDs found");
+            return;
+        }
+
+        addSubjectMutation.mutate({
+            subject: newSubject,
+            packageSessionIds,
+        });
+    };
+
+    const handleDeleteSubject = (subjectId: string) => {
+        deleteSubjectMutation.mutate(subjectId);
+    };
+
+    const handleEditSubject = (subjectId: string, updatedSubject: SubjectType) => {
+        updateSubjectMutation.mutate({
+            subjectId,
+            updatedSubject: updatedSubject,
+        });
+    };
+
+    const isLoading =
+        addSubjectMutation.isPending ||
+        deleteSubjectMutation.isPending ||
+        updateSubjectMutation.isPending;
+
+    if (isLoading) {
+        return <DashboardLoader />;
+    }
 
     return (
         <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
@@ -186,7 +135,6 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
                 onDeleteSubject={handleDeleteSubject}
                 onEditSubject={handleEditSubject}
                 classNumber={classNumber}
-                isLoading={isSubjectsLoading}
             />
         </div>
     );
