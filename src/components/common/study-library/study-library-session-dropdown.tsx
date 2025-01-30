@@ -1,6 +1,6 @@
 // components/session-dropdown.tsx
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/getStudyLibrarySessions";
+import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
 
 interface SessionDropdownProps {
     sessionDirection?: string;
