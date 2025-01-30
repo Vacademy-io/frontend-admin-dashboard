@@ -9,8 +9,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { SessionDropdown } from "./study-library-session-dropdown";
 import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useStudyLibraryQuery } from "@/services/study-library/getStudyLibraryDetails";
 import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
 import { getSessionLevels } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getSessionLevels";
 
@@ -27,8 +25,6 @@ export const StudyLibrary = () => {
     const sessionList = getSessionNames();
     const [currentSession, setCurrentSession] = useState(sessionList[0] || "");
     const LevelList = getSessionLevels(currentSession);
-
-    useSuspenseQuery(useStudyLibraryQuery());
 
     const handleSessionChange = (value: string) => {
         setCurrentSession(value);

@@ -10,22 +10,17 @@ import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useModulesWithChaptersQuery } from "@/services/study-library/getModulesWithChapters";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-
 interface SubjectModulesProps {
     classNumber: string | undefined;
     subject: string;
     subjectId: string;
 }
 
-export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModulesProps) => {
+export const SubjectMaterial = ({ classNumber, subject }: SubjectModulesProps) => {
     // const [isModuleLoading, setIsModuleLoading] = useState(false);
     const isModuleLoading = false;
     // const { modulesWithChaptersData, setModulesWithChaptersData } = useModulesWithChaptersStore();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
-    const { isLoading } = useSuspenseQuery(useModulesWithChaptersQuery(subjectId));
     const router = useRouter();
     // const [isModuleLoading, setIsModuleLoading] = useState(false);
 
@@ -70,10 +65,6 @@ export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModu
     useEffect(() => {
         setNavHeading(heading);
     }, []);
-
-    if (isLoading) {
-        return <DashboardLoader />;
-    }
 
     return (
         <div className="flex h-full w-full flex-col gap-8 text-neutral-600">

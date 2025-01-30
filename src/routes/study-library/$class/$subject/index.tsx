@@ -3,6 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { parseClassFromRoute } from "@/lib/study-library/class-formatter";
 import { SubjectMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/subject-material";
+import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
+import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 
 interface SubjectSearchParams {
     subjectId: string;
@@ -26,11 +28,15 @@ function SubjectModulesPage() {
 
     return (
         <LayoutContainer>
-            <SubjectMaterial
-                classNumber={classNumber}
-                subject={subjectName}
-                subjectId={searchParams.subjectId}
-            />
+            <InitStudyLibraryProvider>
+                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
+                    <SubjectMaterial
+                        classNumber={classNumber}
+                        subject={subjectName}
+                        subjectId={searchParams.subjectId}
+                    />
+                </ModulesWithChaptersProvider>
+            </InitStudyLibraryProvider>
         </LayoutContainer>
     );
 }

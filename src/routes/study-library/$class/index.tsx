@@ -2,7 +2,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { ClassStudyMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/class-study-material";
-import { CallInitStudyLibraryIfNull } from "@/utils/helpers/study-library-helpers.ts/api-calls-if-store-null/callInitStudyLibraryIfNull";
+import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 
 export const Route = createFileRoute("/study-library/$class/")({
     component: ClassStudyMaterialPage,
@@ -12,11 +12,11 @@ function ClassStudyMaterialPage() {
     const { class: className } = Route.useParams();
     const classNumber = className.replace("-class-study-library", "");
 
-    CallInitStudyLibraryIfNull();
-
     return (
         <LayoutContainer>
-            <ClassStudyMaterial classNumber={classNumber} />
+            <InitStudyLibraryProvider>
+                <ClassStudyMaterial classNumber={classNumber} />
+            </InitStudyLibraryProvider>
         </LayoutContainer>
     );
 }
