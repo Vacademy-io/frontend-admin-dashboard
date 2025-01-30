@@ -7,8 +7,7 @@ export const useDeleteSubject = () => {
 
     return useMutation({
         mutationFn: (subjectId: string) => {
-            const payload = [subjectId];
-            return authenticatedAxiosInstance.put(`${DELETE_SUBJECT}`, payload);
+            return authenticatedAxiosInstance.delete(`${DELETE_SUBJECT}`, { data: [subjectId] });
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
