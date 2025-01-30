@@ -10,19 +10,24 @@ import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
+import { useAddModule } from "@/services/study-library/module-operations/add-module";
+import { useUpdateModule } from "@/services/study-library/module-operations/update-module";
+import { useDeleteModule } from "@/services/study-library/module-operations/delete-module";
 interface SubjectModulesProps {
     classNumber: string | undefined;
     subject: string;
     subjectId: string;
 }
 
-export const SubjectMaterial = ({ classNumber, subject }: SubjectModulesProps) => {
-    // const [isModuleLoading, setIsModuleLoading] = useState(false);
+export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModulesProps) => {
+    const router = useRouter();
     const isModuleLoading = false;
     // const { modulesWithChaptersData, setModulesWithChaptersData } = useModulesWithChaptersStore();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
-    const router = useRouter();
-    // const [isModuleLoading, setIsModuleLoading] = useState(false);
+
+    const addModuleMutation = useAddModule();
+    const updateModuleMutation = useUpdateModule();
+    const deleteModuleMutation = useDeleteModule();
 
     const [searchInput, setSearchInput] = useState("");
 
@@ -31,18 +36,15 @@ export const SubjectMaterial = ({ classNumber, subject }: SubjectModulesProps) =
     };
 
     const handleAddModule = (module: Module) => {
-        // setModulesWithChaptersData((prev) => [...prev, module]);
-        console.log("module to add: ", module);
+        addModuleMutation.mutate({ subjectId: subjectId, module: module });
     };
 
-    const handleDeleteModule = (index: number) => {
-        // setModulesWithChaptersData((prev) => prev.filter((_, i) => i !== index));
-        console.log("module to delete: ", index);
+    const handleDeleteModule = (module: Module) => {
+        deleteModuleMutation.mutate(module.id);
     };
 
-    const handleEditModule = (index: number, updatedModule: Module) => {
-        // setModulesWithChaptersData((prev) => prev.map((module, i) => (i === index ? updatedModule : module)));
-        console.log("module to update: ", index, updatedModule);
+    const handleEditModule = (updatedModule: Module) => {
+        updateModuleMutation.mutate({ moduleId: updatedModule.id, module: updatedModule });
     };
 
     const formattedClass = formatClassName(classNumber);

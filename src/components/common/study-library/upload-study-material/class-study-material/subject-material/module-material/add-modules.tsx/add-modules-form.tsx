@@ -68,7 +68,7 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
 
     const onSubmit = (data: FormValues) => {
         const newModule = {
-            id: crypto.randomUUID(),
+            id: initialValues?.id || "",
             module_name: data.moduleName,
             description: data.description || "",
             status: "",

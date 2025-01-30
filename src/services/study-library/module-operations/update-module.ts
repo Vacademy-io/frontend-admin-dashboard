@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { ADD_MODULE } from "@/constants/urls";
+import { UPDATE_MODULE } from "@/constants/urls";
 import { Module } from "@/types/study-library/modules-with-chapters";
 
-export const useAddModule = () => {
+export const useUpdateModule = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ subjectId, module }: { subjectId: string; module: Module }) => {
+        mutationFn: ({ moduleId, module }: { moduleId: string; module: Module }) => {
             const payload = {
                 id: module.id,
                 module_name: module.module_name,
@@ -15,8 +15,7 @@ export const useAddModule = () => {
                 description: module.description,
                 thumbnail_id: module.thumbnail_id,
             };
-
-            return authenticatedAxiosInstance.post(`${ADD_MODULE}?subjectId=${subjectId}`, payload);
+            return authenticatedAxiosInstance.put(`${UPDATE_MODULE}?moduleId=${moduleId}`, payload);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });

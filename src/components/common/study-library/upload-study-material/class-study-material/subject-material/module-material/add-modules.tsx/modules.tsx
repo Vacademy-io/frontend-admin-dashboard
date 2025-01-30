@@ -9,8 +9,8 @@ import { Module, ModulesWithChapters } from "@/types/study-library/modules-with-
 
 interface ModulesProps {
     modules: ModulesWithChapters[] | null;
-    onDeleteModule: (index: number) => void;
-    onEditModule: (index: number, updatedModule: Module) => void;
+    onDeleteModule: (module: Module) => void;
+    onEditModule: (updatedModule: Module) => void;
     classNumber: string;
     subject: string;
     onOrderChange?: (
@@ -81,8 +81,8 @@ export const Modules = ({
                                 <ModuleCard
                                     key={index}
                                     module={moduleWithChapters.module}
-                                    onDelete={() => onDeleteModule(index)}
-                                    onEdit={(updatedModule) => onEditModule(index, updatedModule)}
+                                    onDelete={() => onDeleteModule(moduleWithChapters.module)}
+                                    onEdit={(updatedModule) => onEditModule(updatedModule)}
                                     classNumber={classNumber}
                                     subject={subject}
                                 />
