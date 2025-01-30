@@ -18,7 +18,10 @@ import {
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { QuestionData } from "@/types/assessment-steps";
-import { getQuestionTypeCounts } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
+import {
+    calculateTotalMarks,
+    getQuestionTypeCounts,
+} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
 import {
     calculateAverageMarks,
     calculateAveragePenalty,
@@ -166,46 +169,52 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                         <CheckCircle size={22} weight="fill" className="text-success-600" />
                     </div>
                 )}
-                <div>
-                    <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
-                    <Table>
-                        <TableHeader className="bg-primary-200">
-                            <TableRow>
-                                <TableHead>Q.No.</TableHead>
-                                <TableHead>Question</TableHead>
-                                <TableHead>Question Type</TableHead>
-                                <TableHead>Marks</TableHead>
-                                <TableHead>Penalty</TableHead>
-                                <TableHead>Time</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody className="bg-neutral-50">
-                            {adaptiveMarking.map((question: Question, index: number) => {
-                                return (
-                                    <TableRow key={index}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell>{question.questionName}</TableCell>
-                                        <TableCell>{question.questionType}</TableCell>
-                                        <TableCell>{question.questionMark}</TableCell>
-                                        <TableCell>{question.questionPenalty}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                {question.questionDuration.hrs}
-                                                <span>:</span>
-                                                {question.questionDuration.min}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                </div>
-                <div className="flex items-center justify-end gap-1">
-                    <span>Total Marks</span>
-                    <span>:</span>
-                    <h1>{section.total_marks}</h1>
-                </div>
+                {adaptiveMarking.length > 0 && (
+                    <div>
+                        <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
+                        <Table>
+                            <TableHeader className="bg-primary-200">
+                                <TableRow>
+                                    <TableHead>Q.No.</TableHead>
+                                    <TableHead>Question</TableHead>
+                                    <TableHead>Question Type</TableHead>
+                                    <TableHead>Marks</TableHead>
+                                    <TableHead>Penalty</TableHead>
+                                    <TableHead>Time</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="bg-neutral-50">
+                                {adaptiveMarking.map((question: Question, index: number) => {
+                                    return (
+                                        <TableRow key={index}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell>
+                                                {parseHtmlToString(question.questionName)}
+                                            </TableCell>
+                                            <TableCell>{question.questionType}</TableCell>
+                                            <TableCell>{question.questionMark}</TableCell>
+                                            <TableCell>{question.questionPenalty}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {question.questionDuration.hrs}
+                                                    <span>:</span>
+                                                    {question.questionDuration.min}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
+                {adaptiveMarking.length > 0 && (
+                    <div className="flex items-center justify-end gap-1">
+                        <span>Total Marks</span>
+                        <span>:</span>
+                        <h1>{calculateTotalMarks(adaptiveMarking)}</h1>
+                    </div>
+                )}
             </AccordionContent>
         </AccordionItem>
     );

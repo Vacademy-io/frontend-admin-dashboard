@@ -21,7 +21,6 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useParams } from "@tanstack/react-router";
 import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
-import { cloneDeep } from "lodash";
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
@@ -112,6 +111,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                     duration: 2000,
                 });
                 queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+                queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
             } else {
                 syncStep2DataWithStore(form);
                 toast.success("Step 2 data has been saved successfully!", {
@@ -189,12 +189,12 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     useEffect(() => {
         if (assessmentId !== "defaultId") {
             const sections = assessmentDetails[currentStep]?.saved_data?.sections;
-            form.reset({
-                status: assessmentDetails[currentStep]?.status,
+            const initialFormValues = {
+                status: assessmentDetails[currentStep]?.status || "INCOMPLETE",
                 section:
                     Array.isArray(sections) && sections.length > 0
                         ? sections.map((sectionDetails) => ({
-                              sectionId: sectionDetails.id || "", // Default empty if not available
+                              sectionId: sectionDetails.id || "",
                               sectionName: sectionDetails.name || "",
                               questionPaperTitle: "",
                               uploaded_question_paper: "",
@@ -229,7 +229,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                         : [
                               {
                                   sectionId: "",
-                                  sectionName: `Section ${allSections.length}`,
+                                  sectionName: `Section 1`,
                                   questionPaperTitle: "",
                                   subject: "",
                                   yearClass: "",
@@ -258,11 +258,15 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                   adaptive_marking_for_each_question: [],
                               },
                           ],
-            });
-            // Deep clone the form values to prevent modification
-            oldData.current = cloneDeep(form.getValues());
+            };
+
+            // Set initial form values
+            form.reset(initialFormValues);
+
+            // Store initial data in oldData
+            oldData.current = initialFormValues;
         }
-    }, []);
+    }, [assessmentDetails, assessmentId]);
 
     if (isLoading || handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
 

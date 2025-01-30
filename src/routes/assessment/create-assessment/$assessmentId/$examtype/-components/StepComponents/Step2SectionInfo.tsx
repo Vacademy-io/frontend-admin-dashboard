@@ -37,10 +37,9 @@ import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { Route } from "../..";
 import { useQuestionsForSection } from "../../-hooks/getQuestionsDataForSection";
 import {
-    calculateAverageMarks,
     calculateAveragePenalty,
+    parseHtmlToString,
 } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/-utils/helper";
-import { cloneDeep } from "lodash";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -156,10 +155,10 @@ export const Step2SectionInfo = ({
                 `section.${index}.adaptive_marking_for_each_question`,
                 adaptiveMarking.adaptiveMarking,
             );
-            setValue(
-                `section.${index}.marks_per_question`,
-                String(calculateAverageMarks(adaptiveMarking.adaptiveMarking)),
-            );
+            // setValue(
+            //     `section.${index}.marks_per_question`,
+            //     String(calculateAverageMarks(adaptiveMarking.adaptiveMarking)),
+            // );
             setValue(
                 `section.${index}.negative_marking.checked`,
                 calculateAveragePenalty(adaptiveMarking.adaptiveMarking) > 0 ? true : false,
@@ -168,8 +167,10 @@ export const Step2SectionInfo = ({
                 `section.${index}.negative_marking.value`,
                 String(calculateAveragePenalty(adaptiveMarking.adaptiveMarking)),
             );
-            // Deep clone the form values to prevent modification
-            oldData.current = cloneDeep(form.getValues());
+            if (oldData.current.section[index]) {
+                oldData.current.section[index].adaptive_marking_for_each_question =
+                    adaptiveMarking.adaptiveMarking;
+            }
         }
     }, [watch(`section.${index}`)]);
 
@@ -741,7 +742,9 @@ export const Step2SectionInfo = ({
                                             return (
                                                 <TableRow key={idx}>
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>{question.questionName}</TableCell>
+                                                    <TableCell>
+                                                        {parseHtmlToString(question.questionName)}
+                                                    </TableCell>
                                                     <TableCell>{question.questionType}</TableCell>
                                                     <TableCell>
                                                         <FormField

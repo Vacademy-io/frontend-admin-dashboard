@@ -261,7 +261,7 @@ export function calculateAverageMarks(questions: Question[]): number {
         (sum, question) => sum + parseFloat(question.questionMark),
         0,
     );
-    return totalMarks / questions.length;
+    return parseFloat((totalMarks / questions.length).toFixed(2));
 }
 
 export function calculateAveragePenalty(questions: Question[]): number {
@@ -271,7 +271,7 @@ export function calculateAveragePenalty(questions: Question[]): number {
         (sum, question) => sum + parseFloat(question.questionPenalty),
         0,
     );
-    return totalPenalty / questions.length;
+    return parseFloat((totalPenalty / questions.length).toFixed(2));
 }
 
 export function parseHtmlToString(html: string) {

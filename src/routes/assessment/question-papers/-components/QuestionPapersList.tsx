@@ -89,9 +89,9 @@ export const QuestionPapersList = ({
             );
 
             if (sectionsForm && index !== undefined) {
-                sectionsForm.setValue(`section.${index}`, {
-                    ...sectionsForm.getValues(`section.${index}`),
-                    adaptive_marking_for_each_question: transformQuestionsData.map((question) => ({
+                sectionsForm.setValue(
+                    `section.${index}.adaptive_marking_for_each_question`,
+                    transformQuestionsData.map((question) => ({
                         questionId: question.questionId,
                         questionName: question.questionName,
                         questionType: question.questionType,
@@ -107,7 +107,8 @@ export const QuestionPapersList = ({
                             min: "",
                         },
                     })),
-                });
+                );
+                sectionsForm.trigger(`section.${index}.adaptive_marking_for_each_question`);
             }
         },
         onError: (error: unknown) => {
