@@ -1,15 +1,16 @@
 // subjects.tsx
 import { EmptySubjectMaterial } from "@/assets/svgs";
-import { Subject, SubjectCard } from "./subject-card";
+import { SubjectCard } from "./subject-card";
 import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { closestCorners } from "@dnd-kit/core";
 import { useEffect, useState } from "react";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { SubjectType } from "@/stores/study-library/use-study-library-store";
 
 interface SubjectsProps {
-    subjects: Subject[];
+    subjects: SubjectType[];
     onDeleteSubject: (subjectId: string) => void;
-    onEditSubject: (subjectId: string, updatedSubject: Subject) => void;
+    onEditSubject: (subjectId: string, updatedSubject: SubjectType) => void;
     classNumber: string;
     onOrderChange?: (
         updatedOrder: { subject_id: string; package_session_id: string; subject_order: number }[],
@@ -27,13 +28,13 @@ export const Subjects = ({
 }: SubjectsProps) => {
     const [subjects, setSubjects] = useState(initialSubjects);
 
-    const handleValueChange = (updatedSubjects: Subject[]) => {
+    const handleValueChange = (updatedSubjects: SubjectType[]) => {
         setSubjects(updatedSubjects);
 
         // Create the order payload
         const orderPayload = updatedSubjects.map((subject, index) => ({
             subject_id: subject.id,
-            subject_name: subject.name,
+            subject_name: subject.subject_name,
             package_session_id: "", // This needs to be filled with actual package session id
             subject_order: index,
         }));
@@ -88,5 +89,3 @@ export const Subjects = ({
         </div>
     );
 };
-
-export { type Subject };

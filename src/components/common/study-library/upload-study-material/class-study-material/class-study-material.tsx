@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { AddSubjectButton } from "./subject-material/add-subject.tsx/add-subject-button";
 import { Subjects } from "./subject-material/add-subject.tsx/subjects";
 import { useState } from "react";
-import { Subject } from "./subject-material/add-subject.tsx/subjects";
 import { SessionDropdown } from "../../study-library-session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
@@ -15,6 +14,7 @@ import { getPackageSessionIds } from "@/utils/helpers/study-library-helpers.ts/g
 import { ADD_SUBJECT, DELETE_SUBJECT, UPDATE_SUBJECT } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { useQueryClient } from "@tanstack/react-query";
+import { SubjectType } from "@/stores/study-library/use-study-library-store";
 
 interface ClassStudyMaterialProps {
     classNumber: string;
@@ -34,19 +34,19 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
 
     const mappedSubjects = apiSubjects.map((subject) => ({
         id: subject.id,
-        name: subject.subject_name,
-        code: subject.subject_code,
+        subject_name: subject.subject_name,
+        subject_code: subject.subject_code,
         credit: subject.credit,
-        imageId: subject.thumbnail_id,
-        createdAt: subject.created_at,
-        updatedAt: subject.updated_at,
+        thumbnail_id: subject.thumbnail_id,
+        created_at: subject.created_at,
+        updated_at: subject.updated_at,
     }));
 
     const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
     };
 
-    const handleAddSubject = async (newSubject: Subject) => {
+    const handleAddSubject = async (newSubject: SubjectType) => {
         try {
             setIsSubjectsLoading(true);
             const packageSessionIds = getPackageSessionIds(classNumber, currentSession);
@@ -57,10 +57,10 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
 
             const payload = {
                 id: newSubject.id,
-                subject_name: newSubject.name,
-                subject_code: newSubject.code,
+                subject_name: newSubject.subject_name,
+                subject_code: newSubject.subject_code,
                 credit: newSubject.credit,
-                thumbnail_id: newSubject.imageId,
+                thumbnail_id: newSubject.thumbnail_id,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
             };
@@ -102,16 +102,16 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
         }
     };
 
-    const handleEditSubject = async (subjectId: string, updatedSubject: Subject) => {
+    const handleEditSubject = async (subjectId: string, updatedSubject: SubjectType) => {
         try {
             setIsSubjectsLoading(true);
             const payload = {
                 id: subjectId,
-                subject_name: updatedSubject.name,
-                subject_code: updatedSubject.code,
+                subject_name: updatedSubject.subject_name,
+                subject_code: updatedSubject.subject_code,
                 credit: updatedSubject.credit,
-                thumbnail_id: updatedSubject.imageId,
-                created_at: updatedSubject.createdAt,
+                thumbnail_id: updatedSubject.thumbnail_id,
+                created_at: updatedSubject.created_at,
                 updated_at: new Date().toISOString(),
             };
 
@@ -191,13 +191,3 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
         </div>
     );
 };
-
-export interface SubjectType {
-    id: string;
-    name: string;
-    code: string;
-    credit: number;
-    imageId: string | null;
-    createdAt: string | null;
-    updatedAt: string | null;
-}

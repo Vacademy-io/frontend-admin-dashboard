@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRef, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Subject } from "./subjects";
+import { SubjectType } from "@/stores/study-library/use-study-library-store";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
@@ -22,21 +22,21 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface AddSubjectFormProps {
-    onSubmitSuccess: (subject: Subject) => void;
-    initialValues?: Subject;
+    onSubmitSuccess: (subject: SubjectType) => void;
+    initialValues?: SubjectType;
 }
 
 export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFormProps) => {
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [fileId, setFileId] = useState<string | null>(initialValues?.imageId || null);
+    const [fileId, setFileId] = useState<string | null>(initialValues?.thumbnail_id || null);
     const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            subjectName: initialValues?.name || "",
+            subjectName: initialValues?.subject_name || "",
             imageFile: null,
         },
     });
@@ -66,14 +66,14 @@ export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFor
     };
 
     const onSubmit = (data: FormValues) => {
-        const newSubject: Subject = {
+        const newSubject: SubjectType = {
             id: initialValues?.id || crypto.randomUUID(),
-            name: data.subjectName,
-            code: null,
-            credit: null,
-            imageId: fileId, // Use fileId instead of URL
-            createdAt: initialValues?.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            subject_name: data.subjectName,
+            subject_code: "",
+            credit: 0,
+            thumbnail_id: fileId, // Use fileId instead of URL
+            created_at: initialValues?.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
         };
 
         onSubmitSuccess(newSubject);

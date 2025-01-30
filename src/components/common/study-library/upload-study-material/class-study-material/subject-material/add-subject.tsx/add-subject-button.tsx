@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useState } from "react";
 import { AddSubjectForm } from "./add-subject-form";
-import { Subject } from "./subjects";
+import { SubjectType } from "@/stores/study-library/use-study-library-store";
 
 const triggerButton = (
     <MyButton buttonType="primary" layoutVariant="default" scale="large">
@@ -11,7 +11,7 @@ const triggerButton = (
 );
 
 interface AddSubjectButtonProps {
-    onAddSubject: (subject: Subject) => void;
+    onAddSubject: (subject: SubjectType) => void;
 }
 
 export const AddSubjectButton = ({ onAddSubject }: AddSubjectButtonProps) => {

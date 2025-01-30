@@ -9,21 +9,12 @@ import { SubjectDefaultImage } from "@/assets/svgs";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useSidebar } from "@/components/ui/sidebar";
 import { SortableDragHandle } from "@/components/ui/sortable";
-
-export interface Subject {
-    id: string;
-    name: string;
-    code: string | null;
-    credit: number | null;
-    imageId: string | null;
-    createdAt: string | null;
-    updatedAt: string | null;
-}
+import { SubjectType } from "@/stores/study-library/use-study-library-store";
 
 interface SubjectCardProps {
-    subject: Subject;
+    subject: SubjectType;
     onDelete: () => void;
-    onEdit: (updatedSubject: Subject) => void;
+    onEdit: (updatedSubject: SubjectType) => void;
     classNumber: string;
 }
 
@@ -45,7 +36,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
             return;
         }
 
-        const subjectRoute = subject.name.toLowerCase().replace(/\s+/g, "-");
+        const subjectRoute = subject.subject_name.toLowerCase().replace(/\s+/g, "-");
         const formattedClassName = `${classNumber}-class-study-library`;
 
         router.navigate({
@@ -59,9 +50,9 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
     };
     useEffect(() => {
         const fetchImageUrl = async () => {
-            if (subject.imageId) {
+            if (subject.thumbnail_id) {
                 try {
-                    const url = await getPublicUrl(subject.imageId);
+                    const url = await getPublicUrl(subject.thumbnail_id);
                     setImageUrl(url);
                 } catch (error) {
                     console.error("Failed to fetch image URL:", error);
@@ -70,7 +61,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
         };
 
         fetchImageUrl();
-    }, [subject.imageId]);
+    }, [subject.thumbnail_id]);
 
     return (
         <div className="relative">
@@ -93,7 +84,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
                 {imageUrl ? (
                     <img
                         src={imageUrl}
-                        alt={subject.name}
+                        alt={subject.subject_name}
                         className={`${
                             open ? "h-[150px] w-[150px]" : "h-[200px] w-[200px]"
                         } rounded-lg object-cover`}
@@ -104,7 +95,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
                     />
                 )}
                 <div className="flex items-center justify-between gap-5">
-                    <div className="text-h2 font-semibold">{subject.name}</div>
+                    <div className="text-h2 font-semibold">{subject.subject_name}</div>
                     <div onClick={handleMenuOptionClick} className="menu-options-container">
                         <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
                     </div>
