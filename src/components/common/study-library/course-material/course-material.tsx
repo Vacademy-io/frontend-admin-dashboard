@@ -4,9 +4,11 @@ import { FC, SVGProps, useEffect, useState } from "react";
 import { Class10CardImage } from "@/assets/svgs";
 import { Class9CardImage } from "@/assets/svgs";
 import { Class8CardImage } from "@/assets/svgs";
-import { LevelCard } from "./level-card";
+import { LevelCard } from "./level-study-material/level-card";
+import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
 import { useNavigate } from "@tanstack/react-router";
-import { SessionDropdown } from "../../study-library-session-dropdown";
+import { SessionDropdown } from "../study-library-session-dropdown";
+import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
 import { getSessionLevels } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getSessionLevels";
@@ -65,9 +67,11 @@ export const LevelPage = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-4">
-                    <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                    <CreateStudyDocButton />
+                    <UploadStudyMaterialButton />
+                    <MyButton>
                         <Plus />
-                        Add Year/Class
+                        Create Course
                     </MyButton>
                 </div>
             </div>
