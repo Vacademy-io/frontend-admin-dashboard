@@ -1,7 +1,7 @@
 // routes/study-library/$class/index.tsx
 import { createFileRoute } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { ClassStudyMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/class-study-material";
+import { ClassStudyMaterial } from "@/components/common/study-library/course-material/level-study-material/level-study-material";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 
 export const Route = createFileRoute("/study-library/$class/")({

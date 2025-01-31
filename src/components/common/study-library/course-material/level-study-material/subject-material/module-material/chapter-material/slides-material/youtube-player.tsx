@@ -7,9 +7,36 @@ interface YTPlayer {
     getDuration(): number;
 }
 
+interface YouTubePlayerEvent {
+    target: YTPlayer;
+    data: number;
+}
+
 declare global {
     interface Window {
         onYouTubeIframeAPIReady: () => void;
+        YT: {
+            Player: new (
+                element: HTMLElement | string,
+                options: {
+                    height?: string | number;
+                    width?: string | number;
+                    videoId?: string;
+                    playerVars?: {
+                        autoplay?: number;
+                        controls?: number;
+                        showinfo?: number;
+                        rel?: number;
+                        [key: string]: unknown;
+                    };
+                    events?: {
+                        onReady?: (event: YouTubePlayerEvent) => void;
+                        onStateChange?: (event: YouTubePlayerEvent) => void;
+                        [key: string]: unknown;
+                    };
+                },
+            ) => YTPlayer;
+        };
     }
 }
 

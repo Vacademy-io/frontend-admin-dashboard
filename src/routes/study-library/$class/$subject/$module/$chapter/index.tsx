@@ -1,15 +1,15 @@
 // routes/study-library/$class/$subject/$module/$chapter/index.tsx
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChapterMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/add-chapters/chapter-material";
+import { ChapterMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/add-chapters/chapter-material";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
-import { ChapterSidebarAddButton } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
+import { ChapterSidebarAddButton } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
 import { truncateString } from "@/lib/reusable/truncateString";
-import { ChapterSidebarSlides } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
+import { ChapterSidebarSlides } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
 
 interface ChapterSearchParams {
     subjectId: string;

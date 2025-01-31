@@ -3,11 +3,11 @@ import { FC, SVGProps, useEffect, useState } from "react";
 import { Class10CardImage } from "@/assets/svgs";
 import { Class9CardImage } from "@/assets/svgs";
 import { Class8CardImage } from "@/assets/svgs";
-import { ClassCard } from "./class-card";
-import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-material-button";
+import { LevelCard } from "./level-card";
+import { UploadStudyMaterialButton } from "../../upload-study-material/upload-study-material-button";
 import { useNavigate } from "@tanstack/react-router";
-import { SessionDropdown } from "./study-library-session-dropdown";
-import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
+import { SessionDropdown } from "../../study-library-session-dropdown";
+import { CreateStudyDocButton } from "../../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
 import { getSessionLevels } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getSessionLevels";
@@ -18,7 +18,7 @@ interface ClassCardType {
     class: string;
 }
 
-export const StudyLibrary = () => {
+export const LevelPage = () => {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
     const { open } = useSidebar();
@@ -80,7 +80,7 @@ export const StudyLibrary = () => {
             <div className={`grid grid-cols-3 ${open ? "gap-4" : "gap-8"} justify-between`}>
                 {ClassCardData.map((card, key) => (
                     <div key={key} onClick={() => handleClassClick(card.class)}>
-                        <ClassCard
+                        <LevelCard
                             image={card.image}
                             classLevel={card.class}
                             levelId={card.levelId}

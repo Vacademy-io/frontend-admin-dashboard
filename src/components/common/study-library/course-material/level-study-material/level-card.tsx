@@ -8,7 +8,7 @@ interface ClassCardProps {
     route?: string;
 }
 
-export const ClassCard = ({ image, classLevel }: ClassCardProps) => {
+export const LevelCard = ({ image, classLevel }: ClassCardProps) => {
     const { open } = useSidebar();
     return (
         <div className="flex cursor-pointer flex-col items-center justify-center rounded-xl py-5 shadow-xl">

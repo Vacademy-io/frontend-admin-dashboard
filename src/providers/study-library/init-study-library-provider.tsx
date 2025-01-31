@@ -4,7 +4,6 @@ import { useStudyLibraryQuery } from "@/services/study-library/getStudyLibraryDe
 import { useQuery } from "@tanstack/react-query";
 
 export const InitStudyLibraryProvider = ({ children }: { children: React.ReactNode }) => {
-    // Always call the query hook, but control its execution with enabled
     const { isLoading } = useQuery({
         ...useStudyLibraryQuery(),
     });

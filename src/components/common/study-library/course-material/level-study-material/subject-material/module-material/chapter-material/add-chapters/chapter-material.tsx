@@ -1,8 +1,7 @@
 import YooptaEditor, { createYooptaEditor } from "@yoopta/editor";
-//   import { uploadToCloudinary } from '@/utils/cloudinary';
 import { useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
-import PDFViewer from "@/components/common/study-library/pdf-viewer";
+import PDFViewer from "../slides-material/pdf-viewer";
 import { ActivityStatsSidebar } from "../slides-material/stats-dialog/activity-sidebar";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { EmptySlideMaterial } from "@/assets/svgs";

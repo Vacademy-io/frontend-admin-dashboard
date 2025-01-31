@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { ModuleMaterial } from "@/components/common/study-library/upload-study-material/class-study-material/subject-material/module-material/module-material";
+import { ModuleMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/module-material";
 import { useSidebar } from "@/components/ui/sidebar";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { truncateString } from "@/lib/reusable/truncateString";
