@@ -11,7 +11,7 @@ import { html } from "@yoopta/exports";
 import { SlidesMenuOption } from "../slides-material/slides-menu-options/slildes-menu-option";
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
 
-export const ChapterMaterial = () => {
+export const SlideMaterial = () => {
     const { items, activeItemId, setActiveItem } = useContentStore();
     const activeItem = items.find((item) => item.id === activeItemId);
     const editor = useMemo(() => createYooptaEditor(), []);

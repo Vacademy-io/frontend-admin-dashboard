@@ -1,54 +1,31 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { FC, SVGProps, useEffect, useState } from "react";
-import { Class10CardImage } from "@/assets/svgs";
-import { Class9CardImage } from "@/assets/svgs";
-import { Class8CardImage } from "@/assets/svgs";
-import { LevelCard } from "./level-study-material/level-card";
+import { useEffect } from "react";
 import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
-import { useNavigate } from "@tanstack/react-router";
-import { SessionDropdown } from "../study-library-session-dropdown";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
-import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
-import { getSessionLevels } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getSessionLevels";
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
+import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
+import { CourseCard } from "./course-card";
 
-interface ClassCardType {
-    levelId: string;
-    image: FC<SVGProps<SVGSVGElement>> | undefined;
-    class: string;
-}
-
-export const LevelPage = () => {
+export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
-    const navigate = useNavigate();
     const { open } = useSidebar();
-    const sessionList = getSessionNames();
-    const [currentSession, setCurrentSession] = useState(sessionList[0] || "");
-    const LevelList = getSessionLevels(currentSession);
+    const courses = getCourses();
 
-    const handleSessionChange = (value: string) => {
-        setCurrentSession(value);
-    };
+    const router = useRouter();
+    const currentPath = router.state.location.pathname;
+    const navigate = useNavigate();
 
-    const classImages: Record<string, FC<SVGProps<SVGSVGElement>>> = {
-        "8th": Class8CardImage,
-        "9th": Class9CardImage,
-        "10th": Class10CardImage,
-        "11th": Class10CardImage,
-    };
-
-    const ClassCardData: ClassCardType[] = LevelList.map((level) => ({
-        levelId: level.id,
-        image: classImages[level.name],
-        class: level.name,
-    }));
-
-    const handleClassClick = (className: string) => {
-        const routeName = `${className}-class-study-library`;
-        navigate({ to: `/study-library/${routeName}` });
+    const handleCourseCardClick = (courseId: string) => {
+        navigate({
+            to: `${currentPath}/levels`,
+            search: {
+                courseId: courseId,
+            },
+        });
     };
 
     useEffect(() => {
@@ -59,11 +36,11 @@ export const LevelPage = () => {
         <div className="relative flex flex-col gap-8 text-neutral-600">
             <div className="flex items-center gap-20">
                 <div className="flex flex-col gap-2">
-                    <div className="text-h3 font-semibold">Class & Resource Management</div>
+                    <div className="text-h3 font-semibold">Organize Your Courses</div>
                     <div className="text-subtitle">
-                        Effortlessly manage classes, subjects, and resources to ensure students have
-                        access to the best education materials. Organize, upload, and track study
-                        resources for 8th, 9th and 10th classes all in one place.
+                        Effortlessly organize, upload, and track educational resources in one place.
+                        Provide students with easy access to the materials they need to succeed,
+                        ensuring a seamless learning experience.
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-4">
@@ -76,22 +53,10 @@ export const LevelPage = () => {
                 </div>
             </div>
 
-            <div className="flex items-center gap-6">
-                <SessionDropdown
-                    currentSession={currentSession}
-                    onSessionChange={handleSessionChange}
-                    className="text-title font-semibold"
-                />
-            </div>
-
             <div className={`grid grid-cols-3 ${open ? "gap-4" : "gap-8"} justify-between`}>
-                {ClassCardData.map((card, key) => (
-                    <div key={key} onClick={() => handleClassClick(card.class)}>
-                        <LevelCard
-                            image={card.image}
-                            classLevel={card.class}
-                            levelId={card.levelId}
-                        />
+                {courses.map((course, key) => (
+                    <div key={key} onClick={() => handleCourseCardClick(course.id)}>
+                        <CourseCard course={course} />
                     </div>
                 ))}
             </div>

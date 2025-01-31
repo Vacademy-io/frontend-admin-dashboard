@@ -1,54 +1,75 @@
-// routes/study-library/$class/$subject/$module/$chapter/index.tsx
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChapterMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/add-chapters/chapter-material";
-import { ChevronRightIcon } from "@radix-ui/react-icons";
-import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
-import { useState } from "react";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { SlideMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/add-chapters/slide-material";
 import { ChapterSidebarAddButton } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
-import { truncateString } from "@/lib/reusable/truncateString";
 import { ChapterSidebarSlides } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
+import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
+import { truncateString } from "@/lib/reusable/truncateString";
+import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
+import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
+import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
+import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
+import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
+import { ChevronRightIcon } from "@radix-ui/react-icons";
+import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { MagnifyingGlass } from "phosphor-react";
+import { useState } from "react";
 
 interface ChapterSearchParams {
+    courseId: string;
+    levelId: string;
     subjectId: string;
+    moduleId: string;
+    chapterId: string;
+    slideId: string;
 }
 
-export const Route = createFileRoute("/study-library/$class/$subject/$module/$chapter/")({
-    component: Chapters,
+export const Route = createFileRoute(
+    "/study-library/courses/levels/subjects/modules/chapters/slides/",
+)({
+    component: RouteComponent,
     validateSearch: (search: Record<string, unknown>): ChapterSearchParams => {
         return {
+            courseId: search.courseId as string,
+            levelId: search.levelId as string,
             subjectId: search.subjectId as string,
+            moduleId: search.moduleId as string,
+            chapterId: search.chapterId as string,
+            slideId: search.slideId as string,
         };
     },
 });
 
-function Chapters() {
-    const params = Route.useParams();
-    const { subjectId } = Route.useSearch();
-    const { subject, module: moduleParam, chapter: chapterParam } = Route.useParams();
+function RouteComponent() {
+    const searchParams = Route.useSearch();
     const [inputSearch, setInputSearch] = useState("");
     const { open, state, toggleSidebar } = useSidebar();
     const navigate = useNavigate();
 
     const handleSubjectRoute = () => {
         navigate({
-            to: "/study-library/$class/$subject",
-            params: {
-                class: params.class,
-                subject: params.subject,
+            to: "/study-library/courses/levels/subjects/modules",
+            params: {},
+            search: {
+                courseId: searchParams.courseId,
+                levelId: searchParams.levelId,
+                subjectId: searchParams.subjectId,
             },
-            search: { subjectId },
             hash: "",
         });
     };
 
     const handleModuleRoute = () => {
         navigate({
-            to: "..",
+            to: "/study-library/courses/levels/subjects/modules/chapters",
             params: {},
-            search: {},
+            search: {
+                courseId: searchParams.courseId,
+                levelId: searchParams.levelId,
+                subjectId: searchParams.subjectId,
+                moduleId: searchParams.moduleId,
+            },
             hash: "",
         });
     };
@@ -57,7 +78,11 @@ function Chapters() {
         setInputSearch(e.target.value);
     };
 
-    const trucatedChapterName = truncateString(chapterParam, 9);
+    const chapterName = getChapterName(searchParams.chapterId);
+    const subject = getSubjectName(searchParams.subjectId);
+    const moduleName = getModuleName(searchParams.moduleId);
+
+    const trucatedChapterName = truncateString(chapterName, 9);
 
     const SidebarComponent = (
         <div className="flex w-full flex-col items-center">
@@ -74,11 +99,11 @@ function Chapters() {
                         className={`cursor-pointer ${open ? "visible" : "hidden"}`}
                         onClick={handleModuleRoute}
                     >
-                        {moduleParam}
+                        {moduleName}
                     </p>
                     <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
                     <p className="cursor-pointer text-primary-500">
-                        {open ? chapterParam : trucatedChapterName}
+                        {open ? chapterName : trucatedChapterName}
                     </p>
                 </div>
                 <div className="flex w-full flex-col items-center gap-6">
@@ -107,7 +132,11 @@ function Chapters() {
 
     return (
         <LayoutContainer sidebarComponent={SidebarComponent}>
-            <ChapterMaterial />
+            <InitStudyLibraryProvider>
+                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
+                    <SlideMaterial />
+                </ModulesWithChaptersProvider>
+            </InitStudyLibraryProvider>
         </LayoutContainer>
     );
 }

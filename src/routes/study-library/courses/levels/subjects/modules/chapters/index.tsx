@@ -1,16 +1,39 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+// routes/study-library/$class/$subject/$module/$chapter/index.tsx
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { ModuleMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/module-material";
-import { useSidebar } from "@/components/ui/sidebar";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
+import { useSidebar } from "@/components/ui/sidebar";
 import { truncateString } from "@/lib/reusable/truncateString";
+import { ChapterMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material";
+import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
+import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
+import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
+import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
+import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 
-export const Route = createFileRoute("/study-library/$class/$subject/$module/")({
-    component: ModuleMaterialPage,
+interface ModulesSearchParams {
+    courseId: string;
+    levelId: string;
+    subjectId: string;
+    moduleId: string;
+}
+
+export const Route = createFileRoute("/study-library/courses/levels/subjects/modules/chapters/")({
+    component: RouteComponent,
+    validateSearch: (search: Record<string, unknown>): ModulesSearchParams => {
+        return {
+            courseId: search.courseId as string,
+            levelId: search.levelId as string,
+            subjectId: search.subjectId as string,
+            moduleId: search.moduleId as string,
+        };
+    },
 });
 
-function ModuleMaterialPage() {
-    const { class: className, subject, module: moduleParam } = Route.useParams();
+function RouteComponent() {
+    // const { class: className, subject, module: moduleName } = Route.useParams()
+
+    const searchParams = Route.useSearch();
 
     //Sidebar component
     const { open } = useSidebar();
@@ -21,16 +44,25 @@ function ModuleMaterialPage() {
         },
     ];
     const navigate = useNavigate();
+
     const handleSubjectRoute = () => {
         navigate({
             to: "..",
             params: {},
-            search: {},
+            search: {
+                courseId: searchParams.courseId,
+                levelId: searchParams.levelId,
+                subjectId: searchParams.subjectId,
+            },
             hash: "",
         });
     };
 
-    const truncatedModule = truncateString(moduleParam, 10);
+    const className = getLevelName(searchParams.levelId);
+    const subject = getSubjectName(searchParams.subjectId);
+    const moduleName = getModuleName(searchParams.moduleId);
+
+    const truncatedModule = truncateString(moduleName, 10);
 
     const SidebarComponent = (
         <div className={`flex w-full flex-col gap-6 ${open ? "px-10" : "px-6"}`}>
@@ -43,7 +75,7 @@ function ModuleMaterialPage() {
                 </p>
                 <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
                 <p className="cursor-pointer text-primary-500">
-                    {open ? moduleParam : truncatedModule}
+                    {open ? moduleName : truncatedModule}
                 </p>
             </div>
             {data.map((obj, key) => (
@@ -65,7 +97,7 @@ function ModuleMaterialPage() {
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
 
-    const formattedModuleName = moduleParam
+    const formattedModuleName = moduleName
         .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
@@ -81,11 +113,15 @@ function ModuleMaterialPage() {
 
     return (
         <LayoutContainer sidebarComponent={SidebarComponent}>
-            <ModuleMaterial
-                classNumber={classNumber}
-                subject={formattedSubject}
-                module={moduleData}
-            />
+            <InitStudyLibraryProvider>
+                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
+                    <ChapterMaterial
+                        classNumber={classNumber}
+                        subject={formattedSubject}
+                        module={moduleData}
+                    />
+                </ModulesWithChaptersProvider>
+            </InitStudyLibraryProvider>
         </LayoutContainer>
     );
 }

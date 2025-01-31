@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useState } from "react";
 import { AddModulesForm } from "./add-modules-form";
-import { Module } from "@/types/study-library/modules-with-chapters";
+import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 
 const triggerButton = (
     <MyButton buttonType="primary" scale="large" layoutVariant="default">

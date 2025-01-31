@@ -11,7 +11,6 @@ interface SubjectsProps {
     subjects: SubjectType[];
     onDeleteSubject: (subjectId: string) => void;
     onEditSubject: (subjectId: string, updatedSubject: SubjectType) => void;
-    classNumber: string;
     onOrderChange?: (
         updatedOrder: { subject_id: string; package_session_id: string; subject_order: number }[],
     ) => void;
@@ -22,7 +21,6 @@ export const Subjects = ({
     subjects: initialSubjects,
     onDeleteSubject,
     onEditSubject,
-    classNumber,
     onOrderChange,
     isLoading = false,
 }: SubjectsProps) => {
@@ -78,7 +76,6 @@ export const Subjects = ({
                                         onEdit={(updatedSubject) =>
                                             onEditSubject(subject.id, updatedSubject)
                                         }
-                                        classNumber={classNumber}
                                     />
                                 </div>
                             </SortableItem>

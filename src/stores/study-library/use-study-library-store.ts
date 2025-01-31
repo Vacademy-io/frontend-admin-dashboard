@@ -1,6 +1,13 @@
 // stores/study-library/useStudyLibraryStore.ts
 import { create } from "zustand";
 
+export interface CourseType {
+    id: string;
+    package_name: string;
+    thumbnail_file_id: string;
+    status: string;
+}
+
 export interface StudyLibrarySessionType {
     id: string;
     session_name: string;
@@ -24,14 +31,19 @@ export interface LevelWithDetailsType {
     subjects: SubjectType[];
 }
 
-export interface StudyLibraryDataType {
+export interface SessionWithLevelsType {
     session_dto: StudyLibrarySessionType;
     level_with_details: LevelWithDetailsType[];
 }
 
+export interface CourseWithSessionsType {
+    course: CourseType;
+    sessions: SessionWithLevelsType[];
+}
+
 interface StudyLibraryStore {
-    studyLibraryData: StudyLibraryDataType[] | null;
-    setStudyLibraryData: (data: StudyLibraryDataType[]) => void;
+    studyLibraryData: CourseWithSessionsType[] | null;
+    setStudyLibraryData: (data: CourseWithSessionsType[]) => void;
 }
 
 export const useStudyLibraryStore = create<StudyLibraryStore>((set) => ({

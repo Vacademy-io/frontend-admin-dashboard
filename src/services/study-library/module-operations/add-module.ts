@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { ADD_MODULE } from "@/constants/urls";
-import { Module } from "@/types/study-library/modules-with-chapters";
+import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 
 export const useAddModule = () => {
     const queryClient = useQueryClient();

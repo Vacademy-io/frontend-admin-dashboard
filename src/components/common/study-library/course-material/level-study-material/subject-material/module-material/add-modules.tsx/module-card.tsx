@@ -6,19 +6,17 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { AddModulesForm } from "./add-modules-form";
 import { useSidebar } from "@/components/ui/sidebar";
 import { SortableDragHandle } from "@/components/ui/sortable";
-import { Module } from "@/types/study-library/modules-with-chapters";
+import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 import { getPublicUrl } from "@/services/upload_file";
 
 interface ModuleCardProps {
     module: Module;
     onDelete: () => void;
     onEdit: (updatedModule: Module) => void;
-    classNumber: string;
-    subject: string;
 }
 
 // Update the ModuleCard component
-export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: ModuleCardProps) => {
+export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const router = useRouter();
     const { open } = useSidebar();
@@ -34,12 +32,16 @@ export const ModuleCard = ({ module, onDelete, onEdit, classNumber, subject }: M
             return;
         }
 
-        const moduleRoute = module.module_name.toLowerCase().replace(/\s+/g, "-");
-        const formattedClassName = `${classNumber}th-class-study-library`;
-        const formattedSubject = subject.toLowerCase().replace(/\s+/g, "-");
-
+        const currentPath = router.state.location.pathname;
+        const searchParams = router.state.location.search;
         router.navigate({
-            to: `/study-library/${formattedClassName}/${formattedSubject}/${moduleRoute}`,
+            to: `${currentPath}/chapters`,
+            search: {
+                courseId: searchParams.courseId,
+                levelId: searchParams.levelId,
+                subjectId: searchParams.subjectId,
+                moduleId: searchParams.moduleId,
+            },
         });
     };
 

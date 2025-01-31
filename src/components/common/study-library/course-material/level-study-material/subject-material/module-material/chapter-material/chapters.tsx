@@ -4,7 +4,7 @@ import { ChapterCard } from "./chapter-card";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { FormValues } from "../module-material";
+import { FormValues } from "../chapter-material";
 
 export interface ChapterType {
     id: string;

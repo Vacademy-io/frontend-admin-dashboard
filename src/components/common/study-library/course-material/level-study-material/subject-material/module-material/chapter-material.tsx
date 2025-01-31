@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
-import { Module } from "@/types/study-library/modules-with-chapters";
+import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { Chapters, ChapterType } from "./chapter-material/chapters";
@@ -20,7 +20,7 @@ export interface FormValues {
     chapters: ChapterType[];
 }
 
-export const ModuleMaterial = ({ classNumber, subject, module }: ModuleMaterialProps) => {
+export const ChapterMaterial = ({ classNumber, subject, module }: ModuleMaterialProps) => {
     const router = useRouter();
     const { setNavHeading } = useNavHeadingStore();
     // const [isChapterLoading, setIsChapterLoading] = useState(false);

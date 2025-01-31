@@ -1,96 +1,88 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { FC, SVGProps, useEffect, useState } from "react";
-import { Class10CardImage } from "@/assets/svgs";
-import { Class9CardImage } from "@/assets/svgs";
-import { Class8CardImage } from "@/assets/svgs";
+import { useEffect, useState } from "react";
 import { LevelCard } from "./level-card";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { SessionDropdown } from "../../study-library-session-dropdown";
 import { useSidebar } from "@/components/ui/sidebar";
-import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
-import { getSessionLevels } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getSessionLevels";
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
-
-interface ClassCardType {
-    levelId: string;
-    image: FC<SVGProps<SVGSVGElement>> | undefined;
-    class: string;
-}
+import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getStudyLibrarySessions";
+import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails";
+import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
 
 export const LevelPage = () => {
     const { setNavHeading } = useNavHeadingStore();
-    const navigate = useNavigate();
     const { open } = useSidebar();
-    const sessionList = getSessionNames();
-    const [currentSession, setCurrentSession] = useState(sessionList[0] || "");
-    const LevelList = getSessionLevels(currentSession);
-
-    const handleSessionChange = (value: string) => {
-        setCurrentSession(value);
-    };
-
-    const classImages: Record<string, FC<SVGProps<SVGSVGElement>>> = {
-        "8th": Class8CardImage,
-        "9th": Class9CardImage,
-        "10th": Class10CardImage,
-        "11th": Class10CardImage,
-    };
-
-    const ClassCardData: ClassCardType[] = LevelList.map((level) => ({
-        levelId: level.id,
-        image: classImages[level.name],
-        class: level.name,
-    }));
-
-    const handleClassClick = (className: string) => {
-        const routeName = `${className}-class-study-library`;
-        navigate({ to: `/study-library/${routeName}` });
-    };
+    const router = useRouter();
+    const searchParams = router.state.location.search;
+    const courseId = searchParams.courseId;
 
     useEffect(() => {
         setNavHeading("Study Library");
     }, []);
 
+    // Ensure hooks always run
+    const sessionList = courseId ? getCourseSessions(courseId) : [];
+    const initialSession: StudyLibrarySessionType | null = sessionList[0] ?? null;
+
+    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | null>(
+        () => initialSession,
+    );
+
+    // Get levels only if session is selected
+    const LevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
+
+    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
+        if (typeof value !== "string" && value) {
+            setCurrentSession(value);
+        }
+    };
+
     return (
         <div className="relative flex flex-col gap-8 text-neutral-600">
-            <div className="flex items-center gap-20">
-                <div className="flex flex-col gap-2">
-                    <div className="text-h3 font-semibold">Class & Resource Management</div>
-                    <div className="text-subtitle">
-                        Effortlessly manage classes, subjects, and resources to ensure students have
-                        access to the best education materials. Organize, upload, and track study
-                        resources for 8th, 9th and 10th classes all in one place.
+            {!courseId ? (
+                <div>Course not found</div>
+            ) : sessionList.length === 0 ? (
+                <div>No sessions found</div>
+            ) : (
+                <>
+                    <div className="flex items-center gap-20">
+                        <div className="flex flex-col gap-2">
+                            <div className="text-h3 font-semibold">Class & Resource Management</div>
+                            <div className="text-subtitle">
+                                Effortlessly manage classes, subjects, and resources to ensure
+                                students have access to the best education materials. Organize,
+                                upload, and track study resources for 8th, 9th, and 10th classes all
+                                in one place.
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center gap-4">
+                            <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                                <Plus />
+                                Add Year/Class
+                            </MyButton>
+                        </div>
                     </div>
-                </div>
-                <div className="flex flex-col items-center gap-4">
-                    <MyButton buttonType="primary" scale="large" layoutVariant="default">
-                        <Plus />
-                        Add Year/Class
-                    </MyButton>
-                </div>
-            </div>
 
-            <div className="flex items-center gap-6">
-                <SessionDropdown
-                    currentSession={currentSession}
-                    onSessionChange={handleSessionChange}
-                    className="text-title font-semibold"
-                />
-            </div>
-
-            <div className={`grid grid-cols-3 ${open ? "gap-4" : "gap-8"} justify-between`}>
-                {ClassCardData.map((card, key) => (
-                    <div key={key} onClick={() => handleClassClick(card.class)}>
-                        <LevelCard
-                            image={card.image}
-                            classLevel={card.class}
-                            levelId={card.levelId}
+                    <div className="flex items-center gap-6">
+                        <SessionDropdown
+                            currentSession={currentSession ?? undefined} // Convert null to undefined
+                            onSessionChange={handleSessionChange}
+                            className="text-title font-semibold"
+                            sessionList={sessionList}
                         />
                     </div>
-                ))}
-            </div>
+
+                    <div className={`grid grid-cols-3 ${open ? "gap-4" : "gap-8"} justify-between`}>
+                        {LevelList.map((level, key) => (
+                            <div key={key}>
+                                <LevelCard level={level} />
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
         </div>
     );
 };

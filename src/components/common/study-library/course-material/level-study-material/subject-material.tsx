@@ -1,60 +1,59 @@
 // class-study-material.tsx
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { CaretLeft } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { AddSubjectButton } from "./subject-material/add-subject.tsx/add-subject-button";
 import { Subjects } from "./subject-material/add-subject.tsx/subjects";
 import { useState } from "react";
-import { SessionDropdown } from "../../study-library-session-dropdown";
+// import { SessionDropdown } from "../../study-library-session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
-import { getSessionNames } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getStudyLibrarySessions";
-import { useSessionSubjects } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getSessionSubjects";
-import { getPackageSessionIds } from "@/utils/helpers/study-library-helpers.ts/get-utilitites-from-stores/getLevelPackageSessionIds";
-import { SubjectType } from "@/stores/study-library/use-study-library-store";
+import {
+    StudyLibrarySessionType,
+    SubjectType,
+} from "@/stores/study-library/use-study-library-store";
 import { useAddSubject } from "@/services/study-library/subject-operations/addSubject";
 import { useUpdateSubject } from "@/services/study-library/subject-operations/updateSubject";
 import { useDeleteSubject } from "@/services/study-library/subject-operations/deleteSubject";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { getSessionsByLevel } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsByLevel";
+import { SessionDropdown } from "../../study-library-session-dropdown";
+import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
+import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
+import { getPackageSessionIdsByIds } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelPackageSessionIds";
 
-interface ClassStudyMaterialProps {
-    classNumber: string;
-}
+export const SubjectMaterial = () => {
+    const router = useRouter();
+    const searchParams = router.state.location.search;
 
-export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => {
-    const sessionList = getSessionNames();
-    const [currentSession, setCurrentSession] = useState(sessionList[0] || "");
-    const apiSubjects = useSessionSubjects(currentSession, classNumber);
+    // Extract params safely
+    const courseId: string | undefined = searchParams.courseId;
+    const levelId: string | undefined = searchParams.levelId;
+
+    // Define states before any conditions
+    const sessionList = courseId && levelId ? getSessionsByLevel(courseId, levelId) : [];
+    const initialSession: StudyLibrarySessionType | null = sessionList[0] ?? null;
+    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | null>(
+        initialSession,
+    );
     const [searchInput, setSearchInput] = useState("");
 
+    // Custom hooks (always called unconditionally)
     const addSubjectMutation = useAddSubject();
     const updateSubjectMutation = useUpdateSubject();
     const deleteSubjectMutation = useDeleteSubject();
 
-    const router = useRouter();
+    // Prevent rendering if required params are missing
+    if (!courseId || !levelId) {
+        return <p>Missing required parameters</p>;
+    }
 
-    const handleBackClick = () => {
-        router.navigate({
-            to: "/study-library",
-        });
+    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
+        if (typeof value !== "string" && value) {
+            setCurrentSession(value);
+        }
     };
 
-    const heading = (
-        <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${classNumber} Class Study Library`}</div>
-        </div>
-    );
+    const apiSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
 
-    const { setNavHeading } = useNavHeadingStore();
-
-    useEffect(() => {
-        setNavHeading(heading);
-    }, [classNumber]);
-
-    const handleSessionChange = (value: string) => {
-        setCurrentSession(value);
-    };
+    const classNumber = getLevelName(levelId);
 
     const mappedSubjects = apiSubjects.map((subject) => ({
         id: subject.id,
@@ -71,7 +70,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
     };
 
     const handleAddSubject = async (newSubject: SubjectType) => {
-        const packageSessionIds = getPackageSessionIds(classNumber, currentSession);
+        const packageSessionIds = getPackageSessionIdsByIds(levelId, currentSession?.id ?? "");
         if (packageSessionIds.length === 0) {
             console.error("No package session IDs found");
             return;
@@ -90,7 +89,7 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
     const handleEditSubject = (subjectId: string, updatedSubject: SubjectType) => {
         updateSubjectMutation.mutate({
             subjectId,
-            updatedSubject: updatedSubject,
+            updatedSubject,
         });
     };
 
@@ -99,11 +98,9 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
         deleteSubjectMutation.isPending ||
         updateSubjectMutation.isPending;
 
-    if (isLoading) {
-        return <DashboardLoader />;
-    }
-
-    return (
+    return isLoading ? (
+        <DashboardLoader />
+    ) : (
         <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
             <div className="flex items-center justify-between gap-80">
                 <div className="flex w-full flex-col gap-2">
@@ -120,9 +117,10 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
             </div>
             <div className="flex items-center gap-6">
                 <SessionDropdown
-                    currentSession={currentSession}
+                    currentSession={currentSession ?? undefined}
                     onSessionChange={handleSessionChange}
                     className="text-title font-semibold"
+                    sessionList={sessionList}
                 />
                 <SearchInput
                     searchInput={searchInput}
@@ -134,7 +132,6 @@ export const ClassStudyMaterial = ({ classNumber }: ClassStudyMaterialProps) => 
                 subjects={mappedSubjects}
                 onDeleteSubject={handleDeleteSubject}
                 onEditSubject={handleEditSubject}
-                classNumber={classNumber}
             />
         </div>
     );

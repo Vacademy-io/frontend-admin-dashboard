@@ -15,10 +15,9 @@ interface SubjectCardProps {
     subject: SubjectType;
     onDelete: () => void;
     onEdit: (updatedSubject: SubjectType) => void;
-    classNumber: string;
 }
 
-export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectCardProps) => {
+export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
     const { getPublicUrl } = useFileUpload();
@@ -36,12 +35,15 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
             return;
         }
 
-        const subjectRoute = subject.subject_name.toLowerCase().replace(/\s+/g, "-");
-        const formattedClassName = `${classNumber}-class-study-library`;
-
+        const currentPath = router.state.location.pathname;
+        const searchParams = router.state.location.search;
         router.navigate({
-            to: `/study-library/${formattedClassName}/${subjectRoute}`,
-            search: { subjectId: subject.id }, // Add subject ID to the URL search params
+            to: `${currentPath}/modules`,
+            search: {
+                courseId: searchParams.courseId,
+                levelId: searchParams.levelId,
+                subjectId: subject.id,
+            },
         });
     };
 
@@ -86,13 +88,11 @@ export const SubjectCard = ({ subject, onDelete, onEdit, classNumber }: SubjectC
                         src={imageUrl}
                         alt={subject.subject_name}
                         className={`${
-                            open ? "h-[150px] w-[150px]" : "h-[200px] w-[200px]"
+                            open ? "size-[150px]" : "size-[200px]"
                         } rounded-lg object-cover`}
                     />
                 ) : (
-                    <SubjectDefaultImage
-                        className={`${open ? "h-[150px] w-[150px]" : "h-[200px] w-[200px]"}`}
-                    />
+                    <SubjectDefaultImage className={`${open ? "size-[150px]" : "size-[200px]"}`} />
                 )}
                 <div className="flex items-center justify-between gap-5">
                     <div className="text-h2 font-semibold">{subject.subject_name}</div>

@@ -5,14 +5,15 @@ import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { closestCorners } from "@dnd-kit/core";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useEffect, useState } from "react";
-import { Module, ModulesWithChapters } from "@/types/study-library/modules-with-chapters";
+import {
+    Module,
+    ModulesWithChapters,
+} from "@/stores/study-library/use-modules-with-chapters-store";
 
 interface ModulesProps {
     modules: ModulesWithChapters[] | null;
     onDeleteModule: (module: Module) => void;
     onEditModule: (updatedModule: Module) => void;
-    classNumber: string;
-    subject: string;
     onOrderChange?: (
         updatedOrder: { module_id: string; subject_id: string; module_order: number }[],
     ) => void;
@@ -23,9 +24,7 @@ export const Modules = ({
     modules: initialModules,
     onDeleteModule,
     onEditModule,
-    classNumber,
     onOrderChange,
-    subject,
     isLoading = false,
 }: ModulesProps) => {
     const [modules, setModules] = useState<ModulesWithChapters[] | null>(initialModules);
@@ -87,8 +86,6 @@ export const Modules = ({
                                     module={moduleWithChapters.module}
                                     onDelete={() => onDeleteModule(moduleWithChapters.module)}
                                     onEdit={(updatedModule) => onEditModule(updatedModule)}
-                                    classNumber={classNumber}
-                                    subject={subject}
                                 />
                             </div>
                         </SortableItem>

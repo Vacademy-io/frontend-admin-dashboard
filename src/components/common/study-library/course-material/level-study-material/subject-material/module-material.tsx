@@ -1,25 +1,18 @@
-// subject-material.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AddModulesButton } from "./module-material/add-modules.tsx/add-modules-button";
 import { Modules } from "./module-material/add-modules.tsx/modules";
-import { Module } from "@/types/study-library/modules-with-chapters";
+import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useRouter } from "@tanstack/react-router";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { CaretLeft } from "@phosphor-icons/react";
-import { formatClassName } from "@/lib/study-library/class-formatter";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useAddModule } from "@/services/study-library/module-operations/add-module";
 import { useUpdateModule } from "@/services/study-library/module-operations/update-module";
 import { useDeleteModule } from "@/services/study-library/module-operations/delete-module";
-interface SubjectModulesProps {
-    classNumber: string | undefined;
-    subject: string;
-    subjectId: string;
-}
+import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
+import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 
-export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModulesProps) => {
+export const ModuleMaterial = () => {
     const router = useRouter();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
 
@@ -29,12 +22,22 @@ export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModu
 
     const [searchInput, setSearchInput] = useState("");
 
+    const { courseId, subjectId, levelId } = router.state.location.search;
+
+    // Ensure courseId, subjectId, and levelId exist before proceeding
+    if (!courseId) return <>Course Not found</>;
+    if (!subjectId) return <>Subject Not found</>;
+    if (!levelId) return <>Level Not found</>;
+
+    const subject = getSubjectName(subjectId);
+    const levelName = getLevelName(levelId);
+
     const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
     };
 
     const handleAddModule = (module: Module) => {
-        addModuleMutation.mutate({ subjectId: subjectId, module: module });
+        addModuleMutation.mutate({ subjectId, module });
     };
 
     const handleDeleteModule = (module: Module) => {
@@ -45,31 +48,10 @@ export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModu
         updateModuleMutation.mutate({ moduleId: updatedModule.id, module: updatedModule });
     };
 
-    const formattedClass = formatClassName(classNumber);
-
-    const handleBackClick = () => {
-        router.navigate({
-            to: `/study-library/${formattedClass.toLowerCase()}-class-study-library`,
-        });
-    };
-
-    const heading = (
-        <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${formattedClass} Class ${subject}`}</div>
-        </div>
-    );
-
-    const { setNavHeading } = useNavHeadingStore();
-
     const isLoading =
         addModuleMutation.isPending ||
         deleteModuleMutation.isPending ||
         updateModuleMutation.isPending;
-
-    useEffect(() => {
-        setNavHeading(heading);
-    }, []);
 
     return (
         <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
@@ -77,7 +59,7 @@ export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModu
                 <div className="flex w-full flex-col gap-2">
                     <div className="text-h3 font-semibold">Manage Your Modules</div>
                     <div className="text-subtitle">
-                        Explore and manage modules for {formattedClass} Class {subject}. Click on a
+                        Explore and manage modules for {levelName} Class {subject}. Click on a
                         module to view and organize chapters, eBooks, and video lectures, or add new
                         resources to expand your study materials.
                     </div>
@@ -96,8 +78,6 @@ export const SubjectMaterial = ({ classNumber, subject, subjectId }: SubjectModu
                 modules={modulesWithChaptersData}
                 onDeleteModule={handleDeleteModule}
                 onEditModule={handleEditModule}
-                classNumber={classNumber || ""}
-                subject={subject}
                 isLoading={isLoading}
             />
         </div>
