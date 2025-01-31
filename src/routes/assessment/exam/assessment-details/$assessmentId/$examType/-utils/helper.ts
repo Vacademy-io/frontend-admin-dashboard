@@ -13,6 +13,7 @@ import {
     assessmentStatusStudentQuestionResponseExternal,
     assessmentStatusStudentQuestionResponseInternal,
 } from "./student-columns";
+import { Section } from "@/types/assessment-data-type";
 
 interface StudentLeaderboardEntry {
     userId: string;
@@ -277,4 +278,195 @@ export function calculateAveragePenalty(questions: Question[]): number {
 export function parseHtmlToString(html: string) {
     const doc = new DOMParser().parseFromString(html, "text/html");
     return doc.body.textContent || doc.body.innerText || "";
+}
+
+interface QuestionText {
+    id: string;
+    type: "HTML" | string;
+    content: string;
+}
+
+interface ExplanationText {
+    id: string | null;
+    type: string | null;
+    content: string | null;
+}
+
+interface Option {
+    id: string;
+    preview_id: string | null;
+    question_id: string;
+    text: QuestionText;
+    media_id: string | null;
+    option_order: number | null;
+    created_on: string;
+    updated_on: string;
+    explanation_text: ExplanationText;
+}
+
+interface Question {
+    question_id: string;
+    parent_rich_text: string | null;
+    question: QuestionText;
+    section_id: string;
+    question_duration: number;
+    question_order: number;
+    marking_json: string;
+    evaluation_json: string;
+    question_type: string;
+    options: Option[];
+    options_with_explanation: Option[];
+}
+
+interface QuestionsData {
+    [sectionId: string]: Question[];
+}
+
+export function transformSectionsAndQuestionsData(
+    sectionsData: Section[],
+    questionsData: QuestionsData,
+) {
+    if (!sectionsData) return [];
+    return sectionsData.map((section) => ({
+        sectionId: section.id,
+        sectionName: section.name,
+        questions: (questionsData[section.id] || []).map((question) => {
+            const markingJson = question.marking_json
+                ? JSON.parse(question.marking_json)
+                : { type: "MCQS", data: {} };
+
+            const evaluationJson = question.evaluation_json
+                ? JSON.parse(question.evaluation_json)
+                : { type: "MCQM", data: { correctOptionIds: [] } };
+
+            const correctOptionIds = evaluationJson.data.correctOptionIds || [];
+
+            return {
+                questionId: question.question_id,
+                questionName: question.question.content,
+                explanation: "",
+                questionType: markingJson.type || "MCQS",
+                questionMark: markingJson.data.totalMark,
+                imageDetails: [],
+                singleChoiceOptions:
+                    markingJson.type === "MCQS"
+                        ? question.options_with_explanation.map((option) => ({
+                              name: option.text.content,
+                              isSelected: correctOptionIds.includes(option.id),
+                              image: {
+                                  imageId: "",
+                                  imageName: "",
+                                  imageTitle: "",
+                                  imageFile: "",
+                                  isDeleted: false,
+                              },
+                          }))
+                        : [
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                          ],
+                multipleChoiceOptions:
+                    markingJson.type === "MCQM"
+                        ? question.options_with_explanation.map((option) => ({
+                              name: option.text.content,
+                              isSelected: correctOptionIds.includes(option.id),
+                              image: {
+                                  imageId: "",
+                                  imageName: "",
+                                  imageTitle: "",
+                                  imageFile: "",
+                                  isDeleted: false,
+                              },
+                          }))
+                        : [
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                          ],
+            };
+        }),
+    }));
 }

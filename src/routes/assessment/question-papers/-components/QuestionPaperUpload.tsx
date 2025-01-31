@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { z } from "zod";
-import { FormProvider, UseFormReturn } from "react-hook-form";
+import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import SelectField from "@/components/design-system/select-field";
 import { UploadFileBg } from "@/svgs";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
@@ -31,10 +31,11 @@ import {
 import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
-import { useUploadQuestionPaperForm } from "../-utils/question-paper-form";
 import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
-export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
+import { zodResolver } from "@hookform/resolvers/zod";
 
+export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
+export type UploadQuestionPaperFormType = z.infer<typeof uploadQuestionPaperFormSchema>;
 interface QuestionPaperUploadProps {
     isManualCreated: boolean;
     index?: number;
@@ -52,7 +53,125 @@ export const QuestionPaperUpload = ({
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const form = useUploadQuestionPaperForm();
+    const form = useForm<UploadQuestionPaperFormType>({
+        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        mode: "onChange",
+        defaultValues: {
+            questionPaperId: "1",
+            isFavourite: false,
+            title: "",
+            createdOn: new Date(),
+            yearClass: "",
+            subject: "",
+            questionsType: "",
+            optionsType: "",
+            answersType: "",
+            explanationsType: "",
+            fileUpload: undefined,
+            questions: [
+                {
+                    questionId: "1",
+                    questionName: "",
+                    explanation: "",
+                    questionType: "MCQS",
+                    questionMark: "",
+                    imageDetails: [],
+                    singleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: true,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                    ],
+                    multipleChoiceOptions: [
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                        {
+                            name: "",
+                            isSelected: false,
+                            image: {
+                                imageId: "",
+                                imageName: "",
+                                imageTitle: "",
+                                imageFile: "",
+                                isDeleted: false,
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+    });
     const { getValues, setValue, watch } = form;
 
     const questionPaperId = getValues("questionPaperId");

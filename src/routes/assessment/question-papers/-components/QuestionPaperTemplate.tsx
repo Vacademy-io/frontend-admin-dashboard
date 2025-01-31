@@ -54,9 +54,6 @@ export function QuestionPaperTemplate({
     );
 
     watch(`questions.${currentQuestionIndex}`);
-    watch(`questions.${currentQuestionIndex}`);
-    watch(`questions.${currentQuestionIndex}`);
-    watch(`questions.${currentQuestionIndex}`);
     watch(`questions.${currentQuestionIndex}.questionType`);
 
     // UseFieldArray to manage questions array

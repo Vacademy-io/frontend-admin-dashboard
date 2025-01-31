@@ -47,6 +47,7 @@ export const getAssessmentDetails = ({
         queryKey: ["GET_ASSESSMENT_DETAILS", assessmentId, instituteId, type],
         queryFn: () => getAssessmentDetailsData({ assessmentId, instituteId, type }),
         staleTime: 60 * 60 * 1000,
+        enabled: !!assessmentId,
     };
 };
 
@@ -55,7 +56,7 @@ export const getQuestionsDataForStep2 = async ({
     sectionIds,
 }: {
     assessmentId: string;
-    sectionIds: string;
+    sectionIds: string | undefined;
 }) => {
     const response = await authenticatedAxiosInstance({
         method: "GET",
@@ -73,7 +74,7 @@ export const getQuestionDataForSection = ({
     sectionIds,
 }: {
     assessmentId: string;
-    sectionIds: string;
+    sectionIds: string | undefined;
 }) => {
     return {
         queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS", assessmentId, sectionIds],
@@ -144,8 +145,6 @@ export const handlePostStep2Data = async (
 ) => {
     const convertedOldData = convertStep2Data(oldData);
     const convertedNewData = convertStep2Data(data);
-    console.log("convertedOldData", convertedOldData);
-    console.log("convertedNewData", convertedNewData);
     const classifiedSections = classifySections(convertedOldData, convertedNewData);
     const convertedData = {
         added_sections: classifiedSections.added_sections,

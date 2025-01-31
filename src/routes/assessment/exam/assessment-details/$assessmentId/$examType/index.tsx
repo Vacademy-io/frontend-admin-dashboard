@@ -20,6 +20,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import AssessmentPreview from "./-components/AssessmentPreview";
 
 export const Route = createFileRoute(
     "/assessment/exam/assessment-details/$assessmentId/$examType/",
@@ -140,14 +142,21 @@ const AssessmentDetailsComponent = () => {
                             {assessmentDetails?.[0]?.status}
                         </Badge>
                     </div>
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="secondary"
-                        className="font-medium"
-                    >
-                        Preview Assessment
-                    </MyButton>
+                    <Dialog>
+                        <DialogTrigger>
+                            <MyButton
+                                type="button"
+                                scale="large"
+                                buttonType="secondary"
+                                className="font-medium"
+                            >
+                                Preview Assessment
+                            </MyButton>
+                        </DialogTrigger>
+                        <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                            <AssessmentPreview />
+                        </DialogContent>
+                    </Dialog>
                 </div>
                 <Separator className="mt-4" />
                 <Tabs value={selectedTab} onValueChange={setSelectedTab}>
