@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LevelCard } from "./level-card";
 import { useRouter } from "@tanstack/react-router";
 import { SessionDropdown } from "../../study-library-session-dropdown";
@@ -12,15 +11,10 @@ import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-li
 import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
 
 export const LevelPage = () => {
-    const { setNavHeading } = useNavHeadingStore();
     const { open } = useSidebar();
     const router = useRouter();
     const searchParams = router.state.location.search;
     const courseId = searchParams.courseId;
-
-    useEffect(() => {
-        setNavHeading("Study Library");
-    }, []);
 
     // Ensure hooks always run
     const sessionList = courseId ? getCourseSessions(courseId) : [];
