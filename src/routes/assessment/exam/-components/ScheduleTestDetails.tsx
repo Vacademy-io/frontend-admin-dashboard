@@ -1,4 +1,4 @@
-import { TestContent } from "@/types/schedule-test-list";
+import { TestContent } from "@/types/assessments/schedule-test-list";
 import { MyButton } from "@/components/design-system/button";
 import { Badge } from "@/components/ui/badge";
 import { ReverseProgressBar } from "@/components/ui/progress";

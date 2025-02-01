@@ -10,7 +10,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { MyFilterOption, MyFilterProps } from "@/types/my-filter";
+import { MyFilterOption, MyFilterProps } from "@/types/assessments/my-filter";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { PlusCircle } from "phosphor-react";
 

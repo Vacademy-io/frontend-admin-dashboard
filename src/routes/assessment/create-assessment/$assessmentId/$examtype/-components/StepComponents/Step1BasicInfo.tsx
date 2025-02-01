@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
-import { StepContentProps } from "@/types/step-content-props";
+import { StepContentProps } from "@/types/assessments/step-content-props";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";

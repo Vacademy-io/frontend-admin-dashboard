@@ -9,7 +9,7 @@ import {
     ResponseQuestionList,
     ResponseQuestionListClose,
     ResponseQuestionListOpen,
-} from "@/types/assessment-overview";
+} from "@/types/assessments/assessment-overview";
 import {
     // getAllColumnsForTable,
     getAssessmentFilteredDataForAssessmentStatus,

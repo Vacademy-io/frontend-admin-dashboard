@@ -2,7 +2,7 @@ import {
     ResponseQuestionList,
     ResponseQuestionListClose,
     ResponseQuestionListOpen,
-} from "@/types/assessment-overview";
+} from "@/types/assessments/assessment-overview";
 import {
     assessmentStatusStudentAttemptedColumnsExternal,
     assessmentStatusStudentAttemptedColumnsInternal,

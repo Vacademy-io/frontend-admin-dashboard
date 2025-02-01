@@ -1,7 +1,7 @@
-import { Steps } from "@/types/assessment-data-type";
-import { BatchData } from "@/types/batch-details";
+import { Steps } from "@/types/assessments/assessment-data-type";
+import { BatchData } from "@/types/assessments/batch-details";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
-import { AdaptiveMarkingQuestion } from "@/types/basic-details-type";
+import { AdaptiveMarkingQuestion } from "@/types/assessments/basic-details-type";
 import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questions";
 import { UseFormReturn } from "react-hook-form";
 import { useTestAccessStore } from "./zustand-global-states/step3-adding-participants";
@@ -11,7 +11,7 @@ import {
     BasicSectionFormType,
     SectionFormType,
     TestAccessFormType,
-} from "@/types/assessment-steps";
+} from "@/types/assessments/assessment-steps";
 import { z } from "zod";
 import sectionDetailsSchema from "./section-details-schema";
 

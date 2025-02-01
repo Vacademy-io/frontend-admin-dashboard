@@ -9,6 +9,7 @@ interface ContentStore {
     // setActiveItem: (id: string | null) => void;
     setActiveItem: (item: SidebarContentItem) => void;
     removeItem: (id: string) => void;
+    reorderItems: (oldIndex: number, newIndex: number) => void;
 }
 export const useContentStore = create<ContentStore>((set) => ({
     items: [],
@@ -31,4 +32,26 @@ export const useContentStore = create<ContentStore>((set) => ({
             items: state.items.filter((item) => item.id !== id),
             activeItemId: state.activeItemId === id ? null : state.activeItemId,
         })),
+    reorderItems: (oldIndex: number, newIndex: number) =>
+        set((state) => {
+            if (
+                oldIndex < 0 ||
+                oldIndex >= state.items.length ||
+                newIndex < 0 ||
+                newIndex >= state.items.length
+            ) {
+                return state;
+            }
+
+            const newItems = [...state.items];
+            const movedItem: SidebarContentItem = newItems[oldIndex]!;
+            newItems.splice(oldIndex, 1);
+            newItems.splice(newIndex, 0, movedItem);
+
+            // Return both the updated items and maintain other state
+            return {
+                ...state,
+                items: newItems,
+            };
+        }),
 }));

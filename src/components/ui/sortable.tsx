@@ -120,6 +120,8 @@ interface SortableProps<TData extends { id: UniqueIdentifier }> extends DndConte
      * overlay={<Skeleton className="w-full h-8" />}
      */
     overlay?: React.ReactNode | null;
+
+    fast?: boolean;
 }
 
 function Sortable<TData extends { id: UniqueIdentifier }>({
@@ -132,6 +134,7 @@ function Sortable<TData extends { id: UniqueIdentifier }>({
     orientation = "vertical",
     overlay,
     children,
+    fast = true,
     ...props
 }: SortableProps<TData>) {
     const [activeId, setActiveId] = React.useState<UniqueIdentifier | null>(null);
@@ -168,7 +171,11 @@ function Sortable<TData extends { id: UniqueIdentifier }>({
             <SortableContext items={value} strategy={strategy ?? config.strategy}>
                 {children}
             </SortableContext>
-            {overlay ? <SortableOverlay activeId={activeId}>{overlay}</SortableOverlay> : null}
+            {overlay ? (
+                <SortableOverlay activeId={activeId} fast={fast}>
+                    {overlay}
+                </SortableOverlay>
+            ) : null}
         </DndContext>
     );
 }
@@ -185,14 +192,21 @@ const dropAnimationOpts: DropAnimation = {
 
 interface SortableOverlayProps extends React.ComponentPropsWithRef<typeof DragOverlay> {
     activeId?: UniqueIdentifier | null;
+    fast?: boolean;
 }
 
 const SortableOverlay = React.forwardRef<HTMLDivElement, SortableOverlayProps>(
-    ({ activeId, dropAnimation = dropAnimationOpts, children, ...props }, ref) => {
+    ({ activeId, dropAnimation = dropAnimationOpts, children, fast, ...props }, ref) => {
         return (
             <DragOverlay dropAnimation={dropAnimation} {...props}>
                 {activeId ? (
-                    <SortableItem ref={ref} value={activeId} className="cursor-grabbing" asChild>
+                    <SortableItem
+                        ref={ref}
+                        value={activeId}
+                        fast={fast}
+                        className="cursor-grabbing"
+                        asChild
+                    >
                         {children}
                     </SortableItem>
                 ) : null}
@@ -245,10 +259,12 @@ interface SortableItemProps extends SlotProps {
      * @type boolean | undefined
      */
     asChild?: boolean;
+
+    fast?: boolean;
 }
 
 const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
-    ({ value, asTrigger, asChild, className, ...props }, ref) => {
+    ({ value, asTrigger, asChild, className, fast, ...props }, ref) => {
         const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
             useSortable({ id: value });
 
@@ -263,10 +279,15 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
 
         // Modify the transform to double the speed in Y direction
         const modifiedTransform = transform
-            ? {
-                  ...transform,
-                  y: transform.y * 4, // Double the Y-axis translation
-              }
+            ? fast
+                ? {
+                      ...transform,
+                      y: transform.y * 4, // Double the Y-axis translation
+                  }
+                : {
+                      ...transform,
+                      y: transform.y,
+                  }
             : undefined;
 
         const style: React.CSSProperties = {

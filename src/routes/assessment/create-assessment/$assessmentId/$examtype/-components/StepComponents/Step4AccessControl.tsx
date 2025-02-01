@@ -1,4 +1,4 @@
-import { StepContentProps } from "@/types/step-content-props";
+import { StepContentProps } from "@/types/assessments/step-content-props";
 import React, { useEffect, useState } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";

@@ -4,7 +4,7 @@ import { PencilSimpleLine, Plus, TrashSimple } from "phosphor-react";
 import UploadImageDialogue from "./UploadImageDialogue";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { QuestionImagePreviewDialogueProps } from "@/types/question-image-preview";
+import { QuestionImagePreviewDialogueProps } from "@/types/assessments/question-image-preview";
 import { useQuestionStore } from "../-global-states/question-index";
 import { useQuestionImageStore } from "../-global-states/question-image-index";
 

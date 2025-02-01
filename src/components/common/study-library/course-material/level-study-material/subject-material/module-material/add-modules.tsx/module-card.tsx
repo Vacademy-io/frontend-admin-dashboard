@@ -1,0 +1,124 @@
+import { useRouter } from "@tanstack/react-router";
+import { DotsSixVertical } from "phosphor-react";
+import { useEffect, useState } from "react";
+import { MenuOptions } from "./module-menu-options";
+import { MyDialog } from "@/components/design-system/dialog";
+import { AddModulesForm } from "./add-modules-form";
+import { useSidebar } from "@/components/ui/sidebar";
+import { SortableDragHandle } from "@/components/ui/sortable";
+import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
+import { getPublicUrl } from "@/services/upload_file";
+
+interface ModuleCardProps {
+    module: Module;
+    onDelete: () => void;
+    onEdit: (updatedModule: Module) => void;
+}
+
+// Update the ModuleCard component
+export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const router = useRouter();
+    const { open } = useSidebar();
+    const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+
+    const handleCardClick = (e: React.MouseEvent) => {
+        if (
+            e.target instanceof Element &&
+            (e.target.closest(".drag-handle-container") ||
+                e.target.closest('[role="menu"]') ||
+                e.target.closest('[role="dialog"]'))
+        ) {
+            return;
+        }
+
+        const currentPath = router.state.location.pathname;
+        const searchParams = router.state.location.search;
+        router.navigate({
+            to: `${currentPath}/chapters`,
+            search: {
+                courseId: searchParams.courseId,
+                levelId: searchParams.levelId,
+                subjectId: searchParams.subjectId,
+                moduleId: module.id,
+            },
+        });
+    };
+
+    useEffect(() => {
+        const fetchImageUrl = async () => {
+            if (module.thumbnail_id) {
+                try {
+                    const url = await getPublicUrl(module.thumbnail_id);
+                    setImageUrl(url);
+                } catch (error) {
+                    console.error("Failed to fetch image URL:", error);
+                }
+            }
+        };
+
+        fetchImageUrl();
+    }, [module.thumbnail_id]);
+
+    return (
+        <div onClick={handleCardClick} className="cursor-pointer">
+            <div
+                className={`flex ${
+                    open ? "w-[370px]" : "w-[416px]"
+                } flex-col gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md`}
+            >
+                <div className="flex items-center justify-between text-h2 font-semibold">
+                    <div>{module.module_name}</div>
+                    <div className="drag-handle-container">
+                        <SortableDragHandle
+                            variant="ghost"
+                            size="icon"
+                            className="cursor-grab hover:bg-neutral-100"
+                            // onClick={(e) => e.stopPropagation()}
+                        >
+                            <DotsSixVertical className="size-6" />
+                        </SortableDragHandle>
+                    </div>
+                </div>
+
+                {imageUrl ? (
+                    <img
+                        src={imageUrl}
+                        alt={module.module_name}
+                        className="h-[300px] w-full rounded-lg object-cover"
+                    />
+                ) : (
+                    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-neutral-100">
+                        <span className="text-neutral-400">No Image</span>
+                    </div>
+                )}
+
+                <div className="flex gap-2 text-title font-semibold">
+                    <div className="text-primary-500">0</div>
+                    <div>Chapters</div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <div className="text-body text-neutral-500">{module.description}</div>
+                    <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
+                </div>
+            </div>
+
+            <MyDialog
+                trigger={<></>}
+                heading="Edit Module"
+                dialogWidth="w-[400px]"
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+            >
+                <AddModulesForm
+                    initialValues={module}
+                    onSubmitSuccess={(updatedModule) => {
+                        onEdit(updatedModule);
+                        setIsEditDialogOpen(false);
+                    }}
+                />
+            </MyDialog>
+        </div>
+    );
+};

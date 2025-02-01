@@ -1,0 +1,66 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { LayoutContainer } from "@/components/common/layout-container/layout-container";
+import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
+import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
+import { ModuleMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
+import { CaretLeft } from "phosphor-react";
+import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
+import { useEffect } from "react";
+
+interface SubjectSearchParams {
+    courseId: string;
+    levelId: string;
+    subjectId: string;
+}
+
+export const Route = createFileRoute("/study-library/courses/levels/subjects/modules/")({
+    component: RouteComponent,
+    validateSearch: (search: Record<string, unknown>): SubjectSearchParams => {
+        return {
+            courseId: search.courseId as string,
+            levelId: search.levelId as string,
+            subjectId: search.subjectId as string,
+        };
+    },
+});
+
+function RouteComponent() {
+    const searchParams = Route.useSearch();
+
+    const { setNavHeading } = useNavHeadingStore();
+    const navigate = useNavigate();
+    const { courseId, levelId, subjectId } = Route.useSearch();
+    const levelName = getLevelName(levelId);
+    const subject = getSubjectName(subjectId);
+
+    const handleBackClick = () => {
+        navigate({
+            to: "/study-library/courses/levels/subjects",
+            search: { courseId, levelId },
+        });
+    };
+
+    const heading = (
+        <div className="flex items-center gap-4">
+            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <div>{`${levelName} Class ${subject}`}</div>
+        </div>
+    );
+
+    // Ensure dependencies are complete
+    useEffect(() => {
+        setNavHeading(heading);
+    }, []);
+
+    return (
+        <LayoutContainer>
+            <InitStudyLibraryProvider>
+                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
+                    <ModuleMaterial />
+                </ModulesWithChaptersProvider>
+            </InitStudyLibraryProvider>
+        </LayoutContainer>
+    );
+}

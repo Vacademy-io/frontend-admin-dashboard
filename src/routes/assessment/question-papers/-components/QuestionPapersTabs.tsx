@@ -8,7 +8,7 @@ import { EmptyQuestionPapers } from "@/svgs";
 import { QuestionPapersList } from "./QuestionPapersList";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { FilterOption } from "@/types/question-paper-filter";
+import { FilterOption } from "@/types/assessments/question-paper-filter";
 import { MyButton } from "@/components/design-system/button";
 import { getQuestionPaperDataWithFilters } from "../-utils/question-paper-services";
 import { INSTITUTE_ID } from "@/constants/urls";
