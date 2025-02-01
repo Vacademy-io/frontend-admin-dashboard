@@ -1,13 +1,15 @@
-import { useForm } from "react-hook-form";
+import { ControllerRenderProps, useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
-import { useGetBatchNames } from "@/hooks/student-list-section/useFilters";
-import { BatchCheckboxGroup } from "./batches";
-import { organizeBatchesByClass } from "./utils/organize-batches";
 import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
+import {
+    GetLevelsWithPackages,
+    PackageSession,
+} from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelsWithPackages";
+
 interface CheckboxProps {
     checked?: boolean;
     indeterminate?: boolean;
@@ -33,12 +35,7 @@ export const MyCheckbox = ({ checked, indeterminate, onCheckedChange }: Checkbox
 // Form schema
 const formSchema = z.object({
     chapterName: z.string().min(1, "Chapter name is required"),
-    // studyLibraryVersion: z.string().min(1, "Study library version is required"),
-    visibility: z.object({
-        tenthClass: z.string().array(),
-        ninthClass: z.string().array(),
-        eighthClass: z.string().array(),
-    }),
+    visibility: z.record(z.string(), z.array(z.string())), // Dynamic fields for each level's packages
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -49,21 +46,37 @@ interface AddChapterFormProps {
 }
 
 export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFormProps) => {
-    const batches = useGetBatchNames();
-    const organizedBatches = organizeBatchesByClass(batches);
+    const levelsWithPackages = GetLevelsWithPackages();
+
+    const defaultVisibility = levelsWithPackages.reduce(
+        (acc, level) => {
+            acc[level.level.id] = [];
+            return acc;
+        },
+        {} as Record<string, string[]>,
+    );
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             chapterName: initialValues?.chapter.chapter_name || "",
-            // studyLibraryVersion: initialValues?.studyLibraryVersion || "Default",
-            visibility: {
-                tenthClass: [],
-                ninthClass: [],
-                eighthClass: [],
-            },
+            visibility: defaultVisibility,
         },
     });
+
+    const handleSelectAllForLevel = (
+        levelId: string,
+        packages: PackageSession[],
+        field: ControllerRenderProps<FormValues, `visibility.${string}`>,
+    ) => {
+        const allPackageIds = packages.map((pkg) => pkg.package_session_id);
+        const areAllSelected = packages.every(
+            (pkg) => field.value?.includes(pkg.package_session_id),
+        );
+
+        // If all are selected, unselect all. Otherwise, select all
+        field.onChange(areAllSelected ? [] : allPackageIds);
+    };
 
     const onSubmit = (data: FormValues) => {
         const newChapter: ChapterWithSlides = {
@@ -91,7 +104,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex w-full flex-col gap-6 text-neutral-600"
+                className="flex max-h-[80vh] w-full flex-col gap-6 overflow-y-auto p-6 text-neutral-600"
             >
                 <FormField
                     control={form.control}
@@ -103,7 +116,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
                                     label="Chapter Name"
                                     required={true}
                                     inputType="text"
-                                    className="w-[352px]"
+                                    className="w-full"
                                     input={field.value}
                                     onChangeFunction={(e) => field.onChange(e.target.value)}
                                 />
@@ -119,60 +132,79 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
                         batches will be able to view the content. You can update visibility at any
                         time.
                     </div>
-                    <div className="flex justify-between">
-                        {Object.entries(organizedBatches).map(([classLevel, classBatches]) => {
-                            const classKey = classLevel.toLowerCase().includes("10th")
-                                ? "tenthClass"
-                                : classLevel.toLowerCase().includes("9th")
-                                  ? "ninthClass"
-                                  : "eighthClass";
 
-                            return (
-                                <FormField
-                                    key={classLevel}
-                                    control={form.control}
-                                    name={`visibility.${classKey}`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <BatchCheckboxGroup
-                                                    classLevel={classLevel}
-                                                    batches={classBatches}
-                                                    selectedBatches={field.value}
-                                                    onChange={field.onChange}
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                            );
-                        })}
+                    <div className="grid grid-cols-3 gap-6">
+                        {levelsWithPackages.map((levelData) => (
+                            <FormField
+                                key={levelData.level.id}
+                                control={form.control}
+                                name={`visibility.${levelData.level.id}`}
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={levelData.package_sessions.every(
+                                                    (pkg) =>
+                                                        field.value?.includes(
+                                                            pkg.package_session_id,
+                                                        ),
+                                                )}
+                                                onChange={() =>
+                                                    handleSelectAllForLevel(
+                                                        levelData.level.id,
+                                                        levelData.package_sessions,
+                                                        field,
+                                                    )
+                                                }
+                                                className="h-4 w-4 rounded border-neutral-300"
+                                            />
+                                            <span className="font-semibold">
+                                                {levelData.level.level_name}
+                                            </span>
+                                        </div>
+                                        <FormControl>
+                                            <div className="flex flex-col gap-2 pl-6">
+                                                {levelData.package_sessions.map((pkg) => (
+                                                    <label
+                                                        key={pkg.package_session_id}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={field.value?.includes(
+                                                                pkg.package_session_id,
+                                                            )}
+                                                            onChange={(e) => {
+                                                                const newValue = e.target.checked
+                                                                    ? [
+                                                                          ...(field.value || []),
+                                                                          pkg.package_session_id,
+                                                                      ]
+                                                                    : field.value?.filter(
+                                                                          (id) =>
+                                                                              id !==
+                                                                              pkg.package_session_id,
+                                                                      );
+                                                                field.onChange(newValue);
+                                                            }}
+                                                            className="h-4 w-4 rounded border-neutral-300"
+                                                        />
+                                                        <span className="text-sm">
+                                                            {pkg.package_dto.package_name}
+                                                        </span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        ))}
                     </div>
                 </div>
 
-                {/* This will be used in case of Vacademy */}
-
-                {/* <FormField
-                    control={form.control}
-                    name="studyLibraryVersion"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                                <div>
-                                    <div className="mb-1">Study Library Version</div>
-                                    <MyDropdown
-                                        placeholder="Select Version"
-                                        currentValue={field.value}
-                                        dropdownList={studyLibraryVersions}
-                                        onSelect={field.onChange}
-                                    />
-                                </div>
-                            </FormControl>
-                        </FormItem>
-                    )}
-                /> */}
-
-                <div className="flex w-full items-center justify-end px-6 py-4">
+                <div className="sticky bottom-0 flex w-full items-center justify-end bg-white py-4">
                     <MyButton
                         type="submit"
                         buttonType="primary"

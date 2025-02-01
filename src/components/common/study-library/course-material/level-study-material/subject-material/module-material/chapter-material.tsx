@@ -1,11 +1,12 @@
 // module-material.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SessionDropdown } from "@/components/common/session-dropdown";
 import { AddChapterButton } from "./chapter-material/add-chapters/add-chapter-button";
 import { useForm } from "react-hook-form";
 import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
 import { getModuleById } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getModulesWithChaptersByModuleId";
 import { Chapters } from "./chapter-material/chapters";
+import { GetLevelsWithPackages } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelsWithPackages";
 
 export interface FormValues {
     chapters: ChapterWithSlides[];
@@ -43,6 +44,13 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
     const handleEditChapter = (index: number, updatedChapter: ChapterWithSlides) => {
         setChapters((prev) => prev.map((chapter, i) => (i === index ? updatedChapter : chapter)));
     };
+
+    // const levelWithPackages = levelsWithPackages;
+    const levelsWithPackages = GetLevelsWithPackages();
+
+    useEffect(() => {
+        console.log("levels with packages: ", levelsWithPackages);
+    }, []);
 
     return (
         <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
