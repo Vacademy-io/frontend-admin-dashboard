@@ -9,28 +9,9 @@ import {
     GetLevelsWithPackages,
     PackageSession,
 } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelsWithPackages";
-
-interface CheckboxProps {
-    checked?: boolean;
-    indeterminate?: boolean;
-    onCheckedChange?: (checked: boolean) => void;
-}
-
-export const MyCheckbox = ({ checked, indeterminate, onCheckedChange }: CheckboxProps) => {
-    return (
-        <input
-            type="checkbox"
-            checked={checked}
-            ref={(input) => {
-                if (input) {
-                    input.indeterminate = indeterminate || false;
-                }
-            }}
-            onChange={(e) => onCheckedChange?.(e.target.checked)}
-            className="text-primary-600 h-4 w-4 rounded border-neutral-300 bg-primary-500"
-        />
-    );
-};
+import { useAddChapter } from "@/services/study-library/chapter-operations/add-chapter";
+import { useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 // Form schema
 const formSchema = z.object({
@@ -46,8 +27,12 @@ interface AddChapterFormProps {
 }
 
 export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFormProps) => {
+    const router = useRouter();
+    const { moduleId } = router.state.location.search;
+    const addChapterMutation = useAddChapter();
     const levelsWithPackages = GetLevelsWithPackages();
 
+    // Create default visibility object based on available levels
     const defaultVisibility = levelsWithPackages.reduce(
         (acc, level) => {
             acc[level.level.id] = [];
@@ -64,6 +49,8 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
         },
     });
 
+    if (!moduleId) return <p>Module not found</p>;
+
     const handleSelectAllForLevel = (
         levelId: string,
         packages: PackageSession[],
@@ -78,27 +65,52 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
         field.onChange(areAllSelected ? [] : allPackageIds);
     };
 
-    const onSubmit = (data: FormValues) => {
-        const newChapter: ChapterWithSlides = {
-            chapter: {
+    const onSubmit = async (data: FormValues) => {
+        try {
+            // Get all selected package session IDs and join them with commas
+            const selectedPackageSessionIds = Object.values(data.visibility).flat().join(",");
+
+            // If no packages are selected, show an error
+            if (!selectedPackageSessionIds) {
+                toast.error("Please select at least one package for visibility");
+                return;
+            }
+
+            const newChapter = {
                 id: crypto.randomUUID(),
                 chapter_name: data.chapterName,
                 status: "true",
                 file_id: "",
-                description: "",
+                description: "Click to view and access eBooks and video lectures for this chapter.",
                 chapter_order: 0,
-            },
-            slides_count: {
-                video_count: 0,
-                pdf_count: 0,
-                doc_count: 0,
-                unknown_count: 0,
-            },
-        };
-        onSubmitSuccess(newChapter);
-    };
+            };
 
-    // const studyLibraryVersions = ["Default", "Version 1", "Version 2"];
+            // Call the API to add the chapter
+            await addChapterMutation.mutateAsync({
+                moduleId,
+                commaSeparatedPackageSessionIds: selectedPackageSessionIds,
+                chapter: newChapter,
+            });
+
+            // Create the full chapter object with slides count
+            const newChapterWithSlides: ChapterWithSlides = {
+                chapter: newChapter,
+                slides_count: {
+                    video_count: 0,
+                    pdf_count: 0,
+                    doc_count: 0,
+                    unknown_count: 0,
+                },
+            };
+
+            // Call the success callback with the new chapter
+            onSubmitSuccess(newChapterWithSlides);
+            toast.success("Chapter added successfully");
+        } catch (error) {
+            console.error("Error adding chapter:", error);
+            toast.error("Failed to add chapter. Please try again.");
+        }
+    };
 
     return (
         <Form {...form}>
@@ -211,8 +223,9 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
                         scale="large"
                         layoutVariant="default"
                         className="w-fit"
+                        disabled={addChapterMutation.isPending}
                     >
-                        Save
+                        {addChapterMutation.isPending ? "Saving..." : "Save"}
                     </MyButton>
                 </div>
             </form>

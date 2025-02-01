@@ -6,25 +6,22 @@ import { useForm } from "react-hook-form";
 import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
 import { getModuleById } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getModulesWithChaptersByModuleId";
 import { Chapters } from "./chapter-material/chapters";
-import { GetLevelsWithPackages } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelsWithPackages";
+import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
 
 export interface FormValues {
     chapters: ChapterWithSlides[];
 }
 
 export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }) => {
-    const isChapterLoading = false;
+    const [isChapterLoading, setIsChapterLoading] = useState(true);
+    const moduleWithChapters = getModuleById(currentModuleId);
+    const existingChapters = getChaptersByModuleId(currentModuleId) || [];
 
     const form = useForm<FormValues>({
         defaultValues: {
-            chapters: [] as ChapterWithSlides[],
+            chapters: existingChapters,
         },
     });
-
-    const moduleWithChapters = getModuleById(currentModuleId);
-
-    const [chapters, setChapters] = useState<ChapterWithSlides[]>([]);
-    console.log(chapters);
 
     const handleAddChapter = (chapter: ChapterWithSlides) => {
         const newChapter = {
@@ -37,20 +34,29 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         };
         form.setValue("chapters", [...form.getValues("chapters"), newChapter]);
     };
+
     const handleDeleteChapter = (index: number) => {
-        setChapters((prev) => prev.filter((_, i) => i !== index));
+        const currentChapters = form.getValues("chapters");
+        form.setValue(
+            "chapters",
+            currentChapters.filter((_, i) => i !== index),
+        );
     };
 
     const handleEditChapter = (index: number, updatedChapter: ChapterWithSlides) => {
-        setChapters((prev) => prev.map((chapter, i) => (i === index ? updatedChapter : chapter)));
+        const currentChapters = form.getValues("chapters");
+        form.setValue(
+            "chapters",
+            currentChapters.map((chapter, i) => (i === index ? updatedChapter : chapter)),
+        );
     };
 
-    // const levelWithPackages = levelsWithPackages;
-    const levelsWithPackages = GetLevelsWithPackages();
-
     useEffect(() => {
-        console.log("levels with packages: ", levelsWithPackages);
-    }, []);
+        if (existingChapters) {
+            form.reset({ chapters: existingChapters });
+            setIsChapterLoading(false);
+        }
+    }, [existingChapters, form]);
 
     return (
         <div className="flex h-full w-full flex-col gap-8 text-neutral-600">

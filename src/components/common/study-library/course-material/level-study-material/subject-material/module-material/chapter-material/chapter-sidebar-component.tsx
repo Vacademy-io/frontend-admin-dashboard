@@ -62,7 +62,7 @@ export const ChapterSidebarComponent = ({
                         className={`flex w-full items-center gap-3 rounded-lg ${
                             moduleWithChapters.module.id == currentModuleId
                                 ? "border border-neutral-300 bg-white text-primary-500"
-                                : "border-none bg-none text-neutral-500"
+                                : "bg-none text-neutral-500"
                         } px-4 py-2 hover:cursor-pointer hover:border hover:border-neutral-300 hover:bg-white hover:text-primary-500`}
                         onClick={() => {
                             setCurrentModuleId(moduleWithChapters.module.id);
