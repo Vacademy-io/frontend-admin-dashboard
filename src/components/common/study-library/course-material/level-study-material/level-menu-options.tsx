@@ -2,18 +2,18 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsThree } from "phosphor-react";
 
-interface CourseMenuOptionsProps {
+interface LevelMenuOptionsProps {
     onDelete: () => void;
     onEdit: () => void;
 }
 
-export const CourseMenuOptions = ({ onDelete, onEdit }: CourseMenuOptionsProps) => {
-    const DropdownList = ["Edit Course", "Delete Course"];
+export const LevelMenuOptions = ({ onDelete, onEdit }: LevelMenuOptionsProps) => {
+    const DropdownList = ["Edit Level", "Delete Level"];
 
     const handleMenuOptionsChange = (value: string) => {
-        if (value === "Delete Course") {
+        if (value === "Delete Level") {
             onDelete();
-        } else if (value === "Edit Course") {
+        } else if (value === "Edit Level") {
             onEdit();
         }
     };

@@ -33,6 +33,9 @@ export const LevelPage = () => {
         }
     };
 
+    const handleLeveLDelete = () => {};
+    const handleLevelEdit = () => {};
+
     return (
         <div className="relative flex flex-col gap-8 text-neutral-600">
             {!courseId ? (
@@ -71,7 +74,11 @@ export const LevelPage = () => {
                     <div className={`grid grid-cols-3 ${open ? "gap-4" : "gap-8"} justify-between`}>
                         {LevelList.map((level, key) => (
                             <div key={key}>
-                                <LevelCard level={level} />
+                                <LevelCard
+                                    level={level}
+                                    onDelete={handleLeveLDelete}
+                                    onEdit={handleLevelEdit}
+                                />
                             </div>
                         ))}
                     </div>
