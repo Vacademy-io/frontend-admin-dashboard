@@ -40,7 +40,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                 courseId: searchParams.courseId,
                 levelId: searchParams.levelId,
                 subjectId: searchParams.subjectId,
-                moduleId: searchParams.moduleId,
+                moduleId: module.id,
             },
         });
     };

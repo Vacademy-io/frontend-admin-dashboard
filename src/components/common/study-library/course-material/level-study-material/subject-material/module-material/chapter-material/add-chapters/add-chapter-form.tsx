@@ -4,11 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
-// import { MyDropdown } from "@/components/design-system/dropdown";
 import { useGetBatchNames } from "@/hooks/student-list-section/useFilters";
 import { BatchCheckboxGroup } from "./batches";
 import { organizeBatchesByClass } from "./utils/organize-batches";
-
+import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
 interface CheckboxProps {
     checked?: boolean;
     indeterminate?: boolean;
@@ -44,25 +43,9 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export interface ChapterType {
-    id: string;
-    name: string;
-    description: string;
-    // studyLibraryVersion: string;
-    visibility: {
-        tenthClass: string[];
-        ninthClass: string[];
-        eighthClass: string[];
-    };
-    resourceCount?: {
-        ebooks: number;
-        videos: number;
-    };
-}
-
 interface AddChapterFormProps {
-    initialValues?: ChapterType;
-    onSubmitSuccess: (chapter: ChapterType) => void;
+    initialValues?: ChapterWithSlides;
+    onSubmitSuccess: (chapter: ChapterWithSlides) => void;
 }
 
 export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFormProps) => {
@@ -72,23 +55,32 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            chapterName: initialValues?.name || "",
+            chapterName: initialValues?.chapter.chapter_name || "",
             // studyLibraryVersion: initialValues?.studyLibraryVersion || "Default",
             visibility: {
-                tenthClass: initialValues?.visibility.tenthClass || [],
-                ninthClass: initialValues?.visibility.ninthClass || [],
-                eighthClass: initialValues?.visibility.eighthClass || [],
+                tenthClass: [],
+                ninthClass: [],
+                eighthClass: [],
             },
         },
     });
 
     const onSubmit = (data: FormValues) => {
-        const newChapter = {
-            id: crypto.randomUUID(),
-            name: data.chapterName,
-            // studyLibraryVersion: data.studyLibraryVersion,
-            visibility: data.visibility,
-            description: "Click to view and access eBooks and video lectures for this chapter.", // Add default description
+        const newChapter: ChapterWithSlides = {
+            chapter: {
+                id: crypto.randomUUID(),
+                chapter_name: data.chapterName,
+                status: "true",
+                file_id: "",
+                description: "",
+                chapter_order: 0,
+            },
+            slides_count: {
+                video_count: 0,
+                pdf_count: 0,
+                doc_count: 0,
+                unknown_count: 0,
+            },
         };
         onSubmitSuccess(newChapter);
     };

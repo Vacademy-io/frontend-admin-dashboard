@@ -5,21 +5,12 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { FormValues } from "../chapter-material";
-
-export interface ChapterType {
-    id: string;
-    name: string;
-    description: string;
-    resourceCount?: {
-        ebooks: number;
-        videos: number;
-    };
-}
+import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
 
 interface ChaptersProps {
-    chapters?: ChapterType[];
+    chapters?: ChapterWithSlides[];
     onDeleteChapter?: (index: number) => void;
-    onEditChapter?: (index: number, updatedChapter: ChapterType) => void;
+    onEditChapter?: (index: number, updatedChapter: ChapterWithSlides) => void;
     onOrderChange?: (
         updatedOrder: {
             chapter_id: string;
@@ -33,7 +24,6 @@ interface ChaptersProps {
 }
 
 export const Chapters = ({
-    // chapters = [],
     onDeleteChapter = () => {},
     onEditChapter = () => {},
     onOrderChange,
@@ -55,8 +45,8 @@ export const Chapters = ({
 
         // Create order payload with the updated order
         const orderPayload = updatedFields.map((chapter, index) => ({
-            chapter_id: chapter.id,
-            chapter_name: chapter.name,
+            chapter_id: chapter.chapter.id,
+            chapter_name: chapter.chapter.chapter_name,
             package_session_id: "",
             chapter_order: index,
         }));
@@ -65,10 +55,6 @@ export const Chapters = ({
         // Call onOrderChange with the updated order
         onOrderChange?.(orderPayload);
     };
-
-    // useEffect(()=>{
-    //     setChapters(initialChapters)
-    // }, [initialChapters])
 
     if (isLoading) {
         return <DashboardLoader />;

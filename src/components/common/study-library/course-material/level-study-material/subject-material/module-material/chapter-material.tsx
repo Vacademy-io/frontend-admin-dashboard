@@ -1,61 +1,31 @@
 // module-material.tsx
-import { useEffect, useState } from "react";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { CaretLeft } from "@phosphor-icons/react";
-import { useRouter } from "@tanstack/react-router";
-import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
-import { formatClassName } from "@/lib/study-library/class-formatter";
+import { useState } from "react";
 import { SessionDropdown } from "@/components/common/session-dropdown";
-import { Chapters, ChapterType } from "./chapter-material/chapters";
 import { AddChapterButton } from "./chapter-material/add-chapters/add-chapter-button";
 import { useForm } from "react-hook-form";
-
-interface ModuleMaterialProps {
-    classNumber: string | undefined;
-    subject: string;
-    module: Module;
-}
+import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
+import { getModuleById } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getModulesWithChaptersByModuleId";
+import { Chapters } from "./chapter-material/chapters";
 
 export interface FormValues {
-    chapters: ChapterType[];
+    chapters: ChapterWithSlides[];
 }
 
-export const ChapterMaterial = ({ classNumber, subject, module }: ModuleMaterialProps) => {
-    const router = useRouter();
-    const { setNavHeading } = useNavHeadingStore();
-    // const [isChapterLoading, setIsChapterLoading] = useState(false);
+export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }) => {
     const isChapterLoading = false;
 
     const form = useForm<FormValues>({
         defaultValues: {
-            chapters: [] as ChapterType[],
+            chapters: [] as ChapterWithSlides[],
         },
     });
 
-    const formattedClass = formatClassName(classNumber);
+    const moduleWithChapters = getModuleById(currentModuleId);
 
-    const handleBackClick = () => {
-        const formattedSubject = subject.toLowerCase().replace(/\s+/g, "-");
-        router.navigate({
-            to: `/study-library/${formattedClass.toLowerCase()}-class-study-library/${formattedSubject}`,
-        });
-    };
-
-    const heading = (
-        <div className="flex items-center gap-4">
-            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${formattedClass} Class ${subject}`}</div>
-        </div>
-    );
-
-    useEffect(() => {
-        setNavHeading(heading);
-    }, []);
-
-    const [chapters, setChapters] = useState<ChapterType[]>([]);
+    const [chapters, setChapters] = useState<ChapterWithSlides[]>([]);
     console.log(chapters);
 
-    const handleAddChapter = (chapter: ChapterType) => {
+    const handleAddChapter = (chapter: ChapterWithSlides) => {
         const newChapter = {
             ...chapter,
             description: "Click to view and access eBooks and video lectures for this chapter.",
@@ -70,7 +40,7 @@ export const ChapterMaterial = ({ classNumber, subject, module }: ModuleMaterial
         setChapters((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleEditChapter = (index: number, updatedChapter: ChapterType) => {
+    const handleEditChapter = (index: number, updatedChapter: ChapterWithSlides) => {
         setChapters((prev) => prev.map((chapter, i) => (i === index ? updatedChapter : chapter)));
     };
 
@@ -79,8 +49,14 @@ export const ChapterMaterial = ({ classNumber, subject, module }: ModuleMaterial
             <div className="flex items-center justify-between gap-80">
                 <div className="flex items-center justify-between gap-80">
                     <div className="flex w-full flex-col gap-2">
-                        <div className="text-h3 font-semibold">{module.module_name}</div>
-                        <div className="text-subtitle">{module.description} </div>
+                        <p className="text-h3 font-semibold">
+                            {moduleWithChapters?.module.module_name}
+                        </p>
+                        <p className="text-subtitle">
+                            Explore and manage chapters for 10th Class Physics. Click on a chapter
+                            to view and access eBooks, video lectures, and study resources, or add
+                            new materials to enhance your learning experience.
+                        </p>
                     </div>
                     <AddChapterButton onAddChapter={handleAddChapter} />
                 </div>

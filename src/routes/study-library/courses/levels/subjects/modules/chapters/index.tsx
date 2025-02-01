@@ -1,15 +1,15 @@
 // routes/study-library/$class/$subject/$module/$chapter/index.tsx
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronRightIcon } from "@radix-ui/react-icons";
-import { useSidebar } from "@/components/ui/sidebar";
-import { truncateString } from "@/lib/reusable/truncateString";
 import { ChapterMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
-import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
+import { ChapterSidebarComponent } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/chapter-sidebar-component";
+import { useEffect, useState } from "react";
+import { CaretLeft } from "phosphor-react";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 
 interface ModulesSearchParams {
     courseId: string;
@@ -31,95 +31,74 @@ export const Route = createFileRoute("/study-library/courses/levels/subjects/mod
 });
 
 function RouteComponent() {
-    // const { class: className, subject, module: moduleName } = Route.useParams()
-
-    const searchParams = Route.useSearch();
-
-    //Sidebar component
-    const { open } = useSidebar();
-    const data = [
-        {
-            id: "M1",
-            name: "Live Session",
-        },
-    ];
     const navigate = useNavigate();
 
-    const handleSubjectRoute = () => {
+    const { courseId, levelId, subjectId, moduleId } = Route.useSearch();
+
+    const [currentModuleId, setCurrentModuleId] = useState(moduleId);
+
+    const { setNavHeading } = useNavHeadingStore();
+
+    useEffect(() => {
         navigate({
-            to: "..",
-            params: {},
+            to: "/study-library/courses/levels/subjects/modules/chapters",
             search: {
-                courseId: searchParams.courseId,
-                levelId: searchParams.levelId,
-                subjectId: searchParams.subjectId,
+                courseId,
+                levelId,
+                subjectId,
+                moduleId: currentModuleId,
             },
-            hash: "",
+            replace: true,
+        });
+    }, [currentModuleId, courseId, levelId, subjectId]);
+
+    // Module page heading
+    const levelName = getLevelName(levelId);
+    const subjectName = getSubjectName(subjectId);
+
+    const handleBackClick = () => {
+        navigate({
+            to: `/study-library/courses/levels/subjects/modules`,
+            search: {
+                courseId,
+                levelId,
+                subjectId,
+            },
         });
     };
 
-    const className = getLevelName(searchParams.levelId);
-    const subject = getSubjectName(searchParams.subjectId);
-    const moduleName = getModuleName(searchParams.moduleId);
-
-    const truncatedModule = truncateString(moduleName, 10);
-
-    const SidebarComponent = (
-        <div className={`flex w-full flex-col gap-6 ${open ? "px-10" : "px-6"}`}>
-            <div className="flex flex-wrap items-center gap-1 text-neutral-500">
-                <p
-                    className={`cursor-pointer ${open ? "visible" : "hidden"}`}
-                    onClick={handleSubjectRoute}
-                >
-                    {subject}
-                </p>
-                <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
-                <p className="cursor-pointer text-primary-500">
-                    {open ? moduleName : truncatedModule}
-                </p>
-            </div>
-            {data.map((obj, key) => (
-                <div
-                    key={key}
-                    className="flex w-full items-center gap-3 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-primary-500 hover:cursor-pointer hover:border hover:border-neutral-300 hover:bg-white hover:text-primary-500"
-                >
-                    <p className="text-h3 font-semibold">{obj.id}</p>
-                    <p className={`${open ? "visible" : "hidden"}`}>{obj.name}</p>
-                </div>
-            ))}
+    const heading = (
+        <div className="flex items-center gap-4">
+            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <div>{`${levelName} Class ${subjectName}`}</div>
         </div>
     );
 
-    // Module page heading
-    const classNumber = className.split("th-")[0];
-    const formattedSubject = subject
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+    useEffect(() => {
+        setNavHeading(heading);
+    }, []);
 
-    const formattedModuleName = moduleName
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-
-    const moduleData = {
-        id: "123",
-        module_name: formattedModuleName,
-        description:
-            "Explore and manage chapters for 10th Class Physics. Click on a chapter to view and access eBooks, video lectures, and study resources, or add new materials to enhance your learning experience.",
-        status: "",
-        thumbnail_id: "",
-    };
+    // const moduleData = {
+    //     id: "123",
+    //     module_name: ,
+    //     description:
+    //         "",
+    //     status: "",
+    //     thumbnail_id: "",
+    // };
 
     return (
-        <LayoutContainer sidebarComponent={SidebarComponent}>
+        <LayoutContainer
+            sidebarComponent={
+                <ChapterSidebarComponent
+                    currentModuleId={currentModuleId}
+                    setCurrentModuleId={setCurrentModuleId}
+                />
+            }
+        >
             <InitStudyLibraryProvider>
-                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
-                    <ChapterMaterial
-                        classNumber={classNumber}
-                        subject={formattedSubject}
-                        module={moduleData}
-                    />
+                <ModulesWithChaptersProvider subjectId={subjectId}>
+                    <ChapterMaterial currentModuleId={currentModuleId} />
                 </ModulesWithChaptersProvider>
             </InitStudyLibraryProvider>
         </LayoutContainer>

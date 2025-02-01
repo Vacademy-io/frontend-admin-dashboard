@@ -47,3 +47,7 @@ export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/stud
 export const ADD_MODULE = `${BASE_URL}/admin-core-service/subject/v1/add-module`;
 export const DELETE_MODULE = `${BASE_URL}/admin-core-service/subject/v1/delete-module`;
 export const UPDATE_MODULE = `${BASE_URL}/admin-core-service/subject/v1/update-module`;
+
+export const ADD_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/add-chapter`;
+export const DELETE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/delete-chapter`;
+export const UPDATE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/update-chapter`;
