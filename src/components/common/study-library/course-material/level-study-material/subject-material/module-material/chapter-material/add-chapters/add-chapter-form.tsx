@@ -12,11 +12,12 @@ import {
 import { useAddChapter } from "@/services/study-library/chapter-operations/add-chapter";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useUpdateChapter } from "@/services/study-library/chapter-operations/update-chapter";
 
 // Form schema
 const formSchema = z.object({
     chapterName: z.string().min(1, "Chapter name is required"),
-    visibility: z.record(z.string(), z.array(z.string())), // Dynamic fields for each level's packages
+    visibility: z.record(z.string(), z.array(z.string())),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -24,12 +25,14 @@ type FormValues = z.infer<typeof formSchema>;
 interface AddChapterFormProps {
     initialValues?: ChapterWithSlides;
     onSubmitSuccess: (chapter: ChapterWithSlides) => void;
+    mode: "create" | "edit";
 }
 
-export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFormProps) => {
+export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChapterFormProps) => {
     const router = useRouter();
     const { moduleId } = router.state.location.search;
     const addChapterMutation = useAddChapter();
+    const updateChapterMutation = useUpdateChapter();
     const levelsWithPackages = GetLevelsWithPackages();
 
     // Create default visibility object based on available levels
@@ -45,7 +48,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
         resolver: zodResolver(formSchema),
         defaultValues: {
             chapterName: initialValues?.chapter.chapter_name || "",
-            visibility: defaultVisibility,
+            visibility: defaultVisibility, // You'll need to map the initial visibility if available
         },
     });
 
@@ -60,57 +63,82 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
         const areAllSelected = packages.every(
             (pkg) => field.value?.includes(pkg.package_session_id),
         );
-
-        // If all are selected, unselect all. Otherwise, select all
         field.onChange(areAllSelected ? [] : allPackageIds);
     };
 
     const onSubmit = async (data: FormValues) => {
         try {
-            // Get all selected package session IDs and join them with commas
             const selectedPackageSessionIds = Object.values(data.visibility).flat().join(",");
 
-            // If no packages are selected, show an error
             if (!selectedPackageSessionIds) {
                 toast.error("Please select at least one package for visibility");
                 return;
             }
 
-            const newChapter = {
-                id: crypto.randomUUID(),
-                chapter_name: data.chapterName,
-                status: "true",
-                file_id: "",
-                description: "Click to view and access eBooks and video lectures for this chapter.",
-                chapter_order: 0,
-            };
+            let resultChapter: ChapterWithSlides;
 
-            // Call the API to add the chapter
-            await addChapterMutation.mutateAsync({
-                moduleId,
-                commaSeparatedPackageSessionIds: selectedPackageSessionIds,
-                chapter: newChapter,
-            });
+            if (mode === "create") {
+                const newChapter = {
+                    id: crypto.randomUUID(),
+                    chapter_name: data.chapterName,
+                    status: "true",
+                    file_id: "",
+                    description:
+                        "Click to view and access eBooks and video lectures for this chapter.",
+                    chapter_order: 0,
+                };
 
-            // Create the full chapter object with slides count
-            const newChapterWithSlides: ChapterWithSlides = {
-                chapter: newChapter,
-                slides_count: {
-                    video_count: 0,
-                    pdf_count: 0,
-                    doc_count: 0,
-                    unknown_count: 0,
-                },
-            };
+                await addChapterMutation.mutateAsync({
+                    moduleId,
+                    commaSeparatedPackageSessionIds: selectedPackageSessionIds,
+                    chapter: newChapter,
+                });
 
-            // Call the success callback with the new chapter
-            onSubmitSuccess(newChapterWithSlides);
-            toast.success("Chapter added successfully");
+                resultChapter = {
+                    chapter: newChapter,
+                    slides_count: {
+                        video_count: 0,
+                        pdf_count: 0,
+                        doc_count: 0,
+                        unknown_count: 0,
+                    },
+                };
+
+                toast.success("Chapter added successfully");
+            } else {
+                if (!initialValues) {
+                    toast.error("No chapter to update");
+                    return;
+                }
+
+                const updatedChapter = {
+                    ...initialValues.chapter,
+                    chapter_name: data.chapterName,
+                };
+
+                await updateChapterMutation.mutateAsync({
+                    chapterId: initialValues.chapter.id,
+                    commaSeparatedPackageSessionIds: selectedPackageSessionIds,
+                    chapter: updatedChapter,
+                });
+
+                resultChapter = {
+                    ...initialValues,
+                    chapter: updatedChapter,
+                };
+
+                toast.success("Chapter updated successfully");
+            }
+
+            onSubmitSuccess(resultChapter);
         } catch (error) {
-            console.error("Error adding chapter:", error);
-            toast.error("Failed to add chapter. Please try again.");
+            console.error("Error handling chapter:", error);
+            toast.error(`Failed to ${mode} chapter. Please try again.`);
         }
     };
+
+    const isPending =
+        mode === "create" ? addChapterMutation.isPending : updateChapterMutation.isPending;
 
     return (
         <Form {...form}>
@@ -223,9 +251,13 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess }: AddChapterFor
                         scale="large"
                         layoutVariant="default"
                         className="w-fit"
-                        disabled={addChapterMutation.isPending}
+                        disabled={isPending}
                     >
-                        {addChapterMutation.isPending ? "Saving..." : "Save"}
+                        {isPending
+                            ? `${mode === "create" ? "Adding" : "Updating"}...`
+                            : mode === "create"
+                              ? "Add Chapter"
+                              : "Update Chapter"}
                     </MyButton>
                 </div>
             </form>

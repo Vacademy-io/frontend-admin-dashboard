@@ -3,8 +3,8 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { Dispatch, SetStateAction } from "react";
 
 interface CopyTo {
-    openDialog: "copy" | "move" | "delete" | null;
-    setOpenDialog: Dispatch<SetStateAction<"copy" | "move" | "delete" | null>>;
+    openDialog: "copy" | "move" | "delete" | "edit" | null;
+    setOpenDialog: Dispatch<SetStateAction<"copy" | "move" | "delete" | "edit" | null>>;
 }
 
 export const CopyToDialog = ({ openDialog, setOpenDialog }: CopyTo) => {

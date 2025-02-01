@@ -35,7 +35,7 @@ export const AddChapterButton = ({ onAddChapter }: AddChapterButtonProps) => {
             open={openDialog}
             onOpenChange={handleOpenChange}
         >
-            <AddChapterForm onSubmitSuccess={handleSubmitSuccess} />
+            <AddChapterForm onSubmitSuccess={handleSubmitSuccess} mode="create" />
         </MyDialog>
     );
 };

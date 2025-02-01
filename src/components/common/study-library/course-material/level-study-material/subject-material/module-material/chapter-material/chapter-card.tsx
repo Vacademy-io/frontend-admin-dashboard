@@ -12,7 +12,7 @@ interface ChapterCardProps {
     onEdit: (updatedChapter: ChapterWithSlides) => void;
 }
 
-export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
+export const ChapterCard = ({ chapter, onDelete, onEdit }: ChapterCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const router = useRouter();
@@ -50,7 +50,7 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
                 <div className="flex items-center justify-between text-subtitle font-semibold">
                     <div>{chapter.chapter.chapter_name}</div>
                     <div className="flex items-center gap-6">
-                        <ChapterMenuOptions onDelete={onDelete} />
+                        <ChapterMenuOptions chapter={chapter} onDelete={onDelete} onEdit={onEdit} />
                         <SortableDragHandle
                             variant="ghost"
                             size="icon"
