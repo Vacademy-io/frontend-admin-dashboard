@@ -16,7 +16,6 @@ import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
 export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
-    setCurrentQuestionIndex,
     currentQuestionImageIndex,
     setCurrentQuestionImageIndex,
     className,
@@ -25,21 +24,21 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     const { control, getValues, setValue } = form;
 
     const imageDetails = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
     );
-    const allQuestions = getValues(`${selectedSectionIndex}.questions`) || [];
+    const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
 
     const option1 = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}`,
     );
     const option2 = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}`,
     );
     const option3 = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}`,
     );
     const option4 = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}`,
     );
 
     const handleRemovePicture = (currentQuestionImageIndex: number) => {
@@ -50,26 +49,26 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
 
         // Update the value with the filtered array
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
             updatedImageDetails,
         );
     };
 
     const handleRemovePictureInOptions = (optionIndex: number) => {
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.isDeleted`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.isDeleted`,
             true,
         );
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageFile`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageFile`,
             "",
         );
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageName`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageName`,
             "",
         );
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageTitle`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageTitle`,
             "",
         );
     };
@@ -79,12 +78,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
 
         // Check current state of the selected option
         const isCurrentlySelected = getValues(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
         );
 
         options.forEach((option) => {
             setValue(
-                `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
+                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
                 option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
             );
         });
@@ -117,7 +116,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             </div>
                             <SelectField
                                 label="Question Type"
-                                name={`questions.${currentQuestionIndex}.questionType`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`}
                                 options={QUESTION_TYPES.map((option, index) => ({
                                     value: option,
                                     label: option,
@@ -129,7 +128,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             />
                             <CustomInput
                                 control={form.control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
                                 label="Marks"
                                 required
                             />
@@ -144,7 +143,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                 </span>
                 <FormField
                     control={control}
-                    name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.questionName`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionName`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
@@ -180,7 +179,6 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                         <QuestionImagePreviewDialogue
                                             form={form}
                                             currentQuestionIndex={currentQuestionIndex}
-                                            setCurrentQuestionIndex={setCurrentQuestionIndex}
                                             currentQuestionImageIndex={index}
                                             setCurrentQuestionImageIndex={
                                                 setCurrentQuestionImageIndex
@@ -189,6 +187,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             isUploadedAgain={true}
                                         />
                                         <Button
+                                            type="button"
                                             variant="outline"
                                             className="p-0 px-2"
                                             onClick={() => handleRemovePicture(index)}
@@ -204,11 +203,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     <QuestionImagePreviewDialogue
                         form={form}
                         currentQuestionIndex={currentQuestionIndex}
-                        setCurrentQuestionIndex={setCurrentQuestionIndex}
-                        currentQuestionImageIndex={currentQuestionIndex}
+                        currentQuestionImageIndex={currentQuestionImageIndex}
                         setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                         selectedSectionIndex={selectedSectionIndex}
-                        isUploadedAgain={true}
+                        isUploadedAgain={false}
                     />
                 )}
             </div>
@@ -245,6 +243,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                                 isUploadedAgain={true}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(0)}
@@ -257,7 +256,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -283,7 +282,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -332,6 +331,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                                 isUploadedAgain={true}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(1)}
@@ -344,7 +344,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -370,7 +370,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -421,6 +421,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                                 isUploadedAgain={true}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(2)}
@@ -433,7 +434,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -459,7 +460,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -508,6 +509,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                                 isUploadedAgain={true}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(3)}
@@ -520,7 +522,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -546,7 +548,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -572,7 +574,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                 <span>Explanation:</span>
                 <FormField
                     control={control}
-                    name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.explanation`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.explanation`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>

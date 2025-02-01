@@ -75,6 +75,11 @@ const AssessmentDetailsComponent = () => {
         });
     };
 
+    const [isPreviewAssessmentDialogOpen, setIsPreviewAssessmentDialogOpen] = useState(false);
+
+    const handleOpenDialog = () => setIsPreviewAssessmentDialogOpen(true);
+    const handleCloseDialog = () => setIsPreviewAssessmentDialogOpen(false);
+
     useEffect(() => {
         setNavHeading(heading);
     }, []);
@@ -142,19 +147,23 @@ const AssessmentDetailsComponent = () => {
                             {assessmentDetails?.[0]?.status}
                         </Badge>
                     </div>
-                    <Dialog>
+                    <Dialog
+                        open={isPreviewAssessmentDialogOpen}
+                        onOpenChange={setIsPreviewAssessmentDialogOpen}
+                    >
                         <DialogTrigger>
                             <MyButton
                                 type="button"
                                 scale="large"
                                 buttonType="secondary"
                                 className="font-medium"
+                                onClick={handleOpenDialog}
                             >
                                 Preview Assessment
                             </MyButton>
                         </DialogTrigger>
                         <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
-                            <AssessmentPreview />
+                            <AssessmentPreview handleCloseDialog={handleCloseDialog} />
                         </DialogContent>
                     </Dialog>
                 </div>

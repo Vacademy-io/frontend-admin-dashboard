@@ -9,7 +9,7 @@ export interface AssessmentQuestionImagePreviewDialogueProps {
     form: UseFormReturn<AssessmentQuestionFormSchemaType>; // Type for the form
     currentQuestionIndex: number;
     currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: React.Dispatch<React.SetStateAction<number>>; // Function to set the image index
+    setCurrentQuestionImageIndex: (index: number) => void; // Function to set the image index
     selectedSectionIndex: number;
     isUploadedAgain: boolean;
 }

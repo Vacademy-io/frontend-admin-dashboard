@@ -25,25 +25,25 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
     const imageDetails = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
     );
-    const allQuestions = getValues(`${selectedSectionIndex}.questions`) || [];
+    const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
     const option1 = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}`,
     );
     const option2 = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}`,
     );
     const option3 = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}`,
     );
     const option4 = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}`,
     );
 
     const handleDeleteSlide = () => {
         allQuestions.splice(currentQuestionIndex, 1);
-        setValue(`${selectedSectionIndex}.questions`, allQuestions);
+        setValue(`sections.${selectedSectionIndex}.questions`, allQuestions);
     };
 
     const handleDuplicateSlide = () => {
@@ -58,7 +58,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                 singleChoiceOptions: questionToDuplicate.singleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
-            setValue(`${selectedSectionIndex}.questions`, allQuestions);
+            setValue(`sections.${selectedSectionIndex}.questions`, allQuestions);
         }
     };
 
@@ -67,12 +67,12 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
 
         // Check current state of the selected option
         const isCurrentlySelected = getValues(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
         );
 
         options.forEach((option) => {
             setValue(
-                `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
+                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
                 option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
             );
         });
@@ -87,7 +87,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <FormField
                     control={control}
-                    name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.questionName`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionName`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
@@ -138,7 +138,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -171,7 +171,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -206,7 +206,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -239,7 +239,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>

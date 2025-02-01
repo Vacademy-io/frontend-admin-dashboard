@@ -119,6 +119,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                     duration: 2000,
                 });
                 handleCompleteCurrentStep();
+                queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
             }
         },
         onError: (error: unknown) => {

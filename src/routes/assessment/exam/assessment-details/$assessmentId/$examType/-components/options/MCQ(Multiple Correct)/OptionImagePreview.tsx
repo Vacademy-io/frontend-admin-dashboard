@@ -1,31 +1,35 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Image, TrashSimple } from "phosphor-react";
+import { Image, PencilSimpleLine, TrashSimple } from "phosphor-react";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { OptionImagePreviewDialogueProps } from "@/types/question-image-preview";
-import { useQuestionStore } from "../../../-global-states/question-index";
 import { OptionUploadImagePreview } from "./OptionUploadImagePreview";
+import { AssessmentOptionImagePreviewDialogueProps } from "@/types/assessment-image-preview";
 
-export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ form, option }) => {
-    const { currentQuestionIndex } = useQuestionStore();
+export const OptionImagePreview: React.FC<AssessmentOptionImagePreviewDialogueProps> = ({
+    form,
+    option,
+    selectedSectionIndex,
+    currentQuestionIndex,
+    isUploadedAgain,
+}) => {
     const { setValue, getValues } = form;
 
     const handleRemovePicture = () => {
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.isDeleted`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.isDeleted`,
             true,
         );
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
             "",
         );
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
             "",
         );
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageTitle`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageTitle`,
             "",
         );
     };
@@ -33,8 +37,12 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
     return (
         <Dialog>
             <DialogTrigger>
-                <Button variant="outline" className="px-2">
-                    <Image size={32} className="!size-5" />
+                <Button type="button" variant="outline" className="px-2">
+                    {isUploadedAgain ? (
+                        <PencilSimpleLine size={16} />
+                    ) : (
+                        <Image size={32} className="!size-5" />
+                    )}
                 </Button>
             </DialogTrigger>
             <DialogContent className="flex size-96 flex-col !gap-0 !p-0">
@@ -43,31 +51,32 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
                 </h1>
                 <div className="relative flex h-80 w-full items-center justify-center bg-black !p-0">
                     {getValues(
-                        `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
+                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
                     ) && (
                         <img
                             src={getValues(
-                                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
+                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
                             )}
                             alt="logo"
                             className="h-64 w-96"
                         />
                     )}
-
                     {!getValues(
-                        `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
+                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
                     ) && (
                         <OptionUploadImagePreview
                             form={form}
                             title="Upload Image"
                             option={option}
+                            currentQuestionIndex={currentQuestionIndex}
+                            selectedSectionIndex={selectedSectionIndex}
                         />
                     )}
                 </div>
                 <div className="flex gap-4 p-4">
                     <FormField
                         control={form.control}
-                        name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageTitle`}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageTitle`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -80,10 +89,19 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
                             </FormItem>
                         )}
                     />
-
-                    <OptionUploadImagePreview form={form} title="Change Image" option={option} />
-
-                    <Button variant="outline" className="p-0 px-3" onClick={handleRemovePicture}>
+                    <OptionUploadImagePreview
+                        form={form}
+                        title="Change Image"
+                        option={option}
+                        currentQuestionIndex={currentQuestionIndex}
+                        selectedSectionIndex={selectedSectionIndex}
+                    />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="p-0 px-3"
+                        onClick={handleRemovePicture}
+                    >
                         <TrashSimple size={32} className="text-red-500" />
                     </Button>
                 </div>

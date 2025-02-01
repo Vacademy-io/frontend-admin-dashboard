@@ -7,7 +7,6 @@ type sectionQuestionPaperForm = z.infer<typeof sectionsEditQuestionFormSchema>;
 export interface SectionQuestionPaperFormProps {
     form: UseFormReturn<sectionQuestionPaperForm>;
     currentQuestionIndex: number;
-    setCurrentQuestionIndex: (index: number) => void;
     currentQuestionImageIndex: number;
     setCurrentQuestionImageIndex: (index: number) => void;
     className: string;

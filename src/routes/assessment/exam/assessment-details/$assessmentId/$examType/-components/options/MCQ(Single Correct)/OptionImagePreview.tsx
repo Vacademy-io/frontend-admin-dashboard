@@ -17,19 +17,19 @@ export const OptionImagePreview: React.FC<AssessmentOptionImagePreviewDialoguePr
 
     const handleRemovePicture = () => {
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.isDeleted`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.isDeleted`,
             true,
         );
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
             "",
         );
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageName`,
             "",
         );
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageTitle`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageTitle`,
             "",
         );
     };
@@ -37,7 +37,7 @@ export const OptionImagePreview: React.FC<AssessmentOptionImagePreviewDialoguePr
     return (
         <Dialog>
             <DialogTrigger>
-                <Button variant="outline" className="px-2">
+                <Button type="button" variant="outline" className="px-2">
                     {isUploadedAgain ? (
                         <PencilSimpleLine size={16} />
                     ) : (
@@ -51,11 +51,11 @@ export const OptionImagePreview: React.FC<AssessmentOptionImagePreviewDialoguePr
                 </h1>
                 <div className="relative flex h-80 w-full items-center justify-center bg-black !p-0">
                     {getValues(
-                        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
                     ) && (
                         <img
                             src={getValues(
-                                `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
                             )}
                             alt="logo"
                             className="h-64 w-96"
@@ -63,7 +63,7 @@ export const OptionImagePreview: React.FC<AssessmentOptionImagePreviewDialoguePr
                     )}
 
                     {!getValues(
-                        `${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
+                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageFile`,
                     ) && (
                         <OptionUploadImagePreview
                             form={form}
@@ -77,7 +77,7 @@ export const OptionImagePreview: React.FC<AssessmentOptionImagePreviewDialoguePr
                 <div className="flex gap-4 p-4">
                     <FormField
                         control={form.control}
-                        name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageTitle`}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.imageTitle`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -99,7 +99,12 @@ export const OptionImagePreview: React.FC<AssessmentOptionImagePreviewDialoguePr
                         selectedSectionIndex={selectedSectionIndex}
                     />
 
-                    <Button variant="outline" className="p-0 px-3" onClick={handleRemovePicture}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="p-0 px-3"
+                        onClick={handleRemovePicture}
+                    >
                         <TrashSimple size={32} className="text-red-500" />
                     </Button>
                 </div>

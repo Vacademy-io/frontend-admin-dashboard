@@ -5,22 +5,22 @@ import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Check } from "phosphor-react";
 import { useRef } from "react";
-import { OptionImageDialogueProps } from "@/types/upload-image-dialogue";
-import { useQuestionStore } from "../../../-global-states/question-index";
+import { AssessmentOptionImageDialogueProps } from "@/types/assessment-upload-image-dialog";
 
-export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
+export const OptionUploadImagePreview: React.FC<AssessmentOptionImageDialogueProps> = ({
     form,
     title,
     triggerButton,
     option,
+    currentQuestionIndex,
+    selectedSectionIndex,
 }) => {
-    const { currentQuestionIndex } = useQuestionStore();
     const { getValues, setValue } = form;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const handleFileSubmit = (file: File) => {
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
             file.name,
         );
 
@@ -28,7 +28,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
         const imageUrl = URL.createObjectURL(file);
 
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
             imageUrl,
         );
     };
@@ -42,7 +42,13 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
     return (
         <Dialog>
             <DialogTrigger>
-                {triggerButton ? triggerButton : <Button variant="outline">{title}</Button>}
+                {triggerButton ? (
+                    triggerButton
+                ) : (
+                    <Button type="button" variant="outline">
+                        {title}
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="flex flex-col gap-2 p-0">
                 <h1 className="rounded-md bg-primary-100 p-4 font-bold text-primary-500">
@@ -51,7 +57,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                 <div className="flex items-center gap-4 px-8 py-4">
                     <FormField
                         control={form.control}
-                        name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -65,10 +71,11 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                         )}
                     />
                     <Button
+                        type="button"
                         className="bg-primary-500 p-3"
                         disabled={
                             !getValues(
-                                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
+                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
                             )
                         }
                     >
@@ -79,13 +86,13 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                     <h1>OR</h1>
                 </div>
                 <div className="mb-2 py-3 text-center">
-                    <Button variant="outline" onClick={handleFileSelect}>
+                    <Button type="button" variant="outline" onClick={handleFileSelect}>
                         Upload From Device
                         <FileUploadComponent
                             fileInputRef={fileInputRef}
                             onFileSubmit={handleFileSubmit}
                             control={form.control}
-                            name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`}
+                            name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`}
                         />
                     </Button>
                 </div>

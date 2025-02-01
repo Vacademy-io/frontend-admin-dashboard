@@ -9,58 +9,80 @@ import SelectField from "@/components/design-system/select-field";
 import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
-import { OptionImagePreview } from "../../options/MCQ(Multiple Correct)/OptionImagePreview";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { useQuestionImageStore } from "../../../-global-states/question-image-index";
+import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
+import { OptionImagePreview } from "../../options/MCQ(Multiple Correct)/OptionImagePreview";
+import { useEffect } from "react";
 
 export const MultipleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
+    currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
     className,
-}: QuestionPaperTemplateFormProps) => {
+    selectedSectionIndex,
+}: SectionQuestionPaperFormProps) => {
     const { control, getValues, setValue } = form;
-    const { currentQuestionImageIndex } = useQuestionImageStore();
 
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const optionsType = getValues("optionsType") || "";
-    const questionsType = getValues("questionsType") || "";
+    const questions = form.watch(`sections.${selectedSectionIndex}.questions`);
+    form.watch(`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}`);
 
-    const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
-    const allQuestions = getValues("questions") || [];
+    const imageDetails = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
+    );
+    const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
 
-    const option1 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`);
-    const option2 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`);
-    const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
-    const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
+    const option1 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`,
+    );
+    const option2 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`,
+    );
+    const option3 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`,
+    );
+    const option4 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`,
+    );
 
     const handleRemovePicture = (index: number) => {
         setValue(
-            `questions.${currentQuestionIndex}.imageDetails`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
             imageDetails?.filter((_, i) => i !== index),
         );
     };
 
     const handleRemovePictureInOptions = (optionIndex: number) => {
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.isDeleted`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.isDeleted`,
             true,
         );
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageFile`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageFile`,
             "",
         );
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageName`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageName`,
             "",
         );
         setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageTitle`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageTitle`,
             "",
         );
     };
+
+    useEffect(() => {
+        form.trigger(); // Manually trigger validation & re-render
+    }, [currentQuestionIndex]);
+
+    useEffect(() => {
+        if (questions?.[currentQuestionIndex]) {
+            form.setValue(
+                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}`,
+                questions[currentQuestionIndex],
+            );
+        }
+    }, [currentQuestionIndex, questions]);
 
     if (allQuestions.length === 0) {
         return (
@@ -89,7 +111,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             </div>
                             <SelectField
                                 label="Question Type"
-                                name={`questions.${currentQuestionIndex}.questionType`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`}
                                 options={QUESTION_TYPES.map((option, index) => ({
                                     value: option,
                                     label: option,
@@ -101,7 +123,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             />
                             <CustomInput
                                 control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionMark`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
                                 label="Marks"
                                 required
                             />
@@ -112,13 +134,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
                     Question&nbsp;
-                    {questionsType
-                        ? formatStructure(questionsType, currentQuestionIndex + 1)
-                        : currentQuestionIndex + 1}
+                    {currentQuestionIndex + 1}
                 </span>
                 <FormField
                     control={control}
-                    name={`questions.${currentQuestionIndex}.questionName`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionName`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
@@ -132,7 +152,6 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
-
             <div className="flex flex-wrap items-end justify-center gap-8">
                 {Array.isArray(allQuestions) &&
                     allQuestions.length > 0 &&
@@ -153,10 +172,16 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center gap-4">
                                         <QuestionImagePreviewDialogue
                                             form={form}
+                                            currentQuestionIndex={currentQuestionIndex}
                                             currentQuestionImageIndex={index}
+                                            setCurrentQuestionImageIndex={
+                                                setCurrentQuestionImageIndex
+                                            }
+                                            selectedSectionIndex={selectedSectionIndex}
                                             isUploadedAgain={true}
                                         />
                                         <Button
+                                            type="button"
                                             variant="outline"
                                             className="p-0 px-2"
                                             onClick={() => handleRemovePicture(index)}
@@ -172,13 +197,17 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                 {Array.isArray(imageDetails) && imageDetails.length < 4 && (
                     <QuestionImagePreviewDialogue
                         form={form}
+                        currentQuestionIndex={currentQuestionIndex}
                         currentQuestionImageIndex={currentQuestionImageIndex}
+                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
+                        selectedSectionIndex={selectedSectionIndex}
+                        isUploadedAgain={false}
                     />
                 )}
             </div>
 
             <div className="flex w-full grow flex-col gap-4">
-                <span className="-mb-3">{answersType}</span>
+                <span className="-mb-3">Answer:</span>
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
@@ -187,9 +216,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
-                                </span>
+                                <span className="!p-0 text-sm">(a.)</span>
                             </div>
                             {option1?.image?.imageFile ? (
                                 <div className="flex w-72 flex-col">
@@ -206,9 +233,12 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={0}
+                                                selectedSectionIndex={selectedSectionIndex}
+                                                currentQuestionIndex={currentQuestionIndex}
                                                 isUploadedAgain={true}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(0)}
@@ -221,7 +251,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -236,13 +266,18 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option1?.image?.imageFile && (
-                                <OptionImagePreview form={form} option={0} />
+                                <OptionImagePreview
+                                    form={form}
+                                    option={0}
+                                    selectedSectionIndex={selectedSectionIndex}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -269,9 +304,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
-                                </span>
+                                <span className="!p-0 text-sm">(b.)</span>
                             </div>
                             {option2?.image?.imageFile ? (
                                 <div className="flex w-72 flex-col">
@@ -288,9 +321,12 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={1}
+                                                currentQuestionIndex={currentQuestionIndex}
+                                                selectedSectionIndex={selectedSectionIndex}
                                                 isUploadedAgain={true}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(1)}
@@ -303,7 +339,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -318,13 +354,18 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option2?.image?.imageFile && (
-                                <OptionImagePreview form={form} option={1} />
+                                <OptionImagePreview
+                                    form={form}
+                                    option={1}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                    selectedSectionIndex={selectedSectionIndex}
+                                />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -353,9 +394,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
-                                </span>
+                                <span className="!p-0 text-sm">(c.)</span>
                             </div>
                             {option3?.image?.imageFile ? (
                                 <div className="flex w-72 flex-col">
@@ -372,9 +411,12 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={2}
+                                                currentQuestionIndex={currentQuestionIndex}
+                                                selectedSectionIndex={selectedSectionIndex}
                                                 isUploadedAgain={true}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(2)}
@@ -387,7 +429,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -402,13 +444,18 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option3?.image?.imageFile && (
-                                <OptionImagePreview form={form} option={2} />
+                                <OptionImagePreview
+                                    form={form}
+                                    option={2}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                    selectedSectionIndex={selectedSectionIndex}
+                                />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -435,9 +482,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
-                                </span>
+                                <span className="!p-0 text-sm">(d.)</span>
                             </div>
                             {option4?.image?.imageFile ? (
                                 <div className="flex w-72 flex-col">
@@ -454,9 +499,12 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={3}
+                                                currentQuestionIndex={currentQuestionIndex}
+                                                selectedSectionIndex={selectedSectionIndex}
                                                 isUploadedAgain={true}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(3)}
@@ -469,7 +517,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -484,13 +532,18 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option4?.image?.imageFile && (
-                                <OptionImagePreview form={form} option={3} />
+                                <OptionImagePreview
+                                    form={form}
+                                    option={3}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                    selectedSectionIndex={selectedSectionIndex}
+                                />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -514,10 +567,10 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
             </div>
 
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>{explanationsType}</span>
+                <span>Explanation:</span>
                 <FormField
                     control={control}
-                    name={`questions.${currentQuestionIndex}.explanation`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.explanation`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>

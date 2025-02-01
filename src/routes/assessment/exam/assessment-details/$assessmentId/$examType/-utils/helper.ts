@@ -342,6 +342,7 @@ export function transformSectionsAndQuestionsData(
             const correctOptionIds = evaluationJson.data.correctOptionIds || [];
 
             return {
+                id: question.question_id,
                 questionId: question.question_id,
                 questionName: question.question.content,
                 explanation: "",

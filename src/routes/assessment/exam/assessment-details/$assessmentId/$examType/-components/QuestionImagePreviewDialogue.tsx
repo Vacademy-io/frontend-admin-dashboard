@@ -9,16 +9,15 @@ import UploadImageDialogue from "./UploadImageDialogue";
 const QuestionImagePreviewDialogue: React.FC<AssessmentQuestionImagePreviewDialogueProps> = ({
     form,
     currentQuestionIndex,
-    setCurrentQuestionIndex,
     currentQuestionImageIndex,
     setCurrentQuestionImageIndex,
     selectedSectionIndex,
     isUploadedAgain,
 }) => {
     const { setValue, getValues, watch } = form;
-    watch(`${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`);
+    watch(`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`);
     const imageDetails = getValues(
-        `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
     );
 
     const handleRemovePicture = (currentQuestionImageIndex: number) => {
@@ -29,7 +28,7 @@ const QuestionImagePreviewDialogue: React.FC<AssessmentQuestionImagePreviewDialo
 
         // Update the value with the filtered array
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
             updatedImageDetails,
         );
     };
@@ -47,10 +46,10 @@ const QuestionImagePreviewDialogue: React.FC<AssessmentQuestionImagePreviewDialo
 
         // Update form state to append the new image to the imageDetails array
         if (imageDetails && !isUploadedAgain) {
-            setValue(`${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`, [
-                ...imageDetails,
-                newImage,
-            ]);
+            setValue(
+                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
+                [...imageDetails, newImage],
+            );
             setCurrentQuestionImageIndex(imageDetails.length);
         }
     };
@@ -59,6 +58,7 @@ const QuestionImagePreviewDialogue: React.FC<AssessmentQuestionImagePreviewDialo
         <Dialog>
             <DialogTrigger>
                 <Button
+                    type="button"
                     variant="outline"
                     onClick={handleAddImage}
                     className={`${isUploadedAgain ? "px-2" : ""}`}
@@ -79,11 +79,11 @@ const QuestionImagePreviewDialogue: React.FC<AssessmentQuestionImagePreviewDialo
                 </h1>
                 <div className="relative flex h-80 w-full items-center justify-center bg-black !p-0">
                     {getValues(
-                        `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
                     ) && (
                         <img
                             src={getValues(
-                                `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
                             )}
                             alt="logo"
                             className="h-64 w-96"
@@ -91,7 +91,7 @@ const QuestionImagePreviewDialogue: React.FC<AssessmentQuestionImagePreviewDialo
                     )}
 
                     {!getValues(
-                        `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+                        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
                     ) && (
                         <UploadImageDialogue
                             form={form}
@@ -105,7 +105,7 @@ const QuestionImagePreviewDialogue: React.FC<AssessmentQuestionImagePreviewDialo
                 <div className="flex gap-4 p-4">
                     <FormField
                         control={form.control}
-                        name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageTitle`}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageTitle`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -126,6 +126,7 @@ const QuestionImagePreviewDialogue: React.FC<AssessmentQuestionImagePreviewDialo
                         currentQuestionImageIndex={currentQuestionImageIndex}
                     />
                     <Button
+                        type="button"
                         variant="outline"
                         className="p-0 px-3"
                         onClick={() => handleRemovePicture(currentQuestionImageIndex)}

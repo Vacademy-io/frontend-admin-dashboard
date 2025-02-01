@@ -20,7 +20,7 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
 
     const handleFileSubmit = (file: File) => {
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
             file.name,
         );
 
@@ -28,7 +28,7 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
         const imageUrl = URL.createObjectURL(file);
 
         setValue(
-            `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
             imageUrl,
         );
     };
@@ -42,7 +42,13 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
     return (
         <Dialog>
             <DialogTrigger>
-                {triggerButton ? triggerButton : <Button variant="outline">{title}</Button>}
+                {triggerButton ? (
+                    triggerButton
+                ) : (
+                    <Button type="button" variant="outline">
+                        {title}
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="flex flex-col gap-2 p-0">
                 <h1 className="rounded-md bg-primary-100 p-4 font-bold text-primary-500">
@@ -51,7 +57,7 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
                 <div className="flex items-center gap-4 px-8 py-4">
                     <FormField
                         control={form.control}
-                        name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -65,10 +71,11 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
                         )}
                     />
                     <Button
+                        type="button"
                         className="bg-primary-500 p-3"
                         disabled={
                             !getValues(
-                                `${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
+                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
                             )
                         }
                     >
@@ -79,13 +86,13 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
                     <h1>OR</h1>
                 </div>
                 <div className="mb-2 py-3 text-center">
-                    <Button variant="outline" onClick={handleFileSelect}>
+                    <Button type="button" variant="outline" onClick={handleFileSelect}>
                         Upload From Device
                         <FileUploadComponent
                             fileInputRef={fileInputRef}
                             onFileSubmit={handleFileSubmit}
                             control={form.control}
-                            name={`${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`}
+                            name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`}
                         />
                     </Button>
                 </div>
