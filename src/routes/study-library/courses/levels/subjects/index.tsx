@@ -32,7 +32,7 @@ function RouteComponent() {
     const handleBackClick = () => {
         navigate({
             to: "/study-library/courses/levels",
-            search: { courseId },
+            search: { courseId: courseId },
         });
     };
 
