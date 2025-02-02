@@ -68,6 +68,11 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                             questionName: "",
                             explanation: "",
                             questionType: "MCQS",
+                            questionPenalty: "",
+                            questionDuration: {
+                                hrs: "",
+                                min: "",
+                            },
                             questionMark: "",
                             imageDetails: [],
                             singleChoiceOptions: [
@@ -204,6 +209,11 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
             questionName: "",
             explanation: "",
             questionType: "MCQS",
+            questionPenalty: "",
+            questionDuration: {
+                hrs: "",
+                min: "",
+            },
             questionMark: "",
             imageDetails: [],
             singleChoiceOptions: Array(4).fill({

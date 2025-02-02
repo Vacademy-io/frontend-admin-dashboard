@@ -12,6 +12,11 @@ export const sectionsEditQuestionFormSchema = z.object({
                     questionName: z.string().min(1, "Question name is required"),
                     explanation: z.string().optional(),
                     questionType: z.string().default("MCQS"),
+                    questionPenalty: z.string(),
+                    questionDuration: z.object({
+                        hrs: z.string(),
+                        min: z.string(),
+                    }),
                     questionMark: z.string(),
                     imageDetails: z
                         .array(

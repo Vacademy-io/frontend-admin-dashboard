@@ -132,6 +132,32 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 label="Marks"
                                 required
                             />
+                            <CustomInput
+                                control={form.control}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionPenalty`}
+                                label="Negative Marking"
+                                required
+                            />
+                            <div className="flex flex-col gap-2">
+                                <h1 className="text-sm font-semibold">Time Limit</h1>
+                                <div className="flex items-center gap-4 text-sm">
+                                    <CustomInput
+                                        control={form.control}
+                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.hrs`}
+                                        label=""
+                                        className="w-10"
+                                    />
+                                    <span>hrs</span>
+                                    <span>:</span>
+                                    <CustomInput
+                                        control={form.control}
+                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.min`}
+                                        label=""
+                                        className="w-10"
+                                    />
+                                    <span>min</span>
+                                </div>
+                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>

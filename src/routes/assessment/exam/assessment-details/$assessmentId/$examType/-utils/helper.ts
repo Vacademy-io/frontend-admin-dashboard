@@ -348,6 +348,11 @@ export function transformSectionsAndQuestionsData(
                 explanation: "",
                 questionType: markingJson.type || "MCQS",
                 questionMark: markingJson.data.totalMark,
+                questionPenalty: markingJson.data.negativeMark,
+                questionDuration: {
+                    hrs: String(Math.floor(question.question_duration / 60)),
+                    min: String(question.question_duration % 60),
+                },
                 imageDetails: [],
                 singleChoiceOptions:
                     markingJson.type === "MCQS"
