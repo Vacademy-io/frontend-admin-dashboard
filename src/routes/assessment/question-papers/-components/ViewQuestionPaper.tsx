@@ -3,8 +3,7 @@ import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-f
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
-import { useQuestionStore } from "../-global-states/question-index";
-import { useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { getLevelNameById, getSubjectNameById } from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
@@ -15,6 +14,10 @@ export const ViewQuestionPaper = ({
     level,
     refetchData,
     isAssessment,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
 }: {
     questionPaperId: string | undefined;
     title: string | undefined;
@@ -22,9 +25,12 @@ export const ViewQuestionPaper = ({
     level: string | null;
     refetchData?: () => void;
     isAssessment?: boolean;
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    currentQuestionImageIndex: number;
+    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }) => {
     const { instituteDetails } = useInstituteDetailsStore();
-    const { setCurrentQuestionIndex } = useQuestionStore();
     const form = useForm<z.infer<typeof uploadQuestionPaperFormSchema>>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
@@ -167,6 +173,10 @@ export const ViewQuestionPaper = ({
                     refetchData={refetchData}
                     buttonText={isAssessment ? "View" : "View Question Paper"}
                     isAssessment={isAssessment}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    currentQuestionImageIndex={currentQuestionImageIndex}
+                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                 />
             </form>
         </FormProvider>

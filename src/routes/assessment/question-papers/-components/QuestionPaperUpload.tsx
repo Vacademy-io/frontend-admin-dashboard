@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
 import { z } from "zod";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
@@ -13,7 +13,6 @@ import CustomInput from "@/components/design-system/custom-input";
 import { useMutation } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
-import { useQuestionStore } from "../-global-states/question-index";
 import { addQuestionPaper, getQuestionPaperById } from "../-utils/question-paper-services";
 import { MyQuestion, MyQuestionPaperFormInterface } from "../../../../types/question-paper-form";
 import {
@@ -40,14 +39,21 @@ interface QuestionPaperUploadProps {
     isManualCreated: boolean;
     index?: number;
     sectionsForm?: UseFormReturn<SectionFormType>;
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    currentQuestionImageIndex: number;
+    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }
 
 export const QuestionPaperUpload = ({
     isManualCreated,
     index,
     sectionsForm,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
 }: QuestionPaperUploadProps) => {
-    const { setCurrentQuestionIndex } = useQuestionStore();
     const { instituteDetails } = useInstituteDetailsStore();
 
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -74,12 +80,17 @@ export const QuestionPaperUpload = ({
                     questionName: "",
                     explanation: "",
                     questionType: "MCQS",
+                    questionPenalty: "",
+                    questionDuration: {
+                        hrs: "",
+                        min: "",
+                    },
                     questionMark: "",
                     imageDetails: [],
                     singleChoiceOptions: [
                         {
                             name: "",
-                            isSelected: true,
+                            isSelected: false,
                             image: {
                                 imageId: "",
                                 imageName: "",
@@ -226,22 +237,22 @@ export const QuestionPaperUpload = ({
                         questionName: question.questionName,
                         questionType: question.questionType,
                         questionMark: question.questionMark,
-                        questionPenalty: "",
+                        questionPenalty: question.questionPenalty,
                         ...(question.questionType === "MCQM" && {
                             correctOptionIdsCnt: question?.multipleChoiceOptions?.filter(
                                 (item) => item.isSelected,
                             ).length,
                         }),
                         questionDuration: {
-                            hrs: "",
-                            min: "",
+                            hrs: question.questionDuration.hrs,
+                            min: question.questionDuration.min,
                         },
                     })),
                 });
-                setIsMainQuestionPaperAddDialogOpen(false);
-                setIsManualQuestionPaperDialogOpen(false);
-                setIsUploadFromDeviceDialogOpen(false);
             }
+            setIsMainQuestionPaperAddDialogOpen(false);
+            setIsManualQuestionPaperDialogOpen(false);
+            setIsUploadFromDeviceDialogOpen(false);
         },
         onError: (error: unknown) => {
             console.log("Error:", error);
@@ -261,14 +272,15 @@ export const QuestionPaperUpload = ({
                 yearClass: values.yearClass || "",
                 sectionName: values.subject,
             });
-            handleSubmitFormData.mutate({
-                data: {
-                    ...values,
-                    yearClass: getIdYearClass,
-                    subject: getIdSubject,
-                } as MyQuestionPaperFormInterface,
-            });
         }
+
+        handleSubmitFormData.mutate({
+            data: {
+                ...values,
+                yearClass: getIdYearClass,
+                subject: getIdSubject,
+            } as MyQuestionPaperFormInterface,
+        });
     }
 
     const onInvalid = (err: unknown) => {
@@ -316,10 +328,10 @@ export const QuestionPaperUpload = ({
                         questionName: question.questionName,
                         questionType: question.questionType,
                         questionMark: question.questionMark,
-                        questionPenalty: "",
+                        questionPenalty: question.questionPenalty,
                         questionDuration: {
-                            hrs: "",
-                            min: "",
+                            hrs: question.questionDuration.hrs,
+                            min: question.questionDuration.min,
                         },
                     })),
                 });
@@ -361,7 +373,7 @@ export const QuestionPaperUpload = ({
             <FormProvider {...form}>
                 <form
                     onSubmit={form.handleSubmit(onSubmit, onInvalid)}
-                    className="scrollbar-hidden no-scrollbar max-h-[60vh] space-y-8 overflow-y-auto p-4 pt-2"
+                    className="no-scrollbar max-h-[60vh] space-y-8 overflow-y-auto p-4 pt-2"
                 >
                     {!isFormSubmitting ? (
                         <>
@@ -440,7 +452,6 @@ export const QuestionPaperUpload = ({
                                             and try to re-upload.
                                         </h1>
                                     </div>
-
                                     {getValues("fileUpload") && (
                                         <div className="flex w-full items-center gap-2 rounded-md bg-neutral-100 p-2">
                                             <div className="rounded-md bg-primary-100 p-2">
@@ -542,6 +553,12 @@ export const QuestionPaperUpload = ({
                                             questionPaperId={questionPaperId}
                                             isViewMode={false}
                                             buttonText="Preview"
+                                            currentQuestionIndex={currentQuestionIndex}
+                                            setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                            currentQuestionImageIndex={currentQuestionImageIndex}
+                                            setCurrentQuestionImageIndex={
+                                                setCurrentQuestionImageIndex
+                                            }
                                         />
                                     )
                                 )}
@@ -552,6 +569,10 @@ export const QuestionPaperUpload = ({
                                         isViewMode={false}
                                         isManualCreated={isManualCreated}
                                         buttonText="Create"
+                                        currentQuestionIndex={currentQuestionIndex}
+                                        setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                        currentQuestionImageIndex={currentQuestionImageIndex}
+                                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                     />
                                 )}
                                 {fileUpload && (

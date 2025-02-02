@@ -18,12 +18,12 @@ import {
     transformResponseDataToMyQuestionsSchema,
 } from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { MyQuestion } from "@/types/question-paper-form";
 import { z } from "zod";
 import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 import { UseFormReturn } from "react-hook-form";
+import { Dispatch, SetStateAction } from "react";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
@@ -34,6 +34,10 @@ export const QuestionPapersList = ({
     isAssessment,
     index,
     sectionsForm,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
 }: {
     questionPaperList: PaginatedResponse;
     pageNo: number;
@@ -42,6 +46,10 @@ export const QuestionPapersList = ({
     isAssessment: boolean;
     index?: number;
     sectionsForm?: UseFormReturn<SectionFormType>;
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    currentQuestionImageIndex: number;
+    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }) => {
     const { setIsSavedQuestionPaperDialogOpen } = useDialogStore();
     const { instituteDetails } = useInstituteDetailsStore();
@@ -139,12 +147,6 @@ export const QuestionPapersList = ({
         handleGetQuestionPaperData.mutate({ id });
     };
 
-    if (
-        handleMarkQuestionPaperStatus.status == "pending" ||
-        handleGetQuestionPaperData.status === "pending"
-    )
-        return <DashboardLoader />;
-
     return (
         <div className="mt-5 flex flex-col gap-5">
             {questionPaperList?.content?.map((questionsData, idx) => (
@@ -186,6 +188,12 @@ export const QuestionPapersList = ({
                                             subject={questionsData.subject_id}
                                             level={questionsData.level_id}
                                             refetchData={refetchData}
+                                            currentQuestionIndex={currentQuestionIndex}
+                                            setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                            currentQuestionImageIndex={currentQuestionImageIndex}
+                                            setCurrentQuestionImageIndex={
+                                                setCurrentQuestionImageIndex
+                                            }
                                         />
                                         <DropdownMenuItem
                                             onClick={() =>

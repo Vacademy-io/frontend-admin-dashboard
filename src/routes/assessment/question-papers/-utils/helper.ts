@@ -115,7 +115,9 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     type: "HTML", // Assuming explanation is in HTML
                     content: question.explanation,
                 },
-                default_question_time_mins: null, // Assuming default time is not provided
+                default_question_time_mins:
+                    Number(question.questionDuration.hrs || 0) * 60 +
+                    Number(question.questionDuration.min || 0),
                 options, // Use the mapped options
                 errors: [], // Assuming no errors are provided
                 warnings: [], // Assuming no warnings are provided
@@ -261,6 +263,11 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
             questionName: item.text?.content || "",
             explanation: item.explanation_text?.content || "",
             questionType: item.question_type === "MCQS" ? "MCQS" : "MCQM",
+            questionPenalty: "",
+            questionDuration: {
+                hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
+                min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
+            },
             questionMark: "",
             singleChoiceOptions: [],
             multipleChoiceOptions: [],
@@ -272,12 +279,34 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
                 image: {},
             }));
+            baseQuestion.multipleChoiceOptions = Array(4).fill({
+                name: "",
+                isSelected: false,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
+            });
         } else if (item.question_type === "MCQM") {
             baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
                 image: {},
             }));
+            baseQuestion.singleChoiceOptions = Array(4).fill({
+                name: "",
+                isSelected: false,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
+            });
         }
         return baseQuestion;
     });

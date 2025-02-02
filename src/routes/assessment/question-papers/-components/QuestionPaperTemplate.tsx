@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SSDCLogo } from "@/svgs";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
-import { useQuestionStore } from "../-global-states/question-index";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
 import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
@@ -38,6 +37,10 @@ export function QuestionPaperTemplate({
     isManualCreated,
     buttonText,
     isAssessment,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
 }: QuestionPaperTemplateProps) {
     const { handleRefetchData } = useRefetchStore();
     const queryClient = useQueryClient();
@@ -47,7 +50,6 @@ export function QuestionPaperTemplate({
     const title = getValues("title") || "";
     const yearClass = getValues("yearClass") || "";
     const subject = getValues("subject") || "";
-    const { currentQuestionIndex, setCurrentQuestionIndex } = useQuestionStore();
     const [isQuestionDataLoading, setIsQuestionDataLoading] = useState(false);
     const [previousQuestionPaperData, setPreviousQuestionPaperData] = useState(
         {} as MyQuestionPaperFormEditInterface,
@@ -69,6 +71,11 @@ export function QuestionPaperTemplate({
             questionName: "",
             explanation: "",
             questionType: "MCQS",
+            questionPenalty: "",
+            questionDuration: {
+                hrs: "",
+                min: "",
+            },
             questionMark: "",
             imageDetails: [],
             singleChoiceOptions: [
@@ -265,7 +272,7 @@ export function QuestionPaperTemplate({
                         {buttonText}
                     </Button>
                 ) : (
-                    <Button type="button" variant="outline" className="w-52 border-[1px]">
+                    <Button type="button" variant="outline" className="w-52 border">
                         {isManualCreated ? (
                             <p className="flex items-center gap-1">
                                 {buttonText} <Plus className="!size-4" />
@@ -337,7 +344,7 @@ export function QuestionPaperTemplate({
                             <div className="mt-4 flex w-40 flex-col items-center justify-center gap-2">
                                 <Button
                                     type="button"
-                                    className="-ml-[0.6rem] max-w-sm bg-primary-500 text-xs text-white shadow-none"
+                                    className="max-w-sm bg-primary-500 text-xs text-white shadow-none"
                                     onClick={handleAddNewQuestion}
                                 >
                                     Add Question
@@ -362,7 +369,7 @@ export function QuestionPaperTemplate({
                                                     >
                                                         <div
                                                             key={index}
-                                                            onClick={() => handlePageClick(index)}
+                                                            // onClick={() => handlePageClick(index)}
                                                             className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                 currentQuestionIndex === index
                                                                     ? "border-primary-500 bg-none"
@@ -398,7 +405,7 @@ export function QuestionPaperTemplate({
                                                                                     size="icon"
                                                                                     className="size-16"
                                                                                 >
-                                                                                    <DotsSixVertical className="text-bold !size-12" />
+                                                                                    <DotsSixVertical className="!size-12" />
                                                                                 </SortableDragHandle>
                                                                             </div>
                                                                             <PPTComponentFactory
@@ -413,6 +420,12 @@ export function QuestionPaperTemplate({
                                                                                     form: form,
                                                                                     currentQuestionIndex:
                                                                                         index,
+                                                                                    setCurrentQuestionIndex:
+                                                                                        setCurrentQuestionIndex,
+                                                                                    currentQuestionImageIndex:
+                                                                                        currentQuestionImageIndex,
+                                                                                    setCurrentQuestionImageIndex:
+                                                                                        setCurrentQuestionImageIndex,
                                                                                     className:
                                                                                         "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
                                                                                 }}
@@ -450,8 +463,11 @@ export function QuestionPaperTemplate({
                                 }
                                 props={{
                                     form: form,
-                                    className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
                                     currentQuestionIndex: currentQuestionIndex,
+                                    setCurrentQuestionIndex: setCurrentQuestionIndex,
+                                    currentQuestionImageIndex: currentQuestionImageIndex,
+                                    setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
+                                    className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
                                 }}
                             />
                         </div>

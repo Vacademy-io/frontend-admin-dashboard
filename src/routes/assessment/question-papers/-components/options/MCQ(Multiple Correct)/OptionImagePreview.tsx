@@ -4,11 +4,13 @@ import { Image, TrashSimple } from "phosphor-react";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { OptionImagePreviewDialogueProps } from "@/types/question-image-preview";
-import { useQuestionStore } from "../../../-global-states/question-index";
 import { OptionUploadImagePreview } from "./OptionUploadImagePreview";
 
-export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ form, option }) => {
-    const { currentQuestionIndex } = useQuestionStore();
+export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({
+    form,
+    option,
+    currentQuestionIndex,
+}) => {
     const { setValue, getValues } = form;
 
     const handleRemovePicture = () => {
@@ -61,6 +63,7 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
                             form={form}
                             title="Upload Image"
                             option={option}
+                            currentQuestionIndex={currentQuestionIndex}
                         />
                     )}
                 </div>
@@ -81,7 +84,12 @@ export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({ 
                         )}
                     />
 
-                    <OptionUploadImagePreview form={form} title="Change Image" option={option} />
+                    <OptionUploadImagePreview
+                        form={form}
+                        title="Change Image"
+                        option={option}
+                        currentQuestionIndex={currentQuestionIndex}
+                    />
 
                     <Button variant="outline" className="p-0 px-3" onClick={handleRemovePicture}>
                         <TrashSimple size={32} className="text-red-500" />
