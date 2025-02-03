@@ -13,9 +13,13 @@ import {
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
 import { Copy, DotsSixVertical, DownloadSimple, SpeakerLow } from "phosphor-react";
 import QRCode from "react-qr-code";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { transformSectionsAndQuestionsData } from "../-utils/helper";
+import {
+    assessmentDialogTrigger,
+    parseHtmlToString,
+    transformSectionsAndQuestionsData,
+} from "../-utils/helper";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sectionsEditQuestionFormSchema } from "../-utils/sections-edit-question-form-schema";
@@ -25,6 +29,16 @@ import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sort
 import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DotOutline } from "@phosphor-icons/react";
+import AnnouncementComponent from "./AnnouncementComponent";
+
+interface Announcement {
+    id: string;
+    title: string;
+    instructions: string | undefined;
+}
 
 export type sectionsEditQuestionFormType = z.infer<typeof sectionsEditQuestionFormSchema>;
 const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
@@ -37,6 +51,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
             type: examType,
         }),
     );
+    const [announcementList, setAnnouncementList] = useState<Announcement[]>([]);
     const [currentQuestionIndexes, setCurrentQuestionIndexes] = useState<{
         [sectionId: string]: number;
     }>({});
@@ -282,6 +297,8 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         }));
     }, [selectedSection]); // Runs when section changes
 
+    const previousSections = useRef();
+
     useEffect(() => {
         if (!assessmentDetails[1]?.saved_data.sections) return;
 
@@ -290,8 +307,20 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
             questionsDataSectionWise,
         );
 
+        previousSections.current = transformedData;
         reset({ sections: transformedData });
     }, []);
+
+    useEffect(() => {
+        console.log("previousSectios", previousSections.current);
+        console.log("currentSections", form.getValues("sections"));
+        assessmentDialogTrigger(
+            previousSections,
+            form.getValues("sections"),
+            selectedSectionIndex,
+            currentQuestionIndex,
+        );
+    }, [currentQuestionIndex]);
 
     // Add this new useEffect to handle section/question changes
     useEffect(() => {
@@ -369,9 +398,53 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
             </div>
             <Tabs value={selectedSection} onValueChange={handleSectionChange}>
                 <div className="flex items-center justify-end gap-4 bg-primary-50 p-4">
-                    <span className="rounded-full border p-2">
-                        <SpeakerLow size={20} />
-                    </span>
+                    <Dialog>
+                        <DialogTrigger className="cursor-pointer rounded-full border p-2">
+                            <SpeakerLow size={20} />
+                        </DialogTrigger>
+                        <DialogContent className="flex h-full !max-w-full flex-col !rounded-none p-0">
+                            <h1 className="h-14 bg-primary-50 p-4 font-semibold text-primary-500">
+                                Live Assessment Announcement
+                            </h1>
+                            <div className="flex max-h-screen flex-col gap-4 overflow-y-auto p-4 pt-0">
+                                {announcementList.length === 0 ? (
+                                    <p className="text-center">No Announcement Exists</p>
+                                ) : (
+                                    announcementList.map((announcement: Announcement) => (
+                                        <Card
+                                            key={announcement.id}
+                                            className="w-full bg-neutral-50 pb-3 shadow-none"
+                                        >
+                                            <CardHeader>
+                                                <CardTitle className="font-semibold text-neutral-600">
+                                                    {announcement.title}
+                                                </CardTitle>
+                                                <CardDescription>
+                                                    {parseHtmlToString(
+                                                        announcement.instructions || "",
+                                                    )}
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <p className="-mt-3 ml-2 flex items-center">
+                                                <DotOutline
+                                                    size={32}
+                                                    weight="fill"
+                                                    className="text-neutral-400"
+                                                />
+                                                <span className="text-sm text-neutral-600">
+                                                    Today, 11:28 AM
+                                                </span>
+                                            </p>
+                                        </Card>
+                                    ))
+                                )}
+                                <AnnouncementComponent
+                                    announcementList={announcementList}
+                                    setAnnouncementList={setAnnouncementList}
+                                />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                     <MyButton
                         type="button"
                         scale="large"

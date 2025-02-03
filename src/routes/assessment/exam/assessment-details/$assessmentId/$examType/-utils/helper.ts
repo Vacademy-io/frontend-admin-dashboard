@@ -476,3 +476,48 @@ export function transformSectionsAndQuestionsData(
         }),
     }));
 }
+
+export const assessmentDialogTrigger = (
+    previousDataRef: any,
+    newData: any,
+    selectedSectionIndex: number,
+    currentQuestionIndex: number,
+): void => {
+    const prevQuestion =
+        previousDataRef.current[selectedSectionIndex].questions[currentQuestionIndex];
+    const newQuestion = newData[selectedSectionIndex].questions[currentQuestionIndex];
+
+    console.log(prevQuestion);
+    console.log(newQuestion);
+    // Function to compare two objects deeply
+    const deepEqual = (obj1: any, obj2: any): boolean => {
+        if (obj1 === obj2) return true;
+        if (typeof obj1 !== "object" || typeof obj2 !== "object" || obj1 === null || obj2 === null)
+            return false;
+
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+        // console.log(keys1, keys2);
+
+        if (keys1.length !== keys2.length) return false;
+
+        for (let key of keys1) {
+            // console.log(obj1[key]);
+            // console.log(obj2[key]);
+            if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false;
+        }
+
+        return true;
+    };
+
+    // Compare the two questions
+    if (!deepEqual(prevQuestion, newQuestion)) {
+        // Trigger alert if any field is changed
+        alert("The question has changed!");
+
+        // Assign the new question data to the previous data in the useRef object
+        previousDataRef.current[selectedSectionIndex].questions[currentQuestionIndex] = {
+            ...newQuestion,
+        };
+    }
+};
