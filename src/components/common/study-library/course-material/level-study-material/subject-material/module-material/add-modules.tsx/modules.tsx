@@ -9,14 +9,14 @@ import {
     Module,
     ModulesWithChapters,
 } from "@/stores/study-library/use-modules-with-chapters-store";
+import { orderModulePayloadType } from "@/types/study-library/order-payload";
 
 interface ModulesProps {
     modules: ModulesWithChapters[] | null;
     onDeleteModule: (module: Module) => void;
     onEditModule: (updatedModule: Module) => void;
-    onOrderChange?: (
-        updatedOrder: { module_id: string; subject_id: string; module_order: number }[],
-    ) => void;
+    onOrderChange?: (updatedOrder: orderModulePayloadType[]) => void;
+    subjectId: string;
     isLoading?: boolean;
 }
 
@@ -25,6 +25,7 @@ export const Modules = ({
     onDeleteModule,
     onEditModule,
     onOrderChange,
+    subjectId,
     isLoading = false,
 }: ModulesProps) => {
     const [modules, setModules] = useState<ModulesWithChapters[] | null>(initialModules);
@@ -35,9 +36,8 @@ export const Modules = ({
         // Create the order payload
         const orderPayload = updatedModules.map((moduleWithChapters, index) => ({
             module_id: moduleWithChapters.module.id,
-            module_name: moduleWithChapters.module.module_name,
-            subject_id: "",
-            module_order: index,
+            subject_id: subjectId,
+            module_order: index + 1,
         }));
 
         onOrderChange?.(orderPayload);

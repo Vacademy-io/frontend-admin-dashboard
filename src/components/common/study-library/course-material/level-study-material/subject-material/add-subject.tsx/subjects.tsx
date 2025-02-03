@@ -6,15 +6,15 @@ import { closestCorners } from "@dnd-kit/core";
 import { useEffect, useState } from "react";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
+import { orderSubjectPayloadType } from "@/types/study-library/order-payload";
 
 interface SubjectsProps {
     subjects: SubjectType[];
     onDeleteSubject: (subjectId: string) => void;
     onEditSubject: (subjectId: string, updatedSubject: SubjectType) => void;
-    onOrderChange?: (
-        updatedOrder: { subject_id: string; package_session_id: string; subject_order: number }[],
-    ) => void;
+    onOrderChange?: (updatedOrder: orderSubjectPayloadType[]) => void;
     isLoading?: boolean;
+    packageSessionIds: string;
 }
 
 export const Subjects = ({
@@ -23,6 +23,7 @@ export const Subjects = ({
     onEditSubject,
     onOrderChange,
     isLoading = false,
+    packageSessionIds,
 }: SubjectsProps) => {
     const [subjects, setSubjects] = useState(initialSubjects);
 
@@ -32,9 +33,8 @@ export const Subjects = ({
         // Create the order payload
         const orderPayload = updatedSubjects.map((subject, index) => ({
             subject_id: subject.id,
-            subject_name: subject.subject_name,
-            package_session_id: "", // This needs to be filled with actual package session id
-            subject_order: index,
+            package_session_id: packageSessionIds, // This needs to be filled with actual package session id
+            subject_order: index + 1,
         }));
 
         console.log("Updated order: ", orderPayload);

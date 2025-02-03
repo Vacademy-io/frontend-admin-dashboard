@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AddModulesButton } from "./module-material/add-modules.tsx/add-modules-button";
 import { Modules } from "./module-material/add-modules.tsx/modules";
 import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useRouter } from "@tanstack/react-router";
-import { SessionDropdown } from "@/components/common/session-dropdown";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useAddModule } from "@/services/study-library/module-operations/add-module";
@@ -11,18 +10,41 @@ import { useUpdateModule } from "@/services/study-library/module-operations/upda
 import { useDeleteModule } from "@/services/study-library/module-operations/delete-module";
 import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
+import { useUpdateModuleOrder } from "@/services/study-library/module-operations/update-modules-order";
+import { orderModulePayloadType } from "@/types/study-library/order-payload";
+import { SessionDropdown } from "../../../study-library-session-dropdown";
+import { getSubjectSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForModules";
+import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
+import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
 
 export const ModuleMaterial = () => {
     const router = useRouter();
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
+    const { selectedSession, setSelectedSession } = useSelectedSessionStore();
 
     const addModuleMutation = useAddModule();
     const updateModuleMutation = useUpdateModule();
     const deleteModuleMutation = useDeleteModule();
+    const updateModuleOrderMutation = useUpdateModuleOrder();
 
     const [searchInput, setSearchInput] = useState("");
 
     const { courseId, subjectId, levelId } = router.state.location.search;
+    const sessionList = subjectId ? getSubjectSessions(subjectId) : [];
+    const initialSession =
+        selectedSession && sessionList.includes(selectedSession) ? selectedSession : sessionList[0];
+    // const initialSession = sessionList[0];
+    const [currentSession, setCurrentSession] = useState(initialSession);
+
+    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
+        if (typeof value !== "string" && value) {
+            setCurrentSession(value);
+        }
+    };
+
+    useEffect(() => {
+        setSelectedSession(currentSession);
+    }, [currentSession]);
 
     // Ensure courseId, subjectId, and levelId exist before proceeding
     if (!courseId) return <>Course Not found</>;
@@ -48,6 +70,12 @@ export const ModuleMaterial = () => {
         updateModuleMutation.mutate({ moduleId: updatedModule.id, module: updatedModule });
     };
 
+    const handleUpdateModuleOrder = (orderPayload: orderModulePayloadType[]) => {
+        updateModuleOrderMutation.mutate({
+            updatedModules: orderPayload,
+        });
+    };
+
     const isLoading =
         addModuleMutation.isPending ||
         deleteModuleMutation.isPending ||
@@ -67,7 +95,12 @@ export const ModuleMaterial = () => {
                 <AddModulesButton onAddModule={handleAddModule} />
             </div>
             <div className="flex items-center gap-6">
-                <SessionDropdown className="text-title font-semibold" />
+                <SessionDropdown
+                    currentSession={currentSession ?? undefined}
+                    onSessionChange={handleSessionChange}
+                    className="text-title font-semibold"
+                    sessionList={sessionList}
+                />
                 <SearchInput
                     searchInput={searchInput}
                     onSearchChange={handleSearchInputChange}
@@ -78,7 +111,9 @@ export const ModuleMaterial = () => {
                 modules={modulesWithChaptersData}
                 onDeleteModule={handleDeleteModule}
                 onEditModule={handleEditModule}
+                subjectId={subjectId}
                 isLoading={isLoading}
+                onOrderChange={handleUpdateModuleOrder}
             />
         </div>
     );

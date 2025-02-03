@@ -7,14 +7,16 @@ import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { truncateString } from "@/lib/reusable/truncateString";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
+import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
-import { MagnifyingGlass } from "phosphor-react";
-import { useState } from "react";
+import { CaretLeft, MagnifyingGlass } from "phosphor-react";
+import { useEffect, useState } from "react";
 
 interface ChapterSearchParams {
     courseId: string;
@@ -129,6 +131,37 @@ function RouteComponent() {
             </SidebarFooter>
         </div>
     );
+
+    const { courseId, levelId, subjectId, moduleId } = Route.useSearch();
+
+    const { setNavHeading } = useNavHeadingStore();
+
+    // Module page heading
+    const levelName = getLevelName(levelId);
+    const subjectName = getSubjectName(subjectId);
+
+    const handleBackClick = () => {
+        navigate({
+            to: `/study-library/courses/levels/subjects/modules/chapters`,
+            search: {
+                courseId,
+                levelId,
+                subjectId,
+                moduleId,
+            },
+        });
+    };
+
+    const heading = (
+        <div className="flex items-center gap-4">
+            <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
+            <div>{`${levelName} Class ${subjectName}`}</div>
+        </div>
+    );
+
+    useEffect(() => {
+        setNavHeading(heading);
+    }, []);
 
     return (
         <LayoutContainer sidebarComponent={SidebarComponent}>

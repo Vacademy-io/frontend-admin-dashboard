@@ -2,8 +2,7 @@
 import { useRouter } from "@tanstack/react-router";
 import { AddSubjectButton } from "./subject-material/add-subject.tsx/add-subject-button";
 import { Subjects } from "./subject-material/add-subject.tsx/subjects";
-import { useState } from "react";
-// import { SessionDropdown } from "../../study-library-session-dropdown";
+import { useEffect, useState } from "react";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import {
     StudyLibrarySessionType,
@@ -13,24 +12,30 @@ import { useAddSubject } from "@/services/study-library/subject-operations/addSu
 import { useUpdateSubject } from "@/services/study-library/subject-operations/updateSubject";
 import { useDeleteSubject } from "@/services/study-library/subject-operations/deleteSubject";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { getSessionsByLevel } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsByLevel";
 import { SessionDropdown } from "../../study-library-session-dropdown";
 import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
 import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
-import { getPackageSessionIdsByIds } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelPackageSessionIds";
+import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
+import { useUpdateSubjectOrder } from "@/services/study-library/subject-operations/updateSubjectOrder";
+import { orderSubjectPayloadType } from "@/types/study-library/order-payload";
+import { getLevelSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForSubjects";
+import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 
 export const SubjectMaterial = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
+    const { selectedSession, setSelectedSession } = useSelectedSessionStore();
 
     // Extract params safely
-    const courseId: string | undefined = searchParams.courseId;
-    const levelId: string | undefined = searchParams.levelId;
+    const courseId: string = searchParams.courseId || "";
+    const levelId: string = searchParams.levelId || "";
 
     // Define states before any conditions
-    const sessionList = courseId && levelId ? getSessionsByLevel(courseId, levelId) : [];
-    const initialSession: StudyLibrarySessionType | null = sessionList[0] ?? null;
-    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | null>(
+    const sessionList = courseId && levelId ? getLevelSessions(levelId) : [];
+    const initialSession: StudyLibrarySessionType | undefined =
+        selectedSession && sessionList.includes(selectedSession) ? selectedSession : sessionList[0];
+    // const initialSession = sessionList[0];
+    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
         initialSession,
     );
     const [searchInput, setSearchInput] = useState("");
@@ -39,11 +44,13 @@ export const SubjectMaterial = () => {
     const addSubjectMutation = useAddSubject();
     const updateSubjectMutation = useUpdateSubject();
     const deleteSubjectMutation = useDeleteSubject();
+    const updateSubjectOrderMutation = useUpdateSubjectOrder();
+
+    useEffect(() => {
+        setSelectedSession(currentSession);
+    }, [currentSession]);
 
     // Prevent rendering if required params are missing
-    if (!courseId || !levelId) {
-        return <p>Missing required parameters</p>;
-    }
 
     const handleSessionChange = (value: string | StudyLibrarySessionType) => {
         if (typeof value !== "string" && value) {
@@ -54,6 +61,8 @@ export const SubjectMaterial = () => {
     const apiSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
 
     const classNumber = getLevelName(levelId);
+    const packageSessionIds =
+        useGetPackageSessionId(courseId, currentSession?.id ?? "", levelId) || "";
 
     const mappedSubjects = apiSubjects.map((subject) => ({
         id: subject.id,
@@ -70,7 +79,6 @@ export const SubjectMaterial = () => {
     };
 
     const handleAddSubject = async (newSubject: SubjectType) => {
-        const packageSessionIds = getPackageSessionIdsByIds(levelId, currentSession?.id ?? "");
         if (packageSessionIds.length === 0) {
             console.error("No package session IDs found");
             return;
@@ -92,6 +100,16 @@ export const SubjectMaterial = () => {
             updatedSubject,
         });
     };
+
+    const handleSubjectOrderChange = (updatedOrder: orderSubjectPayloadType[]) => {
+        updateSubjectOrderMutation.mutate({
+            orderedSubjects: updatedOrder,
+        });
+    };
+
+    if (courseId == "" || levelId == "") {
+        return <p>Missing required parameters</p>;
+    }
 
     const isLoading =
         addSubjectMutation.isPending ||
@@ -132,6 +150,8 @@ export const SubjectMaterial = () => {
                 subjects={mappedSubjects}
                 onDeleteSubject={handleDeleteSubject}
                 onEditSubject={handleEditSubject}
+                packageSessionIds={packageSessionIds}
+                onOrderChange={handleSubjectOrderChange}
             />
         </div>
     );

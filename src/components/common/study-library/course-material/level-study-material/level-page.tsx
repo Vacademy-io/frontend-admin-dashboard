@@ -1,26 +1,28 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LevelCard } from "./level-card";
 import { useRouter } from "@tanstack/react-router";
 import { SessionDropdown } from "../../study-library-session-dropdown";
 import { useSidebar } from "@/components/ui/sidebar";
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
-import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getStudyLibrarySessions";
+import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels";
 import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails";
 import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
+import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
     const router = useRouter();
     const searchParams = router.state.location.search;
     const courseId = searchParams.courseId;
+    const { setSelectedSession } = useSelectedSessionStore();
 
     // Ensure hooks always run
     const sessionList = courseId ? getCourseSessions(courseId) : [];
-    const initialSession: StudyLibrarySessionType | null = sessionList[0] ?? null;
+    const initialSession: StudyLibrarySessionType | undefined = sessionList[0] ?? undefined;
 
-    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | null>(
+    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
         () => initialSession,
     );
 
@@ -35,6 +37,10 @@ export const LevelPage = () => {
 
     const handleLeveLDelete = () => {};
     const handleLevelEdit = () => {};
+
+    useEffect(() => {
+        setSelectedSession(currentSession);
+    }, [currentSession]);
 
     return (
         <div className="relative flex flex-col gap-8 text-neutral-600">

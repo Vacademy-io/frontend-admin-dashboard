@@ -6,19 +6,16 @@ import { Sortable, SortableItem } from "@/components/ui/sortable";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { FormValues } from "../chapter-material";
 import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
+import { useRouter } from "@tanstack/react-router";
+import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
+import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
+import { orderChapterPayloadType } from "@/types/study-library/order-payload";
 
 interface ChaptersProps {
     chapters?: ChapterWithSlides[];
     onDeleteChapter?: (index: number) => void;
     onEditChapter?: (index: number, updatedChapter: ChapterWithSlides) => void;
-    onOrderChange?: (
-        updatedOrder: {
-            chapter_id: string;
-            chapter_name: string;
-            package_session_id: string;
-            chapter_order: number;
-        }[],
-    ) => void;
+    onOrderChange?: (updatedOrder: orderChapterPayloadType[]) => void;
     isLoading?: boolean;
     form: UseFormReturn<FormValues>;
 }
@@ -30,7 +27,12 @@ export const Chapters = ({
     isLoading = false,
     form, // Add form prop
 }: ChaptersProps) => {
-    // const [chapters, setChapters] = useState(initialChapters);
+    const route = useRouter();
+    const { courseId = "", levelId = "" } = route.state.location.search;
+    const { selectedSession } = useSelectedSessionStore();
+
+    const packageSessionId =
+        useGetPackageSessionId(courseId, selectedSession?.id || "", levelId) || "";
 
     const { fields, move } = useFieldArray({
         control: form.control,
@@ -46,15 +48,18 @@ export const Chapters = ({
         // Create order payload with the updated order
         const orderPayload = updatedFields.map((chapter, index) => ({
             chapter_id: chapter.chapter.id,
-            chapter_name: chapter.chapter.chapter_name,
-            package_session_id: "",
-            chapter_order: index,
+            package_session_id: packageSessionId,
+            chapter_order: index + 1,
         }));
         console.log("order payload: ", orderPayload);
 
         // Call onOrderChange with the updated order
         onOrderChange?.(orderPayload);
     };
+
+    if (courseId == "" || levelId == "") {
+        return <div>Missing course or level details parameters</div>;
+    }
 
     if (isLoading) {
         return <DashboardLoader />;

@@ -1,12 +1,18 @@
 // module-material.tsx
 import { useEffect, useState } from "react";
-import { SessionDropdown } from "@/components/common/session-dropdown";
+import { SessionDropdown } from "@/components/common/study-library/study-library-session-dropdown";
 import { AddChapterButton } from "./chapter-material/add-chapters/add-chapter-button";
 import { useForm } from "react-hook-form";
 import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
 import { getModuleById } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getModulesWithChaptersByModuleId";
 import { Chapters } from "./chapter-material/chapters";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
+import { useRouter } from "@tanstack/react-router";
+import { getSubjectSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForModules";
+import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
+import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
+import { orderChapterPayloadType } from "@/types/study-library/order-payload";
+import { useUpdateChapterOrder } from "@/services/study-library/chapter-operations/update-chapter-order";
 
 export interface FormValues {
     chapters: ChapterWithSlides[];
@@ -16,6 +22,24 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
     const [isChapterLoading, setIsChapterLoading] = useState(true);
     const moduleWithChapters = getModuleById(currentModuleId);
     const existingChapters = getChaptersByModuleId(currentModuleId) || [];
+    const { selectedSession, setSelectedSession } = useSelectedSessionStore();
+    const updateChapterOrderMutation = useUpdateChapterOrder();
+
+    const router = useRouter();
+
+    const { subjectId } = router.state.location.search;
+    const sessionList = subjectId ? getSubjectSessions(subjectId) : [];
+    const initialSession =
+        selectedSession && sessionList.includes(selectedSession) ? selectedSession : sessionList[0];
+    // const initialSession = sessionList[0];
+
+    const [currentSession, setCurrentSession] = useState(initialSession);
+
+    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
+        if (typeof value !== "string" && value) {
+            setCurrentSession(value);
+        }
+    };
 
     const form = useForm<FormValues>({
         defaultValues: {
@@ -51,12 +75,20 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         );
     };
 
+    const handleChapterOrderChange = (orderPayload: orderChapterPayloadType[]) => {
+        updateChapterOrderMutation.mutate(orderPayload);
+    };
+
     useEffect(() => {
         if (existingChapters) {
             form.reset({ chapters: existingChapters });
             setIsChapterLoading(false);
         }
     }, [existingChapters, form]);
+
+    useEffect(() => {
+        setSelectedSession(currentSession);
+    }, [currentSession]);
 
     return (
         <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
@@ -75,7 +107,12 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                     <AddChapterButton onAddChapter={handleAddChapter} />
                 </div>
             </div>
-            <SessionDropdown className="text-title font-semibold" />
+            <SessionDropdown
+                currentSession={currentSession ?? undefined}
+                onSessionChange={handleSessionChange}
+                className="text-title font-semibold"
+                sessionList={sessionList}
+            />
             {/* Add your module content here */}
             <Chapters
                 form={form}
@@ -83,6 +120,7 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                 onDeleteChapter={handleDeleteChapter}
                 onEditChapter={handleEditChapter}
                 isLoading={isChapterLoading}
+                onOrderChange={handleChapterOrderChange}
             />
         </div>
     );
