@@ -27,7 +27,9 @@ export const LevelPage = () => {
     );
 
     // Get levels only if session is selected
-    const LevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
+    const initialLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
+
+    const [levelList, setLevelList] = useState(initialLevelList);
 
     const handleSessionChange = (value: string | StudyLibrarySessionType) => {
         if (typeof value !== "string" && value) {
@@ -40,6 +42,8 @@ export const LevelPage = () => {
 
     useEffect(() => {
         setSelectedSession(currentSession);
+        const newLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
+        setLevelList(newLevelList);
     }, [currentSession]);
 
     return (
@@ -78,7 +82,7 @@ export const LevelPage = () => {
                     </div>
 
                     <div className={`grid grid-cols-3 ${open ? "gap-4" : "gap-8"} justify-between`}>
-                        {LevelList.map((level, key) => (
+                        {levelList.map((level, key) => (
                             <div key={key}>
                                 <LevelCard
                                     level={level}

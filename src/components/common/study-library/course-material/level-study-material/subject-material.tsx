@@ -46,10 +46,6 @@ export const SubjectMaterial = () => {
     const deleteSubjectMutation = useDeleteSubject();
     const updateSubjectOrderMutation = useUpdateSubjectOrder();
 
-    useEffect(() => {
-        setSelectedSession(currentSession);
-    }, [currentSession]);
-
     // Prevent rendering if required params are missing
 
     const handleSessionChange = (value: string | StudyLibrarySessionType) => {
@@ -58,21 +54,19 @@ export const SubjectMaterial = () => {
         }
     };
 
-    const apiSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
+    const initialSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
+
+    const [subjects, setSubjects] = useState(initialSubjects);
+
+    useEffect(() => {
+        setSelectedSession(currentSession);
+        const newSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
+        setSubjects(newSubjects);
+    }, [currentSession]);
 
     const classNumber = getLevelName(levelId);
     const packageSessionIds =
         useGetPackageSessionId(courseId, currentSession?.id ?? "", levelId) || "";
-
-    const mappedSubjects = apiSubjects.map((subject) => ({
-        id: subject.id,
-        subject_name: subject.subject_name,
-        subject_code: subject.subject_code,
-        credit: subject.credit,
-        thumbnail_id: subject.thumbnail_id,
-        created_at: subject.created_at,
-        updated_at: subject.updated_at,
-    }));
 
     const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
@@ -147,7 +141,7 @@ export const SubjectMaterial = () => {
                 />
             </div>
             <Subjects
-                subjects={mappedSubjects}
+                subjects={subjects}
                 onDeleteSubject={handleDeleteSubject}
                 onEditSubject={handleEditSubject}
                 packageSessionIds={packageSessionIds}
