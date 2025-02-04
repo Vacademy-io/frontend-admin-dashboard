@@ -16,7 +16,7 @@ import QRCode from "react-qr-code";
 import { useEffect, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    assessmentDialogTrigger,
+    // announcementDialogTrigger,
     parseHtmlToString,
     transformSectionsAndQuestionsData,
 } from "../-utils/helper";
@@ -297,7 +297,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         }));
     }, [selectedSection]); // Runs when section changes
 
-    const previousSections = useRef();
+    const previousSections = useRef<sectionsEditQuestionFormType["sections"]>();
 
     useEffect(() => {
         if (!assessmentDetails[1]?.saved_data.sections) return;
@@ -312,14 +312,12 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     }, []);
 
     useEffect(() => {
-        console.log("previousSectios", previousSections.current);
-        console.log("currentSections", form.getValues("sections"));
-        assessmentDialogTrigger(
-            previousSections,
-            form.getValues("sections"),
-            selectedSectionIndex,
-            currentQuestionIndex,
-        );
+        // announcementDialogTrigger(
+        //     previousSections.current,
+        //     form.getValues("sections"),
+        //     selectedSectionIndex,
+        //     currentQuestionIndex,
+        // );
     }, [currentQuestionIndex]);
 
     // Add this new useEffect to handle section/question changes
@@ -332,13 +330,13 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
             if (sectionIndex !== -1) {
                 const questionIndex = currentQuestionIndexes[selectedSection];
                 const currentQuestion = form.getValues(
-                    `sections.${sectionIndex}.questions.${questionIndex}`,
+                    `sections.${sectionIndex}.questions.${questionIndex}` as `sections.${number}.questions.${number}`,
                 );
 
                 if (currentQuestion) {
                     // Force a form update for the current question
                     form.setValue(
-                        `sections.${sectionIndex}.questions.${questionIndex}`,
+                        `sections.${sectionIndex}.questions.${questionIndex}` as `sections.${number}.questions.${number}`,
                         {
                             ...currentQuestion,
                         },

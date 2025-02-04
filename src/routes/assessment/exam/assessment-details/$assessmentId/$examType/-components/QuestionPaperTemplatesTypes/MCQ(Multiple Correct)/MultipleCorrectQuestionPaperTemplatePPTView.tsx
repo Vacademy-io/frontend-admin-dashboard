@@ -13,6 +13,20 @@ import "react-quill/dist/quill.snow.css";
 import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
 import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
 
+interface ImageDetail {
+    imageId: string;
+    imageName: string;
+    imageTitle: string;
+    imageFile: string;
+    isDeleted: boolean;
+}
+
+interface ChoiceOption {
+    name: string;
+    isSelected: boolean;
+    image: ImageDetail;
+}
+
 export const MultipleCorrectQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
@@ -31,16 +45,16 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
 
     const option1 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`,
-    );
+    ) as ChoiceOption;
     const option2 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`,
-    );
+    ) as ChoiceOption;
     const option3 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`,
-    );
+    ) as ChoiceOption;
     const option4 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`,
-    );
+    ) as ChoiceOption;
 
     const handleDeleteSlide = () => {
         allQuestions.splice(currentQuestionIndex, 1);

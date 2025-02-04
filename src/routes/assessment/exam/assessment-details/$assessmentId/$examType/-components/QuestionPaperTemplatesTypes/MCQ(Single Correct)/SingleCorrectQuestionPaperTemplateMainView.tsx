@@ -13,6 +13,20 @@ import { QUESTION_TYPES } from "@/constants/dummy-data";
 import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
 import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
 
+interface ImageDetail {
+    imageId: string;
+    imageName: string;
+    imageTitle: string;
+    imageFile: string;
+    isDeleted: boolean;
+}
+
+interface ChoiceOption {
+    name: string;
+    isSelected: boolean;
+    image: ImageDetail;
+}
+
 export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
@@ -30,16 +44,16 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
 
     const option1 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}`,
-    );
+    ) as ChoiceOption;
     const option2 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}`,
-    );
+    ) as ChoiceOption;
     const option3 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}`,
-    );
+    ) as ChoiceOption;
     const option4 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}`,
-    );
+    ) as ChoiceOption;
 
     const handleRemovePicture = (currentQuestionImageIndex: number) => {
         // Filter out the image to be removed

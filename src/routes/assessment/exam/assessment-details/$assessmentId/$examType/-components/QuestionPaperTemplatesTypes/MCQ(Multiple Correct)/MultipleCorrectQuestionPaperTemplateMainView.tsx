@@ -13,7 +13,20 @@ import { QUESTION_TYPES } from "@/constants/dummy-data";
 import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
 import { OptionImagePreview } from "../../options/MCQ(Multiple Correct)/OptionImagePreview";
 import { useEffect } from "react";
-import { MyInput } from "@/components/design-system/input";
+
+interface ImageDetail {
+    imageId: string;
+    imageName: string;
+    imageTitle: string;
+    imageFile: string;
+    isDeleted: boolean;
+}
+
+interface ChoiceOption {
+    name: string;
+    isSelected: boolean;
+    image: ImageDetail;
+}
 
 export const MultipleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -35,16 +48,16 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
 
     const option1 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`,
-    );
+    ) as ChoiceOption;
     const option2 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`,
-    );
+    ) as ChoiceOption;
     const option3 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`,
-    );
+    ) as ChoiceOption;
     const option4 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`,
-    );
+    ) as ChoiceOption;
 
     const handleRemovePicture = (index: number) => {
         setValue(
@@ -80,7 +93,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
         if (questions?.[currentQuestionIndex]) {
             form.setValue(
                 `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}`,
-                questions[currentQuestionIndex],
+                questions[currentQuestionIndex]!,
             );
         }
     }, [currentQuestionIndex, questions]);

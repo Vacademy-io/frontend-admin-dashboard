@@ -58,6 +58,8 @@ export const Step2SectionInfo = ({
     const [enableSectionName, setEnableSectionName] = useState(true);
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
@@ -167,8 +169,8 @@ export const Step2SectionInfo = ({
                 `section.${index}.negative_marking.value`,
                 String(calculateAveragePenalty(adaptiveMarking.adaptiveMarking)),
             );
-            if (oldData.current.section[index]) {
-                oldData.current.section[index].adaptive_marking_for_each_question =
+            if (oldData.current?.section && oldData.current.section[index]) {
+                oldData.current.section[index]!.adaptive_marking_for_each_question =
                     adaptiveMarking.adaptiveMarking;
             }
         }
@@ -202,7 +204,7 @@ export const Step2SectionInfo = ({
                                     </FormItem>
                                 )}
                             />
-                            {allSections?.[index]?.adaptive_marking_for_each_question.length >
+                            {allSections?.[index]!.adaptive_marking_for_each_question.length >
                                 0 && (
                                 <span className="font-thin !text-neutral-600">
                                     (MCQ(Single Correct):&nbsp;
@@ -299,6 +301,10 @@ export const Step2SectionInfo = ({
                                 isManualCreated={false}
                                 index={index}
                                 sectionsForm={form}
+                                currentQuestionIndex={currentQuestionIndex}
+                                setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                currentQuestionImageIndex={currentQuestionImageIndex}
+                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -332,6 +338,10 @@ export const Step2SectionInfo = ({
                                 isManualCreated={true}
                                 index={index}
                                 sectionsForm={form}
+                                currentQuestionIndex={currentQuestionIndex}
+                                setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                currentQuestionImageIndex={currentQuestionImageIndex}
+                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -366,6 +376,10 @@ export const Step2SectionInfo = ({
                                     isAssessment={true}
                                     index={index}
                                     sectionsForm={form}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                    currentQuestionImageIndex={currentQuestionImageIndex}
+                                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                 />
                             </div>
                         </DialogContent>
