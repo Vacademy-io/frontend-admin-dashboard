@@ -4,10 +4,9 @@ import { useEffect } from "react";
 import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
 import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
-import { MyButton } from "@/components/design-system/button";
-import { Plus } from "phosphor-react";
 import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
 import { CourseCard } from "./course-card";
+import { AddCourseButton } from "./add-course-button";
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -36,10 +35,7 @@ export const CourseMaterial = () => {
                 <div className="flex flex-col items-center gap-4">
                     <CreateStudyDocButton />
                     <UploadStudyMaterialButton />
-                    <MyButton buttonType="primary" layoutVariant="default" scale="large">
-                        <Plus />
-                        Create Course
-                    </MyButton>
+                    <AddCourseButton />
                 </div>
             </div>
 

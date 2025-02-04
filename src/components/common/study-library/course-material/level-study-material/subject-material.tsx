@@ -7,6 +7,7 @@ import { SearchInput } from "@/components/common/students/students-list/student-
 import {
     StudyLibrarySessionType,
     SubjectType,
+    useStudyLibraryStore,
 } from "@/stores/study-library/use-study-library-store";
 import { useAddSubject } from "@/services/study-library/subject-operations/addSubject";
 import { useUpdateSubject } from "@/services/study-library/subject-operations/updateSubject";
@@ -26,6 +27,8 @@ export const SubjectMaterial = () => {
     const searchParams = router.state.location.search;
     const { selectedSession, setSelectedSession } = useSelectedSessionStore();
 
+    const { studyLibraryData } = useStudyLibraryStore();
+
     // Extract params safely
     const courseId: string = searchParams.courseId || "";
     const levelId: string = searchParams.levelId || "";
@@ -34,7 +37,6 @@ export const SubjectMaterial = () => {
     const sessionList = courseId && levelId ? getLevelSessions(levelId) : [];
     const initialSession: StudyLibrarySessionType | undefined =
         selectedSession && sessionList.includes(selectedSession) ? selectedSession : sessionList[0];
-    // const initialSession = sessionList[0];
     const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
         initialSession,
     );
@@ -55,14 +57,13 @@ export const SubjectMaterial = () => {
     };
 
     const initialSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
-
     const [subjects, setSubjects] = useState(initialSubjects);
 
     useEffect(() => {
         setSelectedSession(currentSession);
         const newSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
         setSubjects(newSubjects);
-    }, [currentSession]);
+    }, [currentSession, studyLibraryData]);
 
     const classNumber = getLevelName(levelId);
     const packageSessionIds =

@@ -11,7 +11,7 @@ const triggerButton = (
     </MyButton>
 );
 
-export const AddSubjectButton = () => {
+export const AddCourseButton = () => {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleOpenChange = () => {
@@ -21,7 +21,7 @@ export const AddSubjectButton = () => {
     return (
         <MyDialog
             trigger={triggerButton}
-            heading="Add Subject"
+            heading="Add Course"
             dialogWidth="w-[400px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
@@ -32,6 +32,7 @@ export const AddSubjectButton = () => {
                     handleOpenChange();
                 }}
             /> */}
+            add your course here
         </MyDialog>
     );
 };
