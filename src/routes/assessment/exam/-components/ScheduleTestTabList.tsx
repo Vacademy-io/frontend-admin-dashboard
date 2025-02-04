@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScheduleTestTab } from "@/types/assessment-list";
+import { ScheduleTestTab } from "@/types/assessments/assessment-list";
 
 const ScheduleTestTabList = ({
     selectedTab,

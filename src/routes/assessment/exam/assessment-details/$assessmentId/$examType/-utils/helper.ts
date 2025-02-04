@@ -2,7 +2,7 @@ import {
     ResponseQuestionList,
     ResponseQuestionListClose,
     ResponseQuestionListOpen,
-} from "@/types/assessment-overview";
+} from "@/types/assessments/assessment-overview";
 import {
     assessmentStatusStudentAttemptedColumnsExternal,
     assessmentStatusStudentAttemptedColumnsInternal,
@@ -13,8 +13,8 @@ import {
     assessmentStatusStudentQuestionResponseExternal,
     assessmentStatusStudentQuestionResponseInternal,
 } from "./student-columns";
-import { Section } from "@/types/assessment-data-type";
 import { AdaptiveMarking } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-hooks/getQuestionsDataForSection";
+import { Section } from "@/types/assessments/assessment-steps";
 // import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
 // import { QuestionAssessmentPreview } from "@/types/assessment-preview-interface";
 

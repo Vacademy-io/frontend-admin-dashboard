@@ -402,8 +402,7 @@ export const Step2SectionInfo = ({
                         )}
                     />
                 </div>
-                {assessmentDetails[currentStep - 1]?.saved_data?.duration_distribution ===
-                    "QUESTION" && (
+                {watch(`testDuration.questionWiseDuration`) && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
                             Question Duration{" "}
@@ -472,8 +471,7 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
-                {assessmentDetails[currentStep - 1]?.saved_data?.duration_distribution ===
-                    "SECTION" && (
+                {watch(`testDuration.sectionWiseDuration`) && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
                             Section Duration{" "}
@@ -746,7 +744,9 @@ export const Step2SectionInfo = ({
                                     <TableHead>Question Type</TableHead>
                                     <TableHead>Marks</TableHead>
                                     <TableHead>Penalty</TableHead>
-                                    <TableHead>Time</TableHead>
+                                    {watch(`testDuration.questionWiseDuration`) && (
+                                        <TableHead>Time</TableHead>
+                                    )}
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-neutral-50">
@@ -809,53 +809,59 @@ export const Step2SectionInfo = ({
                                                             )}
                                                         />
                                                     </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex items-center gap-2">
-                                                            <FormField
-                                                                control={control}
-                                                                name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.hrs`}
-                                                                render={({
-                                                                    field: { ...field },
-                                                                }) => (
-                                                                    <FormItem>
-                                                                        <FormControl>
-                                                                            <Input
-                                                                                type="text"
-                                                                                placeholder="00"
-                                                                                className="w-11"
-                                                                                value={field.value}
-                                                                                onChange={
-                                                                                    field.onChange
-                                                                                }
-                                                                            />
-                                                                        </FormControl>
-                                                                    </FormItem>
-                                                                )}
-                                                            />
-                                                            <span>:</span>
-                                                            <FormField
-                                                                control={control}
-                                                                name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.min`}
-                                                                render={({
-                                                                    field: { ...field },
-                                                                }) => (
-                                                                    <FormItem>
-                                                                        <FormControl>
-                                                                            <Input
-                                                                                type="text"
-                                                                                placeholder="00"
-                                                                                className="w-11"
-                                                                                value={field.value}
-                                                                                onChange={
-                                                                                    field.onChange
-                                                                                }
-                                                                            />
-                                                                        </FormControl>
-                                                                    </FormItem>
-                                                                )}
-                                                            />
-                                                        </div>
-                                                    </TableCell>
+                                                    {watch(`testDuration.questionWiseDuration`) && (
+                                                        <TableCell>
+                                                            <div className="flex items-center gap-2">
+                                                                <FormField
+                                                                    control={control}
+                                                                    name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.hrs`}
+                                                                    render={({
+                                                                        field: { ...field },
+                                                                    }) => (
+                                                                        <FormItem>
+                                                                            <FormControl>
+                                                                                <Input
+                                                                                    type="text"
+                                                                                    placeholder="00"
+                                                                                    className="w-11"
+                                                                                    value={
+                                                                                        field.value
+                                                                                    }
+                                                                                    onChange={
+                                                                                        field.onChange
+                                                                                    }
+                                                                                />
+                                                                            </FormControl>
+                                                                        </FormItem>
+                                                                    )}
+                                                                />
+                                                                <span>:</span>
+                                                                <FormField
+                                                                    control={control}
+                                                                    name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.min`}
+                                                                    render={({
+                                                                        field: { ...field },
+                                                                    }) => (
+                                                                        <FormItem>
+                                                                            <FormControl>
+                                                                                <Input
+                                                                                    type="text"
+                                                                                    placeholder="00"
+                                                                                    className="w-11"
+                                                                                    value={
+                                                                                        field.value
+                                                                                    }
+                                                                                    onChange={
+                                                                                        field.onChange
+                                                                                    }
+                                                                                />
+                                                                            </FormControl>
+                                                                        </FormItem>
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                        </TableCell>
+                                                    )}
                                                 </TableRow>
                                             );
                                         },

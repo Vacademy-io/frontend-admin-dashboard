@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Image, PencilSimpleLine, TrashSimple } from "phosphor-react";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { OptionImagePreviewDialogueProps } from "@/types/question-image-preview";
+import { OptionImagePreviewDialogueProps } from "@/types/assessments/question-image-preview";
 import { OptionUploadImagePreview } from "./OptionUploadImagePreview";
 
 export const OptionImagePreview: React.FC<OptionImagePreviewDialogueProps> = ({

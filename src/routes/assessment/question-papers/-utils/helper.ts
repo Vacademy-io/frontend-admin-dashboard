@@ -1,11 +1,11 @@
 import { INSTITUTE_ID } from "@/constants/urls";
-import { FilterOption } from "@/types/question-paper-filter";
-import { Level, QuestionResponse, Subject } from "@/types/question-paper-template";
+import { FilterOption } from "@/types/assessments/question-paper-filter";
+import { Level, QuestionResponse, Subject } from "@/types/assessments/question-paper-template";
 import {
     MyQuestion,
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
-} from "../../../../types/question-paper-form";
+} from "../../../../types/assessments/question-paper-form";
 import { useMutation } from "@tanstack/react-query";
 
 export function formatStructure(structure: string, value: string | number): string {

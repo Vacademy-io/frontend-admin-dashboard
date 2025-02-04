@@ -4,7 +4,7 @@ import { PencilSimpleLine, Plus, TrashSimple } from "phosphor-react";
 import UploadImageDialogue from "./UploadImageDialogue";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { QuestionImagePreviewDialogueProps } from "@/types/question-image-preview";
+import { QuestionImagePreviewDialogueProps } from "@/types/assessments/question-image-preview";
 
 const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> = ({
     form,

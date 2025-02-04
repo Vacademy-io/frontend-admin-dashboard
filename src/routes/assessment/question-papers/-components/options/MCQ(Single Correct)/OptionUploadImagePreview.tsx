@@ -5,7 +5,7 @@ import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Check } from "phosphor-react";
 import { useRef } from "react";
-import { OptionImageDialogueProps } from "@/types/upload-image-dialogue";
+import { OptionImageDialogueProps } from "@/types/assessments/upload-image-dialogue";
 
 export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
     form,
