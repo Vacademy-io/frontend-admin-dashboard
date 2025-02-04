@@ -5,19 +5,16 @@ import UploadImageDialogue from "./UploadImageDialogue";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { QuestionImagePreviewDialogueProps } from "@/types/assessments/question-image-preview";
-import { useQuestionStore } from "../-global-states/question-index";
-import { useQuestionImageStore } from "../-global-states/question-image-index";
 
 const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> = ({
     form,
+    currentQuestionIndex,
     currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
     isUploadedAgain,
 }) => {
-    const { currentQuestionIndex } = useQuestionStore();
-    const { setCurrentQuestionImageIndex } = useQuestionImageStore();
-
     const { setValue, getValues, watch } = form;
-    console.log(getValues());
+
     watch(`questions.${currentQuestionIndex}.imageDetails`);
     const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
 
@@ -67,7 +64,7 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
                     )}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="flex h-96 w-96 flex-col !gap-0 !p-0">
+            <DialogContent className="flex size-96 flex-col !gap-0 !p-0">
                 <h1 className="rounded-md bg-primary-100 p-3 pl-4 font-bold text-primary-500">
                     Question Image
                 </h1>
@@ -90,6 +87,7 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
                         <UploadImageDialogue
                             form={form}
                             title="Upload Image"
+                            currentQuestionIndex={currentQuestionIndex}
                             currentQuestionImageIndex={currentQuestionImageIndex}
                         />
                     )}
@@ -113,6 +111,7 @@ const QuestionImagePreviewDialogue: React.FC<QuestionImagePreviewDialogueProps> 
                     <UploadImageDialogue
                         form={form}
                         title="Change Image"
+                        currentQuestionIndex={currentQuestionIndex}
                         currentQuestionImageIndex={currentQuestionImageIndex}
                     />
                     <Button

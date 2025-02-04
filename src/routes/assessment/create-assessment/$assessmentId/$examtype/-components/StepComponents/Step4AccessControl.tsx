@@ -100,6 +100,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => handlePostStep4Data(data, assessmentId, instituteId, type),
         onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
             if (assessmentId !== "defaultId") {
                 useAccessControlStore.getState().reset();
                 window.history.back();
@@ -158,6 +159,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => publishAssessment({ assessmentId, instituteId, type }),
         onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
             if (assessmentId !== "defaultId") {
                 useAccessControlStore.getState().reset();
                 window.history.back();
@@ -178,6 +180,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     duration: 2000,
                 });
                 handleCompleteCurrentStep();
+                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
                 navigate({
                     to: "/assessment/exam",
                 });

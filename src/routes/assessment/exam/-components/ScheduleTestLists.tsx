@@ -4,7 +4,12 @@ import { MyPagination } from "@/components/design-system/pagination";
 import { ScheduleTestListsProps } from "@/types/assessments/schedule-test-list";
 import ScheduleTestDetails from "./ScheduleTestDetails";
 
-const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, handlePageChange }) => {
+const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({
+    tab,
+    pageNo,
+    handlePageChange,
+    selectedTab,
+}) => {
     return (
         <TabsContent key={tab.value} value={tab.value}>
             {tab.data.content.length === 0 ? (
@@ -15,7 +20,11 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({ tab, pageNo, hand
             ) : (
                 <>
                     {tab.data.content.map((item, index) => (
-                        <ScheduleTestDetails key={index} scheduleTestContent={item} />
+                        <ScheduleTestDetails
+                            key={index}
+                            scheduleTestContent={item}
+                            selectedTab={selectedTab}
+                        />
                     ))}
                     <MyPagination
                         currentPage={pageNo}

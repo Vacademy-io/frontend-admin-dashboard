@@ -11,7 +11,7 @@ interface QuestionData {
     marking_json: string;
 }
 
-interface AdaptiveMarking {
+export interface AdaptiveMarking {
     questionId: string;
     questionName: string;
     questionType: string;

@@ -68,13 +68,18 @@ export interface SavedData {
 export interface Section {
     id: string;
     name: string;
-    description: string | null;
+    description: {
+        id: string;
+        type: string;
+        content: string;
+    } | null;
     section_type: string | null;
     duration: number;
     total_marks: number;
     cutoff_marks: number;
     section_order: number;
     problem_randomization: boolean | null;
+    partial_marking: boolean | null;
     created_at: string; // ISO date string
     updated_at: string; // ISO date string
 }

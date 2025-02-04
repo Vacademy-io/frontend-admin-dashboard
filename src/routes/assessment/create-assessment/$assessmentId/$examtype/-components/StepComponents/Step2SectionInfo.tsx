@@ -1,5 +1,5 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import React, { useEffect, useState } from "react";
+import React, { MutableRefObject, useEffect, useState } from "react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { PencilSimpleLine, TrashSimple, X } from "phosphor-react";
 import {
@@ -13,11 +13,6 @@ import { MyButton } from "@/components/design-system/button";
 import { QuestionPaperUpload } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { QuestionPapersTabs } from "@/routes/assessment/question-papers/-components/QuestionPapersTabs";
-import ViewQuestionPaper from "@/routes/assessment/question-papers/-components/ViewQuestionPaper";
-import {
-    getIdByLevelName,
-    getIdBySubjectName,
-} from "@/routes/assessment/question-papers/-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
@@ -41,6 +36,10 @@ import sectionDetailsSchema from "../../-utils/section-details-schema";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { Route } from "../..";
 import { useQuestionsForSection } from "../../-hooks/getQuestionsDataForSection";
+import {
+    calculateAveragePenalty,
+    parseHtmlToString,
+} from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/-utils/helper";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -48,15 +47,19 @@ export const Step2SectionInfo = ({
     form,
     index,
     currentStep,
+    oldData,
 }: {
     form: UseFormReturn<SectionFormType>;
     index: number;
     currentStep: number;
+    oldData: MutableRefObject<SectionFormType>;
 }) => {
     const { assessmentId, examtype } = Route.useParams();
     const [enableSectionName, setEnableSectionName] = useState(true);
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
@@ -65,7 +68,6 @@ export const Step2SectionInfo = ({
         }),
     );
 
-    // Map questions to adaptive_marking_for_each_question format
     const adaptiveMarking = useQuestionsForSection(
         assessmentId,
         form.getValues(`section.${index}.sectionId`),
@@ -91,13 +93,6 @@ export const Step2SectionInfo = ({
     const handleDeleteSection = (e: React.MouseEvent, index: number) => {
         e.stopPropagation();
         remove(index);
-    };
-
-    const handleRemoveQuestionPaper = (index: number) => {
-        if (allSections?.[index]) {
-            allSections[index]!.uploaded_question_paper = null;
-            setValue("section", [...allSections]); // Ensure form state updates correctly
-        }
     };
 
     useEffect(() => {
@@ -162,8 +157,24 @@ export const Step2SectionInfo = ({
                 `section.${index}.adaptive_marking_for_each_question`,
                 adaptiveMarking.adaptiveMarking,
             );
+            // setValue(
+            //     `section.${index}.marks_per_question`,
+            //     String(calculateAverageMarks(adaptiveMarking.adaptiveMarking)),
+            // );
+            setValue(
+                `section.${index}.negative_marking.checked`,
+                calculateAveragePenalty(adaptiveMarking.adaptiveMarking) > 0 ? true : false,
+            );
+            setValue(
+                `section.${index}.negative_marking.value`,
+                String(calculateAveragePenalty(adaptiveMarking.adaptiveMarking)),
+            );
+            if (oldData.current?.section && oldData.current.section[index]) {
+                oldData.current.section[index]!.adaptive_marking_for_each_question =
+                    adaptiveMarking.adaptiveMarking;
+            }
         }
-    }, []);
+    }, [watch(`section.${index}`)]);
 
     if (isLoading || adaptiveMarking.isLoading) return <DashboardLoader />;
 
@@ -193,7 +204,8 @@ export const Step2SectionInfo = ({
                                     </FormItem>
                                 )}
                             />
-                            {allSections?.[index]?.uploaded_question_paper && (
+                            {allSections?.[index]!.adaptive_marking_for_each_question.length >
+                                0 && (
                                 <span className="font-thin !text-neutral-600">
                                     (MCQ(Single Correct):&nbsp;
                                     {allSections?.[index]?.adaptive_marking_for_each_question
@@ -289,6 +301,10 @@ export const Step2SectionInfo = ({
                                 isManualCreated={false}
                                 index={index}
                                 sectionsForm={form}
+                                currentQuestionIndex={currentQuestionIndex}
+                                setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                currentQuestionImageIndex={currentQuestionImageIndex}
+                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -322,6 +338,10 @@ export const Step2SectionInfo = ({
                                 isManualCreated={true}
                                 index={index}
                                 sectionsForm={form}
+                                currentQuestionIndex={currentQuestionIndex}
+                                setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                currentQuestionImageIndex={currentQuestionImageIndex}
+                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -356,38 +376,15 @@ export const Step2SectionInfo = ({
                                     isAssessment={true}
                                     index={index}
                                     sectionsForm={form}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                    currentQuestionImageIndex={currentQuestionImageIndex}
+                                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                 />
                             </div>
                         </DialogContent>
                     </Dialog>
                 </div>
-                {allSections?.[index]?.uploaded_question_paper && (
-                    <div className="flex items-center justify-between rounded-md border border-primary-200 px-4 py-1">
-                        <h1>{allSections[index]?.questionPaperTitle}</h1>
-                        <div className="flex items-center">
-                            <ViewQuestionPaper
-                                questionPaperId={
-                                    allSections[index]?.uploaded_question_paper ?? undefined
-                                }
-                                title={allSections[index]?.questionPaperTitle}
-                                subject={getIdBySubjectName(
-                                    instituteDetails?.subjects || [],
-                                    allSections[index]?.sectionName,
-                                )}
-                                level={getIdByLevelName(
-                                    instituteDetails?.levels || [],
-                                    allSections[index]?.yearClass,
-                                )}
-                                isAssessment={true}
-                            />
-                            <TrashSimple
-                                size={20}
-                                className="cursor-pointer text-danger-400"
-                                onClick={() => handleRemoveQuestionPaper(index)}
-                            />
-                        </div>
-                    </div>
-                )}
                 <div className="flex flex-col gap-2">
                     <h1 className="font-thin">Section Description</h1>
                     <FormField
@@ -759,7 +756,9 @@ export const Step2SectionInfo = ({
                                             return (
                                                 <TableRow key={idx}>
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>{question.questionName}</TableCell>
+                                                    <TableCell>
+                                                        {parseHtmlToString(question.questionName)}
+                                                    </TableCell>
                                                     <TableCell>{question.questionType}</TableCell>
                                                     <TableCell>
                                                         <FormField
@@ -871,20 +870,18 @@ export const Step2SectionInfo = ({
                         </Table>
                     </div>
                 )}
-                {watch(`section.${index}.marks_per_question`) ||
-                    (assessmentId !== "defaultId" && (
-                        <div className="flex items-center justify-end gap-1">
-                            <span>Total Marks</span>
-                            <span>:</span>
-                            <h1>
-                                {calculateTotalMarks(
-                                    getValues(
-                                        `section.${index}.adaptive_marking_for_each_question`,
-                                    ),
-                                )}
-                            </h1>
-                        </div>
-                    ))}
+                {(watch(`section.${index}.marks_per_question`) ||
+                    watch(`section.${index}.total_marks`)) && (
+                    <div className="flex items-center justify-end gap-1">
+                        <span>Total Marks</span>
+                        <span>:</span>
+                        <h1>
+                            {calculateTotalMarks(
+                                getValues(`section.${index}.adaptive_marking_for_each_question`),
+                            )}
+                        </h1>
+                    </div>
+                )}
             </AccordionContent>
         </AccordionItem>
     );

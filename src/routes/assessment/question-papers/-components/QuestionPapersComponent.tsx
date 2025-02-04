@@ -1,11 +1,13 @@
 import { Helmet } from "react-helmet";
 import { QuestionPapersHeading } from "./QuestionPapersHeading";
 import { QuestionPapersTabs } from "./QuestionPapersTabs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 
 export function QuestionPapersComponent() {
     const { setNavHeading } = useNavHeadingStore();
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
 
     useEffect(() => {
         setNavHeading(<h1 className="text-lg">Question Papers</h1>);
@@ -21,8 +23,19 @@ export function QuestionPapersComponent() {
                 />
             </Helmet>
             <div className="flex flex-col gap-4">
-                <QuestionPapersHeading />
-                <QuestionPapersTabs isAssessment={false} />
+                <QuestionPapersHeading
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    currentQuestionImageIndex={currentQuestionImageIndex}
+                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
+                />
+                <QuestionPapersTabs
+                    isAssessment={false}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    currentQuestionImageIndex={currentQuestionImageIndex}
+                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
+                />
             </div>
         </>
     );

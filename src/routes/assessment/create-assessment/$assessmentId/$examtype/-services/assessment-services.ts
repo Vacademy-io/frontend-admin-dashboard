@@ -15,12 +15,10 @@ import {
     calculateTotalTime,
     classifySections,
     convertStep2Data,
-    convertStep2OldData,
     convertToUTCPlus530,
 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
-import { SectionFormType } from "@/types/assessments/assessment-steps";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -55,6 +53,7 @@ export const getAssessmentDetails = ({
         queryKey: ["GET_ASSESSMENT_DETAILS", assessmentId, instituteId, type],
         queryFn: () => getAssessmentDetailsData({ assessmentId, instituteId, type }),
         staleTime: 60 * 60 * 1000,
+        enabled: !!assessmentId,
     };
 };
 
@@ -63,7 +62,7 @@ export const getQuestionsDataForStep2 = async ({
     sectionIds,
 }: {
     assessmentId: string;
-    sectionIds: string;
+    sectionIds: string | undefined;
 }) => {
     const response = await authenticatedAxiosInstance({
         method: "GET",
@@ -81,7 +80,7 @@ export const getQuestionDataForSection = ({
     sectionIds,
 }: {
     assessmentId: string;
-    sectionIds: string;
+    sectionIds: string | undefined;
 }) => {
     return {
         queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS", assessmentId, sectionIds],
@@ -133,13 +132,13 @@ export const handlePostStep1Data = async (
 };
 
 export const handlePostStep2Data = async (
-    oldData: SectionFormType["section"],
+    oldData: z.infer<typeof sectionDetailsSchema>,
     data: z.infer<typeof sectionDetailsSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
     type: string | undefined,
 ) => {
-    const convertedOldData = convertStep2OldData(oldData);
+    const convertedOldData = convertStep2Data(oldData);
     const convertedNewData = convertStep2Data(data);
     const classifiedSections = classifySections(convertedOldData, convertedNewData);
     const convertedData = {
