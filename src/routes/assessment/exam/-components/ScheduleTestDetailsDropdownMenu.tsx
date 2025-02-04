@@ -8,12 +8,12 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import { TestContent } from "@/types/schedule-test-list";
 import { useNavigate } from "@tanstack/react-router";
 import { DotsThree, Info } from "phosphor-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { TestContent } from "@/types/assessments/schedule-test-list";
 
 export function ScheduleTestDetailsDropdownLive({
     scheduleTestContent,
