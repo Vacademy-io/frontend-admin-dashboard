@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CheckCircle } from "phosphor-react";
-import { Section } from "@/types/assessment-data-type";
+import { Section } from "@/types/assessments/assessment-data-type";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Route } from "..";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { QuestionData } from "@/types/assessment-steps";
+import { QuestionData } from "@/types/assessments/assessment-steps";
 import { getQuestionTypeCounts } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
 
 interface QuestionDuration {

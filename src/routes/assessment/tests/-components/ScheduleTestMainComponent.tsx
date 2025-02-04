@@ -7,7 +7,7 @@ import { useInstituteQuery } from "@/services/student-list-section/getInstituteD
 import { ScheduleTestFilters } from "./ScheduleTestFilters";
 import { useFilterDataForAssesment } from "../-utils.ts/useFiltersData";
 import { ScheduleTestSearchComponent } from "./ScheduleTestSearchComponent";
-import { MyFilterOption } from "@/types/my-filter";
+import { MyFilterOption } from "@/types/assessments/my-filter";
 import { ScheduleTestHeaderDescription } from "./ScheduleTestHeaderDescription";
 import ScheduleTestTabList from "./ScheduleTestTabList";
 import ScheduleTestFilterButtons from "./ScheduleTestFilterButtons";
