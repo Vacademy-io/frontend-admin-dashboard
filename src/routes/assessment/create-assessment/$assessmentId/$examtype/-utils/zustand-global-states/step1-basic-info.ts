@@ -21,17 +21,6 @@ interface BasicInfoState {
         };
         subject?: string;
     };
-    testDuration?: {
-        entireTestDuration: {
-            checked: boolean;
-            testDuration?: {
-                hrs: string;
-                min: string;
-            };
-        };
-        questionWiseDuration: boolean;
-        sectionWiseDuration: boolean;
-    };
     setBasicInfo: (data: Partial<BasicInfoState>) => void;
     getBasicInfo: () => BasicInfoState;
     reset: () => void;
@@ -48,7 +37,6 @@ const initialState: Omit<BasicInfoState, "setBasicInfo" | "getBasicInfo" | "rese
     submissionType: undefined,
     switchSections: undefined,
     testCreation: undefined,
-    testDuration: undefined,
 };
 
 export const useBasicInfoStore = create<BasicInfoState>((set, get) => ({

@@ -16,19 +16,6 @@ export const BasicInfoFormSchema = z.object({
                 path: ["endDate"], // The path to associate the error with
             }),
     }),
-    testDuration: z.object({
-        entireTestDuration: z.object({
-            checked: z.boolean(),
-            testDuration: z
-                .object({
-                    hrs: z.string(),
-                    min: z.string(),
-                })
-                .optional(),
-        }),
-        sectionWiseDuration: z.boolean(),
-        questionWiseDuration: z.boolean(),
-    }),
     assessmentPreview: z.object({
         checked: z.boolean(),
         previewTimeLimit: z.string(),
