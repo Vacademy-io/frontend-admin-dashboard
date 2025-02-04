@@ -6,7 +6,7 @@ import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
 import { Plus } from "phosphor-react";
 import { Accordion } from "@/components/ui/accordion";
-import { StepContentProps } from "@/types/step-content-props";
+import { StepContentProps } from "@/types/assessments/step-content-props";
 import { getAssessmentDetails, handlePostStep2Data } from "../../-services/assessment-services";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";

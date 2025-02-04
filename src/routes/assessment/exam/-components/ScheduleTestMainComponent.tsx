@@ -9,7 +9,7 @@ import {
     useFilterDataForAssesmentInitData,
 } from "../-utils.ts/useFiltersData";
 import { ScheduleTestSearchComponent } from "./ScheduleTestSearchComponent";
-import { MyFilterOption } from "@/types/my-filter";
+import { MyFilterOption } from "@/types/assessments/my-filter";
 import { ScheduleTestHeaderDescription } from "./ScheduleTestHeaderDescription";
 import ScheduleTestTabList from "./ScheduleTestTabList";
 import ScheduleTestFilterButtons from "./ScheduleTestFilterButtons";
@@ -21,7 +21,7 @@ import {
 } from "../-services/assessment-services";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { ScheduleTestTab } from "@/types/assessment-list";
+import { ScheduleTestTab } from "@/types/assessments/assessment-list";
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];

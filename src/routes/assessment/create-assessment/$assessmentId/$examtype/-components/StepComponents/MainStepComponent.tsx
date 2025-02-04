@@ -3,7 +3,7 @@ import Step1BasicInfo from "./Step1BasicInfo";
 import Step2AddingQuestions from "./Step2AddingQuestions";
 import Step3AddingParticipants from "./Step3AddingParticipants";
 import Step4AccessControl from "./Step4AccessControl";
-import { StepContentProps } from "@/types/step-content-props";
+import { StepContentProps } from "@/types/assessments/step-content-props";
 
 // Define a mapping of step index to component
 const stepComponents: {

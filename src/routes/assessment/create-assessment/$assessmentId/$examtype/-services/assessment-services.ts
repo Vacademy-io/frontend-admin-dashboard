@@ -7,7 +7,7 @@ import {
     STEP3_ASSESSMENT_URL,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { Steps } from "@/types/assessment-data-type";
+import { Steps } from "@/types/assessments/assessment-data-type";
 import { z } from "zod";
 import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-schema";
@@ -20,7 +20,7 @@ import {
 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
-import { SectionFormType } from "@/types/assessment-steps";
+import { SectionFormType } from "@/types/assessments/assessment-steps";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,

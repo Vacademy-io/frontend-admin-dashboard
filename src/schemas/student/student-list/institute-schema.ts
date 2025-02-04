@@ -16,11 +16,13 @@ const LevelSchema = z.object({
     id: z.string(),
     level_name: z.string(),
     duration_in_days: z.number().nullable(),
+    thumbnail_id: z.string().nullable(),
 });
 
 const PackageSchema = z.object({
     id: z.string(),
     package_name: z.string(),
+    thumbnail_id: z.string().nullable(),
 });
 
 export const BatchForSessionSchema = z.object({
@@ -64,7 +66,7 @@ const InstituteSchema = z.object({
     batches_for_sessions: z.array(BatchForSessionSchema),
     levels: z.array(LevelSchema),
     genders: z.array(z.enum(["MALE", "FEMALE", "OTHER"])),
-    student_statuses: z.array(z.enum(["ACTIVE", "TERMINATED"])),
+    student_statuses: z.array(z.enum(["ACTIVE", "INACTIVE"])),
     subjects: z.array(SubjectSchema),
     session_expiry_days: z.array(z.number()),
 });

@@ -6,7 +6,7 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart";
 
-import { QuestionInsights } from "@/types/question-insights-type";
+import { QuestionInsights } from "@/types/assessments/question-insights-type";
 
 const chartConfig = {
     correct: {

@@ -16,16 +16,18 @@ import { Route as StudentsIndexImport } from "./routes/students/index"
 import { Route as LoginIndexImport } from "./routes/login/index"
 import { Route as DashboardIndexImport } from "./routes/dashboard/index"
 import { Route as AssessmentIndexImport } from "./routes/assessment/index"
-import { Route as StudyLibraryClassIndexImport } from "./routes/study-library/$class/index"
+import { Route as StudyLibraryCoursesIndexImport } from "./routes/study-library/courses/index"
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index"
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index"
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index"
 import { Route as AssessmentExamIndexImport } from "./routes/assessment/exam/index"
-import { Route as StudyLibraryClassSubjectIndexImport } from "./routes/study-library/$class/$subject/index"
-import { Route as StudyLibraryClassSubjectModuleIndexImport } from "./routes/study-library/$class/$subject/$module/index"
+import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index"
+import { Route as StudyLibraryCoursesLevelsSubjectsIndexImport } from "./routes/study-library/courses/levels/subjects/index"
 import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index"
-import { Route as StudyLibraryClassSubjectModuleChapterIndexImport } from "./routes/study-library/$class/$subject/$module/$chapter/index"
+import { Route as StudyLibraryCoursesLevelsSubjectsModulesIndexImport } from "./routes/study-library/courses/levels/subjects/modules/index"
 import { Route as AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexImport } from "./routes/assessment/exam/assessment-details/$assessmentId/$examType/index"
+import { Route as StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexImport } from "./routes/study-library/courses/levels/subjects/modules/chapters/index"
+import { Route as StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexImport } from "./routes/study-library/courses/levels/subjects/modules/chapters/slides/index"
 
 // Create/Update Routes
 
@@ -59,9 +61,9 @@ const AssessmentIndexRoute = AssessmentIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const StudyLibraryClassIndexRoute = StudyLibraryClassIndexImport.update({
-  id: "/study-library/$class/",
-  path: "/study-library/$class/",
+const StudyLibraryCoursesIndexRoute = StudyLibraryCoursesIndexImport.update({
+  id: "/study-library/courses/",
+  path: "/study-library/courses/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -90,17 +92,17 @@ const AssessmentExamIndexRoute = AssessmentExamIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const StudyLibraryClassSubjectIndexRoute =
-  StudyLibraryClassSubjectIndexImport.update({
-    id: "/study-library/$class/$subject/",
-    path: "/study-library/$class/$subject/",
+const StudyLibraryCoursesLevelsIndexRoute =
+  StudyLibraryCoursesLevelsIndexImport.update({
+    id: "/study-library/courses/levels/",
+    path: "/study-library/courses/levels/",
     getParentRoute: () => rootRoute,
   } as any)
 
-const StudyLibraryClassSubjectModuleIndexRoute =
-  StudyLibraryClassSubjectModuleIndexImport.update({
-    id: "/study-library/$class/$subject/$module/",
-    path: "/study-library/$class/$subject/$module/",
+const StudyLibraryCoursesLevelsSubjectsIndexRoute =
+  StudyLibraryCoursesLevelsSubjectsIndexImport.update({
+    id: "/study-library/courses/levels/subjects/",
+    path: "/study-library/courses/levels/subjects/",
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -111,10 +113,10 @@ const AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute =
     getParentRoute: () => rootRoute,
   } as any)
 
-const StudyLibraryClassSubjectModuleChapterIndexRoute =
-  StudyLibraryClassSubjectModuleChapterIndexImport.update({
-    id: "/study-library/$class/$subject/$module/$chapter/",
-    path: "/study-library/$class/$subject/$module/$chapter/",
+const StudyLibraryCoursesLevelsSubjectsModulesIndexRoute =
+  StudyLibraryCoursesLevelsSubjectsModulesIndexImport.update({
+    id: "/study-library/courses/levels/subjects/modules/",
+    path: "/study-library/courses/levels/subjects/modules/",
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -122,6 +124,20 @@ const AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute =
   AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexImport.update({
     id: "/assessment/exam/assessment-details/$assessmentId/$examType/",
     path: "/assessment/exam/assessment-details/$assessmentId/$examType/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute =
+  StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexImport.update({
+    id: "/study-library/courses/levels/subjects/modules/chapters/",
+    path: "/study-library/courses/levels/subjects/modules/chapters/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute =
+  StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexImport.update({
+    id: "/study-library/courses/levels/subjects/modules/chapters/slides/",
+    path: "/study-library/courses/levels/subjects/modules/chapters/slides/",
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -192,18 +208,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof StudentsStudentsListIndexImport
       parentRoute: typeof rootRoute
     }
-    "/study-library/$class/": {
-      id: "/study-library/$class/"
-      path: "/study-library/$class"
-      fullPath: "/study-library/$class"
-      preLoaderRoute: typeof StudyLibraryClassIndexImport
+    "/study-library/courses/": {
+      id: "/study-library/courses/"
+      path: "/study-library/courses"
+      fullPath: "/study-library/courses"
+      preLoaderRoute: typeof StudyLibraryCoursesIndexImport
       parentRoute: typeof rootRoute
     }
-    "/study-library/$class/$subject/": {
-      id: "/study-library/$class/$subject/"
-      path: "/study-library/$class/$subject"
-      fullPath: "/study-library/$class/$subject"
-      preLoaderRoute: typeof StudyLibraryClassSubjectIndexImport
+    "/study-library/courses/levels/": {
+      id: "/study-library/courses/levels/"
+      path: "/study-library/courses/levels"
+      fullPath: "/study-library/courses/levels"
+      preLoaderRoute: typeof StudyLibraryCoursesLevelsIndexImport
       parentRoute: typeof rootRoute
     }
     "/assessment/create-assessment/$assessmentId/$examtype/": {
@@ -213,11 +229,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexImport
       parentRoute: typeof rootRoute
     }
-    "/study-library/$class/$subject/$module/": {
-      id: "/study-library/$class/$subject/$module/"
-      path: "/study-library/$class/$subject/$module"
-      fullPath: "/study-library/$class/$subject/$module"
-      preLoaderRoute: typeof StudyLibraryClassSubjectModuleIndexImport
+    "/study-library/courses/levels/subjects/": {
+      id: "/study-library/courses/levels/subjects/"
+      path: "/study-library/courses/levels/subjects"
+      fullPath: "/study-library/courses/levels/subjects"
+      preLoaderRoute: typeof StudyLibraryCoursesLevelsSubjectsIndexImport
       parentRoute: typeof rootRoute
     }
     "/assessment/exam/assessment-details/$assessmentId/$examType/": {
@@ -227,11 +243,25 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexImport
       parentRoute: typeof rootRoute
     }
-    "/study-library/$class/$subject/$module/$chapter/": {
-      id: "/study-library/$class/$subject/$module/$chapter/"
-      path: "/study-library/$class/$subject/$module/$chapter"
-      fullPath: "/study-library/$class/$subject/$module/$chapter"
-      preLoaderRoute: typeof StudyLibraryClassSubjectModuleChapterIndexImport
+    "/study-library/courses/levels/subjects/modules/": {
+      id: "/study-library/courses/levels/subjects/modules/"
+      path: "/study-library/courses/levels/subjects/modules"
+      fullPath: "/study-library/courses/levels/subjects/modules"
+      preLoaderRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/courses/levels/subjects/modules/chapters/": {
+      id: "/study-library/courses/levels/subjects/modules/chapters/"
+      path: "/study-library/courses/levels/subjects/modules/chapters"
+      fullPath: "/study-library/courses/levels/subjects/modules/chapters"
+      preLoaderRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/study-library/courses/levels/subjects/modules/chapters/slides/": {
+      id: "/study-library/courses/levels/subjects/modules/chapters/slides/"
+      path: "/study-library/courses/levels/subjects/modules/chapters/slides"
+      fullPath: "/study-library/courses/levels/subjects/modules/chapters/slides"
+      preLoaderRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -249,12 +279,14 @@ export interface FileRoutesByFullPath {
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
   "/login/forgot-password": typeof LoginForgotPasswordIndexRoute
   "/students/students-list": typeof StudentsStudentsListIndexRoute
-  "/study-library/$class": typeof StudyLibraryClassIndexRoute
-  "/study-library/$class/$subject": typeof StudyLibraryClassSubjectIndexRoute
+  "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
+  "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
-  "/study-library/$class/$subject/$module": typeof StudyLibraryClassSubjectModuleIndexRoute
+  "/study-library/courses/levels/subjects": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
   "/assessment/exam/assessment-details/$assessmentId/$examType": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute
-  "/study-library/$class/$subject/$module/$chapter": typeof StudyLibraryClassSubjectModuleChapterIndexRoute
+  "/study-library/courses/levels/subjects/modules": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute
+  "/study-library/courses/levels/subjects/modules/chapters": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute
+  "/study-library/courses/levels/subjects/modules/chapters/slides": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -267,12 +299,14 @@ export interface FileRoutesByTo {
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
   "/login/forgot-password": typeof LoginForgotPasswordIndexRoute
   "/students/students-list": typeof StudentsStudentsListIndexRoute
-  "/study-library/$class": typeof StudyLibraryClassIndexRoute
-  "/study-library/$class/$subject": typeof StudyLibraryClassSubjectIndexRoute
+  "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
+  "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
-  "/study-library/$class/$subject/$module": typeof StudyLibraryClassSubjectModuleIndexRoute
+  "/study-library/courses/levels/subjects": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
   "/assessment/exam/assessment-details/$assessmentId/$examType": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute
-  "/study-library/$class/$subject/$module/$chapter": typeof StudyLibraryClassSubjectModuleChapterIndexRoute
+  "/study-library/courses/levels/subjects/modules": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute
+  "/study-library/courses/levels/subjects/modules/chapters": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute
+  "/study-library/courses/levels/subjects/modules/chapters/slides": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute
 }
 
 export interface FileRoutesById {
@@ -286,12 +320,14 @@ export interface FileRoutesById {
   "/assessment/question-papers/": typeof AssessmentQuestionPapersIndexRoute
   "/login/forgot-password/": typeof LoginForgotPasswordIndexRoute
   "/students/students-list/": typeof StudentsStudentsListIndexRoute
-  "/study-library/$class/": typeof StudyLibraryClassIndexRoute
-  "/study-library/$class/$subject/": typeof StudyLibraryClassSubjectIndexRoute
+  "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute
+  "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
-  "/study-library/$class/$subject/$module/": typeof StudyLibraryClassSubjectModuleIndexRoute
+  "/study-library/courses/levels/subjects/": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
   "/assessment/exam/assessment-details/$assessmentId/$examType/": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute
-  "/study-library/$class/$subject/$module/$chapter/": typeof StudyLibraryClassSubjectModuleChapterIndexRoute
+  "/study-library/courses/levels/subjects/modules/": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute
+  "/study-library/courses/levels/subjects/modules/chapters/": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute
+  "/study-library/courses/levels/subjects/modules/chapters/slides/": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -306,12 +342,14 @@ export interface FileRouteTypes {
     | "/assessment/question-papers"
     | "/login/forgot-password"
     | "/students/students-list"
-    | "/study-library/$class"
-    | "/study-library/$class/$subject"
+    | "/study-library/courses"
+    | "/study-library/courses/levels"
     | "/assessment/create-assessment/$assessmentId/$examtype"
-    | "/study-library/$class/$subject/$module"
+    | "/study-library/courses/levels/subjects"
     | "/assessment/exam/assessment-details/$assessmentId/$examType"
-    | "/study-library/$class/$subject/$module/$chapter"
+    | "/study-library/courses/levels/subjects/modules"
+    | "/study-library/courses/levels/subjects/modules/chapters"
+    | "/study-library/courses/levels/subjects/modules/chapters/slides"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/assessment"
@@ -323,12 +361,14 @@ export interface FileRouteTypes {
     | "/assessment/question-papers"
     | "/login/forgot-password"
     | "/students/students-list"
-    | "/study-library/$class"
-    | "/study-library/$class/$subject"
+    | "/study-library/courses"
+    | "/study-library/courses/levels"
     | "/assessment/create-assessment/$assessmentId/$examtype"
-    | "/study-library/$class/$subject/$module"
+    | "/study-library/courses/levels/subjects"
     | "/assessment/exam/assessment-details/$assessmentId/$examType"
-    | "/study-library/$class/$subject/$module/$chapter"
+    | "/study-library/courses/levels/subjects/modules"
+    | "/study-library/courses/levels/subjects/modules/chapters"
+    | "/study-library/courses/levels/subjects/modules/chapters/slides"
   id:
     | "__root__"
     | "/assessment/"
@@ -340,12 +380,14 @@ export interface FileRouteTypes {
     | "/assessment/question-papers/"
     | "/login/forgot-password/"
     | "/students/students-list/"
-    | "/study-library/$class/"
-    | "/study-library/$class/$subject/"
+    | "/study-library/courses/"
+    | "/study-library/courses/levels/"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
-    | "/study-library/$class/$subject/$module/"
+    | "/study-library/courses/levels/subjects/"
     | "/assessment/exam/assessment-details/$assessmentId/$examType/"
-    | "/study-library/$class/$subject/$module/$chapter/"
+    | "/study-library/courses/levels/subjects/modules/"
+    | "/study-library/courses/levels/subjects/modules/chapters/"
+    | "/study-library/courses/levels/subjects/modules/chapters/slides/"
   fileRoutesById: FileRoutesById
 }
 
@@ -359,12 +401,14 @@ export interface RootRouteChildren {
   AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute
   LoginForgotPasswordIndexRoute: typeof LoginForgotPasswordIndexRoute
   StudentsStudentsListIndexRoute: typeof StudentsStudentsListIndexRoute
-  StudyLibraryClassIndexRoute: typeof StudyLibraryClassIndexRoute
-  StudyLibraryClassSubjectIndexRoute: typeof StudyLibraryClassSubjectIndexRoute
+  StudyLibraryCoursesIndexRoute: typeof StudyLibraryCoursesIndexRoute
+  StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
-  StudyLibraryClassSubjectModuleIndexRoute: typeof StudyLibraryClassSubjectModuleIndexRoute
+  StudyLibraryCoursesLevelsSubjectsIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
   AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute: typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute
-  StudyLibraryClassSubjectModuleChapterIndexRoute: typeof StudyLibraryClassSubjectModuleChapterIndexRoute
+  StudyLibraryCoursesLevelsSubjectsModulesIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute
+  StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute
+  StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -377,16 +421,20 @@ const rootRouteChildren: RootRouteChildren = {
   AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
   LoginForgotPasswordIndexRoute: LoginForgotPasswordIndexRoute,
   StudentsStudentsListIndexRoute: StudentsStudentsListIndexRoute,
-  StudyLibraryClassIndexRoute: StudyLibraryClassIndexRoute,
-  StudyLibraryClassSubjectIndexRoute: StudyLibraryClassSubjectIndexRoute,
+  StudyLibraryCoursesIndexRoute: StudyLibraryCoursesIndexRoute,
+  StudyLibraryCoursesLevelsIndexRoute: StudyLibraryCoursesLevelsIndexRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
-  StudyLibraryClassSubjectModuleIndexRoute:
-    StudyLibraryClassSubjectModuleIndexRoute,
+  StudyLibraryCoursesLevelsSubjectsIndexRoute:
+    StudyLibraryCoursesLevelsSubjectsIndexRoute,
   AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute:
     AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute,
-  StudyLibraryClassSubjectModuleChapterIndexRoute:
-    StudyLibraryClassSubjectModuleChapterIndexRoute,
+  StudyLibraryCoursesLevelsSubjectsModulesIndexRoute:
+    StudyLibraryCoursesLevelsSubjectsModulesIndexRoute,
+  StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute:
+    StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute,
+  StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute:
+    StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -408,12 +456,14 @@ export const routeTree = rootRoute
         "/assessment/question-papers/",
         "/login/forgot-password/",
         "/students/students-list/",
-        "/study-library/$class/",
-        "/study-library/$class/$subject/",
+        "/study-library/courses/",
+        "/study-library/courses/levels/",
         "/assessment/create-assessment/$assessmentId/$examtype/",
-        "/study-library/$class/$subject/$module/",
+        "/study-library/courses/levels/subjects/",
         "/assessment/exam/assessment-details/$assessmentId/$examType/",
-        "/study-library/$class/$subject/$module/$chapter/"
+        "/study-library/courses/levels/subjects/modules/",
+        "/study-library/courses/levels/subjects/modules/chapters/",
+        "/study-library/courses/levels/subjects/modules/chapters/slides/"
       ]
     },
     "/assessment/": {
@@ -443,23 +493,29 @@ export const routeTree = rootRoute
     "/students/students-list/": {
       "filePath": "students/students-list/index.tsx"
     },
-    "/study-library/$class/": {
-      "filePath": "study-library/$class/index.tsx"
+    "/study-library/courses/": {
+      "filePath": "study-library/courses/index.tsx"
     },
-    "/study-library/$class/$subject/": {
-      "filePath": "study-library/$class/$subject/index.tsx"
+    "/study-library/courses/levels/": {
+      "filePath": "study-library/courses/levels/index.tsx"
     },
     "/assessment/create-assessment/$assessmentId/$examtype/": {
       "filePath": "assessment/create-assessment/$assessmentId/$examtype/index.tsx"
     },
-    "/study-library/$class/$subject/$module/": {
-      "filePath": "study-library/$class/$subject/$module/index.tsx"
+    "/study-library/courses/levels/subjects/": {
+      "filePath": "study-library/courses/levels/subjects/index.tsx"
     },
     "/assessment/exam/assessment-details/$assessmentId/$examType/": {
       "filePath": "assessment/exam/assessment-details/$assessmentId/$examType/index.tsx"
     },
-    "/study-library/$class/$subject/$module/$chapter/": {
-      "filePath": "study-library/$class/$subject/$module/$chapter/index.tsx"
+    "/study-library/courses/levels/subjects/modules/": {
+      "filePath": "study-library/courses/levels/subjects/modules/index.tsx"
+    },
+    "/study-library/courses/levels/subjects/modules/chapters/": {
+      "filePath": "study-library/courses/levels/subjects/modules/chapters/index.tsx"
+    },
+    "/study-library/courses/levels/subjects/modules/chapters/slides/": {
+      "filePath": "study-library/courses/levels/subjects/modules/chapters/slides/index.tsx"
     }
   }
 }

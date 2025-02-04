@@ -12,7 +12,7 @@ import { useQuestionStore } from "../-global-states/question-index";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
 import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainViewComponentFactory";
-import { QuestionPaperTemplateProps } from "@/types/question-paper-template";
+import { QuestionPaperTemplateProps } from "@/types/assessments/question-paper-template";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQuestionPaperById, updateQuestionPaper } from "../-utils/question-paper-services";
 import {
@@ -24,7 +24,7 @@ import {
     MyQuestion,
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
-} from "../../../../types/question-paper-form";
+} from "../../../../types/assessments/question-paper-form";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { toast } from "sonner";
 import { DashboardLoader } from "@/components/core/dashboard-loader";

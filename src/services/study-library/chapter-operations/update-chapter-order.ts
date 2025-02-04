@@ -1,0 +1,19 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { UPDATE_CHAPTER_ORDER } from "@/constants/urls";
+import { orderChapterPayloadType } from "@/types/study-library/order-payload";
+
+export const useUpdateChapterOrder = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (orderPayload: orderChapterPayloadType[]) => {
+            const payload = orderPayload;
+
+            return authenticatedAxiosInstance.put(`${UPDATE_CHAPTER_ORDER}`, payload);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
+        },
+    });
+};
