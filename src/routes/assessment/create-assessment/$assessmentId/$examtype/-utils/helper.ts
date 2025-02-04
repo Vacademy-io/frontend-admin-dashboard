@@ -511,4 +511,8 @@ export function calculateTotalTime(testData: z.infer<typeof sectionDetailsSchema
         }, 0);
         return totalMinutes;
     }
+    return (
+        Number(testData?.testDuration?.entireTestDuration?.testDuration?.hrs) * 60 +
+        Number(testData?.testDuration?.entireTestDuration?.testDuration?.min)
+    );
 }
