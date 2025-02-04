@@ -1,8 +1,8 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useState } from "react";
-// import { AddSubjectForm } from "./add-subject-form";
 import { Plus } from "phosphor-react";
+import { AddCourseForm } from "./add-course-form";
 
 const triggerButton = (
     <MyButton buttonType="primary" layoutVariant="default" scale="large">
@@ -22,17 +22,11 @@ export const AddCourseButton = () => {
         <MyDialog
             trigger={triggerButton}
             heading="Add Course"
-            dialogWidth="w-[400px]"
+            dialogWidth="w-[430px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
         >
-            {/* <AddSubjectForm
-                onSubmitSuccess={(subject) => {
-                    onAddSubject(subject);
-                    handleOpenChange();
-                }}
-            /> */}
-            add your course here
+            <AddCourseForm />
         </MyDialog>
     );
 };
