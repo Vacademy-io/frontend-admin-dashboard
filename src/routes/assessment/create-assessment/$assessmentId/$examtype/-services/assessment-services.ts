@@ -12,6 +12,7 @@ import { z } from "zod";
 import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-schema";
 import {
+    calculateTotalTime,
     classifySections,
     convertStep2Data,
     convertStep2OldData,
@@ -109,17 +110,6 @@ export const handlePostStep1Data = async (
             start_date: convertToUTCPlus530(data.testCreation.liveDateRange.startDate),
             end_date: convertToUTCPlus530(data.testCreation.liveDateRange.endDate),
         },
-        test_duration: {
-            entire_test_duration: data.testDuration.entireTestDuration.checked
-                ? parseInt(data?.testDuration?.entireTestDuration?.testDuration?.hrs || "0") * 60 +
-                  parseInt(data?.testDuration?.entireTestDuration?.testDuration?.min || "0")
-                : 0,
-            distribution_duration: data.testDuration.sectionWiseDuration
-                ? "SECTION"
-                : data.testDuration.entireTestDuration.checked
-                  ? "ASSESSMENT"
-                  : "QUESTION",
-        },
         assessment_preview_time: data.assessmentPreview.checked
             ? parseInt(data.assessmentPreview.previewTimeLimit)
             : 0,
@@ -153,6 +143,17 @@ export const handlePostStep2Data = async (
     const convertedNewData = convertStep2Data(data);
     const classifiedSections = classifySections(convertedOldData, convertedNewData);
     const convertedData = {
+        test_duration: {
+            entire_test_duration: data.testDuration.entireTestDuration.checked
+                ? parseInt(data?.testDuration?.entireTestDuration?.testDuration?.hrs || "0") * 60 +
+                  parseInt(data?.testDuration?.entireTestDuration?.testDuration?.min || "0")
+                : calculateTotalTime(data),
+            distribution_duration: data.testDuration.sectionWiseDuration
+                ? "SECTION"
+                : data.testDuration.entireTestDuration.checked
+                  ? "ASSESSMENT"
+                  : "QUESTION",
+        },
         added_sections: classifiedSections.added_sections,
         updated_sections: classifiedSections.updated_sections,
         deleted_sections: classifiedSections.deleted_sections,

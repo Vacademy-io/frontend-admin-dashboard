@@ -35,7 +35,6 @@ export const ScheduleTestHeaderDescription = () => {
                     testing process from start to finish.
                 </p>
             </div>
-
             <MyButton
                 scale="large"
                 buttonType="primary"
@@ -43,7 +42,7 @@ export const ScheduleTestHeaderDescription = () => {
                 onClick={handleSubjectRoute}
             >
                 <CalendarBlank size={32} />
-                Schedule Test
+                Create Assessment
             </MyButton>
         </div>
     );
