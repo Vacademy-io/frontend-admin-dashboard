@@ -15,12 +15,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Step2SectionInfo from "./Step2SectionInfo";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-import { syncStep2DataWithStore } from "../../-utils/helper";
+import { getFieldOptions, getStepKey, syncStep2DataWithStore } from "../../-utils/helper";
 import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useParams } from "@tanstack/react-router";
 import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
+import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { MyInput } from "@/components/design-system/input";
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
@@ -47,6 +50,17 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         resolver: zodResolver(sectionDetailsSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
+            testDuration: {
+                entireTestDuration: {
+                    checked: true, // Default to true
+                    testDuration: {
+                        hrs: "",
+                        min: "",
+                    },
+                },
+                sectionWiseDuration: false, // Default to false
+                questionWiseDuration: false,
+            },
             section: storeDataStep2.section || [
                 {
                     sectionId: "",
@@ -188,9 +202,53 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     useEffect(() => {
         if (assessmentId !== "defaultId") {
             const sections = assessmentDetails[currentStep]?.saved_data?.sections;
-
             form.reset({
                 status: assessmentDetails[currentStep]?.status,
+                testDuration: {
+                    entireTestDuration: {
+                        checked:
+                            assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
+                            "ASSESSMENT"
+                                ? true
+                                : false,
+                        testDuration: {
+                            hrs:
+                                assessmentDetails[currentStep]?.saved_data
+                                    ?.duration_distribution === "ASSESSMENT" &&
+                                assessmentDetails[currentStep]?.saved_data?.duration != null &&
+                                (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
+                                    ? String(
+                                          Math.floor(
+                                              (assessmentDetails[currentStep]?.saved_data
+                                                  ?.duration ?? 0) / 60,
+                                          ),
+                                      )
+                                    : "",
+                            min:
+                                assessmentDetails[currentStep]?.saved_data
+                                    ?.duration_distribution === "ASSESSMENT" &&
+                                assessmentDetails[currentStep]?.saved_data?.duration != null &&
+                                (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
+                                    ? String(
+                                          Math.floor(
+                                              (assessmentDetails[currentStep]?.saved_data
+                                                  ?.duration ?? 0) % 60,
+                                          ),
+                                      )
+                                    : "",
+                        },
+                    },
+                    sectionWiseDuration:
+                        assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
+                        "SECTION"
+                            ? true
+                            : false, // Default to false
+                    questionWiseDuration:
+                        assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
+                        "QUESTION"
+                            ? true
+                            : false, // Default to false
+                },
                 section:
                     Array.isArray(sections) && sections.length > 0
                         ? sections.map((sectionDetails) => ({
@@ -315,6 +373,189 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 Next
                             </MyButton>
                         </div>
+                        <Separator className="my-4" />
+                        {getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "duration_distribution",
+                        }) && (
+                            <FormField
+                                control={form.control}
+                                name="testDuration" // Use the parent key to handle both fields
+                                render={({ field }) => (
+                                    <FormItem className="space-y-3">
+                                        <FormControl>
+                                            <RadioGroup
+                                                onValueChange={(value) => {
+                                                    form.setValue(
+                                                        "testDuration.entireTestDuration.checked",
+                                                        value === "ASSESSMENT",
+                                                    );
+                                                    form.setValue(
+                                                        "testDuration.sectionWiseDuration",
+                                                        value === "SECTION",
+                                                    );
+                                                    form.setValue(
+                                                        "testDuration.questionWiseDuration",
+                                                        value === "QUESTION",
+                                                    );
+                                                }}
+                                                defaultValue={
+                                                    field.value.entireTestDuration.checked
+                                                        ? "ASSESSMENT"
+                                                        : field.value.sectionWiseDuration
+                                                          ? "SECTION"
+                                                          : "QUESTION"
+                                                }
+                                                className="flex items-center gap-6"
+                                            >
+                                                {getFieldOptions({
+                                                    assessmentDetails,
+                                                    currentStep,
+                                                    key: "duration_distribution",
+                                                    value: "ASSESSMENT",
+                                                }) && (
+                                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="ASSESSMENT" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-thin">
+                                                            Entire Assessment Duration
+                                                        </FormLabel>
+                                                    </FormItem>
+                                                )}
+                                                {getFieldOptions({
+                                                    assessmentDetails,
+                                                    currentStep,
+                                                    key: "duration_distribution",
+                                                    value: "SECTION",
+                                                }) && (
+                                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="SECTION" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-thin">
+                                                            Section-Wise Duration
+                                                        </FormLabel>
+                                                    </FormItem>
+                                                )}
+                                                {getFieldOptions({
+                                                    assessmentDetails,
+                                                    currentStep,
+                                                    key: "duration_distribution",
+                                                    value: "QUESTION",
+                                                }) && (
+                                                    <FormItem className="flex items-center space-x-3 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="QUESTION" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-thin">
+                                                            Question-Wise Duration
+                                                        </FormLabel>
+                                                    </FormItem>
+                                                )}
+                                            </RadioGroup>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+                        {form.watch("testDuration").entireTestDuration.checked &&
+                            getStepKey({
+                                assessmentDetails,
+                                currentStep,
+                                key: "duration",
+                            }) && (
+                                <div className="mt-4 flex items-center gap-4 text-sm font-thin">
+                                    <h1>
+                                        Entire Test Duration
+                                        {getStepKey({
+                                            assessmentDetails,
+                                            currentStep,
+                                            key: "duration",
+                                        }) === "REQUIRED" && (
+                                            <span className="text-subtitle text-danger-600">*</span>
+                                        )}
+                                    </h1>
+                                    <FormField
+                                        control={control}
+                                        name="testDuration.entireTestDuration.testDuration.hrs"
+                                        render={({ field: { ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text" // Keep the input type as text
+                                                        inputPlaceholder="00"
+                                                        input={field.value}
+                                                        onKeyPress={(e) => {
+                                                            const charCode = e.key;
+                                                            if (!/[0-9]/.test(charCode)) {
+                                                                e.preventDefault(); // Prevent non-numeric input
+                                                            }
+                                                        }}
+                                                        onChangeFunction={(e) => {
+                                                            const inputValue =
+                                                                e.target.value.replace(
+                                                                    /[^0-9]/g,
+                                                                    "",
+                                                                ); // Sanitize input
+                                                            field.onChange(inputValue); // Update field value
+                                                        }}
+                                                        error={
+                                                            form.formState.errors.testDuration
+                                                                ?.entireTestDuration?.testDuration
+                                                                ?.hrs?.message
+                                                        }
+                                                        size="large"
+                                                        {...field}
+                                                        className="w-11"
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <span>hrs</span>
+                                    <span>:</span>
+                                    <FormField
+                                        control={control}
+                                        name="testDuration.entireTestDuration.testDuration.min"
+                                        render={({ field: { ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text"
+                                                        inputPlaceholder="00"
+                                                        input={field.value}
+                                                        onKeyPress={(e) => {
+                                                            const charCode = e.key;
+                                                            if (!/[0-9]/.test(charCode)) {
+                                                                e.preventDefault(); // Prevent non-numeric input
+                                                            }
+                                                        }}
+                                                        onChangeFunction={(e) => {
+                                                            const inputValue =
+                                                                e.target.value.replace(
+                                                                    /[^0-9]/g,
+                                                                    "",
+                                                                ); // Remove non-numeric characters
+                                                            field.onChange(inputValue); // Call onChange with the sanitized value
+                                                        }}
+                                                        error={
+                                                            form.formState.errors.testDuration
+                                                                ?.entireTestDuration?.testDuration
+                                                                ?.min?.message
+                                                        }
+                                                        size="large"
+                                                        {...field}
+                                                        className="w-11"
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <span>minutes</span>
+                                </div>
+                            )}
                         <Separator className="my-4" />
                         <Accordion type="single" collapsible>
                             {allSections.map((_, index) => (

@@ -2,6 +2,17 @@ import { create } from "zustand";
 
 interface SectionDetailsState {
     status?: string;
+    testDuration?: {
+        entireTestDuration: {
+            checked: boolean;
+            testDuration?: {
+                hrs: string;
+                min: string;
+            };
+        };
+        questionWiseDuration: boolean;
+        sectionWiseDuration: boolean;
+    };
     section?: {
         sectionId: string;
         sectionName: string;
@@ -52,6 +63,7 @@ interface SectionDetailsState {
 const initialState: Omit<SectionDetailsState, "setSectionDetails" | "getSectionDetails" | "reset"> =
     {
         status: undefined,
+        testDuration: undefined,
         section: undefined,
     };
 

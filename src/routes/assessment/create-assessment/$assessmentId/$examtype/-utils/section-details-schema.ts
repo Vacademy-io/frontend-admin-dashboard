@@ -2,6 +2,19 @@ import { z } from "zod";
 
 const sectionDetailsSchema = z.object({
     status: z.string(),
+    testDuration: z.object({
+        entireTestDuration: z.object({
+            checked: z.boolean(),
+            testDuration: z
+                .object({
+                    hrs: z.string(),
+                    min: z.string(),
+                })
+                .optional(),
+        }),
+        sectionWiseDuration: z.boolean(),
+        questionWiseDuration: z.boolean(),
+    }),
     section: z.array(
         z.object({
             sectionId: z.string(),

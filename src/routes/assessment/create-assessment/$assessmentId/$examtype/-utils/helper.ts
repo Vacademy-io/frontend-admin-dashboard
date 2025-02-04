@@ -228,7 +228,6 @@ export const syncStep1DataWithStore = (form: UseFormReturn<BasicSectionFormType>
     const basicInfoData = {
         status: getValues("status"),
         testCreation: getValues("testCreation"),
-        testDuration: getValues("testDuration"),
         assessmentPreview: getValues("assessmentPreview"),
         submissionType: getValues("submissionType"),
         durationDistribution: getValues("durationDistribution"),
@@ -245,6 +244,7 @@ export const syncStep2DataWithStore = (form: UseFormReturn<SectionFormType>) => 
     const { getValues } = form;
 
     const sectionDetailsData = {
+        testDuration: getValues("testDuration"),
         status: getValues("status"),
         section: getValues("section"),
     };
@@ -485,4 +485,30 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
     });
 
     return { added_sections, updated_sections, deleted_sections };
+}
+
+export function calculateTotalTime(testData: z.infer<typeof sectionDetailsSchema>) {
+    if (testData.testDuration.sectionWiseDuration) {
+        // Iterate through each section and sum up section durations
+        const totalMinutes = testData.section.reduce((sum, section) => {
+            const hrs = parseInt(section.section_duration.hrs, 10) || 0;
+            const min = parseInt(section.section_duration.min, 10) || 0;
+            return sum + hrs * 60 + min;
+        }, 0);
+        return totalMinutes;
+    } else if (testData.testDuration.questionWiseDuration) {
+        // Iterate through each question in each section and sum up question durations
+        const totalMinutes = testData.section.reduce((sum, section) => {
+            const questionMinutes = section.adaptive_marking_for_each_question.reduce(
+                (qSum, question) => {
+                    const hrs = parseInt(question.questionDuration.hrs, 10) || 0;
+                    const min = parseInt(question.questionDuration.min, 10) || 0;
+                    return qSum + hrs * 60 + min;
+                },
+                0,
+            );
+            return sum + questionMinutes;
+        }, 0);
+        return totalMinutes;
+    }
 }
