@@ -30,7 +30,7 @@ export const AddCourseButton = ({ onSubmit }: AddCourseButtonProps) => {
             open={openDialog}
             onOpenChange={handleOpenChange}
         >
-            <AddCourseForm onSubmitCourse={onSubmit} />
+            <AddCourseForm onSubmitCourse={onSubmit} setOpenDialog={setOpenDialog} />
         </MyDialog>
     );
 };

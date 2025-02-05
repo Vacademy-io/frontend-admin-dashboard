@@ -46,7 +46,7 @@ export function CustomToaster() {
 
 export const showErrorToast = (description: string) => {
     toast({
-        title: "Login Error",
+        title: "Error",
         description: description,
     });
 };

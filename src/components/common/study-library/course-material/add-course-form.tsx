@@ -13,7 +13,7 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { Plus, X } from "phosphor-react";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -71,9 +71,14 @@ interface AddCourseFormProps {
         courseId?: string;
         requestData: AddCourseData;
     }) => void;
+    setOpenDialog: Dispatch<SetStateAction<boolean>>;
 }
 
-export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormProps) => {
+export const AddCourseForm = ({
+    initialValues,
+    onSubmitCourse,
+    setOpenDialog,
+}: AddCourseFormProps) => {
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -178,7 +183,7 @@ export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormPr
         };
         console.log("Form submitted with data:", submissionData);
         onSubmitCourse({ courseId: submissionData.id, requestData: submissionData });
-        form.reset();
+        setOpenDialog(false);
     };
 
     const containLevels = form.watch("contain_levels");

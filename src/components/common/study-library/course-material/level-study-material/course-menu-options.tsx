@@ -55,6 +55,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                         levels: [],
                     }}
                     onSubmitCourse={onEdit}
+                    setOpenDialog={setOpenEditDialog}
                 />
             </MyDialog>
         </>

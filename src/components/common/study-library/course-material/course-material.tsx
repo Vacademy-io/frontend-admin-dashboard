@@ -1,5 +1,5 @@
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
 import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -10,27 +10,43 @@ import { useAddCourse } from "@/services/study-library/course-operations/add-cou
 import { AddCourseData } from "./add-course-form";
 import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
 import { useUpdateCourse } from "@/services/study-library/course-operations/update-course";
+import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
+import { toast } from "sonner"; // Import Toaster from sonner
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { open } = useSidebar();
-    const courses = getCourses();
+    const { studyLibraryData } = useStudyLibraryStore();
+    const [courses, setCourses] = useState(getCourses());
 
     const addCourseMutation = useAddCourse();
     const deleteCourseMutation = useDeleteCourse();
     const updateCourseMutation = useUpdateCourse();
 
-    useEffect(() => {
-        setNavHeading("Study Library");
-    }, []);
-
     const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
         console.log("Triggering mutation with:", requestData);
-        addCourseMutation.mutate({ requestData: requestData });
+        addCourseMutation.mutate(
+            { requestData: requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Course added successfully");
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to add course");
+                },
+            },
+        );
     };
 
     const handleCourseDelete = (courseId: string) => {
-        deleteCourseMutation.mutate(courseId);
+        deleteCourseMutation.mutate(courseId, {
+            onSuccess: () => {
+                toast.success("Course deleted successfully");
+            },
+            onError: (error) => {
+                toast.error(error.message || "Failed to delete course");
+            },
+        });
     };
 
     const handleCourseUpdate = ({
@@ -40,8 +56,26 @@ export const CourseMaterial = () => {
         requestData: AddCourseData;
         courseId?: string;
     }) => {
-        updateCourseMutation.mutate({ courseId, requestData });
+        updateCourseMutation.mutate(
+            { courseId, requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Course updated successfully");
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to update course");
+                },
+            },
+        );
     };
+
+    useEffect(() => {
+        setCourses(getCourses());
+    }, [studyLibraryData]);
+
+    useEffect(() => {
+        setNavHeading("Study Library");
+    }, []);
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">
