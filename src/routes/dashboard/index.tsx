@@ -54,183 +54,189 @@ export function DashboardComponent() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
             />
-            <div className="mt-8 flex w-full gap-6">
-                <div className="flex flex-1 flex-col gap-6">
-                    <Card className="bg-neutral-50 shadow-none">
-                        <CardHeader className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between">
-                                <CardTitle>Add users to various role types</CardTitle>
-                                <MyButton
-                                    type="submit"
-                                    scale="medium"
-                                    buttonType="secondary"
-                                    layoutVariant="default"
-                                    className="text-sm"
-                                >
-                                    <Plus size={32} />
-                                    Add Users
-                                </MyButton>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 font-thin shadow-none">
-                                    Admin
-                                </Badge>
-                                <span className="font-thin text-primary-500">1</span>
-                                <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4FFF9] py-1.5 font-thin shadow-none">
-                                    Educator
-                                </Badge>
-                                <span className="font-thin text-primary-500">0</span>
-                                <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
-                                    Creator
-                                </Badge>
-                                <span className="font-thin text-primary-500">0</span>
-                                <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
-                                    Evaluator
-                                </Badge>
-                                <span className="font-thin text-primary-500">0</span>
-                            </div>
-                        </CardHeader>
-                    </Card>
-                    <Card className="grow bg-neutral-50 shadow-none">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>Create your first course</CardTitle>
-                                <MyButton
-                                    type="submit"
-                                    scale="medium"
-                                    buttonType="secondary"
-                                    layoutVariant="default"
-                                    className="text-sm"
-                                >
-                                    <Plus size={32} />
-                                    Create
-                                </MyButton>
-                            </div>
-                            <CardDescription className="flex justify-center">
-                                <DashboardCreateCourse className="mt-8" />
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                </div>
-                <div className="flex flex-1 flex-col gap-6">
-                    <Card className="grow bg-neutral-50 shadow-none">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>Complete your institute profile</CardTitle>
-                                <MyButton
-                                    type="submit"
-                                    scale="medium"
-                                    buttonType="secondary"
-                                    layoutVariant="default"
-                                    className="text-sm"
-                                >
-                                    <Plus size={32} />
-                                    Add Details
-                                </MyButton>
-                            </div>
-                            <CardDescription className="flex items-center gap-2">
-                                <CompletionStatusComponent />
-                                <span>10% complete</span>
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                    <Card className="grow bg-neutral-50 shadow-none">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>Enroll students in institute batches</CardTitle>
-                                <MyButton
-                                    type="submit"
-                                    scale="medium"
-                                    buttonType="secondary"
-                                    layoutVariant="default"
-                                    className="text-sm"
-                                >
-                                    Enroll
-                                </MyButton>
-                            </div>
-                            <CardDescription className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <span>Batches</span>
-                                    <span className="text-primary-500">1</span>
+            <div className="mt-8 flex w-full flex-col gap-6">
+                <Card className="grow bg-neutral-50 shadow-none">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle>Complete your institute profile</CardTitle>
+                            <MyButton
+                                type="submit"
+                                scale="medium"
+                                buttonType="secondary"
+                                layoutVariant="default"
+                                className="text-sm"
+                            >
+                                <Plus size={32} />
+                                Add Details
+                            </MyButton>
+                        </div>
+                        <CardDescription className="flex items-center gap-2">
+                            <CompletionStatusComponent />
+                            <span>10% complete</span>
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+                <div className="flex gap-6">
+                    <div className="flex flex-1 flex-col gap-6">
+                        <Card className="bg-neutral-50 shadow-none">
+                            <CardHeader className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle>Add users to various role types</CardTitle>
+                                    <MyButton
+                                        type="submit"
+                                        scale="medium"
+                                        buttonType="secondary"
+                                        layoutVariant="default"
+                                        className="text-sm"
+                                    >
+                                        <Plus size={32} />
+                                        Add Users
+                                    </MyButton>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span>Students</span>
-                                    <span className="text-primary-500">1</span>
+                                <div className="flex items-center gap-3">
+                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 font-thin shadow-none">
+                                        Admin
+                                    </Badge>
+                                    <span className="font-thin text-primary-500">1</span>
+                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4FFF9] py-1.5 font-thin shadow-none">
+                                        Educator
+                                    </Badge>
+                                    <span className="font-thin text-primary-500">0</span>
+                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
+                                        Creator
+                                    </Badge>
+                                    <span className="font-thin text-primary-500">0</span>
+                                    <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
+                                        Evaluator
+                                    </Badge>
+                                    <span className="font-thin text-primary-500">0</span>
                                 </div>
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                    <Card className="grow bg-neutral-50 shadow-none">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>Create your first assessment</CardTitle>
-                                <Dialog>
-                                    <DialogTrigger>
-                                        <MyButton
-                                            type="submit"
-                                            scale="medium"
-                                            buttonType="secondary"
-                                            layoutVariant="default"
-                                            className="text-sm"
-                                        >
-                                            <Plus size={32} />
-                                            Create
-                                        </MyButton>
-                                    </DialogTrigger>
-                                    <DialogContent className="p-0">
-                                        <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
-                                            Create Assessment
-                                        </h1>
-                                        <div className="flex flex-col items-center justify-center gap-6">
+                            </CardHeader>
+                        </Card>
+                        <Card className="bg-neutral-50 shadow-none">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle>Create your first course</CardTitle>
+                                    <MyButton
+                                        type="submit"
+                                        scale="medium"
+                                        buttonType="secondary"
+                                        layoutVariant="default"
+                                        className="text-sm"
+                                    >
+                                        <Plus size={32} />
+                                        Create
+                                    </MyButton>
+                                </div>
+                                <CardDescription className="flex justify-center">
+                                    <DashboardCreateCourse />
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </div>
+                    <div className="flex flex-1 flex-col gap-6">
+                        <Card className="grow bg-neutral-50 shadow-none">
+                            <CardHeader className="flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle>Enroll students in institute batches</CardTitle>
+                                    <MyButton
+                                        type="submit"
+                                        scale="medium"
+                                        buttonType="secondary"
+                                        layoutVariant="default"
+                                        className="text-sm"
+                                    >
+                                        Enroll
+                                    </MyButton>
+                                </div>
+                                <CardDescription className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <span>Batches</span>
+                                        <span className="text-primary-500">1</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span>Students</span>
+                                        <span className="text-primary-500">1</span>
+                                    </div>
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                        <Card className="grow bg-neutral-50 shadow-none">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle>Create your first assessment</CardTitle>
+                                    <Dialog>
+                                        <DialogTrigger>
                                             <MyButton
-                                                type="button"
-                                                scale="large"
+                                                type="submit"
+                                                scale="medium"
                                                 buttonType="secondary"
-                                                className="mt-2 font-medium"
-                                                onClick={() => handleAssessmentTypeRoute("EXAM")}
+                                                layoutVariant="default"
+                                                className="text-sm"
                                             >
-                                                Examination
+                                                <Plus size={32} />
+                                                Create
                                             </MyButton>
-                                            <MyButton
-                                                type="button"
-                                                scale="large"
-                                                buttonType="secondary"
-                                                className="font-medium"
-                                                onClick={() =>
-                                                    handleAssessmentTypeRoute("LIVE_QUIZ")
-                                                }
-                                            >
-                                                Mock
-                                            </MyButton>
-                                            <MyButton
-                                                type="button"
-                                                scale="large"
-                                                buttonType="secondary"
-                                                className="font-medium"
-                                                onClick={() =>
-                                                    handleAssessmentTypeRoute("PRACTICE")
-                                                }
-                                            >
-                                                Practice
-                                            </MyButton>
-                                            <MyButton
-                                                type="button"
-                                                scale="large"
-                                                buttonType="secondary"
-                                                className="mb-6 font-medium"
-                                                onClick={() => handleAssessmentTypeRoute("SURVEY")}
-                                            >
-                                                Survey
-                                            </MyButton>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                            <CardDescription className="mt-2 flex items-center justify-center">
-                                <CreateAssessmentDashboardLogo />
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
+                                        </DialogTrigger>
+                                        <DialogContent className="p-0">
+                                            <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
+                                                Create Assessment
+                                            </h1>
+                                            <div className="flex flex-col items-center justify-center gap-6">
+                                                <MyButton
+                                                    type="button"
+                                                    scale="large"
+                                                    buttonType="secondary"
+                                                    className="mt-2 font-medium"
+                                                    onClick={() =>
+                                                        handleAssessmentTypeRoute("EXAM")
+                                                    }
+                                                >
+                                                    Examination
+                                                </MyButton>
+                                                <MyButton
+                                                    type="button"
+                                                    scale="large"
+                                                    buttonType="secondary"
+                                                    className="font-medium"
+                                                    onClick={() =>
+                                                        handleAssessmentTypeRoute("LIVE_QUIZ")
+                                                    }
+                                                >
+                                                    Mock
+                                                </MyButton>
+                                                <MyButton
+                                                    type="button"
+                                                    scale="large"
+                                                    buttonType="secondary"
+                                                    className="font-medium"
+                                                    onClick={() =>
+                                                        handleAssessmentTypeRoute("PRACTICE")
+                                                    }
+                                                >
+                                                    Practice
+                                                </MyButton>
+                                                <MyButton
+                                                    type="button"
+                                                    scale="large"
+                                                    buttonType="secondary"
+                                                    className="mb-6 font-medium"
+                                                    onClick={() =>
+                                                        handleAssessmentTypeRoute("SURVEY")
+                                                    }
+                                                >
+                                                    Survey
+                                                </MyButton>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
+                                <CardDescription className="mt-2 flex items-center justify-center">
+                                    <CreateAssessmentDashboardLogo className="mt-4" />
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </>
