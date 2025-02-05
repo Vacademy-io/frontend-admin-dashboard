@@ -32,7 +32,7 @@ export function Navbar() {
     const { navHeading } = useNavHeadingStore();
     const { sidebarOpen, setSidebarOpen } = useSidebarStore();
     return (
-        <div className="flex h-[72px] items-center justify-between bg-neutral-50 px-8 py-4">
+        <div className="flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
                     <FiSidebar className="text-neutral-600" />
