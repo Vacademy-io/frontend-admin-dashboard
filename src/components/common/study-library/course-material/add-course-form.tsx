@@ -33,35 +33,44 @@ interface Level {
 
 // Update the form schema
 const formSchema = z.object({
+    id: z.string().optional(),
     course_name: z.string(),
     thumbnail_file_id: z.string().optional(),
-    contain_levels: z.boolean(),
+    contain_levels: z.boolean().optional(),
     status: z.string().optional(),
-    levels: z.array(
-        z.object({
-            id: z.string(),
-            new_level: z.boolean().optional(),
-            level_name: z.string(),
-            duration_in_days: z.number().nullable(),
-            thumbnail_id: z.string().nullable(),
-            sessions: z.array(
-                z.object({
-                    id: z.string(),
-                    new_session: z.boolean().optional(),
-                    session_name: z.string(),
-                    status: z.string(),
-                    start_date: z.string().optional(),
-                }),
-            ),
-        }),
-    ),
+    levels: z
+        .array(
+            z.object({
+                id: z.string(),
+                new_level: z.boolean().optional(),
+                level_name: z.string(),
+                duration_in_days: z.number().nullable(),
+                thumbnail_id: z.string().nullable(),
+                sessions: z.array(
+                    z.object({
+                        id: z.string(),
+                        new_session: z.boolean().optional(),
+                        session_name: z.string(),
+                        status: z.string(),
+                        start_date: z.string().optional(),
+                    }),
+                ),
+            }),
+        )
+        .optional(),
 });
 
 export type AddCourseData = z.infer<typeof formSchema>;
 
 interface AddCourseFormProps {
     initialValues?: AddCourseData;
-    onSubmitCourse: ({ requestData }: { requestData: AddCourseData }) => void;
+    onSubmitCourse: ({
+        courseId,
+        requestData,
+    }: {
+        courseId?: string;
+        requestData: AddCourseData;
+    }) => void;
 }
 
 export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormProps) => {
@@ -85,6 +94,7 @@ export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormPr
     const form = useForm<AddCourseData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            id: initialValues?.id || "",
             course_name: initialValues?.course_name || "",
             thumbnail_file_id: initialValues?.thumbnail_file_id || fileId,
             contain_levels: initialValues?.contain_levels || false,
@@ -152,7 +162,7 @@ export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormPr
             status: "ACTIVE",
         };
         console.log("Form submitted with data:", submissionData);
-        onSubmitCourse({ requestData: submissionData });
+        onSubmitCourse({ courseId: submissionData.id, requestData: submissionData });
         form.reset();
     };
 
@@ -162,8 +172,6 @@ export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormPr
         <Form {...form}>
             <form
                 onSubmit={(e) => {
-                    console.log("Form submission attempted");
-                    console.log("Form errors:", form.formState.errors);
                     form.handleSubmit(onSubmit)(e);
                 }}
                 className="flex max-h-[80vh] flex-col gap-6 overflow-y-auto p-2 text-neutral-600"

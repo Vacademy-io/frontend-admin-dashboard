@@ -9,6 +9,7 @@ import { AddCourseButton } from "./add-course-button";
 import { useAddCourse } from "@/services/study-library/course-operations/add-course";
 import { AddCourseData } from "./add-course-form";
 import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
+import { useUpdateCourse } from "@/services/study-library/course-operations/update-course";
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -17,6 +18,7 @@ export const CourseMaterial = () => {
 
     const addCourseMutation = useAddCourse();
     const deleteCourseMutation = useDeleteCourse();
+    const updateCourseMutation = useUpdateCourse();
 
     useEffect(() => {
         setNavHeading("Study Library");
@@ -31,7 +33,15 @@ export const CourseMaterial = () => {
         deleteCourseMutation.mutate(courseId);
     };
 
-    const handleCourseUpdate = () => {};
+    const handleCourseUpdate = ({
+        courseId,
+        requestData,
+    }: {
+        requestData: AddCourseData;
+        courseId?: string;
+    }) => {
+        updateCourseMutation.mutate({ courseId, requestData });
+    };
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">

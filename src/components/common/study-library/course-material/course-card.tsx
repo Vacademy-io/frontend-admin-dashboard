@@ -3,6 +3,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { CourseType } from "@/stores/study-library/use-study-library-store";
 import { CourseMenuOptions } from "./level-study-material/course-menu-options";
 import { useNavigate, useRouter } from "@tanstack/react-router";
+import { AddCourseData } from "./add-course-form";
 
 export const CourseCard = ({
     course,
@@ -11,7 +12,7 @@ export const CourseCard = ({
 }: {
     course: CourseType;
     onDelete: (courseId: string) => void;
-    onEdit: () => void;
+    onEdit: ({ courseId, requestData }: { requestData: AddCourseData; courseId?: string }) => void;
 }) => {
     const { open } = useSidebar();
 
