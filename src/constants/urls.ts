@@ -53,3 +53,6 @@ export const ADD_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/add-chapte
 export const DELETE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/delete-chapter`;
 export const UPDATE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/update-chapter`;
 export const UPDATE_CHAPTER_ORDER = `${BASE_URL}/admin-core-service/chapter/v1/update-chapter-order`;
+
+export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
+export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;

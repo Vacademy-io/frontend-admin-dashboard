@@ -34,8 +34,9 @@ interface Level {
 // Update the form schema
 const formSchema = z.object({
     course_name: z.string(),
-    thumbnail_file_id: z.string(),
+    thumbnail_file_id: z.string().optional(),
     contain_levels: z.boolean(),
+    status: z.string().optional(),
     levels: z.array(
         z.object({
             id: z.string(),
@@ -56,13 +57,20 @@ const formSchema = z.object({
     ),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type AddCourseData = z.infer<typeof formSchema>;
 
-export const AddCourseForm = ({ initialValues }: { initialValues?: FormValues }) => {
+interface AddCourseFormProps {
+    initialValues?: AddCourseData;
+    onSubmitCourse: ({ requestData }: { requestData: AddCourseData }) => void;
+}
+
+export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormProps) => {
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [fileId, setFileId] = useState<string | null>(initialValues?.thumbnail_file_id || null);
+    const [fileId, setFileId] = useState<string | undefined>(
+        initialValues?.thumbnail_file_id || undefined,
+    );
     const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
     const [showNewLevelInput, setShowNewLevelInput] = useState(false);
     const [newLevelName, setNewLevelName] = useState("");
@@ -74,12 +82,13 @@ export const AddCourseForm = ({ initialValues }: { initialValues?: FormValues })
     const [levelList, setLevelList] = useState<Level[]>(getAllLevels);
     const [sessionList, setSessionList] = useState<Session[]>(getAllSessions);
 
-    const form = useForm<FormValues>({
+    const form = useForm<AddCourseData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             course_name: initialValues?.course_name || "",
-            thumbnail_file_id: initialValues?.thumbnail_file_id || "",
+            thumbnail_file_id: initialValues?.thumbnail_file_id || fileId,
             contain_levels: initialValues?.contain_levels || false,
+            status: initialValues?.status || "ACTIVE",
             levels: [],
         },
     });
@@ -126,6 +135,7 @@ export const AddCourseForm = ({ initialValues }: { initialValues?: FormValues })
             if (uploadedFileId) {
                 setFileId(uploadedFileId);
                 // Get public URL only for preview purposes
+                form.setValue("thumbnail_file_id", uploadedFileId);
                 const publicUrl = await getPublicUrl(uploadedFileId);
                 setPreviewUrl(publicUrl);
             }
@@ -136,9 +146,14 @@ export const AddCourseForm = ({ initialValues }: { initialValues?: FormValues })
         }
     };
 
-    const onSubmit = (data: FormValues) => {
-        console.log("file", fileId);
-        console.log("data: ", data);
+    const onSubmit = (data: AddCourseData) => {
+        const submissionData = {
+            ...data,
+            status: "ACTIVE",
+        };
+        console.log("Form submitted with data:", submissionData);
+        onSubmitCourse({ requestData: submissionData });
+        form.reset();
     };
 
     const containLevels = form.watch("contain_levels");
@@ -146,7 +161,11 @@ export const AddCourseForm = ({ initialValues }: { initialValues?: FormValues })
     return (
         <Form {...form}>
             <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                onSubmit={(e) => {
+                    console.log("Form submission attempted");
+                    console.log("Form errors:", form.formState.errors);
+                    form.handleSubmit(onSubmit)(e);
+                }}
                 className="flex max-h-[80vh] flex-col gap-6 overflow-y-auto p-2 text-neutral-600"
             >
                 <FormField

@@ -10,7 +10,7 @@ export const CourseCard = ({
     onEdit,
 }: {
     course: CourseType;
-    onDelete: () => void;
+    onDelete: (courseId: string) => void;
     onEdit: () => void;
 }) => {
     const { open } = useSidebar();
@@ -50,7 +50,7 @@ export const CourseCard = ({
                 <div className="text-semibold text-wrap text-center text-title font-semibold text-neutral-600">
                     {course.package_name}
                 </div>
-                <CourseMenuOptions onDelete={onDelete} onEdit={onEdit} />
+                <CourseMenuOptions onDelete={onDelete} onEdit={onEdit} course={course} />
             </div>
         </div>
     );

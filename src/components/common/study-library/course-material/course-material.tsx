@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
 import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
@@ -7,17 +6,30 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
 import { CourseCard } from "./course-card";
 import { AddCourseButton } from "./add-course-button";
+import { useAddCourse } from "@/services/study-library/course-operations/add-course";
+import { AddCourseData } from "./add-course-form";
+import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { open } = useSidebar();
     const courses = getCourses();
 
+    const addCourseMutation = useAddCourse();
+    const deleteCourseMutation = useDeleteCourse();
+
     useEffect(() => {
         setNavHeading("Study Library");
     }, []);
 
-    const handleCourseDelete = () => {};
+    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+        console.log("Triggering mutation with:", requestData);
+        addCourseMutation.mutate({ requestData: requestData });
+    };
+
+    const handleCourseDelete = (courseId: string) => {
+        deleteCourseMutation.mutate(courseId);
+    };
 
     const handleCourseUpdate = () => {};
 
@@ -35,7 +47,7 @@ export const CourseMaterial = () => {
                 <div className="flex flex-col items-center gap-4">
                     <CreateStudyDocButton />
                     <UploadStudyMaterialButton />
-                    <AddCourseButton />
+                    <AddCourseButton onSubmit={handleAddCourse} />
                 </div>
             </div>
 
