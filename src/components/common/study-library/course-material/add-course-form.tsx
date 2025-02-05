@@ -131,6 +131,21 @@ export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormPr
         setSessionList(getAllSessions);
     }, [instituteDetails]);
 
+    useEffect(() => {
+        const fetchImageUrl = async () => {
+            if (initialValues?.thumbnail_file_id) {
+                try {
+                    const url = await getPublicUrl(initialValues?.thumbnail_file_id);
+                    setFileId(url);
+                } catch (error) {
+                    console.error("Failed to fetch image URL:", error);
+                }
+            }
+        };
+
+        fetchImageUrl();
+    }, [initialValues?.thumbnail_file_id]);
+
     const handleFileSubmit = async (file: File) => {
         try {
             setIsUploading(true);
@@ -202,9 +217,9 @@ export const AddCourseForm = ({ initialValues, onSubmitCourse }: AddCourseFormPr
                         <div className="inset-0 flex h-[200px] w-[200px] items-center justify-center bg-white">
                             <DashboardLoader />
                         </div>
-                    ) : previewUrl ? (
+                    ) : previewUrl || fileId ? (
                         <img
-                            src={previewUrl}
+                            src={previewUrl ? previewUrl : fileId}
                             alt="Subject"
                             className="h-[200px] w-[200px] rounded-lg object-cover"
                         />
