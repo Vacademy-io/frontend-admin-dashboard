@@ -25,3 +25,8 @@ export function convertCapitalToTitleCase(str: string) {
 
     return titleCaseText;
 }
+
+export function parseHtmlToString(html: string) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent || doc.body.innerText || "";
+}
