@@ -10,7 +10,7 @@ import {
     FormItem,
     FormLabel,
 } from "@/components/ui/form";
-import { VacademyAssessLogo, VacademyLMSLogo, VacademyLogo } from "@/svgs";
+import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo, VacademyLogo } from "@/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -27,9 +27,11 @@ const items = [
 ] as const;
 
 const FormSchema = z.object({
-    items: z.array(z.string()).refine((value) => value.some((item) => item), {
-        message: "You have to select at least one item.",
-    }),
+    items: z
+        .record(z.boolean())
+        .refine((value) => Object.values(value).some((checked) => checked), {
+            message: "You have to select at least one item.",
+        }),
 });
 
 export function SignUpComponent() {
@@ -37,7 +39,10 @@ export function SignUpComponent() {
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            items: ["recents", "home"],
+            items: {
+                assess: false,
+                lms: false,
+            },
         },
     });
 
@@ -49,6 +54,7 @@ export function SignUpComponent() {
         <div className="flex w-full">
             <div className="flex w-1/2 flex-col items-center justify-center bg-primary-50">
                 <VacademyLogo />
+                <OnboardingSignup />
             </div>
             <div className="flex w-1/2 items-center justify-center">
                 <Form {...form}>
@@ -77,54 +83,30 @@ export function SignUpComponent() {
                                                 <FormField
                                                     key={item.id}
                                                     control={form.control}
-                                                    name="items"
-                                                    render={({ field }) => {
-                                                        return (
-                                                            <FormItem
-                                                                key={item.id}
-                                                                className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border bg-neutral-50 p-2"
-                                                            >
-                                                                <FormLabel className="text-sm font-normal">
-                                                                    {item.label === "Assess" && (
-                                                                        <VacademyAssessLogo />
-                                                                    )}
-                                                                    {item.label === "LMS" && (
-                                                                        <VacademyLMSLogo />
-                                                                    )}
-                                                                </FormLabel>
-                                                                <FormControl className="flex items-center justify-center">
-                                                                    <Checkbox
-                                                                        checked={field.value?.includes(
-                                                                            item.id,
-                                                                        )}
-                                                                        onCheckedChange={(
-                                                                            checked,
-                                                                        ) => {
-                                                                            return checked
-                                                                                ? field.onChange([
-                                                                                      ...field.value,
-                                                                                      item.id,
-                                                                                  ])
-                                                                                : field.onChange(
-                                                                                      field.value?.filter(
-                                                                                          (value) =>
-                                                                                              value !==
-                                                                                              item.id,
-                                                                                      ),
-                                                                                  );
-                                                                        }}
-                                                                        className={`mt-1 size-5 border shadow-none ${
-                                                                            field.value.includes(
-                                                                                item.id,
-                                                                            )
-                                                                                ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                                                : "bg-white" // Default styles when unchecked
-                                                                        }`}
-                                                                    />
-                                                                </FormControl>
-                                                            </FormItem>
-                                                        );
-                                                    }}
+                                                    name={`items.${item.id}`}
+                                                    render={({ field }) => (
+                                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border bg-neutral-50 p-2">
+                                                            <FormLabel className="text-sm font-normal">
+                                                                {item.label === "Assess" && (
+                                                                    <VacademyAssessLogo />
+                                                                )}
+                                                                {item.label === "LMS" && (
+                                                                    <VacademyLMSLogo />
+                                                                )}
+                                                            </FormLabel>
+                                                            <FormControl className="flex items-center justify-center">
+                                                                <Checkbox
+                                                                    checked={field.value}
+                                                                    onCheckedChange={field.onChange}
+                                                                    className={`mt-1 size-5 border shadow-none ${
+                                                                        field.value
+                                                                            ? "border-none bg-green-500 text-white"
+                                                                            : "bg-white"
+                                                                    }`}
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
                                                 />
                                             ))}
                                         </div>
@@ -137,7 +119,15 @@ export function SignUpComponent() {
                             scale="large"
                             buttonType="primary"
                             layoutVariant="default"
-                            onClick={() => navigate({ to: "/signup/onboarding" })}
+                            onClick={() =>
+                                navigate({
+                                    to: "/signup/onboarding",
+                                    search: {
+                                        assess: form.getValues("items").assess ?? false,
+                                        lms: form.getValues("items").lms ?? false,
+                                    },
+                                })
+                            }
                         >
                             <Plus size={32} />
                             Create Free Account

@@ -1,10 +1,12 @@
 import { Separator } from "@/components/ui/separator";
-import { VacademyAssessLogo } from "@/svgs";
+import { VacademyAssessLogo, VacademyLMSLogo } from "@/svgs";
 import { useState } from "react";
 import { CreateOnboardingSidebar } from "./CreateOnboardingSidebar";
 import { OnboardingSteps } from "./OnboardingSteps";
+import { Route } from "..";
 
 export function OnboardingComponent() {
+    const searchParams = Route.useSearch(); // This will give you access to the URL search parameters
     const steps = ["Organization Setup", "Add Your Details"];
     const [currentStep, setCurrentStep] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([false, false]);
@@ -29,7 +31,10 @@ export function OnboardingComponent() {
         <div className="flex w-full">
             <div className="flex w-1/2 flex-col items-center justify-center bg-primary-50">
                 <div>
-                    <VacademyAssessLogo />
+                    <div className="flex items-center">
+                        {searchParams.assess && <VacademyAssessLogo />}
+                        {searchParams.lms && <VacademyLMSLogo />}
+                    </div>
                     <p>Fast-track your access in 2 steps—explore the tool now!</p>
                     <Separator className="my-6" />
                     <CreateOnboardingSidebar
