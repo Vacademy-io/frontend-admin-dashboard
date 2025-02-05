@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
@@ -32,6 +32,14 @@ export function DashboardComponent() {
             search: {
                 currentStep: 0,
             },
+        });
+    };
+
+    const router = useRouter();
+
+    const handleEnrollButtonClick = () => {
+        router.navigate({
+            to: `/students/students-list`,
         });
     };
 
@@ -145,6 +153,7 @@ export function DashboardComponent() {
                                         buttonType="secondary"
                                         layoutVariant="default"
                                         className="text-sm"
+                                        onClick={handleEnrollButtonClick}
                                     >
                                         Enroll
                                     </MyButton>
