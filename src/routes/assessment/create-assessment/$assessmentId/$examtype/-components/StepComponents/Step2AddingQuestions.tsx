@@ -110,7 +110,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             instituteId,
             type,
         }: {
-            oldData: SectionFormType["section"];
+            oldData: z.infer<typeof sectionDetailsSchema>;
             data: z.infer<typeof sectionDetailsSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
@@ -125,6 +125,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                     duration: 2000,
                 });
                 queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+                queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
             } else {
                 syncStep2DataWithStore(form);
                 toast.success("Step 2 data has been saved successfully!", {
@@ -132,6 +133,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                     duration: 2000,
                 });
                 handleCompleteCurrentStep();
+                queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
             }
         },
         onError: (error: unknown) => {
@@ -149,7 +151,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     const onSubmit = (data: z.infer<typeof sectionDetailsSchema>) => {
         handleSubmitStep2Form.mutate({
-            oldData: oldData.current.section,
+            oldData: oldData.current,
             data: data,
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
@@ -202,8 +204,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     useEffect(() => {
         if (assessmentId !== "defaultId") {
             const sections = assessmentDetails[currentStep]?.saved_data?.sections;
-            form.reset({
-                status: assessmentDetails[currentStep]?.status,
+            const initialFormValues = {
+                status: assessmentDetails[currentStep]?.status || "INCOMPLETE",
                 testDuration: {
                     entireTestDuration: {
                         checked:
@@ -252,7 +254,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                 section:
                     Array.isArray(sections) && sections.length > 0
                         ? sections.map((sectionDetails) => ({
-                              sectionId: sectionDetails.id || "", // Default empty if not available
+                              sectionId: sectionDetails.id || "",
                               sectionName: sectionDetails.name || "",
                               questionPaperTitle: "",
                               uploaded_question_paper: "",
@@ -265,7 +267,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                   hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
                                   min: String(sectionDetails.duration % 60) || "",
                               },
-                              section_description: sectionDetails.description || "",
+                              section_description: sectionDetails.description?.content || "",
                               section_duration: {
                                   hrs: String(Math.floor(sectionDetails.duration / 60)) || "",
                                   min: String(sectionDetails.duration % 60) || "",
@@ -287,7 +289,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                         : [
                               {
                                   sectionId: "",
-                                  sectionName: `Section ${allSections.length}`,
+                                  sectionName: `Section 1`,
                                   questionPaperTitle: "",
                                   subject: "",
                                   yearClass: "",
@@ -316,9 +318,15 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                   adaptive_marking_for_each_question: [],
                               },
                           ],
-            });
+            };
+
+            // Set initial form values
+            form.reset(initialFormValues);
+
+            // Store initial data in oldData
+            oldData.current = initialFormValues;
         }
-    }, []);
+    }, [assessmentDetails, assessmentId]);
 
     if (isLoading || handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
 
@@ -564,6 +572,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                     form={form}
                                     index={index}
                                     currentStep={currentStep}
+                                    oldData={oldData}
                                 />
                             ))}
                         </Accordion>

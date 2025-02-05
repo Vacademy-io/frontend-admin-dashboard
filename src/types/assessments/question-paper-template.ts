@@ -1,4 +1,5 @@
 import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
+import { Dispatch, SetStateAction } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
@@ -11,6 +12,10 @@ export interface QuestionPaperTemplateProps {
     isManualCreated?: boolean;
     buttonText: string;
     isAssessment?: boolean;
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    currentQuestionImageIndex: number;
+    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }
 
 export interface QuestionData {

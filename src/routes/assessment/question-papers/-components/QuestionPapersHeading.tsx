@@ -9,8 +9,21 @@ import {
 import { QuestionPaperUpload } from "./QuestionPaperUpload";
 import { useIsMobile } from "@/hooks/use-mobile";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
+import { Dispatch, SetStateAction } from "react";
 
-export const QuestionPapersHeading = () => {
+interface QuestionPaperHeadingInterface {
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    currentQuestionImageIndex: number;
+    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
+}
+
+export const QuestionPapersHeading = ({
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
+}: QuestionPaperHeadingInterface) => {
     const isMobile = useIsMobile();
     const {
         isMainQuestionPaperAddDialogOpen,
@@ -79,7 +92,13 @@ export const QuestionPapersHeading = () => {
                                         <X className="text-neutral-600" />
                                     </AlertDialogCancel>
                                 </div>
-                                <QuestionPaperUpload isManualCreated={true} />
+                                <QuestionPaperUpload
+                                    isManualCreated={true}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                    currentQuestionImageIndex={currentQuestionImageIndex}
+                                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
+                                />
                             </AlertDialogContent>
                         </AlertDialog>
 
@@ -105,7 +124,13 @@ export const QuestionPapersHeading = () => {
                                         <X className="text-neutral-600" />
                                     </AlertDialogCancel>
                                 </div>
-                                <QuestionPaperUpload isManualCreated={false} />
+                                <QuestionPaperUpload
+                                    isManualCreated={false}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                    currentQuestionImageIndex={currentQuestionImageIndex}
+                                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
+                                />
                             </AlertDialogContent>
                         </AlertDialog>
                     </div>

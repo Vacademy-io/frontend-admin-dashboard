@@ -7,6 +7,7 @@ import { Route } from "..";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { convertToLocalDateTime } from "@/constants/helper";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
+import { parseHtmlToString } from "../-utils/helper";
 
 export const AssessmentBasicInfoTab = () => {
     const { assessmentId, examType } = Route.useParams();
@@ -39,7 +40,9 @@ export const AssessmentBasicInfoTab = () => {
                     <div className="flex flex-col gap-1 text-sm">
                         <h1 className="font-semibold">Assessment Instructions:</h1>
                         <p className="font-thin">
-                            {assessmentDetails[0]?.saved_data?.instructions.content}
+                            {parseHtmlToString(
+                                assessmentDetails[0]?.saved_data?.instructions.content || "",
+                            )}
                         </p>
                     </div>
                 </div>

@@ -440,6 +440,7 @@ export const ScheduleTestMainComponent = () => {
                             tab={tab}
                             pageNo={pageNo}
                             handlePageChange={handlePageChange}
+                            selectedTab={selectedTab}
                         />
                     ))}
                 </Tabs>

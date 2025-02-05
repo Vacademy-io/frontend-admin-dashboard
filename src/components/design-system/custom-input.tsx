@@ -26,10 +26,12 @@ const CustomInput = <T extends FieldValues>({
             name={name}
             render={({ field }) => (
                 <FormItem>
-                    <FormLabel>
-                        {label}
-                        {required && <span className="text-red-500">*</span>}
-                    </FormLabel>
+                    {label && (
+                        <FormLabel>
+                            {label}
+                            {required && <span className="text-red-500">*</span>}
+                        </FormLabel>
+                    )}
                     <FormControl>
                         <Input
                             {...field}

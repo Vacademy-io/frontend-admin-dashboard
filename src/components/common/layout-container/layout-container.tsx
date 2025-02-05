@@ -21,7 +21,15 @@ export const LayoutContainer = ({
             </div>
             <div className="w-full flex-1">
                 <Navbar />
-                <div className={cn("m-7 max-w-full", className)}>{children}</div>
+                <div
+                    className={cn(
+                        "m-7",
+                        open ? "max-w-[calc(100vw-379px)]" : "max-w-[calc(100vw-188px)]",
+                        className,
+                    )}
+                >
+                    {children}
+                </div>
             </div>
         </div>
     );

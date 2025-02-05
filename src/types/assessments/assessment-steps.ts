@@ -12,7 +12,7 @@ export type AccessControlFormValues = z.infer<typeof AccessControlFormSchema>;
 export interface Section {
     id: string;
     name: string;
-    description: string | null;
+    description: { id: string; type: string; content: string } | null;
     section_type: string | null;
     duration: number;
     total_marks: number;

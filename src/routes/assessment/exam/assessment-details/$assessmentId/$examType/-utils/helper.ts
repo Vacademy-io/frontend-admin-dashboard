@@ -13,6 +13,10 @@ import {
     assessmentStatusStudentQuestionResponseExternal,
     assessmentStatusStudentQuestionResponseInternal,
 } from "./student-columns";
+import { AdaptiveMarking } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-hooks/getQuestionsDataForSection";
+import { Section } from "@/types/assessments/assessment-steps";
+// import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
+// import { QuestionAssessmentPreview } from "@/types/assessment-preview-interface";
 
 interface StudentLeaderboardEntry {
     userId: string;
@@ -241,3 +245,291 @@ export function getBatchDetails(
 
     return result;
 }
+
+interface Question {
+    questionId: string;
+    questionName: string;
+    questionType: string; // You can use a union type like `"MCQM" | "SCQ" | "TF"` if needed
+    questionMark: string;
+    questionPenalty: string;
+    questionDuration: {
+        hrs: string;
+        min: string;
+    };
+}
+
+export function calculateAverageMarks(questions: Question[]): number {
+    if (questions.length === 0) return 0;
+
+    const totalMarks = questions.reduce(
+        (sum, question) => sum + parseFloat(question.questionMark),
+        0,
+    );
+    return parseFloat((totalMarks / questions.length).toFixed(2));
+}
+
+export function calculateAveragePenalty(questions: AdaptiveMarking[]): number {
+    if (questions.length === 0) return 0;
+
+    const totalPenalty = questions.reduce(
+        (sum, question) => sum + parseFloat(question.questionPenalty),
+        0,
+    );
+    return parseFloat((totalPenalty / questions.length).toFixed(2));
+}
+
+export function parseHtmlToString(html: string) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent || doc.body.innerText || "";
+}
+
+interface QuestionText {
+    id: string;
+    type: "HTML" | string;
+    content: string;
+}
+
+interface ExplanationText {
+    id: string | null;
+    type: string | null;
+    content: string | null;
+}
+
+interface Option {
+    id: string;
+    preview_id: string | null;
+    question_id: string;
+    text: QuestionText;
+    media_id: string | null;
+    option_order: number | null;
+    created_on: string;
+    updated_on: string;
+    explanation_text: ExplanationText;
+}
+
+interface Question {
+    question_id: string;
+    parent_rich_text: string | null;
+    question: QuestionText;
+    section_id: string;
+    question_duration: number;
+    question_order: number;
+    marking_json: string;
+    evaluation_json: string;
+    question_type: string;
+    options: Option[];
+    options_with_explanation: Option[];
+}
+
+interface QuestionsData {
+    [sectionId: string]: Question[];
+}
+
+export function transformSectionsAndQuestionsData(
+    sectionsData: Section[],
+    questionsData: QuestionsData,
+) {
+    if (!sectionsData) return [];
+    return sectionsData.map((section) => ({
+        sectionId: section.id,
+        sectionName: section.name,
+        questions: (questionsData[section.id] || []).map((question) => {
+            const markingJson = question.marking_json
+                ? JSON.parse(question.marking_json)
+                : { type: "MCQS", data: {} };
+
+            const evaluationJson = question.evaluation_json
+                ? JSON.parse(question.evaluation_json)
+                : { type: "MCQM", data: { correctOptionIds: [] } };
+
+            const correctOptionIds = evaluationJson.data.correctOptionIds || [];
+
+            return {
+                id: question.question_id,
+                questionId: question.question_id,
+                questionName: question.question.content,
+                explanation: "",
+                questionType: markingJson.type || "MCQS",
+                questionMark: markingJson.data.totalMark,
+                questionPenalty: markingJson.data.negativeMark,
+                questionDuration: {
+                    hrs: String(Math.floor(question.question_duration / 60)),
+                    min: String(question.question_duration % 60),
+                },
+                imageDetails: [],
+                singleChoiceOptions:
+                    markingJson.type === "MCQS"
+                        ? question.options_with_explanation.map((option) => ({
+                              name: option.text.content,
+                              isSelected: correctOptionIds.includes(option.id),
+                              image: {
+                                  imageId: "",
+                                  imageName: "",
+                                  imageTitle: "",
+                                  imageFile: "",
+                                  isDeleted: false,
+                              },
+                          }))
+                        : [
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                          ],
+                multipleChoiceOptions:
+                    markingJson.type === "MCQM"
+                        ? question.options_with_explanation.map((option) => ({
+                              name: option.text.content,
+                              isSelected: correctOptionIds.includes(option.id),
+                              image: {
+                                  imageId: "",
+                                  imageName: "",
+                                  imageTitle: "",
+                                  imageFile: "",
+                                  isDeleted: false,
+                              },
+                          }))
+                        : [
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                              {
+                                  name: "",
+                                  isSelected: false,
+                                  image: {
+                                      imageId: "",
+                                      imageName: "",
+                                      imageTitle: "",
+                                      imageFile: "",
+                                      isDeleted: false,
+                                  },
+                              },
+                          ],
+            };
+        }),
+    }));
+}
+
+// export const announcementDialogTrigger = (
+//     previousDataRef: sectionsEditQuestionFormType["sections"] | undefined,
+//     newData: sectionsEditQuestionFormType["sections"],
+//     selectedSectionIndex: number,
+//     currentQuestionIndex: number,
+// ): void => {
+//     const prevQuestion = previousDataRef?.[selectedSectionIndex]?.questions[currentQuestionIndex];
+//     const newQuestion = newData?.[selectedSectionIndex]?.questions[currentQuestionIndex];
+
+//     // Function to compare two objects deeply
+//     const deepEqual = (
+//         obj1: QuestionAssessmentPreview | undefined,
+//         obj2: QuestionAssessmentPreview | undefined,
+//     ): boolean => {
+//         if (obj1 === obj2) return true;
+//         if (typeof obj1 !== "object" || typeof obj2 !== "object" || obj1 === null || obj2 === null)
+//             return false;
+
+//         const keys1 = Object.keys(obj1) as Array<keyof QuestionAssessmentPreview>;
+//         const keys2 = Object.keys(obj2) as Array<keyof QuestionAssessmentPreview>;
+
+//         if (keys1.length !== keys2.length) return false;
+
+//         for (const key of keys1) {
+//             if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false;
+//         }
+
+//         return true;
+//     };
+
+//     // Compare the two questions
+//     if (!deepEqual(prevQuestion, newQuestion)) {
+//         // Trigger alert if any field is changed
+//         // alert("The question has changed!");
+
+//         // Ensure required fields are always defined
+//         if (previousDataRef && previousDataRef[selectedSectionIndex]) {
+//             previousDataRef[selectedSectionIndex].questions[currentQuestionIndex] = {
+//                 id: newQuestion?.id ?? "", // Default to empty string if undefined
+//                 questionName: newQuestion?.questionName ?? "",
+//                 questionType: newQuestion?.questionType ?? "",
+//                 questionPenalty: newQuestion?.questionPenalty ?? "",
+//                 questionDuration: newQuestion?.questionDuration ?? { hrs: "0", min: "0" },
+//                 questionMark: newQuestion?.questionMark ?? "",
+//                 singleChoiceOptions: newQuestion?.singleChoiceOptions ?? [],
+//                 multipleChoiceOptions: newQuestion?.multipleChoiceOptions ?? [],
+//                 questionId: newQuestion?.questionId ?? "",
+//                 explanation: newQuestion?.explanation ?? "",
+//                 imageDetails: newQuestion?.imageDetails ?? [],
+//             };
+//         }
+//     }
+// };
