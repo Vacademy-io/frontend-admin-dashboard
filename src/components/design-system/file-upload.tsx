@@ -2,7 +2,7 @@
 
 import { FieldValues } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "../ui/form";
-import { FileUploadComponentProps } from "@/types/file-upload";
+import { FileUploadComponentProps } from "@/types/common/file-upload";
 import { useDropzone } from "react-dropzone";
 import { useCallback } from "react";
 

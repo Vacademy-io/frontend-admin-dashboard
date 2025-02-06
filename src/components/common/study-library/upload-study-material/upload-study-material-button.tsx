@@ -12,7 +12,7 @@ export const UploadStudyMaterialButton = () => {
     };
 
     const triggerButton = (
-        <MyButton buttonType="primary" scale="large" layoutVariant="default">
+        <MyButton buttonType="secondary" scale="large" layoutVariant="default">
             <div className="flex items-center gap-2">
                 <BookOpenText className="size-6" />
                 <div>Upload Study Material</div>

@@ -8,7 +8,7 @@ import { Helmet } from "react-helmet";
 
 export const Route = createFileRoute("/community/")({
     component: () => (
-        <LayoutContainer className="!m-0">
+        <LayoutContainer intrnalMargin={false}>
             <CommunityPage />
         </LayoutContainer>
     ),
@@ -28,7 +28,7 @@ function CommunityPage() {
                     content="This page contails all the qustion/question-bank created by the vacademy community"
                 />
             </Helmet>
-            <div className="flex flex-col">
+            <div className="flex flex-col w-full">
                 <PublishTab></PublishTab>
                 <CommunityPageHeader></CommunityPageHeader>
             </div>

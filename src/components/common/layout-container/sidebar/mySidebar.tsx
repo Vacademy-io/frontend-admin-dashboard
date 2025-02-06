@@ -7,7 +7,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
-import { SidebarStateType } from "../../../../types/layout-container-types";
+import { SidebarStateType } from "../../../../types/layout-container/layout-container-types";
 import { SidebarItem } from "./sidebar-item";
 import { SidebarItemsData } from "./utils";
 import "./scrollbarStyle.css";
@@ -15,6 +15,7 @@ import { SSDC_Logo } from "@/assets/svgs";
 import React from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+// import { useStudyLibraryQuery } from "@/services/study-library/getStudyLibraryDetails";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();

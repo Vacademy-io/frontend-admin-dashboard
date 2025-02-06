@@ -1,7 +1,7 @@
-import { Steps } from "@/types/assessment-data-type";
-import { BatchData } from "@/types/batch-details";
+import { Steps } from "@/types/assessments/assessment-data-type";
+import { BatchData } from "@/types/assessments/batch-details";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
-import { AdaptiveMarkingQuestion } from "@/types/basic-details-type";
+import { AdaptiveMarkingQuestion } from "@/types/assessments/basic-details-type";
 import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questions";
 import { UseFormReturn } from "react-hook-form";
 import { useTestAccessStore } from "./zustand-global-states/step3-adding-participants";
@@ -11,7 +11,7 @@ import {
     BasicSectionFormType,
     SectionFormType,
     TestAccessFormType,
-} from "@/types/assessment-steps";
+} from "@/types/assessments/assessment-steps";
 import { z } from "zod";
 import sectionDetailsSchema from "./section-details-schema";
 
@@ -228,7 +228,6 @@ export const syncStep1DataWithStore = (form: UseFormReturn<BasicSectionFormType>
     const basicInfoData = {
         status: getValues("status"),
         testCreation: getValues("testCreation"),
-        testDuration: getValues("testDuration"),
         assessmentPreview: getValues("assessmentPreview"),
         submissionType: getValues("submissionType"),
         durationDistribution: getValues("durationDistribution"),
@@ -245,6 +244,7 @@ export const syncStep2DataWithStore = (form: UseFormReturn<SectionFormType>) => 
     const { getValues } = form;
 
     const sectionDetailsData = {
+        testDuration: getValues("testDuration"),
         status: getValues("status"),
         section: getValues("section"),
     };
@@ -305,52 +305,6 @@ export const syncStep4DataWithStore = (form: UseFormReturn<AccessControlFormValu
     setAccessControlData(testAccessData);
 };
 
-export const convertStep2OldData = (data: SectionFormType["section"]) => {
-    return data.map((section, index) => ({
-        section_description_html: section.section_description || "",
-        section_name: section.sectionName,
-        section_id: section.sectionId || "",
-        section_duration:
-            parseInt(section.section_duration.hrs) * 60 + parseInt(section.section_duration.min),
-        section_order: index + 1,
-        total_marks: parseInt(section.total_marks) || 0,
-        cutoff_marks: section.cutoff_marks.checked ? parseInt(section.cutoff_marks.value) || 0 : 0,
-        problem_randomization: section.problem_randomization,
-        question_and_marking: section.adaptive_marking_for_each_question.map(
-            (question, qIndex) => ({
-                question_id: question.questionId,
-                marking_json: JSON.stringify({
-                    type: question.questionType,
-                    data: {
-                        totalMark: question.questionMark || "",
-                        negativeMark: question.questionPenalty || "",
-                        negativeMarkingPercentage:
-                            question.questionMark && question.questionPenalty
-                                ? (Number(question.questionPenalty) /
-                                      Number(question.questionMark)) *
-                                  100
-                                : "",
-                        ...(question.questionType === "MCQM" && {
-                            partialMarking: question.correctOptionIdsCnt
-                                ? 1 / question.correctOptionIdsCnt
-                                : 0,
-                            partialMarkingPercentage: question.correctOptionIdsCnt
-                                ? (1 / question.correctOptionIdsCnt) * 100
-                                : 0,
-                        }),
-                    },
-                }),
-                question_duration_in_min:
-                    parseInt(section.question_duration.hrs) * 60 +
-                        parseInt(section.question_duration.min) || 0,
-                question_order: qIndex + 1,
-                is_added: true,
-                is_deleted: false,
-            }),
-        ),
-    }));
-};
-
 export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => {
     return data.section.map((section, index) => ({
         section_description_html: section.section_description || "",
@@ -392,18 +346,20 @@ export const convertStep2Data = (data: z.infer<typeof sectionDetailsSchema>) => 
                 question_order: qIndex + 1,
                 is_added: true,
                 is_deleted: false,
+                is_updated: false,
             }),
         ),
     }));
 };
 
 interface QuestionAndMarking {
-    question_id: string | undefined;
-    marking_json: string;
-    question_duration_in_min: number;
-    question_order: number;
+    question_id?: string | undefined;
+    marking_json?: string | undefined;
+    question_duration_in_min?: number | undefined;
+    question_order?: number | undefined;
     is_added: boolean;
     is_deleted: boolean;
+    is_updated: boolean;
 }
 
 interface Section {
@@ -432,57 +388,136 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
         {} as { [key: string]: Section },
     );
 
+    const newSectionMap = new Set(newSectionData.map((section) => section.section_id));
+
     // Step 2: Process new sections
     newSectionData.forEach((newSection, index) => {
-        if (newSection.section_id === "") {
-            // Case 1: New section with no sectionId - add to added_sections
+        const oldSection = oldSectionMap[newSection.section_id];
+
+        if (!newSection.section_id || !oldSection) {
+            // Case 1: New section (either section_id is empty or doesn't exist in old data)
             added_sections.push({
-                section_description_html: newSection.section_description_html,
-                section_name: newSection.section_name,
-                section_id: newSection.section_id,
-                section_duration: newSection.section_duration,
+                ...newSection,
                 section_order: index + 1,
                 total_marks: newSection.total_marks || 0,
-                cutoff_marks: newSection.cutoff_marks,
-                problem_randomization: newSection.problem_randomization,
-                question_and_marking: newSection.question_and_marking,
+                question_and_marking: newSection.question_and_marking?.map((item) => ({
+                    ...item,
+                    is_added: true,
+                    is_deleted: false,
+                    is_updated: false,
+                })),
             });
         } else {
-            // Case 2: Section with sectionId - check for update
-            const oldSection = oldSectionMap[newSection.section_id];
-            if (oldSection) {
-                // Case 3: If sectionId matches in oldSectionData and newSectionData, update the section
+            // Case 2: Section exists in both old and new data - check for updates
+            const hasChanged =
+                oldSection?.section_description_html !== newSection.section_description_html ||
+                oldSection?.section_name !== newSection.section_name ||
+                oldSection?.section_duration !== newSection.section_duration ||
+                oldSection?.total_marks !== newSection.total_marks ||
+                oldSection?.cutoff_marks !== newSection.cutoff_marks ||
+                oldSection?.problem_randomization !== newSection.problem_randomization;
+
+            // Create maps for quick lookup
+            const oldQuestionsMap = new Map(
+                oldSection?.question_and_marking?.map((q) => [q.question_id, q]),
+            );
+            const newQuestionsMap = new Map(
+                newSection?.question_and_marking?.map((q) => [q.question_id, q]),
+            );
+
+            const updatedQuestionAndMarking: QuestionAndMarking[] = [];
+
+            // 1️⃣ Check for updated and deleted questions
+            oldQuestionsMap.forEach((oldQuestion, questionId) => {
+                if (newQuestionsMap.has(questionId)) {
+                    const newQuestion = newQuestionsMap.get(questionId);
+                    const isChanged = JSON.stringify(oldQuestion) !== JSON.stringify(newQuestion);
+                    if (isChanged) {
+                        updatedQuestionAndMarking.push({
+                            ...newQuestion,
+                            is_added: false,
+                            is_updated: true,
+                            is_deleted: false,
+                        });
+                    }
+                } else {
+                    // Question exists in oldData but not in newData (deleted)
+                    updatedQuestionAndMarking.push({
+                        ...oldQuestion,
+                        is_added: false,
+                        is_updated: false,
+                        is_deleted: true,
+                    });
+                }
+            });
+
+            // 2️⃣ Check for newly added questions
+            newQuestionsMap.forEach((newQuestion, questionId) => {
+                if (!oldQuestionsMap.has(questionId)) {
+                    updatedQuestionAndMarking.push({
+                        ...newQuestion,
+                        is_added: true,
+                        is_updated: false,
+                        is_deleted: false,
+                    });
+                }
+            });
+
+            // If there are any updates or section-level changes, add to updated_sections
+            if (hasChanged || updatedQuestionAndMarking.length > 0) {
                 updated_sections.push({
-                    section_description_html: newSection.section_description_html || "",
-                    section_name: newSection.section_name,
-                    section_id: newSection.section_id,
-                    section_duration: newSection.section_duration,
+                    ...newSection,
                     section_order: index + 1,
-                    total_marks: newSection.total_marks,
-                    cutoff_marks: newSection.cutoff_marks,
-                    problem_randomization: newSection.problem_randomization,
-                    question_and_marking: newSection.question_and_marking,
+                    question_and_marking: updatedQuestionAndMarking,
                 });
             }
         }
     });
 
-    // Step 3: Check for deleted sections (sections present in oldSectionData but not in newSectionData)
+    // Step 3: Identify deleted sections
     oldSectionData.forEach((oldSection) => {
-        if (!newSectionData.some((newSection) => newSection.section_id === oldSection.section_id)) {
+        if (!newSectionMap.has(oldSection.section_id)) {
             deleted_sections.push({
-                section_description_html: oldSection.section_description_html,
-                section_name: oldSection.section_name,
-                section_id: oldSection.section_id,
-                section_duration: oldSection.section_duration,
-                section_order: oldSection.section_order,
-                total_marks: oldSection.total_marks,
-                cutoff_marks: oldSection.cutoff_marks,
-                problem_randomization: oldSection.problem_randomization,
-                question_and_marking: oldSection.question_and_marking,
+                ...oldSection,
+                question_and_marking: oldSection.question_and_marking?.map((item) => ({
+                    ...item,
+                    is_added: false,
+                    is_deleted: true,
+                    is_updated: false,
+                })),
             });
         }
     });
 
     return { added_sections, updated_sections, deleted_sections };
+}
+
+export function calculateTotalTime(testData: z.infer<typeof sectionDetailsSchema>) {
+    if (testData.testDuration.sectionWiseDuration) {
+        // Iterate through each section and sum up section durations
+        const totalMinutes = testData.section.reduce((sum, section) => {
+            const hrs = parseInt(section.section_duration.hrs, 10) || 0;
+            const min = parseInt(section.section_duration.min, 10) || 0;
+            return sum + hrs * 60 + min;
+        }, 0);
+        return totalMinutes;
+    } else if (testData.testDuration.questionWiseDuration) {
+        // Iterate through each question in each section and sum up question durations
+        const totalMinutes = testData.section.reduce((sum, section) => {
+            const questionMinutes = section.adaptive_marking_for_each_question.reduce(
+                (qSum, question) => {
+                    const hrs = parseInt(question.questionDuration.hrs, 10) || 0;
+                    const min = parseInt(question.questionDuration.min, 10) || 0;
+                    return qSum + hrs * 60 + min;
+                },
+                0,
+            );
+            return sum + questionMinutes;
+        }, 0);
+        return totalMinutes;
+    }
+    return (
+        Number(testData?.testDuration?.entireTestDuration?.testDuration?.hrs) * 60 +
+        Number(testData?.testDuration?.entireTestDuration?.testDuration?.min)
+    );
 }

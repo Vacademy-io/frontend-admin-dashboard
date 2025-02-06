@@ -11,11 +11,11 @@ import {
     transformQuestionPaperData,
     transformQuestionPaperEditData,
 } from "./helper";
-import { FilterOption } from "@/types/question-paper-filter";
+import { FilterOption } from "@/types/assessments/question-paper-filter";
 import {
     MyQuestionPaperFormEditInterface,
     MyQuestionPaperFormInterface,
-} from "../../../../types/question-paper-form";
+} from "../../../../types/assessments/question-paper-form";
 
 export const addQuestionPaper = async (data: MyQuestionPaperFormInterface) => {
     try {

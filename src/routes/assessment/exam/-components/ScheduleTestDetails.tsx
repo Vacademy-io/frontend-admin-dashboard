@@ -1,25 +1,11 @@
-import { TestContent } from "@/types/schedule-test-list";
+import { TestContent } from "@/types/assessments/schedule-test-list";
 import { MyButton } from "@/components/design-system/button";
 import { Badge } from "@/components/ui/badge";
 import { ReverseProgressBar } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { DotIcon, DotIconOffline } from "@/svgs";
-import {
-    CheckCircle,
-    Copy,
-    DotsThree,
-    DownloadSimple,
-    LockSimple,
-    PauseCircle,
-} from "phosphor-react";
+import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from "phosphor-react";
 import QRCode from "react-qr-code";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useNavigate } from "@tanstack/react-router";
 import { convertToLocalDateTime } from "@/constants/helper";
 import { getSubjectNameById } from "../../question-papers/-utils/helper";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -29,20 +15,16 @@ import {
     copyToClipboard,
     handleDownloadQRCode,
 } from "../../create-assessment/$assessmentId/$examtype/-utils/helper";
+import { ScheduleTestMainDropdownComponent } from "./ScheduleTestDetailsDropdownMenu";
 
-const ScheduleTestDetails = ({ scheduleTestContent }: { scheduleTestContent: TestContent }) => {
-    console.log(scheduleTestContent);
+const ScheduleTestDetails = ({
+    scheduleTestContent,
+    selectedTab,
+}: {
+    scheduleTestContent: TestContent;
+    selectedTab: string;
+}) => {
     const { data: instituteDetails, isLoading } = useSuspenseQuery(useInstituteQuery());
-    const navigate = useNavigate();
-    const handleNavigateAssessment = (assessmentId: string) => {
-        navigate({
-            to: "/assessment/exam/assessment-details/$assessmentId/$examType",
-            params: {
-                assessmentId: assessmentId,
-                examType: scheduleTestContent.play_mode,
-            },
-        });
-    };
     if (isLoading) return <DashboardLoader />;
     return (
         <div className="my-6 flex flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
@@ -102,37 +84,10 @@ const ScheduleTestDetails = ({ scheduleTestContent }: { scheduleTestContent: Tes
                         10th Premium Pro Group 1
                     </Badge>
                     <span className="text-sm text-primary-500">+3 more</span>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <MyButton
-                                type="button"
-                                scale="small"
-                                buttonType="secondary"
-                                className="w-6 !min-w-6"
-                            >
-                                <DotsThree size={32} />
-                            </MyButton>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={() =>
-                                    handleNavigateAssessment(scheduleTestContent.assessment_id)
-                                }
-                            >
-                                View Assessment Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
-                                Reschedule Assessment
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
-                                Duplicate Assessment
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
-                                Delete Assessment
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ScheduleTestMainDropdownComponent
+                        scheduleTestContent={scheduleTestContent}
+                        selectedTab={selectedTab}
+                    />
                 </div>
             </div>
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">

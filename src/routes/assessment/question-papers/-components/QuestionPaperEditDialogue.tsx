@@ -8,8 +8,8 @@ import { PencilSimpleLine } from "phosphor-react";
 import { useForm, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
-import { DialogClose } from "@radix-ui/react-dialog";
 import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
+import { useState } from "react";
 
 interface FormData {
     title: string;
@@ -19,26 +19,27 @@ interface FormData {
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
 export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<QuestionPaperForm> }) => {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { instituteDetails } = useInstituteDetailsStore();
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
     const { control, handleSubmit } = useForm<FormData>({
         defaultValues: {
-            title: "",
-            yearClass: "",
-            subject: "",
+            title: form.getValues("title"),
+            yearClass: form.getValues("yearClass"),
+            subject: form.getValues("subject"),
         },
     });
     const { setValue } = form;
 
     const onSubmit: SubmitHandler<FormData> = (data) => {
-        // Handle form submission
         setValue("title", data.title);
         setValue("yearClass", data.yearClass);
         setValue("subject", data.subject);
+        setIsDialogOpen(false);
     };
 
     return (
-        <Dialog>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger>
                 <Button
                     variant="outline"
@@ -50,7 +51,7 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
             </DialogTrigger>
             <DialogContent className="gap-2 p-0">
                 <h1 className="rounded-t-lg bg-primary-50 p-4 text-primary-500">Edit</h1>
-                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 p-4 pt-0">
+                <form className="flex flex-col gap-2 p-4 pt-0">
                     <CustomInput
                         control={control}
                         name="title"
@@ -84,18 +85,16 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
                             className="!w-full"
                         />
                     </div>
-
                     <div className="flex justify-end pt-2">
-                        <DialogClose>
-                            <MyButton
-                                type="submit"
-                                scale="large"
-                                buttonType="primary"
-                                layoutVariant="default"
-                            >
-                                Save
-                            </MyButton>
-                        </DialogClose>
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="primary"
+                            layoutVariant="default"
+                            onClick={handleSubmit(onSubmit)}
+                        >
+                            Save
+                        </MyButton>
                     </div>
                 </form>
             </DialogContent>

@@ -1,4 +1,4 @@
-import { MyQuestionPaperFormInterface } from "@/types/question-paper-form";
+import { MyQuestionPaperFormInterface } from "@/types/assessments/question-paper-form";
 import { create } from "zustand";
 
 // Define the interface for the Zustand store

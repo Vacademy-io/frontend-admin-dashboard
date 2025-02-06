@@ -1,5 +1,5 @@
-import { SidebarItemsType } from "../../../../types/layout-container-types";
 import { House, Users, BookOpen, Scroll, Globe } from "@phosphor-icons/react";
+import { SidebarItemsType } from "../../../../types/layout-container/layout-container-types";
 
 export const SidebarItemsData: SidebarItemsType[] = [
     {
@@ -41,15 +41,15 @@ export const SidebarItemsData: SidebarItemsType[] = [
             },
             {
                 subItem: "Mock Test",
-                subItemLink: "/assessment/create-assessment/null/LIVE_QUIZ",
+                subItemLink: "/assessment/create-assessment/defaultId/LIVE_QUIZ?currentStep=0",
             },
             {
                 subItem: "Practice Test",
-                subItemLink: "/assessment/create-assessment/null/PRACTICE",
+                subItemLink: "/assessment/create-assessment/defaultId/PRACTICE?currentStep=0",
             },
             {
                 subItem: "Survey",
-                subItemLink: "/assessment/create-assessment/null/SURVEY",
+                subItemLink: "/assessment/create-assessment/defaultId/SURVEY?currentStep=0",
             },
             {
                 subItem: "Question Papers",

@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
-import { StepContentProps } from "@/types/step-content-props";
+import { StepContentProps } from "@/types/assessments/step-content-props";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -9,19 +9,13 @@ import { useFilterDataForAssesment } from "../../../../../exam/-utils.ts/useFilt
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { timeLimit } from "@/constants/dummy-data";
 import { BasicInfoFormSchema } from "../../-utils/basic-info-form-schema";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { getAssessmentDetails, handlePostStep1Data } from "../../-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import {
-    getFieldOptions,
-    getStepKey,
-    getTimeLimitString,
-    syncStep1DataWithStore,
-} from "../../-utils/helper";
+import { getStepKey, getTimeLimitString, syncStep1DataWithStore } from "../../-utils/helper";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import {
@@ -91,19 +85,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     endDate: storeDataStep1.testCreation?.liveDateRange?.endDate || "", // Default end date
                 },
             },
-            testDuration: {
-                entireTestDuration: {
-                    checked: storeDataStep1.testDuration?.entireTestDuration.checked || true, // Default to true
-                    testDuration: {
-                        hrs:
-                            storeDataStep1.testDuration?.entireTestDuration.testDuration?.hrs || "",
-                        min:
-                            storeDataStep1.testDuration?.entireTestDuration.testDuration?.min || "",
-                    }, // Default duration in HH:MM:SS
-                },
-                sectionWiseDuration: storeDataStep1.testDuration?.sectionWiseDuration || false, // Default to false
-                questionWiseDuration: storeDataStep1.testDuration?.questionWiseDuration || false,
-            },
             assessmentPreview: {
                 checked: storeDataStep1.assessmentPreview?.checked || false, // Default to true
                 previewTimeLimit:
@@ -119,11 +100,10 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         mode: "onChange", // Validate as user types
     });
 
-    const { handleSubmit, control, watch, getValues } = form;
+    const { handleSubmit, control, watch } = form;
 
     // Watch form fields
     const assessmentName = watch("testCreation.assessmentName");
-    // const subject = watch("testCreation.subject");
     const liveDateRangeStartDate = watch("testCreation.liveDateRange.startDate");
     const liveDateRangeEndDate = watch("testCreation.liveDateRange.endDate");
 
@@ -132,18 +112,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         !!assessmentName &&
         !!liveDateRangeStartDate &&
         !!liveDateRangeEndDate &&
-        Object.entries(form.formState.errors).length === 0 &&
-        watch("testDuration.entireTestDuration").checked &&
-        (getValues("testDuration.entireTestDuration.testDuration.hrs") ||
-            getValues("testDuration.entireTestDuration.testDuration.min"));
+        Object.entries(form.formState.errors).length === 0;
 
     const isFormValid2 =
-        (!!assessmentName &&
-            !!liveDateRangeStartDate &&
-            !!liveDateRangeEndDate &&
-            Object.entries(form.formState.errors).length === 0 &&
-            watch("testDuration.sectionWiseDuration")) ||
-        watch("testDuration.questionWiseDuration");
+        !!assessmentName &&
+        !!liveDateRangeStartDate &&
+        !!liveDateRangeEndDate &&
+        Object.entries(form.formState.errors).length === 0;
 
     const handleSubmitStep1Form = useMutation({
         mutationFn: ({
@@ -246,51 +221,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             ) || "",
                     },
                 },
-                testDuration: {
-                    entireTestDuration: {
-                        checked:
-                            assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                            "ASSESSMENT"
-                                ? true
-                                : false,
-                        testDuration: {
-                            hrs:
-                                assessmentDetails[currentStep]?.saved_data
-                                    ?.duration_distribution === "ASSESSMENT" &&
-                                assessmentDetails[currentStep]?.saved_data?.duration != null &&
-                                (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
-                                    ? String(
-                                          Math.floor(
-                                              (assessmentDetails[currentStep]?.saved_data
-                                                  ?.duration ?? 0) / 60,
-                                          ),
-                                      )
-                                    : "",
-                            min:
-                                assessmentDetails[currentStep]?.saved_data
-                                    ?.duration_distribution === "ASSESSMENT" &&
-                                assessmentDetails[currentStep]?.saved_data?.duration != null &&
-                                (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
-                                    ? String(
-                                          Math.floor(
-                                              (assessmentDetails[currentStep]?.saved_data
-                                                  ?.duration ?? 0) % 60,
-                                          ),
-                                      )
-                                    : "",
-                        },
-                    },
-                    sectionWiseDuration:
-                        assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                        "SECTION"
-                            ? true
-                            : false, // Default to false
-                    questionWiseDuration:
-                        assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                        "QUESTION"
-                            ? true
-                            : false, // Default to false
-                },
                 assessmentPreview: {
                     checked:
                         (assessmentDetails[currentStep]?.saved_data?.assessment_preview ?? 0) > 0
@@ -331,11 +261,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         scale="large"
                         buttonType="primary"
                         disable={
-                            assessmentId === "defaultId"
-                                ? watch("testDuration.entireTestDuration").checked
-                                    ? !isFormValid1
-                                    : !isFormValid2
-                                : false
+                            assessmentId === "defaultId" ? !isFormValid1 || !isFormValid2 : false
                         }
                         onClick={handleSubmit(onSubmit, onInvalid)}
                     >
@@ -343,7 +269,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     </MyButton>
                 </div>
                 <Separator className="my-4" />
-                <div className="gap- flex flex-col gap-6">
+                <div className="flex flex-col gap-6">
                     <div className="flex w-full items-start justify-start gap-4">
                         <FormField
                             control={control}
@@ -490,187 +416,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     </div>
                     <Separator />
                     <h1>Attempt Settings</h1>
-                    <h1>Assessment Duration Settings</h1>
-                    {getStepKey({
-                        assessmentDetails,
-                        currentStep,
-                        key: "duration_distribution",
-                    }) && (
-                        <FormField
-                            control={form.control}
-                            name="testDuration" // Use the parent key to handle both fields
-                            render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <FormControl>
-                                        <RadioGroup
-                                            onValueChange={(value) => {
-                                                form.setValue(
-                                                    "testDuration.entireTestDuration.checked",
-                                                    value === "ASSESSMENT",
-                                                );
-                                                form.setValue(
-                                                    "testDuration.sectionWiseDuration",
-                                                    value === "SECTION",
-                                                );
-                                                form.setValue(
-                                                    "testDuration.questionWiseDuration",
-                                                    value === "QUESTION",
-                                                );
-                                            }}
-                                            defaultValue={
-                                                field.value.entireTestDuration.checked
-                                                    ? "ASSESSMENT"
-                                                    : field.value.sectionWiseDuration
-                                                      ? "SECTION"
-                                                      : "QUESTION"
-                                            }
-                                            className="flex items-center gap-6"
-                                        >
-                                            {getFieldOptions({
-                                                assessmentDetails,
-                                                currentStep,
-                                                key: "duration_distribution",
-                                                value: "ASSESSMENT",
-                                            }) && (
-                                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <RadioGroupItem value="ASSESSMENT" />
-                                                    </FormControl>
-                                                    <FormLabel className="font-thin">
-                                                        Entire Assessment Duration
-                                                    </FormLabel>
-                                                </FormItem>
-                                            )}
-                                            {getFieldOptions({
-                                                assessmentDetails,
-                                                currentStep,
-                                                key: "duration_distribution",
-                                                value: "SECTION",
-                                            }) && (
-                                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <RadioGroupItem value="SECTION" />
-                                                    </FormControl>
-                                                    <FormLabel className="font-thin">
-                                                        Section-Wise Duration
-                                                    </FormLabel>
-                                                </FormItem>
-                                            )}
-                                            {getFieldOptions({
-                                                assessmentDetails,
-                                                currentStep,
-                                                key: "duration_distribution",
-                                                value: "QUESTION",
-                                            }) && (
-                                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <RadioGroupItem value="QUESTION" />
-                                                    </FormControl>
-                                                    <FormLabel className="font-thin">
-                                                        Question-Wise Duration
-                                                    </FormLabel>
-                                                </FormItem>
-                                            )}
-                                        </RadioGroup>
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-                    {watch("testDuration").entireTestDuration.checked &&
-                        getStepKey({
-                            assessmentDetails,
-                            currentStep,
-                            key: "duration",
-                        }) && (
-                            <div className="flex items-center gap-4 text-sm font-thin">
-                                <h1>
-                                    Entire Test Duration
-                                    {getStepKey({
-                                        assessmentDetails,
-                                        currentStep,
-                                        key: "duration",
-                                    }) === "REQUIRED" && (
-                                        <span className="text-subtitle text-danger-600">*</span>
-                                    )}
-                                </h1>
-                                <FormField
-                                    control={control}
-                                    name="testDuration.entireTestDuration.testDuration.hrs"
-                                    render={({ field: { ...field } }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <MyInput
-                                                    inputType="text" // Keep the input type as text
-                                                    inputPlaceholder="00"
-                                                    input={field.value}
-                                                    onKeyPress={(e) => {
-                                                        const charCode = e.key;
-                                                        if (!/[0-9]/.test(charCode)) {
-                                                            e.preventDefault(); // Prevent non-numeric input
-                                                        }
-                                                    }}
-                                                    onChangeFunction={(e) => {
-                                                        const inputValue = e.target.value.replace(
-                                                            /[^0-9]/g,
-                                                            "",
-                                                        ); // Sanitize input
-                                                        field.onChange(inputValue); // Update field value
-                                                    }}
-                                                    error={
-                                                        form.formState.errors.testDuration
-                                                            ?.entireTestDuration?.testDuration?.hrs
-                                                            ?.message
-                                                    }
-                                                    size="large"
-                                                    {...field}
-                                                    className="w-11"
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <span>hrs</span>
-                                <span>:</span>
-                                <FormField
-                                    control={control}
-                                    name="testDuration.entireTestDuration.testDuration.min"
-                                    render={({ field: { ...field } }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <MyInput
-                                                    inputType="text"
-                                                    inputPlaceholder="00"
-                                                    input={field.value}
-                                                    onKeyPress={(e) => {
-                                                        const charCode = e.key;
-                                                        if (!/[0-9]/.test(charCode)) {
-                                                            e.preventDefault(); // Prevent non-numeric input
-                                                        }
-                                                    }}
-                                                    onChangeFunction={(e) => {
-                                                        const inputValue = e.target.value.replace(
-                                                            /[^0-9]/g,
-                                                            "",
-                                                        ); // Remove non-numeric characters
-                                                        field.onChange(inputValue); // Call onChange with the sanitized value
-                                                    }}
-                                                    error={
-                                                        form.formState.errors.testDuration
-                                                            ?.entireTestDuration?.testDuration?.min
-                                                            ?.message
-                                                    }
-                                                    size="large"
-                                                    {...field}
-                                                    className="w-11"
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <span>minutes</span>
-                            </div>
-                        )}
                     {getStepKey({
                         assessmentDetails,
                         currentStep,

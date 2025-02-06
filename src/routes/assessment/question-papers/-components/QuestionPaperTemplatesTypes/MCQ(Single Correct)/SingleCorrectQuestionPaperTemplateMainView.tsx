@@ -13,15 +13,15 @@ import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-t
 import { formatStructure } from "../../../-utils/helper";
 import { OptionImagePreview } from "../../options/MCQ(Single Correct)/OptionImagePreview";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { useQuestionImageStore } from "../../../-global-states/question-image-index";
 
 export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
+    currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
-    const { currentQuestionImageIndex } = useQuestionImageStore();
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const optionsType = getValues("optionsType") || "";
@@ -123,6 +123,32 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 label="Marks"
                                 required
                             />
+                            <CustomInput
+                                control={form.control}
+                                name={`questions.${currentQuestionIndex}.questionPenalty`}
+                                label="Negative Marking"
+                                required
+                            />
+                            <div className="flex flex-col gap-2">
+                                <h1 className="text-sm font-semibold">Time Limit</h1>
+                                <div className="flex items-center gap-4 text-sm">
+                                    <CustomInput
+                                        control={form.control}
+                                        name={`questions.${currentQuestionIndex}.questionDuration.hrs`}
+                                        label=""
+                                        className="w-10"
+                                    />
+                                    <span>hrs</span>
+                                    <span>:</span>
+                                    <CustomInput
+                                        control={form.control}
+                                        name={`questions.${currentQuestionIndex}.questionDuration.min`}
+                                        label=""
+                                        className="w-10"
+                                    />
+                                    <span>min</span>
+                                </div>
+                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>
@@ -171,7 +197,11 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     <div className="flex items-center gap-4">
                                         <QuestionImagePreviewDialogue
                                             form={form}
+                                            currentQuestionIndex={currentQuestionIndex}
                                             currentQuestionImageIndex={index}
+                                            setCurrentQuestionImageIndex={
+                                                setCurrentQuestionImageIndex
+                                            }
                                             isUploadedAgain={true}
                                         />
                                         <Button
@@ -189,7 +219,9 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                 {Array.isArray(imageDetails) && imageDetails.length < 4 && (
                     <QuestionImagePreviewDialogue
                         form={form}
+                        currentQuestionIndex={currentQuestionIndex}
                         currentQuestionImageIndex={currentQuestionImageIndex}
+                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                     />
                 )}
             </div>
@@ -223,6 +255,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={0}
+                                                currentQuestionIndex={currentQuestionIndex}
                                                 isUploadedAgain={true}
                                             />
                                             <Button
@@ -253,7 +286,11 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option1?.image?.imageFile && (
-                                <OptionImagePreview form={form} option={0} />
+                                <OptionImagePreview
+                                    form={form}
+                                    option={0}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
@@ -305,6 +342,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={1}
+                                                currentQuestionIndex={currentQuestionIndex}
                                                 isUploadedAgain={true}
                                             />
                                             <Button
@@ -335,7 +373,11 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option2?.image?.imageFile && (
-                                <OptionImagePreview form={form} option={1} />
+                                <OptionImagePreview
+                                    form={form}
+                                    option={1}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
@@ -389,6 +431,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={2}
+                                                currentQuestionIndex={currentQuestionIndex}
                                                 isUploadedAgain={true}
                                             />
                                             <Button
@@ -419,7 +462,11 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option3?.image?.imageFile && (
-                                <OptionImagePreview form={form} option={2} />
+                                <OptionImagePreview
+                                    form={form}
+                                    option={2}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
@@ -471,6 +518,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={3}
+                                                currentQuestionIndex={currentQuestionIndex}
                                                 isUploadedAgain={true}
                                             />
                                             <Button
@@ -501,7 +549,11 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 />
                             )}
                             {!option4?.image?.imageFile && (
-                                <OptionImagePreview form={form} option={3} />
+                                <OptionImagePreview
+                                    form={form}
+                                    option={3}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabListComponent } from "./TabListComponent";
 import { QuestionPapersFilter } from "./QuestionPapersFilter";
@@ -8,7 +8,7 @@ import { EmptyQuestionPapers } from "@/svgs";
 import { QuestionPapersList } from "./QuestionPapersList";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { FilterOption } from "@/types/question-paper-filter";
+import { FilterOption } from "@/types/assessments/question-paper-filter";
 import { MyButton } from "@/components/design-system/button";
 import { getQuestionPaperDataWithFilters } from "../-utils/question-paper-services";
 import { INSTITUTE_ID } from "@/constants/urls";
@@ -25,12 +25,20 @@ interface QuestionPapersTabsProps {
     isAssessment: boolean; // Flag to determine if it's an assessment
     index?: number;
     sectionsForm?: UseFormReturn<SectionFormType>;
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    currentQuestionImageIndex: number;
+    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }
 
 export const QuestionPapersTabs = ({
     isAssessment,
     index,
     sectionsForm,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    currentQuestionImageIndex,
+    setCurrentQuestionImageIndex,
 }: QuestionPapersTabsProps) => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const [selectedTab, setSelectedTab] = useState("ACTIVE");
@@ -328,6 +336,10 @@ export const QuestionPapersTabs = ({
                         isAssessment={isAssessment}
                         index={index}
                         sectionsForm={sectionsForm}
+                        currentQuestionIndex={currentQuestionIndex}
+                        setCurrentQuestionIndex={setCurrentQuestionIndex}
+                        currentQuestionImageIndex={currentQuestionImageIndex}
+                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">
@@ -346,6 +358,10 @@ export const QuestionPapersTabs = ({
                         isAssessment={isAssessment}
                         index={index}
                         sectionsForm={sectionsForm}
+                        currentQuestionIndex={currentQuestionIndex}
+                        setCurrentQuestionIndex={setCurrentQuestionIndex}
+                        currentQuestionImageIndex={currentQuestionImageIndex}
+                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">

@@ -1,5 +1,5 @@
 // import { LanguageDropdown } from "@/components/common/localization/language-dropdown";
-import { FormContainerProps } from "@/types/loginTypes";
+import { FormContainerProps } from "@/types/login/loginTypes";
 import { LoginImage } from "@/assets/svgs";
 import { SSDC_Logo } from "@/assets/svgs";
 
