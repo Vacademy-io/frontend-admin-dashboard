@@ -91,10 +91,9 @@ const acknowledgeUpload = async (
         user_id: user_id,
     };
 
-    const response =
-        publicUrl && publicUrl
-            ? await authenticatedAxiosInstance.post(ACKNOWLEDGE, requestBody)
-            : await authenticatedAxiosInstance.post(ACKNOWLEDGE_FOR_PUBLIC_URL, requestBody);
+    const response = publicUrl
+        ? await authenticatedAxiosInstance.post(ACKNOWLEDGE_FOR_PUBLIC_URL, requestBody)
+        : await authenticatedAxiosInstance.post(ACKNOWLEDGE, requestBody);
 
     return response.data;
 };

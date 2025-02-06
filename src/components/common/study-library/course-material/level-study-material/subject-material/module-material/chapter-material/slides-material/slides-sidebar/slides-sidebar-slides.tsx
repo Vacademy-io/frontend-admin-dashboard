@@ -4,7 +4,7 @@ import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sort
 import { truncateString } from "@/lib/reusable/truncateString";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from "@phosphor-icons/react";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
@@ -16,10 +16,6 @@ export const ChapterSidebarSlides = () => {
     const router = useRouter();
     const { chapterId } = router.state.location.search;
     const { slides, isLoading } = useSlides(chapterId || "");
-
-    useEffect(() => {
-        console.log("chapter id: ", chapterId);
-    });
 
     const getIcon = (type: string): ReactNode => {
         switch (type) {

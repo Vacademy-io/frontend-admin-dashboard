@@ -104,10 +104,6 @@ export const AddPdfDialog = ({
 
                 toast.success("PDF uploaded successfully!");
                 openState?.(false);
-
-                // addItem(newItem);
-                // setUploadProgress(100);
-                // toast.success("File uploaded successfully!");
             }
 
             clearInterval(progressInterval);

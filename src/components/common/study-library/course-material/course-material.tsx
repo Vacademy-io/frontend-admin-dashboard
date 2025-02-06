@@ -24,7 +24,6 @@ export const CourseMaterial = () => {
     const updateCourseMutation = useUpdateCourse();
 
     const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
-        console.log("Triggering mutation with:", requestData);
         addCourseMutation.mutate(
             { requestData: requestData },
             {
