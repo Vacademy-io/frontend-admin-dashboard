@@ -35,16 +35,20 @@ interface VideoSlidePayload {
 }
 
 interface DocumentSlidePayload {
-    id?: string;
+    id: string;
     title: string;
+    image_file_id: string;
     description: string;
-    slide_content: {
+    slide_order: number;
+    document_slide: {
+        id: string;
         type: string;
+        data: string;
         title: string;
         cover_file_id: string;
     };
     status: string;
-    new_slide?: boolean;
+    new_slide: boolean;
 }
 
 export const useSlides = (chapterId: string) => {

@@ -10,9 +10,9 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
-import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
+import { useSlides } from "@/hooks/study-library/use-slides";
+import { useRouter } from "@tanstack/react-router";
 
 interface FormData {
     pdfFile: FileList | null;
@@ -28,8 +28,10 @@ export const AddPdfDialog = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const addItem = useContentStore((state) => state.addItem);
     const { setPdfUrl } = usePDFStore();
+    const route = useRouter();
+    const { chapterId } = route.state.location.search;
+    const { addUpdateDocumentSlide } = useSlides(chapterId || "");
 
     const [fileUrl, setFileUrl] = useState<string | null>(null);
 
@@ -83,27 +85,29 @@ export const AddPdfDialog = ({
                 setFile(null);
                 form.reset();
 
-                // Updated newItem to include content property
-                const newItem: SidebarContentItem = {
+                await addUpdateDocumentSlide({
                     id: crypto.randomUUID(),
-                    type: "",
-                    title: "",
-                    url: "",
-                    content: "",
-                    status: "",
-                    source_type: "",
-                    slide_description: "",
-                    document_title: "",
-                    document_url: "",
-                    document_path: "",
-                    video_url: "",
-                    video_description: "",
-                    createdAt: new Date(),
-                };
+                    title: file.name,
+                    image_file_id: "",
+                    description: file.name,
+                    slide_order: 0,
+                    document_slide: {
+                        id: crypto.randomUUID(),
+                        type: "PDF",
+                        data: fileId,
+                        title: file.name,
+                        cover_file_id: "",
+                    },
+                    status: "ACTIVE",
+                    new_slide: true,
+                });
 
-                addItem(newItem);
-                setUploadProgress(100);
-                toast.success("File uploaded successfully!");
+                toast.success("PDF uploaded successfully!");
+                openState?.(false);
+
+                // addItem(newItem);
+                // setUploadProgress(100);
+                // toast.success("File uploaded successfully!");
             }
 
             clearInterval(progressInterval);
