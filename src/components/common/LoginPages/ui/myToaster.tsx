@@ -16,7 +16,7 @@ export function CustomToaster() {
 
     return (
         <ToastProvider>
-            {toasts.map(function ({ id, title, description, action, ...props }) {
+            {toasts?.map(function ({ id, title, description, action, ...props }) {
                 return (
                     <Toast key={id} {...props} className="border-danger-200 bg-danger-100">
                         <div className="grid gap-1">
@@ -46,7 +46,7 @@ export function CustomToaster() {
 
 export const showErrorToast = (description: string) => {
     toast({
-        title: "Login Error",
+        title: "Error",
         description: description,
     });
 };

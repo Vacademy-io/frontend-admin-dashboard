@@ -22,7 +22,7 @@ export const useContentStore = create<ContentStore>((set) => ({
     setActiveItem: (item) => {
         set((state) => {
             const updatedItems = state.items.map((i) =>
-                i.id === item.id ? { ...i, name: item.name } : i,
+                i.id === item.id ? { ...i, name: item.title } : i,
             );
             return { items: updatedItems, activeItemId: item.id }; // Set activeItemId here
         });

@@ -1,26 +1,80 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
 import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
-import { MyButton } from "@/components/design-system/button";
-import { Plus } from "phosphor-react";
 import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
 import { CourseCard } from "./course-card";
+import { AddCourseButton } from "./add-course-button";
+import { useAddCourse } from "@/services/study-library/course-operations/add-course";
+import { AddCourseData } from "./add-course-form";
+import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
+import { useUpdateCourse } from "@/services/study-library/course-operations/update-course";
+import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
+import { toast } from "sonner"; // Import Toaster from sonner
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { open } = useSidebar();
-    const courses = getCourses();
+    const { studyLibraryData } = useStudyLibraryStore();
+    const [courses, setCourses] = useState(getCourses());
+
+    const addCourseMutation = useAddCourse();
+    const deleteCourseMutation = useDeleteCourse();
+    const updateCourseMutation = useUpdateCourse();
+
+    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+        addCourseMutation.mutate(
+            { requestData: requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Course added successfully");
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to add course");
+                },
+            },
+        );
+    };
+
+    const handleCourseDelete = (courseId: string) => {
+        deleteCourseMutation.mutate(courseId, {
+            onSuccess: () => {
+                toast.success("Course deleted successfully");
+            },
+            onError: (error) => {
+                toast.error(error.message || "Failed to delete course");
+            },
+        });
+    };
+
+    const handleCourseUpdate = ({
+        courseId,
+        requestData,
+    }: {
+        requestData: AddCourseData;
+        courseId?: string;
+    }) => {
+        updateCourseMutation.mutate(
+            { courseId, requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Course updated successfully");
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to update course");
+                },
+            },
+        );
+    };
+
+    useEffect(() => {
+        setCourses(getCourses());
+    }, [studyLibraryData]);
 
     useEffect(() => {
         setNavHeading("Study Library");
     }, []);
-
-    const handleCourseDelete = () => {};
-
-    const handleCourseUpdate = () => {};
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">
@@ -36,10 +90,7 @@ export const CourseMaterial = () => {
                 <div className="flex flex-col items-center gap-4">
                     <CreateStudyDocButton />
                     <UploadStudyMaterialButton />
-                    <MyButton buttonType="primary" layoutVariant="default" scale="large">
-                        <Plus />
-                        Create Course
-                    </MyButton>
+                    <AddCourseButton onSubmit={handleAddCourse} />
                 </div>
             </div>
 

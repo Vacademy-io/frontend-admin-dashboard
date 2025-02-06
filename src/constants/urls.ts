@@ -35,6 +35,7 @@ export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
 export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
 export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
+export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 
 export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
@@ -53,3 +54,11 @@ export const ADD_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/add-chapte
 export const DELETE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/delete-chapter`;
 export const UPDATE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/update-chapter`;
 export const UPDATE_CHAPTER_ORDER = `${BASE_URL}/admin-core-service/chapter/v1/update-chapter-order`;
+
+export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
+export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
+export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course`;
+
+export const GET_SLIDES = `${BASE_URL}/admin-core-service/slide/v1/get-slides`;
+export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-video-slide`;
+export const ADD_UPDATE_DOCUMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-document-slide`;

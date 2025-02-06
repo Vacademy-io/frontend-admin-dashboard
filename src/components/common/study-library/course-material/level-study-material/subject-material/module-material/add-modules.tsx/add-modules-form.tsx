@@ -10,7 +10,6 @@ import { useRef, useState } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { INSTITUTE_ID } from "@/constants/urls";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { PencilSimpleLine } from "@phosphor-icons/react";
 import { SubjectDefaultImage } from "@/assets/svgs";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 
@@ -103,7 +102,7 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
                     )}
                 />
 
-                <div className="relative flex w-full items-center justify-center">
+                <div className="relative flex w-full flex-col items-center justify-center gap-3">
                     {isUploading ? (
                         <div className="inset-0 flex h-[150px] w-[150px] items-center justify-center bg-white">
                             <DashboardLoader />
@@ -125,19 +124,41 @@ export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFor
                         acceptedFileTypes="image/*"
                     />
                     <div
-                        className={`absolute right-[54px] top-0 ${
+                        className={`flex w-full flex-col items-center gap-3 ${
                             isUploading ? "hidden" : "visible"
                         }`}
                     >
+                        {/* <div className="w-full flex gap-6 items-end">
+                                <MyInput
+                                    label="Image link"
+                                    inputPlaceholder="Paste link to an image..."
+                                    inputType="text"
+                                    className="w-[300px]"
+                                    input={imageUrl}
+                                    onChangeFunction={handleImageUrlChange}
+                                />
+                                <MyButton
+                                   onClick={() => fileInputRef.current?.click()}
+                                   disabled={isUploading || isUploadingFile}
+                                   buttonType="primary"
+                                   layoutVariant="icon"
+                                   scale="small"
+                                   type="button"
+                                   className="mb-2"
+                                >
+                                    <Check />
+                                </MyButton>
+                            </div>
+                            <p>OR</p> */}
                         <MyButton
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isUploading || isUploadingFile}
                             buttonType="secondary"
-                            layoutVariant="icon"
-                            scale="small"
+                            layoutVariant="default"
+                            scale="large"
                             type="button"
                         >
-                            <PencilSimpleLine />
+                            Upload Image
                         </MyButton>
                     </div>
                 </div>

@@ -1,12 +1,12 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { DialogContent } from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
+import { useSlides } from "@/hooks/study-library/use-slides";
+import { toast } from "sonner";
+import { Route } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index";
 
 const formSchema = z.object({
     videoUrl: z
@@ -26,25 +26,39 @@ export const AddVideoDialog = ({
 }: {
     openState?: ((open: boolean) => void) | undefined;
 }) => {
-    const addItem = useContentStore((state) => state.addItem);
+    const { chapterId } = Route.useSearch();
+    const { addUpdateVideoSlide } = useSlides(chapterId);
 
-    const handleSubmit = (data: FormValues) => {
-        const newItem: SidebarContentItem = {
-            id: crypto.randomUUID(),
-            type: "video" as const,
-            name: data.videoName,
-            url: data.videoUrl,
-            content: "", // Add empty string for video content
-            createdAt: new Date(),
-        };
-        addItem(newItem);
-        openState && openState(false);
+    const handleSubmit = async (data: FormValues) => {
+        try {
+            await addUpdateVideoSlide({
+                id: crypto.randomUUID(),
+                title: data.videoName,
+                description: data.videoName,
+                image_file_id: null,
+                slide_order: 0,
+                video_slide: {
+                    id: crypto.randomUUID(),
+                    description: "",
+                    url: data.videoUrl,
+                    title: data.videoName,
+                },
+                status: "ACTIVE",
+                new_slide: true,
+            });
+
+            toast.success("Video added successfully!");
+            form.reset();
+            openState?.(false);
+        } catch (error) {
+            toast.error("Failed to add video");
+        }
     };
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            videoUrl: "sfgadfsd",
+            videoUrl: "",
             videoName: "",
         },
     });
@@ -67,7 +81,7 @@ export const AddVideoDialog = ({
                                     input={field.value}
                                     inputType="text"
                                     inputPlaceholder="Enter YouTube video URL here"
-                                    onChangeFunction={(e) => field.onChange(e)} // Pass the event directly
+                                    onChangeFunction={field.onChange}
                                     className="w-full"
                                 />
                             </FormControl>
@@ -81,13 +95,13 @@ export const AddVideoDialog = ({
                         <FormItem>
                             <FormControl>
                                 <MyInput
-                                    {...field} // Spread all field props
+                                    {...field}
                                     label="Video Title"
                                     required={true}
                                     input={field.value}
                                     inputType="text"
                                     inputPlaceholder="File name"
-                                    onChangeFunction={(e) => field.onChange(e)} // Pass the event directly
+                                    onChangeFunction={field.onChange}
                                     className="w-full"
                                 />
                             </FormControl>
@@ -99,6 +113,5 @@ export const AddVideoDialog = ({
                 </MyButton>
             </form>
         </Form>
-        // </DialogContent>
     );
 };

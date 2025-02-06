@@ -38,3 +38,7 @@ export const scheduleTestTabsData = [
 export const timeLimit = ["1 min", "2 min", "3 min", "5 min", "10 min", "15 min"];
 
 export const EvaluationType = ["Auto", "Manual", "PDF", "VIDEO"];
+
+export const InstituteType = ["Coaching Institute", "School", "University", "Corporate"];
+
+export const RoleType = ["ADMIN", "CREATOR", "EVALUATOR"];
