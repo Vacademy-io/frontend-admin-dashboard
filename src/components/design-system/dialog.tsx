@@ -30,7 +30,7 @@ export const MyDialog = ({
                         {heading}
                     </div>
                     <DialogDescription asChild className=" ">
-                        <div className="p-6">{children || content}</div>
+                        <div className="p-3">{children || content}</div>
                     </DialogDescription>
                 </DialogHeader>
             </DialogContent>

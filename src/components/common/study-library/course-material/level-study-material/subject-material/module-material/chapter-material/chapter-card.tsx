@@ -16,7 +16,7 @@ export const ChapterCard = ({ chapter, onDelete, onEdit }: ChapterCardProps) => 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const router = useRouter();
-    const { courseId, levelId, subjectId, moduleId, chapterId } = router.state.location.search;
+    const { courseId, levelId, subjectId, moduleId } = router.state.location.search;
     const navigate = useNavigate();
 
     const handleCardClick = (e: React.MouseEvent) => {
@@ -38,7 +38,7 @@ export const ChapterCard = ({ chapter, onDelete, onEdit }: ChapterCardProps) => 
                 levelId: levelId,
                 subjectId: subjectId,
                 moduleId: moduleId,
-                chapterId: chapterId,
+                chapterId: chapter.chapter.id,
                 slideId: "yourSlideId",
             },
         });

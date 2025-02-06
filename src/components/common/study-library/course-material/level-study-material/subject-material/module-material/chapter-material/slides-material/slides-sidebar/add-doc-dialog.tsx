@@ -73,11 +73,20 @@ export const AddDocDialog = ({
 
             // Cast the content to solve type issue
             const newItem: SidebarContentItem = {
+                // createdAt: new Date(),
                 id: crypto.randomUUID(),
-                type: "doc",
-                name: file.name,
+                type: "",
+                title: "",
                 url: "",
-                content: yooptaContent as string,
+                content: "",
+                status: "",
+                source_type: "",
+                slide_description: "",
+                document_title: "",
+                document_url: "",
+                document_path: "",
+                video_url: "",
+                video_description: "",
                 createdAt: new Date(),
             };
 
