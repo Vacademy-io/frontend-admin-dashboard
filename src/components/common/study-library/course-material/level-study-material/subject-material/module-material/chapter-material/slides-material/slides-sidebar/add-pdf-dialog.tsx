@@ -86,10 +86,18 @@ export const AddPdfDialog = ({
                 // Updated newItem to include content property
                 const newItem: SidebarContentItem = {
                     id: crypto.randomUUID(),
-                    type: "pdf",
-                    name: file.name,
-                    url: url,
-                    content: "", // Add empty string for PDF content
+                    type: "",
+                    title: "",
+                    url: "",
+                    content: "",
+                    status: "",
+                    source_type: "",
+                    slide_description: "",
+                    document_title: "",
+                    document_url: "",
+                    document_path: "",
+                    video_url: "",
+                    video_description: "",
                     createdAt: new Date(),
                 };
 

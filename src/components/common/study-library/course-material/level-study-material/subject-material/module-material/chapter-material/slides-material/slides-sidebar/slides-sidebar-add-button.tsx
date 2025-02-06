@@ -68,12 +68,22 @@ export const ChapterSidebarAddButton = () => {
                     },
                 };
 
+                console.log("emptyYooptaContent: ", emptyYooptaContent);
+
                 const newDoc: SidebarContentItem = {
                     id: crypto.randomUUID(),
-                    type: "doc",
-                    name: "New Document",
+                    type: "",
+                    title: "",
                     url: "",
-                    content: emptyYooptaContent,
+                    content: "",
+                    status: "",
+                    source_type: "",
+                    slide_description: "",
+                    document_title: "",
+                    document_url: "",
+                    document_path: "",
+                    video_url: "",
+                    video_description: "",
                     createdAt: new Date(),
                 };
                 addItem(newDoc);
