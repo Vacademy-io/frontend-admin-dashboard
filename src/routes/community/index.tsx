@@ -28,7 +28,7 @@ function CommunityPage() {
                     content="This page contails all the qustion/question-bank created by the vacademy community"
                 />
             </Helmet>
-            <div className="flex flex-col w-full">
+            <div className="flex w-full flex-col">
                 <PublishTab></PublishTab>
                 <CommunityPageHeader></CommunityPageHeader>
             </div>

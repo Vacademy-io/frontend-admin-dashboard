@@ -13,7 +13,7 @@ export const LayoutContainer = ({
     children?: React.ReactNode;
     className?: string;
     sidebarComponent?: React.ReactNode;
-    intrnalMargin?:boolean;
+    intrnalMargin?: boolean;
 }) => {
     const { open } = useSidebar();
     return (
