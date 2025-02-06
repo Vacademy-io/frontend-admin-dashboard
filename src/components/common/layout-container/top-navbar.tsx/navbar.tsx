@@ -1,38 +1,36 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useState } from "react";
-import { MagnifyingGlass, Bell, Sliders, CaretDown, CaretUp } from "@phosphor-icons/react";
-import { cn } from "@/lib/utils";
+import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import { DummyProfile } from "@/assets/svgs";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { FiSidebar } from "react-icons/fi";
 import { useSidebarStore } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states";
-
-const IconContainer = ({
-    children,
-    className,
-}: {
-    children: React.ReactNode;
-    className?: string;
-}) => {
-    return (
-        <div
-            className={cn(
-                "flex size-9 cursor-pointer items-center justify-center rounded-full border border-neutral-300",
-                className,
-            )}
-        >
-            {children}
-        </div>
-    );
-};
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { removeCookiesAndLogout } from "@/lib/auth/sessionUtility";
+import { useNavigate } from "@tanstack/react-router";
 
 export function Navbar() {
-    const notifications = true;
-    const [dropdown, setDropdown] = useState<boolean>(true);
+    // const notifications = true;
+    const navigate = useNavigate();
+    const [isOpen, setIsOpen] = useState(false);
     const { navHeading } = useNavHeadingStore();
     const { sidebarOpen, setSidebarOpen } = useSidebarStore();
+
+    const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        event.preventDefault(); // Prevents dropdown from closing immediately
+        removeCookiesAndLogout(); // Ensure logout completes
+        navigate({
+            to: "/login",
+        });
+    };
+
     return (
-        <div className="flex h-[72px] items-center justify-between bg-neutral-50 px-8 py-4">
+        <div className="flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
                     <FiSidebar className="text-neutral-600" />
@@ -42,31 +40,30 @@ export function Navbar() {
                 </div>
             </div>
             <div className="flex gap-6 text-neutral-600">
-                <IconContainer>
+                {/* <IconContainer>
                     <MagnifyingGlass className="size-5" />
-                </IconContainer>
-                <IconContainer className="relative">
+                </IconContainer> */}
+                {/* <IconContainer className="relative">
                     <Bell className="size-5" />
                     {notifications && (
                         <div className="absolute right-2 top-2 size-2 rounded-full bg-primary-500"></div>
                     )}
-                </IconContainer>
-                <IconContainer>
+                </IconContainer> */}
+                {/* <IconContainer>
                     <Sliders className="size-5" />
-                </IconContainer>
+                </IconContainer> */}
                 <div className="flex items-center gap-1">
-                    <IconContainer className="size-10 cursor-auto border-none p-0">
-                        <div className="rounded-full object-cover">
+                    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+                        <DropdownMenuTrigger className="flex items-center gap-2">
                             <DummyProfile />
-                        </div>
-                    </IconContainer>
-                    <div className="cursor-pointer">
-                        {dropdown ? (
-                            <CaretDown onClick={() => setDropdown(!dropdown)} />
-                        ) : (
-                            <CaretUp onClick={() => setDropdown(!dropdown)} />
-                        )}
-                    </div>
+                            {isOpen ? <CaretDown /> : <CaretUp />}
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem>View Profile Details</DropdownMenuItem>
+                            <DropdownMenuItem>View Institute Details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </div>
