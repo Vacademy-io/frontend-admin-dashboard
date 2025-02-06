@@ -68,6 +68,10 @@ export function LoginForm() {
         mutation.mutate(values);
     }
 
+    const handleNavigateSignup = () => {
+        navigate({ to: "/signup" });
+    };
+
     return (
         <SplashScreen isAnimationEnabled={!hasSeenAnimation}>
             <div className="flex w-full flex-col items-center justify-center gap-20">
@@ -101,7 +105,6 @@ export function LoginForm() {
                                     </FormItem>
                                 )}
                             />
-
                             <div className="flex flex-col gap-2">
                                 <FormField
                                     control={form.control}
@@ -132,7 +135,6 @@ export function LoginForm() {
                                 </Link>
                             </div>
                         </div>
-
                         <div className="mt-20 flex flex-col items-center gap-1">
                             <MyButton
                                 type="submit"
@@ -142,6 +144,15 @@ export function LoginForm() {
                             >
                                 Login
                             </MyButton>
+                            <p className="text-sm">
+                                Don&apos;t have an account?&nbsp;&nbsp;
+                                <span
+                                    className="cursor-pointer text-primary-500"
+                                    onClick={handleNavigateSignup}
+                                >
+                                    Create One
+                                </span>
+                            </p>
                         </div>
                     </form>
                 </Form>
