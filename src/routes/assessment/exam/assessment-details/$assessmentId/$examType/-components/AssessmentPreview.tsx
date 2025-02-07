@@ -1,9 +1,10 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Route } from "..";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import {
     getAssessmentDetails,
     getQuestionDataForSection,
+    handlePostAssessmentPreview,
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyButton } from "@/components/design-system/button";
@@ -16,8 +17,16 @@ import QRCode from "react-qr-code";
 import { useEffect, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+    addQuestionIdToSections,
+    compareAndUpdateSections,
+    extractEmptyIdQuestions,
+    getSectionsWithEmptyQuestionIds,
+    handleAddedQuestionsToSections,
+    mergeSectionData,
     // announcementDialogTrigger,
     parseHtmlToString,
+    transformPreviewDataToSections,
+    transformSectionQuestions,
     transformSectionsAndQuestionsData,
 } from "../-utils/helper";
 import { FormProvider, useForm } from "react-hook-form";
@@ -33,6 +42,11 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DotOutline } from "@phosphor-icons/react";
 import AnnouncementComponent from "./AnnouncementComponent";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+import { savePrivateQuestions } from "../-services/assessment-details-services";
+import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
+import { transformResponseDataToMyQuestionsSchema } from "@/routes/assessment/question-papers/-utils/helper";
 
 interface Announcement {
     id: string;
@@ -42,6 +56,7 @@ interface Announcement {
 
 export type sectionsEditQuestionFormType = z.infer<typeof sectionsEditQuestionFormSchema>;
 const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => void }) => {
+    const queryClient = useQueryClient();
     const { assessmentId, examType } = Route.useParams();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
@@ -269,13 +284,83 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         }));
     };
 
+    const handleSubmitSectionsForm = useMutation({
+        mutationFn: ({ data }: { data: AssessmentDetailQuestions }) => savePrivateQuestions(data),
+        onSuccess: async (data) => {
+            const transformedQuestionsData = transformResponseDataToMyQuestionsSchema(
+                data.questions,
+            );
+
+            const getSectionsWithAddedQuestionsCnt = getSectionsWithEmptyQuestionIds(
+                form.getValues(),
+            );
+
+            const sectionsWithAddedQuestions = handleAddedQuestionsToSections(
+                getSectionsWithAddedQuestionsCnt,
+                transformedQuestionsData,
+            );
+
+            const sectionsDataWithAddedQuestionIds = addQuestionIdToSections(
+                form.getValues("sections"),
+                sectionsWithAddedQuestions,
+            );
+
+            const transformToStep2Data = transformPreviewDataToSections(
+                assessmentDetails[1]?.saved_data.sections,
+            );
+
+            const mergedData = mergeSectionData(
+                sectionsDataWithAddedQuestionIds,
+                transformToStep2Data.updated_sections,
+            );
+
+            const updatedSectionsData = compareAndUpdateSections(
+                previousSections.current,
+                mergedData,
+            );
+
+            const finalData = {
+                test_duration: {
+                    entire_test_duration: assessmentDetails[1]?.saved_data.duration,
+                    distribution_duration: assessmentDetails[1]?.saved_data.duration_distribution,
+                },
+                updated_sections: updatedSectionsData || [],
+                added_sections: [],
+                deleted_sections: [],
+            };
+            await handlePostAssessmentPreview(
+                finalData,
+                assessmentId,
+                instituteDetails?.id,
+                examType,
+            );
+            queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
+            handleCloseDialog();
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
+        },
+    });
+
     const onInvalid = (err: unknown) => {
         console.error(err);
     };
 
     function onSubmit(values: z.infer<typeof sectionsEditQuestionFormSchema>) {
-        console.log(values);
-        handleCloseDialog();
+        const extractAddedQuestions = extractEmptyIdQuestions(values);
+        const convertedQuestions = transformSectionQuestions(extractAddedQuestions);
+        handleSubmitSectionsForm.mutate({
+            data: convertedQuestions,
+        });
     }
 
     // Update section while keeping question index valid

@@ -4,12 +4,12 @@ export const sectionsEditQuestionFormSchema = z.object({
     sections: z.array(
         z.object({
             sectionId: z.string().optional(),
-            sectionName: z.string().min(1, "Section name is required"),
+            sectionName: z.string().optional(),
             questions: z.array(
                 z.object({
                     id: z.string(),
                     questionId: z.string().optional(),
-                    questionName: z.string().min(1, "Question name is required"),
+                    questionName: z.string().optional(),
                     explanation: z.string().optional(),
                     questionType: z.string().default("MCQS"),
                     questionPenalty: z.string(),
