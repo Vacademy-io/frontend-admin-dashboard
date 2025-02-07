@@ -59,9 +59,15 @@ export function Navbar() {
                             {isOpen ? <CaretDown /> : <CaretUp />}
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem>View Profile Details</DropdownMenuItem>
-                            <DropdownMenuItem>View Institute Details</DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                            {/* <DropdownMenuItem className="cursor-pointer">
+                                View Profile Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer">
+                                View Institute Details
+                            </DropdownMenuItem> */}
+                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                                Logout
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

@@ -33,6 +33,7 @@ export const PUBLISH_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment
 export const PRIVATE_ADD_QUESTIONS = `${BASE_URL}/assessment-service/question-paper/public/manage/v1/add-only-question`;
 
 export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
+export const GET_SIGNED_URL_PUBLIC = `${BASE_URL}/media-service/public/get-signed-url`;
 export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
 export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
