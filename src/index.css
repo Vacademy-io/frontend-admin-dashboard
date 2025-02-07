@@ -248,3 +248,98 @@
         background: rgb(var(--primary-300));
     }
 }
+
+/* Center the tooltip and match the design */
+.custom-tooltip {
+    background-color: white !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+    max-width: 350px !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.custom-tooltip .introjs-tooltip-title {
+    color: rgb(234 88 12) !important;
+    font-size: 1.5rem !important;
+    font-weight: 500 !important;
+    margin-bottom: 1rem !important;
+    padding: 4px !important;
+    font-family:
+        system-ui,
+        -apple-system,
+        sans-serif !important;
+}
+
+.custom-tooltip .introjs-tooltip-header {
+    padding: 8px !important;
+    text-align: center !important;
+    background-color: #fff9f4;
+    margin-bottom: 0.5rem !important;
+    position: relative !important;
+    border-bottom: 1px solid rgb(229 231 235) !important;
+}
+
+.custom-tooltip .introjs-skipbutton {
+    color: rgb(156 163 175) !important;
+    font-size: 1.5rem !important;
+    padding: 0.5rem !important;
+    position: absolute !important;
+    right: -1rem !important;
+    top: -1rem !important;
+}
+
+.custom-tooltip .introjs-tooltiptext {
+    color: rgb(75 85 99) !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    padding: 4px !important;
+    margin-bottom: 1rem !important;
+    font-family:
+        system-ui,
+        -apple-system,
+        sans-serif !important;
+}
+
+.custom-tooltip .introjs-bullets {
+    display: none !important;
+}
+
+.custom-tooltip .introjs-tooltipbuttons {
+    border-top: none !important;
+    padding: 4px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1rem !important;
+}
+
+.custom-tooltip .introjs-button {
+    background: white !important;
+    border: 1px solid rgb(229 231 235) !important;
+    border-radius: 0.5rem !important;
+    color: rgb(75 85 99) !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    padding: 0.75rem 1.5rem !important;
+    text-shadow: none !important;
+    width: 100% !important;
+    text-align: center !important;
+    font-family:
+        system-ui,
+        -apple-system,
+        sans-serif !important;
+}
+
+.custom-tooltip .introjs-button:hover {
+    background: rgb(249 250 251) !important;
+}
+
+.custom-tooltip .introjs-disabled {
+    display: none !important;
+}
+
+.custom-overlay {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}

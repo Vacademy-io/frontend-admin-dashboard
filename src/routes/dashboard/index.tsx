@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
@@ -9,6 +9,8 @@ import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from "@/svgs";
 import { Badge } from "@/components/ui/badge";
 import { CompletionStatusComponent } from "./-components/CompletionStatusComponent";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Steps, Hints } from "intro.js-react";
+import "intro.js/introjs.css";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -18,8 +20,42 @@ export const Route = createFileRoute("/dashboard/")({
     ),
 });
 
+const steps = [
+    {
+        element: "#dashboard",
+        title: "Welcome to Your Dashboard!",
+        intro: "Your dashboard is the central hub for managing everything in your institute. Here, you'll find quick-access actions, important insights, and easy navigation to key sections.",
+    },
+    {
+        element: "#quick-actions",
+        title: "Quick Actions",
+        intro: "Access frequently used features and important tasks from this section.",
+    },
+    {
+        element: "#insights",
+        title: "Analytics & Insights",
+        intro: "View key metrics and performance indicators at a glance.",
+    },
+];
+
+const options = {
+    showButtons: true,
+    showBullets: false,
+    showProgress: false,
+    hideNext: false,
+    hidePrev: false,
+    nextLabel: "Next",
+    prevLabel: "Back",
+    doneLabel: "Done",
+    exitOnOverlayClick: false,
+    tooltipClass: "custom-tooltip",
+    highlightClass: "custom-highlight",
+    overlayClass: "custom-overlay",
+};
+
 export function DashboardComponent() {
     const navigate = useNavigate();
+    const [enabled, setEnabled] = useState(true);
     const { setNavHeading } = useNavHeadingStore();
 
     const handleAssessmentTypeRoute = (type: string) => {
@@ -48,6 +84,13 @@ export function DashboardComponent() {
     }, []);
     return (
         <>
+            <Steps
+                enabled={enabled}
+                steps={steps}
+                initialStep={0}
+                onExit={() => setEnabled(false)}
+                options={options}
+            />
             <h1 className="text-2xl">
                 Hello <span className="text-primary-500">Aditya!</span>
             </h1>
