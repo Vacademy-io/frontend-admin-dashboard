@@ -1,5 +1,5 @@
 import YooptaEditor, { createYooptaEditor } from "@yoopta/editor";
-import { useEffect, useMemo, useRef } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import PDFViewer from "../slides-material/pdf-viewer";
 import { ActivityStatsSidebar } from "../slides-material/stats-dialog/activity-sidebar";
@@ -10,14 +10,44 @@ import YouTubePlayer from "../slides-material/youtube-player";
 import { html } from "@yoopta/exports";
 import { SlidesMenuOption } from "../slides-material/slides-menu-options/slildes-menu-option";
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
+import { useRouter } from "@tanstack/react-router";
+import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
+import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
+import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
+import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
+import { getPublicUrl } from "@/services/upload_file";
 
-export const SlideMaterial = () => {
-    const { items, activeItemId, setActiveItem } = useContentStore();
-    const activeItem = items.find((item) => item.id === activeItemId);
+interface SlideMaterialProps {
+    setLevelName: Dispatch<SetStateAction<string>>;
+    setSubjectName: Dispatch<SetStateAction<string>>;
+    setModuleName: Dispatch<SetStateAction<string>>;
+    setChapterName: Dispatch<SetStateAction<string>>;
+}
+
+export const SlideMaterial = ({
+    setLevelName,
+    setSubjectName,
+    setModuleName,
+    setChapterName,
+}: SlideMaterialProps) => {
+    const { activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [heading, setHeading] = useState(activeItem?.title || "");
+    const [heading, setHeading] = useState(
+        activeItem?.document_title || activeItem?.video_title || "",
+    );
+    const router = useRouter();
+    const [content, setContent] = useState<JSX.Element | null>(null);
+
+    const { levelId, subjectId, moduleId, chapterId } = router.state.location.search;
+
+    useEffect(() => {
+        setLevelName(getLevelName(levelId || ""));
+        setSubjectName(getSubjectName(subjectId || ""));
+        setModuleName(getModuleName(moduleId || ""));
+        setChapterName(getChapterName(chapterId || ""));
+    }, []);
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -31,60 +61,63 @@ export const SlideMaterial = () => {
         setIsEditing(false);
     };
 
-    const renderContent = () => {
+    const loadContent = async () => {
         if (!activeItem) {
-            return (
+            setContent(
                 <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
                     <EmptySlideMaterial />
                     <p className="mt-4 text-neutral-500">No study material has been added yet</p>
-                </div>
+                </div>,
             );
+            return;
         }
 
-        switch (activeItem.type) {
-            case "pdf":
-                return <PDFViewer />;
-            case "video":
-                return (
-                    <YouTubePlayer videoUrl={activeItem.url || ""} videoTitle={activeItem.title} />
-                );
-
-            case "doc": {
-                console.log("Rendering doc content:", activeItem.content); // For debugging
-
-                const content =
-                    typeof activeItem.content === "string"
-                        ? html.deserialize(editor, activeItem.content)
-                        : activeItem.content;
-                editor.setEditorValue(content);
-
-                return (
-                    <div className="w-full">
-                        <YooptaEditor
-                            editor={editor}
-                            plugins={plugins}
-                            tools={TOOLS}
-                            marks={MARKS}
-                            selectionBoxRoot={selectionRef}
-                            autoFocus
-                            onChange={(value) => {
-                                console.log("Editor content changed:", value); // For debugging
-                                // You might want to save changes here
-                            }}
-                            className="h-full w-full"
-                            style={{ width: "100%", height: "100%" }}
-                        />
-                    </div>
-                );
-            }
-            default:
-                return null;
+        if (activeItem.video_url != null) {
+            console.log("video url: ", activeItem.video_url);
+            setContent(
+                <YouTubePlayer
+                    videoUrl={activeItem.video_url || ""}
+                    videoTitle={activeItem.video_title}
+                />,
+            );
+            return;
         }
+
+        if (activeItem?.document_type == "PDF") {
+            const url = await getPublicUrl(activeItem?.document_data);
+            setContent(<PDFViewer pdfUrl={url} />);
+            return;
+        }
+
+        const documentContent =
+            typeof activeItem.document_data === "string"
+                ? html.deserialize(editor, activeItem.document_data)
+                : activeItem.document_data;
+        editor.setEditorValue(documentContent);
+
+        setContent(
+            <div className="w-full">
+                <YooptaEditor
+                    editor={editor}
+                    plugins={plugins}
+                    tools={TOOLS}
+                    marks={MARKS}
+                    selectionBoxRoot={selectionRef}
+                    autoFocus
+                    onChange={(value) => {
+                        console.log("Editor content changed:", value);
+                    }}
+                    className="h-full w-full"
+                    style={{ width: "100%", height: "100%" }}
+                />
+            </div>,
+        );
     };
 
     useEffect(() => {
         if (activeItem) {
-            setHeading(activeItem.title);
+            setHeading(activeItem.document_title || activeItem.video_title || "");
+            loadContent();
         }
     }, [activeItem]);
 
@@ -112,7 +145,7 @@ export const SlideMaterial = () => {
                     <div className="flex items-center gap-6">
                         <ActivityStatsSidebar />
                         <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
-                            Edit
+                            Save Draft
                         </MyButton>
                     </div>
                     <SlidesMenuOption />
@@ -120,10 +153,10 @@ export const SlideMaterial = () => {
             </div>
             <div
                 className={`mx-auto mt-14 ${
-                    activeItem?.type == "pdf" ? "h-[calc(100vh-200px)]" : "h-full"
+                    activeItem?.source_type == "PDF" ? "h-[calc(100vh-200px)]" : "h-full"
                 } w-full overflow-hidden px-10`}
             >
-                {renderContent()}
+                {content}
             </div>
         </div>
     );

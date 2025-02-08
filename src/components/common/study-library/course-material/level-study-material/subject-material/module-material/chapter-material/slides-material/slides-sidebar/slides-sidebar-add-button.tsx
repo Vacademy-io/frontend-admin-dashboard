@@ -7,8 +7,6 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { AddVideoDialog } from "./add-video-dialog";
 import { AddDocDialog } from "./add-doc-dialog";
 import { AddPdfDialog } from "./add-pdf-dialog";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
 import { YooptaContentValue } from "@yoopta/editor";
 
 export const ChapterSidebarAddButton = () => {
@@ -16,7 +14,6 @@ export const ChapterSidebarAddButton = () => {
     const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
     const [isDocUploadDialogOpen, setIsDocUploadDialogOpen] = useState(false);
     const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
-    const addItem = useContentStore((state) => state.addItem);
 
     const dropdownList = [
         {
@@ -70,23 +67,22 @@ export const ChapterSidebarAddButton = () => {
 
                 console.log("emptyYooptaContent: ", emptyYooptaContent);
 
-                const newDoc: SidebarContentItem = {
-                    id: crypto.randomUUID(),
-                    type: "",
-                    title: "",
-                    url: "",
-                    content: "",
-                    status: "",
-                    source_type: "",
-                    slide_description: "",
-                    document_title: "",
-                    document_url: "",
-                    document_path: "",
-                    video_url: "",
-                    video_description: "",
-                    createdAt: new Date(),
-                };
-                addItem(newDoc);
+                // const newDoc: Slide = {
+                //     slide_title:  null,
+                //     document_id:  null,
+                //     document_title: null,
+                //     document_type: "",
+                //     slide_description:  null,
+                //     document_cover_file_id: null,
+                //     video_description:  null,
+                //     document_data:  null,
+                //     video_id:  null,
+                //     video_title:  null,
+                //     video_url:  null,
+                //     slide_id: "",
+                //     source_type: "",
+                //     status: ""
+                // };
                 break;
             }
             case "video":

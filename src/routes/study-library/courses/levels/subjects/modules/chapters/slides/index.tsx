@@ -8,10 +8,7 @@ import { truncateString } from "@/lib/reusable/truncateString";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
-import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
-import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
@@ -44,19 +41,20 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-    const searchParams = Route.useSearch();
+    const { courseId, subjectId, levelId, moduleId, chapterId } = Route.useSearch();
     const [inputSearch, setInputSearch] = useState("");
     const { open, state, toggleSidebar } = useSidebar();
     const navigate = useNavigate();
+    const { activeItem } = useContentStore();
 
     const handleSubjectRoute = () => {
         navigate({
             to: "/study-library/courses/levels/subjects/modules",
             params: {},
             search: {
-                courseId: searchParams.courseId,
-                levelId: searchParams.levelId,
-                subjectId: searchParams.subjectId,
+                courseId: courseId,
+                levelId: levelId,
+                subjectId: subjectId,
             },
             hash: "",
         });
@@ -67,10 +65,10 @@ function RouteComponent() {
             to: "/study-library/courses/levels/subjects/modules/chapters",
             params: {},
             search: {
-                courseId: searchParams.courseId,
-                levelId: searchParams.levelId,
-                subjectId: searchParams.subjectId,
-                moduleId: searchParams.moduleId,
+                courseId: courseId,
+                levelId: levelId,
+                subjectId: subjectId,
+                moduleId: moduleId,
             },
             hash: "",
         });
@@ -80,9 +78,10 @@ function RouteComponent() {
         setInputSearch(e.target.value);
     };
 
-    const chapterName = getChapterName(searchParams.chapterId);
-    const subject = getSubjectName(searchParams.subjectId);
-    const moduleName = getModuleName(searchParams.moduleId);
+    const [levelName, setLevelName] = useState("");
+    const [subjectName, setSubjectName] = useState("");
+    const [moduleName, setModuleName] = useState("");
+    const [chapterName, setChapterName] = useState("");
 
     const trucatedChapterName = truncateString(chapterName, 9);
 
@@ -94,7 +93,7 @@ function RouteComponent() {
                         className={`cursor-pointer ${open ? "visible" : "hidden"}`}
                         onClick={handleSubjectRoute}
                     >
-                        {subject}
+                        {subjectName}
                     </p>
                     <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
                     <p
@@ -132,13 +131,22 @@ function RouteComponent() {
         </div>
     );
 
-    const { courseId, levelId, subjectId, moduleId } = Route.useSearch();
-
     const { setNavHeading } = useNavHeadingStore();
 
-    // Module page heading
-    const levelName = getLevelName(levelId);
-    const subjectName = getSubjectName(subjectId);
+    useEffect(() => {
+        navigate({
+            to: "/study-library/courses/levels/subjects/modules/chapters/slides",
+            search: {
+                courseId,
+                levelId,
+                subjectId,
+                moduleId,
+                chapterId,
+                slideId: activeItem?.slide_id || "",
+            },
+            replace: true,
+        });
+    }, [activeItem]);
 
     const handleBackClick = () => {
         navigate({
@@ -166,8 +174,13 @@ function RouteComponent() {
     return (
         <LayoutContainer sidebarComponent={SidebarComponent}>
             <InitStudyLibraryProvider>
-                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
-                    <SlideMaterial />
+                <ModulesWithChaptersProvider subjectId={subjectId}>
+                    <SlideMaterial
+                        setLevelName={setLevelName}
+                        setSubjectName={setSubjectName}
+                        setModuleName={setModuleName}
+                        setChapterName={setChapterName}
+                    />
                 </ModulesWithChaptersProvider>
             </InitStudyLibraryProvider>
         </LayoutContainer>

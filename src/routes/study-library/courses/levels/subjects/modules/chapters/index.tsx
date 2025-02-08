@@ -78,15 +78,6 @@ function RouteComponent() {
         setNavHeading(heading);
     }, []);
 
-    // const moduleData = {
-    //     id: "123",
-    //     module_name: ,
-    //     description:
-    //         "",
-    //     status: "",
-    //     thumbnail_id: "",
-    // };
-
     return (
         <LayoutContainer
             sidebarComponent={

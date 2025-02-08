@@ -43,7 +43,7 @@ declare global {
 // Define the props interface
 interface YouTubePlayerProps {
     videoUrl: string;
-    videoTitle?: string;
+    videoTitle: string | null;
 }
 
 // Remove the type annotation in the component parameters since it's already defined in FC

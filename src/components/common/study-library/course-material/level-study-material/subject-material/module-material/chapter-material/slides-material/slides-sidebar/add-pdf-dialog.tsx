@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
-import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { useRouter } from "@tanstack/react-router";
 
@@ -28,7 +27,6 @@ export const AddPdfDialog = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const { setPdfUrl } = usePDFStore();
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
@@ -81,7 +79,6 @@ export const AddPdfDialog = ({
             if (fileId) {
                 const url = await getPublicUrl(fileId);
                 setFileUrl(url);
-                setPdfUrl(url);
                 setFile(null);
                 form.reset();
 
@@ -98,7 +95,7 @@ export const AddPdfDialog = ({
                         title: file.name,
                         cover_file_id: "",
                     },
-                    status: "ACTIVE",
+                    status: "DRAFT",
                     new_slide: true,
                 });
 

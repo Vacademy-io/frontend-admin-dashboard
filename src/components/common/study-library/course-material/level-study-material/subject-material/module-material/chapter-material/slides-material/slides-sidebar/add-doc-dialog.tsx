@@ -7,9 +7,7 @@ import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { FileType } from "@/types/common/file-upload";
-import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
 import { convertDocToHtml } from "./utils/doc-to-html";
 
 interface FormData {
@@ -26,7 +24,6 @@ export const AddDocDialog = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const addItem = useContentStore((state) => state.addItem);
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -72,25 +69,24 @@ export const AddDocDialog = ({
             console.log("Document successfully converted to Yoopta format:", yooptaContent);
 
             // Cast the content to solve type issue
-            const newItem: SidebarContentItem = {
-                // createdAt: new Date(),
-                id: crypto.randomUUID(),
-                type: "",
-                title: "",
-                url: "",
-                content: "",
-                status: "",
-                source_type: "",
-                slide_description: "",
-                document_title: "",
-                document_url: "",
-                document_path: "",
-                video_url: "",
-                video_description: "",
-                createdAt: new Date(),
-            };
+            // const newItem: Slide = {
+            //     // createdAt: new Date(),
+            //     slide_title:  null,
+            //     document_id:  null,
+            //     document_title: null,
+            //     document_type: "",
+            //     slide_description:  null,
+            //     document_cover_file_id: null,
+            //     video_description:  null,
+            //     document_data:  null,
+            //     video_id:  null,
+            //     video_title:  null,
+            //     video_url:  null,
+            //     slide_id: "",
+            //     source_type: "",
+            //     status: "",
+            // };
 
-            addItem(newItem);
             console.log("Item successfully added to store");
 
             setUploadProgress(100);

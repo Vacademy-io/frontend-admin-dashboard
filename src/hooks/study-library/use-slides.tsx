@@ -1,21 +1,28 @@
 // hooks/use-slides.ts
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { GET_SLIDES, ADD_UPDATE_VIDEO_SLIDE, ADD_UPDATE_DOCUMENT_SLIDE } from "@/constants/urls";
+import {
+    GET_SLIDES,
+    ADD_UPDATE_VIDEO_SLIDE,
+    ADD_UPDATE_DOCUMENT_SLIDE,
+    UPDATE_SLIDE_STATUS,
+} from "@/constants/urls";
 
 export interface Slide {
-    id: string;
-    title: string;
-    type: string;
-    url?: string;
-    status: string;
+    slide_title: string | null;
+    document_id: string | null;
+    document_title: string | null;
+    document_type: string;
+    slide_description: string | null;
+    document_cover_file_id: string | null;
+    video_description: string | null;
+    document_data: string | null;
+    video_id: string | null;
+    video_title: string | null;
+    video_url: string | null;
+    slide_id: string;
     source_type: string;
-    slide_description?: string;
-    document_title?: string;
-    document_url?: string;
-    document_path?: string;
-    video_url?: string;
-    video_description?: string;
+    status: string;
 }
 
 interface VideoSlidePayload {
@@ -51,13 +58,22 @@ interface DocumentSlidePayload {
     new_slide: boolean;
 }
 
+interface UpdateStatusParams {
+    chapterId: string;
+    slideId: string;
+    status: string;
+}
+
 export const useSlides = (chapterId: string) => {
+    const queryClient = useQueryClient();
+
     const getSlidesQuery = useQuery({
         queryKey: ["slides", chapterId],
         queryFn: async () => {
             const response = await authenticatedAxiosInstance.get(`${GET_SLIDES}/${chapterId}`);
             return response.data;
         },
+        staleTime: 3600000,
     });
 
     const addUpdateVideoSlideMutation = useMutation({
@@ -67,6 +83,9 @@ export const useSlides = (chapterId: string) => {
                 payload,
             );
             return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["slides"] });
         },
     });
 
@@ -78,6 +97,20 @@ export const useSlides = (chapterId: string) => {
             );
             return response.data;
         },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["slides"] });
+        },
+    });
+
+    const updateSlideStatus = useMutation({
+        mutationFn: async ({ chapterId, slideId, status }: UpdateStatusParams) => {
+            return await authenticatedAxiosInstance.put(
+                `${UPDATE_SLIDE_STATUS}?chapterId=${chapterId}&slideId=${slideId}&status=${status}`,
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["slides"] });
+        },
     });
 
     return {
@@ -86,6 +119,7 @@ export const useSlides = (chapterId: string) => {
         error: getSlidesQuery.error,
         addUpdateVideoSlide: addUpdateVideoSlideMutation.mutateAsync,
         addUpdateDocumentSlide: addUpdateDocumentSlideMutation.mutateAsync,
+        updateSlideStatus: updateSlideStatus.mutateAsync,
         isUpdating:
             addUpdateVideoSlideMutation.isPending || addUpdateDocumentSlideMutation.isPending,
     };

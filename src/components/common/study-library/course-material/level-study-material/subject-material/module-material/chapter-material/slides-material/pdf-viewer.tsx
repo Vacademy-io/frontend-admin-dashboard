@@ -3,7 +3,6 @@ import { Viewer } from "@react-pdf-viewer/core";
 import { Worker } from "@react-pdf-viewer/core";
 import { DocumentLoadEvent, PageChangeEvent } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
-import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 
 // Plugin imports
 import { attachmentPlugin } from "@react-pdf-viewer/attachment";
@@ -33,14 +32,26 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
 interface PDFViewerProps {
     documentId?: string;
+    pdfUrl: string;
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({ documentId }) => {
-    const { pdfUrl } = usePDFStore();
+const PDFViewer: React.FC<PDFViewerProps> = ({ documentId, pdfUrl }) => {
     const [currentPage, setCurrentPage] = useState<number>(0);
     const pageStartTime = useRef<Date>(new Date());
-    const defaultPdfUrl =
-        "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf";
+    // const {activeItem} = useContentStore()
+    // const [pdfUrl, setPdfUrl] = useState("")
+
+    // useEffect(() => {
+    //     const fetchPdfUrl = async () => {
+    //         try {
+    //             const url = await getPublicUrl(activeItem?.document_data);
+    //             setPdfUrl(url);
+    //         } catch (error) {
+    //             console.error("Failed to fetch pdf URL:", error);
+    //         }
+    //     };
+    //     fetchPdfUrl();
+    // }, [activeItem]);
 
     // Plugin instances
     const attachmentPluginInstance = attachmentPlugin();
@@ -102,7 +113,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ documentId }) => {
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
             <div className="h-full w-full">
                 <Viewer
-                    fileUrl={pdfUrl || defaultPdfUrl}
+                    fileUrl={pdfUrl}
                     onDocumentLoad={handleDocumentLoad}
                     onPageChange={handlePageChange}
                     plugins={[
