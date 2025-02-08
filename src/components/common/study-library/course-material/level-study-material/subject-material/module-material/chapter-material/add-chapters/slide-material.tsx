@@ -178,7 +178,7 @@ export const SlideMaterial = ({
             </div>
             <div
                 className={`mx-auto mt-14 ${
-                    activeItem?.source_type == "PDF" ? "h-[calc(100vh-200px)]" : "h-full"
+                    activeItem?.document_type == "PDF" ? "h-[calc(100vh-200px)]" : "h-full"
                 } w-full overflow-hidden px-10`}
             >
                 {content}
