@@ -9,6 +9,10 @@ import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from "@/svgs";
 import { Badge } from "@/components/ui/badge";
 import { CompletionStatusComponent } from "./-components/CompletionStatusComponent";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { getInstituteDashboardData } from "./-services/dashboard-services";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -19,6 +23,12 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 export function DashboardComponent() {
+    const { data: instituteDetails, isLoading: isInstituteLoading } =
+        useSuspenseQuery(useInstituteQuery());
+    const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
+        getInstituteDashboardData(instituteDetails?.id),
+    );
+    console.log(data);
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
@@ -46,10 +56,12 @@ export function DashboardComponent() {
     useEffect(() => {
         setNavHeading(<h1 className="text-lg">Dashboard</h1>);
     }, []);
+
+    if (isInstituteLoading || isDashboardLoading) return <DashboardLoader />;
     return (
         <>
             <h1 className="text-2xl">
-                Hello <span className="text-primary-500">Aditya!</span>
+                Hello <span className="text-primary-500">{instituteDetails?.institute_name}!</span>
             </h1>
             <p className="mt-1 text-sm">
                 Welcome aboard! We&apos;re excited to have you here. Let’s set up your admin
@@ -80,7 +92,7 @@ export function DashboardComponent() {
                         </div>
                         <CardDescription className="flex items-center gap-2">
                             <CompletionStatusComponent />
-                            <span>10% complete</span>
+                            <span>{data.profile_completion_percentage}% complete</span>
                         </CardDescription>
                     </CardHeader>
                 </Card>
@@ -161,11 +173,13 @@ export function DashboardComponent() {
                                 <CardDescription className="flex items-center gap-4">
                                     <div className="flex items-center gap-2">
                                         <span>Batches</span>
-                                        <span className="text-primary-500">1</span>
+                                        <span className="text-primary-500">{data.batch_count}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span>Students</span>
-                                        <span className="text-primary-500">1</span>
+                                        <span className="text-primary-500">
+                                            {data.student_count}
+                                        </span>
                                     </div>
                                 </CardDescription>
                             </CardHeader>
@@ -209,7 +223,7 @@ export function DashboardComponent() {
                                                     buttonType="secondary"
                                                     className="font-medium"
                                                     onClick={() =>
-                                                        handleAssessmentTypeRoute("LIVE_QUIZ")
+                                                        handleAssessmentTypeRoute("MOCK")
                                                     }
                                                 >
                                                     Mock

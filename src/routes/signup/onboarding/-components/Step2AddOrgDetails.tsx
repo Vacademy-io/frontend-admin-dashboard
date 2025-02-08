@@ -46,7 +46,6 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
     completedSteps,
 }) => {
     const searchParams = Route.useSearch();
-    console.log("searchParams", searchParams);
     const { formDataAddOrg, setFormDataAddOrg } = useAddOrgStore();
     const { formData } = useOrganizationStore();
     console.log(currentStep, completedSteps);
