@@ -13,9 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { removeCookiesAndLogout } from "@/lib/auth/sessionUtility";
 import { useNavigate } from "@tanstack/react-router";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export function Navbar() {
     // const notifications = true;
+    const { resetStore } = useInstituteDetailsStore();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const { navHeading } = useNavHeadingStore();
@@ -23,6 +25,7 @@ export function Navbar() {
 
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
+        resetStore();
         removeCookiesAndLogout(); // Ensure logout completes
         navigate({
             to: "/login",
