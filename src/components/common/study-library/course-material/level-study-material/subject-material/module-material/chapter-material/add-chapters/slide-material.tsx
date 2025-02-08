@@ -98,10 +98,7 @@ export const SlideMaterial = ({
 
             let editorContent: YooptaContentValue | undefined;
             try {
-                editorContent =
-                    typeof activeItem.document_data === "string"
-                        ? html.deserialize(editor, activeItem.document_data)
-                        : undefined;
+                editorContent = html.deserialize(editor, activeItem.document_data || "");
 
                 console.log("Deserialized content:", editorContent);
 
