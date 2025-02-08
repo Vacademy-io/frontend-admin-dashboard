@@ -10,6 +10,7 @@ interface InstituteDetailsStore {
     setInstituteDetails: (details: InstituteDetailsType) => void;
     getAllLevels: () => Array<LevelType>;
     getAllSessions: () => Array<SessionType>;
+    resetStore: () => void;
 }
 
 export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get) => ({
@@ -25,4 +26,5 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
         const { instituteDetails } = get();
         return instituteDetails?.sessions ?? [];
     },
+    resetStore: () => set({ instituteDetails: null }),
 }));

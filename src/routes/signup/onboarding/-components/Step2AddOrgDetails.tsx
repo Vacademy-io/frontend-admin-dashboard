@@ -13,7 +13,7 @@ import { useAddOrgStore } from "../-zustand-store/step2AddOrgZustand";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { handleSignupInstitute } from "../../-services/signup-services";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useOrganizationStore from "../-zustand-store/step1OrganizationZustand";
 import { setAuthorizationCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
@@ -45,6 +45,7 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const queryClient = useQueryClient();
     const searchParams = Route.useSearch();
     const { formDataAddOrg, setFormDataAddOrg } = useAddOrgStore();
     const { formData } = useOrganizationStore();
@@ -85,6 +86,7 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
             return handleSignupInstitute({ searchParams, formData, formDataOrg });
         },
         onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
             handleCompleteCurrentStep();
             setAuthorizationCookie(TokenKey.accessToken, data.accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, data.refreshToken);

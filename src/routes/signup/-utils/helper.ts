@@ -13,22 +13,14 @@ export const convertedSignupData = ({
     formData: FormValuesStep1Signup;
     formDataOrg: z.infer<typeof organizationDetailsSignupStep1>;
 }) => {
-    const sub_modules = [];
+    const module_request_ids_list = [];
 
     if (searchParams.assess) {
-        sub_modules.push({
-            module: "1",
-            sub_module: "",
-            sub_module_description: "",
-        });
+        module_request_ids_list.push("1");
     }
 
     if (searchParams.lms) {
-        sub_modules.push({
-            module: "2",
-            sub_module: "",
-            sub_module_description: "",
-        });
+        module_request_ids_list.push("2");
     }
 
     const data = {
@@ -55,8 +47,8 @@ export const convertedSignupData = ({
             type: formData.instituteType,
             held_by: "",
             founded_date: "",
-            module_request_ids: [],
-            sub_modules: sub_modules,
+            module_request_ids: module_request_ids_list,
+            sub_modules: [],
             sessions: [
                 {
                     id: "",
