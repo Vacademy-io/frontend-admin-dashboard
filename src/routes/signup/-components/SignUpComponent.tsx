@@ -46,10 +46,6 @@ export function SignUpComponent() {
         },
     });
 
-    function onSubmit(data: z.infer<typeof FormSchema>) {
-        console.log(data);
-    }
-
     return (
         <div className="flex w-full">
             <div className="flex w-1/2 flex-col items-center justify-center bg-primary-50">
@@ -58,10 +54,7 @@ export function SignUpComponent() {
             </div>
             <div className="flex w-1/2 items-center justify-center">
                 <Form {...form}>
-                    <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="flex w-[350px] flex-col items-center justify-center space-y-8"
-                    >
+                    <form className="flex w-[350px] flex-col items-center justify-center space-y-8">
                         <FormField
                             control={form.control}
                             name="items"
@@ -115,7 +108,7 @@ export function SignUpComponent() {
                             )}
                         />
                         <MyButton
-                            type="submit"
+                            type="button"
                             scale="large"
                             buttonType="primary"
                             layoutVariant="default"

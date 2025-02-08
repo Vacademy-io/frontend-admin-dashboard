@@ -2,22 +2,26 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MyButton } from "@/components/design-system/button";
 import { CalendarBlank } from "phosphor-react";
 import { useNavigate } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Examination, Mock, Practice, Survey } from "@/svgs";
 
 export const ScheduleTestHeaderDescription = () => {
     const isMobile = useIsMobile();
     const navigate = useNavigate();
-    const handleSubjectRoute = () => {
+
+    const handleRedirectRoute = (type: string) => {
         navigate({
             to: "/assessment/create-assessment/$assessmentId/$examtype",
             params: {
                 assessmentId: "defaultId",
-                examtype: "EXAM",
+                examtype: type,
             },
             search: {
                 currentStep: 0,
             },
         });
     };
+
     return (
         <div
             className={`mb-8 flex items-center justify-between ${
@@ -35,15 +39,69 @@ export const ScheduleTestHeaderDescription = () => {
                     testing process from start to finish.
                 </p>
             </div>
-            <MyButton
-                scale="large"
-                buttonType="primary"
-                layoutVariant="default"
-                onClick={handleSubjectRoute}
-            >
-                <CalendarBlank size={32} />
-                Create Assessment
-            </MyButton>
+            <Dialog>
+                <DialogTrigger>
+                    <MyButton scale="large" buttonType="primary" layoutVariant="default">
+                        <CalendarBlank size={32} />
+                        Create Assessment
+                    </MyButton>
+                </DialogTrigger>
+                <DialogContent className="max-w-full !rounded-none p-0">
+                    <h1 className="rounded-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                        Create Assessment
+                    </h1>
+                    <div className="mb-4 flex size-auto flex-col items-center justify-center gap-11">
+                        <div className="flex items-center gap-12">
+                            <div
+                                onClick={() => handleRedirectRoute("EXAM")}
+                                className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
+                            >
+                                <Examination />
+                                <h1 className="text-[1.4rem] font-semibold">Examination</h1>
+                                <p className="text-center text-sm text-neutral-500">
+                                    A Fixed-time assessment that goes live for a specific schedule,
+                                    simulating real exam conditions.
+                                </p>
+                            </div>
+                            <div
+                                onClick={() => handleRedirectRoute("MOCK")}
+                                className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
+                            >
+                                <Mock />
+                                <h1 className="text-[1.4rem] font-semibold">Mock Assessment</h1>
+                                <p className="text-center text-sm text-neutral-500">
+                                    A practice assessment always available, with a fixed duration to
+                                    replicate exam scenarios.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-12">
+                            <div
+                                onClick={() => handleRedirectRoute("PRACTICE")}
+                                className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
+                            >
+                                <Practice />
+                                <h1 className="text-[1.4rem] font-semibold">Practice Assessment</h1>
+                                <p className="text-center text-sm text-neutral-500">
+                                    An on-demand assessment with no time limits, allowing students
+                                    to attempt it anytime.
+                                </p>
+                            </div>
+                            <div
+                                onClick={() => handleRedirectRoute("SURVEY")}
+                                className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
+                            >
+                                <Survey />
+                                <h1 className="text-[1.4rem] font-semibold">Survey</h1>
+                                <p className="text-center text-sm text-neutral-500">
+                                    A set of questions for feedback or opinions, with no right or
+                                    wrong answers.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

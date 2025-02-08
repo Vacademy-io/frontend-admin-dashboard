@@ -1,7 +1,7 @@
 import { IconProps } from "@phosphor-icons/react";
 
 export interface subItemsType {
-    subItem: string;
+    subItem: string | undefined;
     subItemLink: string | undefined;
 }
 
