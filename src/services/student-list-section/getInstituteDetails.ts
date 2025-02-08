@@ -9,10 +9,9 @@ const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
-    const response = await authenticatedAxiosInstance.get<InstituteDetailsType>(INIT_INSTITUTE, {
-        headers: {
-            clientId: INSTITUTE_ID,
-        },
+    const response = await authenticatedAxiosInstance<InstituteDetailsType>({
+        method: "GET",
+        url: `${INIT_INSTITUTE}/${INSTITUTE_ID}`,
     });
     return response.data;
 };
