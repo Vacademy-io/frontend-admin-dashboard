@@ -1,4 +1,4 @@
-import YooptaEditor, { createYooptaEditor } from "@yoopta/editor";
+import YooptaEditor, { createYooptaEditor, YooptaContentValue } from "@yoopta/editor";
 import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import PDFViewer from "../slides-material/pdf-viewer";
@@ -93,33 +93,48 @@ export const SlideMaterial = ({
             return;
         }
 
-        console.log("type of: ", activeItem.document_data);
+        if (activeItem?.document_type == "DOC") {
+            console.log("Raw document data:", activeItem.document_data);
 
-        const documentContent =
-            typeof activeItem.document_data === "string"
-                ? html.deserialize(editor, activeItem.document_data)
-                : activeItem.document_data;
-        editor.setEditorValue(documentContent);
+            let editorContent: YooptaContentValue | undefined;
+            try {
+                editorContent =
+                    typeof activeItem.document_data === "string"
+                        ? html.deserialize(editor, activeItem.document_data)
+                        : undefined;
 
-        console.log("Yoopta content: ", documentContent);
+                console.log("Deserialized content:", editorContent);
 
-        setContent(
-            <div className="w-full">
-                <YooptaEditor
-                    editor={editor}
-                    plugins={plugins}
-                    tools={TOOLS}
-                    marks={MARKS}
-                    selectionBoxRoot={selectionRef}
-                    autoFocus
-                    onChange={(value) => {
-                        console.log("Editor content changed:", value);
-                    }}
-                    className="h-full w-full"
-                    style={{ width: "100%", height: "100%" }}
-                />
-            </div>,
-        );
+                if (editorContent) {
+                    editor.setEditorValue(editorContent);
+
+                    setContent(
+                        <div className="w-full">
+                            <YooptaEditor
+                                editor={editor}
+                                plugins={plugins}
+                                tools={TOOLS}
+                                marks={MARKS}
+                                value={editorContent} // Now TypeScript knows this is YooptaContentValue | undefined
+                                selectionBoxRoot={selectionRef}
+                                autoFocus
+                                onChange={(value) => {
+                                    console.log("Editor content changed:", value);
+                                }}
+                                className="h-full w-full"
+                                style={{ width: "100%", height: "100%" }}
+                            />
+                        </div>,
+                    );
+                }
+            } catch (error) {
+                console.error("Error preparing document content:", error);
+                setContent(<div>Error loading document content</div>);
+            }
+            return;
+        }
+
+        return;
     };
 
     useEffect(() => {
