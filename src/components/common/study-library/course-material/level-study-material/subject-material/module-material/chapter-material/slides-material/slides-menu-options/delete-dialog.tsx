@@ -26,6 +26,7 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
             });
 
             toast.success("Video deleted successfully!");
+            setOpenDialog(null);
         } catch (error) {
             toast.error("Failed to delete the video");
         }

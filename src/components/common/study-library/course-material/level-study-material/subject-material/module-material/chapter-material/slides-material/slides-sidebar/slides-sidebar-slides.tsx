@@ -13,15 +13,28 @@ export const ChapterSidebarSlides = () => {
     const { open } = useSidebar();
     const { setItems, activeItem, setActiveItem, reorderItems } = useContentStore();
     const router = useRouter();
-    const { chapterId } = router.state.location.search;
+    const { chapterId, slideId } = router.state.location.search;
     const { slides, isLoading } = useSlides(chapterId || "");
 
     useEffect(() => {
-        if (slides) {
+        if (slides?.length) {
             setItems(slides);
+
+            // If we have a slideId in URL, find that slide
+            if (slideId) {
+                const targetSlide: Slide = slides.find(
+                    (slide: Slide) => slide.slide_id === slideId,
+                );
+                if (targetSlide) {
+                    setActiveItem(targetSlide);
+                    return;
+                }
+            }
+
+            // If no slideId or slide not found, set first slide as active
             setActiveItem(slides[0]);
         }
-    }, [slides]);
+    }, [slides, slideId]);
 
     const getIcon = (slide: Slide): ReactNode => {
         const type = slide.video_url != null ? "VIDEO" : slide.document_type;

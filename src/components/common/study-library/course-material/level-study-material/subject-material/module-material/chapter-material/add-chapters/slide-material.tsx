@@ -16,6 +16,7 @@ import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-nam
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
 import { getPublicUrl } from "@/services/upload_file";
+import { PublishDialog } from "../slides-material/publish-slide-dialog";
 
 interface SlideMaterialProps {
     setLevelName: Dispatch<SetStateAction<string>>;
@@ -41,6 +42,7 @@ export const SlideMaterial = ({
     const [content, setContent] = useState<JSX.Element | null>(null);
 
     const { levelId, subjectId, moduleId, chapterId } = router.state.location.search;
+    const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
 
     useEffect(() => {
         setLevelName(getLevelName(levelId || ""));
@@ -150,9 +152,10 @@ export const SlideMaterial = ({
                         <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
                             Save Draft
                         </MyButton>
-                        <MyButton buttonType="primary" scale="medium" layoutVariant="default">
-                            Publish
-                        </MyButton>
+                        <PublishDialog
+                            isOpen={isPublishDialogOpen}
+                            setIsOpen={setIsPublishDialogOpen}
+                        />
                     </div>
                     <SlidesMenuOption />
                 </div>
