@@ -75,10 +75,12 @@ export const SlideMaterial = ({
         if (activeItem.video_url != null) {
             console.log("video url: ", activeItem.video_url);
             setContent(
-                <YouTubePlayer
-                    videoUrl={activeItem.video_url || ""}
-                    videoTitle={activeItem.video_title}
-                />,
+                <div key={`video-${activeItem.slide_id}`} className="h-full w-full">
+                    <YouTubePlayer
+                        videoUrl={activeItem.video_url || ""}
+                        videoTitle={activeItem.video_title}
+                    />
+                </div>,
             );
             return;
         }
@@ -117,6 +119,7 @@ export const SlideMaterial = ({
     useEffect(() => {
         if (activeItem) {
             setHeading(activeItem.document_title || activeItem.video_title || "");
+            setContent(null);
             loadContent();
         }
     }, [activeItem]);
@@ -146,6 +149,9 @@ export const SlideMaterial = ({
                         <ActivityStatsSidebar />
                         <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
                             Save Draft
+                        </MyButton>
+                        <MyButton buttonType="primary" scale="medium" layoutVariant="default">
+                            Publish
                         </MyButton>
                     </div>
                     <SlidesMenuOption />
