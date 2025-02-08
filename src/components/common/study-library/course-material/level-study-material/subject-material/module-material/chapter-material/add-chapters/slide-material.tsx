@@ -93,11 +93,15 @@ export const SlideMaterial = ({
             return;
         }
 
+        console.log("type of: ", activeItem.document_data);
+
         const documentContent =
             typeof activeItem.document_data === "string"
                 ? html.deserialize(editor, activeItem.document_data)
                 : activeItem.document_data;
         editor.setEditorValue(documentContent);
+
+        console.log("Yoopta content: ", documentContent);
 
         setContent(
             <div className="w-full">

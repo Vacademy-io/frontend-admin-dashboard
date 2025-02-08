@@ -9,6 +9,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FileType } from "@/types/common/file-upload";
 import { convertDocToHtml } from "./utils/doc-to-html";
+import { useRouter } from "@tanstack/react-router";
+import { useSlides } from "@/hooks/study-library/use-slides";
 
 interface FormData {
     docFile: FileList | null;
@@ -24,6 +26,9 @@ export const AddDocDialog = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const route = useRouter();
+    const { chapterId } = route.state.location.search;
+    const { addUpdateDocumentSlide } = useSlides(chapterId || "");
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -65,27 +70,28 @@ export const AddDocDialog = ({
         try {
             console.log("Starting upload process for file:", file.name);
 
-            const yooptaContent = await convertDocToHtml(file);
-            console.log("Document successfully converted to Yoopta format:", yooptaContent);
+            const HTMLContent = await convertDocToHtml(file);
+            console.log("Document successfully converted to html:", HTMLContent);
 
-            // Cast the content to solve type issue
-            // const newItem: Slide = {
-            //     // createdAt: new Date(),
-            //     slide_title:  null,
-            //     document_id:  null,
-            //     document_title: null,
-            //     document_type: "",
-            //     slide_description:  null,
-            //     document_cover_file_id: null,
-            //     video_description:  null,
-            //     document_data:  null,
-            //     video_id:  null,
-            //     video_title:  null,
-            //     video_url:  null,
-            //     slide_id: "",
-            //     source_type: "",
-            //     status: "",
-            // };
+            await addUpdateDocumentSlide({
+                id: crypto.randomUUID(),
+                title: file.name,
+                image_file_id: "",
+                description: file.name,
+                slide_order: 0,
+                document_slide: {
+                    id: crypto.randomUUID(),
+                    type: "DOC",
+                    data: HTMLContent,
+                    title: file.name,
+                    cover_file_id: "",
+                },
+                status: "DRAFT",
+                new_slide: true,
+            });
+
+            toast.success("PDF uploaded successfully!");
+            openState?.(false);
 
             console.log("Item successfully added to store");
 
