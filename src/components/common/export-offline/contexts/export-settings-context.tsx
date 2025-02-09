@@ -1,7 +1,16 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
+import { CustomField } from "../types/question";
 
+const DEFAULT_FIELDS: CustomField[] = [
+    { label: "Name", enabled: true, type: "blank" },
+    { label: "Roll Number", enabled: true, type: "blank" },
+    { label: "Exam Centre Number", enabled: true, type: "blank" },
+    { label: "Exam Centre Name", enabled: true, type: "blank" },
+    { label: "Candidate Signature", enabled: true, type: "blank" },
+    { label: "Invigilator's Signature", enabled: true, type: "blank" },
+];
 export interface ExportSettings {
     exportQuestionPaper: boolean;
     exportSolutionKey: boolean;
@@ -22,10 +31,12 @@ export interface ExportSettings {
     randomizeOptions: boolean;
     showPageNumbers: boolean;
     includeCustomInputFields: boolean;
-    customFields?: string[];
+    customFields: CustomField[];
     pagePadding: "low" | "medium" | "high";
     fontSize: "small" | "medium" | "large";
     roughWorkSize: "small" | "medium" | "large";
+    customLetterheadImage?: string;
+    showFirstPageInstructions: boolean;
 }
 
 const defaultSettings: ExportSettings = {
@@ -49,8 +60,11 @@ const defaultSettings: ExportSettings = {
     showPageNumbers: true,
     includeCustomInputFields: true,
     pagePadding: "medium",
+    customFields: DEFAULT_FIELDS,
     fontSize: "medium",
     roughWorkSize: "medium",
+    customLetterheadImage: undefined,
+    showFirstPageInstructions: false,
 };
 
 const ExportSettingsContext = createContext<{
@@ -65,6 +79,7 @@ export function ExportSettingsProvider({ children }: { children: React.ReactNode
     const [settings, setSettings] = useState<ExportSettings>(defaultSettings);
 
     const updateSettings = (newSettings: Partial<ExportSettings>) => {
+        console.log("settings updated ");
         setSettings((prev) => ({ ...prev, ...newSettings }));
     };
 

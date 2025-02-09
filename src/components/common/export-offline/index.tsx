@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, Upload } from "lucide-react";
 import { PaperSet } from "./preview/paper-set";
 import { ExportHandler } from "./preview/export-handler";
 import { ExportSettingsDialog } from "./dialog/export-settings-dialog";
@@ -12,7 +12,12 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getQuestionDataForSection } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { Question, Section } from "./types/question";
+import { Question } from "./types/question";
+import { Trash2 } from "lucide-react";
+// eslint-disable-next-line
+import { Instructions, Section, Steps } from "@/types/assessments/assessment-data-type";
+import { parseHtmlToString } from "./utils/utils";
+import { RefreshCw } from "lucide-react";
 
 function shuffleArray<T>(array: T[]): T[] {
     const newArray = [...array];
@@ -28,16 +33,35 @@ function shuffleArray<T>(array: T[]): T[] {
 function PreviewWithSettings({
     assessmentId,
     sectionIds,
+
+    allSections,
+    assessmentDetails,
 }: {
     assessmentId: string;
     sectionIds: string[];
+
+    allSections: Section[];
+    assessmentDetails: Steps;
 }) {
     const [showSettings, setShowSettings] = useState(false);
     const [currentSetIndex, setCurrentSetIndex] = useState(0);
-    const { settings } = useExportSettings();
+    const { settings, updateSettings } = useExportSettings();
     const { data: questionData, isLoading } = useSuspenseQuery(
         getQuestionDataForSection({ assessmentId, sectionIds: sectionIds.join(",") }),
     );
+    const [isRegeneratingPreview, setIsRegeneratingPreview] = useState(false);
+
+    const handleRegeneratePreview = () => {
+        setIsRegeneratingPreview(true);
+
+        // Simulate regeneration process
+        const regenerationTimeout = setTimeout(() => {
+            // Trigger a re-render or data refresh
+            updateSettings({ ...settings });
+            setIsRegeneratingPreview(false);
+            clearTimeout(regenerationTimeout);
+        }, 2000); // Simulated 2-second regeneration
+    };
 
     // Determine padding based on settings
     const getPadding = () => {
@@ -55,11 +79,12 @@ function PreviewWithSettings({
     const sections = useMemo(() => {
         return Object.entries(questionData).map(([sectionId, questions]) => ({
             id: sectionId,
-            title: "Section 1: Physics",
-            description:
-                'Challenge your understanding of the chapter "Human Eye" with this test...',
-            totalMarks: 20,
-            duration: 40,
+            title: allSections.find((section) => section.id === sectionId)?.name || "",
+            description: parseHtmlToString(
+                allSections.find((section) => section.id === sectionId)?.description?.content ?? "",
+            ),
+            totalMarks: allSections.find((section) => section.id === sectionId)?.total_marks || 0,
+            duration: allSections.find((section) => section.id === sectionId)?.duration || 0,
             questions: settings.randomizeQuestions
                 ? shuffleArray(questions as Question[])
                 : questions,
@@ -75,7 +100,7 @@ function PreviewWithSettings({
                       ...section,
                       questions: shuffleArray(section.questions as Question[]),
                   }))
-                : (sections as Section[]),
+                : sections,
         }));
     }, [sections, settings.questionPaperSets, settings.randomizeQuestions]);
 
@@ -92,6 +117,26 @@ function PreviewWithSettings({
     };
 
     const currentPaperSet = paperSets[currentSetIndex];
+
+    const handleLetterheadUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const imageDataUrl = reader.result as string;
+                updateSettings({
+                    customLetterheadImage: imageDataUrl,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleDeleteLetterhead = () => {
+        updateSettings({
+            customLetterheadImage: undefined,
+        });
+    };
 
     if (isLoading) {
         return (
@@ -114,13 +159,32 @@ function PreviewWithSettings({
                     width: 210mm;
                     min-height: 297mm;
                     padding: ${getPadding()};
-                    margin: 10mm auto;
+                    margin: 0 auto;
                     border: 1px #d3d3d3 solid;
                     border-radius: 5px;
                     background: white;
                     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
                 }
             `}</style>
+            {isRegeneratingPreview && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="w-80 rounded-lg bg-white p-6 shadow-xl">
+                        <div className="mb-4 flex items-center justify-center">
+                            <Loader2 className="text-primary mr-2 size-6 animate-spin" />
+                            <span className="text-lg font-semibold">Regenerating Preview</span>
+                        </div>
+                        <div className="h-2.5 w-full rounded-full bg-gray-200">
+                            <div
+                                className="bg-primary h-2.5 animate-pulse rounded-full"
+                                style={{ width: "75%" }}
+                            ></div>
+                        </div>
+                        <p className="mt-4 text-center text-sm text-muted-foreground">
+                            Please wait while we refresh the preview...
+                        </p>
+                    </div>
+                </div>
+            )}
             <div className="no-print sticky top-0 z-10 border-b bg-white">
                 <div className="flex items-center justify-between p-4">
                     <Button
@@ -155,12 +219,54 @@ function PreviewWithSettings({
                             </Button>
                         </div>
                     )}
-
-                    <ExportHandler
-                        sections={currentPaperSet?.sections ?? []}
-                        settings={settings}
-                        {...(paperSets.length > 1 ? { setNumber: currentPaperSet?.setNumber } : {})}
-                    />
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="outline"
+                            onClick={handleRegeneratePreview}
+                            disabled={isRegeneratingPreview}
+                            className="gap-2"
+                        >
+                            <RefreshCw className="size-4" />
+                        </Button>
+                        <input
+                            type="file"
+                            id="letterhead-upload"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleLetterheadUpload}
+                        />
+                        {settings.showInstitutionLetterhead && (
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() =>
+                                        document.getElementById("letterhead-upload")?.click()
+                                    }
+                                >
+                                    <Upload />
+                                    Letterhead
+                                </Button>
+                                {settings.customLetterheadImage && (
+                                    <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={handleDeleteLetterhead}
+                                        title="Delete Letterhead"
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </Button>
+                                )}
+                            </div>
+                        )}
+                        <ExportHandler
+                            // @ts-expect-error:Type 'undefined' is not assignable to type 'Section[]'.
+                            sections={currentPaperSet?.sections}
+                            settings={settings}
+                            {...(paperSets.length > 1
+                                ? { setNumber: currentPaperSet?.setNumber }
+                                : {})}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -170,9 +276,11 @@ function PreviewWithSettings({
 
             <div className="container mx-auto py-4">
                 <PaperSet
+                    // @ts-expect-error : Type 'unknown' is not assignable to type 'Question[]'.
                     sections={currentPaperSet?.sections ?? []}
                     settings={settings}
                     setNumber={currentPaperSet?.setNumber ?? 0}
+                    instructions={assessmentDetails[1]?.saved_data?.instructions}
                 />
             </div>
             <Sonner />
@@ -183,13 +291,23 @@ function PreviewWithSettings({
 export default function PreviewAndExport({
     assessmentId,
     sectionIds,
+    sections,
+    assessmentDetails,
 }: {
     assessmentId: string;
     sectionIds: string[];
+
+    sections: Section[];
+    assessmentDetails: Steps;
 }) {
     return (
         <ExportSettingsProvider>
-            <PreviewWithSettings assessmentId={assessmentId} sectionIds={sectionIds} />
+            <PreviewWithSettings
+                assessmentId={assessmentId}
+                sectionIds={sectionIds}
+                allSections={sections}
+                assessmentDetails={assessmentDetails}
+            />
         </ExportSettingsProvider>
     );
 }

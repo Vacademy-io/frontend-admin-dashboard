@@ -14,7 +14,9 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useExportSettings, type ExportSettings } from "../contexts/export-settings-context";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { Plus } from "lucide-react";
+import type { CustomField, CustomFieldType } from "../types/question";
 
 interface ExportSettingsDialogProps {
     open: boolean;
@@ -31,6 +33,27 @@ export function ExportSettingsDialog({ open, onOpenChange }: ExportSettingsDialo
         },
         [updateSettings],
     );
+
+    const [newFieldLabel, setNewFieldLabel] = useState("");
+
+    const handleCustomFieldChange = (index: number, field: Partial<CustomField>) => {
+        const updatedFields = [...(settings.customFields || [])];
+        updatedFields[index] = { ...updatedFields[index], ...field } as CustomField;
+        updateSettings({ customFields: updatedFields });
+    };
+
+    const addCustomField = () => {
+        if (!newFieldLabel.trim()) return;
+        const newField = {
+            label: newFieldLabel,
+            enabled: true,
+            type: "blank" as CustomFieldType,
+        };
+        updateSettings({
+            customFields: [...(settings.customFields || []), newField],
+        });
+        setNewFieldLabel("");
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -201,6 +224,7 @@ export function ExportSettingsDialog({ open, onOpenChange }: ExportSettingsDialo
                         <div className="flex flex-col gap-y-2">
                             {[
                                 ["showInstitutionLetterhead", "Show Institute Letterhead"],
+                                ["showFirstPageInstructions", "Show Instructions on First Page"],
                                 [
                                     "showAdaptiveMarkingRules",
                                     "Show Adaptive Marking Rules - Entire Assessment",
@@ -293,30 +317,109 @@ export function ExportSettingsDialog({ open, onOpenChange }: ExportSettingsDialo
                     {/* Custom Fields */}
                     <div className="space-y-4">
                         <h3 className="font-medium">Custom Fields</h3>
-                        <div className="flex flex-col gap-y-2">
-                            <div className="flex items-center gap-4">
+                        <div className="grid gap-2">
+                            <div className="flex items-center gap-2">
                                 <Checkbox
                                     id="includeCustomInputFields"
                                     checked={settings.includeCustomInputFields}
                                     onCheckedChange={(checked) =>
-                                        handleSettingChange("includeCustomInputFields", checked)
+                                        updateSettings({
+                                            includeCustomInputFields: checked as boolean,
+                                        })
                                     }
                                 />
-                                <label htmlFor="includeCustomInputFields">
-                                    Include custom input fields
-                                </label>
+                                <Label htmlFor="includeCustomInputFields">
+                                    Include Custom Input Fields
+                                </Label>
                             </div>
                             {settings.includeCustomInputFields && (
-                                <Input
-                                    placeholder="Enter custom field (e.g., Name, Roll No)"
-                                    value={settings.customFields?.join(", ") || ""}
-                                    onChange={(e) =>
-                                        handleSettingChange(
-                                            "customFields",
-                                            e.target.value.split(",").map((field) => field.trim()),
-                                        )
-                                    }
-                                />
+                                <div className="space-y-2">
+                                    {(settings.customFields || []).map((field, index) => (
+                                        <div
+                                            key={index}
+                                            className="grid grid-cols-12 items-center gap-2"
+                                        >
+                                            <div className="col-span-1">
+                                                <Checkbox
+                                                    checked={field.enabled}
+                                                    onCheckedChange={(checked) =>
+                                                        handleCustomFieldChange(index, {
+                                                            enabled: checked as boolean,
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="col-span-6">
+                                                <Input
+                                                    value={field.label}
+                                                    onChange={(e) =>
+                                                        handleCustomFieldChange(index, {
+                                                            label: e.target.value,
+                                                        })
+                                                    }
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                            <div className="col-span-5 flex gap-x-1">
+                                                <Select
+                                                    value={field.type}
+                                                    onValueChange={(value) =>
+                                                        handleCustomFieldChange(index, {
+                                                            type: value as CustomFieldType,
+                                                        })
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select field type" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="blank">
+                                                            Blank (Default)
+                                                        </SelectItem>
+                                                        <SelectItem value="blocks">
+                                                            Blocks
+                                                        </SelectItem>
+                                                        <SelectItem value="input">
+                                                            Input Box
+                                                        </SelectItem>
+                                                        <SelectItem value="checkbox">
+                                                            Checkbox
+                                                        </SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {field.type === "blocks" && (
+                                                    <div className="col-span-5 flex items-center space-x-2">
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            max={20}
+                                                            value={field.numberOfBlocks || 10}
+                                                            onChange={(e) =>
+                                                                handleCustomFieldChange(index, {
+                                                                    numberOfBlocks: Number(
+                                                                        e.target.value,
+                                                                    ),
+                                                                })
+                                                            }
+                                                            className="w-fit"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="mt-4 flex gap-4">
+                                        <Input
+                                            placeholder="Enter new field label"
+                                            value={newFieldLabel}
+                                            onChange={(e) => setNewFieldLabel(e.target.value)}
+                                        />
+                                        <Button onClick={addCustomField} className="gap-2">
+                                            <Plus className="size-4" />
+                                            Add
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>

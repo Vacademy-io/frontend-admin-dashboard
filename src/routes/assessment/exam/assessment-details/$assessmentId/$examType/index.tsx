@@ -174,7 +174,7 @@ const AssessmentDetailsComponent = () => {
                             </DialogContent>
                         </Dialog>
                         <MyButton scale="large" onClick={handleExportAssessment} className="py-4">
-                            Export Assessment
+                            Offline Paper
                         </MyButton>
                     </div>
                 </div>

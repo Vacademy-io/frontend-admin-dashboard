@@ -26,3 +26,11 @@ export interface Question {
     question_duration: number;
     question_order: number;
 }
+
+export type CustomFieldType = "blank" | "blocks" | "input" | "checkbox";
+export interface CustomField {
+    label: string;
+    enabled: boolean;
+    type: CustomFieldType;
+    numberOfBlocks?: number;
+}

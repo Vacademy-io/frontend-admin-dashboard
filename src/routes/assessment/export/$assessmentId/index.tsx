@@ -39,12 +39,16 @@ function RouteComponent() {
     }, []);
 
     if (isAssessmentDetailsLoading) return <DashboardLoader />;
+    console.log(assessmentDetails[1]?.saved_data?.sections);
     return (
         <PreviewAndExport
             assessmentId={assessmentId}
             sectionIds={
                 assessmentDetails[1]?.saved_data?.sections?.map((section) => section.id) || []
             }
+            assessmentDetails={assessmentDetails}
+            // instructions={assessmentDetails[1]?.saved_data?.instructions ?? {}}
+            sections={assessmentDetails[1]?.saved_data?.sections ?? []}
         />
     );
 }
