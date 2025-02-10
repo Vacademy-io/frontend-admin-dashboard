@@ -254,92 +254,93 @@
     background-color: white !important;
     border-radius: 0.5rem !important;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
-    max-width: 350px !important;
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-}
-
-.custom-tooltip .introjs-tooltip-title {
-    color: rgb(234 88 12) !important;
-    font-size: 1.5rem !important;
-    font-weight: 500 !important;
-    margin-bottom: 1rem !important;
-    padding: 4px !important;
-    font-family:
-        system-ui,
-        -apple-system,
-        sans-serif !important;
-}
-
-.custom-tooltip .introjs-tooltip-header {
-    padding: 8px !important;
-    text-align: center !important;
-    background-color: #fff9f4;
-    margin-bottom: 0.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
     position: relative !important;
+    min-width: fit-content !important;
+    margin: auto !important;
+}
+
+.introjs-tooltip-title {
+    color: rgb(234 88 12) !important;
+    text-wrap: nowrap !important;
+    font-size: 1.1rem !important;
+    text-align: left !important;
+    font-weight: 500 !important;
+}
+.custom-tooltip .introjs-arrow {
+    display: none !important;
+}
+.introjs-tooltip-header {
+    text-align: left !important;
+    background-color: #fcf3ec !important;
+    display: flex !important;
+    padding: 6px !important;
+    gap: 1rem !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     border-bottom: 1px solid rgb(229 231 235) !important;
+    border-top-right-radius: 0.5rem !important;
+    border-top-left-radius: 0.5rem !important;
 }
 
-.custom-tooltip .introjs-skipbutton {
-    color: rgb(156 163 175) !important;
+.introjs-skipbutton {
     font-size: 1.5rem !important;
-    padding: 0.5rem !important;
-    position: absolute !important;
-    right: -1rem !important;
-    top: -1rem !important;
+    font-weight: 300 !important;
 }
-
+.introjs-skipbutton {
+    position: relative !important;
+}
 .custom-tooltip .introjs-tooltiptext {
     color: rgb(75 85 99) !important;
-    font-size: 1rem !important;
+    font-size: 0.8rem !important;
+    text-align: left !important;
     line-height: 1.6 !important;
-    padding: 4px !important;
-    margin-bottom: 1rem !important;
-    font-family:
-        system-ui,
-        -apple-system,
-        sans-serif !important;
+    padding: 8px 16px !important;
 }
 
 .custom-tooltip .introjs-bullets {
     display: none !important;
 }
 
+.custom-tooltip .introjs-progress .introjs-progressbar {
+    background-color: orange !important;
+}
+
 .custom-tooltip .introjs-tooltipbuttons {
     border-top: none !important;
-    padding: 4px !important;
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 1rem !important;
 }
 
 .custom-tooltip .introjs-button {
     background: white !important;
     border: 1px solid rgb(229 231 235) !important;
-    border-radius: 0.5rem !important;
+    border-radius: 0.4rem !important;
     color: rgb(75 85 99) !important;
-    font-size: 1rem !important;
-    font-weight: 500 !important;
-    padding: 0.75rem 1.5rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 400 !important;
+    padding: 0.5rem 0rem !important;
     text-shadow: none !important;
     width: 100% !important;
     text-align: center !important;
-    font-family:
-        system-ui,
-        -apple-system,
-        sans-serif !important;
-}
-
-.custom-tooltip .introjs-button:hover {
-    background: rgb(249 250 251) !important;
 }
 
 .custom-tooltip .introjs-disabled {
     display: none !important;
 }
 
-.custom-overlay {
-    background-color: rgba(0, 0, 0, 0.5) !important;
+.introjs-tooltiptext {
+    text-align: center;
+}
+
+.introjs-tooltipbuttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+}
+
+.custom-highlight {
+    background-color: rgba(33, 150, 243, 0.2) !important;
+    outline: 2px solid orange !important;
 }

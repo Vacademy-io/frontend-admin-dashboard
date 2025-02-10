@@ -10,6 +10,7 @@ export interface SidebarItemsType {
     title: string;
     to?: string;
     subItems?: subItemsType[];
+    id: string;
 }
 export interface SidebarItemProps {
     icon?: React.FC<IconProps>;

@@ -5,11 +5,13 @@ export const SidebarItemsData: SidebarItemsType[] = [
     {
         icon: House,
         title: "Dashboard",
+        id: "dashboard",
         to: "/dashboard",
     },
     {
         icon: Users,
         title: "Students",
+        id: "student-mangement",
         subItems: [
             {
                 subItem: "Students list",
@@ -28,11 +30,13 @@ export const SidebarItemsData: SidebarItemsType[] = [
     {
         icon: BookOpen,
         title: "Study Library",
+        id: "study-library",
         to: "/study-library",
     },
     {
         icon: Scroll,
         title: "Assessment Centre",
+        id: "assessment-centre",
         to: "/assessment",
         subItems: [
             {
