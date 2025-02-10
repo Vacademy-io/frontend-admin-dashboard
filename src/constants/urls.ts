@@ -7,7 +7,7 @@ export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
 export const SIGNUP_URL = `${BASE_URL}/auth-service/v1/signup-root`;
 export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 
-export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/assessment-service/question-paper/upload/docx/v1/convert-doc-to-html`;
+export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
 
 export const GET_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/get-dashboard`;
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details`;
