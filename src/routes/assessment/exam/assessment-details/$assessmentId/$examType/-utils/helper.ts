@@ -15,18 +15,21 @@ import {
 } from "./student-columns";
 import { AdaptiveMarking } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-hooks/getQuestionsDataForSection";
 import { Section } from "@/types/assessments/assessment-steps";
+import {
+    AssessmentSection,
+    AssessmentSectionQuestionInterface,
+    calculateAverageMarksQuestionInterface,
+    PreBatchRegistration,
+    SectionInfoWithAddedQuestions,
+    SectionInfoWithAddedQuestionsCntOrNull,
+    StudentLeaderboardEntry,
+    transformSectionsAndQuestionsDataQuestionsData,
+} from "./assessment-details-interface";
+import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
+import { MyQuestion } from "@/types/assessments/question-paper-form";
 // import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
 // import { QuestionAssessmentPreview } from "@/types/assessment-preview-interface";
 
-interface StudentLeaderboardEntry {
-    userId: string;
-    rank: string;
-    name: string;
-    batch: string;
-    percentile: string;
-    scoredMarks: number;
-    totalMarks: number;
-}
 export const convertMarksRankData = (leaderboard: StudentLeaderboardEntry[]) => {
     const rankMap = new Map();
 
@@ -212,15 +215,6 @@ export const getAllColumnsForTable = (type: string, selectedParticipantsTab: str
     }
 };
 
-interface PreBatchRegistration {
-    id: string;
-    batchId: string;
-    instituteId: string;
-    registrationTime: string;
-    status: string;
-    createdAt: string;
-    updatedAt: string;
-}
 export function getBatchDetails(
     batchData: Record<string, { name: string; id: string }[]>,
     batchList: PreBatchRegistration[] | undefined,
@@ -246,19 +240,7 @@ export function getBatchDetails(
     return result;
 }
 
-interface Question {
-    questionId: string;
-    questionName: string;
-    questionType: string; // You can use a union type like `"MCQM" | "SCQ" | "TF"` if needed
-    questionMark: string;
-    questionPenalty: string;
-    questionDuration: {
-        hrs: string;
-        min: string;
-    };
-}
-
-export function calculateAverageMarks(questions: Question[]): number {
+export function calculateAverageMarks(questions: calculateAverageMarksQuestionInterface[]): number {
     if (questions.length === 0) return 0;
 
     const totalMarks = questions.reduce(
@@ -283,51 +265,9 @@ export function parseHtmlToString(html: string) {
     return doc.body.textContent || doc.body.innerText || "";
 }
 
-interface QuestionText {
-    id: string;
-    type: "HTML" | string;
-    content: string;
-}
-
-interface ExplanationText {
-    id: string | null;
-    type: string | null;
-    content: string | null;
-}
-
-interface Option {
-    id: string;
-    preview_id: string | null;
-    question_id: string;
-    text: QuestionText;
-    media_id: string | null;
-    option_order: number | null;
-    created_on: string;
-    updated_on: string;
-    explanation_text: ExplanationText;
-}
-
-interface Question {
-    question_id: string;
-    parent_rich_text: string | null;
-    question: QuestionText;
-    section_id: string;
-    question_duration: number;
-    question_order: number;
-    marking_json: string;
-    evaluation_json: string;
-    question_type: string;
-    options: Option[];
-    options_with_explanation: Option[];
-}
-
-interface QuestionsData {
-    [sectionId: string]: Question[];
-}
-
 export function transformSectionsAndQuestionsData(
     sectionsData: Section[],
-    questionsData: QuestionsData,
+    questionsData: transformSectionsAndQuestionsDataQuestionsData,
 ) {
     if (!sectionsData) return [];
     return sectionsData.map((section) => ({
@@ -478,6 +418,298 @@ export function transformSectionsAndQuestionsData(
             };
         }),
     }));
+}
+
+export function transformSectionQuestions(questions: AssessmentSectionQuestionInterface[]) {
+    return {
+        questions: questions?.map((question) => {
+            const options =
+                question.questionType === "MCQS"
+                    ? question?.singleChoiceOptions?.map((opt, idx) => ({
+                          id: null, // Assuming no direct mapping for option ID
+                          preview_id: idx, // Using index as preview_id
+                          question_id: null,
+                          text: {
+                              id: null, // Assuming no direct mapping for option text ID
+                              type: "HTML", // Assuming option content is HTML
+                              content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                          },
+                          media_id: null, // Assuming no direct mapping for option media ID
+                          option_order: null,
+                          created_on: null,
+                          updated_on: null,
+                          explanation_text: {
+                              id: null, // Assuming no direct mapping for explanation text ID
+                              type: "HTML", // Assuming explanation for options is in HTML
+                              content: question.explanation, // Assuming no explanation provided for options
+                          },
+                      }))
+                    : question?.multipleChoiceOptions?.map((opt, idx) => ({
+                          id: null, // Assuming no direct mapping for option ID
+                          preview_id: idx, // Using index as preview_id
+                          question_id: null,
+                          text: {
+                              id: null, // Assuming no direct mapping for option text ID
+                              type: "HTML", // Assuming option content is HTML
+                              content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                          },
+                          media_id: null, // Assuming no direct mapping for option media ID
+                          option_order: null,
+                          created_on: null,
+                          updated_on: null,
+                          explanation_text: {
+                              id: null, // Assuming no direct mapping for explanation text ID
+                              type: "HTML", // Assuming explanation for options is in HTML
+                              content: question.explanation, // Assuming no explanation provided for options
+                          },
+                      }));
+
+            const correctOptionIds = (
+                question.questionType === "MCQS"
+                    ? question.singleChoiceOptions ?? [] // Default to empty array if undefined
+                    : question.multipleChoiceOptions ?? []
+            )
+                .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                .filter((idx) => idx !== null); // Remove null values
+
+            const auto_evaluation_json = JSON.stringify({
+                type: question.questionType === "MCQS" ? "MCQS" : "MCQM",
+                data: {
+                    correctOptionIds,
+                },
+            });
+
+            return {
+                id: null,
+                preview_id: question.questionId, // Assuming no direct mapping for preview_id
+                text: {
+                    id: null, // Assuming no direct mapping for text ID
+                    type: "HTML", // Assuming the content is HTML
+                    content: question?.questionName?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                },
+                media_id: null, // Assuming no direct mapping for media_id
+                created_at: null,
+                updated_at: null,
+                question_response_type: null, // Assuming no direct mapping for response type
+                question_type: question.questionType,
+                access_level: null, // Assuming no direct mapping for access level
+                auto_evaluation_json, // Add auto_evaluation_json
+                evaluation_type: null, // Assuming no direct mapping for evaluation type
+                explanation_text: {
+                    id: null, // Assuming no direct mapping for explanation text ID
+                    type: "HTML", // Assuming explanation is in HTML
+                    content: question.explanation,
+                },
+                default_question_time_mins:
+                    Number(question.questionDuration.hrs || 0) * 60 +
+                    Number(question.questionDuration.min || 0),
+                options, // Use the mapped options
+                errors: [], // Assuming no errors are provided
+                warnings: [], // Assuming no warnings are provided
+            };
+        }),
+    };
+}
+
+export function extractEmptyIdQuestions(sections: sectionsEditQuestionFormType) {
+    return sections.sections.flatMap((section) =>
+        section.questions.filter((question) => question.questionId === ""),
+    );
+}
+
+export function getSectionsWithEmptyQuestionIds(sections: sectionsEditQuestionFormType) {
+    return sections.sections
+        .map((section) => {
+            // Filter questions where questionId is an empty string
+            const filteredQuestions = section.questions.filter(
+                (question) => question.questionId === "",
+            );
+
+            // Return the section only if it has questions with empty questionIds
+            return filteredQuestions.length > 0
+                ? { ...section, questions: filteredQuestions.length }
+                : null;
+        })
+        .filter((section) => section !== null); // Remove null values
+}
+
+export function handleAddedQuestionsToSections(
+    sections: SectionInfoWithAddedQuestionsCntOrNull[],
+    questionsData: MyQuestion[],
+) {
+    let questionIndex = 0;
+
+    return sections.map((section) => {
+        const questionsCount = section?.questions ?? 0;
+        const assignedQuestions = questionsData.slice(
+            questionIndex,
+            questionIndex + questionsCount,
+        );
+        questionIndex += questionsCount;
+
+        return {
+            ...section,
+            assignedQuestions,
+        };
+    });
+}
+
+export function addQuestionIdToSections(
+    previousSections: sectionsEditQuestionFormType["sections"],
+    newSections: SectionInfoWithAddedQuestions[],
+) {
+    // Iterate over each section in newSections
+    newSections.forEach((newSection) => {
+        // Find the corresponding section in previousSections by matching sectionId
+        const prevSection = previousSections.find(
+            (section) => section.sectionId === newSection.sectionId,
+        );
+
+        if (prevSection) {
+            // Update the sectionName if it exists in newSections
+            prevSection.sectionName = newSection.sectionName;
+
+            // Remove questions without questionId from previousSection
+            prevSection.questions = prevSection.questions.filter((question) => question.questionId);
+
+            // Add all assignedQuestions from newSection to previousSection
+            newSection.assignedQuestions.forEach((question) => {
+                // Add an 'id' field in each question, matching the questionId
+                question.id = question.questionId || "";
+            });
+
+            // Append the updated questions to the previous section
+            prevSection.questions.push(...newSection.assignedQuestions);
+        }
+    });
+
+    return previousSections;
+}
+
+export function transformPreviewDataToSections(sections: Section[] | undefined) {
+    return {
+        updated_sections: sections?.map((section) => ({
+            section_description_html: section.description || "",
+            section_name: section.name,
+            section_id: section.id,
+            section_duration: section.duration || 0,
+            section_order: section.section_order,
+            total_marks: section.total_marks,
+            cutoff_marks: section.cutoff_marks,
+            problem_randomization: section.problem_randomization !== null ? true : false,
+            question_and_marking: [],
+        })),
+    };
+}
+
+export function mergeSectionData(
+    sourceData: sectionsEditQuestionFormType["sections"],
+    targetData: AssessmentSection[] | undefined,
+) {
+    // Create a map of sections from source data for easier lookup
+    const sectionQuestionsMap = new Map(
+        sourceData.map((section) => [
+            section.sectionId,
+            section.questions.map((question, index) => {
+                // Transform question format to match target structure
+                const correctOptionIdsCnt = question.multipleChoiceOptions.filter(
+                    (option) => option.isSelected,
+                ).length;
+                return {
+                    question_id: question.questionId,
+                    marking_json: JSON.stringify({
+                        type: question.questionType,
+                        data: {
+                            totalMark: question.questionMark || "",
+                            negativeMark: question.questionPenalty || "",
+                            negativeMarkingPercentage:
+                                question.questionMark && question.questionPenalty
+                                    ? (Number(question.questionPenalty) /
+                                          Number(question.questionMark)) *
+                                      100
+                                    : "",
+                            ...(question.questionType === "MCQM" && {
+                                partialMarking: correctOptionIdsCnt ? 1 / correctOptionIdsCnt : 0,
+                                partialMarkingPercentage: correctOptionIdsCnt
+                                    ? (1 / correctOptionIdsCnt) * 100
+                                    : 0,
+                            }),
+                        },
+                    }),
+                    question_duration_in_min:
+                        parseInt(question.questionDuration.hrs) * 60 +
+                            parseInt(question.questionDuration.min) || 0,
+                    question_order: index + 1,
+                    is_added: true,
+                    is_deleted: false,
+                    is_updated: false,
+                };
+            }),
+        ]),
+    );
+
+    // Update target data with questions from source
+    return targetData?.map((section) => {
+        const questions = sectionQuestionsMap.get(section.section_id) || [];
+        return {
+            ...section,
+            question_and_marking: questions,
+        };
+    });
+}
+
+export function compareAndUpdateSections(
+    oldSections: sectionsEditQuestionFormType["sections"] | undefined,
+    newSections: AssessmentSection[] | undefined,
+) {
+    // Create maps to track questions by section
+    const oldSectionQuestionMap = new Map();
+
+    // Process old sections to build question map for each section
+    oldSections?.forEach((oldSection) => {
+        const sectionQuestions = new Map();
+        oldSection.questions.forEach((question) => {
+            sectionQuestions.set(question.questionId, question);
+        });
+        oldSectionQuestionMap.set(oldSection.sectionId, sectionQuestions);
+    });
+
+    // Process new sections and update status flags
+    const processedSections = newSections?.map((newSection) => {
+        const oldSectionQuestions = oldSectionQuestionMap.get(newSection.section_id) || new Map();
+
+        // Process existing and new questions
+        const processedQuestionAndMarking = newSection.question_and_marking.map((newQuestion) => {
+            let status = {
+                is_added: true,
+                is_updated: false,
+                is_deleted: false,
+            };
+
+            // Check if question exists in this specific section
+            if (oldSectionQuestions.has(newQuestion.question_id)) {
+                status = {
+                    is_added: false,
+                    is_updated: true,
+                    is_deleted: false,
+                };
+                // Remove from map to track deleted questions
+                oldSectionQuestions.delete(newQuestion.question_id);
+            }
+
+            return {
+                ...newQuestion,
+                ...status,
+            };
+        });
+
+        return {
+            ...newSection,
+            question_and_marking: [...processedQuestionAndMarking],
+        };
+    });
+
+    return processedSections;
 }
 
 // export const announcementDialogTrigger = (

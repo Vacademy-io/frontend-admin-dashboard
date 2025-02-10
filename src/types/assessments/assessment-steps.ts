@@ -18,7 +18,7 @@ export interface Section {
     total_marks: number;
     cutoff_marks: number;
     section_order: number;
-    problem_randomization: boolean | null;
+    problem_randomization: boolean | null | string;
     created_at: string; // ISO date string
     updated_at: string; // ISO date string
 }

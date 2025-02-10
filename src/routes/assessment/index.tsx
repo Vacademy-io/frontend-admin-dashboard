@@ -56,7 +56,7 @@ function AssessmentPage() {
                         </p>
                     </div>
                     <div
-                        onClick={() => handleRedirectRoute("LIVE_QUIZ")}
+                        onClick={() => handleRedirectRoute("MOCK")}
                         className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                     >
                         <Mock />

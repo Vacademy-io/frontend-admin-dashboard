@@ -109,30 +109,16 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                         </p>
                     </div>
                 )}
-                {assessmentDetails[0]?.saved_data?.duration_distribution === "QUESTION" && (
-                    <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
-                        <h1 className="font-normal">Question Duration:</h1>
-                        <div className="flex items-center gap-1">
-                            <span>{Math.floor(section.duration / 60)}</span>
-                            <span>hrs</span>
-                            <span>:</span>
-                            <span>{section.duration % 60}</span>
-                            <span>minutes</span>
+                {assessmentDetails[1]?.saved_data?.duration_distribution === "SECTION" &&
+                    section.duration && (
+                        <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
+                            <h1 className="font-normal">Section Duration:</h1>
+                            <div className="flex items-center gap-1">
+                                <span>{section.duration}</span>
+                                <span>minutes</span>
+                            </div>
                         </div>
-                    </div>
-                )}
-                {assessmentDetails[0]?.saved_data?.duration_distribution === "SECTION" && (
-                    <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
-                        <h1 className="font-normal">Section Duration:</h1>
-                        <div className="flex items-center gap-1">
-                            <span>{Math.floor(section.duration / 60)}</span>
-                            <span>hrs</span>
-                            <span>:</span>
-                            <span>{section.duration % 60}</span>
-                            <span>minutes</span>
-                        </div>
-                    </div>
-                )}
+                    )}
                 <div className="flex items-start gap-8 text-sm font-thin">
                     <h1 className="font-normal">Marks Per Question (Default):</h1>
                     <span>{calculateAverageMarks(adaptiveMarking)}</span>
@@ -180,7 +166,8 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                                     <TableHead>Question Type</TableHead>
                                     <TableHead>Marks</TableHead>
                                     <TableHead>Penalty</TableHead>
-                                    <TableHead>Time</TableHead>
+                                    {assessmentDetails[1]?.saved_data?.duration_distribution ===
+                                        "QUESTION" && <TableHead>Time</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-neutral-50">
@@ -194,13 +181,16 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                                             <TableCell>{question.questionType}</TableCell>
                                             <TableCell>{question.questionMark}</TableCell>
                                             <TableCell>{question.questionPenalty}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    {question.questionDuration.hrs}
-                                                    <span>:</span>
-                                                    {question.questionDuration.min}
-                                                </div>
-                                            </TableCell>
+                                            {assessmentDetails[1]?.saved_data
+                                                ?.duration_distribution === "QUESTION" && (
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                        {question.questionDuration.hrs}
+                                                        <span>:</span>
+                                                        {question.questionDuration.min}
+                                                    </div>
+                                                </TableCell>
+                                            )}
                                         </TableRow>
                                     );
                                 })}

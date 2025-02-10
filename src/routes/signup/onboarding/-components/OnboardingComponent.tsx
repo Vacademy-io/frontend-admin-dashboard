@@ -6,7 +6,7 @@ import { OnboardingSteps } from "./OnboardingSteps";
 import { Route } from "..";
 
 export function OnboardingComponent() {
-    const searchParams = Route.useSearch(); // This will give you access to the URL search parameters
+    const searchParams = Route.useSearch();
     const steps = ["Organization Setup", "Add Your Details"];
     const [currentStep, setCurrentStep] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([false, false]);
