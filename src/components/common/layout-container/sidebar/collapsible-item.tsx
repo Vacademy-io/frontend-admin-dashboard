@@ -1,6 +1,6 @@
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 import { SidebarGroup } from "@/components/ui/sidebar";
 import { SidebarItemProps } from "../../../../types/layout-container/layout-container-types";
@@ -11,6 +11,7 @@ import { useRouter } from "@tanstack/react-router";
 export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps) => {
     const [hover, setHover] = useState<boolean>(false);
     const { state, toggleSidebar } = useSidebar(); // Access sidebar state and toggle function
+    const [isOpen, setIsOpen] = useState(false);
 
     const toggleHover = () => setHover(!hover);
     const router = useRouter();
@@ -19,17 +20,26 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
     const routeMatches =
         subItems?.some((item) => item.subItemLink === currentRoute) || currentRoute === to;
 
+    useEffect(() => {
+        if (routeMatches) {
+            setIsOpen(true);
+        }
+    }, [routeMatches]);
+
     return (
         <Collapsible
             className="group/collapsible"
             onMouseEnter={toggleHover}
             onMouseLeave={toggleHover}
+            open={isOpen}
+            onOpenChange={setIsOpen}
         >
             <Link to={to}>
                 <CollapsibleTrigger
                     className="flex w-full items-center justify-between"
                     onClick={() => {
                         if (state === "collapsed") toggleSidebar(); // Open sidebar if it’s collapsed
+                        setIsOpen(true);
                     }}
                 >
                     <div
