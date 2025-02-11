@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import YooptaEditor, { createYooptaEditor, YooptaContentValue } from "@yoopta/editor";
 import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
@@ -18,6 +19,7 @@ import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-nam
 import { getPublicUrl } from "@/services/upload_file";
 import { PublishDialog } from "../slides-material/publish-slide-dialog";
 import { useSlides } from "@/hooks/study-library/use-slides";
+import { toast } from "sonner";
 
 interface SlideMaterialProps {
     setLevelName: Dispatch<SetStateAction<string>>;
@@ -139,39 +141,74 @@ export const SlideMaterial = ({
         }
     }, [activeItem]);
 
+    const formatHTMLString = (htmlString: string) => {
+        // Remove the body tag and its attributes
+        let cleanedHtml = htmlString.replace(/<body[^>]*>|<\/body>/g, "");
+
+        // Remove data-meta attributes and style from paragraphs
+        cleanedHtml = cleanedHtml.replace(/<p[^>]*data-meta[^>]*style="[^"]*"[^>]*>/g, "<p>");
+
+        // Add proper HTML structure
+        const formattedHtml = `<html>
+        <head></head>
+        <body>
+            <div>
+                ${cleanedHtml}
+            </div>
+        </body>
+    </html>`;
+
+        return formattedHtml;
+    };
+
+    // Modified SaveDraft function
+    const SaveDraft = () => {
+        const data = editor.getEditorValue();
+        const htmlString = html.serialize(editor, data);
+        const formattedHtmlString = formatHTMLString(htmlString);
+        console.log("formatted html string", formattedHtmlString);
+
+        try {
+            const saveDocDraft = async () => {
+                await addUpdateDocumentSlide({
+                    id: activeItem?.slide_id || "",
+                    title: activeItem?.slide_title || "",
+                    image_file_id: "",
+                    description: activeItem?.slide_title || "",
+                    slide_order: 0,
+                    document_slide: {
+                        id: activeItem?.document_id || "",
+                        type: "DOC",
+                        data: formattedHtmlString, // Use the formatted HTML string
+                        title: activeItem?.slide_title || "",
+                        cover_file_id: "",
+                    },
+                    status: "DRAFT",
+                    new_slide: false,
+                    notify: false,
+                });
+            };
+            saveDocDraft();
+        } catch (err) {
+            console.log("error updating slide: ", err);
+        }
+    };
+
+    const handleSaveDraftClick = async () => {
+        try {
+            await SaveDraft();
+            toast.success("Slide saved successfully");
+        } catch (err) {
+            console.log("error saving document: ", err);
+        }
+    };
+
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;
 
         if (activeItem?.document_type === "DOC") {
             intervalId = setInterval(() => {
-                const data = editor.getEditorValue();
-                const htmlString = html.serialize(editor, data);
-                console.log("html string", htmlString);
-                // You can store the htmlString in state or do something else with it here
-                try {
-                    const saveDocDraft = async () => {
-                        await addUpdateDocumentSlide({
-                            id: activeItem.slide_id,
-                            title: activeItem.slide_title || "",
-                            image_file_id: "",
-                            description: activeItem.slide_title || "",
-                            slide_order: 0,
-                            document_slide: {
-                                id: activeItem.document_id || "",
-                                type: "DOC",
-                                data: htmlString,
-                                title: activeItem.slide_title || "",
-                                cover_file_id: "",
-                            },
-                            status: "DRAFT",
-                            new_slide: false,
-                            notify: false,
-                        });
-                    };
-                    saveDocDraft();
-                } catch (err) {
-                    console.log("error updating slide: ", err);
-                }
+                SaveDraft();
             }, 60000);
         }
 
@@ -205,9 +242,16 @@ export const SlideMaterial = ({
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-6">
                         <ActivityStatsSidebar />
-                        <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
-                            Save Draft
-                        </MyButton>
+                        {activeItem?.document_type == "DOC" && (
+                            <MyButton
+                                buttonType="secondary"
+                                scale="medium"
+                                layoutVariant="default"
+                                onClick={handleSaveDraftClick}
+                            >
+                                Save Draft
+                            </MyButton>
+                        )}
                         <PublishDialog
                             isOpen={isPublishDialogOpen}
                             setIsOpen={setIsPublishDialogOpen}
