@@ -17,10 +17,19 @@ import { useInstituteQuery } from "@/services/student-list-section/getInstituteD
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { filterMenuList, getModuleFlags } from "./helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
+import { Question } from "phosphor-react";
+import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
+import { FaWhatsapp } from "react-icons/fa6";
+import { SiGmail } from "react-icons/si";
+import { useRouter } from "@tanstack/react-router";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
+    const router = useRouter();
+    const currentRoute = router.state.location.pathname;
     const subModules = getModuleFlags(data?.sub_modules);
     const sideBarItems = filterMenuList(subModules, SidebarItemsData);
     const { getPublicUrl } = useFileUpload();
@@ -79,7 +88,74 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                               </SidebarMenuItem>
                           ))}
                 </SidebarMenu>
+                <div
+                    className={cn(
+                        "mt-auto flex items-center justify-center",
+                        state === "collapsed" ? "mx-auto px-1" : "px-1",
+                    )}
+                >
+                    {!currentRoute.includes("slides") && <SupportOptions />}
+                </div>
             </SidebarContent>
         </Sidebar>
     );
 };
+
+function SupportOptions() {
+    const [open, setOpen] = useState(false);
+    const [hover, setHover] = useState<boolean>(false);
+    const toggleHover = () => {
+        setHover(!hover);
+    };
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <div
+                    className={`flex w-full cursor-pointer items-center gap-1 rounded-lg px-4 py-2 hover:bg-white`}
+                    onMouseEnter={toggleHover}
+                    onMouseLeave={toggleHover}
+                >
+                    <Question
+                        className={cn("size-7", hover ? "text-primary-500" : "text-neutral-400")}
+                        weight="fill"
+                    />
+                    <div
+                        className={`${
+                            hover ? "text-primary-500" : "text-neutral-600"
+                        } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
+                    >
+                        {"Support"}
+                    </div>
+                </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+                <Command>
+                    <CommandList>
+                        <CommandGroup>
+                            <CommandItem>
+                                <div
+                                    role="button"
+                                    className="flex w-full cursor-pointer items-center gap-1"
+                                    onClick={goToWhatsappSupport}
+                                >
+                                    <FaWhatsapp />
+                                    WhatsApp
+                                </div>
+                            </CommandItem>
+                            <CommandItem>
+                                <div
+                                    role="button"
+                                    className="flex w-full cursor-pointer items-center gap-1"
+                                    onClick={goToMailSupport}
+                                >
+                                    <SiGmail />
+                                    Mail us
+                                </div>
+                            </CommandItem>
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+}
