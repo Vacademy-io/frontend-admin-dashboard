@@ -40,6 +40,10 @@ export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge
 export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
 
+export const ADD_LEVEL = `${BASE_URL}/admin-core-service/level/v1/add-level`;
+export const UPDATE_LEVEL = `${BASE_URL}/admin-core-service/level/v1/update-level`;
+export const DELETE_LEVEL = `${BASE_URL}/admin-core-service/level/v1/delete-level`;
+
 export const UPDATE_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/update-subject`;
 export const ADD_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/add-subject`;
 export const DELETE_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/delete-subject`;

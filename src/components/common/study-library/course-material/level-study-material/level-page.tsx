@@ -4,12 +4,17 @@ import { LevelCard } from "./level-card";
 import { useRouter } from "@tanstack/react-router";
 import { SessionDropdown } from "../../study-library-session-dropdown";
 import { useSidebar } from "@/components/ui/sidebar";
-import { MyButton } from "@/components/design-system/button";
-import { Plus } from "phosphor-react";
 import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels";
 import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails";
-import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
+import {
+    StudyLibrarySessionType,
+    useStudyLibraryStore,
+} from "@/stores/study-library/use-study-library-store";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
+import { AddLevelButton } from "./add-level-button";
+import { AddLevelData } from "./add-level-form";
+import { toast } from "sonner";
+import { useAddLevel } from "@/services/study-library/level-operations/add-level";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
@@ -17,7 +22,8 @@ export const LevelPage = () => {
     const searchParams = router.state.location.search;
     const courseId = searchParams.courseId;
     const { setSelectedSession } = useSelectedSessionStore();
-
+    const addLevelMutation = useAddLevel();
+    const { studyLibraryData } = useStudyLibraryStore();
     // Ensure hooks always run
     const sessionList = courseId ? getCourseSessions(courseId) : [];
     const initialSession: StudyLibrarySessionType | undefined = sessionList[0] ?? undefined;
@@ -46,6 +52,33 @@ export const LevelPage = () => {
         setLevelList(newLevelList);
     }, [currentSession]);
 
+    useEffect(() => {
+        const newLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
+        setLevelList(newLevelList);
+    }, [studyLibraryData]);
+
+    const handleAddLevel = ({
+        requestData,
+        packageId,
+        sessionId,
+    }: {
+        requestData: AddLevelData;
+        packageId: string;
+        sessionId: string;
+    }) => {
+        addLevelMutation.mutate(
+            { requestData: requestData, packageId: packageId, sessionId: sessionId },
+            {
+                onSuccess: () => {
+                    toast.success("Level added successfully");
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to add course");
+                },
+            },
+        );
+    };
+
     return (
         <div className="relative flex flex-col gap-8 text-neutral-600">
             {!courseId ? (
@@ -65,10 +98,7 @@ export const LevelPage = () => {
                             </div>
                         </div>
                         <div className="flex flex-col items-center gap-4">
-                            <MyButton buttonType="primary" scale="large" layoutVariant="default">
-                                <Plus />
-                                Add Year/Class
-                            </MyButton>
+                            <AddLevelButton onSubmit={handleAddLevel} />
                         </div>
                     </div>
 
