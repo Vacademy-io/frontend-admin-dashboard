@@ -80,7 +80,7 @@ export function DashboardComponent() {
             </p>
             <iframe
                 className="mt-6 size-full h-[80vh] rounded-xl"
-                src="https://vacademy-media-storage.s3.ap-south-1.amazonaws.com/c70f40a5-e4d3-4b6c-a498-e612d0d4b133/STUDENTS/4b70d907-0c4b-482a-a1f0-de9a4f7978d5-vacademy_teaser_.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20250211T140559Z&X-Amz-SignedHeaders=host&X-Amz-Expires=86399&X-Amz-Credential=AKIA3ISBV4TNEO3NCERX%2F20250211%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Signature=07c3b95aec9d3a5da521cb13b153bf2004d77288fd34aee24efef35e4da7cd84"
+                src="https://www.youtube.com/embed/lIhk4IFQH8w"
                 title="YouTube video player"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
