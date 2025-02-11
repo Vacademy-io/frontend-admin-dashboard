@@ -63,7 +63,7 @@ export const ScheduleTestHeaderDescription = () => {
                         Create Assessment
                     </MyButton>
                 </DialogTrigger>
-                <DialogContent className="max-w-full !rounded-none p-0">
+                <DialogContent className="max-w-[80vw] p-0">
                     <h1 className="rounded-lg bg-primary-50 p-4 font-semibold text-primary-500">
                         Create Assessment
                     </h1>
@@ -71,7 +71,7 @@ export const ScheduleTestHeaderDescription = () => {
                         <div className="flex items-center gap-12">
                             <div
                                 onClick={() => handleRedirectRoute("EXAM")}
-                                className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
+                                className="flex size-[300px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                             >
                                 <Examination />
                                 <h1 className="text-[1.4rem] font-semibold">Examination</h1>
@@ -82,7 +82,7 @@ export const ScheduleTestHeaderDescription = () => {
                             </div>
                             <div
                                 onClick={() => handleRedirectRoute("MOCK")}
-                                className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
+                                className="flex size-[300px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                             >
                                 <Mock />
                                 <h1 className="text-[1.4rem] font-semibold">Mock Assessment</h1>
@@ -95,7 +95,7 @@ export const ScheduleTestHeaderDescription = () => {
                         <div className="flex items-center gap-12">
                             <div
                                 onClick={() => handleRedirectRoute("PRACTICE")}
-                                className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
+                                className="flex size-[300px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                             >
                                 <Practice />
                                 <h1 className="text-[1.4rem] font-semibold">Practice Assessment</h1>
@@ -106,7 +106,7 @@ export const ScheduleTestHeaderDescription = () => {
                             </div>
                             <div
                                 onClick={() => handleRedirectRoute("SURVEY")}
-                                className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
+                                className="flex size-[300px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
                             >
                                 <Survey />
                                 <h1 className="text-[1.4rem] font-semibold">Survey</h1>
