@@ -1,27 +1,22 @@
 // services/study-library/course-operations/update-course.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { AddCourseData } from "@/components/common/study-library/course-material/add-course-form";
-import { UPDATE_COURSE } from "@/constants/urls";
+import { UPDATE_LEVEL } from "@/constants/urls";
+import { AddLevelData } from "@/components/common/study-library/course-material/level-study-material/add-level-form";
 
-export const useUpdateCourse = () => {
+export const useUpdateLevel = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({
-            courseId,
-            requestData,
-        }: {
-            requestData: AddCourseData;
-            courseId?: string;
-        }) => {
+        mutationFn: async ({ requestData }: { requestData: AddLevelData }) => {
             const payload = {
-                id: courseId,
-                package_name: requestData.course_name,
+                id: requestData.id,
+                level_name: requestData.level_name,
+                duration_in_days: requestData.duration_in_days,
                 thumbnail_file_id: requestData.thumbnail_file_id,
             };
 
-            return authenticatedAxiosInstance.put(`${UPDATE_COURSE}/${courseId}`, payload);
+            return authenticatedAxiosInstance.put(`${UPDATE_LEVEL}/${requestData.id}`, payload);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
