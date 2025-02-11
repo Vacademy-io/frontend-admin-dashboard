@@ -25,6 +25,7 @@ export const useAddLevel = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
         },
     });
 };

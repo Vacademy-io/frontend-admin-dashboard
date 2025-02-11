@@ -95,6 +95,7 @@ export const useSlides = (chapterId: string) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["slides"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
         },
     });
 
@@ -108,6 +109,7 @@ export const useSlides = (chapterId: string) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["slides"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
         },
     });
 
@@ -119,6 +121,7 @@ export const useSlides = (chapterId: string) => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["slides"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
         },
     });
 
