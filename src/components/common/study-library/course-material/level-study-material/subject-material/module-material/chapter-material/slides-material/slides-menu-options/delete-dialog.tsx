@@ -1,5 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
+import { INSTITUTE_ID } from "@/constants/urls";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { useRouter } from "@tanstack/react-router";
 import { Dispatch, SetStateAction } from "react";
@@ -23,6 +24,7 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
                 chapterId: chapterId,
                 slideId: slideId,
                 status: "DELETED",
+                instituteId: INSTITUTE_ID,
             });
 
             toast.success("Slide deleted successfully!");

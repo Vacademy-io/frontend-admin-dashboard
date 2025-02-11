@@ -65,6 +65,7 @@ interface UpdateStatusParams {
     chapterId: string;
     slideId: string;
     status: string;
+    instituteId: string;
 }
 
 export const useSlides = (chapterId: string) => {
@@ -106,9 +107,9 @@ export const useSlides = (chapterId: string) => {
     });
 
     const updateSlideStatus = useMutation({
-        mutationFn: async ({ chapterId, slideId, status }: UpdateStatusParams) => {
+        mutationFn: async ({ chapterId, slideId, status, instituteId }: UpdateStatusParams) => {
             return await authenticatedAxiosInstance.put(
-                `${UPDATE_SLIDE_STATUS}?chapterId=${chapterId}&slideId=${slideId}&status=${status}`,
+                `${UPDATE_SLIDE_STATUS}?chapterId=${chapterId}&slideId=${slideId}&status=${status}&instituteId=${instituteId}`,
             );
         },
         onSuccess: () => {

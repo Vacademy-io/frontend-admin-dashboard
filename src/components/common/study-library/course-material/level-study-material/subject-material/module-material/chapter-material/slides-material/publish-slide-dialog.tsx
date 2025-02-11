@@ -1,6 +1,7 @@
 // publish-dialog.tsx
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
+import { INSTITUTE_ID } from "@/constants/urls";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { useRouter } from "@tanstack/react-router";
 import { Dispatch, SetStateAction } from "react";
@@ -22,6 +23,7 @@ export const PublishDialog = ({ isOpen, setIsOpen }: PublishDialogProps) => {
                 chapterId: chapterId || "",
                 slideId: slideId || "",
                 status: "PUBLISHED",
+                instituteId: INSTITUTE_ID,
             });
             toast.success("Slide published successfully!");
             setIsOpen(false);
