@@ -205,10 +205,19 @@ export const SlideMaterial = ({
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;
+        let previousHtmlString: string | null = null;
 
         if (activeItem?.document_type === "DOC") {
             intervalId = setInterval(() => {
-                SaveDraft();
+                const data = editor.getEditorValue();
+                const htmlString = html.serialize(editor, data);
+                const formattedHtmlString = formatHTMLString(htmlString);
+
+                // Only save if the content has changed
+                if (formattedHtmlString !== previousHtmlString) {
+                    previousHtmlString = formattedHtmlString;
+                    SaveDraft();
+                }
             }, 60000);
         }
 
