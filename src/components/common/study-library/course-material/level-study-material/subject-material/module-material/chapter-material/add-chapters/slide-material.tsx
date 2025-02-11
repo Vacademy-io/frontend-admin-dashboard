@@ -17,6 +17,7 @@ import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name
 import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
 import { getPublicUrl } from "@/services/upload_file";
 import { PublishDialog } from "../slides-material/publish-slide-dialog";
+import { useSlides } from "@/hooks/study-library/use-slides";
 
 interface SlideMaterialProps {
     setLevelName: Dispatch<SetStateAction<string>>;
@@ -43,6 +44,7 @@ export const SlideMaterial = ({
 
     const { levelId, subjectId, moduleId, chapterId } = router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+    const { addUpdateDocumentSlide } = useSlides(chapterId || "");
 
     useEffect(() => {
         setLevelName(getLevelName(levelId || ""));
@@ -77,7 +79,7 @@ export const SlideMaterial = ({
         if (activeItem.video_url != null) {
             console.log("video url: ", activeItem.video_url);
             setContent(
-                <div key={`video-${activeItem.slide_id}`} className="h-full w-full">
+                <div key={`video-${activeItem.slide_id}`} className="size-full">
                     <YouTubePlayer
                         videoUrl={activeItem.video_url || ""}
                         videoTitle={activeItem.video_title}
@@ -94,17 +96,12 @@ export const SlideMaterial = ({
         }
 
         if (activeItem?.document_type == "DOC") {
-            console.log("Raw document data:", activeItem.document_data);
-
             let editorContent: YooptaContentValue | undefined;
             try {
                 editorContent = html.deserialize(editor, activeItem.document_data || "");
-
                 console.log("Deserialized content:", editorContent);
-
                 if (editorContent) {
                     editor.setEditorValue(editorContent);
-
                     setContent(
                         <div className="w-full">
                             <YooptaEditor
@@ -118,7 +115,7 @@ export const SlideMaterial = ({
                                 onChange={(value) => {
                                     console.log("Editor content changed:", value);
                                 }}
-                                className="h-full w-full"
+                                className="size-full"
                                 style={{ width: "100%", height: "100%" }}
                             />
                         </div>,
@@ -141,6 +138,49 @@ export const SlideMaterial = ({
             loadContent();
         }
     }, [activeItem]);
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout | null = null;
+
+        if (activeItem?.document_type === "DOC") {
+            intervalId = setInterval(() => {
+                const data = editor.getEditorValue();
+                const htmlString = html.serialize(editor, data);
+                console.log("html string", htmlString);
+                // You can store the htmlString in state or do something else with it here
+                try {
+                    const saveDocDraft = async () => {
+                        await addUpdateDocumentSlide({
+                            id: activeItem.slide_id,
+                            title: activeItem.slide_title || "",
+                            image_file_id: "",
+                            description: activeItem.slide_title || "",
+                            slide_order: 0,
+                            document_slide: {
+                                id: activeItem.document_id || "",
+                                type: "DOC",
+                                data: htmlString,
+                                title: activeItem.slide_title || "",
+                                cover_file_id: "",
+                            },
+                            status: "DRAFT",
+                            new_slide: false,
+                            notify: false,
+                        });
+                    };
+                    saveDocDraft();
+                } catch (err) {
+                    console.log("error updating slide: ", err);
+                }
+            }, 60000);
+        }
+
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
+    }, [activeItem?.document_type, editor]);
 
     return (
         <div className="flex w-full flex-col" ref={selectionRef}>
