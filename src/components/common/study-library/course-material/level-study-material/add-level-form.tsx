@@ -49,8 +49,9 @@ interface AddLevelFormProps {
         sessionId,
     }: {
         requestData: AddLevelData;
-        packageId: string;
-        sessionId: string;
+        packageId?: string;
+        sessionId?: string;
+        levelId?: string;
     }) => void;
     initialValues?: AddLevelData;
     setOpenDialog: Dispatch<SetStateAction<boolean>>;

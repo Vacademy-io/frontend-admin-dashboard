@@ -19,6 +19,7 @@ import { useDeleteLevel } from "@/services/study-library/level-operations/delete
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
+import { useUpdateLevel } from "@/services/study-library/level-operations/update-level";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
@@ -28,6 +29,7 @@ export const LevelPage = () => {
     const { setSelectedSession } = useSelectedSessionStore();
     const addLevelMutation = useAddLevel();
     const deleteLevelMutation = useDeleteLevel();
+    const updateLevelMutation = useUpdateLevel();
     const { studyLibraryData } = useStudyLibraryStore();
     // Ensure hooks always run
     const sessionList = courseId ? getCourseSessions(courseId) : [];
@@ -59,8 +61,6 @@ export const LevelPage = () => {
         });
     };
 
-    const handleLevelEdit = () => {};
-
     useIntroJsTour({
         key: StudyLibraryIntroKey.assignYearStep,
         steps: studyLibrarySteps.assignYearStep,
@@ -83,17 +83,32 @@ export const LevelPage = () => {
         sessionId,
     }: {
         requestData: AddLevelData;
-        packageId: string;
-        sessionId: string;
+        packageId?: string;
+        sessionId?: string;
+        levelId?: string;
     }) => {
         addLevelMutation.mutate(
-            { requestData: requestData, packageId: packageId, sessionId: sessionId },
+            { requestData: requestData, packageId: packageId || "", sessionId: sessionId || "" },
             {
                 onSuccess: () => {
                     toast.success("Level added successfully");
                 },
                 onError: (error) => {
                     toast.error(error.message || "Failed to add course");
+                },
+            },
+        );
+    };
+
+    const handleLevelUpdate = ({ requestData }: { requestData: AddLevelData }) => {
+        updateLevelMutation.mutate(
+            { requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Level updated successfully");
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to update level");
                 },
             },
         );
@@ -137,7 +152,7 @@ export const LevelPage = () => {
                                 <LevelCard
                                     level={level}
                                     onDelete={handleLeveLDelete}
-                                    onEdit={handleLevelEdit}
+                                    onEdit={handleLevelUpdate}
                                 />
                             </div>
                         ))}

@@ -17,8 +17,9 @@ interface AddLevelButtonProps {
         sessionId,
     }: {
         requestData: AddLevelData;
-        packageId: string;
-        sessionId: string;
+        packageId?: string;
+        sessionId?: string;
+        levelId?: string;
     }) => void;
 }
 
