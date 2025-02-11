@@ -128,10 +128,6 @@ export function ExportSettingsDialog({ open, onOpenChange }: ExportSettingsDialo
                                         <RadioGroupItem value="bottom" id="rough-bottom" />
                                         <Label htmlFor="rough-bottom">Bottom</Label>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="right" id="rough-right" />
-                                        <Label htmlFor="rough-right">Right</Label>
-                                    </div>
                                 </RadioGroup>
                             </div>
 

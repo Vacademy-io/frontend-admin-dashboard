@@ -17,7 +17,6 @@ import { Trash2 } from "lucide-react";
 // eslint-disable-next-line
 import { Instructions, Section, Steps } from "@/types/assessments/assessment-data-type";
 import { parseHtmlToString } from "./utils/utils";
-import { RefreshCw } from "lucide-react";
 
 function shuffleArray<T>(array: T[]): T[] {
     const newArray = [...array];
@@ -49,19 +48,6 @@ function PreviewWithSettings({
     const { data: questionData, isLoading } = useSuspenseQuery(
         getQuestionDataForSection({ assessmentId, sectionIds: sectionIds.join(",") }),
     );
-    const [isRegeneratingPreview, setIsRegeneratingPreview] = useState(false);
-
-    const handleRegeneratePreview = () => {
-        setIsRegeneratingPreview(true);
-
-        // Simulate regeneration process
-        const regenerationTimeout = setTimeout(() => {
-            // Trigger a re-render or data refresh
-            updateSettings({ ...settings });
-            setIsRegeneratingPreview(false);
-            clearTimeout(regenerationTimeout);
-        }, 2000); // Simulated 2-second regeneration
-    };
 
     // Determine padding based on settings
     const getPadding = () => {
@@ -159,6 +145,7 @@ function PreviewWithSettings({
                     width: 210mm;
                     min-height: 297mm;
                     padding: ${getPadding()};
+                    padding-bottom:  2mm;
                     margin: 0 auto;
                     border: 1px #d3d3d3 solid;
                     border-radius: 5px;
@@ -166,25 +153,7 @@ function PreviewWithSettings({
                     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
                 }
             `}</style>
-            {isRegeneratingPreview && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-80 rounded-lg bg-white p-6 shadow-xl">
-                        <div className="mb-4 flex items-center justify-center">
-                            <Loader2 className="text-primary mr-2 size-6 animate-spin" />
-                            <span className="text-lg font-semibold">Regenerating Preview</span>
-                        </div>
-                        <div className="h-2.5 w-full rounded-full bg-gray-200">
-                            <div
-                                className="bg-primary h-2.5 animate-pulse rounded-full"
-                                style={{ width: "75%" }}
-                            ></div>
-                        </div>
-                        <p className="mt-4 text-center text-sm text-muted-foreground">
-                            Please wait while we refresh the preview...
-                        </p>
-                    </div>
-                </div>
-            )}
+
             <div className="no-print sticky top-0 z-10 border-b bg-white">
                 <div className="flex items-center justify-between p-4">
                     <Button
@@ -220,14 +189,6 @@ function PreviewWithSettings({
                         </div>
                     )}
                     <div className="flex items-center gap-4">
-                        <Button
-                            variant="outline"
-                            onClick={handleRegeneratePreview}
-                            disabled={isRegeneratingPreview}
-                            className="gap-2"
-                        >
-                            <RefreshCw className="size-4" />
-                        </Button>
                         <input
                             type="file"
                             id="letterhead-upload"
