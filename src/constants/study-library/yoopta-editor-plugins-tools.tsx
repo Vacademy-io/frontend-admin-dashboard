@@ -17,6 +17,8 @@ import Divider from "@yoopta/divider";
 import ActionMenuList, { DefaultActionMenuRender } from "@yoopta/action-menu-list";
 import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
 import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
+import { INSTITUTE_ID } from "../urls";
+import { getPublicUrl, UploadFileInS3 } from "@/services/upload_file";
 
 export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -34,9 +36,115 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
     Code,
     Link,
     Embed,
-    Image,
-    Video,
-    File,
+    Image.extend({
+        options: {
+            async onUpload(file) {
+                try {
+                    // Use the underlying functions directly instead of the hook
+                    const fileId = await UploadFileInS3(
+                        file,
+                        () => {}, // setIsUploading
+                        "your-user-id",
+                        INSTITUTE_ID,
+                        "STUDENTS",
+                        true, // publicUrl
+                    );
+
+                    if (!fileId) {
+                        throw new Error("File upload failed");
+                    }
+
+                    const publicUrl = await getPublicUrl(fileId);
+
+                    if (!publicUrl) {
+                        throw new Error("Failed to get public URL");
+                    }
+
+                    return {
+                        src: publicUrl,
+                        alt: file.name,
+                        sizes: {
+                            width: 0, // Replace with actual dimensions if needed
+                            height: 0,
+                        },
+                    };
+                } catch (error) {
+                    console.error("Upload failed:", error);
+                    throw error;
+                }
+            },
+        },
+    }),
+    Video.extend({
+        options: {
+            async onUpload(file) {
+                try {
+                    // Use the underlying functions directly instead of the hook
+                    const fileId = await UploadFileInS3(
+                        file,
+                        () => {}, // setIsUploading
+                        "your-user-id",
+                        INSTITUTE_ID,
+                        "STUDENTS",
+                        true, // publicUrl
+                    );
+
+                    if (!fileId) {
+                        throw new Error("File upload failed");
+                    }
+
+                    const publicUrl = await getPublicUrl(fileId);
+
+                    if (!publicUrl) {
+                        throw new Error("Failed to get public URL");
+                    }
+
+                    return {
+                        src: publicUrl,
+                        alt: file.name,
+                        sizes: {
+                            width: 0, // Replace with actual dimensions if needed
+                            height: 0,
+                        },
+                    };
+                } catch (error) {
+                    console.error("Upload failed:", error);
+                    throw error;
+                }
+            },
+        },
+    }),
+    File.extend({
+        options: {
+            onUpload: async (file) => {
+                const fileId = await UploadFileInS3(
+                    file,
+                    () => {}, // setIsUploading
+                    "your-user-id",
+                    INSTITUTE_ID,
+                    "STUDENTS",
+                    true, // publicUrl
+                );
+
+                if (!fileId) {
+                    throw new Error("File upload failed");
+                }
+
+                const publicUrl = await getPublicUrl(fileId);
+
+                if (!publicUrl) {
+                    throw new Error("Failed to get public URL");
+                }
+
+                return {
+                    src: publicUrl,
+                    format: file.type,
+                    name: file.name,
+                    size: file.size,
+                };
+            },
+        },
+    }),
 ];
 
 export const TOOLS = {

@@ -11,6 +11,7 @@ import { FileType } from "@/types/common/file-upload";
 import { convertDocToHtml } from "./utils/doc-to-html";
 import { useRouter } from "@tanstack/react-router";
 import { useSlides } from "@/hooks/study-library/use-slides";
+import { useReplaceBase64ImagesWithNetworkUrls } from "@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl";
 
 interface FormData {
     docFile: FileList | null;
@@ -29,6 +30,7 @@ export const AddDocDialog = ({
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
+    const replaceBase64ImagesWithNetworkUrls = useReplaceBase64ImagesWithNetworkUrls();
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -53,7 +55,7 @@ export const AddDocDialog = ({
         toast.success("File selected successfully");
     };
 
-    const handleUpload = async () => {
+    const useHandleUpload = async () => {
         if (!file) {
             toast.error("Please select a file first");
             return;
@@ -72,6 +74,8 @@ export const AddDocDialog = ({
 
             const HTMLContent = await convertDocToHtml(file);
             console.log("Document successfully converted to html:", HTMLContent);
+            const processedHtml = await replaceBase64ImagesWithNetworkUrls(HTMLContent);
+            console.log("processed html: ", processedHtml);
 
             await addUpdateDocumentSlide({
                 id: crypto.randomUUID(),
@@ -82,12 +86,13 @@ export const AddDocDialog = ({
                 document_slide: {
                     id: crypto.randomUUID(),
                     type: "DOC",
-                    data: HTMLContent,
+                    data: processedHtml,
                     title: file.name,
                     cover_file_id: "",
                 },
                 status: "DRAFT",
                 new_slide: true,
+                notify: false,
             });
 
             toast.success("PDF uploaded successfully!");
@@ -115,7 +120,7 @@ export const AddDocDialog = ({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleUpload)} className="flex flex-col gap-6 p-6">
+            <form onSubmit={form.handleSubmit(useHandleUpload)} className="flex flex-col gap-6 p-6">
                 <FileUploadComponent
                     fileInputRef={fileInputRef}
                     onFileSubmit={handleFileSubmit}

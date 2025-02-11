@@ -97,6 +97,7 @@ export const AddPdfDialog = ({
                     },
                     status: "DRAFT",
                     new_slide: true,
+                    notify: false,
                 });
 
                 toast.success("PDF uploaded successfully!");
@@ -138,7 +139,7 @@ export const AddPdfDialog = ({
                         acceptedFileTypes={["application/pdf"]}
                         isUploading={isUploading}
                         error={error}
-                        className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500 pb-6 focus:outline-none"
+                        className="flex flex-col items-center rounded-lg border-2 border-dashed border-primary-500 pb-6 focus:outline-none"
                     >
                         <div className="pointer-events-none flex flex-col items-center gap-6">
                             <ImportFileImage />

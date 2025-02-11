@@ -6,6 +6,7 @@ import {
     ADD_UPDATE_VIDEO_SLIDE,
     ADD_UPDATE_DOCUMENT_SLIDE,
     UPDATE_SLIDE_STATUS,
+    INSTITUTE_ID,
 } from "@/constants/urls";
 
 export interface Slide {
@@ -39,6 +40,7 @@ interface VideoSlidePayload {
     };
     status: string;
     new_slide?: boolean;
+    notify: boolean;
 }
 
 interface DocumentSlidePayload {
@@ -56,6 +58,7 @@ interface DocumentSlidePayload {
     };
     status: string;
     new_slide: boolean;
+    notify: boolean;
 }
 
 interface UpdateStatusParams {
@@ -79,7 +82,7 @@ export const useSlides = (chapterId: string) => {
     const addUpdateVideoSlideMutation = useMutation({
         mutationFn: async (payload: VideoSlidePayload) => {
             const response = await authenticatedAxiosInstance.post(
-                `${ADD_UPDATE_VIDEO_SLIDE}/${chapterId}`,
+                `${ADD_UPDATE_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}`,
                 payload,
             );
             return response.data;
@@ -92,7 +95,7 @@ export const useSlides = (chapterId: string) => {
     const addUpdateDocumentSlideMutation = useMutation({
         mutationFn: async (payload: DocumentSlidePayload) => {
             const response = await authenticatedAxiosInstance.post(
-                `${ADD_UPDATE_DOCUMENT_SLIDE}/${chapterId}`,
+                `${ADD_UPDATE_DOCUMENT_SLIDE}?chapterId=${chapterId}&instituteId=${INSTITUTE_ID}`,
                 payload,
             );
             return response.data;

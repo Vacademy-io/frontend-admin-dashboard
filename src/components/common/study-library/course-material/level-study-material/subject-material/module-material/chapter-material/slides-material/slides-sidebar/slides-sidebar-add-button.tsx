@@ -66,6 +66,7 @@ export const ChapterSidebarAddButton = () => {
                         },
                         status: "DRAFT",
                         new_slide: true,
+                        notify: false,
                     });
                 } catch (err) {
                     console.error("Error creating new doc:", err);
