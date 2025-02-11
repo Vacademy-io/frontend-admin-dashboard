@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    scroll-behavior: smooth;
+}
+
 @layer base {
     :root {
         /* ========= Common configs ========= */
@@ -249,6 +253,10 @@
     }
 }
 
+.introjs-tooltip.single-step .introjs-button.introjs-donebutton {
+    display: none !important;
+}
+
 /* Center the tooltip and match the design */
 .custom-tooltip {
     background-color: white !important;
@@ -259,9 +267,9 @@
     justify-content: space-between !important;
     position: relative !important;
     min-width: fit-content !important;
+    width: 300px !important;
     margin: auto !important;
 }
-
 .introjs-tooltip-title {
     color: rgb(234 88 12) !important;
     text-wrap: nowrap !important;
@@ -277,6 +285,7 @@
     background-color: #fcf3ec !important;
     display: flex !important;
     padding: 6px !important;
+    padding-left: 16px !important;
     gap: 1rem !important;
     align-items: center !important;
     justify-content: space-between !important;

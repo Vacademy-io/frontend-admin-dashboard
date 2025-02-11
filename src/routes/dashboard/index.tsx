@@ -174,8 +174,8 @@ export function DashboardComponent() {
                                     <MyButton
                                         type="submit"
                                         scale="medium"
-                                        id="quick-enrollment"
                                         buttonType="secondary"
+                                        id="quick-enrollment"
                                         layoutVariant="default"
                                         className="text-sm"
                                         onClick={handleEnrollButtonClick}

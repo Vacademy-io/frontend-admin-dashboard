@@ -12,6 +12,9 @@ import { useDeleteCourse } from "@/services/study-library/course-operations/dele
 import { useUpdateCourse } from "@/services/study-library/course-operations/update-course";
 import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
 import { toast } from "sonner"; // Import Toaster from sonner
+import useIntroJsTour from "@/hooks/use-intro";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { studyLibrarySteps } from "@/constants/intro/steps";
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -22,6 +25,11 @@ export const CourseMaterial = () => {
     const addCourseMutation = useAddCourse();
     const deleteCourseMutation = useDeleteCourse();
     const updateCourseMutation = useUpdateCourse();
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.createCourseStep,
+        steps: studyLibrarySteps.createCourseStep,
+    });
 
     const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
         addCourseMutation.mutate(

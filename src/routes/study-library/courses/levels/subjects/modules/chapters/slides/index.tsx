@@ -4,6 +4,9 @@ import { SlideMaterial } from "@/components/common/study-library/course-material
 import { ChapterSidebarAddButton } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
 import { ChapterSidebarSlides } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
+import { studyLibrarySteps } from "@/constants/intro/steps";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import useIntroJsTour from "@/hooks/use-intro";
 import { truncateString } from "@/lib/reusable/truncateString";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
@@ -48,6 +51,11 @@ function RouteComponent() {
     const [inputSearch, setInputSearch] = useState("");
     const { open, state, toggleSidebar } = useSidebar();
     const navigate = useNavigate();
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.addSlidesStep,
+        steps: studyLibrarySteps.addSlidesStep,
+    });
 
     const handleSubjectRoute = () => {
         navigate({

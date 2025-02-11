@@ -69,7 +69,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     {sidebarComponent
                         ? sidebarComponent
                         : sideBarItems.map((obj, key) => (
-                              <SidebarMenuItem key={key}>
+                              <SidebarMenuItem key={key} id={obj.id}>
                                   <SidebarItem
                                       icon={obj.icon}
                                       subItems={obj.subItems}

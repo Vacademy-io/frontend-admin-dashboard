@@ -10,6 +10,9 @@ import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-
 import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails";
 import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
+import useIntroJsTour from "@/hooks/use-intro";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { studyLibrarySteps } from "@/constants/intro/steps";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
@@ -40,6 +43,11 @@ export const LevelPage = () => {
     const handleLeveLDelete = () => {};
     const handleLevelEdit = () => {};
 
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.assignYearStep,
+        steps: studyLibrarySteps.assignYearStep,
+    });
+
     useEffect(() => {
         setSelectedSession(currentSession);
         const newLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
@@ -65,7 +73,12 @@ export const LevelPage = () => {
                             </div>
                         </div>
                         <div className="flex flex-col items-center gap-4">
-                            <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                            <MyButton
+                                buttonType="primary"
+                                scale="large"
+                                layoutVariant="default"
+                                id="assign-year"
+                            >
                                 <Plus />
                                 Add Year/Class
                             </MyButton>

@@ -8,6 +8,7 @@ export interface Step {
     element: string;
     title: string;
     intro: string;
+    position?: "left" | "right" | "top" | "bottom";
 }
 
 interface UseIntroJsTourProps {
@@ -24,17 +25,20 @@ const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsT
         if (!getValue()) {
             const instance: IntroJs = introJs();
 
+            // Handle single step case
+            const isSingleStep = steps.length === 1;
+
             instance.setOptions({
-                showProgress: true,
+                showProgress: !isSingleStep,
                 showBullets: false,
                 exitOnOverlayClick: false,
                 keyboardNavigation: true,
                 nextLabel: "Next",
                 prevLabel: "Previous",
-                doneLabel: "Finish",
                 highlightClass: "custom-highlight",
-                tooltipClass: "custom-tooltip",
+                tooltipClass: `custom-tooltip ${isSingleStep ? "single-step" : ""}`,
                 steps,
+                doneLabel: isSingleStep ? " " : "Done",
             });
 
             instance.onbeforeexit(() => {
@@ -47,6 +51,16 @@ const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsT
                 }
                 return confirm("Are you sure you want to exit?");
             });
+
+            // For single step, auto-complete after a delay
+            if (isSingleStep) {
+                instance.oncomplete(() => {
+                    if (!partial) setValue(true);
+                    if (onTourExit) {
+                        onTourExit();
+                    }
+                });
+            }
 
             instance.start();
         }
