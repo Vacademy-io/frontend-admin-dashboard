@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { StudentFilterRequest } from "@/schemas/student/student-list/table-schema";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { usePackageSessionIds } from "./getPackageSessionId";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useGetSessions } from "./useFilters";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export const useStudentFilters = () => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const sessions = useGetSessions();
     const [currentSession, setCurrentSession] = useState(sessions[0] || "");
     const [columnFilters, setColumnFilters] = useState<{ id: string; value: string[] }[]>([]);
@@ -22,7 +26,7 @@ export const useStudentFilters = () => {
 
     const [appliedFilters, setAppliedFilters] = useState<StudentFilterRequest>({
         name: "",
-        institute_ids: [INSTITUTE_ID],
+        institute_ids: INSTITUTE_ID ? [INSTITUTE_ID] : [],
         package_session_ids: currentPackageSessionIds,
         group_ids: [],
         gender: [],
