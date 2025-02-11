@@ -1,20 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { PublishTab } from "./-components/PublishTab";
-import { CommunityPageHeader } from "./-components/CommunityPageHeader";
+import { CommunityPage } from "./-components/CommunityPage";
 import { useEffect } from "react";
 import { Helmet } from "react-helmet";
 
 export const Route = createFileRoute("/community/")({
     component: () => (
         <LayoutContainer intrnalMargin={false}>
-            <CommunityPage />
+            <CommunityLayoutPage />
         </LayoutContainer>
     ),
 });
 
-function CommunityPage() {
+function CommunityLayoutPage() {
     const { setNavHeading } = useNavHeadingStore();
     useEffect(() => {
         setNavHeading(<h1 className="text-lg">Community</h1>);
@@ -28,10 +27,7 @@ function CommunityPage() {
                     content="This page contails all the qustion/question-bank created by the vacademy community"
                 />
             </Helmet>
-            <div className="flex w-full flex-col">
-                <PublishTab></PublishTab>
-                <CommunityPageHeader></CommunityPageHeader>
-            </div>
+            <CommunityPage />
         </>
     );
 }
