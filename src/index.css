@@ -181,6 +181,9 @@ html {
     .sidebar-open {
         overflow: hidden;
     }
+    img {
+        @apply inline-block;
+    }
 }
 
 @layer utilities {
@@ -253,103 +256,84 @@ html {
     }
 }
 
-.introjs-tooltip.single-step .introjs-button.introjs-donebutton {
-    display: none !important;
-}
-
-/* Center the tooltip and match the design */
-.custom-tooltip {
-    background-color: white !important;
-    border-radius: 0.5rem !important;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    position: relative !important;
-    min-width: fit-content !important;
-    width: 300px !important;
-    margin: auto !important;
-}
-.introjs-tooltip-title {
-    color: rgb(234 88 12) !important;
-    text-wrap: nowrap !important;
-    font-size: 1.1rem !important;
-    text-align: left !important;
-    font-weight: 500 !important;
-}
-.custom-tooltip .introjs-arrow {
-    display: none !important;
-}
-.introjs-tooltip-header {
-    text-align: left !important;
-    background-color: #fcf3ec !important;
-    display: flex !important;
-    padding: 6px !important;
-    padding-left: 16px !important;
-    gap: 1rem !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    border-bottom: 1px solid rgb(229 231 235) !important;
-    border-top-right-radius: 0.5rem !important;
-    border-top-left-radius: 0.5rem !important;
-}
-
-.introjs-skipbutton {
-    font-size: 1.5rem !important;
-    font-weight: 300 !important;
-}
-.introjs-skipbutton {
-    position: relative !important;
-}
-.custom-tooltip .introjs-tooltiptext {
-    color: rgb(75 85 99) !important;
-    font-size: 0.8rem !important;
-    text-align: left !important;
-    line-height: 1.6 !important;
-    padding: 8px 16px !important;
-}
-
-.custom-tooltip .introjs-bullets {
-    display: none !important;
-}
-
-.custom-tooltip .introjs-progress .introjs-progressbar {
-    background-color: orange !important;
-}
-
-.custom-tooltip .introjs-tooltipbuttons {
-    border-top: none !important;
-}
-
-.custom-tooltip .introjs-button {
-    background: white !important;
-    border: 1px solid rgb(229 231 235) !important;
-    border-radius: 0.4rem !important;
-    color: rgb(75 85 99) !important;
-    font-size: 0.8rem !important;
-    font-weight: 400 !important;
-    padding: 0.5rem 0rem !important;
-    text-shadow: none !important;
-    width: 100% !important;
-    text-align: center !important;
-}
-
-.custom-tooltip .introjs-disabled {
-    display: none !important;
-}
-
-.introjs-tooltiptext {
-    text-align: center;
-}
-
-.introjs-tooltipbuttons {
+.question-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 4px;
+    flex-direction: row;
+    width: 100%;
+    break-inside: avoid;
+    color: rgba(23, 28, 31, 0.961);
+    font-weight: 400;
 }
 
-.custom-highlight {
-    background-color: rgba(33, 150, 243, 0.2) !important;
-    outline: 2px solid orange !important;
+.question-container img {
+    object-fit: cover;
+    display: inline-block;
+    width: fit-content;
+    height: fit-content;
+    max-height: 400px;
+    margin: auto; /* Center the image */
+}
+
+.option-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.option-container img {
+    object-fit: cover;
+    display: inline-block;
+    width: auto;
+    height: 20px;
+    margin: auto; /* Center the image */
+}
+
+@media print {
+    .page {
+        margin: 0;
+        box-sizing: border-box;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        line-height: initial !important;
+    }
+    .no-print {
+        display: none;
+    }
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Ensure questions don't break across columns */
+.card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+/* Ensure proper spacing between questions */
+.grid > * {
+    margin-bottom: 1rem;
+}
+
+/* Ensure section headers don't break */
+.section-header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.font-size-small {
+    font-size: 12px;
+}
+
+.font-size-medium {
+    font-size: 14px;
+}
+
+.font-size-large {
+    font-size: 16px;
 }

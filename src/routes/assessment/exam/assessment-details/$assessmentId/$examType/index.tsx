@@ -79,7 +79,14 @@ const AssessmentDetailsComponent = () => {
 
     const handleOpenDialog = () => setIsPreviewAssessmentDialogOpen(true);
     const handleCloseDialog = () => setIsPreviewAssessmentDialogOpen(false);
-
+    const handleExportAssessment = () => {
+        navigate({
+            to: "/assessment/export/$assessmentId",
+            params: {
+                assessmentId: assessmentId,
+            },
+        });
+    };
     useEffect(() => {
         setNavHeading(heading);
     }, []);
@@ -147,25 +154,29 @@ const AssessmentDetailsComponent = () => {
                             {assessmentDetails?.[0]?.status}
                         </Badge>
                     </div>
-                    <Dialog
-                        open={isPreviewAssessmentDialogOpen}
-                        onOpenChange={setIsPreviewAssessmentDialogOpen}
-                    >
-                        <DialogTrigger>
-                            <MyButton
-                                type="button"
-                                scale="large"
-                                buttonType="secondary"
-                                className="font-medium"
-                                onClick={handleOpenDialog}
-                            >
-                                Preview Assessment
-                            </MyButton>
-                        </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
-                            <AssessmentPreview handleCloseDialog={handleCloseDialog} />
-                        </DialogContent>
-                    </Dialog>
+                    <div className="flex flex-col items-center gap-y-2">
+                        <Dialog
+                            open={isPreviewAssessmentDialogOpen}
+                            onOpenChange={setIsPreviewAssessmentDialogOpen}
+                        >
+                            <DialogTrigger>
+                                <MyButton
+                                    type="button"
+                                    scale="large"
+                                    buttonType="secondary"
+                                    onClick={handleOpenDialog}
+                                >
+                                    Preview Assessment
+                                </MyButton>
+                            </DialogTrigger>
+                            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                                <AssessmentPreview handleCloseDialog={handleCloseDialog} />
+                            </DialogContent>
+                        </Dialog>
+                        <MyButton scale="large" onClick={handleExportAssessment} className="py-4">
+                            Offline Paper
+                        </MyButton>
+                    </div>
                 </div>
                 <Separator className="mt-4" />
                 <Tabs value={selectedTab} onValueChange={setSelectedTab}>
