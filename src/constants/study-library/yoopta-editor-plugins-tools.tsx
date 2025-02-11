@@ -17,8 +17,9 @@ import Divider from "@yoopta/divider";
 import ActionMenuList, { DefaultActionMenuRender } from "@yoopta/action-menu-list";
 import Toolbar, { DefaultToolbarRender } from "@yoopta/toolbar";
 import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
-import { INSTITUTE_ID } from "../urls";
 import { getPublicUrl, UploadFileInS3 } from "@/services/upload_file";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "../auth/tokens";
 
 export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -41,6 +42,9 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
             async onUpload(file) {
                 try {
                     // Use the underlying functions directly instead of the hook
+                    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+                    const data = getTokenDecodedData(accessToken);
+                    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
                     const fileId = await UploadFileInS3(
                         file,
                         () => {}, // setIsUploading
@@ -80,6 +84,9 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
             async onUpload(file) {
                 try {
                     // Use the underlying functions directly instead of the hook
+                    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+                    const data = getTokenDecodedData(accessToken);
+                    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
                     const fileId = await UploadFileInS3(
                         file,
                         () => {}, // setIsUploading
@@ -117,6 +124,9 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
     File.extend({
         options: {
             onUpload: async (file) => {
+                const accessToken = getTokenFromCookie(TokenKey.accessToken);
+                const data = getTokenDecodedData(accessToken);
+                const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
                 const fileId = await UploadFileInS3(
                     file,
                     () => {}, // setIsUploading

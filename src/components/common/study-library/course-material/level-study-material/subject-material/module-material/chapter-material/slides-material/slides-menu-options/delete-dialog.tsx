@@ -1,7 +1,8 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { INSTITUTE_ID } from "@/constants/urls";
+import { TokenKey } from "@/constants/auth/tokens";
 import { useSlides } from "@/hooks/study-library/use-slides";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { useRouter } from "@tanstack/react-router";
 import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
@@ -17,6 +18,9 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
     const chapterId: string = searchParams.chapterId || "";
     const slideId: string = searchParams.slideId || "";
     const { updateSlideStatus } = useSlides(chapterId);
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
     const handleDeleteSlide = async () => {
         try {
@@ -24,7 +28,7 @@ export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
                 chapterId: chapterId,
                 slideId: slideId,
                 status: "DELETED",
-                instituteId: INSTITUTE_ID,
+                instituteId: INSTITUTE_ID || "",
             });
 
             toast.success("Slide deleted successfully!");

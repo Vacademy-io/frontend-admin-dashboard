@@ -1,8 +1,9 @@
 // publish-dialog.tsx
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { INSTITUTE_ID } from "@/constants/urls";
+import { TokenKey } from "@/constants/auth/tokens";
 import { useSlides } from "@/hooks/study-library/use-slides";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { useRouter } from "@tanstack/react-router";
 import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
@@ -16,6 +17,9 @@ export const PublishDialog = ({ isOpen, setIsOpen }: PublishDialogProps) => {
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
     const { updateSlideStatus } = useSlides(chapterId || "");
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
     const handlePublish = async () => {
         try {
@@ -23,7 +27,7 @@ export const PublishDialog = ({ isOpen, setIsOpen }: PublishDialogProps) => {
                 chapterId: chapterId || "",
                 slideId: slideId || "",
                 status: "PUBLISHED",
-                instituteId: INSTITUTE_ID,
+                instituteId: INSTITUTE_ID || "",
             });
             toast.success("Slide published successfully!");
             setIsOpen(false);

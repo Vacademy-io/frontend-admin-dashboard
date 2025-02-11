@@ -6,8 +6,9 @@ import {
     ADD_UPDATE_VIDEO_SLIDE,
     ADD_UPDATE_DOCUMENT_SLIDE,
     UPDATE_SLIDE_STATUS,
-    INSTITUTE_ID,
 } from "@/constants/urls";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export interface Slide {
     slide_title: string | null;
@@ -70,6 +71,10 @@ interface UpdateStatusParams {
 
 export const useSlides = (chapterId: string) => {
     const queryClient = useQueryClient();
+
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
     const getSlidesQuery = useQuery({
         queryKey: ["slides", chapterId],

@@ -8,7 +8,6 @@ import * as z from "zod";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
@@ -16,6 +15,8 @@ import { useSelectedSessionStore } from "@/stores/study-library/selected-session
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, X } from "phosphor-react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { TokenKey } from "@/constants/auth/tokens";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 
 const formSchema = z.object({
     id: z.string().optional(),
@@ -71,6 +72,9 @@ export const AddLevelForm = ({
     const [newSessionName, setNewSessionName] = useState("");
     const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [sessionList, setSessionList] = useState<Session[]>(getAllSessions);
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
     const route = useRouter();
     const search = route.state.location.search;
