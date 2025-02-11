@@ -1,8 +1,10 @@
 // services/student-operations/useBulkOperations.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { STUDENT_UPDATE_OPERATION, INSTITUTE_ID } from "@/constants/urls";
+import { STUDENT_UPDATE_OPERATION } from "@/constants/urls";
 import { useToast } from "@/hooks/use-toast";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 // import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
 interface BulkUpdateBatchRequest {
@@ -17,6 +19,10 @@ const bulkUpdateStudentBatch = async ({
     students,
     newPackageSessionId,
 }: BulkUpdateBatchRequest) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+
     const response = await authenticatedAxiosInstance.post(STUDENT_UPDATE_OPERATION, {
         operation: "UPDATE_BATCH",
         requests: students.map(({ userId, currentPackageSessionId }) => ({
@@ -62,6 +68,9 @@ interface BulkExtendSessionRequest {
 }
 
 const bulkExtendStudentSession = async ({ students, newExpiryDate }: BulkExtendSessionRequest) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const response = await authenticatedAxiosInstance.post(STUDENT_UPDATE_OPERATION, {
         operation: "ADD_EXPIRY",
         requests: students.map(({ userId, currentPackageSessionId }) => ({
@@ -106,6 +115,9 @@ interface BulkTerminateRequest {
 }
 
 const bulkTerminateStudents = async ({ students }: BulkTerminateRequest) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const response = await authenticatedAxiosInstance.post(STUDENT_UPDATE_OPERATION, {
         operation: "MAKE_INACTIVE",
         requests: students.map(({ userId, currentPackageSessionId }) => ({
@@ -150,6 +162,9 @@ interface BulkDeleteRequest {
 }
 
 const bulkDeleteStudents = async ({ students }: BulkDeleteRequest) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const response = await authenticatedAxiosInstance.post(STUDENT_UPDATE_OPERATION, {
         operation: "TERMINATE",
         requests: students.map(({ userId, currentPackageSessionId }) => ({

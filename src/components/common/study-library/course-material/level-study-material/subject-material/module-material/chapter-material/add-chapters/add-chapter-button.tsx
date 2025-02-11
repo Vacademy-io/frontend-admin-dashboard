@@ -6,7 +6,7 @@ import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapt
 import { AddChapterForm } from "./add-chapter-form";
 
 const triggerButton = (
-    <MyButton scale="large">
+    <MyButton scale="large" id="add-chapters">
         <Plus /> Add Chapter
     </MyButton>
 );

@@ -13,9 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { removeCookiesAndLogout } from "@/lib/auth/sessionUtility";
 import { useNavigate } from "@tanstack/react-router";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import useInstituteLogoStore from "../sidebar/institutelogo-global-zustand";
 
 export function Navbar() {
     // const notifications = true;
+    const { resetStore } = useInstituteDetailsStore();
+    const { resetInstituteLogo } = useInstituteLogoStore();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const { navHeading } = useNavHeadingStore();
@@ -23,6 +27,8 @@ export function Navbar() {
 
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
+        resetStore();
+        resetInstituteLogo();
         removeCookiesAndLogout(); // Ensure logout completes
         navigate({
             to: "/login",
@@ -59,9 +65,15 @@ export function Navbar() {
                             {isOpen ? <CaretDown /> : <CaretUp />}
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem>View Profile Details</DropdownMenuItem>
-                            <DropdownMenuItem>View Institute Details</DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                            {/* <DropdownMenuItem className="cursor-pointer">
+                                View Profile Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer">
+                                View Institute Details
+                            </DropdownMenuItem> */}
+                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                                Logout
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

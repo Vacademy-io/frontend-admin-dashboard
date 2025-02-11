@@ -7,10 +7,11 @@ import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { FileType } from "@/types/common/file-upload";
-import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
 import { convertDocToHtml } from "./utils/doc-to-html";
+import { useRouter } from "@tanstack/react-router";
+import { useSlides } from "@/hooks/study-library/use-slides";
+import { useReplaceBase64ImagesWithNetworkUrls } from "@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl";
 
 interface FormData {
     docFile: FileList | null;
@@ -26,7 +27,10 @@ export const AddDocDialog = ({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const addItem = useContentStore((state) => state.addItem);
+    const route = useRouter();
+    const { chapterId } = route.state.location.search;
+    const { addUpdateDocumentSlide } = useSlides(chapterId || "");
+    const replaceBase64ImagesWithNetworkUrls = useReplaceBase64ImagesWithNetworkUrls();
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -51,7 +55,7 @@ export const AddDocDialog = ({
         toast.success("File selected successfully");
     };
 
-    const handleUpload = async () => {
+    const useHandleUpload = async () => {
         if (!file) {
             toast.error("Please select a file first");
             return;
@@ -66,31 +70,30 @@ export const AddDocDialog = ({
         }, 200);
 
         try {
-            console.log("Starting upload process for file:", file.name);
+            const HTMLContent = await convertDocToHtml(file);
+            const processedHtml = await replaceBase64ImagesWithNetworkUrls(HTMLContent);
 
-            const yooptaContent = await convertDocToHtml(file);
-            console.log("Document successfully converted to Yoopta format:", yooptaContent);
-
-            // Cast the content to solve type issue
-            const newItem: SidebarContentItem = {
-                // createdAt: new Date(),
+            await addUpdateDocumentSlide({
                 id: crypto.randomUUID(),
-                type: "",
-                title: "",
-                url: "",
-                content: "",
-                status: "",
-                source_type: "",
-                slide_description: "",
-                document_title: "",
-                document_url: "",
-                document_path: "",
-                video_url: "",
-                video_description: "",
-                createdAt: new Date(),
-            };
+                title: file.name,
+                image_file_id: "",
+                description: file.name,
+                slide_order: 0,
+                document_slide: {
+                    id: crypto.randomUUID(),
+                    type: "DOC",
+                    data: processedHtml,
+                    title: file.name,
+                    cover_file_id: "",
+                },
+                status: "DRAFT",
+                new_slide: true,
+                notify: false,
+            });
 
-            addItem(newItem);
+            toast.success("PDF uploaded successfully!");
+            openState?.(false);
+
             console.log("Item successfully added to store");
 
             setUploadProgress(100);
@@ -113,7 +116,7 @@ export const AddDocDialog = ({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleUpload)} className="flex flex-col gap-6 p-6">
+            <form onSubmit={form.handleSubmit(useHandleUpload)} className="flex flex-col gap-6 p-6">
                 <FileUploadComponent
                     fileInputRef={fileInputRef}
                     onFileSubmit={handleFileSubmit}

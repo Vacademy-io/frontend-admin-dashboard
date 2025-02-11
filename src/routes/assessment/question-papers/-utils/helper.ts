@@ -1,4 +1,3 @@
-import { INSTITUTE_ID } from "@/constants/urls";
 import { FilterOption } from "@/types/assessments/question-paper-filter";
 import { Level, QuestionResponse, Subject } from "@/types/assessments/question-paper-template";
 import {
@@ -7,6 +6,8 @@ import {
     MyQuestionPaperFormInterface,
 } from "../../../../types/assessments/question-paper-form";
 import { useMutation } from "@tanstack/react-query";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export function formatStructure(structure: string, value: string | number): string {
     // If structure does not contain parentheses, just replace the number/letter with the value
@@ -31,6 +32,9 @@ export function transformFilterData(data: Record<string, FilterOption[]>) {
 }
 
 export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     return {
         title: data.title,
         institute_id: INSTITUTE_ID, // Assuming there's no direct mapping for institute_id
@@ -130,6 +134,9 @@ export function transformQuestionPaperEditData(
     data: MyQuestionPaperFormInterface,
     previousQuestionPaperData: MyQuestionPaperFormEditInterface,
 ) {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     // Extract previous question IDs for comparison
     const previousQuestionIds = previousQuestionPaperData.questions.map(
         (prevQuestion) => prevQuestion.questionId,
@@ -259,6 +266,7 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
         const correctOptionIds =
             JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
         const baseQuestion: MyQuestion = {
+            id: item.id || "",
             questionId: item.id || item.preview_id || undefined,
             questionName: item.text?.content || "",
             explanation: item.explanation_text?.content || "",
@@ -318,6 +326,9 @@ export const handleRefetchData = (
     pageNo: number,
     selectedQuestionPaperFilters: Record<string, FilterOption[]>,
 ) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     getFilteredFavouriteData.mutate({
         pageNo,
         pageSize: 10,

@@ -7,16 +7,17 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { AddVideoDialog } from "./add-video-dialog";
 import { AddDocDialog } from "./add-doc-dialog";
 import { AddPdfDialog } from "./add-pdf-dialog";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
-import { YooptaContentValue } from "@yoopta/editor";
+import { useRouter } from "@tanstack/react-router";
+import { useSlides } from "@/hooks/study-library/use-slides";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
     const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
     const [isDocUploadDialogOpen, setIsDocUploadDialogOpen] = useState(false);
     const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
-    const addItem = useContentStore((state) => state.addItem);
+    const route = useRouter();
+    const { chapterId } = route.state.location.search;
+    const { addUpdateDocumentSlide } = useSlides(chapterId || "");
 
     const dropdownList = [
         {
@@ -40,7 +41,7 @@ export const ChapterSidebarAddButton = () => {
         },
     ];
 
-    const handleSelect = (value: string) => {
+    const handleSelect = async (value: string) => {
         switch (value) {
             case "pdf":
                 setIsPdfDialogOpen(true);
@@ -49,44 +50,27 @@ export const ChapterSidebarAddButton = () => {
                 setIsDocUploadDialogOpen(true);
                 break;
             case "create-doc": {
-                // Create a new empty document with proper Yoopta structure
-                const emptyYooptaContent: YooptaContentValue = {
-                    "block-0": {
+                try {
+                    await addUpdateDocumentSlide({
                         id: crypto.randomUUID(),
-                        type: "paragraph",
-                        value: [
-                            {
-                                id: crypto.randomUUID(),
-                                type: "paragraph",
-                                children: [{ text: "" }],
-                            },
-                        ],
-                        meta: {
-                            order: 0,
-                            depth: 0,
+                        title: "New Document",
+                        image_file_id: "",
+                        description: "",
+                        slide_order: 0,
+                        document_slide: {
+                            id: crypto.randomUUID(),
+                            type: "DOC",
+                            data: "",
+                            title: "New Document",
+                            cover_file_id: "",
                         },
-                    },
-                };
-
-                console.log("emptyYooptaContent: ", emptyYooptaContent);
-
-                const newDoc: SidebarContentItem = {
-                    id: crypto.randomUUID(),
-                    type: "",
-                    title: "",
-                    url: "",
-                    content: "",
-                    status: "",
-                    source_type: "",
-                    slide_description: "",
-                    document_title: "",
-                    document_url: "",
-                    document_path: "",
-                    video_url: "",
-                    video_description: "",
-                    createdAt: new Date(),
-                };
-                addItem(newDoc);
+                        status: "DRAFT",
+                        new_slide: true,
+                        notify: false,
+                    });
+                } catch (err) {
+                    console.error("Error creating new doc:", err);
+                }
                 break;
             }
             case "video":
@@ -103,6 +87,7 @@ export const ChapterSidebarAddButton = () => {
                     scale="large"
                     layoutVariant={open ? "default" : "icon"}
                     className={`${open ? "" : ""}`}
+                    id="add-slides"
                 >
                     <Plus />
                     <p className={`${open ? "visible" : "hidden"}`}>Add</p>

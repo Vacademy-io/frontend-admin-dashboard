@@ -19,10 +19,18 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { StudentSidebar } from "../student-side-view/student-side-view";
+import useIntroJsTour from "@/hooks/use-intro";
+import { IntroKey } from "@/constants/storage/introKey";
+import { studentManagementSteps } from "@/constants/intro/steps";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
+
+    useIntroJsTour({
+        key: IntroKey.studentManagementFirstTimeVisit,
+        steps: studentManagementSteps,
+    });
 
     useEffect(() => {
         setNavHeading("Students");

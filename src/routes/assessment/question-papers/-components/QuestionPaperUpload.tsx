@@ -445,7 +445,7 @@ export const QuestionPaperUpload = ({
                                             If you are having a problem while uploading docx file
                                             then please convert your file in html{" "}
                                             <a
-                                                href="https://convertio.co/docx-html/"
+                                                href="https://wordtohtml.net/convert/docx-to-html"
                                                 target="_blank"
                                                 className="text-blue-500"
                                                 rel="noreferrer"

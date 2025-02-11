@@ -19,6 +19,7 @@ import {
 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
+import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/-utils/assessment-details-interface";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -156,6 +157,31 @@ export const handlePostStep2Data = async (
         added_sections: classifiedSections.added_sections,
         updated_sections: classifiedSections.updated_sections,
         deleted_sections: classifiedSections.deleted_sections,
+    };
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: STEP2_ASSESSMENT_URL,
+        data: convertedData,
+        params: {
+            assessmentId,
+            instituteId,
+            type,
+        },
+    });
+    return response?.data;
+};
+
+export const handlePostAssessmentPreview = async (
+    data: AssessmentPreviewSectionsInterface,
+    assessmentId: string | null,
+    instituteId: string | undefined,
+    type: string | undefined,
+) => {
+    const convertedData = {
+        test_duration: data.test_duration,
+        added_sections: data.added_sections,
+        updated_sections: data.updated_sections,
+        deleted_sections: data.deleted_sections,
     };
     const response = await authenticatedAxiosInstance({
         method: "POST",

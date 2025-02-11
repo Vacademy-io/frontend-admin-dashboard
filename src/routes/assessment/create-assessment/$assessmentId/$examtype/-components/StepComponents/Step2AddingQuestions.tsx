@@ -283,7 +283,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                   checked: sectionDetails.cutoff_marks > 0 ? true : false,
                                   value: String(sectionDetails.cutoff_marks) || "",
                               },
-                              problem_randomization: sectionDetails.problem_randomization || false,
+                              problem_randomization:
+                                  sectionDetails.problem_randomization === "RANDOM" ? true : false,
                               adaptive_marking_for_each_question: [],
                           }))
                         : [
@@ -350,14 +351,14 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
                                               // Check if section duration fields are valid based on durationDistribution
                                               const isSectionDurationMissing =
-                                                  assessmentDetails[currentStep - 1]?.saved_data
+                                                  assessmentDetails[currentStep]?.saved_data
                                                       ?.duration_distribution === "SECTION" &&
                                                   !section.section_duration?.hrs &&
                                                   !section.section_duration?.min;
 
                                               // Check if question duration fields are valid based on durationDistribution
                                               const isQuestionDurationMissing =
-                                                  assessmentDetails[currentStep - 1]?.saved_data
+                                                  assessmentDetails[currentStep]?.saved_data
                                                       ?.duration_distribution === "QUESTION" &&
                                                   !section.question_duration?.hrs &&
                                                   !section.question_duration?.min;

@@ -49,7 +49,7 @@ export const updateQuestionPaper = async (
 export const markQuestionPaperStatus = async (
     status: string,
     questionPaperId: string,
-    instituteId: string,
+    instituteId: string | undefined,
 ) => {
     try {
         const response = await authenticatedAxiosInstance({
@@ -81,7 +81,7 @@ export const getQuestionPaperById = async (questionPaperId: string | undefined) 
 export const getQuestionPaperDataWithFilters = async (
     pageNo: number,
     pageSize: number,
-    instituteId: string,
+    instituteId: string | undefined,
     data: Record<string, FilterOption[]>,
 ) => {
     try {

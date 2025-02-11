@@ -7,8 +7,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { INSTITUTE_ID } from "@/constants/urls";
+import { TokenKey } from "@/constants/auth/tokens";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
@@ -79,6 +80,9 @@ export const AddCourseForm = ({
     onSubmitCourse,
     setOpenDialog,
 }: AddCourseFormProps) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);

@@ -5,14 +5,14 @@ import { DialogFooter, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useState, useRef } from "react";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
-import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { useRouter } from "@tanstack/react-router";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 interface FormData {
     pdfFile: FileList | null;
@@ -23,12 +23,14 @@ export const AddPdfDialog = ({
 }: {
     openState?: ((open: boolean) => void) | undefined;
 }) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const { setPdfUrl } = usePDFStore();
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
@@ -81,7 +83,6 @@ export const AddPdfDialog = ({
             if (fileId) {
                 const url = await getPublicUrl(fileId);
                 setFileUrl(url);
-                setPdfUrl(url);
                 setFile(null);
                 form.reset();
 
@@ -98,8 +99,9 @@ export const AddPdfDialog = ({
                         title: file.name,
                         cover_file_id: "",
                     },
-                    status: "ACTIVE",
+                    status: "DRAFT",
                     new_slide: true,
+                    notify: false,
                 });
 
                 toast.success("PDF uploaded successfully!");
@@ -141,7 +143,7 @@ export const AddPdfDialog = ({
                         acceptedFileTypes={["application/pdf"]}
                         isUploading={isUploading}
                         error={error}
-                        className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500 pb-6 focus:outline-none"
+                        className="flex flex-col items-center rounded-lg border-2 border-dashed border-primary-500 pb-6 focus:outline-none"
                     >
                         <div className="pointer-events-none flex flex-col items-center gap-6">
                             <ImportFileImage />

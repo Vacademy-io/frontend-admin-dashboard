@@ -52,7 +52,7 @@ export function transformFilterAssessmentData(data: SelectedQuestionPaperFilters
 export const getAssessmentListWithFilters = async (
     pageNo: number,
     pageSize: number,
-    instituteId: string,
+    instituteId: string | undefined,
     data: SelectedQuestionPaperFilters,
 ) => {
     const response = await authenticatedAxiosInstance({
