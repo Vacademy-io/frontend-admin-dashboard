@@ -477,7 +477,7 @@ export const QuestionPaperUpload = ({
                                                     />
                                                 </div>
 
-                                                <p className="whitespace-normal text-xs">
+                                                <p className="my-1 whitespace-normal text-xs">
                                                     {(
                                                         (((getValues("fileUpload")?.size || 0) /
                                                             (1024 * 1024)) *
