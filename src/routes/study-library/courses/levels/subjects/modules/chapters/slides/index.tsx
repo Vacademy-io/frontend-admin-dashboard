@@ -9,6 +9,10 @@ import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-l
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
+import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
+import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
+import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
@@ -84,6 +88,13 @@ function RouteComponent() {
     const [chapterName, setChapterName] = useState("");
 
     const trucatedChapterName = truncateString(chapterName, 9);
+
+    useEffect(() => {
+        setLevelName(getLevelName(levelId || ""));
+        setSubjectName(getSubjectName(subjectId || ""));
+        setModuleName(getModuleName(moduleId || ""));
+        setChapterName(getChapterName(chapterId || ""));
+    }, []);
 
     const SidebarComponent = (
         <div className="flex w-full flex-col items-center">
@@ -175,12 +186,7 @@ function RouteComponent() {
         <LayoutContainer sidebarComponent={SidebarComponent}>
             <InitStudyLibraryProvider>
                 <ModulesWithChaptersProvider subjectId={subjectId}>
-                    <SlideMaterial
-                        setLevelName={setLevelName}
-                        setSubjectName={setSubjectName}
-                        setModuleName={setModuleName}
-                        setChapterName={setChapterName}
-                    />
+                    <SlideMaterial />
                 </ModulesWithChaptersProvider>
             </InitStudyLibraryProvider>
         </LayoutContainer>

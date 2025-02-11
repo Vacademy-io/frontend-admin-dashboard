@@ -94,11 +94,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     // Initialize YouTube API
     useEffect(() => {
-        console.log("Initializing YouTube API");
         loadYouTubeAPI();
 
         return () => {
-            console.log("Cleaning up YouTube player on unmount");
             if (playerRef.current) {
                 playerRef.current.destroy();
                 playerRef.current = null;
@@ -108,8 +106,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     // Create player when API is ready and URL changes
     useEffect(() => {
-        console.log("Player creation effect triggered", { isAPIReady, videoUrl });
-
         if (!isAPIReady || !videoUrl) {
             console.log("Waiting for API or missing video URL");
             return;
@@ -123,19 +119,16 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
         // Destroy existing player
         if (playerRef.current) {
-            console.log("Destroying existing player");
             playerRef.current.destroy();
             playerRef.current = null;
         }
 
         // Create container element
-        console.log("Creating new player container");
         const playerContainer = document.createElement("div");
         containerRef.current.innerHTML = "";
         containerRef.current.appendChild(playerContainer);
 
         // Create new player
-        console.log("Creating new YouTube player instance");
         const player = new window.YT.Player(playerContainer, {
             height: "100%",
             width: "100%",

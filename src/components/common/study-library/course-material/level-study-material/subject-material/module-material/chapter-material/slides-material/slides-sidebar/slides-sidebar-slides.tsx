@@ -54,17 +54,6 @@ export const ChapterSidebarSlides = () => {
 
     const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
         reorderItems(activeIndex, overIndex);
-        const updatedItems = useContentStore.getState().items;
-
-        // Log or use the updated order
-        console.log(
-            "Updated order:",
-            updatedItems.map((item, index) => ({
-                id: item.slide_id,
-                name: item.document_title || item.video_title,
-                order: index,
-            })),
-        );
     };
 
     if (isLoading) {

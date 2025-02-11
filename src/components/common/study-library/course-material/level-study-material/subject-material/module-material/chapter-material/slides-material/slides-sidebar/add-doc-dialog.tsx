@@ -70,12 +70,8 @@ export const AddDocDialog = ({
         }, 200);
 
         try {
-            console.log("Starting upload process for file:", file.name);
-
             const HTMLContent = await convertDocToHtml(file);
-            console.log("Document successfully converted to html:", HTMLContent);
             const processedHtml = await replaceBase64ImagesWithNetworkUrls(HTMLContent);
-            console.log("processed html: ", processedHtml);
 
             await addUpdateDocumentSlide({
                 id: crypto.randomUUID(),

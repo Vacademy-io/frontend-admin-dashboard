@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import YooptaEditor, { createYooptaEditor, YooptaContentValue } from "@yoopta/editor";
-import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import PDFViewer from "../slides-material/pdf-viewer";
 import { ActivityStatsSidebar } from "../slides-material/stats-dialog/activity-sidebar";
@@ -12,28 +12,12 @@ import { html } from "@yoopta/exports";
 import { SlidesMenuOption } from "../slides-material/slides-menu-options/slildes-menu-option";
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
 import { useRouter } from "@tanstack/react-router";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
-import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
-import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
-import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
 import { getPublicUrl } from "@/services/upload_file";
 import { PublishDialog } from "../slides-material/publish-slide-dialog";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { toast } from "sonner";
 
-interface SlideMaterialProps {
-    setLevelName: Dispatch<SetStateAction<string>>;
-    setSubjectName: Dispatch<SetStateAction<string>>;
-    setModuleName: Dispatch<SetStateAction<string>>;
-    setChapterName: Dispatch<SetStateAction<string>>;
-}
-
-export const SlideMaterial = ({
-    setLevelName,
-    setSubjectName,
-    setModuleName,
-    setChapterName,
-}: SlideMaterialProps) => {
+export const SlideMaterial = () => {
     const { activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
@@ -44,16 +28,9 @@ export const SlideMaterial = ({
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
 
-    const { levelId, subjectId, moduleId, chapterId } = router.state.location.search;
+    const { chapterId } = router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
-
-    useEffect(() => {
-        setLevelName(getLevelName(levelId || ""));
-        setSubjectName(getSubjectName(subjectId || ""));
-        setModuleName(getModuleName(moduleId || ""));
-        setChapterName(getChapterName(chapterId || ""));
-    }, []);
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -97,32 +74,31 @@ export const SlideMaterial = ({
             return;
         }
 
-        if (activeItem?.document_type == "DOC") {
+        if (activeItem?.document_type === "DOC" && activeItem.document_data) {
             let editorContent: YooptaContentValue | undefined;
             try {
-                editorContent = html.deserialize(editor, activeItem.document_data || "");
+                editorContent = html.deserialize(editor, activeItem.document_data);
                 console.log("Deserialized content:", editorContent);
-                if (editorContent) {
-                    editor.setEditorValue(editorContent);
-                    setContent(
-                        <div className="w-full">
-                            <YooptaEditor
-                                editor={editor}
-                                plugins={plugins}
-                                tools={TOOLS}
-                                marks={MARKS}
-                                value={editorContent} // Now TypeScript knows this is YooptaContentValue | undefined
-                                selectionBoxRoot={selectionRef}
-                                autoFocus
-                                onChange={(value) => {
-                                    console.log("Editor content changed:", value);
-                                }}
-                                className="size-full"
-                                style={{ width: "100%", height: "100%" }}
-                            />
-                        </div>,
-                    );
-                }
+
+                editor.setEditorValue(editorContent);
+                setContent(
+                    <div className="w-full">
+                        <YooptaEditor
+                            editor={editor}
+                            plugins={plugins}
+                            tools={TOOLS}
+                            marks={MARKS}
+                            value={editorContent}
+                            selectionBoxRoot={selectionRef}
+                            autoFocus
+                            onChange={(value) => {
+                                console.log("Editor content changed:", value);
+                            }}
+                            className="size-full"
+                            style={{ width: "100%", height: "100%" }}
+                        />
+                    </div>,
+                );
             } catch (error) {
                 console.error("Error preparing document content:", error);
                 setContent(<div>Error loading document content</div>);
