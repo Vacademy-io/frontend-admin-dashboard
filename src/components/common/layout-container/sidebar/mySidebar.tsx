@@ -24,6 +24,7 @@ import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui
 import { FaWhatsapp } from "react-icons/fa6";
 import { SiGmail } from "react-icons/si";
 import { useRouter } from "@tanstack/react-router";
+import useInstituteLogoStore from "./institutelogo-global-zustand";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
@@ -33,14 +34,12 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const subModules = getModuleFlags(data?.sub_modules);
     const sideBarItems = filterMenuList(subModules, SidebarItemsData);
     const { getPublicUrl } = useFileUpload();
-    const [instituteLogo, setInstituteLogo] = useState("");
+    const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
     useEffect(() => {
         const fetchPublicUrl = async () => {
             if (data?.institute_logo_file_id) {
-                // Ensure it's not null or undefined
                 const publicUrl = await getPublicUrl(data.institute_logo_file_id);
-                console.log(publicUrl);
                 setInstituteLogo(publicUrl);
             }
         };
