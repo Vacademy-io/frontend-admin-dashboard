@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { LOGIN_URL } from "@/constants/urls";
-import { INSTITUTE_ID } from "@/constants/urls";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 // Define the request and response schemas using Zod
 const loginRequestSchema = z.object({
@@ -20,6 +21,9 @@ async function loginUser(
     username: string,
     password: string,
 ): Promise<z.infer<typeof loginResponseSchema>> {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const response = await fetch(LOGIN_URL, {
         method: "POST",
         headers: {

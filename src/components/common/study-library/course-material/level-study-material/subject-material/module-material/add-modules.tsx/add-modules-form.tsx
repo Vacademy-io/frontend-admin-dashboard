@@ -8,10 +8,11 @@ import { MyButton } from "@/components/design-system/button";
 import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useRef, useState } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { SubjectDefaultImage } from "@/assets/svgs";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 const formSchema = z.object({
     moduleName: z.string().min(1, "Module name is required"),
@@ -27,6 +28,9 @@ interface AddModulesFormProps {
 }
 
 export const AddModulesForm = ({ initialValues, onSubmitSuccess }: AddModulesFormProps) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
