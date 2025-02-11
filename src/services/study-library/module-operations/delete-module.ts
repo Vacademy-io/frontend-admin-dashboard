@@ -12,6 +12,7 @@ export const useDeleteModule = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
         },
     });
 };

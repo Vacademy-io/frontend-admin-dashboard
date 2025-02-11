@@ -55,7 +55,7 @@ export const ActivityStatsSidebar = () => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <MyButton buttonType="primary" scale="medium" layoutVariant="default">
+                <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
                     Activity Stats
                 </MyButton>
             </DialogTrigger>

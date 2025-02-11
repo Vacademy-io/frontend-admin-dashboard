@@ -43,8 +43,9 @@ export const AddVideoDialog = ({
                     url: data.videoUrl,
                     title: data.videoName,
                 },
-                status: "ACTIVE",
+                status: "DRAFT",
                 new_slide: true,
+                notify: false,
             });
 
             toast.success("Video added successfully!");
