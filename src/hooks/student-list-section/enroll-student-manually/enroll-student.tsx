@@ -1,6 +1,6 @@
 // enroll-student.tsx
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { ENROLL_STUDENT_MANUALLY, INSTITUTE_ID } from "@/constants/urls";
+import { ENROLL_STUDENT_MANUALLY } from "@/constants/urls";
 import { useMutation } from "@tanstack/react-query";
 import {
     StepOneData,
@@ -9,6 +9,8 @@ import {
     StepFourData,
     StepFiveData,
 } from "@/types/students/schema-enroll-students-manually";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 // Define the request schema
 // const enrollStudentRequestSchema = z.object({
@@ -54,6 +56,9 @@ interface EnrollStudentParams {
 }
 
 export const useEnrollStudent = () => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     return useMutation({
         mutationFn: async ({ formData, packageSessionId }: EnrollStudentParams) => {
             const requestBody = {

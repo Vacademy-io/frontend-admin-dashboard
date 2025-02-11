@@ -11,13 +11,14 @@ import { useInstituteQuery } from "@/services/student-list-section/getInstituteD
 import { FilterOption } from "@/types/assessments/question-paper-filter";
 import { MyButton } from "@/components/design-system/button";
 import { getQuestionPaperDataWithFilters } from "../-utils/question-paper-services";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRefetchStore } from "../-global-states/refetch-store";
 import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
 import { z } from "zod";
 import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 import { UseFormReturn } from "react-hook-form";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -40,6 +41,9 @@ export const QuestionPapersTabs = ({
     currentQuestionImageIndex,
     setCurrentQuestionImageIndex,
 }: QuestionPapersTabsProps) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const [selectedTab, setSelectedTab] = useState("ACTIVE");
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] = useState<
@@ -63,7 +67,7 @@ export const QuestionPapersTabs = ({
         }: {
             pageNo: number;
             pageSize: number;
-            instituteId: string;
+            instituteId: string | undefined;
             data: Record<string, FilterOption[]>;
         }) => getQuestionPaperDataWithFilters(pageNo, pageSize, instituteId, data),
         onSuccess: (data) => {
@@ -87,7 +91,7 @@ export const QuestionPapersTabs = ({
         }: {
             pageNo: number;
             pageSize: number;
-            instituteId: string;
+            instituteId: string | undefined;
             data: Record<string, FilterOption[]>;
         }) => getQuestionPaperDataWithFilters(pageNo, pageSize, instituteId, data),
         onSuccess: (data) => {
@@ -107,7 +111,7 @@ export const QuestionPapersTabs = ({
         }: {
             pageNo: number;
             pageSize: number;
-            instituteId: string;
+            instituteId: string | undefined;
             data: Record<string, FilterOption[]>;
         }) => getQuestionPaperDataWithFilters(pageNo, pageSize, instituteId, data),
         onSuccess: (data) => {

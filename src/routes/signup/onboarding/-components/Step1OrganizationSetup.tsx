@@ -11,9 +11,10 @@ import { InstituteType } from "@/constants/dummy-data";
 import { MyButton } from "@/components/design-system/button";
 import { PencilSimpleLine } from "phosphor-react";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { UploadFileInS3Public } from "../../-services/signup-services";
 import useOrganizationStore from "../-zustand-store/step1OrganizationZustand";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 const organizationSetupSchema = z.object({
     profilePictureUrl: z.string(),
@@ -29,6 +30,9 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     console.log(currentStep, completedSteps);
     const { formData, setFormData } = useOrganizationStore();
     const [isUploading, setIsUploading] = useState(false);

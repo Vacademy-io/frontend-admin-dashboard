@@ -19,9 +19,10 @@ import {
     getAssessmentListWithFilters,
     getInitAssessmentDetails,
 } from "../-services/assessment-services";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { ScheduleTestTab } from "@/types/assessments/assessment-list";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -38,6 +39,9 @@ export interface SelectedQuestionPaperFilters {
 }
 
 export const ScheduleTestMainComponent = () => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { setNavHeading } = useNavHeadingStore();
     const [selectedTab, setSelectedTab] = useState("liveTests");
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
@@ -191,7 +195,7 @@ export const ScheduleTestMainComponent = () => {
         }: {
             pageNo: number;
             pageSize: number;
-            instituteId: string;
+            instituteId: string | undefined;
             data: SelectedQuestionPaperFilters;
         }) => getAssessmentListWithFilters(pageNo, pageSize, instituteId, data),
         onSuccess: (data) => {

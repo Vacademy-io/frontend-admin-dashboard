@@ -11,12 +11,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { EnrollFormUploadImage } from "@/assets/svgs";
 import { useState, useRef } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { MyButton } from "@/components/design-system/button";
 import { PencilSimpleLine } from "phosphor-react";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export const StepOneForm = () => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const { stepOneData, setStepOneData } = useFormStore();

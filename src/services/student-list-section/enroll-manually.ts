@@ -1,12 +1,17 @@
 // services/api/studentApi.ts
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { ENROLL_STUDENT_MANUALLY, INSTITUTE_ID } from "@/constants/urls";
+import { ENROLL_STUDENT_MANUALLY } from "@/constants/urls";
 import { EnrollStudentRequest } from "@/types/students/type-enroll-student-manually";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export const enrollStudent = async ({
     formData,
     packageSessionId,
 }: EnrollStudentRequest): Promise<string> => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const requestBody = {
         user_details: {
             username: formData.stepFiveData?.username || "",

@@ -5,13 +5,14 @@ import { DialogFooter, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useState, useRef } from "react";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { Form } from "@/components/ui/form";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { useRouter } from "@tanstack/react-router";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 interface FormData {
     pdfFile: FileList | null;
@@ -22,6 +23,9 @@ export const AddPdfDialog = ({
 }: {
     openState?: ((open: boolean) => void) | undefined;
 }) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
