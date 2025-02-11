@@ -250,6 +250,12 @@ importers:
             i18next:
                 specifier: ^23.16.4
                 version: 23.16.8
+            intro.js:
+                specifier: ^7.2.0
+                version: 7.2.0
+            intro.js-react:
+                specifier: ^1.0.0
+                version: 1.0.0(intro.js@7.2.0)(react@18.3.1)
             jquery:
                 specifier: ^3.7.1
                 version: 3.7.1
@@ -371,6 +377,9 @@ importers:
             "@testing-library/react":
                 specifier: ^14.3.1
                 version: 14.3.1(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+            "@types/intro.js":
+                specifier: ^5.1.5
+                version: 5.1.5
             "@types/js-cookie":
                 specifier: ^3.0.6
                 version: 3.0.6
@@ -4845,6 +4854,12 @@ packages:
                 integrity: sha512-25g5atgiVNTIv0LBDTg1H74Hvayx0ajtJPLLcYE3whFv75J0pWNtOBzaXJQgDTmrX1bx5U9YC2w/n65BN1HwRQ==,
             }
 
+    "@types/intro.js@5.1.5":
+        resolution:
+            {
+                integrity: sha512-TT1d8ayz07svlBcoqh26sNpQaU6bBpdFcCC+IMZHp46NNX2mYAHAVefM3wCmQSd4UWhhObeMjFByw2IaPKOXlw==,
+            }
+
     "@types/is-hotkey@0.1.10":
         resolution:
             {
@@ -9174,6 +9189,21 @@ packages:
                 integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==,
             }
         engines: { node: ">=12" }
+
+    intro.js-react@1.0.0:
+        resolution:
+            {
+                integrity: sha512-zR8pbTyX20RnCZpJMc0nuHBpsjcr1wFkj3ZookV6Ly4eE/LGpFTQwPsaA61Cryzwiy/tTFsusf4hPU9NpI9UOg==,
+            }
+        peerDependencies:
+            intro.js: ">=2.5.0"
+            react: ">=0.14.0"
+
+    intro.js@7.2.0:
+        resolution:
+            {
+                integrity: sha512-qbMfaB70rOXVBceIWNYnYTpVTiZsvQh/MIkfdQbpA9di9VBfj1GigUPfcCv3aOfsbrtPcri8vTLTA4FcEDcHSQ==,
+            }
 
     ipaddr.js@1.9.1:
         resolution:
@@ -18128,6 +18158,8 @@ snapshots:
         dependencies:
             "@types/node": 22.10.5
 
+    "@types/intro.js@5.1.5": {}
+
     "@types/is-hotkey@0.1.10": {}
 
     "@types/istanbul-lib-coverage@2.0.6": {}
@@ -21224,6 +21256,13 @@ snapshots:
             side-channel: 1.1.0
 
     internmap@2.0.3: {}
+
+    intro.js-react@1.0.0(intro.js@7.2.0)(react@18.3.1):
+        dependencies:
+            intro.js: 7.2.0
+            react: 18.3.1
+
+    intro.js@7.2.0: {}
 
     ipaddr.js@1.9.1: {}
 

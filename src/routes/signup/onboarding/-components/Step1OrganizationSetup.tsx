@@ -12,9 +12,11 @@ import { MyButton } from "@/components/design-system/button";
 import { PencilSimpleLine } from "phosphor-react";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { INSTITUTE_ID } from "@/constants/urls";
-import { useFileUpload } from "@/hooks/use-file-upload";
+import { UploadFileInS3Public } from "../../-services/signup-services";
+import useOrganizationStore from "../-zustand-store/step1OrganizationZustand";
 
 const organizationSetupSchema = z.object({
+    profilePictureUrl: z.string(),
     instituteProfilePic: z.union([z.string(), z.undefined()]),
     instituteName: z.string().min(1, "Institute Name is required"),
     instituteType: z.string().min(1, "Select institute type"),
@@ -27,16 +29,17 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
-    const [isUploading, setIsUploading] = useState(false);
-    const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
-    const fileInputRef = useRef<HTMLInputElement>(null);
     console.log(currentStep, completedSteps);
+    const { formData, setFormData } = useOrganizationStore();
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const form = useForm<FormValues>({
         resolver: zodResolver(organizationSetupSchema),
         defaultValues: {
-            instituteProfilePic: undefined,
-            instituteName: "",
-            instituteType: "",
+            profilePictureUrl: formData.profilePictureUrl || "",
+            instituteProfilePic: formData.instituteProfilePic || undefined,
+            instituteName: formData.instituteName || "",
+            instituteType: formData.instituteType || "",
         },
         mode: "onChange",
     });
@@ -44,23 +47,22 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
     function onSubmit(values: FormValues) {
         console.log(values);
         handleCompleteCurrentStep();
+        setFormData(values);
     }
 
     const handleFileSubmit = async (file: File) => {
         try {
             setIsUploading(true);
             // need to change soruce and soruceid and userId
-            const fileId = await uploadFile({
+            const fileId = await UploadFileInS3Public(
                 file,
                 setIsUploading,
-                userId: "your-user-id",
-                source: INSTITUTE_ID,
-                sourceId: "STUDENTS",
-            });
-            if (fileId) {
-                const publicUrl = await getPublicUrl(fileId);
-                form.setValue("instituteProfilePic", publicUrl);
-            }
+                INSTITUTE_ID,
+                "STUDENTS",
+            );
+            const imageUrl = URL.createObjectURL(file);
+            form.setValue("profilePictureUrl", imageUrl);
+            form.setValue("instituteProfilePic", fileId);
         } catch (error) {
             console.error("Upload failed:", error);
         } finally {
@@ -68,17 +70,15 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
         }
     };
 
-    console.log(form.getValues());
-
     return (
         <FormProvider {...form}>
             <form>
                 <div className="flex flex-col items-center justify-center gap-8">
                     <h1 className="text-[1.6rem]">Share your organization details</h1>
                     <div className="relative">
-                        {form.getValues("instituteProfilePic") ? (
+                        {form.getValues("profilePictureUrl") ? (
                             <img
-                                src={form.getValues("instituteProfilePic")}
+                                src={form.getValues("profilePictureUrl")}
                                 alt="logo"
                                 className="size-52 rounded-full"
                             />
@@ -95,8 +95,9 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                             acceptedFileTypes="image/*" // Optional - remove this line to accept all files
                         />
                         <MyButton
+                            type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading || isUploadingFile}
+                            disabled={isUploading}
                             buttonType="secondary"
                             layoutVariant="icon"
                             scale="small"
@@ -105,7 +106,6 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                             <PencilSimpleLine />
                         </MyButton>
                     </div>
-
                     <FormField
                         control={form.control}
                         name="instituteName"

@@ -14,6 +14,7 @@ export interface MyQuestionPaperFormInterface {
 }
 
 export interface MyQuestion {
+    id: string;
     questionId?: string; // Optional string
     questionName: string; // Required string, must have at least 1 character
     explanation?: string; // Optional string

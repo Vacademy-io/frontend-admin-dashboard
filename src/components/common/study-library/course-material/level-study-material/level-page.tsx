@@ -16,6 +16,9 @@ import { AddLevelData } from "./add-level-form";
 import { toast } from "sonner";
 import { useAddLevel } from "@/services/study-library/level-operations/add-level";
 import { useDeleteLevel } from "@/services/study-library/level-operations/delete-level";
+import useIntroJsTour from "@/hooks/use-intro";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { studyLibrarySteps } from "@/constants/intro/steps";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
@@ -57,6 +60,11 @@ export const LevelPage = () => {
     };
 
     const handleLevelEdit = () => {};
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.assignYearStep,
+        steps: studyLibrarySteps.assignYearStep,
+    });
 
     useEffect(() => {
         setSelectedSession(currentSession);

@@ -5,7 +5,7 @@ import { AddSubjectForm } from "./add-subject-form";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
 
 const triggerButton = (
-    <MyButton buttonType="primary" layoutVariant="default" scale="large">
+    <MyButton buttonType="primary" layoutVariant="default" scale="large" id="add-subject">
         Add Subject
     </MyButton>
 );

@@ -259,6 +259,7 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
         const correctOptionIds =
             JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
         const baseQuestion: MyQuestion = {
+            id: item.id || "",
             questionId: item.id || item.preview_id || undefined,
             questionName: item.text?.content || "",
             explanation: item.explanation_text?.content || "",

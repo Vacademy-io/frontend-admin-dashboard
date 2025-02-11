@@ -5,7 +5,7 @@ import { Plus } from "phosphor-react";
 import { AddLevelData, AddLevelForm } from "./add-level-form";
 
 const triggerButton = (
-    <MyButton buttonType="primary" scale="large" layoutVariant="default">
+    <MyButton buttonType="primary" scale="large" layoutVariant="default" id="assign-year">
         <Plus />
         Add Year/Class
     </MyButton>

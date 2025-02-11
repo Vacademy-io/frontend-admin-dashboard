@@ -20,9 +20,18 @@ export interface Role {
     isEnabled: boolean;
 }
 
+interface Authority {
+    permissions: string[];
+    roles: string[];
+}
+
 export interface IAccessToken {
-    owner: string;
-    name: string;
-    avatar: string;
-    roles: Role[];
+    user: string;
+    email: string;
+    is_root_user: boolean;
+    authorities: Record<string, Authority>;
+    username: string;
+    sub: string;
+    iat: number;
+    exp: number;
 }
