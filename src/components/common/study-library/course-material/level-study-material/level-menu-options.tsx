@@ -3,16 +3,17 @@ import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsThree } from "phosphor-react";
 
 interface LevelMenuOptionsProps {
-    onDelete: () => void;
+    onDelete: (levelId: string) => void;
     onEdit: () => void;
+    levelId: string;
 }
 
-export const LevelMenuOptions = ({ onDelete, onEdit }: LevelMenuOptionsProps) => {
+export const LevelMenuOptions = ({ onDelete, onEdit, levelId }: LevelMenuOptionsProps) => {
     const DropdownList = ["Edit Level", "Delete Level"];
 
     const handleMenuOptionsChange = (value: string) => {
         if (value === "Delete Level") {
-            onDelete();
+            onDelete(levelId);
         } else if (value === "Edit Level") {
             onEdit();
         }

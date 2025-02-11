@@ -10,7 +10,7 @@ export const LevelCard = ({
     onEdit,
 }: {
     level: LevelWithDetailsType;
-    onDelete: () => void;
+    onDelete: (levelId: string) => void;
     onEdit: () => void;
 }) => {
     const { open } = useSidebar();
@@ -52,7 +52,7 @@ export const LevelCard = ({
                 <div className="text-semibold w-full text-wrap text-center text-title font-semibold text-neutral-600">
                     {level.name} Class
                 </div>
-                <LevelMenuOptions onDelete={onDelete} onEdit={onEdit} />
+                <LevelMenuOptions onDelete={onDelete} onEdit={onEdit} levelId={level.id} />
             </div>
         </div>
     );

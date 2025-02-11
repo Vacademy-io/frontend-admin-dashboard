@@ -15,6 +15,7 @@ import { AddLevelButton } from "./add-level-button";
 import { AddLevelData } from "./add-level-form";
 import { toast } from "sonner";
 import { useAddLevel } from "@/services/study-library/level-operations/add-level";
+import { useDeleteLevel } from "@/services/study-library/level-operations/delete-level";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
@@ -23,6 +24,7 @@ export const LevelPage = () => {
     const courseId = searchParams.courseId;
     const { setSelectedSession } = useSelectedSessionStore();
     const addLevelMutation = useAddLevel();
+    const deleteLevelMutation = useDeleteLevel();
     const { studyLibraryData } = useStudyLibraryStore();
     // Ensure hooks always run
     const sessionList = courseId ? getCourseSessions(courseId) : [];
@@ -43,7 +45,17 @@ export const LevelPage = () => {
         }
     };
 
-    const handleLeveLDelete = () => {};
+    const handleLeveLDelete = (levelId: string) => {
+        deleteLevelMutation.mutate(levelId, {
+            onSuccess: () => {
+                toast.success("Level deleted successfully");
+            },
+            onError: (error) => {
+                toast.error(error.message || "Failed to delete level");
+            },
+        });
+    };
+
     const handleLevelEdit = () => {};
 
     useEffect(() => {
