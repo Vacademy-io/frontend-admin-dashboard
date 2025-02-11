@@ -13,7 +13,12 @@ export const EnrollStudentsButton = () => {
     return (
         <Dialog>
             <DialogTrigger>
-                <MyButton buttonType="primary" scale="large" layoutVariant="default">
+                <MyButton
+                    buttonType="primary"
+                    scale="large"
+                    layoutVariant="default"
+                    id="enroll-students"
+                >
                     Enroll Students
                 </MyButton>
             </DialogTrigger>

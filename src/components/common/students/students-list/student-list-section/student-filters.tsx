@@ -28,7 +28,7 @@ export const StudentFilters = ({
     }, [columnFilters, searchFilter]);
     return (
         <div className="flex items-start justify-between">
-            <div className="flex flex-wrap items-center gap-6 gap-y-4">
+            <div className="flex flex-wrap items-center gap-6 gap-y-4" id="organize">
                 <SessionDropdown
                     sessionDirection="flex-row"
                     defaultSession={currentSession}
@@ -78,7 +78,7 @@ export const StudentFilters = ({
                     </div>
                 )}
             </div>
-            <MyButton scale="large" buttonType="secondary" layoutVariant="default">
+            <MyButton scale="large" buttonType="secondary" layoutVariant="default" id="export-data">
                 <Export />
                 <div>Export</div>
             </MyButton>

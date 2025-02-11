@@ -50,7 +50,7 @@ export const Modules = ({
     if (isLoading) return <DashboardLoader />;
 
     return (
-        <div className="h-full w-full">
+        <div className="size-full">
             {(!modules || !modules.length) && (
                 <div className="flex w-full flex-col items-center justify-center gap-8 rounded-lg py-10">
                     <EmptyModulesImage />

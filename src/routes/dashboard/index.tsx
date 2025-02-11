@@ -9,6 +9,9 @@ import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from "@/svgs";
 import { Badge } from "@/components/ui/badge";
 import { CompletionStatusComponent } from "./-components/CompletionStatusComponent";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { IntroKey } from "@/constants/storage/introKey";
+import useIntroJsTour from "@/hooks/use-intro";
+import { dashboardSteps } from "@/constants/intro/steps";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { getInstituteDashboardData } from "./-services/dashboard-services";
@@ -31,6 +34,14 @@ export function DashboardComponent() {
     console.log(data);
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
+
+    useIntroJsTour({
+        key: IntroKey.dashboardFirstTimeVisit,
+        steps: dashboardSteps,
+        onTourExit: () => {
+            console.log("Tour Completed");
+        },
+    });
 
     const handleAssessmentTypeRoute = (type: string) => {
         navigate({
@@ -140,6 +151,7 @@ export function DashboardComponent() {
                                     <MyButton
                                         type="submit"
                                         scale="medium"
+                                        id="first-course"
                                         buttonType="secondary"
                                         layoutVariant="default"
                                         className="text-sm"
@@ -163,6 +175,7 @@ export function DashboardComponent() {
                                         type="submit"
                                         scale="medium"
                                         buttonType="secondary"
+                                        id="quick-enrollment"
                                         layoutVariant="default"
                                         className="text-sm"
                                         onClick={handleEnrollButtonClick}
@@ -193,6 +206,7 @@ export function DashboardComponent() {
                                             <MyButton
                                                 type="submit"
                                                 scale="medium"
+                                                id="first-assessment"
                                                 buttonType="secondary"
                                                 layoutVariant="default"
                                                 className="text-sm"

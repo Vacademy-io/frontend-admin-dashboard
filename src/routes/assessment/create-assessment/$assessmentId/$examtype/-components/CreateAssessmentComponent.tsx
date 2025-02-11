@@ -6,9 +6,15 @@ import { Helmet } from "react-helmet";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Route } from "..";
 import { useNavigate } from "@tanstack/react-router";
+import useIntroJsTour from "@/hooks/use-intro";
+import { IntroKey } from "@/constants/storage/introKey";
+import { createAssesmentSteps } from "@/constants/intro/steps";
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {
-    steps: string[];
+    steps: {
+        label: string;
+        id: string;
+    }[];
     currentStep: number;
     completedSteps: boolean[];
     onStepClick: (index: number) => void;
@@ -25,8 +31,9 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
         <>
             {steps.map((step, index) => (
                 <div
-                    key={index}
+                    key={step.id}
                     onClick={() => onStepClick(index)}
+                    id={step.id}
                     className={`mx-6 flex items-center justify-between px-6 py-3 ${
                         index <= currentStep || completedSteps[index - 1]
                             ? "cursor-pointer"
@@ -48,7 +55,7 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
                             <span className="text-lg font-semibold">{index + 1}</span>
                         )}
                         {open && <span className="text-lg font-semibold">{index + 1}</span>}
-                        {open && <span className="font-thin">{step}</span>}
+                        {open && <span className="font-thin">{step.label}</span>}
                     </div>
 
                     {completedSteps[index] && (
@@ -64,7 +71,24 @@ const CreateAssessmentComponent = () => {
     const navigate = useNavigate();
     const { assessmentId, examtype } = Route.useParams();
     const { currentStep: presentStep } = Route.useSearch();
-    const steps = ["Basic Info", "Add Question", "Add Participants", "Access Control"];
+    const steps = [
+        {
+            label: "Basic Info",
+            id: "basic-info",
+        },
+        {
+            label: "Add Question",
+            id: "add-question",
+        },
+        {
+            label: "Add Participants",
+            id: "add-participants",
+        },
+        {
+            label: "Access Control",
+            id: "access-control",
+        },
+    ];
     const [currentStep, setCurrentStep] = useState(presentStep);
     const [completedSteps, setCompletedSteps] = useState([false, false, false, false]);
 
@@ -89,6 +113,14 @@ const CreateAssessmentComponent = () => {
             });
         }
     };
+
+    useIntroJsTour({
+        key: IntroKey.assessmentFirstTimeVisit,
+        steps: createAssesmentSteps.filter((step) => step.element !== "#create-assessment"),
+        onTourExit: () => {
+            console.log("Tour Completed");
+        },
+    });
 
     const goToStep = (index: number) => {
         if (index <= currentStep || completedSteps[index - 1]) {

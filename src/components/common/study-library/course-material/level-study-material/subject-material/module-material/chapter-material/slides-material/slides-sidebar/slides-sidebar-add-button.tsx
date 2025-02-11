@@ -103,6 +103,7 @@ export const ChapterSidebarAddButton = () => {
                     scale="large"
                     layoutVariant={open ? "default" : "icon"}
                     className={`${open ? "" : ""}`}
+                    id="add-slides"
                 >
                     <Plus />
                     <p className={`${open ? "visible" : "hidden"}`}>Add</p>

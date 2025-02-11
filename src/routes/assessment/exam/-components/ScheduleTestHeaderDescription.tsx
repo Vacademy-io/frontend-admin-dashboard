@@ -2,6 +2,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MyButton } from "@/components/design-system/button";
 import { CalendarBlank } from "phosphor-react";
 import { useNavigate } from "@tanstack/react-router";
+import useIntroJsTour from "@/hooks/use-intro";
+import { IntroKey } from "@/constants/storage/introKey";
+import { createAssesmentSteps } from "@/constants/intro/steps";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Examination, Mock, Practice, Survey } from "@/svgs";
 
@@ -22,6 +25,15 @@ export const ScheduleTestHeaderDescription = () => {
         });
     };
 
+    useIntroJsTour({
+        key: IntroKey.assessmentFirstTimeVisit,
+        steps: createAssesmentSteps.filter((step) => step.element === "#create-assessment"),
+        partial: true,
+        onTourExit: () => {
+            console.log("Tour Completed");
+        },
+    });
+
     return (
         <div
             className={`mb-8 flex items-center justify-between ${
@@ -41,7 +53,12 @@ export const ScheduleTestHeaderDescription = () => {
             </div>
             <Dialog>
                 <DialogTrigger>
-                    <MyButton scale="large" buttonType="primary" layoutVariant="default">
+                    <MyButton
+                        scale="large"
+                        buttonType="primary"
+                        layoutVariant="default"
+                        id="create-assessment"
+                    >
                         <CalendarBlank size={32} />
                         Create Assessment
                     </MyButton>
