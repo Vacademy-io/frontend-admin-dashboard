@@ -4,12 +4,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ChapterMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
-import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { ChapterSidebarComponent } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/chapter-sidebar-component";
 import { useEffect, useState } from "react";
 import { CaretLeft } from "phosphor-react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 
 interface ModulesSearchParams {
     courseId: string;
@@ -52,9 +51,7 @@ function RouteComponent() {
         });
     }, [currentModuleId, courseId, levelId, subjectId]);
 
-    // Module page heading
-    const levelName = getLevelName(levelId);
-    const subjectName = getSubjectName(subjectId);
+    const moduleName = getModuleName(moduleId);
 
     const handleBackClick = () => {
         navigate({
@@ -70,7 +67,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${levelName} Class ${subjectName}`}</div>
+            <div>{`${moduleName} Chapters`}</div>
         </div>
     );
 

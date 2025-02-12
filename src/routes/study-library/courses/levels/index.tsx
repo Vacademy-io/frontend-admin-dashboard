@@ -9,6 +9,7 @@ import { CaretLeft } from "phosphor-react";
 import { useEffect } from "react";
 import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
 import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels";
+import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
 
 interface CourseSearchParams {
     courseId: string;
@@ -31,6 +32,8 @@ function RouteComponent() {
     const sessionList = courseId ? getCourseSessions(courseId) : [];
     const initialSession: StudyLibrarySessionType | undefined = sessionList[0] ?? undefined;
 
+    const courseName = getCourseNameById(courseId);
+
     if (initialSession?.id == "DEFAULT") {
         navigate({
             to: `/study-library/courses/levels/subjects`,
@@ -50,7 +53,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`Levels`}</div>
+            <div>{courseName} Levels</div>
         </div>
     );
 

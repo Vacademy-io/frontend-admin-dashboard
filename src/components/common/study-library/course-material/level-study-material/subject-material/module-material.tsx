@@ -95,9 +95,9 @@ export const ModuleMaterial = () => {
                 <div className="flex w-full flex-col gap-2">
                     <div className="text-h3 font-semibold">Manage Your Modules</div>
                     <div className="text-subtitle">
-                        Explore and manage modules for {levelName} Class {subject}. Click on a
-                        module to view and organize chapters, eBooks, and video lectures, or add new
-                        resources to expand your study materials.
+                        Explore and manage modules for {levelName} {subject}. Click on a module to
+                        view and organize chapters, eBooks, and video lectures, or add new resources
+                        to expand your study materials.
                     </div>
                 </div>
                 <AddModulesButton onAddModule={handleAddModule} />

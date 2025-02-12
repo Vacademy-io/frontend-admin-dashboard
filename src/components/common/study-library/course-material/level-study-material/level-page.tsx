@@ -128,8 +128,7 @@ export const LevelPage = () => {
                             <div className="text-subtitle">
                                 Effortlessly manage classes, subjects, and resources to ensure
                                 students have access to the best education materials. Organize,
-                                upload, and track study resources for 8th, 9th, and 10th classes all
-                                in one place.
+                                upload, and track study resources for all levels in one place.
                             </div>
                         </div>
                         <div className="flex flex-col items-center gap-4">

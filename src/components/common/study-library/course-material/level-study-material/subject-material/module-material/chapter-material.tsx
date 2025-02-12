@@ -116,9 +116,9 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                             {moduleWithChapters?.module.module_name}
                         </p>
                         <p className="text-subtitle">
-                            Explore and manage chapters for 10th Class Physics. Click on a chapter
-                            to view and access eBooks, video lectures, and study resources, or add
-                            new materials to enhance your learning experience.
+                            Explore and manage chapters. Click on a chapter to view and access
+                            eBooks, video lectures, and study resources, or add new materials to
+                            enhance your learning experience.
                         </p>
                     </div>
                     <AddChapterButton onAddChapter={handleAddChapter} />

@@ -51,7 +51,7 @@ export const LevelCard = ({
             <SubjectDefaultImage />
             <div className="flex w-full justify-center gap-3 px-5">
                 <div className="text-semibold w-full text-wrap text-center text-title font-semibold text-neutral-600">
-                    {level.name} Class
+                    {level.name}
                 </div>
                 <LevelMenuOptions
                     onDelete={onDelete}

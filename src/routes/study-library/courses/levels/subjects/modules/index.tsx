@@ -4,7 +4,6 @@ import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-l
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { ModuleMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { CaretLeft } from "phosphor-react";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { useEffect } from "react";
@@ -32,8 +31,7 @@ function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
     const { courseId, levelId, subjectId } = Route.useSearch();
-    const levelName = getLevelName(levelId);
-    const subject = getSubjectName(subjectId);
+    const subjectName = getSubjectName(subjectId);
 
     const handleBackClick = () => {
         navigate({
@@ -45,7 +43,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${levelName} Class ${subject}`}</div>
+            <div>{`${subjectName} Modules`}</div>
         </div>
     );
 

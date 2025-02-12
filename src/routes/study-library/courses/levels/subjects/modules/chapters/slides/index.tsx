@@ -13,7 +13,6 @@ import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-w
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
@@ -90,7 +89,6 @@ function RouteComponent() {
         setInputSearch(e.target.value);
     };
 
-    const [levelName, setLevelName] = useState("");
     const [subjectName, setSubjectName] = useState("");
     const [moduleName, setModuleName] = useState("");
     const [chapterName, setChapterName] = useState("");
@@ -98,10 +96,10 @@ function RouteComponent() {
     const trucatedChapterName = truncateString(chapterName, 9);
 
     useEffect(() => {
-        setLevelName(getLevelName(levelId || ""));
         setSubjectName(getSubjectName(subjectId || ""));
         setModuleName(getModuleName(moduleId || ""));
         setChapterName(getChapterName(chapterId || ""));
+        // console.log("chapter Id and Name: ", chapterId, " ", chapterName);
     }, []);
 
     const SidebarComponent = (
@@ -182,7 +180,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${levelName} Class ${subjectName}`}</div>
+            <div>{`${chapterName} Slides`}</div>
         </div>
     );
 
