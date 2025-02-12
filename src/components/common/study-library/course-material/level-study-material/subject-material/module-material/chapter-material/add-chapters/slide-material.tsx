@@ -75,10 +75,10 @@ export const SlideMaterial = () => {
         }
 
         if (activeItem?.document_type === "DOC" && activeItem.document_data) {
+            console.log("Entered doc");
             let editorContent: YooptaContentValue | undefined;
             try {
                 editorContent = html.deserialize(editor, activeItem.document_data || "");
-                console.log("Deserialized content:", editorContent);
 
                 editor.setEditorValue(editorContent);
                 setContent(
@@ -91,9 +91,7 @@ export const SlideMaterial = () => {
                             value={editorContent}
                             selectionBoxRoot={selectionRef}
                             autoFocus
-                            onChange={(value) => {
-                                console.log("Editor content changed:", value);
-                            }}
+                            onChange={() => {}}
                             className="size-full"
                             style={{ width: "100%", height: "100%" }}
                         />
@@ -113,6 +111,7 @@ export const SlideMaterial = () => {
         if (activeItem) {
             setHeading(activeItem.document_title || activeItem.video_title || "");
             setContent(null);
+            console.log("active item changed: ", activeItem);
             loadContent();
         }
     }, [activeItem]);
@@ -142,7 +141,6 @@ export const SlideMaterial = () => {
         const data = editor.getEditorValue();
         const htmlString = html.serialize(editor, data);
         const formattedHtmlString = formatHTMLString(htmlString);
-        console.log("formatted html string", formattedHtmlString);
 
         try {
             const saveDocDraft = async () => {
