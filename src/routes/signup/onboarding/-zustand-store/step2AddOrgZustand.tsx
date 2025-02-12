@@ -12,7 +12,7 @@ interface FormValues {
 interface FormStore {
     formDataAddOrg: FormValues;
     setFormDataAddOrg: (data: Partial<FormValues>) => void;
-    resetForm: () => void;
+    resetAddOrgForm: () => void;
 }
 
 export const useAddOrgStore = create<FormStore>((set) => ({
@@ -28,7 +28,7 @@ export const useAddOrgStore = create<FormStore>((set) => ({
         set((state) => ({
             formDataAddOrg: { ...state.formDataAddOrg, ...data },
         })),
-    resetForm: () =>
+    resetAddOrgForm: () =>
         set({
             formDataAddOrg: {
                 name: "",

@@ -47,8 +47,8 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
 }) => {
     const queryClient = useQueryClient();
     const searchParams = Route.useSearch();
-    const { formDataAddOrg, setFormDataAddOrg } = useAddOrgStore();
-    const { formData } = useOrganizationStore();
+    const { formDataAddOrg, setFormDataAddOrg, resetAddOrgForm } = useAddOrgStore();
+    const { formData, resetForm } = useOrganizationStore();
     console.log(currentStep, completedSteps);
     const navigate = useNavigate();
     const form = useForm<FormValues>({
@@ -90,6 +90,8 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
             handleCompleteCurrentStep();
             setAuthorizationCookie(TokenKey.accessToken, data.accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, data.refreshToken);
+            resetForm();
+            resetAddOrgForm();
             navigate({
                 to: "/dashboard",
             });
