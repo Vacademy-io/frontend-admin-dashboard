@@ -17,14 +17,14 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: "Students list",
                 subItemLink: "/students/students-list",
             },
-            {
-                subItem: "Manage Batches and Sessions",
-                subItemLink: "/students/manage-batches",
-            },
-            {
-                subItem: "Enroll Requests",
-                subItemLink: "/students/enroll-requests",
-            },
+            // {
+            //     subItem: "Manage Batches and Sessions",
+            //     subItemLink: "/students/manage-batches",
+            // },
+            // {
+            //     subItem: "Enroll Requests",
+            //     subItemLink: "/students/enroll-requests",
+            // },
         ],
     },
     {
