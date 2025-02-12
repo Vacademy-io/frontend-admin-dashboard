@@ -16,6 +16,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { getInstituteDashboardData } from "./-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { SSDC_INSTITUTE_ID } from "@/constants/urls";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -31,7 +32,6 @@ export function DashboardComponent() {
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
         getInstituteDashboardData(instituteDetails?.id),
     );
-    console.log(data);
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
@@ -78,13 +78,15 @@ export function DashboardComponent() {
                 Welcome aboard! We&apos;re excited to have you here. Let’s set up your admin
                 dashboard and make learning seamless and engaging.
             </p>
-            <iframe
-                className="mt-6 size-full h-[80vh] rounded-xl"
-                src="https://www.youtube.com/embed/lIhk4IFQH8w"
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-            />
+            {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
+                <iframe
+                    className="mt-6 size-full h-[80vh] rounded-xl"
+                    src="https://www.youtube.com/embed/lIhk4IFQH8w"
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                />
+            )}
             <div className="mt-8 flex w-full flex-col gap-6">
                 <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader>
