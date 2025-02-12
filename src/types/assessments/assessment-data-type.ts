@@ -1,4 +1,4 @@
-interface Instructions {
+export interface Instructions {
     id: string;
     type: string;
     content: string;
