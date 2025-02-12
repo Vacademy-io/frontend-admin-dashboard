@@ -15,11 +15,21 @@ import { removeCookiesAndLogout } from "@/lib/auth/sessionUtility";
 import { useNavigate } from "@tanstack/react-router";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import useInstituteLogoStore from "../sidebar/institutelogo-global-zustand";
+import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
+import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
+import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
+import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 export function Navbar() {
     // const notifications = true;
     const { resetStore } = useInstituteDetailsStore();
+    const { resetStudyLibraryStore } = useStudyLibraryStore();
     const { resetInstituteLogo } = useInstituteLogoStore();
+    const { resetModulesWithChaptersStore } = useModulesWithChaptersStore();
+    const { resetPdfStore } = usePDFStore();
+    const { resetSelectedSessionStore } = useSelectedSessionStore();
+    const { resetChapterSidebarStore } = useContentStore();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const { navHeading } = useNavHeadingStore();
@@ -28,7 +38,13 @@ export function Navbar() {
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
         resetStore();
+        resetStudyLibraryStore();
+        resetModulesWithChaptersStore();
         resetInstituteLogo();
+        resetPdfStore();
+        resetSelectedSessionStore();
+        resetChapterSidebarStore();
+
         removeCookiesAndLogout(); // Ensure logout completes
         navigate({
             to: "/login",

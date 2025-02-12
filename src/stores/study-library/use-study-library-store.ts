@@ -44,9 +44,11 @@ export interface CourseWithSessionsType {
 interface StudyLibraryStore {
     studyLibraryData: CourseWithSessionsType[] | null;
     setStudyLibraryData: (data: CourseWithSessionsType[]) => void;
+    resetStudyLibraryStore: () => void;
 }
 
 export const useStudyLibraryStore = create<StudyLibraryStore>((set) => ({
     studyLibraryData: null,
     setStudyLibraryData: (data) => set({ studyLibraryData: data }),
+    resetStudyLibraryStore: () => set({ studyLibraryData: null }),
 }));
