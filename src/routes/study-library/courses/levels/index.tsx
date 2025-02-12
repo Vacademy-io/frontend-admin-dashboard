@@ -7,6 +7,8 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { useNavigate } from "@tanstack/react-router";
 import { CaretLeft } from "phosphor-react";
 import { useEffect } from "react";
+import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
+import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels";
 
 interface CourseSearchParams {
     courseId: string;
@@ -24,6 +26,20 @@ export const Route = createFileRoute("/study-library/courses/levels/")({
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
+    const { courseId } = Route.useSearch();
+
+    const sessionList = courseId ? getCourseSessions(courseId) : [];
+    const initialSession: StudyLibrarySessionType | undefined = sessionList[0] ?? undefined;
+
+    if (initialSession?.id == "DEFAULT") {
+        navigate({
+            to: `/study-library/courses/levels/subjects`,
+            search: {
+                courseId: courseId,
+                levelId: "DEFAULT",
+            },
+        });
+    }
 
     const handleBackClick = () => {
         navigate({

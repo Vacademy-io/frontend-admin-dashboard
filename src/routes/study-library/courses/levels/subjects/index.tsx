@@ -30,10 +30,16 @@ function RouteComponent() {
     const classNumber = getLevelName(levelId);
 
     const handleBackClick = () => {
-        navigate({
-            to: "/study-library/courses/levels",
-            search: { courseId: courseId },
-        });
+        if (levelId == "DEFAULT") {
+            navigate({
+                to: "/study-library/courses",
+            });
+        } else {
+            navigate({
+                to: "/study-library/courses/levels",
+                search: { courseId: courseId },
+            });
+        }
     };
 
     const heading = (

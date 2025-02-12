@@ -24,6 +24,7 @@ import { useSelectedSessionStore } from "@/stores/study-library/selected-session
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
+import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
 
 export const SubjectMaterial = () => {
     const router = useRouter();
@@ -114,6 +115,8 @@ export const SubjectMaterial = () => {
         return <p>Missing required parameters</p>;
     }
 
+    const courseName = getCourseNameById(courseId);
+
     const isLoading =
         addSubjectMutation.isPending ||
         deleteSubjectMutation.isPending ||
@@ -129,7 +132,9 @@ export const SubjectMaterial = () => {
                         {`Manage ${classNumber} Class Resources`}
                     </div>
                     <div className="text-subtitle">
-                        {`Explore and manage resources for ${classNumber} Class. Click on a subject to view and
+                        {`Explore and manage resources for ${
+                            levelId == "DEFAULT" ? courseName : classNumber
+                        }. Click on a subject to view and
                         organize eBooks and video lectures, or upload new content to enrich your
                         study library.`}
                     </div>
