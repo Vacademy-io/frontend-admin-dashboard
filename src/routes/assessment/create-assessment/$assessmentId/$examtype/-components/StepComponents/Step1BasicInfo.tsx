@@ -265,7 +265,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         }
                         onClick={handleSubmit(onSubmit, onInvalid)}
                     >
-                        Next
+                        {assessmentId !== "defaultId" ? "Update" : "Next"}
                     </MyButton>
                 </div>
                 <Separator className="my-4" />
