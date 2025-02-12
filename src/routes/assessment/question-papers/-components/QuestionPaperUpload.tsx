@@ -232,10 +232,10 @@ export const QuestionPaperUpload = ({
             });
             if (index !== undefined) {
                 // Check if index is defined
-                sectionsForm?.setValue(`section.${index}`, {
-                    ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
-                    uploaded_question_paper: data.saved_question_paper_id,
-                    adaptive_marking_for_each_question: transformQuestionsData.map((question) => ({
+
+                sectionsForm?.setValue(
+                    `section.${index}.adaptive_marking_for_each_question`,
+                    transformQuestionsData.map((question) => ({
                         questionId: question.questionId,
                         questionName: question.questionName,
                         questionType: question.questionType,
@@ -251,7 +251,8 @@ export const QuestionPaperUpload = ({
                             min: question.questionDuration.min,
                         },
                     })),
-                });
+                );
+                sectionsForm?.trigger(`section.${index}.adaptive_marking_for_each_question`);
             }
             setIsMainQuestionPaperAddDialogOpen(false);
             setIsManualQuestionPaperDialogOpen(false);

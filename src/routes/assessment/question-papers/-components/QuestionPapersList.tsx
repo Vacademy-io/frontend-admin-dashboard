@@ -112,15 +112,15 @@ export const QuestionPapersList = ({
                         questionName: question.questionName,
                         questionType: question.questionType,
                         questionMark: question.questionMark,
-                        questionPenalty: "",
+                        questionPenalty: question.questionPenalty,
                         ...(question.questionType === "MCQM" && {
                             correctOptionIdsCnt: question?.multipleChoiceOptions?.filter(
                                 (item) => item.isSelected,
                             ).length,
                         }),
                         questionDuration: {
-                            hrs: "",
-                            min: "",
+                            hrs: question.questionDuration.hrs,
+                            min: question.questionDuration.min,
                         },
                     })),
                 );

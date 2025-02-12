@@ -289,7 +289,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         buttonType="primary"
                         onClick={handleSubmit(onSubmit, onInvalid)}
                     >
-                        Next
+                        {assessmentId !== "defaultId" ? "Update" : "Next"}
                     </MyButton>
                 </div>
                 <Separator className="my-4" />
