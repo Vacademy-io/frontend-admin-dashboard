@@ -1,6 +1,6 @@
 export const BASE_URL = "https://backend-stage.vacademy.io";
 
-export const SSDC_INSTITUTE_ID = "c70f40a5-e4d3-4b6c-a498-e612d0d4b133";
+export const SSDC_INSTITUTE_ID = "69ca11c6-54e1-4e99-9498-50c9a4272ce6";
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
