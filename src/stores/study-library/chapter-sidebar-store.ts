@@ -8,6 +8,7 @@ interface ContentStore {
     setItems: (items: Slide[]) => void;
     setActiveItem: (item: Slide | null) => void;
     reorderItems: (oldIndex: number, newIndex: number) => void;
+    resetChapterSidebarStore: () => void;
 }
 
 export const useContentStore = create<ContentStore>((set) => ({
@@ -36,4 +37,5 @@ export const useContentStore = create<ContentStore>((set) => ({
                 items: newItems,
             };
         }),
+    resetChapterSidebarStore: () => set({ items: undefined, activeItem: null }),
 }));
