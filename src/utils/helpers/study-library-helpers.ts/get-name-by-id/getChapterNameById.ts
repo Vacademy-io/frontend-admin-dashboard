@@ -1,17 +1,16 @@
-// utils/study-library/getChapterName.ts
+// hooks/useChapterName.ts
 import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
 
-export const getChapterName = (chapterId: string): string => {
-    const modulesData = useModulesWithChaptersStore.getState().modulesWithChaptersData;
+export const useChapterName = (chapterId: string): string | undefined => {
+    const modulesWithChaptersData = useModulesWithChaptersStore(
+        (state) => state.modulesWithChaptersData,
+    );
 
-    if (!modulesData) {
-        return "";
-    }
+    if (!modulesWithChaptersData) return undefined;
 
-    // Search through all modules to find the chapter
-    for (const moduleData of modulesData) {
-        const chapter = moduleData.chapters.find(
-            (chapterData) => chapterData.chapter.id === chapterId,
+    for (const moduleWithChapters of modulesWithChaptersData) {
+        const chapter = moduleWithChapters.chapters.find(
+            (chapterWithSlides) => chapterWithSlides.chapter.id === chapterId,
         );
 
         if (chapter) {
@@ -19,5 +18,5 @@ export const getChapterName = (chapterId: string): string => {
         }
     }
 
-    return "";
+    return undefined;
 };
