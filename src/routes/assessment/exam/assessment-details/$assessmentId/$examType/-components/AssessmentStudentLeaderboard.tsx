@@ -105,6 +105,17 @@ const AssessmentStudentLeaderboard = () => {
             },
         });
     };
+
+    const handleRefreshLeaderboard = () => {
+        getStudentLeaderboardData.mutate({
+            assessmentId,
+            instituteId,
+            pageNo,
+            pageSize: 10,
+            selectedFilter,
+        });
+    };
+
     const handlePageChange = (newPage: number) => {
         setPageNo(newPage);
     };
@@ -130,6 +141,7 @@ const AssessmentStudentLeaderboard = () => {
                         scale="large"
                         buttonType="secondary"
                         className="min-w-8 font-medium"
+                        onClick={handleRefreshLeaderboard}
                     >
                         <ArrowCounterClockwise size={32} />
                     </MyButton>
@@ -141,65 +153,76 @@ const AssessmentStudentLeaderboard = () => {
                 setSearchText={setSearchText}
                 clearSearch={clearSearch}
             />
-            <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
-                {studentLeaderboardData.content?.map((student: StudentLeaderboard, idx: number) => {
-                    return (
-                        <div
-                            key={idx}
-                            className={`flex items-center justify-between rounded-xl border ${
-                                student.rank === 1 ? "bg-primary-50" : "bg-white"
-                            } p-4`}
-                        >
-                            <div className="flex items-center gap-4">
-                                <span>{student.rank}</span>
-                                {student.rank === 1 ? (
-                                    <div>
-                                        <Crown />
-                                        <Person />
+            {getStudentLeaderboardData.status === "pending" ? (
+                <DashboardLoader />
+            ) : (
+                <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
+                    {studentLeaderboardData.content?.map(
+                        (student: StudentLeaderboard, idx: number) => {
+                            return (
+                                <div
+                                    key={idx}
+                                    className={`flex items-center justify-between rounded-xl border ${
+                                        student.rank === 1 ? "bg-primary-50" : "bg-white"
+                                    } p-4`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <span>{student.rank}</span>
+                                        {student.rank === 1 ? (
+                                            <div>
+                                                <Crown />
+                                                <Person />
+                                            </div>
+                                        ) : (
+                                            <Person />
+                                        )}
+                                        <div className="flex flex-col">
+                                            <span>{student.student_name}</span>
+                                            <span className="text-[12px]">
+                                                {getBatchNameById(
+                                                    batches_for_sessions,
+                                                    student.batch_id,
+                                                )}
+                                            </span>
+                                        </div>
                                     </div>
-                                ) : (
-                                    <Person />
-                                )}
-                                <div className="flex flex-col">
-                                    <span>{student.student_name}</span>
-                                    <span className="text-[12px]">
-                                        {getBatchNameById(batches_for_sessions, student.batch_id)}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <Clock size={18} className="text-neutral-600" />
-                                    <span className="text-sm text-neutral-500">
-                                        {Math.floor(student.completion_time_in_seconds / 60)} min{" "}
-                                        {student.completion_time_in_seconds % 60} sec
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex flex-col text-neutral-500">
-                                        <span className="text-[12px]">Percentile</span>
-                                        <span>
-                                            {calculateIndividualPercentile(
-                                                studentDataWithPercentile,
-                                                student.user_id,
-                                            )}
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-col text-center text-neutral-500">
-                                        <span className="text-[12px]">Marks</span>
-                                        <span>{student.achieved_marks}/20</span>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <Clock size={18} className="text-neutral-600" />
+                                            <span className="text-sm text-neutral-500">
+                                                {Math.floor(
+                                                    student.completion_time_in_seconds / 60,
+                                                )}{" "}
+                                                min {student.completion_time_in_seconds % 60} sec
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex flex-col text-neutral-500">
+                                                <span className="text-[12px]">Percentile</span>
+                                                <span>
+                                                    {calculateIndividualPercentile(
+                                                        studentDataWithPercentile,
+                                                        student.user_id,
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-col text-center text-neutral-500">
+                                                <span className="text-[12px]">Marks</span>
+                                                <span>{student.achieved_marks}/20</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    );
-                })}
-                <MyPagination
-                    currentPage={pageNo}
-                    totalPages={studentLeaderboardData.total_pages}
-                    onPageChange={handlePageChange}
-                />
-            </div>
+                            );
+                        },
+                    )}
+                    <MyPagination
+                        currentPage={pageNo}
+                        totalPages={studentLeaderboardData.total_pages}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
+            )}
         </div>
     );
 };

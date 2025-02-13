@@ -10,10 +10,14 @@ import { ArrowCounterClockwise, Export } from "phosphor-react";
 import AssessmentDetailsRankMarkTable from "./QuestionsRankMarkTable";
 import { getInstituteId } from "@/constants/helper";
 import { Route } from "..";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { handleGetOverviewData } from "../-services/assessment-details-services";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+    getOverviewDetials,
+    handleGetOverviewData,
+} from "../-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { AssessmentOverviewMarksRankInterface } from "@/types/assessment-overview";
+import { useState } from "react";
 
 const chartConfig = {
     mark: {
@@ -91,6 +95,30 @@ export function QuestionsMarkRankGraph() {
     const { data, isLoading } = useSuspenseQuery(
         handleGetOverviewData({ assessmentId, instituteId }),
     );
+    const [studentRankMarkData, setStudentRankMarkData] = useState(data);
+
+    const getQuestionMarkRankData = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+        }) => getOverviewDetials(assessmentId, instituteId),
+        onSuccess: (data) => {
+            setStudentRankMarkData(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleRefreshLeaderboard = () => {
+        getQuestionMarkRankData.mutate({
+            assessmentId,
+            instituteId,
+        });
+    };
 
     if (isLoading) return <DashboardLoader />;
     return (
@@ -112,19 +140,28 @@ export function QuestionsMarkRankGraph() {
                         scale="large"
                         buttonType="secondary"
                         className="min-w-8 font-medium"
+                        onClick={handleRefreshLeaderboard}
                     >
                         <ArrowCounterClockwise size={32} />
                     </MyButton>
                 </div>
             </div>
-            <div className="mt-6 flex items-start gap-16">
-                <div className="w-1/2">
-                    <AssessmentDetailsMarkRankGraph marksRanksData={data.marks_rank_dto} />
+            {getQuestionMarkRankData.status === "pending" ? (
+                <DashboardLoader />
+            ) : (
+                <div className="mt-6 flex items-start gap-16">
+                    <div className="w-1/2">
+                        <AssessmentDetailsMarkRankGraph
+                            marksRanksData={studentRankMarkData.marks_rank_dto}
+                        />
+                    </div>
+                    <div className="w-1/2">
+                        <AssessmentDetailsRankMarkTable
+                            marksRanksData={studentRankMarkData.marks_rank_dto}
+                        />
+                    </div>
                 </div>
-                <div className="w-1/2">
-                    <AssessmentDetailsRankMarkTable marksRanksData={data.marks_rank_dto} />
-                </div>
-            </div>
+            )}
         </div>
     );
 }

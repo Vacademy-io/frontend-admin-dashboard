@@ -28,6 +28,7 @@ import {
 import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
 import { MyQuestion } from "@/types/assessments/question-paper-form";
 import { BatchDetailsInterface, StudentLeaderboard } from "@/types/assessment-overview";
+
 // import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
 // import { QuestionAssessmentPreview } from "@/types/assessment-preview-interface";
 
@@ -737,57 +738,3 @@ export function calculateIndividualPercentile(studentData: StudentLeaderboard[],
     // Return the percentile if found, otherwise return null or a default value
     return student ? student.percentile : "";
 }
-
-// export const announcementDialogTrigger = (
-//     previousDataRef: sectionsEditQuestionFormType["sections"] | undefined,
-//     newData: sectionsEditQuestionFormType["sections"],
-//     selectedSectionIndex: number,
-//     currentQuestionIndex: number,
-// ): void => {
-//     const prevQuestion = previousDataRef?.[selectedSectionIndex]?.questions[currentQuestionIndex];
-//     const newQuestion = newData?.[selectedSectionIndex]?.questions[currentQuestionIndex];
-
-//     // Function to compare two objects deeply
-//     const deepEqual = (
-//         obj1: QuestionAssessmentPreview | undefined,
-//         obj2: QuestionAssessmentPreview | undefined,
-//     ): boolean => {
-//         if (obj1 === obj2) return true;
-//         if (typeof obj1 !== "object" || typeof obj2 !== "object" || obj1 === null || obj2 === null)
-//             return false;
-
-//         const keys1 = Object.keys(obj1) as Array<keyof QuestionAssessmentPreview>;
-//         const keys2 = Object.keys(obj2) as Array<keyof QuestionAssessmentPreview>;
-
-//         if (keys1.length !== keys2.length) return false;
-
-//         for (const key of keys1) {
-//             if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false;
-//         }
-
-//         return true;
-//     };
-
-//     // Compare the two questions
-//     if (!deepEqual(prevQuestion, newQuestion)) {
-//         // Trigger alert if any field is changed
-//         // alert("The question has changed!");
-
-//         // Ensure required fields are always defined
-//         if (previousDataRef && previousDataRef[selectedSectionIndex]) {
-//             previousDataRef[selectedSectionIndex].questions[currentQuestionIndex] = {
-//                 id: newQuestion?.id ?? "", // Default to empty string if undefined
-//                 questionName: newQuestion?.questionName ?? "",
-//                 questionType: newQuestion?.questionType ?? "",
-//                 questionPenalty: newQuestion?.questionPenalty ?? "",
-//                 questionDuration: newQuestion?.questionDuration ?? { hrs: "0", min: "0" },
-//                 questionMark: newQuestion?.questionMark ?? "",
-//                 singleChoiceOptions: newQuestion?.singleChoiceOptions ?? [],
-//                 multipleChoiceOptions: newQuestion?.multipleChoiceOptions ?? [],
-//                 questionId: newQuestion?.questionId ?? "",
-//                 explanation: newQuestion?.explanation ?? "",
-//                 imageDetails: newQuestion?.imageDetails ?? [],
-//             };
-//         }
-//     }
-// };
