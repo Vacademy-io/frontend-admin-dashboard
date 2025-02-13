@@ -17,6 +17,7 @@ import { useInstituteQuery } from "@/services/student-list-section/getInstituteD
 import { getInstituteDashboardData } from "./-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SSDC_INSTITUTE_ID } from "@/constants/urls";
+import { Helmet } from "react-helmet";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -71,6 +72,13 @@ export function DashboardComponent() {
     if (isInstituteLoading || isDashboardLoading) return <DashboardLoader />;
     return (
         <>
+            <Helmet>
+                <title>Dashboard</title>
+                <meta
+                    name="description"
+                    content="This page shows the dashboard of the institute."
+                />
+            </Helmet>
             <h1 className="text-2xl">
                 Hello <span className="text-primary-500">{instituteDetails?.institute_name}!</span>
             </h1>
