@@ -76,24 +76,10 @@ export const AssessmentBasicInfoTab = () => {
                         <h1 className="whitespace-nowrap font-semibold">
                             Assessment Duration Settings:
                         </h1>
-                        {assessmentDetails[0]?.saved_data?.duration_distribution ===
-                            "ASSESSMENT" && (
-                            <h1 className="whitespace-nowrap font-thin">
-                                Entire Assessment duration
-                            </h1>
-                        )}
-                        {assessmentDetails[0]?.saved_data?.duration_distribution === "SECTION" && (
-                            <h1 className="whitespace-nowrap font-thin">Section Wise duration</h1>
-                        )}
-                        {assessmentDetails[0]?.saved_data?.duration_distribution === "QUESTION" && (
-                            <h1 className="whitespace-nowrap font-thin">Question Wise duration</h1>
-                        )}
-                        {assessmentDetails[0]?.saved_data?.duration_distribution ===
-                            "ASSESSMENT" && (
-                            <h1 className="whitespace-nowrap font-thin">
-                                {assessmentDetails[0]?.saved_data?.duration} min
-                            </h1>
-                        )}
+                        <h1 className="whitespace-nowrap font-thin">Entire Assessment duration</h1>
+                        <h1 className="whitespace-nowrap font-thin">
+                            {assessmentDetails[1]?.saved_data?.duration} min
+                        </h1>
                     </div>
                     {(assessmentDetails[0]?.saved_data?.assessment_preview ?? 0) > 0 && (
                         <div className="flex items-center justify-between text-sm">

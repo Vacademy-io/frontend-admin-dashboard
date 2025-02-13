@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { SessionDropdown } from "@/components/common/study-library/study-library-session-dropdown";
 import { AddChapterButton } from "./chapter-material/add-chapters/add-chapter-button";
 import { useForm } from "react-hook-form";
-import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
+import {
+    ChapterWithSlides,
+    useModulesWithChaptersStore,
+} from "@/stores/study-library/use-modules-with-chapters-store";
 import { getModuleById } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getModulesWithChaptersByModuleId";
 import { Chapters } from "./chapter-material/chapters";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
@@ -20,8 +23,11 @@ export interface FormValues {
 
 export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }) => {
     const [isChapterLoading, setIsChapterLoading] = useState(true);
-    const moduleWithChapters = getModuleById(currentModuleId);
-    const existingChapters = getChaptersByModuleId(currentModuleId) || [];
+    const { modulesWithChaptersData } = useModulesWithChaptersStore();
+    const [moduleWithChapters, setModulesWithChapters] = useState(getModuleById(currentModuleId));
+    const [existingChapters, setExistingChapters] = useState(
+        getChaptersByModuleId(currentModuleId) || [],
+    );
     const { selectedSession, setSelectedSession } = useSelectedSessionStore();
     const updateChapterOrderMutation = useUpdateChapterOrder();
 
@@ -88,7 +94,9 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
 
     useEffect(() => {
         setSelectedSession(currentSession);
-    }, [currentSession]);
+        setModulesWithChapters(getModuleById(currentModuleId));
+        setExistingChapters(getChaptersByModuleId(currentModuleId) || []);
+    }, [currentSession, modulesWithChaptersData]);
 
     return (
         <div className="flex h-full w-full flex-col gap-8 text-neutral-600">

@@ -4,20 +4,29 @@ import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sort
 import { truncateString } from "@/lib/reusable/truncateString";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from "@phosphor-icons/react";
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
+import { useSlides } from "@/hooks/study-library/use-slides";
+import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useRouter } from "@tanstack/react-router";
 
 export const ChapterSidebarSlides = () => {
     const { open } = useSidebar();
-    const { items, activeItemId, setActiveItem, reorderItems } = useContentStore();
+    const { activeItemId, setActiveItem, reorderItems } = useContentStore();
+    const router = useRouter();
+    const { chapterId } = router.state.location.search;
+    const { slides, isLoading } = useSlides(chapterId || "");
 
-    const getIcon = (type: "pdf" | "video" | "doc"): ReactNode => {
+    const getIcon = (type: string): ReactNode => {
         switch (type) {
-            case "pdf":
+            case "PDF":
                 return <FilePdf className="size-6" />;
-            case "video":
+            case "VIDEO":
                 return <PlayCircle className="size-6" />;
-            case "doc":
+            case "DOC":
                 return <FileDoc className="size-6" />;
+            default:
+                return <></>;
         }
     };
 
@@ -30,41 +39,38 @@ export const ChapterSidebarSlides = () => {
             "Updated order:",
             updatedItems.map((item, index) => ({
                 id: item.id,
-                name: item.name,
+                name: item.title,
                 order: index,
             })),
         );
     };
 
+    if (isLoading) {
+        return <DashboardLoader />;
+    }
+
     return (
-        <Sortable value={items} onMove={handleMove} fast={false}>
+        <Sortable value={slides} onMove={handleMove} fast={false}>
             <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
-                {items.map((item) => (
-                    <SortableItem key={item.id} value={item.id} asChild>
+                {slides?.map((slide: SidebarContentItem) => (
+                    <SortableItem key={slide.id} value={slide.id} asChild>
                         <div className="w-full cursor-grab active:cursor-grabbing">
                             <div
-                                onClick={(e: React.MouseEvent) => {
-                                    if (
-                                        e.target instanceof Element &&
-                                        !e.target.closest(".drag-handle-container")
-                                    ) {
-                                        setActiveItem(item);
-                                    }
-                                }}
+                                onClick={() => setActiveItem(slide)}
                                 className={`flex w-full items-center gap-3 rounded-xl px-4 py-2 ${
-                                    item.id === activeItemId
+                                    slide.id === activeItemId
                                         ? "border border-neutral-200 bg-white text-primary-500"
                                         : "hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500"
                                 }`}
-                                title={item.name}
+                                title={slide.title}
                             >
-                                {getIcon(item.type)}
+                                {getIcon(slide.type)}
                                 <p
                                     className={`flex-1 text-subtitle ${
                                         open ? "visible" : "hidden"
                                     } text-body`}
                                 >
-                                    {truncateString(item.name, 18)}
+                                    {truncateString(slide.title, 18)}
                                 </p>
                                 <div className="drag-handle-container">
                                     <SortableDragHandle

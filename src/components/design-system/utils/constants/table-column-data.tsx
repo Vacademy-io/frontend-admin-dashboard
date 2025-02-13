@@ -32,14 +32,14 @@ export const myColumns: ColumnDef<StudentTable>[] = [
             <Checkbox
                 checked={table.getIsAllRowsSelected()}
                 onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
-                className="border-neutral-400 bg-white text-neutral-600"
+                className="border-neutral-400 bg-white text-neutral-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
             />
         ),
         cell: ({ row }) => (
             <Checkbox
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none"
+                className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
             />
         ),
     },

@@ -17,7 +17,7 @@ export const SlideMaterial = () => {
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [heading, setHeading] = useState(activeItem?.name || "");
+    const [heading, setHeading] = useState(activeItem?.title || "");
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -45,7 +45,9 @@ export const SlideMaterial = () => {
             case "pdf":
                 return <PDFViewer />;
             case "video":
-                return <YouTubePlayer videoUrl={activeItem.url} videoTitle={activeItem.name} />;
+                return (
+                    <YouTubePlayer videoUrl={activeItem.url || ""} videoTitle={activeItem.title} />
+                );
 
             case "doc": {
                 console.log("Rendering doc content:", activeItem.content); // For debugging
@@ -82,7 +84,7 @@ export const SlideMaterial = () => {
 
     useEffect(() => {
         if (activeItem) {
-            setHeading(activeItem.name);
+            setHeading(activeItem.title);
         }
     }, [activeItem]);
 

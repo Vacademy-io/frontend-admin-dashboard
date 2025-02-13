@@ -72,3 +72,5 @@ const InstituteSchema = z.object({
 });
 
 export type InstituteDetailsType = z.infer<typeof InstituteSchema> | null;
+export type LevelType = z.infer<typeof LevelSchema>;
+export type SessionType = z.infer<typeof SessionSchema>;

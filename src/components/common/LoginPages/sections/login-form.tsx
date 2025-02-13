@@ -6,7 +6,7 @@ import { loginSchema } from "@/schemas/login/login";
 import { useEffect } from "react";
 import { SplashScreen } from "@/components/common/LoginPages/layout/splash-container";
 import { loginUser } from "@/hooks/login/login-button";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAnimationStore } from "@/stores/login/animationStore";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -20,6 +20,7 @@ import { TokenKey } from "@/constants/auth/tokens";
 type FormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
+    const queryClient = useQueryClient();
     const { hasSeenAnimation, setHasSeenAnimation } = useAnimationStore();
     const navigate = useNavigate();
 
@@ -44,6 +45,7 @@ export function LoginForm() {
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
             if (response) {
+                queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
                 setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
                 setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
                 navigate({ to: "/dashboard" });
@@ -67,6 +69,10 @@ export function LoginForm() {
     function onSubmit(values: FormValues) {
         mutation.mutate(values);
     }
+
+    const handleNavigateSignup = () => {
+        navigate({ to: "/signup" });
+    };
 
     return (
         <SplashScreen isAnimationEnabled={!hasSeenAnimation}>
@@ -101,7 +107,6 @@ export function LoginForm() {
                                     </FormItem>
                                 )}
                             />
-
                             <div className="flex flex-col gap-2">
                                 <FormField
                                     control={form.control}
@@ -132,7 +137,6 @@ export function LoginForm() {
                                 </Link>
                             </div>
                         </div>
-
                         <div className="mt-20 flex flex-col items-center gap-1">
                             <MyButton
                                 type="submit"
@@ -142,6 +146,15 @@ export function LoginForm() {
                             >
                                 Login
                             </MyButton>
+                            <p className="text-sm">
+                                Don&apos;t have an account?&nbsp;&nbsp;
+                                <span
+                                    className="cursor-pointer text-primary-500"
+                                    onClick={handleNavigateSignup}
+                                >
+                                    Create One
+                                </span>
+                            </p>
                         </div>
                     </form>
                 </Form>

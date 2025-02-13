@@ -1,11 +1,16 @@
-// types/study-library/chapter-sidebar.ts
-import { YooptaContentValue } from "@yoopta/editor";
-
 export interface SidebarContentItem {
     id: string;
-    type: "pdf" | "video" | "doc";
-    name: string;
-    url: string;
-    content: string | YooptaContentValue; // Allow both string and YooptaContentValue
+    type: string;
+    title: string;
+    url?: string;
+    content: string;
+    status: string;
+    source_type: string;
+    slide_description?: string;
+    document_title?: string;
+    document_url?: string;
+    document_path?: string;
+    video_url?: string;
+    video_description?: string;
     createdAt: Date;
 }
