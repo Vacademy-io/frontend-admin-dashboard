@@ -17,6 +17,26 @@ import { PublishDialog } from "../slides-material/publish-slide-dialog";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { toast } from "sonner";
 
+export const formatHTMLString = (htmlString: string) => {
+    // Remove the body tag and its attributes
+    let cleanedHtml = htmlString.replace(/<body[^>]*>|<\/body>/g, "");
+
+    // Remove data-meta attributes and style from paragraphs
+    cleanedHtml = cleanedHtml.replace(/<p[^>]*data-meta[^>]*style="[^"]*"[^>]*>/g, "<p>");
+
+    // Add proper HTML structure
+    const formattedHtml = `<html>
+    <head></head>
+    <body>
+        <div>
+            ${cleanedHtml}
+        </div>
+    </body>
+</html>`;
+
+    return formattedHtml;
+};
+
 export const SlideMaterial = () => {
     const { activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
@@ -81,6 +101,7 @@ export const SlideMaterial = () => {
                 editorContent = html.deserialize(editor, activeItem.document_data || "");
 
                 editor.setEditorValue(editorContent);
+                console.log("editor: ", editorContent);
                 setContent(
                     <div className="w-full">
                         <YooptaEditor
@@ -115,26 +136,6 @@ export const SlideMaterial = () => {
             loadContent();
         }
     }, [activeItem]);
-
-    const formatHTMLString = (htmlString: string) => {
-        // Remove the body tag and its attributes
-        let cleanedHtml = htmlString.replace(/<body[^>]*>|<\/body>/g, "");
-
-        // Remove data-meta attributes and style from paragraphs
-        cleanedHtml = cleanedHtml.replace(/<p[^>]*data-meta[^>]*style="[^"]*"[^>]*>/g, "<p>");
-
-        // Add proper HTML structure
-        const formattedHtml = `<html>
-        <head></head>
-        <body>
-            <div>
-                ${cleanedHtml}
-            </div>
-        </body>
-    </html>`;
-
-        return formattedHtml;
-    };
 
     // Modified SaveDraft function
     const SaveDraft = () => {
