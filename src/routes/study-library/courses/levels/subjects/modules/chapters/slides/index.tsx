@@ -4,12 +4,15 @@ import { SlideMaterial } from "@/components/common/study-library/course-material
 import { ChapterSidebarAddButton } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
 import { ChapterSidebarSlides } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
+import { studyLibrarySteps } from "@/constants/intro/steps";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import useIntroJsTour from "@/hooks/use-intro";
 import { truncateString } from "@/lib/reusable/truncateString";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
@@ -44,19 +47,25 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-    const searchParams = Route.useSearch();
+    const { courseId, subjectId, levelId, moduleId, chapterId } = Route.useSearch();
     const [inputSearch, setInputSearch] = useState("");
     const { open, state, toggleSidebar } = useSidebar();
     const navigate = useNavigate();
+    const { activeItem } = useContentStore();
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.addSlidesStep,
+        steps: studyLibrarySteps.addSlidesStep,
+    });
 
     const handleSubjectRoute = () => {
         navigate({
             to: "/study-library/courses/levels/subjects/modules",
             params: {},
             search: {
-                courseId: searchParams.courseId,
-                levelId: searchParams.levelId,
-                subjectId: searchParams.subjectId,
+                courseId: courseId,
+                levelId: levelId,
+                subjectId: subjectId,
             },
             hash: "",
         });
@@ -67,10 +76,10 @@ function RouteComponent() {
             to: "/study-library/courses/levels/subjects/modules/chapters",
             params: {},
             search: {
-                courseId: searchParams.courseId,
-                levelId: searchParams.levelId,
-                subjectId: searchParams.subjectId,
-                moduleId: searchParams.moduleId,
+                courseId: courseId,
+                levelId: levelId,
+                subjectId: subjectId,
+                moduleId: moduleId,
             },
             hash: "",
         });
@@ -80,11 +89,17 @@ function RouteComponent() {
         setInputSearch(e.target.value);
     };
 
-    const chapterName = getChapterName(searchParams.chapterId);
-    const subject = getSubjectName(searchParams.subjectId);
-    const moduleName = getModuleName(searchParams.moduleId);
+    const [subjectName, setSubjectName] = useState("");
+    const [moduleName, setModuleName] = useState("");
+    const chapterName = useChapterName(chapterId);
 
-    const trucatedChapterName = truncateString(chapterName, 9);
+    const trucatedChapterName = truncateString(chapterName || "", 9);
+
+    useEffect(() => {
+        setSubjectName(getSubjectName(subjectId || ""));
+        setModuleName(getModuleName(moduleId || ""));
+        console.log("chapter Id and Name: ", chapterId, " ", chapterName);
+    }, []);
 
     const SidebarComponent = (
         <div className="flex w-full flex-col items-center">
@@ -94,7 +109,7 @@ function RouteComponent() {
                         className={`cursor-pointer ${open ? "visible" : "hidden"}`}
                         onClick={handleSubjectRoute}
                     >
-                        {subject}
+                        {subjectName}
                     </p>
                     <ChevronRightIcon className={`size-4 ${open ? "visible" : "hidden"}`} />
                     <p
@@ -132,13 +147,22 @@ function RouteComponent() {
         </div>
     );
 
-    const { courseId, levelId, subjectId, moduleId } = Route.useSearch();
-
     const { setNavHeading } = useNavHeadingStore();
 
-    // Module page heading
-    const levelName = getLevelName(levelId);
-    const subjectName = getSubjectName(subjectId);
+    useEffect(() => {
+        navigate({
+            to: "/study-library/courses/levels/subjects/modules/chapters/slides",
+            search: {
+                courseId,
+                levelId,
+                subjectId,
+                moduleId,
+                chapterId,
+                slideId: activeItem?.slide_id || "",
+            },
+            replace: true,
+        });
+    }, [activeItem]);
 
     const handleBackClick = () => {
         navigate({
@@ -155,7 +179,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${levelName} Class ${subjectName}`}</div>
+            <div>{`${chapterName || ""} Slides`}</div>
         </div>
     );
 
@@ -166,7 +190,7 @@ function RouteComponent() {
     return (
         <LayoutContainer sidebarComponent={SidebarComponent}>
             <InitStudyLibraryProvider>
-                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
+                <ModulesWithChaptersProvider subjectId={subjectId}>
                     <SlideMaterial />
                 </ModulesWithChaptersProvider>
             </InitStudyLibraryProvider>

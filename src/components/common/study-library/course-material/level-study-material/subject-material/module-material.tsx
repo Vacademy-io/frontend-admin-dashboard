@@ -16,6 +16,9 @@ import { SessionDropdown } from "../../../study-library-session-dropdown";
 import { getSubjectSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForModules";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
+import useIntroJsTour from "@/hooks/use-intro";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { studyLibrarySteps } from "@/constants/intro/steps";
 
 export const ModuleMaterial = () => {
     const router = useRouter();
@@ -41,6 +44,11 @@ export const ModuleMaterial = () => {
             setCurrentSession(value);
         }
     };
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.addModulesStep,
+        steps: studyLibrarySteps.addModulesStep,
+    });
 
     useEffect(() => {
         setSelectedSession(currentSession);
@@ -82,14 +90,14 @@ export const ModuleMaterial = () => {
         updateModuleMutation.isPending;
 
     return (
-        <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
+        <div className="flex size-full flex-col gap-8 text-neutral-600">
             <div className="flex items-center justify-between gap-80">
                 <div className="flex w-full flex-col gap-2">
                     <div className="text-h3 font-semibold">Manage Your Modules</div>
                     <div className="text-subtitle">
-                        Explore and manage modules for {levelName} Class {subject}. Click on a
-                        module to view and organize chapters, eBooks, and video lectures, or add new
-                        resources to expand your study materials.
+                        Explore and manage modules for {levelName} {subject}. Click on a module to
+                        view and organize chapters, eBooks, and video lectures, or add new resources
+                        to expand your study materials.
                     </div>
                 </div>
                 <AddModulesButton onAddModule={handleAddModule} />

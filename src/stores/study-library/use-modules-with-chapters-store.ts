@@ -38,9 +38,11 @@ export interface ModulesWithChapters {
 interface ModulesWithChaptersStore {
     modulesWithChaptersData: ModulesWithChapters[] | null;
     setModulesWithChaptersData: (data: ModulesWithChapters[]) => void;
+    resetModulesWithChaptersStore: () => void;
 }
 
 export const useModulesWithChaptersStore = create<ModulesWithChaptersStore>((set) => ({
     modulesWithChaptersData: null,
     setModulesWithChaptersData: (data) => set({ modulesWithChaptersData: data }),
+    resetModulesWithChaptersStore: () => set({ modulesWithChaptersData: null }),
 }));

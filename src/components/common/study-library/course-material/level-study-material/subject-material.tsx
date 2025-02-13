@@ -21,6 +21,10 @@ import { useUpdateSubjectOrder } from "@/services/study-library/subject-operatio
 import { orderSubjectPayloadType } from "@/types/study-library/order-payload";
 import { getLevelSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForSubjects";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
+import useIntroJsTour from "@/hooks/use-intro";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { studyLibrarySteps } from "@/constants/intro/steps";
+import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
 
 export const SubjectMaterial = () => {
     const router = useRouter();
@@ -58,6 +62,11 @@ export const SubjectMaterial = () => {
 
     const initialSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
     const [subjects, setSubjects] = useState(initialSubjects);
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.addSubjectStep,
+        steps: studyLibrarySteps.addSubjectStep,
+    });
 
     useEffect(() => {
         setSelectedSession(currentSession);
@@ -106,6 +115,8 @@ export const SubjectMaterial = () => {
         return <p>Missing required parameters</p>;
     }
 
+    const courseName = getCourseNameById(courseId);
+
     const isLoading =
         addSubjectMutation.isPending ||
         deleteSubjectMutation.isPending ||
@@ -114,14 +125,16 @@ export const SubjectMaterial = () => {
     return isLoading ? (
         <DashboardLoader />
     ) : (
-        <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
+        <div className="flex size-full flex-col gap-8 text-neutral-600">
             <div className="flex items-center justify-between gap-80">
                 <div className="flex w-full flex-col gap-2">
                     <div className="text-h3 font-semibold">
                         {`Manage ${classNumber} Class Resources`}
                     </div>
                     <div className="text-subtitle">
-                        {`Explore and manage resources for ${classNumber} Class. Click on a subject to view and
+                        {`Explore and manage resources for ${
+                            levelId == "DEFAULT" ? courseName : classNumber
+                        }. Click on a subject to view and
                         organize eBooks and video lectures, or upload new content to enrich your
                         study library.`}
                     </div>

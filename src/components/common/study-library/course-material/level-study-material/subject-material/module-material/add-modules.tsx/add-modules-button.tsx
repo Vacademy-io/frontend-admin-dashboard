@@ -5,7 +5,7 @@ import { AddModulesForm } from "./add-modules-form";
 import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 
 const triggerButton = (
-    <MyButton buttonType="primary" scale="large" layoutVariant="default">
+    <MyButton buttonType="primary" scale="large" layoutVariant="default" id="add-modules">
         Add Module
     </MyButton>
 );

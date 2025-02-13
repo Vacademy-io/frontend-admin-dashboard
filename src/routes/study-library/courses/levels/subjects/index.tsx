@@ -27,19 +27,25 @@ function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
     const { courseId, levelId } = Route.useSearch();
-    const classNumber = getLevelName(levelId);
+    const levelName = getLevelName(levelId);
 
     const handleBackClick = () => {
-        navigate({
-            to: "/study-library/courses/levels",
-            search: { courseId: courseId },
-        });
+        if (levelId == "DEFAULT") {
+            navigate({
+                to: "/study-library/courses",
+            });
+        } else {
+            navigate({
+                to: "/study-library/courses/levels",
+                search: { courseId: courseId },
+            });
+        }
     };
 
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${classNumber} Class Study Library`}</div>
+            <div>{`${levelName} Subjects`}</div>
         </div>
     );
 

@@ -16,6 +16,9 @@ import { useSelectedSessionStore } from "@/stores/study-library/selected-session
 import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
 import { orderChapterPayloadType } from "@/types/study-library/order-payload";
 import { useUpdateChapterOrder } from "@/services/study-library/chapter-operations/update-chapter-order";
+import useIntroJsTour from "@/hooks/use-intro";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { studyLibrarySteps } from "@/constants/intro/steps";
 
 export interface FormValues {
     chapters: ChapterWithSlides[];
@@ -51,6 +54,11 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         defaultValues: {
             chapters: existingChapters,
         },
+    });
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.addChaptersStep,
+        steps: studyLibrarySteps.addChaptersStep,
     });
 
     const handleAddChapter = (chapter: ChapterWithSlides) => {
@@ -90,6 +98,7 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
             form.reset({ chapters: existingChapters });
             setIsChapterLoading(false);
         }
+        console.log("remount");
     }, [existingChapters, form]);
 
     useEffect(() => {
@@ -99,7 +108,7 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
     }, [currentSession, modulesWithChaptersData]);
 
     return (
-        <div className="flex h-full w-full flex-col gap-8 text-neutral-600">
+        <div className="flex size-full flex-col gap-8 text-neutral-600">
             <div className="flex items-center justify-between gap-80">
                 <div className="flex items-center justify-between gap-80">
                     <div className="flex w-full flex-col gap-2">
@@ -107,9 +116,9 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                             {moduleWithChapters?.module.module_name}
                         </p>
                         <p className="text-subtitle">
-                            Explore and manage chapters for 10th Class Physics. Click on a chapter
-                            to view and access eBooks, video lectures, and study resources, or add
-                            new materials to enhance your learning experience.
+                            Explore and manage chapters. Click on a chapter to view and access
+                            eBooks, video lectures, and study resources, or add new materials to
+                            enhance your learning experience.
                         </p>
                     </div>
                     <AddChapterButton onAddChapter={handleAddChapter} />

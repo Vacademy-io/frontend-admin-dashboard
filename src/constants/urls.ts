@@ -1,6 +1,6 @@
 export const BASE_URL = "https://backend-stage.vacademy.io";
 
-export const INSTITUTE_ID = "c70f40a5-e4d3-4b6c-a498-e612d0d4b133";
+export const SSDC_INSTITUTE_ID = "69ca11c6-54e1-4e99-9498-50c9a4272ce6";
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
@@ -43,6 +43,10 @@ export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge
 export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
 
+export const ADD_LEVEL = `${BASE_URL}/admin-core-service/level/v1/add-level`;
+export const UPDATE_LEVEL = `${BASE_URL}/admin-core-service/level/v1/update-level`;
+export const DELETE_LEVEL = `${BASE_URL}/admin-core-service/level/v1/delete-level`;
+
 export const UPDATE_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/update-subject`;
 export const ADD_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/add-subject`;
 export const DELETE_SUBJECT = `${BASE_URL}/admin-core-service/subject/v1/delete-subject`;
@@ -65,3 +69,6 @@ export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-co
 export const GET_SLIDES = `${BASE_URL}/admin-core-service/slide/v1/get-slides`;
 export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-video-slide`;
 export const ADD_UPDATE_DOCUMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-document-slide`;
+export const UPDATE_SLIDE_STATUS = `${BASE_URL}/admin-core-service/slide/v1/update-status`;
+
+export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;

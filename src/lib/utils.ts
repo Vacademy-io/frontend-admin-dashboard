@@ -30,3 +30,25 @@ export function parseHtmlToString(html: string) {
     const doc = new DOMParser().parseFromString(html, "text/html");
     return doc.body.textContent || doc.body.innerText || "";
 }
+
+export const goToWhatsappSupport = () => {
+    const phoneNumber = "+919201534254"; // Your WhatsApp number (with country code)
+    const message = encodeURIComponent("Hello, I have a question.");
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+
+    window.open(whatsappUrl, "_blank");
+};
+
+/**
+ * Opens the user's default email client to send a support request.
+ */
+export const goToMailSupport = () => {
+    const supportEmail = "hello@vacademy.io";
+    const subject = encodeURIComponent("Support Request");
+    const body = encodeURIComponent("I need help with: \n[Describe your issue here]");
+
+    const mailtoUrl = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
+
+    window.location.href = mailtoUrl;
+};

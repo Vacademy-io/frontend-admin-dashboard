@@ -10,7 +10,6 @@ import { MyPagination } from "@/components/design-system/pagination";
 import ViewQuestionPaper from "./ViewQuestionPaper";
 import { useMutation } from "@tanstack/react-query";
 import { getQuestionPaperById, markQuestionPaperStatus } from "../-utils/question-paper-services";
-import { INSTITUTE_ID } from "@/constants/urls";
 import {
     PaginatedResponse,
     QuestionPaperInterface,
@@ -27,6 +26,8 @@ import { z } from "zod";
 import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 import { UseFormReturn } from "react-hook-form";
 import { Dispatch, SetStateAction } from "react";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
@@ -54,6 +55,10 @@ export const QuestionPapersList = ({
     currentQuestionImageIndex: number;
     setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+
     const { setIsSavedQuestionPaperDialogOpen } = useDialogStore();
     const { instituteDetails } = useInstituteDetailsStore();
 
@@ -65,7 +70,7 @@ export const QuestionPapersList = ({
         }: {
             status: string;
             questionPaperId: string;
-            instituteId: string;
+            instituteId: string | undefined;
         }) => markQuestionPaperStatus(status, questionPaperId, instituteId),
         onSuccess: () => {
             refetchData();
@@ -107,15 +112,15 @@ export const QuestionPapersList = ({
                         questionName: question.questionName,
                         questionType: question.questionType,
                         questionMark: question.questionMark,
-                        questionPenalty: "",
+                        questionPenalty: question.questionPenalty,
                         ...(question.questionType === "MCQM" && {
                             correctOptionIdsCnt: question?.multipleChoiceOptions?.filter(
                                 (item) => item.isSelected,
                             ).length,
                         }),
                         questionDuration: {
-                            hrs: "",
-                            min: "",
+                            hrs: question.questionDuration.hrs,
+                            min: question.questionDuration.min,
                         },
                     })),
                 );

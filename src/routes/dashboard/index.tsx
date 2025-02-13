@@ -9,10 +9,15 @@ import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from "@/svgs";
 import { Badge } from "@/components/ui/badge";
 import { CompletionStatusComponent } from "./-components/CompletionStatusComponent";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { IntroKey } from "@/constants/storage/introKey";
+import useIntroJsTour from "@/hooks/use-intro";
+import { dashboardSteps } from "@/constants/intro/steps";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { getInstituteDashboardData } from "./-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { SSDC_INSTITUTE_ID } from "@/constants/urls";
+import { Helmet } from "react-helmet";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -28,9 +33,16 @@ export function DashboardComponent() {
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
         getInstituteDashboardData(instituteDetails?.id),
     );
-    console.log(data);
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
+
+    useIntroJsTour({
+        key: IntroKey.dashboardFirstTimeVisit,
+        steps: dashboardSteps,
+        onTourExit: () => {
+            console.log("Tour Completed");
+        },
+    });
 
     const handleAssessmentTypeRoute = (type: string) => {
         navigate({
@@ -60,6 +72,13 @@ export function DashboardComponent() {
     if (isInstituteLoading || isDashboardLoading) return <DashboardLoader />;
     return (
         <>
+            <Helmet>
+                <title>Dashboard</title>
+                <meta
+                    name="description"
+                    content="This page shows the dashboard of the institute."
+                />
+            </Helmet>
             <h1 className="text-2xl">
                 Hello <span className="text-primary-500">{instituteDetails?.institute_name}!</span>
             </h1>
@@ -67,13 +86,15 @@ export function DashboardComponent() {
                 Welcome aboard! We&apos;re excited to have you here. Let’s set up your admin
                 dashboard and make learning seamless and engaging.
             </p>
-            <iframe
-                className="mt-6 size-full h-[80vh] rounded-xl"
-                src="https://www.youtube.com/embed/FooC7gp4wk4"
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-            />
+            {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
+                <iframe
+                    className="mt-6 size-full h-[80vh] rounded-xl"
+                    src="https://www.youtube.com/embed/lIhk4IFQH8w"
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                />
+            )}
             <div className="mt-8 flex w-full flex-col gap-6">
                 <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader>
@@ -140,6 +161,7 @@ export function DashboardComponent() {
                                     <MyButton
                                         type="submit"
                                         scale="medium"
+                                        id="first-course"
                                         buttonType="secondary"
                                         layoutVariant="default"
                                         className="text-sm"
@@ -163,6 +185,7 @@ export function DashboardComponent() {
                                         type="submit"
                                         scale="medium"
                                         buttonType="secondary"
+                                        id="quick-enrollment"
                                         layoutVariant="default"
                                         className="text-sm"
                                         onClick={handleEnrollButtonClick}
@@ -193,6 +216,7 @@ export function DashboardComponent() {
                                             <MyButton
                                                 type="submit"
                                                 scale="medium"
+                                                id="first-assessment"
                                                 buttonType="secondary"
                                                 layoutVariant="default"
                                                 className="text-sm"

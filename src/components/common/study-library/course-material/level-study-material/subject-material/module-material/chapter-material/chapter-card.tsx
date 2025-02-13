@@ -39,7 +39,6 @@ export const ChapterCard = ({ chapter, onDelete, onEdit }: ChapterCardProps) => 
                 subjectId: subjectId,
                 moduleId: moduleId,
                 chapterId: chapter.chapter.id,
-                slideId: "yourSlideId",
             },
         });
     };

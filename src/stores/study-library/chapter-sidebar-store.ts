@@ -1,37 +1,21 @@
 // stores/content-store.ts
 import { create } from "zustand";
-import { SidebarContentItem } from "@/types/study-library/chapter-sidebar";
-// stores/content-store.ts
+import { Slide } from "@/hooks/study-library/use-slides";
+
 interface ContentStore {
-    items: SidebarContentItem[];
-    activeItemId: string | null;
-    addItem: (item: SidebarContentItem) => void;
-    // setActiveItem: (id: string | null) => void;
-    setActiveItem: (item: SidebarContentItem) => void;
-    removeItem: (id: string) => void;
+    items: Slide[];
+    activeItem: Slide | null;
+    setItems: (items: Slide[]) => void;
+    setActiveItem: (item: Slide | null) => void;
     reorderItems: (oldIndex: number, newIndex: number) => void;
+    resetChapterSidebarStore: () => void;
 }
+
 export const useContentStore = create<ContentStore>((set) => ({
     items: [],
-    activeItemId: null,
-    addItem: (item) =>
-        set((state) => ({
-            items: [...state.items, item],
-            activeItemId: item.id, // Automatically select the new item
-        })),
-    setActiveItem: (item) => {
-        set((state) => {
-            const updatedItems = state.items.map((i) =>
-                i.id === item.id ? { ...i, name: item.title } : i,
-            );
-            return { items: updatedItems, activeItemId: item.id }; // Set activeItemId here
-        });
-    },
-    removeItem: (id) =>
-        set((state) => ({
-            items: state.items.filter((item) => item.id !== id),
-            activeItemId: state.activeItemId === id ? null : state.activeItemId,
-        })),
+    activeItem: null,
+    setItems: (items) => set({ items }),
+    setActiveItem: (item) => set({ activeItem: item }),
     reorderItems: (oldIndex: number, newIndex: number) =>
         set((state) => {
             if (
@@ -44,14 +28,14 @@ export const useContentStore = create<ContentStore>((set) => ({
             }
 
             const newItems = [...state.items];
-            const movedItem: SidebarContentItem = newItems[oldIndex]!;
+            const movedItem: Slide = newItems[oldIndex]!;
             newItems.splice(oldIndex, 1);
             newItems.splice(newIndex, 0, movedItem);
 
-            // Return both the updated items and maintain other state
             return {
                 ...state,
                 items: newItems,
             };
         }),
+    resetChapterSidebarStore: () => set({ items: undefined, activeItem: null }),
 }));

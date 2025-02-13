@@ -5,34 +5,38 @@ export const SidebarItemsData: SidebarItemsType[] = [
     {
         icon: House,
         title: "Dashboard",
+        id: "dashboard",
         to: "/dashboard",
     },
     {
         icon: Users,
         title: "Students",
+        id: "student-mangement",
         subItems: [
             {
                 subItem: "Students list",
                 subItemLink: "/students/students-list",
             },
-            {
-                subItem: "Manage Batches and Sessions",
-                subItemLink: "/students/manage-batches",
-            },
-            {
-                subItem: "Enroll Requests",
-                subItemLink: "/students/enroll-requests",
-            },
+            // {
+            //     subItem: "Manage Batches and Sessions",
+            //     subItemLink: "/students/manage-batches",
+            // },
+            // {
+            //     subItem: "Enroll Requests",
+            //     subItemLink: "/students/enroll-requests",
+            // },
         ],
     },
     {
         icon: BookOpen,
         title: "Study Library",
+        id: "study-library",
         to: "/study-library",
     },
     {
         icon: Scroll,
         title: "Assessment Centre",
+        id: "assessment-centre",
         to: "/assessment",
         subItems: [
             {
@@ -47,6 +51,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: Globe,
+        id: "Community Centre",
         title: "Community Centre",
         to: "/community",
     },

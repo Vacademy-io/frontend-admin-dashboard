@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    scroll-behavior: smooth;
+}
+
 @layer base {
     :root {
         /* ========= Common configs ========= */
@@ -247,4 +251,105 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: rgb(var(--primary-300));
     }
+}
+
+.introjs-tooltip.single-step .introjs-button.introjs-donebutton {
+    display: none !important;
+}
+
+/* Center the tooltip and match the design */
+.custom-tooltip {
+    background-color: white !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    position: relative !important;
+    min-width: fit-content !important;
+    width: 300px !important;
+    margin: auto !important;
+}
+.introjs-tooltip-title {
+    color: rgb(234 88 12) !important;
+    text-wrap: nowrap !important;
+    font-size: 1.1rem !important;
+    text-align: left !important;
+    font-weight: 500 !important;
+}
+.custom-tooltip .introjs-arrow {
+    display: none !important;
+}
+.introjs-tooltip-header {
+    text-align: left !important;
+    background-color: #fcf3ec !important;
+    display: flex !important;
+    padding: 6px !important;
+    padding-left: 16px !important;
+    gap: 1rem !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-bottom: 1px solid rgb(229 231 235) !important;
+    border-top-right-radius: 0.5rem !important;
+    border-top-left-radius: 0.5rem !important;
+}
+
+.introjs-skipbutton {
+    font-size: 1.5rem !important;
+    font-weight: 300 !important;
+}
+.introjs-skipbutton {
+    position: relative !important;
+}
+.custom-tooltip .introjs-tooltiptext {
+    color: rgb(75 85 99) !important;
+    font-size: 0.8rem !important;
+    text-align: left !important;
+    line-height: 1.6 !important;
+    padding: 8px 16px !important;
+}
+
+.custom-tooltip .introjs-bullets {
+    display: none !important;
+}
+
+.custom-tooltip .introjs-progress .introjs-progressbar {
+    background-color: orange !important;
+}
+
+.custom-tooltip .introjs-tooltipbuttons {
+    border-top: none !important;
+}
+
+.custom-tooltip .introjs-button {
+    background: white !important;
+    border: 1px solid rgb(229 231 235) !important;
+    border-radius: 0.4rem !important;
+    color: rgb(75 85 99) !important;
+    font-size: 0.8rem !important;
+    font-weight: 400 !important;
+    padding: 0.5rem 0rem !important;
+    text-shadow: none !important;
+    width: 100% !important;
+    text-align: center !important;
+}
+
+.custom-tooltip .introjs-disabled {
+    display: none !important;
+}
+
+.introjs-tooltiptext {
+    text-align: center;
+}
+
+.introjs-tooltipbuttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+}
+
+.custom-highlight {
+    background-color: rgba(33, 150, 243, 0.2) !important;
+    outline: 2px solid orange !important;
 }

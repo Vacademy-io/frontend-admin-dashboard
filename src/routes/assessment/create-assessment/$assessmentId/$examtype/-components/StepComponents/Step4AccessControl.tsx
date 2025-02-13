@@ -306,7 +306,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                             buttonType="secondary"
                             onClick={handleSubmit(onSubmit, onInvalid)}
                         >
-                            Save
+                            {assessmentId !== "defaultId" ? "Update" : "Save"}
                         </MyButton>
                         <MyButton
                             type="button"

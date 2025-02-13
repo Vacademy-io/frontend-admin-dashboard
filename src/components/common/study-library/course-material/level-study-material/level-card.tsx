@@ -3,6 +3,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { LevelMenuOptions } from "./level-menu-options";
+import { AddLevelData } from "./add-level-form";
 
 export const LevelCard = ({
     level,
@@ -10,8 +11,8 @@ export const LevelCard = ({
     onEdit,
 }: {
     level: LevelWithDetailsType;
-    onDelete: () => void;
-    onEdit: () => void;
+    onDelete: (levelId: string) => void;
+    onEdit: ({ requestData }: { requestData: AddLevelData }) => void;
 }) => {
     const { open } = useSidebar();
     const navigate = useNavigate();
@@ -50,9 +51,14 @@ export const LevelCard = ({
             <SubjectDefaultImage />
             <div className="flex w-full justify-center gap-3 px-5">
                 <div className="text-semibold w-full text-wrap text-center text-title font-semibold text-neutral-600">
-                    {level.name} Class
+                    {level.name}
                 </div>
-                <LevelMenuOptions onDelete={onDelete} onEdit={onEdit} />
+                <LevelMenuOptions
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    levelId={level.id}
+                    level={level}
+                />
             </div>
         </div>
     );

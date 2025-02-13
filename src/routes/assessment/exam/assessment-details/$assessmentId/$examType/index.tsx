@@ -18,10 +18,14 @@ import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab
 import { AssessmentQuestionsTab } from "./-components/AssessmentQuestionsTab";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
+import {
+    getAssessmentDetails,
+    getQuestionDataForSection,
+} from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AssessmentPreview from "./-components/AssessmentPreview";
+import { toast } from "sonner";
 
 export const Route = createFileRoute(
     "/assessment/exam/assessment-details/$assessmentId/$examType/",
@@ -51,6 +55,15 @@ const AssessmentDetailsComponent = () => {
         }),
     );
 
+    const { data: questionsDataSectionWise, isLoading: isQuestionsLoading } = useSuspenseQuery(
+        getQuestionDataForSection({
+            assessmentId,
+            sectionIds: assessmentDetails[1]?.saved_data.sections
+                ?.map((section) => section.id)
+                .join(","),
+        }),
+    );
+
     const navigate = useNavigate();
     const [selectedTab, setSelectedTab] = useState("overview");
     const { setNavHeading } = useNavHeadingStore();
@@ -77,14 +90,31 @@ const AssessmentDetailsComponent = () => {
 
     const [isPreviewAssessmentDialogOpen, setIsPreviewAssessmentDialogOpen] = useState(false);
 
-    const handleOpenDialog = () => setIsPreviewAssessmentDialogOpen(true);
+    const handleOpenDialog = () => {
+        if (Object.keys(questionsDataSectionWise).length === 0) {
+            toast.error("No sections have been added for this assessment.");
+        } else {
+            setIsPreviewAssessmentDialogOpen(true);
+        }
+    };
     const handleCloseDialog = () => setIsPreviewAssessmentDialogOpen(false);
-
+    const handleExportAssessment = () => {
+        if (Object.keys(questionsDataSectionWise).length === 0) {
+            toast.error("No sections have been added for this assessment.");
+        } else {
+            navigate({
+                to: "/assessment/export/$assessmentId",
+                params: {
+                    assessmentId: assessmentId,
+                },
+            });
+        }
+    };
     useEffect(() => {
         setNavHeading(heading);
     }, []);
 
-    if (isLoading) return <DashboardLoader />;
+    if (isLoading || isQuestionsLoading) return <DashboardLoader />;
 
     return (
         <>
@@ -147,25 +177,31 @@ const AssessmentDetailsComponent = () => {
                             {assessmentDetails?.[0]?.status}
                         </Badge>
                     </div>
-                    <Dialog
-                        open={isPreviewAssessmentDialogOpen}
-                        onOpenChange={setIsPreviewAssessmentDialogOpen}
-                    >
-                        <DialogTrigger>
-                            <MyButton
-                                type="button"
-                                scale="large"
-                                buttonType="secondary"
-                                className="font-medium"
-                                onClick={handleOpenDialog}
-                            >
-                                Preview Assessment
-                            </MyButton>
-                        </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
-                            <AssessmentPreview handleCloseDialog={handleCloseDialog} />
-                        </DialogContent>
-                    </Dialog>
+                    <div className="flex flex-col items-center gap-y-2">
+                        <Dialog
+                            open={isPreviewAssessmentDialogOpen}
+                            onOpenChange={setIsPreviewAssessmentDialogOpen}
+                        >
+                            <DialogTrigger>
+                                <MyButton
+                                    type="button"
+                                    scale="large"
+                                    buttonType="secondary"
+                                    onClick={handleOpenDialog}
+                                >
+                                    Preview Assessment
+                                </MyButton>
+                            </DialogTrigger>
+                            {Object.keys(questionsDataSectionWise).length > 0 && (
+                                <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                                    <AssessmentPreview handleCloseDialog={handleCloseDialog} />
+                                </DialogContent>
+                            )}
+                        </Dialog>
+                        <MyButton scale="large" onClick={handleExportAssessment} className="py-4">
+                            Offline Paper
+                        </MyButton>
+                    </div>
                 </div>
                 <Separator className="mt-4" />
                 <Tabs value={selectedTab} onValueChange={setSelectedTab}>

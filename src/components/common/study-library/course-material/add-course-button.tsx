@@ -5,7 +5,7 @@ import { Plus } from "phosphor-react";
 import { AddCourseData, AddCourseForm } from "./add-course-form";
 
 const triggerButton = (
-    <MyButton buttonType="primary" layoutVariant="default" scale="large">
+    <MyButton buttonType="primary" layoutVariant="default" scale="large" id="create-new-course">
         <Plus />
         Create Course
     </MyButton>

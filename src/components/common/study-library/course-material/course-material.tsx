@@ -1,7 +1,7 @@
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect, useState } from "react";
-import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
-import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
+// import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
+// import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
 import { CourseCard } from "./course-card";
@@ -12,6 +12,9 @@ import { useDeleteCourse } from "@/services/study-library/course-operations/dele
 import { useUpdateCourse } from "@/services/study-library/course-operations/update-course";
 import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
 import { toast } from "sonner"; // Import Toaster from sonner
+import useIntroJsTour from "@/hooks/use-intro";
+import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { studyLibrarySteps } from "@/constants/intro/steps";
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -22,6 +25,11 @@ export const CourseMaterial = () => {
     const addCourseMutation = useAddCourse();
     const deleteCourseMutation = useDeleteCourse();
     const updateCourseMutation = useUpdateCourse();
+
+    useIntroJsTour({
+        key: StudyLibraryIntroKey.createCourseStep,
+        steps: studyLibrarySteps.createCourseStep,
+    });
 
     const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
         addCourseMutation.mutate(
@@ -88,8 +96,8 @@ export const CourseMaterial = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-4">
-                    <CreateStudyDocButton />
-                    <UploadStudyMaterialButton />
+                    {/* <CreateStudyDocButton />
+                    <UploadStudyMaterialButton /> */}
                     <AddCourseButton onSubmit={handleAddCourse} />
                 </div>
             </div>

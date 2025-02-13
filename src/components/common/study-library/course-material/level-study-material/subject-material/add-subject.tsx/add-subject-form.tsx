@@ -9,9 +9,10 @@ import { useRef, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { INSTITUTE_ID } from "@/constants/urls";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 const formSchema = z.object({
     subjectName: z.string().min(1, "Subject name is required"),
@@ -26,6 +27,9 @@ interface AddSubjectFormProps {
 }
 
 export const AddSubjectForm = ({ onSubmitSuccess, initialValues }: AddSubjectFormProps) => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
