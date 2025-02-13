@@ -34,7 +34,7 @@ export const EnrollManuallyButton = () => {
                     Enroll Manually
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="w-[800px] max-w-[800px] p-0 font-normal">
+            <DialogContent className="max-h-[80vh] w-[800px] max-w-[800px] overflow-y-auto p-0 font-normal">
                 <DialogHeader>
                     <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
                         Enroll Student
