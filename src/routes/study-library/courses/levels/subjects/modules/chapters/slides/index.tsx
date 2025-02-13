@@ -12,7 +12,7 @@ import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-l
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { getChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
+import { useChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
@@ -91,15 +91,14 @@ function RouteComponent() {
 
     const [subjectName, setSubjectName] = useState("");
     const [moduleName, setModuleName] = useState("");
-    const [chapterName, setChapterName] = useState("");
+    const chapterName = useChapterName(chapterId);
 
-    const trucatedChapterName = truncateString(chapterName, 9);
+    const trucatedChapterName = truncateString(chapterName || "", 9);
 
     useEffect(() => {
         setSubjectName(getSubjectName(subjectId || ""));
         setModuleName(getModuleName(moduleId || ""));
-        setChapterName(getChapterName(chapterId || ""));
-        // console.log("chapter Id and Name: ", chapterId, " ", chapterName);
+        console.log("chapter Id and Name: ", chapterId, " ", chapterName);
     }, []);
 
     const SidebarComponent = (
@@ -180,7 +179,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${chapterName} Slides`}</div>
+            <div>{`${chapterName || ""} Slides`}</div>
         </div>
     );
 
