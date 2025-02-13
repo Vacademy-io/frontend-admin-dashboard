@@ -6,9 +6,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { overviewTabCloseTestData } from "../-utils/dummy-data-close";
+import { AssessmentOverviewMarksRankInterface } from "@/types/assessment-overview";
 
-const AssessmentDetailsRankMarkTable = () => {
+const AssessmentDetailsRankMarkTable = ({
+    marksRanksData,
+}: {
+    marksRanksData: AssessmentOverviewMarksRankInterface[];
+}) => {
     return (
         <div className="relative">
             <Table className="w-full table-auto">
@@ -24,12 +28,12 @@ const AssessmentDetailsRankMarkTable = () => {
             <div className="max-h-[200px] overflow-y-auto">
                 <Table className="w-full table-auto">
                     <TableBody>
-                        {overviewTabCloseTestData.marksRankData.map((item) => (
+                        {marksRanksData?.map((item) => (
                             <TableRow key={item.rank}>
                                 <TableCell className="w-1/4">{item.rank}</TableCell>
                                 <TableCell className="w-1/4">{item.marks}</TableCell>
                                 <TableCell className="w-1/4">{item.percentile}%</TableCell>
-                                <TableCell className="w-1/4">{item.noOfParticipants}</TableCell>
+                                <TableCell className="w-1/4">{item.no_of_participants}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

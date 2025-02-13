@@ -1,3 +1,6 @@
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "./auth/tokens";
+
 export function convertToLocalDateTime(utcDate: string): string {
     const date = new Date(utcDate);
 
@@ -12,4 +15,11 @@ export function convertToLocalDateTime(utcDate: string): string {
 
     const formattedDate = date.toLocaleString("en-GB", options);
     return formattedDate.replace(",", "").replace(/\s(am|pm)/i, (match) => match.toUpperCase());
+}
+
+export function getInstituteId() {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+    return INSTITUTE_ID;
 }

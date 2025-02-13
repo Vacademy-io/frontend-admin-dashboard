@@ -27,6 +27,7 @@ import {
 } from "./assessment-details-interface";
 import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
 import { MyQuestion } from "@/types/assessments/question-paper-form";
+import { BatchDetailsInterface, StudentLeaderboard } from "@/types/assessment-overview";
 // import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
 // import { QuestionAssessmentPreview } from "@/types/assessment-preview-interface";
 
@@ -710,6 +711,31 @@ export function compareAndUpdateSections(
     });
 
     return processedSections;
+}
+
+export function getBatchNameById(data: BatchDetailsInterface[] | undefined, id: string) {
+    const item = data?.find((obj) => obj.id === id);
+    if (item && item.level && item.package_dto) {
+        return `${item.level.level_name} ${item.package_dto.package_name}`;
+    }
+    return "";
+}
+
+export function calculatePercentiles(students: StudentLeaderboard[]) {
+    const totalStudents = students.length;
+
+    return students.map((student) => {
+        const percentile = ((totalStudents - student.rank) / (totalStudents - 1)) * 100;
+        return { ...student, percentile: percentile.toFixed(2) }; // Keeping two decimal places
+    });
+}
+
+export function calculateIndividualPercentile(studentData: StudentLeaderboard[], user_id: string) {
+    // Find the student with the given user_id
+    const student = studentData.find((s) => s.user_id === user_id);
+
+    // Return the percentile if found, otherwise return null or a default value
+    return student ? student.percentile : "";
 }
 
 // export const announcementDialogTrigger = (

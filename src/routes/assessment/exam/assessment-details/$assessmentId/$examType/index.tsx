@@ -8,10 +8,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CaretLeft, CheckCircle, LockSimple, PauseCircle, PencilSimpleLine } from "phosphor-react";
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { QuestionsMarkRankGraph } from "./-components/QuestionsMarkRankGraph";
-import { QuestionAnalysisChart } from "./-components/QuestionAnalysisChart";
 import { Helmet } from "react-helmet";
-import { QuestionsPieChart } from "./-components/QuestionsPieChart";
 import { AssessmentBasicInfoTab } from "./-components/AssessmentBasicInfoTab";
 import AssessmentParticipantsTab from "./-components/AssessmentParticipantsTab";
 import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab";
@@ -26,6 +23,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AssessmentPreview from "./-components/AssessmentPreview";
 import { toast } from "sonner";
+import AssessmentOverviewTab from "./-components/AssessmentOverviewTab";
 
 export const Route = createFileRoute(
     "/assessment/exam/assessment-details/$assessmentId/$examType/",
@@ -302,11 +300,7 @@ const AssessmentDetailsComponent = () => {
                     </div>
                     <div className="max-h-[72vh] overflow-y-auto pr-8">
                         <TabsContent value="overview">
-                            <QuestionsPieChart />
-                            <Separator className="my-10" />
-                            <QuestionsMarkRankGraph />
-                            <Separator className="mb-10 mt-4" />
-                            <QuestionAnalysisChart />
+                            <AssessmentOverviewTab />
                         </TabsContent>
                         <TabsContent value="basicInfo">
                             <AssessmentBasicInfoTab />

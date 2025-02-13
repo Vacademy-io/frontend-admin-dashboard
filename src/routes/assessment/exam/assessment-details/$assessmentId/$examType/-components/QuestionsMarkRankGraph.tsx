@@ -8,12 +8,12 @@ import {
 import { MyButton } from "@/components/design-system/button";
 import { ArrowCounterClockwise, Export } from "phosphor-react";
 import AssessmentDetailsRankMarkTable from "./QuestionsRankMarkTable";
-import { overviewTabCloseTestData } from "../-utils/dummy-data-close";
-
-const chartData = overviewTabCloseTestData.marksRankData.map(({ rank, marks }) => ({
-    rank,
-    mark: marks,
-}));
+import { getInstituteId } from "@/constants/helper";
+import { Route } from "..";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { handleGetOverviewData } from "../-services/assessment-details-services";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { AssessmentOverviewMarksRankInterface } from "@/types/assessment-overview";
 
 const chartConfig = {
     mark: {
@@ -22,7 +22,15 @@ const chartConfig = {
     },
 } satisfies ChartConfig;
 
-export function AssessmentDetailsMarkRankGraph() {
+export function AssessmentDetailsMarkRankGraph({
+    marksRanksData,
+}: {
+    marksRanksData: AssessmentOverviewMarksRankInterface[];
+}) {
+    const chartData = marksRanksData?.map(({ rank, marks }) => ({
+        rank,
+        mark: marks,
+    }));
     return (
         <ChartContainer config={chartConfig}>
             <LineChart
@@ -78,6 +86,13 @@ export function AssessmentDetailsMarkRankGraph() {
 }
 
 export function QuestionsMarkRankGraph() {
+    const instituteId = getInstituteId();
+    const { assessmentId } = Route.useParams();
+    const { data, isLoading } = useSuspenseQuery(
+        handleGetOverviewData({ assessmentId, instituteId }),
+    );
+
+    if (isLoading) return <DashboardLoader />;
     return (
         <div className="flex flex-col">
             <div className="flex items-center justify-between">
@@ -104,10 +119,10 @@ export function QuestionsMarkRankGraph() {
             </div>
             <div className="mt-6 flex items-start gap-16">
                 <div className="w-1/2">
-                    <AssessmentDetailsMarkRankGraph />
+                    <AssessmentDetailsMarkRankGraph marksRanksData={data.marks_rank_dto} />
                 </div>
                 <div className="w-1/2">
-                    <AssessmentDetailsRankMarkTable />
+                    <AssessmentDetailsRankMarkTable marksRanksData={data.marks_rank_dto} />
                 </div>
             </div>
         </div>
