@@ -14,7 +14,11 @@ import {
     getQuestionsInsightsData,
     handleGetQuestionInsightsData,
 } from "../-services/assessment-details-services";
-import { parseHtmlToString, transformQuestionInsightsQuestionsData } from "../-utils/helper";
+import {
+    getCorrectOptionsForQuestion,
+    parseHtmlToString,
+    transformQuestionInsightsQuestionsData,
+} from "../-utils/helper";
 
 export function QuestionInsightsComponent() {
     const instituteId = getInstituteId();
@@ -40,7 +44,6 @@ export function QuestionInsightsComponent() {
     const [selectedSectionData, setSelectedSectionData] = useState(
         transformQuestionInsightsQuestionsData(data.question_insight_dto),
     );
-    console.log(selectedSectionData);
 
     const getQuestionInsightsData = useMutation({
         mutationFn: ({
@@ -125,21 +128,46 @@ export function QuestionInsightsComponent() {
                         <div className="flex w-full items-start justify-between gap-8">
                             <div className="my-4 flex w-1/2 flex-col gap-8 p-2">
                                 <h3>
-                                    Question&nbsp;
+                                    Question&nbsp;({index + 1}.)&nbsp;
                                     {parseHtmlToString(
                                         question.assessment_question_preview_dto.questionName,
                                     )}
                                 </h3>
                                 <div className="flex flex-nowrap items-center gap-8 text-sm font-semibold">
                                     <p className="whitespace-nowrap font-normal">Correct Answer:</p>
-                                    <p className="flex w-full items-center gap-4 rounded-md bg-primary-50 p-4">
-                                        <span>
-                                            {parseHtmlToString(
-                                                question.assessment_question_preview_dto.multipleChoiceOptions.find(
-                                                    (option) => option.isSelected,
-                                                )?.name || "",
-                                            )}
-                                        </span>
+                                    <p className="flex w-full flex-col items-center gap-4 rounded-md bg-primary-50 p-4">
+                                        {getCorrectOptionsForQuestion(
+                                            question.assessment_question_preview_dto
+                                                .questionType === "MCQM"
+                                                ? question.assessment_question_preview_dto
+                                                      .multipleChoiceOptions
+                                                : question.assessment_question_preview_dto
+                                                      .singleChoiceOptions,
+                                        )?.map(
+                                            (
+                                                option: {
+                                                    optionType: string;
+                                                    optionName: string | undefined;
+                                                },
+                                                idx: number,
+                                            ) => {
+                                                return (
+                                                    <div
+                                                        className="flex w-full items-center justify-start"
+                                                        key={idx}
+                                                    >
+                                                        <span>({option.optionType}.)&nbsp;</span>
+                                                        <span>
+                                                            {option.optionName
+                                                                ? parseHtmlToString(
+                                                                      option.optionName,
+                                                                  )
+                                                                : ""}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            },
+                                        )}
                                     </p>
                                 </div>
                                 {question.assessment_question_preview_dto.explanation && (
@@ -163,7 +191,8 @@ export function QuestionInsightsComponent() {
                                                             key={index}
                                                             className="flex items-center whitespace-nowrap rounded-md border p-2 text-sm"
                                                         >
-                                                            <h1>{response.name}</h1>&nbsp;:&nbsp;
+                                                            <h1>{response.name}</h1>
+                                                            &nbsp;:&nbsp;
                                                             <h1>
                                                                 {response.timeTakenInSeconds} sec
                                                             </h1>

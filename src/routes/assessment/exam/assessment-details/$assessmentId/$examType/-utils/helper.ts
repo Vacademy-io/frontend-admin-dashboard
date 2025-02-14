@@ -27,7 +27,7 @@ import {
     transformSectionsAndQuestionsDataQuestionsData,
 } from "./assessment-details-interface";
 import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
-import { MyQuestion } from "@/types/assessments/question-paper-form";
+import { MyQuestion, MySingleChoiceOption } from "@/types/assessments/question-paper-form";
 import { BatchDetailsInterface, StudentLeaderboard } from "@/types/assessment-overview";
 
 // import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
@@ -742,7 +742,6 @@ export function calculateIndividualPercentile(studentData: StudentLeaderboard[],
 
 export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[]) => {
     return data.map((item) => {
-        console.log(item.assessment_question_preview_dto);
         const correctOptionIds =
             JSON.parse(item.assessment_question_preview_dto.evaluation_json)?.data
                 ?.correctOptionIds || [];
@@ -812,3 +811,13 @@ export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[
         };
     });
 };
+
+export function getCorrectOptionsForQuestion(options: MySingleChoiceOption[]) {
+    return options
+        .map((option, index) =>
+            option.isSelected
+                ? { optionType: String.fromCharCode(97 + index), optionName: option.name }
+                : null,
+        )
+        .filter((option) => option !== null);
+}
