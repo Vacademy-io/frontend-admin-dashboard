@@ -9,6 +9,7 @@ import { AddDocDialog } from "./add-doc-dialog";
 import { AddPdfDialog } from "./add-pdf-dialog";
 import { useRouter } from "@tanstack/react-router";
 import { useSlides } from "@/hooks/study-library/use-slides";
+import { formatHTMLString } from "../../add-chapters/slide-material";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
@@ -51,6 +52,7 @@ export const ChapterSidebarAddButton = () => {
                 break;
             case "create-doc": {
                 try {
+                    const documentData = formatHTMLString("");
                     await addUpdateDocumentSlide({
                         id: crypto.randomUUID(),
                         title: "New Document",
@@ -60,7 +62,7 @@ export const ChapterSidebarAddButton = () => {
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: "DOC",
-                            data: "",
+                            data: documentData,
                             title: "New Document",
                             cover_file_id: "",
                         },
