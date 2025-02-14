@@ -9,6 +9,7 @@ import {
 } from "@/constants/urls";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 export interface Slide {
     slide_title: string | null;
@@ -71,7 +72,7 @@ interface UpdateStatusParams {
 
 export const useSlides = (chapterId: string) => {
     const queryClient = useQueryClient();
-
+    const { setItems } = useContentStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
@@ -80,6 +81,7 @@ export const useSlides = (chapterId: string) => {
         queryKey: ["slides", chapterId],
         queryFn: async () => {
             const response = await authenticatedAxiosInstance.get(`${GET_SLIDES}/${chapterId}`);
+            setItems(response.data);
             return response.data;
         },
         staleTime: 3600000,
