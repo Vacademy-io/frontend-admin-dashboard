@@ -28,7 +28,6 @@ export interface AssessmentStudentLeaderboardInterface {
 const AssessmentStudentLeaderboard = () => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { batches_for_sessions } = instituteDetails || {};
-    console.log(instituteDetails);
     const instituteId = getInstituteId();
     const { assessmentId } = Route.useParams();
     const [selectedFilter] = useState<AssessmentStudentLeaderboardInterface>({

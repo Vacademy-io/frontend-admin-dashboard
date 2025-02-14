@@ -20,6 +20,7 @@ import {
     AssessmentSectionQuestionInterface,
     calculateAverageMarksQuestionInterface,
     PreBatchRegistration,
+    QuestionInsightDTO,
     SectionInfoWithAddedQuestions,
     SectionInfoWithAddedQuestionsCntOrNull,
     StudentLeaderboardEntry,
@@ -738,3 +739,76 @@ export function calculateIndividualPercentile(studentData: StudentLeaderboard[],
     // Return the percentile if found, otherwise return null or a default value
     return student ? student.percentile : "";
 }
+
+export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[]) => {
+    return data.map((item) => {
+        console.log(item.assessment_question_preview_dto);
+        const correctOptionIds =
+            JSON.parse(item.assessment_question_preview_dto.evaluation_json)?.data
+                ?.correctOptionIds || [];
+        const totalMark =
+            JSON.parse(item.assessment_question_preview_dto.marking_json)?.data?.totalMark || "";
+        const baseQuestion: MyQuestion = {
+            id: item.assessment_question_preview_dto.question_id || "",
+            questionId: item.assessment_question_preview_dto.question_id || undefined,
+            questionName: item.assessment_question_preview_dto.question?.content || "",
+            explanation: "",
+            questionType: item.assessment_question_preview_dto.question_type || "",
+            questionPenalty: "",
+            questionDuration: {
+                hrs: String(
+                    Math.floor((item.assessment_question_preview_dto.question_duration ?? 0) / 60),
+                ),
+                min: String((item.assessment_question_preview_dto.question_duration ?? 0) % 60),
+            },
+            questionMark: totalMark,
+            singleChoiceOptions: [],
+            multipleChoiceOptions: [],
+        };
+
+        if (item.assessment_question_preview_dto.question_type === "MCQS") {
+            baseQuestion.singleChoiceOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    name: option.text?.content || "",
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                    image: {},
+                }));
+            baseQuestion.multipleChoiceOptions = Array(4).fill({
+                name: "",
+                isSelected: false,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
+            });
+        } else if (item.assessment_question_preview_dto.question_type === "MCQM") {
+            baseQuestion.multipleChoiceOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    name: option.text?.content || "",
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                    image: {},
+                }));
+            baseQuestion.singleChoiceOptions = Array(4).fill({
+                name: "",
+                isSelected: false,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
+            });
+        }
+        return {
+            assessment_question_preview_dto: baseQuestion,
+            question_status: item.question_status,
+            skipped: item.skipped,
+            top3_correct_response_dto: item.top3_correct_response_dto,
+            total_attempts: item.total_attempts,
+        };
+    });
+};

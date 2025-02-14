@@ -269,7 +269,7 @@ interface AssessmentQuestionPreviewDTO {
     options_with_explanation: QuestionInsightsOption[];
 }
 
-interface QuestionInsightsQuestionStatus {
+export interface QuestionInsightsQuestionStatus {
     incorrectAttempt: number;
     partialCorrectAttempt: number;
     questionId: string;
@@ -282,7 +282,7 @@ interface QuestionInsightsTop3Interface {
     name: string;
 }
 
-interface QuestionInsightDTO {
+export interface QuestionInsightDTO {
     assessment_question_preview_dto: AssessmentQuestionPreviewDTO;
     question_status: QuestionInsightsQuestionStatus;
     skipped: number;
