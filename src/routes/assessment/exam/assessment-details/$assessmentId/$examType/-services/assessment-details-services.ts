@@ -1,4 +1,9 @@
-import { GET_LEADERBOARD_URL, GET_OVERVIEW_URL, PRIVATE_ADD_QUESTIONS } from "@/constants/urls";
+import {
+    GET_LEADERBOARD_URL,
+    GET_OVERVIEW_URL,
+    GET_QUESTIONS_INSIGHTS_URL,
+    PRIVATE_ADD_QUESTIONS,
+} from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
@@ -22,6 +27,40 @@ export const getOverviewDetials = async (assessmentId: string, instituteId: stri
         },
     });
     return response?.data;
+};
+
+export const getQuestionsInsightsData = async (
+    assessmentId: string,
+    instituteId: string | undefined,
+    sectionId: string | undefined,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: GET_QUESTIONS_INSIGHTS_URL,
+        params: {
+            assessmentId,
+            instituteId,
+            sectionId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetQuestionInsightsData = ({
+    assessmentId,
+    instituteId,
+    sectionId,
+}: {
+    assessmentId: string;
+    instituteId: string | undefined;
+    sectionId: string | undefined;
+}) => {
+    return {
+        queryKey: ["GET_QUESTION_INSIGHTS_DETAILS", assessmentId, instituteId, sectionId],
+        queryFn: () => getQuestionsInsightsData(assessmentId, instituteId, sectionId),
+        staleTime: 60 * 60 * 1000,
+        enabled: !!sectionId,
+    };
 };
 
 export const getStudentLeaderboardDetails = async (

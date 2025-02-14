@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
     ChartConfig,
@@ -18,7 +18,16 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { ArrowCounterClockwise, Export } from "phosphor-react";
-import { questionInsightsData } from "../-utils/dummy-data";
+import { getInstituteId } from "@/constants/helper";
+import { Route } from "..";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+    getQuestionsInsightsData,
+    handleGetQuestionInsightsData,
+} from "../-services/assessment-details-services";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
+import { QuestionInsightResponse } from "../-utils/assessment-details-interface";
 
 const chartConfig = {
     correct: { label: "Correct", color: "#97D4B4" },
@@ -30,7 +39,7 @@ const chartConfig = {
 export function AssessmentDetailsQuestionAnalysisChart({
     selectedSectionData,
 }: {
-    selectedSectionData: (typeof questionInsightsData)[0];
+    selectedSectionData: QuestionInsightResponse;
 }) {
     const [visibleKeys, setVisibleKeys] = useState<string[]>([
         "correct",
@@ -51,16 +60,24 @@ export function AssessmentDetailsQuestionAnalysisChart({
     };
 
     // Format data for the chart based on the selected section's questions
-    const chartData = selectedSectionData.questions.map((question, index) => {
-        const { correct, partiallyCorrect, wrongResponse, skipped } =
-            question.questionAttemptedAnalysis;
+    const chartData = selectedSectionData.question_insight_dto.map((question, index) => {
+        let correctAttempt = 0,
+            partialCorrectAttempt = 0,
+            incorrectAttempt = 0;
+        if (question.question_status) {
+            correctAttempt = question.question_status.correctAttempt;
+            partialCorrectAttempt = question.question_status.partialCorrectAttempt;
+            incorrectAttempt = question.question_status.incorrectAttempt;
+        }
+        const skipped = question.skipped;
+
         return {
             questionId: index + 1,
-            correct,
-            partiallyCorrect,
-            wrongResponses: wrongResponse,
+            correct: correctAttempt,
+            partiallyCorrect: partialCorrectAttempt,
+            wrongResponses: incorrectAttempt,
             skip: skipped,
-            total: correct + partiallyCorrect + wrongResponse + skipped,
+            total: correctAttempt + partialCorrectAttempt + incorrectAttempt + skipped,
         };
     });
 
@@ -174,12 +191,57 @@ export function AssessmentDetailsQuestionAnalysisChart({
 }
 
 export function QuestionAnalysisChart() {
-    const [selectedSection, setSelectedSection] = useState<string>("Section 1");
+    const instituteId = getInstituteId();
+    const { assessmentId, examType } = Route.useParams();
+    const { data: assessmentDetails } = useSuspenseQuery(
+        getAssessmentDetails({
+            assessmentId: assessmentId,
+            instituteId: instituteId,
+            type: examType,
+        }),
+    );
+    const sectionsInfo = assessmentDetails[1]?.saved_data.sections?.map((section) => ({
+        name: section.name,
+        id: section.id,
+    }));
 
-    // Find the selected section's data
-    const selectedSectionData = questionInsightsData.find(
-        (section) => section.sectionName === selectedSection,
-    )!;
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
+
+    const { data } = useSuspenseQuery(
+        handleGetQuestionInsightsData({ instituteId, assessmentId, sectionId: selectedSection }),
+    );
+
+    const [selectedSectionData, setSelectedSectionData] = useState(data);
+
+    const getQuestionInsightsData = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+            sectionId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+            sectionId: string | undefined;
+        }) => getQuestionsInsightsData(assessmentId, instituteId, sectionId),
+        onSuccess: (data) => {
+            setSelectedSectionData(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleRefreshLeaderboard = () => {
+        getQuestionInsightsData.mutate({
+            assessmentId,
+            instituteId,
+            sectionId: selectedSection,
+        });
+    };
+
+    useEffect(() => {
+        setSelectedSectionData(data);
+    }, [selectedSection]);
 
     return (
         <div className="flex flex-col">
@@ -191,9 +253,9 @@ export function QuestionAnalysisChart() {
                             <SelectValue placeholder="Select Section" />
                         </SelectTrigger>
                         <SelectContent>
-                            {questionInsightsData.map((section) => (
-                                <SelectItem key={section.id} value={section.sectionName}>
-                                    {section.sectionName}
+                            {sectionsInfo?.map((section) => (
+                                <SelectItem key={section.id} value={section.id}>
+                                    {section.name}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -212,12 +274,17 @@ export function QuestionAnalysisChart() {
                         scale="large"
                         buttonType="secondary"
                         className="min-w-8 font-medium"
+                        onClick={handleRefreshLeaderboard}
                     >
                         <ArrowCounterClockwise size={32} />
                     </MyButton>
                 </div>
             </div>
-            <AssessmentDetailsQuestionAnalysisChart selectedSectionData={selectedSectionData} />
+            {getQuestionInsightsData.status === "pending" ? (
+                <DashboardLoader />
+            ) : (
+                <AssessmentDetailsQuestionAnalysisChart selectedSectionData={selectedSectionData} />
+            )}
         </div>
     );
 }

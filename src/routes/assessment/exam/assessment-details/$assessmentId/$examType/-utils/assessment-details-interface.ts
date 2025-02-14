@@ -228,3 +228,68 @@ export interface SectionInfoWithAddedQuestions {
     questions?: number;
     assignedQuestions: AssignedQuestion[];
 }
+
+// Question Insights Interface
+
+interface QuestionInsightsContent {
+    id: string;
+    type: string | null;
+    content: string | null;
+}
+
+interface QuestionInsightsOption {
+    id: string;
+    preview_id: string | null;
+    question_id: string;
+    text: QuestionInsightsContent;
+    media_id: string | null;
+    option_order: number | null;
+    created_on: string;
+    updated_on: string;
+    explanation_text: QuestionInsightsContent;
+}
+
+interface QuestionInsightsQuestion {
+    id: string;
+    type: string;
+    content: string;
+}
+
+interface AssessmentQuestionPreviewDTO {
+    question_id: string;
+    parent_rich_text: string | null;
+    question: QuestionInsightsQuestion;
+    section_id: string;
+    question_duration: number;
+    question_order: number;
+    marking_json: string;
+    evaluation_json: string;
+    question_type: string;
+    options: QuestionInsightsOption[];
+    options_with_explanation: QuestionInsightsOption[];
+}
+
+interface QuestionInsightsQuestionStatus {
+    incorrectAttempt: number;
+    partialCorrectAttempt: number;
+    questionId: string;
+    correctAttempt: number;
+}
+
+interface QuestionInsightsTop3Interface {
+    timeTakenInSeconds: number;
+    userId: string;
+    name: string;
+}
+
+interface QuestionInsightDTO {
+    assessment_question_preview_dto: AssessmentQuestionPreviewDTO;
+    question_status: QuestionInsightsQuestionStatus;
+    skipped: number;
+    total_attempts: number;
+    top3_correct_response_dto: QuestionInsightsTop3Interface[];
+}
+
+export interface QuestionInsightResponse {
+    question_insight_dto: QuestionInsightDTO[];
+}
