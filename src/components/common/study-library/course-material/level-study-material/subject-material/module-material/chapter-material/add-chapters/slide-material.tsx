@@ -9,7 +9,7 @@ import { EmptySlideMaterial } from "@/assets/svgs";
 import { useState } from "react";
 import YouTubePlayer from "../slides-material/youtube-player";
 import { html } from "@yoopta/exports";
-import { SlidesMenuOption } from "../slides-material/slides-menu-options/slildes-menu-option";
+import { SlidesMenuOption } from "../slides-material/slides-menu-options/slides-menu-option";
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
 import { useRouter } from "@tanstack/react-router";
 import { getPublicUrl } from "@/services/upload_file";
@@ -38,7 +38,7 @@ export const formatHTMLString = (htmlString: string) => {
 };
 
 export const SlideMaterial = () => {
-    const { activeItem, setActiveItem } = useContentStore();
+    const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -95,13 +95,11 @@ export const SlideMaterial = () => {
         }
 
         if (activeItem?.document_type === "DOC" && activeItem.document_data) {
-            console.log("Entered doc");
             let editorContent: YooptaContentValue | undefined;
             try {
                 editorContent = html.deserialize(editor, activeItem.document_data || "");
 
                 editor.setEditorValue(editorContent);
-                console.log("editor: ", editorContent);
                 setContent(
                     <div className="w-full">
                         <YooptaEditor
@@ -129,13 +127,11 @@ export const SlideMaterial = () => {
     };
 
     useEffect(() => {
-        if (activeItem) {
-            setHeading(activeItem.document_title || activeItem.video_title || "");
-            setContent(null);
-            console.log("active item changed: ", activeItem);
-            loadContent();
-        }
-    }, [activeItem]);
+        setHeading(activeItem?.document_title || activeItem?.video_title || "");
+        setContent(null);
+        console.log("active item changed: ", activeItem);
+        loadContent();
+    }, [activeItem, items]);
 
     // Modified SaveDraft function
     const SaveDraft = () => {
