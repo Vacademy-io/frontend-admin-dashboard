@@ -151,7 +151,7 @@ export function QuestionInsightsComponent() {
                                                 option: {
                                                     optionType: string;
                                                     optionName: string | undefined;
-                                                },
+                                                } | null,
                                                 idx: number,
                                             ) => {
                                                 return (
@@ -159,9 +159,9 @@ export function QuestionInsightsComponent() {
                                                         className="flex w-full items-center justify-start"
                                                         key={idx}
                                                     >
-                                                        <span>({option.optionType}.)&nbsp;</span>
+                                                        <span>({option?.optionType}.)&nbsp;</span>
                                                         <span>
-                                                            {option.optionName
+                                                            {option?.optionName
                                                                 ? parseHtmlToString(
                                                                       option.optionName,
                                                                   )
