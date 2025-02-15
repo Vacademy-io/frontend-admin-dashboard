@@ -1,32 +1,34 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyButton } from "@/components/design-system/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { DotIcon, DotIconOffline } from "@/svgs";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CaretLeft, CheckCircle, LockSimple, PauseCircle, PencilSimpleLine } from "phosphor-react";
-import { useEffect, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Helmet } from "react-helmet";
-import { AssessmentBasicInfoTab } from "./-components/AssessmentBasicInfoTab";
-import AssessmentParticipantsTab from "./-components/AssessmentParticipantsTab";
-import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab";
-import { AssessmentQuestionsTab } from "./-components/AssessmentQuestionsTab";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import {
     getAssessmentDetails,
     getQuestionDataForSection,
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import AssessmentPreview from "./-components/AssessmentPreview";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { DotIcon, DotIconOffline } from "@/svgs";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { CaretLeft, CheckCircle, LockSimple, PauseCircle, PencilSimpleLine } from "phosphor-react";
+import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
 import { toast } from "sonner";
+import AssessmentPreview from "./-components/AssessmentPreview";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AssessmentOverviewTab from "./-components/AssessmentOverviewTab";
+import { AssessmentBasicInfoTab } from "./-components/AssessmentBasicInfoTab";
+import { AssessmentQuestionsTab } from "./-components/AssessmentQuestionsTab";
+import AssessmentParticipantsTab from "./-components/AssessmentParticipantsTab";
+import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab";
+import AssessmentSubmissionsTab from "./-components/AssessmentSubmissionsTab";
+import { overviewTabOpenTestData } from "./-utils/dummy-data-open";
 
 export const Route = createFileRoute(
-    "/assessment/exam/assessment-details/$assessmentId/$examType/",
+    "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/",
 )({
     component: () => (
         <LayoutContainer>
@@ -203,8 +205,8 @@ const AssessmentDetailsComponent = () => {
                 </div>
                 <Separator className="mt-4" />
                 <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-                    <div className="flex items-center justify-between">
-                        <TabsList className="mb-2 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                    <div className="flex items-center justify-between gap-2">
+                        <TabsList className="mb-2 mt-6 inline-flex h-auto justify-start gap-0 rounded-none border-b !bg-transparent p-0">
                             <TabsTrigger
                                 value="overview"
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
@@ -219,6 +221,22 @@ const AssessmentDetailsComponent = () => {
                                     }`}
                                 >
                                     Overview
+                                </span>
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="submissions"
+                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                    selectedTab === "submissions"
+                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                        : "border-none bg-transparent"
+                                }`}
+                            >
+                                <span
+                                    className={`${
+                                        selectedTab === "submissions" ? "text-primary-500" : ""
+                                    }`}
+                                >
+                                    Submissions
                                 </span>
                             </TabsTrigger>
                             <TabsTrigger
@@ -286,12 +304,12 @@ const AssessmentDetailsComponent = () => {
                                 </span>
                             </TabsTrigger>
                         </TabsList>
-                        {selectedTab !== "overview" && (
+                        {selectedTab !== "overview" && selectedTab !== "submissions" && (
                             <MyButton
                                 type="button"
                                 scale="large"
                                 buttonType="secondary"
-                                className="mt-4 w-10 min-w-8 font-medium"
+                                className="mt-4 w-10 min-w-10 font-medium"
                                 onClick={handleNavigateToSteps}
                             >
                                 <PencilSimpleLine size={32} />
@@ -301,6 +319,12 @@ const AssessmentDetailsComponent = () => {
                     <div className="max-h-[72vh] overflow-y-auto pr-8">
                         <TabsContent value="overview">
                             <AssessmentOverviewTab />
+                        </TabsContent>
+                        <TabsContent value="submissions">
+                            <AssessmentSubmissionsTab
+                                type="open"
+                                studentsListData={overviewTabOpenTestData.assessmentStatus}
+                            />
                         </TabsContent>
                         <TabsContent value="basicInfo">
                             <AssessmentBasicInfoTab />

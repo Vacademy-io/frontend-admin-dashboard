@@ -5,8 +5,8 @@ import {
     PRIVATE_ADD_QUESTIONS,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
+import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
 
 export const savePrivateQuestions = async (questions: AssessmentDetailQuestions) => {
     const response = await authenticatedAxiosInstance({

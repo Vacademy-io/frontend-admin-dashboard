@@ -19,7 +19,7 @@ import {
 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
-import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/-utils/assessment-details-interface";
+import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/assessment-details-interface";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,

@@ -5,11 +5,7 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-import { MyButton } from "@/components/design-system/button";
 import { DotOutline } from "@phosphor-icons/react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import QuestionAssessmentStatus from "./QuestionAssessmentStatus";
-import { overviewTabOpenTestData } from "../-utils/dummy-data-open";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { handleGetOverviewData } from "../-services/assessment-details-services";
 import { Route } from "..";
@@ -140,33 +136,6 @@ export function QuestionsPieChart() {
                             {data.assessment_overview_dto.average_marks.toFixed(2)}
                         </p>
                     </div>
-                </div>
-                <div className="flex justify-center">
-                    <Dialog>
-                        <DialogTrigger>
-                            <MyButton
-                                type="button"
-                                scale="large"
-                                buttonType="secondary"
-                                className="font-medium"
-                            >
-                                Check Assessment Status
-                            </MyButton>
-                        </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
-                            <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
-                                Assessment Status
-                            </h1>
-                            <QuestionAssessmentStatus
-                                type="open"
-                                studentsListData={overviewTabOpenTestData.assessmentStatus}
-                            />
-                            {/* <QuestionAssessmentStatus
-                                type="close"
-                                studentsListData={overviewTabCloseTestData.assessmentStatus}
-                            /> */}
-                        </DialogContent>
-                    </Dialog>
                 </div>
                 <div className="flex items-center">
                     <AssessmentDetailsPieChart
