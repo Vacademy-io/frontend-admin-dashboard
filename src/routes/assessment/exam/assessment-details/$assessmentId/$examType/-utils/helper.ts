@@ -20,13 +20,16 @@ import {
     AssessmentSectionQuestionInterface,
     calculateAverageMarksQuestionInterface,
     PreBatchRegistration,
+    QuestionInsightDTO,
     SectionInfoWithAddedQuestions,
     SectionInfoWithAddedQuestionsCntOrNull,
     StudentLeaderboardEntry,
     transformSectionsAndQuestionsDataQuestionsData,
 } from "./assessment-details-interface";
 import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
-import { MyQuestion } from "@/types/assessments/question-paper-form";
+import { MyQuestion, MySingleChoiceOption } from "@/types/assessments/question-paper-form";
+import { BatchDetailsInterface, StudentLeaderboard } from "@/types/assessment-overview";
+
 // import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
 // import { QuestionAssessmentPreview } from "@/types/assessment-preview-interface";
 
@@ -712,56 +715,109 @@ export function compareAndUpdateSections(
     return processedSections;
 }
 
-// export const announcementDialogTrigger = (
-//     previousDataRef: sectionsEditQuestionFormType["sections"] | undefined,
-//     newData: sectionsEditQuestionFormType["sections"],
-//     selectedSectionIndex: number,
-//     currentQuestionIndex: number,
-// ): void => {
-//     const prevQuestion = previousDataRef?.[selectedSectionIndex]?.questions[currentQuestionIndex];
-//     const newQuestion = newData?.[selectedSectionIndex]?.questions[currentQuestionIndex];
+export function getBatchNameById(data: BatchDetailsInterface[] | undefined, id: string) {
+    const item = data?.find((obj) => obj.id === id);
+    if (item && item.level && item.package_dto) {
+        return `${item.level.level_name} ${item.package_dto.package_name}`;
+    }
+    return "";
+}
 
-//     // Function to compare two objects deeply
-//     const deepEqual = (
-//         obj1: QuestionAssessmentPreview | undefined,
-//         obj2: QuestionAssessmentPreview | undefined,
-//     ): boolean => {
-//         if (obj1 === obj2) return true;
-//         if (typeof obj1 !== "object" || typeof obj2 !== "object" || obj1 === null || obj2 === null)
-//             return false;
+export function calculatePercentiles(students: StudentLeaderboard[]) {
+    const totalStudents = students.length;
 
-//         const keys1 = Object.keys(obj1) as Array<keyof QuestionAssessmentPreview>;
-//         const keys2 = Object.keys(obj2) as Array<keyof QuestionAssessmentPreview>;
+    return students.map((student) => {
+        const percentile = ((totalStudents - student.rank) / (totalStudents - 1)) * 100;
+        return { ...student, percentile: percentile.toFixed(2) }; // Keeping two decimal places
+    });
+}
 
-//         if (keys1.length !== keys2.length) return false;
+export function calculateIndividualPercentile(studentData: StudentLeaderboard[], user_id: string) {
+    // Find the student with the given user_id
+    const student = studentData.find((s) => s.user_id === user_id);
 
-//         for (const key of keys1) {
-//             if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) return false;
-//         }
+    // Return the percentile if found, otherwise return null or a default value
+    return student ? student.percentile : "";
+}
 
-//         return true;
-//     };
+export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[]) => {
+    return data.map((item) => {
+        const correctOptionIds =
+            JSON.parse(item.assessment_question_preview_dto.evaluation_json)?.data
+                ?.correctOptionIds || [];
+        const totalMark =
+            JSON.parse(item.assessment_question_preview_dto.marking_json)?.data?.totalMark || "";
+        const baseQuestion: MyQuestion = {
+            id: item.assessment_question_preview_dto.question_id || "",
+            questionId: item.assessment_question_preview_dto.question_id || undefined,
+            questionName: item.assessment_question_preview_dto.question?.content || "",
+            explanation: "",
+            questionType: item.assessment_question_preview_dto.question_type || "",
+            questionPenalty: "",
+            questionDuration: {
+                hrs: String(
+                    Math.floor((item.assessment_question_preview_dto.question_duration ?? 0) / 60),
+                ),
+                min: String((item.assessment_question_preview_dto.question_duration ?? 0) % 60),
+            },
+            questionMark: totalMark,
+            singleChoiceOptions: [],
+            multipleChoiceOptions: [],
+        };
 
-//     // Compare the two questions
-//     if (!deepEqual(prevQuestion, newQuestion)) {
-//         // Trigger alert if any field is changed
-//         // alert("The question has changed!");
+        if (item.assessment_question_preview_dto.question_type === "MCQS") {
+            baseQuestion.singleChoiceOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    name: option.text?.content || "",
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                    image: {},
+                }));
+            baseQuestion.multipleChoiceOptions = Array(4).fill({
+                name: "",
+                isSelected: false,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
+            });
+        } else if (item.assessment_question_preview_dto.question_type === "MCQM") {
+            baseQuestion.multipleChoiceOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    name: option.text?.content || "",
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                    image: {},
+                }));
+            baseQuestion.singleChoiceOptions = Array(4).fill({
+                name: "",
+                isSelected: false,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
+            });
+        }
+        return {
+            assessment_question_preview_dto: baseQuestion,
+            question_status: item.question_status,
+            skipped: item.skipped,
+            top3_correct_response_dto: item.top3_correct_response_dto,
+            total_attempts: item.total_attempts,
+        };
+    });
+};
 
-//         // Ensure required fields are always defined
-//         if (previousDataRef && previousDataRef[selectedSectionIndex]) {
-//             previousDataRef[selectedSectionIndex].questions[currentQuestionIndex] = {
-//                 id: newQuestion?.id ?? "", // Default to empty string if undefined
-//                 questionName: newQuestion?.questionName ?? "",
-//                 questionType: newQuestion?.questionType ?? "",
-//                 questionPenalty: newQuestion?.questionPenalty ?? "",
-//                 questionDuration: newQuestion?.questionDuration ?? { hrs: "0", min: "0" },
-//                 questionMark: newQuestion?.questionMark ?? "",
-//                 singleChoiceOptions: newQuestion?.singleChoiceOptions ?? [],
-//                 multipleChoiceOptions: newQuestion?.multipleChoiceOptions ?? [],
-//                 questionId: newQuestion?.questionId ?? "",
-//                 explanation: newQuestion?.explanation ?? "",
-//                 imageDetails: newQuestion?.imageDetails ?? [],
-//             };
-//         }
-//     }
-// };
+export function getCorrectOptionsForQuestion(options: MySingleChoiceOption[]) {
+    return options
+        .map((option, index) =>
+            option.isSelected
+                ? { optionType: String.fromCharCode(97 + index), optionName: option.name }
+                : null,
+        )
+        .filter((option) => option !== null);
+}
