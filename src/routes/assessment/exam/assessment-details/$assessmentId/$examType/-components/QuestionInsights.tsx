@@ -79,7 +79,7 @@ export function QuestionInsightsComponent() {
 
     return (
         <Tabs value={selectedSection} onValueChange={setSelectedSection} className="px-8">
-            <div className="flex items-center justify-between">
+            <div className="sticky top-0 flex items-center justify-between">
                 <TabsList className="mb-2 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
                     {sectionsInfo?.map((section) => (
                         <TabsTrigger
@@ -122,7 +122,10 @@ export function QuestionInsightsComponent() {
                     </MyButton>
                 </div>
             </div>
-            <TabsContent value={selectedSection || ""}>
+            <TabsContent
+                value={selectedSection || ""}
+                className="max-h-[calc(100vh-120px)] overflow-y-auto"
+            >
                 {selectedSectionData.map((question, index) => (
                     <div key={index}>
                         <div className="flex w-full items-start justify-between gap-8">
