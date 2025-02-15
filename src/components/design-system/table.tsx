@@ -22,8 +22,6 @@ import { useDialogStore } from "./utils/useDialogStore";
 import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 import { ColumnWidthConfig } from "./utils/constants/table-layout";
 import { DashboardLoader } from "../core/dashboard-loader";
-import { useEffect } from "react";
-import { useSidebar } from "../ui/sidebar";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -85,8 +83,6 @@ export function MyTable<T>({
         autoResetPageIndex: false,
     });
 
-    const { toggleSidebar } = useSidebar();
-
     const {
         isChangeBatchOpen,
         isExtendSessionOpen,
@@ -95,10 +91,6 @@ export function MyTable<T>({
         isDeleteOpen,
         closeAllDialogs,
     } = useDialogStore();
-
-    useEffect(() => {
-        toggleSidebar();
-    }, []);
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading data</div>;
