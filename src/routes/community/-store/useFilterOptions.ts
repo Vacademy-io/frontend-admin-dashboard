@@ -1,27 +1,19 @@
 import { create } from "zustand";
-
-interface FilterOptions {
-    difficulty: string[];
-    level: string[];
-    type: string[];
-    subject: string[];
-    topic: string[];
-    stream: string[];
-}
+import { InitData } from "@/types/community/types";
 
 interface FilterStore {
-    options: FilterOptions;
-    setOptions: (options: FilterOptions) => void;
+    options: InitData;
+    setOptions: (options: InitData) => void;
 }
 
 export const useFilterStore = create<FilterStore>((set) => ({
     options: {
-        difficulty: [],
-        level: [],
-        type: [],
-        subject: [],
-        topic: [],
-        stream: [],
+        levels: [],
+        streams: {},
+        subjects: {},
+        difficulties: [],
+        topics: [],
+        types: [],
     },
     setOptions: (options) => set({ options }),
 }));

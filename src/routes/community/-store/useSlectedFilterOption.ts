@@ -1,17 +1,21 @@
 import { create } from "zustand";
+import { Level, Stream, Subject } from "@/types/community/types";
 
 interface SelectedFilters {
     difficulty: string | null;
-    level: string | null;
+    level: Level | null;
     type: string | null;
-    subject: string | null;
+    subject: Subject | null;
     topic: string | null;
-    stream: string | null;
+    stream: Stream | null;
 }
 
 interface SelectedFilterStore {
     selected: SelectedFilters;
-    setSelected: (filterKey: keyof SelectedFilters, value: string | null) => void;
+    setSelected: (
+        filterKey: keyof SelectedFilters,
+        value: string | Level | Stream | Subject | null,
+    ) => void;
     clearFilters: () => void;
 }
 

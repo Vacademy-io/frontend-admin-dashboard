@@ -1,7 +1,14 @@
-import { FilterDropdown } from "./FilterDropdown";
+import {
+    FilterStreamDropdown,
+    SearchableFilterDropdown,
+    FilterSubjectDropdown,
+    FilterDifficultiesDropdown,
+} from "./FilterDropdown";
 import { Chip } from "./Chips";
 import { useState, useRef, useEffect } from "react";
-// import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
+import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
+import { useFilterStore } from "../-store/useFilterOptions";
+
 const chipsData = [
     "First 10",
     "Second 20",
@@ -26,10 +33,11 @@ const chipsData = [
 ];
 
 export function FiltersTab() {
+    const { options } = useFilterStore();
     const [expanded, setExpanded] = useState(false);
     const [visibleCount, setVisibleCount] = useState(chipsData.length);
     const containerRef = useRef<HTMLDivElement>(null);
-    // const { selected } = useSelectedFilterStore();
+    const { selected } = useSelectedFilterStore();
     useEffect(() => {
         if (containerRef.current && !expanded) {
             const containerWidth = containerRef.current.offsetWidth;
@@ -50,29 +58,27 @@ export function FiltersTab() {
     return (
         <div className="mx-10 mb-10 flex flex-col gap-6 border-b pb-6">
             <div className="flex flex-row flex-wrap justify-around gap-4 rounded bg-sidebar-background p-4">
-                <FilterDropdown
-                    sessionDirection="flex-row"
-                    defaultSession={"Stream"}
-                    // onSessionChange={onSessionChange}
-                    onSessionChange={() => {}}
+                {selected.level && (
+                    <FilterStreamDropdown
+                        placeholder="Select Stream"
+                        FilterList={options.streams[selected.level?.levelId] || []}
+                    />
+                )}
+                {selected.stream && (
+                    <FilterSubjectDropdown
+                        FilterList={options.subjects[selected.stream.streamId] || []}
+                        placeholder="Select Subject"
+                    />
+                )}
+                <FilterDifficultiesDropdown
+                    FilterList={options.difficulties || []}
+                    placeholder="Select Difficulty"
                 />
-                <FilterDropdown
-                    sessionDirection="flex-row"
-                    defaultSession={"Subject"}
-                    // onSessionChange={onSessionChange}
-                    onSessionChange={() => {}}
-                />
-                <FilterDropdown
-                    sessionDirection="flex-row"
-                    defaultSession={"Difficulty"}
-                    // onSessionChange={onSessionChange}
-                    onSessionChange={() => {}}
-                />
-                <FilterDropdown
-                    sessionDirection="flex-row"
-                    defaultSession={"Type"}
-                    // onSessionChange={onSessionChange}
-                    onSessionChange={() => {}}
+                <SearchableFilterDropdown
+                // sessionDirection="flex-row"
+                // defaultSession={"Type"}
+                // // onSessionChange={onSessionChange}
+                // onSessionChange={() => {}}
                 />
             </div>
             <div ref={containerRef} className="relative flex flex-row flex-wrap gap-4 pb-6">

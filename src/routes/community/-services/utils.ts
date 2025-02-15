@@ -1,11 +1,21 @@
-import { GET_QUESTION_PAPER_FILTERED_DATA } from "@/constants/urls";
+import { GET_QUESTION_PAPER_FILTERED_DATA, INIT_FILTERS } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 // import {
 //     transformFilterData,
 // } from "./helper";
 import { FilterOption } from "@/types/assessments/question-paper-filter";
 
-export function fetchStaticData() {}
+export async function fetchStaticData() {
+    try {
+        const response = await authenticatedAxiosInstance({
+            method: "GET",
+            url: `${INIT_FILTERS}`,
+        });
+        return response?.data;
+    } catch (error: unknown) {
+        throw new Error(`${error}`);
+    }
+}
 
 export const getQuestionPaperDataWithFilters = async (
     pageNo: number,

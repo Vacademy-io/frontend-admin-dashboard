@@ -4,12 +4,12 @@ import HeadingSvg3 from "../-svgs/headerDisplay-3.svg";
 import HeadingSvg4 from "../-svgs/headerDisplay-4.svg";
 import HeadingSvg5 from "../-svgs/headerDisplay-5.svg";
 import HeadingSvg6 from "../-svgs/headerDisplay-6.svg";
-import { LevelDropdown } from "../-components/LevelDropdown";
-// import { useFilterStore } from "../-store/useFilterOptions";
+import { FilterLevelDropdown } from "../-components/FilterDropdown";
+import { useFilterStore } from "../-store/useFilterOptions";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 
 export const CommunityPageHeader = () => {
-    // const { options } = useFilterStore();
+    const { options } = useFilterStore();
     return (
         <div className="flex h-[380px] flex-col items-center justify-center py-5">
             <div className="flex w-full flex-row items-center justify-center">
@@ -37,11 +37,9 @@ export const CommunityPageHeader = () => {
                         onSearchChange={() => {}}
                         placeholder="Search Question Papers"
                     />
-                    <LevelDropdown
-                        sessionDirection="flex-row"
-                        defaultSession={"Select Level/Grade"}
-                        // onSessionChange={onSessionChange}
-                        onSessionChange={() => {}}
+                    <FilterLevelDropdown
+                        placeholder={"Select Level/Grade"}
+                        FilterList={options.levels}
                     />
                 </div>
                 <div className="relative -translate-y-6 translate-x-6">
