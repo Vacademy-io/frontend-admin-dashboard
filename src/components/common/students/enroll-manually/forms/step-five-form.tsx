@@ -13,9 +13,9 @@ import { stepFiveSchema, StepFiveData } from "@/types/students/schema-enroll-stu
 // import { useQueryClient } from "@tanstack/react-query";
 import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/useEnrollStudent";
 // import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getCurrentSession } from "../../students-list/utills/getCurrentSession";
-import { usePackageSessionIds } from "@/hooks/student-list-section/getPackageSessionId";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 // import { EnrollStudentRequest } from "@/types/students/type-enroll-student-manually";
 
 export const StepFiveForm = () => {
@@ -30,12 +30,25 @@ export const StepFiveForm = () => {
         // resetForm,
     } = useFormStore();
 
-    const packageSessionId = usePackageSessionIds(
-        stepTwoData?.session || getCurrentSession(),
-        stepTwoData?.batch ? [stepTwoData.batch] : undefined,
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const [packageSessionId, setPackageSessionId] = useState(
+        getPackageSessionId({
+            courseId: stepTwoData?.course.id || "",
+            levelId: stepTwoData?.level.id || "",
+            sessionId: stepTwoData?.session.id || "",
+        }),
     );
 
-    // const queryClient = useQueryClient();
+    useEffect(() => {
+        console.log("package session id: ", packageSessionId);
+        setPackageSessionId(
+            getPackageSessionId({
+                courseId: stepTwoData?.course.id || "",
+                levelId: stepTwoData?.level.id || "",
+                sessionId: stepTwoData?.session.id || "",
+            }),
+        );
+    }, [stepTwoData?.course, stepTwoData?.level, stepTwoData?.session]);
 
     const form = useForm<StepFiveData>({
         resolver: zodResolver(stepFiveSchema),
@@ -50,9 +63,9 @@ export const StepFiveForm = () => {
 
     const generateUsername = () => {
         const sessionYear =
-            stepTwoData?.session?.split("-")[0] || getCurrentSession().split("-")[0];
-        const batchMatch = stepTwoData?.batch?.match(/(\d+)/) || ["", "09"];
-        const classNumber = batchMatch[1]?.padStart(2, "0") || "";
+            stepTwoData?.session?.name.split("-")[0] || getCurrentSession().split("-")[0];
+        const courseMatch = stepTwoData?.course?.name.match(/(\d+)/) || ["", "09"];
+        const classNumber = courseMatch[1]?.padStart(2, "0") || "";
         const enrollmentLast3 = (stepTwoData?.enrollmentNumber || "001").slice(-3);
 
         return `${sessionYear}-${classNumber}-${enrollmentLast3}`;
@@ -93,7 +106,6 @@ export const StepFiveForm = () => {
 
     const onSubmit = async (values: StepFiveData) => {
         setStepFiveData(values);
-        const firstPackageSessionId = packageSessionId[0] || "";
         try {
             const result = await enrollStudentMutation.mutateAsync({
                 formData: {
@@ -103,7 +115,7 @@ export const StepFiveForm = () => {
                     stepFourData,
                     stepFiveData: values,
                 },
-                packageSessionId: firstPackageSessionId,
+                packageSessionId: packageSessionId || "",
             });
             console.log(result);
             // Handle success

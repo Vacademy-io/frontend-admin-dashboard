@@ -98,7 +98,6 @@ function RouteComponent() {
     useEffect(() => {
         setSubjectName(getSubjectName(subjectId || ""));
         setModuleName(getModuleName(moduleId || ""));
-        console.log("chapter Id and Name: ", chapterId, " ", chapterName);
     }, []);
 
     const SidebarComponent = (

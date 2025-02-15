@@ -3,8 +3,8 @@ import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsThree } from "phosphor-react";
 import { useState } from "react";
 import { dropdownList } from "@/constants/study-library/slides-menu-options";
-import { CopyToDialog } from "./copy-dialog";
-import { MoveToDialog } from "./move-dialog";
+// import { CopyToDialog } from "./copy-dialog";
+// import { MoveToDialog } from "./move-dialog";
 import { DeleteDialog } from "./delete-dialog";
 
 export const SlidesMenuOption = () => {
@@ -33,10 +33,10 @@ export const SlidesMenuOption = () => {
             </MyDropdown>
 
             {/* Copy Dialog */}
-            <CopyToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            {/* <CopyToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} /> */}
 
             {/* Move Dialog */}
-            <MoveToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            {/* <MoveToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} /> */}
 
             {/* Delete Dialog */}
             <DeleteDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />

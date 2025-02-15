@@ -5,42 +5,81 @@ import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
-import { MyDropdown } from "@/components/design-system/dropdown";
-import {
-    useGetBatchNames,
-    useGetSessions,
-    useGetGenders,
-} from "@/hooks/student-list-section/useFilters";
+import { MyDropdown } from "../dropdownForPackageItems";
+import { useGetGenders } from "@/hooks/student-list-section/useFilters";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepTwoData, stepTwoSchema } from "@/types/students/schema-enroll-students-manually";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { useEffect, useState } from "react";
+import { DropdownItemType } from "../dropdownTypesForPackageItems";
 
 export const StepTwoForm = () => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
-    const sessionList = useGetSessions();
     const genderList = useGetGenders();
+
+    const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage } =
+        useInstituteDetailsStore();
+
+    const [courseList, setBatchList] = useState<DropdownItemType[]>(getCourseFromPackage());
+    const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
+    const [levelList, setLevelList] = useState<DropdownItemType[]>(getLevelsFromPackage());
 
     const form = useForm<StepTwoData>({
         resolver: zodResolver(stepTwoSchema),
         defaultValues: stepTwoData || {
             fullName: "",
-            // dateOfBirth: "",
-            gender: "",
+            course: {
+                id: "",
+                name: "",
+            },
+            session: {
+                id: "",
+                name: "",
+            },
+            level: {
+                id: "",
+                name: "",
+            },
             enrollmentNumber: "",
-            batch: "",
-            session: "",
-            // sessionId: "",
+            gender: "",
             collegeName: "",
         },
         mode: "onChange",
     });
 
-    const batchList = useGetBatchNames(form.watch("session"));
-
     const onSubmit = (values: StepTwoData) => {
         setStepTwoData(values);
         nextStep();
     };
+
+    useEffect(() => {
+        const values = form.watch();
+
+        // Update course list when session or level changes
+        setBatchList(
+            getCourseFromPackage({
+                sessionId: values.session.id,
+                levelId: values.level.id,
+            }),
+        );
+
+        // Update session list when course or level changes
+        setSessionList(
+            getSessionFromPackage({
+                courseId: values.course.id,
+                levelId: values.level.id,
+            }),
+        );
+
+        // Update level list when course or session changes
+        setLevelList(
+            getLevelsFromPackage({
+                courseId: values.course.id,
+                sessionId: values.session.id,
+            }),
+        );
+    }, [form.watch("course"), form.watch("session"), form.watch("level")]);
 
     return (
         <div>
@@ -77,22 +116,72 @@ export const StepTwoForm = () => {
 
                             <FormField
                                 control={form.control}
-                                name="batch"
+                                name="course"
                                 render={({ field: { onChange, value } }) => (
                                     <FormItem>
                                         <FormControl>
                                             <div className="flex flex-col gap-1">
                                                 <div>
-                                                    Batch{" "}
+                                                    Course
                                                     <span className="text-subtitle text-danger-600">
                                                         *
                                                     </span>
                                                 </div>
                                                 <MyDropdown
-                                                    currentValue={value}
-                                                    dropdownList={batchList}
+                                                    currentValue={value.name}
+                                                    dropdownList={courseList}
                                                     handleChange={onChange}
-                                                    placeholder="Select batch"
+                                                    placeholder="Select Course"
+                                                />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="session"
+                                render={({ field: { onChange, value } }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    Session{" "}
+                                                    <span className="text-subtitle text-danger-600">
+                                                        *
+                                                    </span>
+                                                </div>
+                                                <MyDropdown
+                                                    currentValue={value.name}
+                                                    dropdownList={sessionList}
+                                                    handleChange={onChange}
+                                                    placeholder="Select Session"
+                                                />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="level"
+                                render={({ field: { onChange, value } }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    Level{" "}
+                                                    <span className="text-subtitle text-danger-600">
+                                                        *
+                                                    </span>
+                                                </div>
+                                                <MyDropdown
+                                                    currentValue={value.name}
+                                                    dropdownList={levelList}
+                                                    handleChange={onChange}
+                                                    placeholder="Select Session"
                                                 />
                                             </div>
                                         </FormControl>
@@ -125,55 +214,20 @@ export const StepTwoForm = () => {
                                 )}
                             />
 
-                            <div className="flex items-center justify-between gap-8">
-                                <FormField
-                                    control={form.control}
-                                    name="session"
-                                    render={({ field: { onChange, value } }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <div className="flex flex-col gap-1">
-                                                    <div>
-                                                        Session{" "}
-                                                        <span className="text-subtitle text-danger-600">
-                                                            *
-                                                        </span>
-                                                    </div>
-                                                    {/* {isLoading ? (
-                                                        <div>Loading...</div>
-                                                    ) : (
-                                                        <MyDropdown
-                                                            currentValue={value}
-                                                            dropdownList={sessionList}
-                                                            handleChange={onChange}
-                                                        />
-                                                    )} */}
-                                                    <MyDropdown
-                                                        currentValue={value}
-                                                        dropdownList={sessionList}
-                                                        handleChange={onChange}
-                                                        placeholder="Select Session"
-                                                    />
+                            <FormField
+                                control={form.control}
+                                name="gender"
+                                render={({ field: { onChange, value } }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    Gender{" "}
+                                                    <span className="text-subtitle text-danger-600">
+                                                        *
+                                                    </span>
                                                 </div>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="gender"
-                                    render={({ field: { onChange, value } }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <div className="flex flex-col gap-1">
-                                                    <div>
-                                                        Gender{" "}
-                                                        <span className="text-subtitle text-danger-600">
-                                                            *
-                                                        </span>
-                                                    </div>
-                                                    {/* {isLoading ? (
+                                                {/* {isLoading ? (
                                                         <div>Loading...</div>
                                                     ) : (
                                                         <MyDropdown
@@ -182,18 +236,17 @@ export const StepTwoForm = () => {
                                                             handleChange={onChange}
                                                         />
                                                     )} */}
-                                                    <MyDropdown
-                                                        currentValue={value}
-                                                        dropdownList={genderList}
-                                                        handleChange={onChange}
-                                                        placeholder="Select Gender"
-                                                    />
-                                                </div>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                                                <MyDropdown
+                                                    currentValue={value}
+                                                    dropdownList={genderList}
+                                                    handleChange={onChange}
+                                                    placeholder="Select Gender"
+                                                />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
 
                             <FormField
                                 control={form.control}

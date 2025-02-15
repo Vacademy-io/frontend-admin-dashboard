@@ -8,12 +8,20 @@ export const stepOneSchema = z.object({
 // Step Two Schema
 export const stepTwoSchema = z.object({
     fullName: z.string().min(1, "Full name is required"),
-    // dateOfBirth: z.string().min(1, "Date of birth is required"),
     gender: z.string().min(1, "Gender is required"),
     enrollmentNumber: z.string().min(1, "Enrollment number is required"),
-    batch: z.string().min(1, "Batch is required"),
-    session: z.string().min(1, "Session is required"),
-    // sessionId: z.string().min(1, "Session ID is required"),
+    course: z.object({
+        id: z.string(),
+        name: z.string(),
+    }),
+    session: z.object({
+        id: z.string(),
+        name: z.string(),
+    }),
+    level: z.object({
+        id: z.string(),
+        name: z.string(),
+    }),
     collegeName: z.string().min(1, "College name is required"),
 });
 
