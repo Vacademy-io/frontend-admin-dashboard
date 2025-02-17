@@ -33,6 +33,8 @@ export const ChapterSidebarSlides = () => {
 
             // If no slideId or slide not found, set first slide as active
             setActiveItem(slides[0]);
+        } else {
+            setActiveItem(null);
         }
     }, [slides, slideId]);
 
