@@ -14,6 +14,13 @@ import {
     getAllColumnsForTable,
     getAssessmentFilteredDataForAssessmentStatus,
 } from "../-utils/helper";
+import { Route } from "..";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { getInstituteId } from "@/constants/helper";
+import {
+    getAdminParticipants,
+    handleAdminParticipantsData,
+} from "../-services/assessment-details-services";
 
 const AssessmentSubmissionsTab = ({
     type,
@@ -25,14 +32,34 @@ const AssessmentSubmissionsTab = ({
         | ResponseQuestionListOpen[]
         | ResponseQuestionListClose[];
 }) => {
+    const instituteId = getInstituteId();
+    const { assessmentId, assesssmentType } = Route.useParams();
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
     const [selectedTab, setSelectedTab] = useState("Attempted");
+    const [batchSelectionTab, setBatchSelectionTab] = useState("batch");
+    const [selectedFilter, setSelectedFilter] = useState({
+        name: "",
+        assessment_type: assesssmentType,
+        attempt_type: ["ENDED"],
+        registration_source: "BATCH_PREVIEW_REGISTRATION",
+        batches: [],
+        status: ["ACTIVE"],
+        sort_columns: {},
+    });
+
     const [page, setPage] = useState(1);
-    console.log(page, setPage);
+    const { data: participantsData } = useSuspenseQuery(
+        handleAdminParticipantsData({
+            assessmentId,
+            instituteId,
+            pageNo: page,
+            pageSize: 10,
+            selectedFilter,
+        }),
+    );
+
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
-
     const currentPageSelection = rowSelections[page] || {};
-
     const studentTableData = getAssessmentFilteredDataForAssessmentStatus(
         studentsListData,
         type,
@@ -40,6 +67,37 @@ const AssessmentSubmissionsTab = ({
         selectedTab,
     );
 
+    const getParticipantsListData = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+            pageNo,
+            pageSize,
+            selectedFilter,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+            pageNo: number;
+            pageSize: number;
+            selectedFilter: any;
+        }) => getAdminParticipants(assessmentId, instituteId, pageNo, pageSize, selectedFilter),
+        onSuccess: (data) => {
+            console.log(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleRefreshLeaderboard = () => {
+        getParticipantsListData.mutate({
+            assessmentId,
+            instituteId,
+            pageNo: page,
+            pageSize: 10,
+            selectedFilter
+        });
+    };
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
             typeof updaterOrValue === "function"
@@ -60,120 +118,295 @@ const AssessmentSubmissionsTab = ({
         external: getAllColumnsForTable(type, selectedParticipantsTab).external,
     };
 
+    const handleAttemptedTab = (value: string) => {
+        setSelectedTab(value);
+        if(selectedParticipantsTab==="internal"){
+            if(batchSelectionTab==="batch"){
+                getParticipantsListData.mutate({
+                    assessmentId,
+                    instituteId,
+                    pageNo: page,
+                    pageSize: 10,
+                    {
+                        ...selectedFilter,
+                        registration_source: "BATCH_PREVIEW_REGISTRATION",
+                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    },
+                });
+            }else{
+                getParticipantsListData.mutate({
+                    assessmentId,
+                    instituteId,
+                    pageNo: page,
+                    pageSize: 10,
+                    {
+                        ...selectedFilter,
+                        registration_source: "ADMIN_PRE_REGISTRATION",
+                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    },
+                });
+            }
+        }else{
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                {
+                    ...selectedFilter,
+                    registration_source: "INDIVIDUAL_REGISTRATION",
+                    attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                },
+            });
+        }
+    };
+
+    const handleParticipantsTab = (value: string) => {
+        setSelectedParticipantsTab(value);
+        if(value==="internal"){
+            if(batchSelectionTab==="batch"){
+                getParticipantsListData.mutate({
+                    assessmentId,
+                    instituteId,
+                    pageNo: page,
+                    pageSize: 10,
+                    {
+                        ...selectedFilter,
+                        registration_source: "BATCH_PREVIEW_REGISTRATION",
+                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    },
+                });
+            }else{
+                getParticipantsListData.mutate({
+                    assessmentId,
+                    instituteId,
+                    pageNo: page,
+                    pageSize: 10,
+                    {
+                        ...selectedFilter,
+                        registration_source: "ADMIN_PRE_REGISTRATION",
+                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    },
+                });
+            }
+        }else{
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                {
+                    ...selectedFilter,
+                    registration_source: "INDIVIDUAL_REGISTRATION",
+                    attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                },
+            });
+        }
+    };
+
+    const handleBatchSeletectionTab = (value: string) => {
+        setBatchSelectionTab(value);
+        if(selectedParticipantsTab==="internal"){
+            if(value==="batch"){
+                getParticipantsListData.mutate({
+                    assessmentId,
+                    instituteId,
+                    pageNo: page,
+                    pageSize: 10,
+                    {
+                        ...selectedFilter,
+                        registration_source: "BATCH_PREVIEW_REGISTRATION",
+                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    },
+                });
+            }else{
+                getParticipantsListData.mutate({
+                    assessmentId,
+                    instituteId,
+                    pageNo: page,
+                    pageSize: 10,
+                    {
+                        ...selectedFilter,
+                        registration_source: "ADMIN_PRE_REGISTRATION",
+                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    },
+                });
+            }
+        }else{
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                {
+                    ...selectedFilter,
+                    registration_source: "INDIVIDUAL_REGISTRATION",
+                    attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                },
+            });
+        }
+    };
+
     return (
         <>
-            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-                {type !== "question" && (
-                    <TabsList className="mb-2 ml-4 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+            <Tabs
+                value={selectedTab}
+                onValueChange={handleAttemptedTab}
+                className="flex w-full flex-col gap-4"
+            >
+                <TabsList className="mb-2 ml-4 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                    <TabsTrigger
+                        value="Attempted"
+                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                            selectedTab === "Attempted"
+                                ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                : "border-none bg-transparent"
+                        }`}
+                    >
+                        <span
+                            className={`${selectedTab === "Attempted" ? "text-primary-500" : ""}`}
+                        >
+                            Attempted
+                        </span>
+                        <Badge
+                            className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                            variant="outline"
+                        >
+                            {studentTableData.length}
+                        </Badge>
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="Pending"
+                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                            selectedTab === "Pending"
+                                ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                : "border-none bg-transparent"
+                        }`}
+                    >
+                        <span className={`${selectedTab === "Pending" ? "text-primary-500" : ""}`}>
+                            Pending
+                        </span>
+                        <Badge
+                            className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                            variant="outline"
+                        >
+                            {studentTableData.length}
+                        </Badge>
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="Ongoing"
+                        className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                            selectedTab === "Ongoing"
+                                ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                : "border-none bg-transparent"
+                        }`}
+                    >
+                        <span className={`${selectedTab === "Ongoing" ? "text-primary-500" : ""}`}>
+                            Ongoing
+                        </span>
+                        <Badge
+                            className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                            variant="outline"
+                        >
+                            {studentTableData.length}
+                        </Badge>
+                    </TabsTrigger>
+                </TabsList>
+                <Tabs
+                    value={selectedParticipantsTab}
+                    onValueChange={handleParticipantsTab}
+                    className={`ml-4 flex justify-start rounded-lg bg-white p-0 pr-4 shadow-none`}
+                >
+                    <TabsList className="flex h-auto flex-wrap justify-start border border-gray-500 !bg-transparent p-0">
                         <TabsTrigger
-                            value="Attempted"
-                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                selectedTab === "Attempted"
-                                    ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                    : "border-none bg-transparent"
+                            value="internal"
+                            className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 px-4 ${
+                                selectedParticipantsTab === "internal"
+                                    ? "!bg-primary-100"
+                                    : "bg-transparent"
                             }`}
                         >
                             <span
                                 className={`${
-                                    selectedTab === "Attempted" ? "text-primary-500" : ""
+                                    selectedParticipantsTab === "internal"
+                                        ? "text-teal-800 dark:text-teal-400"
+                                        : ""
                                 }`}
                             >
-                                Attempted
+                                Internal Participants
                             </span>
-                            <Badge
-                                className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
-                                variant="outline"
-                            >
-                                {studentTableData.length}
-                            </Badge>
                         </TabsTrigger>
+                        <Separator orientation="vertical" className="h-full bg-gray-500" />
                         <TabsTrigger
-                            value="Pending"
-                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                selectedTab === "Pending"
-                                    ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                    : "border-none bg-transparent"
+                            value="external"
+                            className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 px-4 ${
+                                selectedParticipantsTab === "external"
+                                    ? "!bg-primary-100"
+                                    : "bg-transparent"
                             }`}
                         >
                             <span
-                                className={`${selectedTab === "Pending" ? "text-primary-500" : ""}`}
+                                className={`${
+                                    selectedParticipantsTab === "external"
+                                        ? "text-teal-800 dark:text-teal-400"
+                                        : ""
+                                }`}
                             >
-                                Pending
+                                External Participants
                             </span>
-                            <Badge
-                                className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
-                                variant="outline"
-                            >
-                                {studentTableData.length}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="Ongoing"
-                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                selectedTab === "Ongoing"
-                                    ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                    : "border-none bg-transparent"
-                            }`}
-                        >
-                            <span
-                                className={`${selectedTab === "Ongoing" ? "text-primary-500" : ""}`}
-                            >
-                                Ongoing
-                            </span>
-                            <Badge
-                                className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
-                                variant="outline"
-                            >
-                                {studentTableData.length}
-                            </Badge>
                         </TabsTrigger>
                     </TabsList>
-                )}
-                {(type === "open" || type === "question") && (
+                </Tabs>
+                {selectedParticipantsTab === "internal" && (
                     <Tabs
-                        value={selectedParticipantsTab}
-                        onValueChange={setSelectedParticipantsTab}
-                        className={`flex justify-end rounded-lg bg-white p-0 pr-4 shadow-none ${
-                            type === "question" ? "mt-6" : ""
-                        }`}
+                        value={batchSelectionTab}
+                        onValueChange={handleBatchSeletectionTab}
+                        className="flex w-full flex-col gap-4"
                     >
-                        <TabsList className="flex h-auto flex-wrap justify-start border border-gray-500 !bg-transparent p-0">
+                        <TabsList className="mb-2 ml-4 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
                             <TabsTrigger
-                                value="internal"
-                                className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 px-4 ${
-                                    selectedParticipantsTab === "internal"
-                                        ? "!bg-primary-100"
-                                        : "bg-transparent"
+                                value="batch"
+                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                    batchSelectionTab === "batch"
+                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                        : "border-none bg-transparent"
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedParticipantsTab === "internal"
-                                            ? "text-teal-800 dark:text-teal-400"
-                                            : ""
+                                        batchSelectionTab === "batch" ? "text-primary-500" : ""
                                     }`}
                                 >
-                                    Internal Participants
+                                    Batch Selection
                                 </span>
+                                <Badge
+                                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                                    variant="outline"
+                                >
+                                    {studentTableData.length}
+                                </Badge>
                             </TabsTrigger>
-                            <Separator orientation="vertical" className="h-full bg-gray-500" />
                             <TabsTrigger
-                                value="external"
-                                className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 px-4 ${
-                                    selectedParticipantsTab === "external"
-                                        ? "!bg-primary-100"
-                                        : "bg-transparent"
+                                value="individual"
+                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                    batchSelectionTab === "individual"
+                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                        : "border-none bg-transparent"
                                 }`}
                             >
                                 <span
                                     className={`${
-                                        selectedParticipantsTab === "external"
-                                            ? "text-teal-800 dark:text-teal-400"
-                                            : ""
+                                        batchSelectionTab === "individual" ? "text-primary-500" : ""
                                     }`}
                                 >
-                                    External Participants
+                                    Individual Selection
                                 </span>
+                                <Badge
+                                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                                    variant="outline"
+                                >
+                                    {studentTableData.length}
+                                </Badge>
                             </TabsTrigger>
                         </TabsList>
                     </Tabs>
