@@ -89,15 +89,6 @@ const AssessmentSubmissionsTab = ({
         },
     });
 
-    const handleRefreshLeaderboard = () => {
-        getParticipantsListData.mutate({
-            assessmentId,
-            instituteId,
-            pageNo: page,
-            pageSize: 10,
-            selectedFilter
-        });
-    };
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
             typeof updaterOrValue === "function"
@@ -120,42 +111,50 @@ const AssessmentSubmissionsTab = ({
 
     const handleAttemptedTab = (value: string) => {
         setSelectedTab(value);
-        if(selectedParticipantsTab==="internal"){
-            if(batchSelectionTab==="batch"){
-                getParticipantsListData.mutate({
-                    assessmentId,
-                    instituteId,
-                    pageNo: page,
-                    pageSize: 10,
-                    {
-                        ...selectedFilter,
-                        registration_source: "BATCH_PREVIEW_REGISTRATION",
-                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
-                    },
-                });
-            }else{
-                getParticipantsListData.mutate({
-                    assessmentId,
-                    instituteId,
-                    pageNo: page,
-                    pageSize: 10,
-                    {
-                        ...selectedFilter,
-                        registration_source: "ADMIN_PRE_REGISTRATION",
-                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
-                    },
-                });
-            }
-        }else{
+        if (selectedParticipantsTab === "internal" && batchSelectionTab === "batch") {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
                 pageNo: page,
                 pageSize: 10,
-                {
+                selectedFilter: {
+                    ...selectedFilter,
+                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    attempt_type: [
+                        value === "Attempted" ? "ENDED" : value === "Pending" ? "PENDING" : "LIVE",
+                    ],
+                },
+            });
+        }
+
+        if (selectedParticipantsTab === "internal" && batchSelectionTab === "individual") {
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                selectedFilter: {
+                    ...selectedFilter,
+                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    attempt_type: [
+                        value === "Attempted" ? "ENDED" : value === "Pending" ? "PENDING" : "LIVE",
+                    ],
+                },
+            });
+        }
+
+        if (selectedParticipantsTab === "external") {
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                selectedFilter: {
                     ...selectedFilter,
                     registration_source: "INDIVIDUAL_REGISTRATION",
-                    attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    attempt_type: [
+                        value === "Attempted" ? "ENDED" : value === "Pending" ? "PENDING" : "LIVE",
+                    ],
                 },
             });
         }
@@ -163,42 +162,62 @@ const AssessmentSubmissionsTab = ({
 
     const handleParticipantsTab = (value: string) => {
         setSelectedParticipantsTab(value);
-        if(value==="internal"){
-            if(batchSelectionTab==="batch"){
-                getParticipantsListData.mutate({
-                    assessmentId,
-                    instituteId,
-                    pageNo: page,
-                    pageSize: 10,
-                    {
-                        ...selectedFilter,
-                        registration_source: "BATCH_PREVIEW_REGISTRATION",
-                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
-                    },
-                });
-            }else{
-                getParticipantsListData.mutate({
-                    assessmentId,
-                    instituteId,
-                    pageNo: page,
-                    pageSize: 10,
-                    {
-                        ...selectedFilter,
-                        registration_source: "ADMIN_PRE_REGISTRATION",
-                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
-                    },
-                });
-            }
-        }else{
+        if (value === "internal" && batchSelectionTab === "batch") {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
                 pageNo: page,
                 pageSize: 10,
-                {
+                selectedFilter: {
+                    ...selectedFilter,
+                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    attempt_type: [
+                        selectedTab === "Attempted"
+                            ? "ENDED"
+                            : selectedTab === "Pending"
+                              ? "PENDING"
+                              : "LIVE",
+                    ],
+                },
+            });
+        }
+
+        if (value === "internal" && batchSelectionTab === "individual") {
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                selectedFilter: {
+                    ...selectedFilter,
+                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    attempt_type: [
+                        selectedTab === "Attempted"
+                            ? "ENDED"
+                            : selectedTab === "Pending"
+                              ? "PENDING"
+                              : "LIVE",
+                    ],
+                },
+            });
+        }
+
+        if (value === "external") {
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                selectedFilter: {
                     ...selectedFilter,
                     registration_source: "INDIVIDUAL_REGISTRATION",
-                    attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    attempt_type: [
+                        selectedTab === "Attempted"
+                            ? "ENDED"
+                            : selectedTab === "Pending"
+                              ? "PENDING"
+                              : "LIVE",
+                    ],
                 },
             });
         }
@@ -206,42 +225,62 @@ const AssessmentSubmissionsTab = ({
 
     const handleBatchSeletectionTab = (value: string) => {
         setBatchSelectionTab(value);
-        if(selectedParticipantsTab==="internal"){
-            if(value==="batch"){
-                getParticipantsListData.mutate({
-                    assessmentId,
-                    instituteId,
-                    pageNo: page,
-                    pageSize: 10,
-                    {
-                        ...selectedFilter,
-                        registration_source: "BATCH_PREVIEW_REGISTRATION",
-                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
-                    },
-                });
-            }else{
-                getParticipantsListData.mutate({
-                    assessmentId,
-                    instituteId,
-                    pageNo: page,
-                    pageSize: 10,
-                    {
-                        ...selectedFilter,
-                        registration_source: "ADMIN_PRE_REGISTRATION",
-                        attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
-                    },
-                });
-            }
-        }else{
+        if (selectedParticipantsTab === "internal" && value === "batch") {
             getParticipantsListData.mutate({
                 assessmentId,
                 instituteId,
                 pageNo: page,
                 pageSize: 10,
-                {
+                selectedFilter: {
+                    ...selectedFilter,
+                    registration_source: "BATCH_PREVIEW_REGISTRATION",
+                    attempt_type: [
+                        selectedTab === "Attempted"
+                            ? "ENDED"
+                            : selectedTab === "Pending"
+                              ? "PENDING"
+                              : "LIVE",
+                    ],
+                },
+            });
+        }
+
+        if (selectedParticipantsTab === "internal" && value === "individual") {
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                selectedFilter: {
+                    ...selectedFilter,
+                    registration_source: "ADMIN_PRE_REGISTRATION",
+                    attempt_type: [
+                        selectedTab === "Attempted"
+                            ? "ENDED"
+                            : selectedTab === "Pending"
+                              ? "PENDING"
+                              : "LIVE",
+                    ],
+                },
+            });
+        }
+
+        if (selectedParticipantsTab === "external") {
+            getParticipantsListData.mutate({
+                assessmentId,
+                instituteId,
+                pageNo: page,
+                pageSize: 10,
+                selectedFilter: {
                     ...selectedFilter,
                     registration_source: "INDIVIDUAL_REGISTRATION",
-                    attempt_type: [value==="attempted" ? "ENDED" : (value==="pending" ? "PENDING" : "LIVE")]
+                    attempt_type: [
+                        selectedTab === "Attempted"
+                            ? "ENDED"
+                            : selectedTab === "Pending"
+                              ? "PENDING"
+                              : "LIVE",
+                    ],
                 },
             });
         }
