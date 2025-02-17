@@ -10,6 +10,7 @@ import { AddPdfDialog } from "./add-pdf-dialog";
 import { useRouter } from "@tanstack/react-router";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { formatHTMLString } from "../../add-chapters/slide-material";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
@@ -19,6 +20,7 @@ export const ChapterSidebarAddButton = () => {
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
+    const { setActiveItem, getSlideById } = useContentStore();
 
     const dropdownList = [
         {
@@ -53,8 +55,9 @@ export const ChapterSidebarAddButton = () => {
             case "create-doc": {
                 try {
                     const documentData = formatHTMLString("");
-                    await addUpdateDocumentSlide({
-                        id: crypto.randomUUID(),
+                    const slideId = crypto.randomUUID();
+                    const response = await addUpdateDocumentSlide({
+                        id: slideId,
                         title: "New Document",
                         image_file_id: "",
                         description: "",
@@ -70,6 +73,12 @@ export const ChapterSidebarAddButton = () => {
                         new_slide: true,
                         notify: false,
                     });
+
+                    if (response) {
+                        setTimeout(() => {
+                            setActiveItem(getSlideById(slideId));
+                        }, 500);
+                    }
                 } catch (err) {
                     console.error("Error creating new doc:", err);
                 }

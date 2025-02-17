@@ -1,4 +1,3 @@
-// add-pdf-dialog.tsx
 import { ImportFileImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { DialogFooter, DialogContent } from "@/components/ui/dialog";
@@ -13,6 +12,7 @@ import { useSlides } from "@/hooks/study-library/use-slides";
 import { useRouter } from "@tanstack/react-router";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 interface FormData {
     pdfFile: FileList | null;
@@ -34,6 +34,7 @@ export const AddPdfDialog = ({
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
+    const { setActiveItem, getSlideById } = useContentStore();
 
     const [fileUrl, setFileUrl] = useState<string | null>(null);
 
@@ -85,9 +86,10 @@ export const AddPdfDialog = ({
                 setFileUrl(url);
                 setFile(null);
                 form.reset();
+                const slideId = crypto.randomUUID();
 
-                await addUpdateDocumentSlide({
-                    id: crypto.randomUUID(),
+                const response = await addUpdateDocumentSlide({
+                    id: slideId,
                     title: file.name,
                     image_file_id: "",
                     description: file.name,
@@ -104,8 +106,13 @@ export const AddPdfDialog = ({
                     notify: false,
                 });
 
-                toast.success("PDF uploaded successfully!");
-                openState?.(false);
+                if (response) {
+                    setTimeout(() => {
+                        setActiveItem(getSlideById(slideId));
+                    }, 500);
+                    openState?.(false);
+                    toast.success("PDF uploaded successfully!");
+                }
             }
 
             clearInterval(progressInterval);
