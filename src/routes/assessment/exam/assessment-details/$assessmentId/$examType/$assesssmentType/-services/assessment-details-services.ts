@@ -8,6 +8,7 @@ import {
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
+import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSubmissionsTab";
 
 export const savePrivateQuestions = async (questions: AssessmentDetailQuestions) => {
     const response = await authenticatedAxiosInstance({
@@ -138,7 +139,7 @@ export const getAdminParticipants = async (
     instituteId: string | undefined,
     pageNo: number,
     pageSize: number,
-    selectedFilter: any,
+    selectedFilter: SelectedSubmissionsFilterInterface,
 ) => {
     const response = await authenticatedAxiosInstance({
         method: "POST",
@@ -149,7 +150,10 @@ export const getAdminParticipants = async (
             pageNo,
             pageSize,
         },
-        data: selectedFilter,
+        data: {
+            ...selectedFilter,
+            batches: selectedFilter.batches.map((batch: { id: string }) => batch.id),
+        },
     });
     return response?.data;
 };
@@ -165,7 +169,7 @@ export const handleAdminParticipantsData = ({
     instituteId: string | undefined;
     pageNo: number;
     pageSize: number;
-    selectedFilter: any;
+    selectedFilter: SelectedSubmissionsFilterInterface;
 }) => {
     return {
         queryKey: [

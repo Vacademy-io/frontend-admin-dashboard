@@ -25,7 +25,6 @@ import { AssessmentQuestionsTab } from "./-components/AssessmentQuestionsTab";
 import AssessmentParticipantsTab from "./-components/AssessmentParticipantsTab";
 import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab";
 import AssessmentSubmissionsTab from "./-components/AssessmentSubmissionsTab";
-import { overviewTabOpenTestData } from "./-utils/dummy-data-open";
 
 export const Route = createFileRoute(
     "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/",
@@ -45,7 +44,7 @@ const heading = (
 );
 
 const AssessmentDetailsComponent = () => {
-    const { assessmentId, examType } = Route.useParams();
+    const { assessmentId, examType, assesssmentType } = Route.useParams();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
@@ -321,10 +320,7 @@ const AssessmentDetailsComponent = () => {
                             <AssessmentOverviewTab />
                         </TabsContent>
                         <TabsContent value="submissions">
-                            <AssessmentSubmissionsTab
-                                type="open"
-                                studentsListData={overviewTabOpenTestData.assessmentStatus}
-                            />
+                            <AssessmentSubmissionsTab type={assesssmentType} />
                         </TabsContent>
                         <TabsContent value="basicInfo">
                             <AssessmentBasicInfoTab />
