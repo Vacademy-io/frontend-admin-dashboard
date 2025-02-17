@@ -9,9 +9,10 @@ interface ContentStore {
     setActiveItem: (item: Slide | null) => void;
     reorderItems: (oldIndex: number, newIndex: number) => void;
     resetChapterSidebarStore: () => void;
+    getSlideById: (slideId: string) => Slide | null;
 }
 
-export const useContentStore = create<ContentStore>((set) => ({
+export const useContentStore = create<ContentStore>((set, get) => ({
     items: [],
     activeItem: null,
     setItems: (items) => set({ items }),
@@ -38,4 +39,8 @@ export const useContentStore = create<ContentStore>((set) => ({
             };
         }),
     resetChapterSidebarStore: () => set({ items: undefined, activeItem: null }),
+    getSlideById: (slideId: string) => {
+        const state = get();
+        return state.items.find((slide) => slide.slide_id === slideId) || null;
+    },
 }));
