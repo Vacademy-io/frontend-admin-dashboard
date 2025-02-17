@@ -3,6 +3,8 @@ import {
     InstituteDetailsType,
     LevelType,
     SessionType,
+    PackageSchema,
+    LevelSchema,
 } from "@/schemas/student/student-list/institute-schema";
 
 interface InstituteDetailsStore {
@@ -28,6 +30,11 @@ interface InstituteDetailsStore {
         sessionId: string;
         levelId: string;
     }) => string | null;
+    getPackageWiseLevels: (params?: { sessionId?: string }) => Array<{
+        id: string;
+        package_dto: typeof PackageSchema._type;
+        levels: (typeof LevelSchema._type)[];
+    }>;
 }
 
 export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get) => ({
@@ -135,5 +142,53 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
         );
 
         return matchingBatch?.id || null;
+    },
+
+    getPackageWiseLevels: (params?: { sessionId?: string }) => {
+        const { instituteDetails } = get();
+        if (!instituteDetails) return [];
+
+        // Filter batches based on optional parameters
+        const filteredBatches = instituteDetails.batches_for_sessions.filter((batch) => {
+            if (params?.sessionId) {
+                return batch.session.id === params.sessionId;
+            }
+            return true;
+        });
+
+        // Group batches by package_dto.id
+        const packageGroups = filteredBatches.reduce(
+            (acc, batch) => {
+                const packageId = batch.package_dto.id;
+
+                if (!acc[packageId]) {
+                    acc[packageId] = {
+                        id: batch.id,
+                        package_dto: batch.package_dto,
+                        levels: [batch.level],
+                    };
+                } else {
+                    // Only add the level if it's not already in the array
+                    const levelExists = acc[packageId]?.levels.some(
+                        (level) => level.id === batch.level.id,
+                    );
+                    if (!levelExists) {
+                        acc[packageId]?.levels.push(batch.level);
+                    }
+                }
+
+                return acc;
+            },
+            {} as Record<
+                string,
+                {
+                    id: string;
+                    package_dto: typeof PackageSchema._type;
+                    levels: (typeof LevelSchema._type)[];
+                }
+            >,
+        );
+
+        return Object.values(packageGroups);
     },
 }));
