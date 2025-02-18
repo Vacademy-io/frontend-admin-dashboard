@@ -633,51 +633,37 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     };
 
     useEffect(() => {
-        setIsParticipantsLoading(true);
-        getAdminParticipants(assessmentId, instituteId, page, 10, selectedFilter)
-            .then((data) => {
-                setParticipantsData(data);
-                setIsParticipantsLoading(false);
-                setAttemptedCount(data.content.length);
-            })
-            .catch((err) => {
-                console.log(err);
-                setIsParticipantsLoading(false);
-            });
-    }, []);
+        const timer = setTimeout(() => {
+            const fetchAllParticipants = async () => {
+                setIsParticipantsLoading(true);
 
-    useEffect(() => {
-        setIsParticipantsLoading(true);
-        getAdminParticipants(assessmentId, instituteId, page, 10, {
-            ...selectedFilter,
-            attempt_type: ["LIVE"],
-        })
-            .then((data) => {
-                setParticipantsData(data);
-                setIsParticipantsLoading(false);
-                setOngoingCount(data.content.length);
-            })
-            .catch((err) => {
-                console.log(err);
-                setIsParticipantsLoading(false);
-            });
-    }, []);
+                try {
+                    const [attemptedData, ongoingData, pendingData] = await Promise.all([
+                        getAdminParticipants(assessmentId, instituteId, page, 10, selectedFilter),
+                        getAdminParticipants(assessmentId, instituteId, page, 10, {
+                            ...selectedFilter,
+                            attempt_type: ["LIVE"],
+                        }),
+                        getAdminParticipants(assessmentId, instituteId, page, 10, {
+                            ...selectedFilter,
+                            attempt_type: ["Pending"],
+                        }),
+                    ]);
 
-    useEffect(() => {
-        setIsParticipantsLoading(true);
-        getAdminParticipants(assessmentId, instituteId, page, 10, {
-            ...selectedFilter,
-            attempt_type: ["Pending"],
-        })
-            .then((data) => {
-                setParticipantsData(data);
-                setIsParticipantsLoading(false);
-                setPendingCount(data.content.length);
-            })
-            .catch((err) => {
-                console.log(err);
-                setIsParticipantsLoading(false);
-            });
+                    setParticipantsData(attemptedData);
+                    setAttemptedCount(attemptedData.content.length);
+                    setOngoingCount(ongoingData.content.length);
+                    setPendingCount(pendingData.content.length);
+                } catch (error) {
+                    console.log(error);
+                } finally {
+                    setIsParticipantsLoading(false);
+                }
+            };
+            fetchAllParticipants();
+        }, 300); // Adjust the debounce time as needed
+
+        return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, []);
 
     if (isParticipantsLoading) return <DashboardLoader />;
