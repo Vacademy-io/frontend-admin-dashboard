@@ -18,6 +18,8 @@ import { getInstituteDashboardData } from "./-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SSDC_INSTITUTE_ID } from "@/constants/urls";
 import { Helmet } from "react-helmet";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -28,6 +30,9 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 export function DashboardComponent() {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    console.log(tokenData);
     const { data: instituteDetails, isLoading: isInstituteLoading } =
         useSuspenseQuery(useInstituteQuery());
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
@@ -80,7 +85,7 @@ export function DashboardComponent() {
                 />
             </Helmet>
             <h1 className="text-2xl">
-                Hello <span className="text-primary-500">{instituteDetails?.institute_name}!</span>
+                Hello <span className="text-primary-500">{tokenData?.fullname}!</span>
             </h1>
             <p className="mt-1 text-sm">
                 Welcome aboard! We&apos;re excited to have you here. Let’s set up your admin
