@@ -69,6 +69,7 @@ export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_INTERNAL_WIDTH: ColumnW
     duration: "min-w-[180px]",
     score: "min-w-[180px]",
     evaluation_status: "min-w-[180px]",
+    options: "min-w-[56px] sticky right-0",
 };
 
 export const ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_INTERNAL_WIDTH: ColumnWidthConfig = {
@@ -76,12 +77,14 @@ export const ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_INTERNAL_WIDTH: ColumnWid
     details: "min-w-[20px] sticky left-0",
     full_name: "min-w-[96px] sticky left-[52px]",
     start_time: "min-w-[240px]",
+    options: "min-w-[56px] sticky right-0",
 };
 
 export const ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_INTERNAL_WIDTH: ColumnWidthConfig = {
     checkbox: "min-w-[20px] sticky left-0",
     details: "min-w-[20px] sticky left-0",
     full_name: "min-w-[460px] sticky left-[52px]",
+    options: "min-w-[56px] sticky right-0",
 };
 
 export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
@@ -94,6 +97,7 @@ export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_EXTERNAL_WIDTH: ColumnW
     duration: "min-w-[180px]",
     score: "min-w-[180px]",
     evaluation_status: "min-w-[180px]",
+    options: "min-w-[56px] sticky right-0",
 };
 
 export const ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
@@ -101,10 +105,12 @@ export const ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_EXTERNAL_WIDTH: ColumnWid
     details: "min-w-[20px] sticky left-0",
     full_name: "min-w-[96px] sticky left-[52px]",
     start_time: "min-w-[240px]",
+    options: "min-w-[56px] sticky right-0",
 };
 
 export const ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
     checkbox: "min-w-[20px] sticky left-0",
     details: "min-w-[20px] sticky left-0",
     full_name: "min-w-[460px] sticky left-[52px]",
+    options: "min-w-[56px] sticky right-0",
 };
