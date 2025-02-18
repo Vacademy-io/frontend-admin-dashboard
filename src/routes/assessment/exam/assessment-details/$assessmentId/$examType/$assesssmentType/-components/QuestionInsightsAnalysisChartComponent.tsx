@@ -5,8 +5,7 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-
-import { QuestionInsights } from "@/types/assessments/question-insights-type";
+import { QuestionInsightsQuestionStatus } from "../-utils/assessment-details-interface";
 
 const chartConfig = {
     correct: {
@@ -28,29 +27,31 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function QuestionInsightsAnalysisChartComponent({
-    question,
+    questionStatus,
+    skipped,
 }: {
-    question: QuestionInsights;
+    questionStatus: QuestionInsightsQuestionStatus;
+    skipped: number;
 }) {
     const chartData = [
         {
             responseType: "correct",
-            value: question.questionAttemptedAnalysis.correct,
+            value: questionStatus.correctAttempt,
             fill: "#97D4B4",
         },
         {
             responseType: "partiallyCorrect",
-            value: question.questionAttemptedAnalysis.partiallyCorrect,
+            value: questionStatus.partialCorrectAttempt,
             fill: "#FFDD82",
         },
         {
             responseType: "wrongResponse",
-            value: question.questionAttemptedAnalysis.wrongResponse,
+            value: questionStatus.incorrectAttempt,
             fill: "#F49898",
         },
         {
             responseType: "skipped",
-            value: question.questionAttemptedAnalysis.skipped,
+            value: skipped,
             fill: "#EEE",
         },
     ];

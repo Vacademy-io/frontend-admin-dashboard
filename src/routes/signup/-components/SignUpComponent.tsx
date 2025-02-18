@@ -14,16 +14,12 @@ import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo, VacademyLogo } f
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
 import { useNavigate } from "@tanstack/react-router";
+import useOrganizationStore from "../onboarding/-zustand-store/step1OrganizationZustand";
+import { useEffect } from "react";
 
 const items = [
-    {
-        id: "assess",
-        label: "Assess",
-    },
-    {
-        id: "lms",
-        label: "LMS",
-    },
+    { id: "assess", label: "Assess" },
+    { id: "lms", label: "LMS" },
 ] as const;
 
 const FormSchema = z.object({
@@ -36,15 +32,28 @@ const FormSchema = z.object({
 
 export function SignUpComponent() {
     const navigate = useNavigate();
+    const { resetForm } = useOrganizationStore();
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            items: {
-                assess: false,
-                lms: false,
-            },
+            items: { assess: true, lms: false }, // LMS checked by default
         },
     });
+
+    const handleCheckedChange = (id: "assess" | "lms", checked: boolean) => {
+        const selectedItems = form.getValues("items");
+        const checkedCount = Object.values(selectedItems).filter(Boolean).length;
+
+        if (!checked && checkedCount === 1) {
+            return; // Prevent deselecting the last checked item
+        }
+
+        form.setValue(`items.${id}`, checked);
+    };
+
+    useEffect(() => {
+        resetForm();
+    }, []);
 
     return (
         <div className="flex w-full">
@@ -90,7 +99,12 @@ export function SignUpComponent() {
                                                             <FormControl className="flex items-center justify-center">
                                                                 <Checkbox
                                                                     checked={field.value}
-                                                                    onCheckedChange={field.onChange}
+                                                                    onCheckedChange={(checked) =>
+                                                                        handleCheckedChange(
+                                                                            item.id,
+                                                                            checked as boolean,
+                                                                        )
+                                                                    }
                                                                     className={`mt-1 size-5 border shadow-none ${
                                                                         field.value
                                                                             ? "border-none bg-green-500 text-white"
