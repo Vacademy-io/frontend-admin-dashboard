@@ -21,6 +21,7 @@ export interface SubmissionStudentData {
     attempt_id: string;
     user_id: string;
     duration: number;
+    batch_id: string;
 }
 
 export interface StudentDetailsAttemptedOpen {

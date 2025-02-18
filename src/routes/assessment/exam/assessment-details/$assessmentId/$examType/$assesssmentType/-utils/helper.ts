@@ -58,6 +58,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
     studentsListData: SubmissionStudentData[],
     type: string,
     selectedTab: string,
+    batches_for_sessions: BatchDetailsInterface[],
 ) => {
     switch (type) {
         case "PUBLIC": {
@@ -98,7 +99,10 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                     return {
                         id: student.user_id,
                         full_name: student.student_name,
-                        package_session_id: "",
+                        package_session_id: getBatchNameById(
+                            batches_for_sessions,
+                            student.batch_id,
+                        ),
                         attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .date,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))

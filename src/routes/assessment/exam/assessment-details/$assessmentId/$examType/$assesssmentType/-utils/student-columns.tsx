@@ -5,6 +5,8 @@ import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBa
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { AssessmentStatusOptions } from "../-components/AssessmentStatusOptions";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ArrowSquareOut } from "phosphor-react";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -35,6 +37,15 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
                 className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none"
             />
+        ),
+    },
+    {
+        id: "details",
+        header: "Details",
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
         ),
     },
     {
@@ -116,6 +127,15 @@ export const assessmentStatusStudentOngoingColumnsInternal: ColumnDef<StudentTab
         ),
     },
     {
+        id: "details",
+        header: "Details",
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
+        ),
+    },
+    {
         accessorKey: "full_name",
         header: (props) => {
             const meta = props.table.options.meta as CustomTableMeta;
@@ -169,6 +189,15 @@ export const assessmentStatusStudentPendingColumnsInternal: ColumnDef<StudentTab
         ),
     },
     {
+        id: "details",
+        header: "Details",
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
+        ),
+    },
+    {
         accessorKey: "full_name",
         header: (props) => {
             const meta = props.table.options.meta as CustomTableMeta;
@@ -215,6 +244,15 @@ export const assessmentStatusStudentAttemptedColumnsExternal: ColumnDef<StudentT
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
                 className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none"
             />
+        ),
+    },
+    {
+        id: "details",
+        header: "Details",
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
         ),
     },
     {
@@ -291,6 +329,15 @@ export const assessmentStatusStudentOngoingColumnsExternal: ColumnDef<StudentTab
         ),
     },
     {
+        id: "details",
+        header: "Details",
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
+        ),
+    },
+    {
         accessorKey: "full_name",
         header: (props) => {
             const meta = props.table.options.meta as CustomTableMeta;
@@ -341,6 +388,15 @@ export const assessmentStatusStudentPendingColumnsExternal: ColumnDef<StudentTab
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
                 className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none"
             />
+        ),
+    },
+    {
+        id: "details",
+        header: "Details",
+        cell: () => (
+            <SidebarTrigger>
+                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+            </SidebarTrigger>
         ),
     },
     {
