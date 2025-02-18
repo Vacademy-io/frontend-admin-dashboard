@@ -877,6 +877,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                     participantsData.content,
                                     type,
                                     selectedTab,
+                                    initData?.batches_for_sessions,
                                 ),
                                 total_pages: participantsData.total_pages,
                                 page_no: page,
