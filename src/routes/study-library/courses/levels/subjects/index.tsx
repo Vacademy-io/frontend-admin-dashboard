@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { CaretLeft } from "phosphor-react";
 import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
 
 interface LevelSearchParams {
     courseId: string;
@@ -42,10 +43,12 @@ function RouteComponent() {
         }
     };
 
+    const courseName = getCourseNameById(courseId);
+
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${levelName} Subjects`}</div>
+            <div>{`${levelId == "DEFAULT" ? courseName : levelName} Subjects`}</div>
         </div>
     );
 
