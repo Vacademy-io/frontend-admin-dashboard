@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { MenuOptions } from "./module-menu-options";
 import { MyDialog } from "@/components/design-system/dialog";
 import { AddModulesForm } from "./add-modules-form";
-import { useSidebar } from "@/components/ui/sidebar";
 import { SortableDragHandle } from "@/components/ui/sortable";
 import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 import { getPublicUrl } from "@/services/upload_file";
@@ -19,7 +18,6 @@ interface ModuleCardProps {
 export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const router = useRouter();
-    const { open } = useSidebar();
     const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
 
     const handleCardClick = (e: React.MouseEvent) => {
@@ -63,11 +61,9 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
     return (
         <div onClick={handleCardClick} className="cursor-pointer">
             <div
-                className={`flex ${
-                    open ? "w-[370px]" : "w-[416px]"
-                } flex-col gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md`}
+                className={`flex h-[300px] w-full flex-col gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-3 shadow-md`}
             >
-                <div className="flex items-center justify-between text-h2 font-semibold">
+                <div className="flex items-center justify-between text-title font-semibold">
                     <div>{module.module_name}</div>
                     <div className="drag-handle-container">
                         <SortableDragHandle
@@ -85,21 +81,21 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                     <img
                         src={imageUrl}
                         alt={module.module_name}
-                        className="h-[300px] w-full rounded-lg object-cover"
+                        className="size-full rounded-lg object-cover"
                     />
                 ) : (
-                    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-neutral-100">
+                    <div className="flex size-full w-full items-center justify-center rounded-lg bg-neutral-100">
                         <span className="text-neutral-400">No Image</span>
                     </div>
                 )}
 
-                <div className="flex gap-2 text-title font-semibold">
+                <div className="flex gap-2 text-body font-semibold">
                     <div className="text-primary-500">0</div>
                     <div>Chapters</div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                    <div className="text-body text-neutral-500">{module.description}</div>
+                    <div className="text-wrap text-body text-neutral-500">{module.description}</div>
                     <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
                 </div>
             </div>

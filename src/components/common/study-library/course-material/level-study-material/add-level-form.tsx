@@ -1,29 +1,23 @@
 // add-subject-form.tsx
-import { SubjectDefaultImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, X } from "phosphor-react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { TokenKey } from "@/constants/auth/tokens";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 
 const formSchema = z.object({
     id: z.string().optional(),
     new_level: z.boolean(),
     level_name: z.string(),
     duration_in_days: z.number(),
-    thumbnail_file_id: z.string().optional(),
+    thumbnail_file_id: z.string().nullable(),
     sessions: z.array(
         z.object({
             id: z.string(),
@@ -63,18 +57,10 @@ export const AddLevelForm = ({
     initialValues,
     setOpenDialog,
 }: AddLevelFormProps) => {
-    const [isUploading, setIsUploading] = useState(false);
-    const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [fileId, setFileId] = useState<string | null>(initialValues?.thumbnail_file_id || null);
-    const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
     const [showNewSessionInput, setShowNewSessionInput] = useState(false);
     const [newSessionName, setNewSessionName] = useState("");
     const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [sessionList, setSessionList] = useState<Session[]>(getAllSessions);
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
     const route = useRouter();
     const search = route.state.location.search;
@@ -101,36 +87,12 @@ export const AddLevelForm = ({
         defaultValues: {
             id: initialValues?.id || "",
             level_name: initialValues?.level_name || "",
-            thumbnail_file_id: initialValues?.thumbnail_file_id || fileId || undefined,
             new_level: initialValues?.new_level || true,
             duration_in_days: initialValues?.duration_in_days || 0,
+            thumbnail_file_id: null,
             sessions: [],
         },
     });
-
-    const handleFileSubmit = async (file: File) => {
-        try {
-            setIsUploading(true);
-            const uploadedFileId = await uploadFile({
-                file,
-                setIsUploading,
-                userId: "your-user-id",
-                source: INSTITUTE_ID,
-                sourceId: "SUBJECTS",
-            });
-
-            if (uploadedFileId) {
-                setFileId(uploadedFileId);
-                // Get public URL only for preview purposes
-                const publicUrl = await getPublicUrl(uploadedFileId);
-                setPreviewUrl(publicUrl);
-            }
-        } catch (error) {
-            console.error("Upload failed:", error);
-        } finally {
-            setIsUploading(false);
-        }
-    };
 
     const onSubmit = (data: AddLevelData) => {
         const submissionData = {
@@ -174,67 +136,6 @@ export const AddLevelForm = ({
                 />
 
                 <div className="flex flex-col gap-6">
-                    <div className="relative flex w-full flex-col items-center justify-center gap-3">
-                        {isUploading ? (
-                            <div className="inset-0 flex h-[200px] w-[200px] items-center justify-center bg-white">
-                                <DashboardLoader />
-                            </div>
-                        ) : previewUrl ? (
-                            <img
-                                src={previewUrl}
-                                alt="Subject"
-                                className="h-[200px] w-[200px] rounded-lg object-cover"
-                            />
-                        ) : (
-                            <SubjectDefaultImage />
-                        )}
-                        <FileUploadComponent
-                            fileInputRef={fileInputRef}
-                            onFileSubmit={handleFileSubmit}
-                            control={form.control}
-                            name="thumbnail_file_id"
-                            acceptedFileTypes="image/*"
-                        />
-                        <div
-                            className={`flex w-full flex-col items-center gap-3 ${
-                                isUploading ? "hidden" : "visible"
-                            }`}
-                        >
-                            {/* <div className="w-full flex gap-6 items-end">
-                                <MyInput
-                                    label="Image link"
-                                    inputPlaceholder="Paste link to an image..."
-                                    inputType="text"
-                                    className="w-[300px]"
-                                    input={imageUrl}
-                                    onChangeFunction={handleImageUrlChange}
-                                />
-                                <MyButton
-                                   onClick={() => fileInputRef.current?.click()}
-                                   disabled={isUploading || isUploadingFile}
-                                   buttonType="primary"
-                                   layoutVariant="icon"
-                                   scale="small"
-                                   type="button"
-                                   className="mb-2"
-                                >
-                                    <Check />
-                                </MyButton>
-                            </div>
-                            <p>OR</p> */}
-                            <MyButton
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={isUploading || isUploadingFile}
-                                buttonType="secondary"
-                                layoutVariant="default"
-                                scale="large"
-                                type="button"
-                            >
-                                Upload Image
-                            </MyButton>
-                        </div>
-                    </div>
-
                     <FormField
                         control={form.control}
                         name="sessions"
@@ -242,6 +143,7 @@ export const AddLevelForm = ({
                             <FormItem className="w-full">
                                 <FormControl>
                                     <div className="flex flex-col gap-2">
+                                        Sessions
                                         {sessionList.map((session) => (
                                             <div
                                                 key={session.id}

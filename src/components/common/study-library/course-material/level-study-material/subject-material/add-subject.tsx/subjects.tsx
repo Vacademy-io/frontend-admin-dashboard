@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
 import { orderSubjectPayloadType } from "@/types/study-library/order-payload";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface SubjectsProps {
     subjects: SubjectType[];
@@ -25,6 +26,8 @@ export const Subjects = ({
     isLoading = false,
     packageSessionIds,
 }: SubjectsProps) => {
+    const { open } = useSidebar();
+
     const [subjects, setSubjects] = useState(initialSubjects);
 
     const handleValueChange = (updatedSubjects: SubjectType[]) => {
@@ -66,7 +69,11 @@ export const Subjects = ({
                     overlay={<div className="bg-primary/10 size-full rounded-md" />}
                     fast={false}
                 >
-                    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
+                    <div
+                        className={`grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4 ${
+                            open ? "md:grid-cols-3" : "md:grid-cols-4"
+                        }`}
+                    >
                         {subjects.map((subject) => (
                             <SortableItem key={subject.id} value={subject.id} asChild>
                                 <div className="cursor-grab active:cursor-grabbing">

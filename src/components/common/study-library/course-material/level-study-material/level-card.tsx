@@ -1,5 +1,3 @@
-import { SubjectDefaultImage } from "@/assets/svgs";
-import { useSidebar } from "@/components/ui/sidebar";
 import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { LevelMenuOptions } from "./level-menu-options";
@@ -14,7 +12,6 @@ export const LevelCard = ({
     onDelete: (levelId: string) => void;
     onEdit: ({ requestData }: { requestData: AddLevelData }) => void;
 }) => {
-    const { open } = useSidebar();
     const navigate = useNavigate();
     const router = useRouter();
 
@@ -43,14 +40,11 @@ export const LevelCard = ({
 
     return (
         <div
-            className={`relative flex cursor-pointer flex-col items-center gap-4 rounded-xl border py-5 pt-10 shadow-md ${
-                open ? "h-[330px] w-[360px]" : "h-[330px] w-[420px]"
-            }`}
+            className={`} relative flex h-[100px] w-full cursor-pointer flex-col items-center gap-4 rounded-xl border border-neutral-200 bg-neutral-50 py-5 pt-10`}
             onClick={handleLevelCardClick}
         >
-            <SubjectDefaultImage />
             <div className="flex w-full justify-center gap-3 px-5">
-                <div className="text-semibold w-full text-wrap text-center text-title font-semibold text-neutral-600">
+                <div className="text-semibold w-full text-wrap text-center text-subtitle font-semibold text-neutral-600">
                     {level.name}
                 </div>
                 <LevelMenuOptions
