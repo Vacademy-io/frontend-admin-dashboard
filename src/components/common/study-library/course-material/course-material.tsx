@@ -103,8 +103,8 @@ export const CourseMaterial = () => {
             </div>
 
             <div
-                className={`grid grid-cols-3 ${
-                    open ? "gap-4" : "gap-8"
+                className={`grid ${
+                    open ? "grid-cols-3 gap-4" : "grid-cols-4 gap-8"
                 } w-full items-center justify-between gap-y-8`}
             >
                 {courses.map((course, key) => (

@@ -69,11 +69,11 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
         <div className="relative">
             <div
                 onClick={handleCardClick}
-                className={`relative flex ${
-                    open ? "size-[260px]" : "size-[300px]"
-                } cursor-pointer flex-col items-center justify-center gap-4 border-neutral-500 bg-neutral-50 p-4 shadow-md`}
+                className={`relative flex w-full ${
+                    open ? "h-[260px]" : "h-[300px]"
+                } cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border border-neutral-100 p-4 shadow-md`}
             >
-                <div className="drag-handle-container absolute right-4 top-4 z-10">
+                <div className="drag-handle-container absolute right-0 top-2 z-10">
                     <SortableDragHandle
                         variant="ghost"
                         size="icon"
@@ -87,12 +87,10 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
                     <img
                         src={imageUrl}
                         alt={subject.subject_name}
-                        className={`${
-                            open ? "size-[150px]" : "size-[200px]"
-                        } rounded-lg object-cover`}
+                        className={`size-full rounded-lg object-cover`}
                     />
                 ) : (
-                    <SubjectDefaultImage className={`${open ? "size-[150px]" : "size-[200px]"}`} />
+                    <SubjectDefaultImage className={`size-full rounded-lg object-cover`} />
                 )}
                 <div className="flex items-center justify-between gap-5">
                     <div className="text-h2 font-semibold">{subject.subject_name}</div>
