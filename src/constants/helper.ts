@@ -17,6 +17,15 @@ export function convertToLocalDateTime(utcDate: string): string {
     return formattedDate.replace(",", "").replace(/\s(am|pm)/i, (match) => match.toUpperCase());
 }
 
+export function extractDateTime(utcDate: string) {
+    const [date, time] = [
+        utcDate.split(" ").slice(0, 3).join(" "),
+        utcDate.split(" ").slice(3).join(" "),
+    ];
+
+    return { date, time };
+}
+
 export function getInstituteId() {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);

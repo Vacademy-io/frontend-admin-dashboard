@@ -1,4 +1,4 @@
-import { sectionsEditQuestionFormSchema } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/-utils/sections-edit-question-form-schema";
+import { sectionsEditQuestionFormSchema } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/sections-edit-question-form-schema";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 

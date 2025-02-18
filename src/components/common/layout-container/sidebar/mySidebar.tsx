@@ -37,15 +37,19 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
     useEffect(() => {
-        const fetchPublicUrl = async () => {
-            if (data?.institute_logo_file_id) {
-                const publicUrl = await getPublicUrl(data.institute_logo_file_id);
-                setInstituteLogo(publicUrl);
-            }
-        };
+        const timer = setTimeout(() => {
+            const fetchPublicUrl = async () => {
+                if (data?.institute_logo_file_id) {
+                    const publicUrl = await getPublicUrl(data.institute_logo_file_id);
+                    setInstituteLogo(publicUrl);
+                }
+            };
 
-        fetchPublicUrl();
-    }, [data?.institute_logo_file_id, getPublicUrl]);
+            fetchPublicUrl();
+        }, 300); // Adjust the debounce time as needed
+
+        return () => clearTimeout(timer); // Cleanup the timeout on component unmount
+    }, [data?.institute_logo_file_id]);
 
     if (isLoading) return <DashboardLoader />;
     return (

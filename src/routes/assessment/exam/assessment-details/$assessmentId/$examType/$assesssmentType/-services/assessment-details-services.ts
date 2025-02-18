@@ -1,12 +1,14 @@
 import {
+    GET_ADMIN_PARTICIPANTS,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
     GET_QUESTIONS_INSIGHTS_URL,
     PRIVATE_ADD_QUESTIONS,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
+import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
+import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSubmissionsTab";
 
 export const savePrivateQuestions = async (questions: AssessmentDetailQuestions) => {
     const response = await authenticatedAxiosInstance({
@@ -128,6 +130,58 @@ export const handleGetLeaderboardData = ({
                 pageSize,
                 selectedFilter,
             ),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
+export const getAdminParticipants = async (
+    assessmentId: string,
+    instituteId: string | undefined,
+    pageNo: number,
+    pageSize: number,
+    selectedFilter: SelectedSubmissionsFilterInterface,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: GET_ADMIN_PARTICIPANTS,
+        params: {
+            instituteId,
+            assessmentId,
+            pageNo,
+            pageSize,
+        },
+        data: {
+            ...selectedFilter,
+            batches: selectedFilter.batches.map((batch: { id: string }) => batch.id),
+        },
+    });
+    return response?.data;
+};
+
+export const handleAdminParticipantsData = ({
+    assessmentId,
+    instituteId,
+    pageNo,
+    pageSize,
+    selectedFilter,
+}: {
+    assessmentId: string;
+    instituteId: string | undefined;
+    pageNo: number;
+    pageSize: number;
+    selectedFilter: SelectedSubmissionsFilterInterface;
+}) => {
+    return {
+        queryKey: [
+            "GET_ADMIN_PARTICIPANTS_DETAILS",
+            assessmentId,
+            instituteId,
+            pageNo,
+            pageSize,
+            selectedFilter,
+        ],
+        queryFn: () =>
+            getAdminParticipants(assessmentId, instituteId, pageNo, pageSize, selectedFilter),
         staleTime: 60 * 60 * 1000,
     };
 };

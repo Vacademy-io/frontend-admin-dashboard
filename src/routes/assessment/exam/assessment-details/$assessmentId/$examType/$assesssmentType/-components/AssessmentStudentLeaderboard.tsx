@@ -117,6 +117,13 @@ const AssessmentStudentLeaderboard = () => {
 
     const handlePageChange = (newPage: number) => {
         setPageNo(newPage);
+        getStudentLeaderboardData.mutate({
+            assessmentId,
+            instituteId,
+            pageNo: newPage,
+            pageSize: 10,
+            selectedFilter,
+        });
     };
 
     if (isLoading) return <DashboardLoader />;
