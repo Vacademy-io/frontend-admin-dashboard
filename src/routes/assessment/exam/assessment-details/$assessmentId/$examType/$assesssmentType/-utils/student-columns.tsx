@@ -1,4 +1,4 @@
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { CaretUp, CaretDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
@@ -7,6 +7,7 @@ import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { AssessmentStatusOptions } from "../-components/AssessmentStatusOptions";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowSquareOut } from "phosphor-react";
+import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -18,6 +19,20 @@ const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
         <div>
             {levelName} {packageName}
         </div>
+    );
+};
+
+const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
+    const { setSelectedStudent } = useStudentSidebar();
+
+    return (
+        <SidebarTrigger
+            onClick={() => {
+                setSelectedStudent(row.original);
+            }}
+        >
+            <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+        </SidebarTrigger>
     );
 };
 
@@ -42,11 +57,7 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
     {
         id: "details",
         header: "Details",
-        cell: () => (
-            <SidebarTrigger>
-                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
-            </SidebarTrigger>
-        ),
+        cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
         accessorKey: "full_name",
@@ -129,11 +140,7 @@ export const assessmentStatusStudentOngoingColumnsInternal: ColumnDef<StudentTab
     {
         id: "details",
         header: "Details",
-        cell: () => (
-            <SidebarTrigger>
-                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
-            </SidebarTrigger>
-        ),
+        cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
         accessorKey: "full_name",
@@ -191,11 +198,7 @@ export const assessmentStatusStudentPendingColumnsInternal: ColumnDef<StudentTab
     {
         id: "details",
         header: "Details",
-        cell: () => (
-            <SidebarTrigger>
-                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
-            </SidebarTrigger>
-        ),
+        cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
         accessorKey: "full_name",
@@ -249,11 +252,7 @@ export const assessmentStatusStudentAttemptedColumnsExternal: ColumnDef<StudentT
     {
         id: "details",
         header: "Details",
-        cell: () => (
-            <SidebarTrigger>
-                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
-            </SidebarTrigger>
-        ),
+        cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
         accessorKey: "full_name",
@@ -331,11 +330,7 @@ export const assessmentStatusStudentOngoingColumnsExternal: ColumnDef<StudentTab
     {
         id: "details",
         header: "Details",
-        cell: () => (
-            <SidebarTrigger>
-                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
-            </SidebarTrigger>
-        ),
+        cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
         accessorKey: "full_name",
@@ -393,11 +388,7 @@ export const assessmentStatusStudentPendingColumnsExternal: ColumnDef<StudentTab
     {
         id: "details",
         header: "Details",
-        cell: () => (
-            <SidebarTrigger>
-                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
-            </SidebarTrigger>
-        ),
+        cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
         accessorKey: "full_name",

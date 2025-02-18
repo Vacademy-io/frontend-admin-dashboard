@@ -40,12 +40,15 @@ export const LevelCard = ({
 
     return (
         <div
-            className={`} relative flex h-[100px] w-full cursor-pointer flex-col items-center gap-4 rounded-xl border border-neutral-200 bg-neutral-50 py-5 pt-10`}
+            className={`relative flex h-[100px] w-full cursor-pointer items-center gap-4 rounded-xl border border-neutral-200 bg-neutral-50 py-5`}
             onClick={handleLevelCardClick}
         >
-            <div className="flex w-full justify-center gap-3 px-5">
-                <div className="text-semibold w-full text-wrap text-center text-subtitle font-semibold text-neutral-600">
-                    {level.name}
+            <div className="flex w-full items-end justify-between gap-3 px-5">
+                <div className="flex flex-col text-wrap">
+                    <p className="text-subtitle font-semibold text-neutral-600">{level.name}</p>
+                    <p className="text-caption text-neutral-400">
+                        Duration: {level.duration_in_days} days
+                    </p>
                 </div>
                 <LevelMenuOptions
                     onDelete={onDelete}
