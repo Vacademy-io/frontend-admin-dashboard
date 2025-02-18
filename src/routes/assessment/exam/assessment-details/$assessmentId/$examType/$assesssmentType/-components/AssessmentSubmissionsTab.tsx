@@ -1,5 +1,5 @@
-// /* eslint-disable @typescript-eslint/ban-ts-comment */
-// // @ts-nocheck
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 
 import { useEffect, useState } from "react";
 import { MyTable } from "@/components/design-system/table";
@@ -68,6 +68,10 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const currentPageSelection = rowSelections[page] || {};
+
+    const [attemptedCount, setAttemptedCount] = useState(0);
+    const [ongoingCount, setOngoingCount] = useState(0);
+    const [pendingCount, setPendingCount] = useState(0);
 
     const getParticipantsListData = useMutation({
         mutationFn: ({
@@ -634,6 +638,41 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
             .then((data) => {
                 setParticipantsData(data);
                 setIsParticipantsLoading(false);
+                setAttemptedCount(data.content.length);
+            })
+            .catch((err) => {
+                console.log(err);
+                setIsParticipantsLoading(false);
+            });
+    }, []);
+
+    useEffect(() => {
+        setIsParticipantsLoading(true);
+        getAdminParticipants(assessmentId, instituteId, page, 10, {
+            ...selectedFilter,
+            attempt_type: ["LIVE"],
+        })
+            .then((data) => {
+                setParticipantsData(data);
+                setIsParticipantsLoading(false);
+                setOngoingCount(data.content.length);
+            })
+            .catch((err) => {
+                console.log(err);
+                setIsParticipantsLoading(false);
+            });
+    }, []);
+
+    useEffect(() => {
+        setIsParticipantsLoading(true);
+        getAdminParticipants(assessmentId, instituteId, page, 10, {
+            ...selectedFilter,
+            attempt_type: ["Pending"],
+        })
+            .then((data) => {
+                setParticipantsData(data);
+                setIsParticipantsLoading(false);
+                setPendingCount(data.content.length);
             })
             .catch((err) => {
                 console.log(err);
@@ -671,7 +710,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                                 variant="outline"
                             >
-                                0
+                                {attemptedCount}
                             </Badge>
                         </TabsTrigger>
                         <TabsTrigger
@@ -691,7 +730,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                                 variant="outline"
                             >
-                                0
+                                {ongoingCount}
                             </Badge>
                         </TabsTrigger>
                         <TabsTrigger
@@ -711,7 +750,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                                 variant="outline"
                             >
-                                0
+                                {pendingCount}
                             </Badge>
                         </TabsTrigger>
                     </TabsList>
@@ -824,12 +863,6 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 >
                                     Batch Selection
                                 </span>
-                                <Badge
-                                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
-                                    variant="outline"
-                                >
-                                    0
-                                </Badge>
                             </TabsTrigger>
                             <TabsTrigger
                                 value="individual"
@@ -846,12 +879,6 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 >
                                     Individual Selection
                                 </span>
-                                <Badge
-                                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
-                                    variant="outline"
-                                >
-                                    0
-                                </Badge>
                             </TabsTrigger>
                         </TabsList>
                     </Tabs>

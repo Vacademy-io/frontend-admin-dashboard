@@ -72,7 +72,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                             .time,
                         end_time: extractDateTime(convertToLocalDateTime(student.and_time || ""))
                             .time,
-                        duration: student.duration + " min",
+                        duration: (student.duration % 60) + " min",
                         score: student.score + "/20", // need to add total marks,
                     };
                 } else if (selectedTab === "Ongoing") {
@@ -105,7 +105,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                             .time,
                         end_time: extractDateTime(convertToLocalDateTime(student.and_time || ""))
                             .time,
-                        duration: student.duration + " min",
+                        duration: (student.duration % 60) + " min",
                         score: student.score + "/20", // need to add total marks
                     };
                 } else if (selectedTab === "Ongoing") {
