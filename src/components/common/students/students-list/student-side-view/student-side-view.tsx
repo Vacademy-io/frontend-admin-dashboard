@@ -19,6 +19,7 @@ export const StudentSidebar = () => {
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
     const { toggleSidebar } = useSidebar();
+    // const { selectedStudent } = useStudentSidebar();
 
     useEffect(() => {
         if (state == "expanded") {

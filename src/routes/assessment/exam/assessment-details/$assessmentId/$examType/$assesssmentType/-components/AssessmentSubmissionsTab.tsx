@@ -28,6 +28,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import AssessmentSubmissionsFilterButtons from "./AssessmentSubmissionsFilterButtons";
 import { StudentSidebar } from "@/components/common/students/students-list/student-side-view/student-side-view";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { StudentSidebarContext } from "@/context/selected-student-sidebar-context";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -48,6 +49,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const [selectedTab, setSelectedTab] = useState("Attempted");
     const [batchSelectionTab, setBatchSelectionTab] = useState("batch");
     const [page, setPage] = useState(0);
+    const [selectedStudent, setSelectedStudent] = useState<StudentTable | null>(null);
     const [selectedFilter, setSelectedFilter] = useState<SelectedSubmissionsFilterInterface>({
         name: "",
         assessment_type: assesssmentType,
@@ -671,7 +673,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     if (isParticipantsLoading) return <DashboardLoader />;
 
     return (
-        <>
+        <StudentSidebarContext.Provider value={{ selectedStudent, setSelectedStudent }}>
             <Tabs
                 value={selectedTab}
                 onValueChange={handleAttemptedTab}
@@ -912,7 +914,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     />
                 </div>
             </Tabs>
-        </>
+        </StudentSidebarContext.Provider>
     );
 };
 
