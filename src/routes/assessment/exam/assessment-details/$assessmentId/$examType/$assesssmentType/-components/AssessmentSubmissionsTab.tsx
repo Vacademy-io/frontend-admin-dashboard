@@ -26,6 +26,8 @@ import { ScheduleTestFilters } from "@/routes/assessment/exam/-components/Schedu
 import { MyFilterOption } from "@/types/assessments/my-filter";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import AssessmentSubmissionsFilterButtons from "./AssessmentSubmissionsFilterButtons";
+import { StudentSidebar } from "@/components/common/students/students-list/student-side-view/student-side-view";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -871,34 +873,37 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
                     <TabsContent value={selectedTab}>
-                        <MyTable
-                            data={{
-                                content: getAssessmentSubmissionsFilteredDataStudentData(
-                                    participantsData.content,
-                                    type,
-                                    selectedTab,
-                                    initData?.batches_for_sessions,
-                                ),
-                                total_pages: participantsData.total_pages,
-                                page_no: page,
-                                page_size: 10,
-                                total_elements: participantsData.total_elements,
-                                last: participantsData.last,
-                            }}
-                            columns={
-                                getAssessmentColumn[
-                                    selectedTab as keyof typeof getAssessmentColumn
-                                ] || []
-                            }
-                            columnWidths={
-                                getAssessmentColumnWidth[
-                                    selectedTab as keyof typeof getAssessmentColumnWidth
-                                ] || []
-                            }
-                            rowSelection={currentPageSelection}
-                            onRowSelectionChange={handleRowSelectionChange}
-                            currentPage={page}
-                        />
+                        <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                            <MyTable
+                                data={{
+                                    content: getAssessmentSubmissionsFilteredDataStudentData(
+                                        participantsData.content,
+                                        type,
+                                        selectedTab,
+                                        initData?.batches_for_sessions,
+                                    ),
+                                    total_pages: participantsData.total_pages,
+                                    page_no: page,
+                                    page_size: 10,
+                                    total_elements: participantsData.total_elements,
+                                    last: participantsData.last,
+                                }}
+                                columns={
+                                    getAssessmentColumn[
+                                        selectedTab as keyof typeof getAssessmentColumn
+                                    ] || []
+                                }
+                                columnWidths={
+                                    getAssessmentColumnWidth[
+                                        selectedTab as keyof typeof getAssessmentColumnWidth
+                                    ] || []
+                                }
+                                rowSelection={currentPageSelection}
+                                onRowSelectionChange={handleRowSelectionChange}
+                                currentPage={page}
+                            />
+                            <StudentSidebar />
+                        </SidebarProvider>
                     </TabsContent>
                     <MyPagination
                         currentPage={page}
