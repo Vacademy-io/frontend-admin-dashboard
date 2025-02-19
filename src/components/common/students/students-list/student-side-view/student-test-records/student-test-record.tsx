@@ -5,12 +5,42 @@ import { StatusChips } from "@/components/design-system/chips";
 import { StudentTestRecordsType } from "../student-view-dummy-data/student-view-dummy-data";
 import { TestRecordDetailsType } from "../student-view-dummy-data/test-record";
 import { TestReportDialog } from "./test-report-dialog";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
+import { getInstituteId } from "@/constants/helper";
+import { handleStudentReportData } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+
+export interface StudentReportFilterInterface {
+    name: string;
+    status: string[];
+    sort_columns: Record<string, string>; // Assuming it can have dynamic keys with any value
+}
 
 export const StudentTestRecord = ({
     testRecordData,
 }: {
     testRecordData: StudentTestRecordsType;
 }) => {
+    const [selectedFilter, setSelectedFilter] = useState<StudentReportFilterInterface>({
+        name: "",
+        status: ["ACTIVE"],
+        sort_columns: {},
+    });
+    const { selectedStudent } = useStudentSidebar();
+
+    const [pageNo, setPageNo] = useState(0);
+    const instituteId = getInstituteId();
+    const { data, isLoading } = useSuspenseQuery(
+        handleStudentReportData({
+            studentId: selectedStudent?.id,
+            instituteId,
+            pageNo,
+            pageSize: 10,
+            selectedFilter,
+        }),
+    );
+    console.log(data);
     const [searchInput, setSearchInput] = useState("");
     const [selectedTest, setSelectedTest] = useState<TestRecordDetailsType | null>(null);
 
@@ -21,6 +51,8 @@ export const StudentTestRecord = ({
     const handleViewReport = (test: TestRecordDetailsType) => {
         setSelectedTest(test);
     };
+
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <div className="flex flex-col gap-10">
