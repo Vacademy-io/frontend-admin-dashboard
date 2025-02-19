@@ -19,12 +19,16 @@ export interface StudentReportFilterInterface {
 
 export const StudentTestRecord = ({
     testRecordData,
+    selectedTab,
 }: {
     testRecordData: StudentTestRecordsType;
+    selectedTab: string | undefined;
 }) => {
     const [selectedFilter, setSelectedFilter] = useState<StudentReportFilterInterface>({
         name: "",
-        status: ["ACTIVE"],
+        status: [
+            selectedTab === "Attempted" ? "ENDED" : selectedTab === "Pending" ? "PENDING" : "LIVE",
+        ],
         sort_columns: {},
     });
     const { selectedStudent } = useStudentSidebar();

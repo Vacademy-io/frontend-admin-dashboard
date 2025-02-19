@@ -904,7 +904,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 onRowSelectionChange={handleRowSelectionChange}
                                 currentPage={page}
                             />
-                            <StudentSidebar />
+                            <StudentSidebar selectedTab={selectedTab} />
                         </SidebarProvider>
                     </TabsContent>
                     <MyPagination
