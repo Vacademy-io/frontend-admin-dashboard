@@ -1,10 +1,10 @@
 // bulk-upload-columns.tsx
 import { type ColumnDef } from "@tanstack/react-table";
-import { MdCheckCircle } from "react-icons/md";
 import { MyButton } from "@/components/design-system/button";
 import { type ErrorType, type SchemaFields } from "@/types/students/bulk-upload-types";
 import { cn } from "@/lib/utils";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
+import { CheckCircle } from "@phosphor-icons/react";
 
 // bulk-upload-columns.tsx
 export const createBulkUploadColumns = (
@@ -58,7 +58,7 @@ export const createBulkUploadColumns = (
                             Check errors
                         </MyButton>
                     ) : (
-                        <MdCheckCircle className="text-green-500" />
+                        <CheckCircle className="text-green-500" />
                     )}
                 </div>
             );

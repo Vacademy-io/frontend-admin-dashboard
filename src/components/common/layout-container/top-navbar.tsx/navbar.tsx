@@ -3,7 +3,6 @@ import { useState } from "react";
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import { DummyProfile } from "@/assets/svgs";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { FiSidebar } from "react-icons/fi";
 import { useSidebarStore } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states";
 import {
     DropdownMenu,
@@ -20,6 +19,7 @@ import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-
 import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { SidebarSimple } from "@phosphor-icons/react";
 
 export function Navbar() {
     // const notifications = true;
@@ -55,7 +55,7 @@ export function Navbar() {
         <div className="flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
-                    <FiSidebar className="text-neutral-600" />
+                    <SidebarSimple className="text-neutral-600" />
                 </SidebarTrigger>
                 <div className="border-l border-neutral-500 px-4 text-h3 font-semibold text-neutral-600">
                     {navHeading}

@@ -1,4 +1,3 @@
-import { IoCheckmarkOutline } from "react-icons/io5";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
@@ -8,6 +7,7 @@ import { StudentListTab } from "./StudentListTab";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
+import { CheckCircle } from "@phosphor-icons/react";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -43,10 +43,7 @@ export function AddingParticipantsTab({
                         }`}
                     >
                         {selectedTab === "Batch" && (
-                            <IoCheckmarkOutline
-                                size={18}
-                                className="text-teal-800 dark:text-teal-400"
-                            />
+                            <CheckCircle size={18} className="text-teal-800 dark:text-teal-400" />
                         )}
                         <span className={`${selectedTab === "Batch" ? "text-neutral-600" : ""}`}>
                             Select Batch
@@ -62,10 +59,7 @@ export function AddingParticipantsTab({
                         }`}
                     >
                         {selectedTab === "Individually" && (
-                            <IoCheckmarkOutline
-                                size={18}
-                                className="text-teal-800 dark:text-teal-400"
-                            />
+                            <CheckCircle size={18} className="text-teal-800 dark:text-teal-400" />
                         )}
                         <span
                             className={`${

@@ -10,6 +10,9 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 import { useSidebar } from "@/components/ui/sidebar";
 import { SortableDragHandle } from "@/components/ui/sortable";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
+import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 interface SubjectCardProps {
     subject: SubjectType;
@@ -23,6 +26,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
     const { getPublicUrl } = useFileUpload();
     const router = useRouter();
     const { open } = useSidebar();
+    const { data } = useSuspenseQuery(useInstituteQuery());
 
     const handleCardClick = (e: React.MouseEvent) => {
         if (
@@ -34,6 +38,8 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
         ) {
             return;
         }
+
+        if (!getModuleFlags(data?.sub_modules).lms) return;
 
         const currentPath = router.state.location.pathname;
         const searchParams = router.state.location.search;
