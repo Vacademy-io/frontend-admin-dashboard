@@ -79,7 +79,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
                     open ? "h-[260px]" : "h-[300px]"
                 } cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border border-neutral-100 p-4 shadow-md`}
             >
-                <div className="drag-handle-container absolute right-0 top-2 z-10">
+                <div className="drag-handle-container absolute right-0 top-2 z-10 rounded-lg bg-white">
                     <SortableDragHandle
                         variant="ghost"
                         size="icon"

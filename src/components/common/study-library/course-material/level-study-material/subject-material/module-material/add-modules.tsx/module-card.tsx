@@ -81,7 +81,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                     <img
                         src={imageUrl}
                         alt={module.module_name}
-                        className="size-full rounded-lg object-cover"
+                        className="h-[145px] rounded-lg object-cover"
                     />
                 ) : (
                     <div className="flex size-full w-full items-center justify-center rounded-lg bg-neutral-100">
