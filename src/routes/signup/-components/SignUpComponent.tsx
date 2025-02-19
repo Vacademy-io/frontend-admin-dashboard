@@ -15,6 +15,7 @@ import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
 import { useNavigate } from "@tanstack/react-router";
 import useOrganizationStore from "../onboarding/-zustand-store/step1OrganizationZustand";
+import { useEffect } from "react";
 
 const items = [
     {
