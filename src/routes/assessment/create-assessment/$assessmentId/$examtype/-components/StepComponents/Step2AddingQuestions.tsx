@@ -54,8 +54,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                 entireTestDuration: {
                     checked: true, // Default to true
                     testDuration: {
-                        hrs: "",
-                        min: "",
+                        hrs: "0",
+                        min: "0",
                     },
                 },
                 sectionWiseDuration: false, // Default to false
@@ -70,24 +70,24 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                     yearClass: "",
                     uploaded_question_paper: null,
                     question_duration: {
-                        hrs: "",
-                        min: "",
+                        hrs: "0",
+                        min: "0",
                     },
                     section_description: "",
                     section_duration: {
-                        hrs: "",
-                        min: "",
+                        hrs: "0",
+                        min: "0",
                     },
-                    marks_per_question: "",
+                    marks_per_question: "0",
                     total_marks: "",
                     negative_marking: {
                         checked: false,
-                        value: "",
+                        value: "0",
                     },
                     partial_marking: false,
                     cutoff_marks: {
                         checked: false,
-                        value: "",
+                        value: "0",
                     },
                     problem_randomization: false,
                     adaptive_marking_for_each_question: [],
@@ -177,24 +177,24 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             yearClass: "",
             uploaded_question_paper: null,
             question_duration: {
-                hrs: "",
-                min: "",
+                hrs: "0",
+                min: "0",
             },
             section_description: "",
             section_duration: {
-                hrs: "",
-                min: "",
+                hrs: "0",
+                min: "0",
             },
-            marks_per_question: "",
-            total_marks: "",
+            marks_per_question: "0",
+            total_marks: "0",
             negative_marking: {
                 checked: false,
-                value: "",
+                value: "0",
             },
             partial_marking: false,
             cutoff_marks: {
                 checked: false,
-                value: "",
+                value: "0",
             },
             problem_randomization: false,
             adaptive_marking_for_each_question: [],

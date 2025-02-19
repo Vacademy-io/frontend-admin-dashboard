@@ -178,6 +178,7 @@ export function transformBatchData(data: BatchData[]) {
 }
 
 export const convertToUTC = (dateString: string) => {
+    if (dateString === "") return "";
     // Parse the input ISO 8601 date string into a Date object
     const date = new Date(dateString);
     return date.toISOString();

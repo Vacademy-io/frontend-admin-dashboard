@@ -107,8 +107,8 @@ export const handlePostStep1Data = async (
             assessment_instructions_html: data.testCreation.assessmentInstructions,
         },
         test_boundation: {
-            start_date: convertToUTC(data.testCreation.liveDateRange.startDate),
-            end_date: convertToUTC(data.testCreation.liveDateRange.endDate),
+            start_date: convertToUTC(data.testCreation.liveDateRange.startDate || ""),
+            end_date: convertToUTC(data.testCreation.liveDateRange.endDate || ""),
         },
         assessment_preview_time: data.assessmentPreview.checked
             ? parseInt(data.assessmentPreview.previewTimeLimit)
