@@ -180,21 +180,7 @@ export function transformBatchData(data: BatchData[]) {
 export const convertToUTCPlus530 = (dateString: string) => {
     // Parse the input ISO 8601 date string into a Date object
     const date = new Date(dateString);
-
-    // Get the UTC time in milliseconds and add the UTC+5:30 offset
-    const offsetMillis = 5 * 60 * 60 * 1000 + 30 * 60 * 1000; // 5 hours and 30 minutes in milliseconds
-    const utcPlus530Date = new Date(date.getTime() + offsetMillis);
-
-    // Format the date into the desired string format
-    const year = utcPlus530Date.getFullYear();
-    const month = String(utcPlus530Date.getMonth() + 1).padStart(2, "0");
-    const day = String(utcPlus530Date.getDate()).padStart(2, "0");
-    const hours = String(utcPlus530Date.getHours()).padStart(2, "0");
-    const minutes = String(utcPlus530Date.getMinutes()).padStart(2, "0");
-    const seconds = String(utcPlus530Date.getSeconds()).padStart(2, "0");
-    const milliseconds = String(utcPlus530Date.getMilliseconds()).padStart(3, "0");
-
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}+05:30`;
+    return date.toISOString();
 };
 
 export const formatDateTimeLocal = (dateString: string | undefined) => {
