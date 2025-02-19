@@ -284,37 +284,47 @@ export const AddCourseForm = ({
                         </MyButton>
                     </div>
                 </div>
-
-                <FormField
-                    control={form.control}
-                    name="contain_levels"
-                    render={({ field }) => (
-                        <FormItem className="space-y-2">
-                            <label className="text-sm font-medium">Contains Levels?</label>
-                            <FormControl>
-                                <RadioGroup
-                                    value={field.value ? "true" : "false"}
-                                    onValueChange={(value) => field.onChange(value === "true")}
-                                    className="flex gap-4"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="true" id="contain_levels_true" />
-                                        <label htmlFor="contain_levels_true" className="text-sm">
-                                            Yes
-                                        </label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="false" id="contain_levels_false" />
-                                        <label htmlFor="contain_levels_false" className="text-sm">
-                                            No
-                                        </label>
-                                    </div>
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {!initialValues && (
+                    <FormField
+                        control={form.control}
+                        name="contain_levels"
+                        render={({ field }) => (
+                            <FormItem className="space-y-2">
+                                <label className="text-sm font-medium">Contains Levels?</label>
+                                <FormControl>
+                                    <RadioGroup
+                                        value={field.value ? "true" : "false"}
+                                        onValueChange={(value) => field.onChange(value === "true")}
+                                        className="flex gap-4"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="true" id="contain_levels_true" />
+                                            <label
+                                                htmlFor="contain_levels_true"
+                                                className="text-sm"
+                                            >
+                                                Yes
+                                            </label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem
+                                                value="false"
+                                                id="contain_levels_false"
+                                            />
+                                            <label
+                                                htmlFor="contain_levels_false"
+                                                className="text-sm"
+                                            >
+                                                No
+                                            </label>
+                                        </div>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
 
                 {containLevels && (
                     <FormField
@@ -353,7 +363,8 @@ export const AddCourseForm = ({
                                                                         ...level,
                                                                         new_level: level.id === "",
                                                                         duration_in_days:
-                                                                            level.duration_in_days,
+                                                                            level.duration_in_days ||
+                                                                            null,
                                                                         sessions: [],
                                                                     };
                                                                     field.onChange([
