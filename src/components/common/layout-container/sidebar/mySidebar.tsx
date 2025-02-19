@@ -20,8 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
 import { Question } from "phosphor-react";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { FaWhatsapp } from "react-icons/fa6";
-import { SiGmail } from "react-icons/si";
+import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
 import useInstituteLogoStore from "./institutelogo-global-zustand";
 
@@ -138,7 +137,7 @@ function SupportOptions() {
                                     className="flex w-full cursor-pointer items-center gap-1"
                                     onClick={goToWhatsappSupport}
                                 >
-                                    <FaWhatsapp />
+                                    <WhatsappLogo />
                                     WhatsApp
                                 </div>
                             </CommandItem>
@@ -148,7 +147,7 @@ function SupportOptions() {
                                     className="flex w-full cursor-pointer items-center gap-1"
                                     onClick={goToMailSupport}
                                 >
-                                    <SiGmail />
+                                    <EnvelopeSimple />
                                     Mail us
                                 </div>
                             </CommandItem>
