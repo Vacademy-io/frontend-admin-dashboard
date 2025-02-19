@@ -611,6 +611,12 @@ export const Step2SectionInfo = ({
                                             inputType="text"
                                             inputPlaceholder="00"
                                             input={field.value}
+                                            onKeyPress={(e) => {
+                                                const charCode = e.key;
+                                                if (!/[0-9]/.test(charCode)) {
+                                                    e.preventDefault(); // Prevent non-numeric input
+                                                }
+                                            }}
                                             onChangeFunction={(e) => {
                                                 const inputValue = e.target.value.replace(
                                                     /[^0-9]/g,
@@ -680,6 +686,12 @@ export const Step2SectionInfo = ({
                                                     ? false
                                                     : true
                                             }
+                                            onKeyPress={(e) => {
+                                                const charCode = e.key;
+                                                if (!/[0-9]/.test(charCode)) {
+                                                    e.preventDefault(); // Prevent non-numeric input
+                                                }
+                                            }}
                                             inputType="text"
                                             inputPlaceholder="00"
                                             input={field.value}

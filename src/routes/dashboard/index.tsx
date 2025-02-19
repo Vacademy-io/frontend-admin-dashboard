@@ -20,6 +20,7 @@ import { SSDC_INSTITUTE_ID } from "@/constants/urls";
 import { Helmet } from "react-helmet";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -32,9 +33,10 @@ export const Route = createFileRoute("/dashboard/")({
 export function DashboardComponent() {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
-    console.log(tokenData);
     const { data: instituteDetails, isLoading: isInstituteLoading } =
         useSuspenseQuery(useInstituteQuery());
+    const subModules = getModuleFlags(instituteDetails?.sub_modules);
+
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
         getInstituteDashboardData(instituteDetails?.id),
     );
@@ -94,7 +96,7 @@ export function DashboardComponent() {
             {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
                 <iframe
                     className="mt-6 size-full h-[80vh] rounded-xl"
-                    src="https://www.youtube.com/embed/lIhk4IFQH8w"
+                    src="https://www.youtube.com/embed/ovEtbkMzcUQ"
                     title="YouTube video player"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
@@ -212,82 +214,84 @@ export function DashboardComponent() {
                                 </CardDescription>
                             </CardHeader>
                         </Card>
-                        <Card className="grow bg-neutral-50 shadow-none">
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>Create your first assessment</CardTitle>
-                                    <Dialog>
-                                        <DialogTrigger>
-                                            <MyButton
-                                                type="submit"
-                                                scale="medium"
-                                                id="first-assessment"
-                                                buttonType="secondary"
-                                                layoutVariant="default"
-                                                className="text-sm"
-                                            >
-                                                <Plus size={32} />
-                                                Create
-                                            </MyButton>
-                                        </DialogTrigger>
-                                        <DialogContent className="p-0">
-                                            <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
-                                                Create Assessment
-                                            </h1>
-                                            <div className="flex flex-col items-center justify-center gap-6">
+                        {subModules.assess && (
+                            <Card className="grow bg-neutral-50 shadow-none">
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle>Create your first assessment</CardTitle>
+                                        <Dialog>
+                                            <DialogTrigger>
                                                 <MyButton
-                                                    type="button"
-                                                    scale="large"
+                                                    type="submit"
+                                                    scale="medium"
+                                                    id="first-assessment"
                                                     buttonType="secondary"
-                                                    className="mt-2 font-medium"
-                                                    onClick={() =>
-                                                        handleAssessmentTypeRoute("EXAM")
-                                                    }
+                                                    layoutVariant="default"
+                                                    className="text-sm"
                                                 >
-                                                    Examination
+                                                    <Plus size={32} />
+                                                    Create
                                                 </MyButton>
-                                                <MyButton
-                                                    type="button"
-                                                    scale="large"
-                                                    buttonType="secondary"
-                                                    className="font-medium"
-                                                    onClick={() =>
-                                                        handleAssessmentTypeRoute("MOCK")
-                                                    }
-                                                >
-                                                    Mock
-                                                </MyButton>
-                                                <MyButton
-                                                    type="button"
-                                                    scale="large"
-                                                    buttonType="secondary"
-                                                    className="font-medium"
-                                                    onClick={() =>
-                                                        handleAssessmentTypeRoute("PRACTICE")
-                                                    }
-                                                >
-                                                    Practice
-                                                </MyButton>
-                                                <MyButton
-                                                    type="button"
-                                                    scale="large"
-                                                    buttonType="secondary"
-                                                    className="mb-6 font-medium"
-                                                    onClick={() =>
-                                                        handleAssessmentTypeRoute("SURVEY")
-                                                    }
-                                                >
-                                                    Survey
-                                                </MyButton>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
-                                </div>
-                                <CardDescription className="mt-2 flex items-center justify-center">
-                                    <CreateAssessmentDashboardLogo className="mt-4" />
-                                </CardDescription>
-                            </CardHeader>
-                        </Card>
+                                            </DialogTrigger>
+                                            <DialogContent className="p-0">
+                                                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
+                                                    Create Assessment
+                                                </h1>
+                                                <div className="flex flex-col items-center justify-center gap-6">
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="large"
+                                                        buttonType="secondary"
+                                                        className="mt-2 font-medium"
+                                                        onClick={() =>
+                                                            handleAssessmentTypeRoute("EXAM")
+                                                        }
+                                                    >
+                                                        Examination
+                                                    </MyButton>
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="large"
+                                                        buttonType="secondary"
+                                                        className="font-medium"
+                                                        onClick={() =>
+                                                            handleAssessmentTypeRoute("MOCK")
+                                                        }
+                                                    >
+                                                        Mock
+                                                    </MyButton>
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="large"
+                                                        buttonType="secondary"
+                                                        className="font-medium"
+                                                        onClick={() =>
+                                                            handleAssessmentTypeRoute("PRACTICE")
+                                                        }
+                                                    >
+                                                        Practice
+                                                    </MyButton>
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="large"
+                                                        buttonType="secondary"
+                                                        className="mb-6 font-medium"
+                                                        onClick={() =>
+                                                            handleAssessmentTypeRoute("SURVEY")
+                                                        }
+                                                    >
+                                                        Survey
+                                                    </MyButton>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                    <CardDescription className="mt-2 flex items-center justify-center">
+                                        <CreateAssessmentDashboardLogo className="mt-4" />
+                                    </CardDescription>
+                                </CardHeader>
+                            </Card>
+                        )}
                     </div>
                 </div>
             </div>
