@@ -15,7 +15,6 @@ import React, { useEffect, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { filterMenuList, getModuleFlags } from "./helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
@@ -31,8 +30,6 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
-    const subModules = getModuleFlags(data?.sub_modules);
-    const sideBarItems = filterMenuList(subModules, SidebarItemsData);
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
@@ -80,7 +77,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 >
                     {sidebarComponent
                         ? sidebarComponent
-                        : sideBarItems.map((obj, key) => (
+                        : SidebarItemsData.map((obj, key) => (
                               <SidebarMenuItem key={key} id={obj.id}>
                                   <SidebarItem
                                       icon={obj.icon}
