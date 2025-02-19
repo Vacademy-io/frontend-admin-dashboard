@@ -35,6 +35,7 @@ interface Session {
     id: string;
     session_name: string;
     status: string;
+    start_date?: string;
 }
 
 interface AddLevelFormProps {
@@ -61,19 +62,20 @@ export const AddLevelForm = ({
     const [newSessionName, setNewSessionName] = useState("");
     const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [sessionList, setSessionList] = useState<Session[]>(getAllSessions);
+    const [newSessionStartDate, setNewSessionStartDate] = useState<string>("");
 
     const route = useRouter();
     const search = route.state.location.search;
     const courseId: string = search.courseId || "";
     const { selectedSession } = useSelectedSessionStore();
 
-    const handleAddSession = (sessionName: string) => {
+    const handleAddSession = (sessionName: string, startDate: string) => {
         const newSession = {
             id: "",
             new_session: true,
             session_name: sessionName,
             status: "INACTIVE",
-            start_date: new Date().toISOString(),
+            start_date: startDate,
         };
         setSessionList((prevSessionList) => [...prevSessionList, newSession]);
     };
@@ -134,104 +136,159 @@ export const AddLevelForm = ({
                         </FormItem>
                     )}
                 />
+                <FormField
+                    control={form.control}
+                    name="duration_in_days"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormControl>
+                                <MyInput
+                                    label="Duration (days)"
+                                    required={true}
+                                    inputType="number"
+                                    inputPlaceholder="Enter duration in days"
+                                    className="w-[352px]"
+                                    input={field.value?.toString() || ""}
+                                    onChangeFunction={(e) => field.onChange(Number(e.target.value))}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <div className="flex flex-col gap-6">
-                    <FormField
-                        control={form.control}
-                        name="sessions"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormControl>
-                                    <div className="flex flex-col gap-2">
-                                        Sessions
-                                        {sessionList.map((session) => (
-                                            <div
-                                                key={session.id}
-                                                className="flex items-center gap-3 rounded-md p-2 hover:bg-neutral-50"
-                                            >
-                                                <Checkbox
-                                                    className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
-                                                    checked={
-                                                        field.value?.some(
-                                                            (s) => s.id === session.id,
-                                                        ) ?? false
-                                                    }
-                                                    onCheckedChange={(checked) => {
-                                                        const sessions = [...(field.value || [])];
-                                                        if (checked) {
-                                                            sessions.push({
-                                                                ...session,
-                                                                new_session: session.id === "",
-                                                            });
-                                                        } else {
-                                                            const index = sessions.findIndex(
-                                                                (s) => s.id === session.id,
-                                                            );
-                                                            if (index !== -1) {
-                                                                sessions.splice(index, 1);
+                    {!initialValues && (
+                        <>
+                            <FormField
+                                control={form.control}
+                                name="sessions"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex flex-col gap-2">
+                                                Sessions
+                                                {sessionList.map((session) => (
+                                                    <div
+                                                        key={session.id}
+                                                        className="flex items-center gap-3 rounded-md p-2 hover:bg-neutral-50"
+                                                    >
+                                                        <Checkbox
+                                                            className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+                                                            checked={
+                                                                field.value?.some(
+                                                                    (s) => s.id === session.id,
+                                                                ) ?? false
                                                             }
-                                                        }
-                                                        field.onChange(sessions);
-                                                    }}
-                                                />
-                                                <span className="text-sm">
-                                                    {session.session_name}
-                                                </span>
+                                                            onCheckedChange={(checked) => {
+                                                                const sessions = [
+                                                                    ...(field.value || []),
+                                                                ];
+                                                                if (checked) {
+                                                                    sessions.push({
+                                                                        ...session,
+                                                                        new_session:
+                                                                            session.id === "",
+                                                                    });
+                                                                } else {
+                                                                    const index =
+                                                                        sessions.findIndex(
+                                                                            (s) =>
+                                                                                s.id === session.id,
+                                                                        );
+                                                                    if (index !== -1) {
+                                                                        sessions.splice(index, 1);
+                                                                    }
+                                                                }
+                                                                field.onChange(sessions);
+                                                            }}
+                                                        />
+                                                        <span className="text-sm">
+                                                            {session.session_name}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                                {showNewSessionInput ? (
+                                                    <div className="flex items-end gap-4">
+                                                        <div className="flex flex-col gap-4">
+                                                            <MyInput
+                                                                inputType="text"
+                                                                inputPlaceholder="Enter session name"
+                                                                className="w-[260px]"
+                                                                input={newSessionName}
+                                                                onChangeFunction={(e) =>
+                                                                    setNewSessionName(
+                                                                        e.target.value,
+                                                                    )
+                                                                }
+                                                            />
+                                                            <MyInput
+                                                                inputType="date"
+                                                                inputPlaceholder="Start Date"
+                                                                className="w-[200px] text-neutral-500"
+                                                                input={newSessionStartDate}
+                                                                onChangeFunction={(e) =>
+                                                                    setNewSessionStartDate(
+                                                                        e.target.value,
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-4">
+                                                            <MyButton
+                                                                onClick={() => {
+                                                                    if (
+                                                                        newSessionName &&
+                                                                        newSessionStartDate
+                                                                    ) {
+                                                                        handleAddSession(
+                                                                            newSessionName,
+                                                                            newSessionStartDate,
+                                                                        );
+                                                                        setNewSessionName("");
+                                                                        setNewSessionStartDate("");
+                                                                        setShowNewSessionInput(
+                                                                            false,
+                                                                        );
+                                                                    }
+                                                                }}
+                                                                buttonType="primary"
+                                                                layoutVariant="icon"
+                                                                scale="small"
+                                                            >
+                                                                <Plus />
+                                                            </MyButton>
+                                                            <MyButton
+                                                                onClick={() => {
+                                                                    setShowNewSessionInput(false);
+                                                                }}
+                                                                buttonType="secondary"
+                                                                layoutVariant="icon"
+                                                                scale="small"
+                                                            >
+                                                                <X />
+                                                            </MyButton>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <MyButton
+                                                        onClick={() => setShowNewSessionInput(true)}
+                                                        buttonType="text"
+                                                        layoutVariant="default"
+                                                        scale="small"
+                                                        className="text-primary-500 hover:bg-white"
+                                                    >
+                                                        <Plus /> Add Session
+                                                    </MyButton>
+                                                )}
                                             </div>
-                                        ))}
-                                        {showNewSessionInput ? (
-                                            <div className="flex items-center gap-4">
-                                                <MyInput
-                                                    inputType="text"
-                                                    inputPlaceholder="Enter session name"
-                                                    className="w-[260px]"
-                                                    input={newSessionName}
-                                                    onChangeFunction={(e) =>
-                                                        setNewSessionName(e.target.value)
-                                                    }
-                                                />
-                                                <MyButton
-                                                    onClick={() => {
-                                                        if (newSessionName) {
-                                                            handleAddSession(newSessionName);
-                                                            setNewSessionName("");
-                                                            setShowNewSessionInput(false);
-                                                        }
-                                                    }}
-                                                    buttonType="primary"
-                                                    layoutVariant="icon"
-                                                    scale="small"
-                                                >
-                                                    <Plus />
-                                                </MyButton>
-                                                <MyButton
-                                                    onClick={() => {
-                                                        setShowNewSessionInput(false);
-                                                    }}
-                                                    buttonType="secondary"
-                                                    layoutVariant="icon"
-                                                    scale="small"
-                                                >
-                                                    <X />
-                                                </MyButton>
-                                            </div>
-                                        ) : (
-                                            <MyButton
-                                                onClick={() => setShowNewSessionInput(true)}
-                                                buttonType="text"
-                                                layoutVariant="default"
-                                                scale="small"
-                                                className="text-primary-500 hover:bg-white"
-                                            >
-                                                <Plus /> Add Session
-                                            </MyButton>
-                                        )}
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </>
+                    )}
 
                     <MyButton
                         type="submit"
