@@ -15,7 +15,7 @@ import {
     calculateTotalTime,
     classifySections,
     convertStep2Data,
-    convertToUTCPlus530,
+    convertToUTC,
 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
@@ -107,8 +107,8 @@ export const handlePostStep1Data = async (
             assessment_instructions_html: data.testCreation.assessmentInstructions,
         },
         test_boundation: {
-            start_date: convertToUTCPlus530(data.testCreation.liveDateRange.startDate),
-            end_date: convertToUTCPlus530(data.testCreation.liveDateRange.endDate),
+            start_date: convertToUTC(data.testCreation.liveDateRange.startDate),
+            end_date: convertToUTC(data.testCreation.liveDateRange.endDate),
         },
         assessment_preview_time: data.assessmentPreview.checked
             ? parseInt(data.assessmentPreview.previewTimeLimit)
@@ -248,8 +248,8 @@ export const handlePostStep3Data = async (
         closed_test: data.closed_test,
         open_test_details: data.open_test.checked
             ? {
-                  registration_start_date: convertToUTCPlus530(data.open_test.start_date) || "",
-                  registration_end_date: convertToUTCPlus530(data.open_test.end_date) || "",
+                  registration_start_date: convertToUTC(data.open_test.start_date) || "",
+                  registration_end_date: convertToUTC(data.open_test.end_date) || "",
                   instructions_html: data.open_test.instructions || "",
                   registration_form_details: {
                       added_custom_added_fields: convertCustomFields(data.open_test.custom_fields),
