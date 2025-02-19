@@ -14,6 +14,7 @@ import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo, VacademyLogo } f
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
 import { useNavigate } from "@tanstack/react-router";
+import useOrganizationStore from "../onboarding/-zustand-store/step1OrganizationZustand";
 
 const items = [
     {
@@ -36,6 +37,7 @@ const FormSchema = z.object({
 
 export function SignUpComponent() {
     const navigate = useNavigate();
+    const { resetForm } = useOrganizationStore();
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -50,6 +52,10 @@ export function SignUpComponent() {
     function onSubmit(data: z.infer<typeof FormSchema>) {
         console.log(data);
     }
+
+    useEffect(() => {
+        resetForm();
+    }, []);
 
     return (
         <div className="flex w-full">
