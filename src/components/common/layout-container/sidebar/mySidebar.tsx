@@ -23,10 +23,13 @@ import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui
 import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
 import useInstituteLogoStore from "./institutelogo-global-zustand";
+import { filterMenuList, getModuleFlags } from "./helper";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
+    const subModules = getModuleFlags(data?.sub_modules);
+    const sideBarItems = filterMenuList(subModules, SidebarItemsData);
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
     const { getPublicUrl } = useFileUpload();
@@ -76,7 +79,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 >
                     {sidebarComponent
                         ? sidebarComponent
-                        : SidebarItemsData.map((obj, key) => (
+                        : sideBarItems.map((obj, key) => (
                               <SidebarMenuItem key={key} id={obj.id}>
                                   <SidebarItem
                                       icon={obj.icon}
