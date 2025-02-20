@@ -4,6 +4,7 @@ import {
     GET_OVERVIEW_URL,
     GET_QUESTIONS_INSIGHTS_URL,
     PRIVATE_ADD_QUESTIONS,
+    STUDENT_REPORT_DETAIL_URL,
     STUDENT_REPORT_URL,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
@@ -205,6 +206,23 @@ export const getStudentReport = async (
             pageSize,
         },
         data: selectedFilter,
+    });
+    return response?.data;
+};
+
+export const viewStudentReport = async (
+    assessmentId: string,
+    attemptId: string,
+    instituteId: string | undefined,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: STUDENT_REPORT_DETAIL_URL,
+        params: {
+            assessmentId,
+            attemptId,
+            instituteId,
+        },
     });
     return response?.data;
 };

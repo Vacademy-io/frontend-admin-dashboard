@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { StatusChips } from "@/components/design-system/chips";
-import { TestRecordDetailsType } from "../student-view-dummy-data/test-record";
 import { TestReportDialog } from "./test-report-dialog";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
@@ -9,6 +8,7 @@ import { convertToLocalDateTime, extractDateTime, getInstituteId } from "@/const
 import {
     getStudentReport,
     handleStudentReportData,
+    viewStudentReport,
 } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyPagination } from "@/components/design-system/pagination";
@@ -48,7 +48,7 @@ export const StudentTestRecord = ({ selectedTab }: { selectedTab: string | undef
     );
     const [studentReportData, setStudentReportData] = useState(data);
 
-    const [selectedTest, setSelectedTest] = useState<TestRecordDetailsType | null>(null);
+    const [selectedTest, setSelectedTest] = useState(null);
 
     const handlePageChange = (newPage: number) => {
         setPageNo(newPage);
@@ -61,9 +61,31 @@ export const StudentTestRecord = ({ selectedTab }: { selectedTab: string | undef
         });
     };
 
-    // const handleViewReport = (test: TestRecordDetailsType) => {
-    //     setSelectedTest(test);
-    // };
+    const viewStudentTestReportMutation = useMutation({
+        mutationFn: ({
+            assessmentId,
+            attemptId,
+            instituteId,
+        }: {
+            assessmentId: string;
+            attemptId: string;
+            instituteId: string | undefined;
+        }) => viewStudentReport(assessmentId, attemptId, instituteId),
+        onSuccess: (data) => {
+            setSelectedTest(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleViewReport = (assessmentId: string, attemptId: string) => {
+        viewStudentTestReportMutation.mutate({
+            assessmentId,
+            attemptId,
+            instituteId: instituteDetails?.id,
+        });
+    };
 
     const getStudentReportMutation = useMutation({
         mutationFn: ({
@@ -188,11 +210,24 @@ export const StudentTestRecord = ({ selectedTab }: { selectedTab: string | undef
                                                 buttonType="secondary"
                                                 layoutVariant="default"
                                                 scale="medium"
-                                                // onClick={() => handleViewReport(test)}
+                                                onClick={() =>
+                                                    handleViewReport(
+                                                        studentReport.assessment_id,
+                                                        studentReport.attempt_id,
+                                                    )
+                                                }
                                             >
                                                 View Report
                                             </MyButton>
                                         </div>
+                                        {selectedTest && (
+                                            <TestReportDialog
+                                                isOpen={!!selectedTest}
+                                                onClose={() => setSelectedTest(null)}
+                                                testReport={selectedTest}
+                                                studentReport={studentReport}
+                                            />
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex w-full flex-col gap-8">
@@ -229,14 +264,6 @@ export const StudentTestRecord = ({ selectedTab }: { selectedTab: string | undef
                     <p className="py-4 text-center text-subtitle">No test record available </p>
                 )}
             </div>
-
-            {selectedTest?.testReport && (
-                <TestReportDialog
-                    isOpen={!!selectedTest}
-                    onClose={() => setSelectedTest(null)}
-                    testReport={selectedTest.testReport}
-                />
-            )}
 
             <MyPagination
                 currentPage={pageNo}
