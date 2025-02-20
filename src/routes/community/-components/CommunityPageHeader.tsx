@@ -1,0 +1,54 @@
+import HeadingSvg1 from "../-svgs/headerDisplay-1.svg";
+import HeadingSvg2 from "../-svgs/headerDisplay-2.svg";
+import HeadingSvg3 from "../-svgs/headerDisplay-3.svg";
+import HeadingSvg4 from "../-svgs/headerDisplay-4.svg";
+import HeadingSvg5 from "../-svgs/headerDisplay-5.svg";
+import HeadingSvg6 from "../-svgs/headerDisplay-6.svg";
+import { FilterLevelDropdown } from "../-components/FilterDropdown";
+import { useFilterStore } from "../-store/useFilterOptions";
+import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
+
+export const CommunityPageHeader = () => {
+    const { options } = useFilterStore();
+    return (
+        <div className="flex h-[380px] flex-col items-center justify-center py-5">
+            <div className="flex w-full flex-row items-center justify-center">
+                <div className="relative">
+                    <HeadingSvg1 className="absolute -bottom-5 right-0" />
+                </div>
+                <div className="ml-[40px] mr-[120px] text-center text-h2">
+                    Your go-to hub for community-driven question <br /> papers and practice
+                    resources!
+                </div>
+                <div className="relative">
+                    <HeadingSvg2 className="absolute -bottom-5 left-0" />
+                </div>
+            </div>
+            <div className="mt-10 flex w-full flex-row items-center justify-center">
+                <div className="relative -translate-x-10 translate-y-4">
+                    <HeadingSvg3 />
+                </div>
+                <div className="relative -translate-x-4">
+                    <HeadingSvg4 />
+                </div>
+                <div className="ml-[40px] mr-[50px] flex flex-col gap-4 text-center text-h2">
+                    <SearchInput
+                        searchInput=""
+                        onSearchChange={() => {}}
+                        placeholder="Search Question Papers"
+                    />
+                    <FilterLevelDropdown
+                        placeholder={"Select Level/Grade"}
+                        FilterList={options.levels}
+                    />
+                </div>
+                <div className="relative -translate-y-6 translate-x-6">
+                    <HeadingSvg5 />
+                </div>
+                <div className="relative translate-x-6 translate-y-10">
+                    <HeadingSvg6 />
+                </div>
+            </div>
+        </div>
+    );
+};
