@@ -4,7 +4,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { useState, useRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
-import { Form } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { FileType } from "@/types/common/file-upload";
@@ -13,9 +13,11 @@ import { useRouter } from "@tanstack/react-router";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { useReplaceBase64ImagesWithNetworkUrls } from "@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { MyInput } from "@/components/design-system/input";
 
 interface FormData {
     docFile: FileList | null;
+    docTitle: string;
 }
 
 export const AddDocDialog = ({
@@ -37,6 +39,7 @@ export const AddDocDialog = ({
     const form = useForm<FormData>({
         defaultValues: {
             docFile: null,
+            docTitle: "",
         },
     });
 
@@ -57,7 +60,7 @@ export const AddDocDialog = ({
         toast.success("File selected successfully");
     };
 
-    const useHandleUpload = async () => {
+    const useHandleUpload = async (data: FormData) => {
         if (!file) {
             toast.error("Please select a file first");
             return;
@@ -77,15 +80,15 @@ export const AddDocDialog = ({
             const slideId = crypto.randomUUID();
             const response = await addUpdateDocumentSlide({
                 id: slideId,
-                title: file.name,
+                title: data.docTitle,
                 image_file_id: "",
-                description: file.name,
+                description: null,
                 slide_order: 0,
                 document_slide: {
                     id: crypto.randomUUID(),
                     type: "DOC",
                     data: processedHtml,
-                    title: file.name,
+                    title: data.docTitle,
                     cover_file_id: "",
                 },
                 status: "DRAFT",
@@ -162,16 +165,38 @@ export const AddDocDialog = ({
                     </div>
                 </FileUploadComponent>
 
+                <FormField
+                    control={form.control}
+                    name="docTitle"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormControl>
+                                <MyInput
+                                    {...field}
+                                    label="Title"
+                                    required={true}
+                                    input={field.value}
+                                    inputType="text"
+                                    inputPlaceholder="File name"
+                                    onChangeFunction={field.onChange}
+                                    className="w-full"
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
                 {isUploading && (
-                    <div>
-                        <Progress
-                            value={uploadProgress}
-                            className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
-                        />
-                        <p className="mt-2 text-sm text-neutral-600">
-                            Converting... {uploadProgress}%
-                        </p>
-                    </div>
+                    <>
+                        <div>
+                            <Progress
+                                value={uploadProgress}
+                                className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
+                            />
+                            <p className="mt-2 text-sm text-neutral-600">
+                                Converting... {uploadProgress}%
+                            </p>
+                        </div>
+                    </>
                 )}
 
                 <DialogFooter className="flex w-full items-center justify-center">

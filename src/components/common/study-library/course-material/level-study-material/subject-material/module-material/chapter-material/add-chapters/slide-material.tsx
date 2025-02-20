@@ -16,6 +16,7 @@ import { getPublicUrl } from "@/services/upload_file";
 import { PublishDialog } from "../slides-material/publish-slide-dialog";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { toast } from "sonner";
+import { Check, PencilSimpleLine } from "phosphor-react";
 
 export const formatHTMLString = (htmlString: string) => {
     // Remove the body tag and its attributes
@@ -38,7 +39,7 @@ export const formatHTMLString = (htmlString: string) => {
 };
 
 export const SlideMaterial = () => {
-    const { items, activeItem, setActiveItem } = useContentStore();
+    const { items, activeItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -51,15 +52,59 @@ export const SlideMaterial = () => {
     const { chapterId } = router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
+    const { addUpdateVideoSlide } = useSlides(chapterId || "");
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
     };
 
-    const saveHeading = () => {
+    // const saveHeading = () => {
+    //     if (activeItem) {
+    //         const updatedItem = { ...activeItem, name: heading };
+    //         setActiveItem(updatedItem); // Use setActiveItem to update the store
+    //     }
+    //     setIsEditing(false);
+    // };
+
+    const updateHeading = async () => {
         if (activeItem) {
-            const updatedItem = { ...activeItem, name: heading };
-            setActiveItem(updatedItem); // Use setActiveItem to update the store
+            if (activeItem.video_url != null) {
+                await addUpdateVideoSlide({
+                    id: activeItem.slide_id,
+                    title: heading,
+                    description: activeItem.slide_description,
+                    image_file_id: activeItem.document_cover_file_id,
+                    slide_order: 0,
+                    video_slide: {
+                        id: activeItem.video_id || "",
+                        description: activeItem.video_description || "",
+                        url: activeItem.video_url,
+                        title: heading,
+                    },
+                    status: activeItem.status,
+                    new_slide: false,
+                    notify: false,
+                });
+                return;
+            } else {
+                await addUpdateDocumentSlide({
+                    id: activeItem?.slide_id || "",
+                    title: heading,
+                    image_file_id: activeItem.document_cover_file_id || "",
+                    description: activeItem?.slide_title || "",
+                    slide_order: 0,
+                    document_slide: {
+                        id: activeItem?.document_id || "",
+                        type: activeItem.document_type,
+                        data: activeItem.document_data || "", // Use the formatted HTML string
+                        title: heading,
+                        cover_file_id: activeItem.document_cover_file_id || "",
+                    },
+                    status: activeItem.status,
+                    new_slide: false,
+                    notify: false,
+                });
+            }
         }
         setIsEditing(false);
     };
@@ -211,21 +256,29 @@ export const SlideMaterial = () => {
         <div className="flex w-full flex-col" ref={selectionRef}>
             <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
                 {isEditing ? (
-                    <input
-                        type="text"
-                        value={heading}
-                        onChange={handleHeadingChange}
-                        onBlur={saveHeading}
-                        className="w-full text-h3 font-semibold text-neutral-600 focus:outline-none"
-                        autoFocus
-                    />
+                    <div className="flex items-center justify-center gap-2">
+                        <input
+                            type="text"
+                            value={heading}
+                            onChange={handleHeadingChange}
+                            className="w-full text-h3 font-semibold text-neutral-600 focus:outline-none"
+                            autoFocus
+                        />
+                        <Check
+                            onClick={updateHeading}
+                            className="cursor-pointer hover:text-primary-500"
+                        />
+                    </div>
                 ) : (
-                    <h3
-                        className="text-h3 font-semibold text-neutral-600"
-                        onClick={() => setIsEditing(true)}
-                    >
-                        {heading || "No content selected"}
-                    </h3>
+                    <div className="flex items-center justify-center gap-2">
+                        <h3 className="text-h3 font-semibold text-neutral-600">
+                            {heading || "No content selected"}
+                        </h3>
+                        <PencilSimpleLine
+                            className="cursor-pointer hover:text-primary-500"
+                            onClick={() => setIsEditing(true)}
+                        />
+                    </div>
                 )}
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-6">
