@@ -29,8 +29,8 @@ import { Route as AssessmentExportAssessmentIdIndexImport } from "./routes/asses
 import { Route as StudyLibraryCoursesLevelsSubjectsIndexImport } from "./routes/study-library/courses/levels/subjects/index";
 import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index";
 import { Route as StudyLibraryCoursesLevelsSubjectsModulesIndexImport } from "./routes/study-library/courses/levels/subjects/modules/index";
-import { Route as AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexImport } from "./routes/assessment/exam/assessment-details/$assessmentId/$examType/index";
 import { Route as StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexImport } from "./routes/study-library/courses/levels/subjects/modules/chapters/index";
+import { Route as AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexImport } from "./routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/index";
 import { Route as StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexImport } from "./routes/study-library/courses/levels/subjects/modules/chapters/slides/index";
 
 // Create/Update Routes
@@ -146,17 +146,17 @@ const StudyLibraryCoursesLevelsSubjectsModulesIndexRoute =
         getParentRoute: () => rootRoute,
     } as any);
 
-const AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute =
-    AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexImport.update({
-        id: "/assessment/exam/assessment-details/$assessmentId/$examType/",
-        path: "/assessment/exam/assessment-details/$assessmentId/$examType/",
-        getParentRoute: () => rootRoute,
-    } as any);
-
 const StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute =
     StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexImport.update({
         id: "/study-library/courses/levels/subjects/modules/chapters/",
         path: "/study-library/courses/levels/subjects/modules/chapters/",
+        getParentRoute: () => rootRoute,
+    } as any);
+
+const AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute =
+    AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexImport.update({
+        id: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/",
+        path: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/",
         getParentRoute: () => rootRoute,
     } as any);
 
@@ -290,18 +290,18 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibraryCoursesLevelsSubjectsIndexImport;
             parentRoute: typeof rootRoute;
         };
-        "/assessment/exam/assessment-details/$assessmentId/$examType/": {
-            id: "/assessment/exam/assessment-details/$assessmentId/$examType/";
-            path: "/assessment/exam/assessment-details/$assessmentId/$examType";
-            fullPath: "/assessment/exam/assessment-details/$assessmentId/$examType";
-            preLoaderRoute: typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexImport;
-            parentRoute: typeof rootRoute;
-        };
         "/study-library/courses/levels/subjects/modules/": {
             id: "/study-library/courses/levels/subjects/modules/";
             path: "/study-library/courses/levels/subjects/modules";
             fullPath: "/study-library/courses/levels/subjects/modules";
             preLoaderRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/": {
+            id: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/";
+            path: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType";
+            fullPath: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType";
+            preLoaderRoute: typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexImport;
             parentRoute: typeof rootRoute;
         };
         "/study-library/courses/levels/subjects/modules/chapters/": {
@@ -341,8 +341,8 @@ export interface FileRoutesByFullPath {
     "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
     "/study-library/courses/levels/subjects": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute;
-    "/assessment/exam/assessment-details/$assessmentId/$examType": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute;
     "/study-library/courses/levels/subjects/modules": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute;
+    "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute;
     "/study-library/courses/levels/subjects/modules/chapters": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute;
     "/study-library/courses/levels/subjects/modules/chapters/slides": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute;
 }
@@ -365,8 +365,8 @@ export interface FileRoutesByTo {
     "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
     "/study-library/courses/levels/subjects": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute;
-    "/assessment/exam/assessment-details/$assessmentId/$examType": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute;
     "/study-library/courses/levels/subjects/modules": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute;
+    "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute;
     "/study-library/courses/levels/subjects/modules/chapters": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute;
     "/study-library/courses/levels/subjects/modules/chapters/slides": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute;
 }
@@ -390,8 +390,8 @@ export interface FileRoutesById {
     "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
     "/study-library/courses/levels/subjects/": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute;
-    "/assessment/exam/assessment-details/$assessmentId/$examType/": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute;
     "/study-library/courses/levels/subjects/modules/": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute;
+    "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/": typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute;
     "/study-library/courses/levels/subjects/modules/chapters/": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute;
     "/study-library/courses/levels/subjects/modules/chapters/slides/": typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute;
 }
@@ -416,8 +416,8 @@ export interface FileRouteTypes {
         | "/study-library/courses/levels"
         | "/assessment/create-assessment/$assessmentId/$examtype"
         | "/study-library/courses/levels/subjects"
-        | "/assessment/exam/assessment-details/$assessmentId/$examType"
         | "/study-library/courses/levels/subjects/modules"
+        | "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType"
         | "/study-library/courses/levels/subjects/modules/chapters"
         | "/study-library/courses/levels/subjects/modules/chapters/slides";
     fileRoutesByTo: FileRoutesByTo;
@@ -439,8 +439,8 @@ export interface FileRouteTypes {
         | "/study-library/courses/levels"
         | "/assessment/create-assessment/$assessmentId/$examtype"
         | "/study-library/courses/levels/subjects"
-        | "/assessment/exam/assessment-details/$assessmentId/$examType"
         | "/study-library/courses/levels/subjects/modules"
+        | "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType"
         | "/study-library/courses/levels/subjects/modules/chapters"
         | "/study-library/courses/levels/subjects/modules/chapters/slides";
     id:
@@ -462,8 +462,8 @@ export interface FileRouteTypes {
         | "/study-library/courses/levels/"
         | "/assessment/create-assessment/$assessmentId/$examtype/"
         | "/study-library/courses/levels/subjects/"
-        | "/assessment/exam/assessment-details/$assessmentId/$examType/"
         | "/study-library/courses/levels/subjects/modules/"
+        | "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/"
         | "/study-library/courses/levels/subjects/modules/chapters/"
         | "/study-library/courses/levels/subjects/modules/chapters/slides/";
     fileRoutesById: FileRoutesById;
@@ -487,8 +487,8 @@ export interface RootRouteChildren {
     StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute;
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
     StudyLibraryCoursesLevelsSubjectsIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsIndexRoute;
-    AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute: typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute;
     StudyLibraryCoursesLevelsSubjectsModulesIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute;
+    AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute: typeof AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute;
     StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute;
     StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute;
 }
@@ -512,10 +512,10 @@ const rootRouteChildren: RootRouteChildren = {
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
         AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
     StudyLibraryCoursesLevelsSubjectsIndexRoute: StudyLibraryCoursesLevelsSubjectsIndexRoute,
-    AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute:
-        AssessmentExamAssessmentDetailsAssessmentIdExamTypeIndexRoute,
     StudyLibraryCoursesLevelsSubjectsModulesIndexRoute:
         StudyLibraryCoursesLevelsSubjectsModulesIndexRoute,
+    AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute:
+        AssessmentExamAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute,
     StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute:
         StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexRoute,
     StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexRoute:
@@ -549,8 +549,8 @@ export const routeTree = rootRoute
         "/study-library/courses/levels/",
         "/assessment/create-assessment/$assessmentId/$examtype/",
         "/study-library/courses/levels/subjects/",
-        "/assessment/exam/assessment-details/$assessmentId/$examType/",
         "/study-library/courses/levels/subjects/modules/",
+        "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/",
         "/study-library/courses/levels/subjects/modules/chapters/",
         "/study-library/courses/levels/subjects/modules/chapters/slides/"
       ]
@@ -606,11 +606,11 @@ export const routeTree = rootRoute
     "/study-library/courses/levels/subjects/": {
       "filePath": "study-library/courses/levels/subjects/index.tsx"
     },
-    "/assessment/exam/assessment-details/$assessmentId/$examType/": {
-      "filePath": "assessment/exam/assessment-details/$assessmentId/$examType/index.tsx"
-    },
     "/study-library/courses/levels/subjects/modules/": {
       "filePath": "study-library/courses/levels/subjects/modules/index.tsx"
+    },
+    "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/": {
+      "filePath": "assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/index.tsx"
     },
     "/study-library/courses/levels/subjects/modules/chapters/": {
       "filePath": "study-library/courses/levels/subjects/modules/chapters/index.tsx"
