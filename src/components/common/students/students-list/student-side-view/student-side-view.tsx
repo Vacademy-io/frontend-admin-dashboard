@@ -116,12 +116,7 @@ export const StudentSidebar = ({ selectedTab }: { selectedTab?: string }) => {
                             learningProgressData={StudentSideViewData.learning_progress}
                         />
                     )}
-                    {category == "testRecord" && (
-                        <StudentTestRecord
-                            testRecordData={StudentSideViewData.test_record}
-                            selectedTab={selectedTab}
-                        />
-                    )}
+                    {category == "testRecord" && <StudentTestRecord selectedTab={selectedTab} />}
                 </SidebarMenu>
             </SidebarContent>
         </Sidebar>

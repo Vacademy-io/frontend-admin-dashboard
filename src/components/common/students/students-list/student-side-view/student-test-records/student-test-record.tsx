@@ -1,15 +1,21 @@
-import { MyInput } from "@/components/design-system/input";
-import { ChangeEvent, useState } from "react";
+import { useEffect, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { StatusChips } from "@/components/design-system/chips";
-import { StudentTestRecordsType } from "../student-view-dummy-data/student-view-dummy-data";
 import { TestRecordDetailsType } from "../student-view-dummy-data/test-record";
 import { TestReportDialog } from "./test-report-dialog";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
-import { getInstituteId } from "@/constants/helper";
-import { handleStudentReportData } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+import { convertToLocalDateTime, extractDateTime, getInstituteId } from "@/constants/helper";
+import {
+    getStudentReport,
+    handleStudentReportData,
+} from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { MyPagination } from "@/components/design-system/pagination";
+import { AssessmentDetailsSearchComponent } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-components/SearchComponent";
+import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { AssessmentReportStudentInterface } from "@/types/assessments/assessment-overview";
 
 export interface StudentReportFilterInterface {
     name: string;
@@ -17,14 +23,10 @@ export interface StudentReportFilterInterface {
     sort_columns: Record<string, string>; // Assuming it can have dynamic keys with any value
 }
 
-export const StudentTestRecord = ({
-    testRecordData,
-    selectedTab,
-}: {
-    testRecordData: StudentTestRecordsType;
-    selectedTab: string | undefined;
-}) => {
-    const [selectedFilter, setSelectedFilter] = useState<StudentReportFilterInterface>({
+export const StudentTestRecord = ({ selectedTab }: { selectedTab: string | undefined }) => {
+    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+    const [searchText, setSearchText] = useState("");
+    const [selectedFilter] = useState<StudentReportFilterInterface>({
         name: "",
         status: [
             selectedTab === "Attempted" ? "ENDED" : selectedTab === "Pending" ? "PENDING" : "LIVE",
@@ -44,82 +46,185 @@ export const StudentTestRecord = ({
             selectedFilter,
         }),
     );
-    console.log(data);
-    const [searchInput, setSearchInput] = useState("");
+    const [studentReportData, setStudentReportData] = useState(data);
+
     const [selectedTest, setSelectedTest] = useState<TestRecordDetailsType | null>(null);
 
-    const handleSearchInputChange = (value: ChangeEvent<HTMLInputElement>) => {
-        setSearchInput(value.target.value);
+    const handlePageChange = (newPage: number) => {
+        setPageNo(newPage);
+        getStudentReportMutation.mutate({
+            studentId: selectedStudent?.id,
+            instituteId,
+            pageNo: newPage,
+            pageSize: 10,
+            selectedFilter,
+        });
     };
 
-    const handleViewReport = (test: TestRecordDetailsType) => {
-        setSelectedTest(test);
+    // const handleViewReport = (test: TestRecordDetailsType) => {
+    //     setSelectedTest(test);
+    // };
+
+    const getStudentReportMutation = useMutation({
+        mutationFn: ({
+            studentId,
+            instituteId,
+            pageNo,
+            pageSize,
+            selectedFilter,
+        }: {
+            studentId: string | undefined;
+            instituteId: string | undefined;
+            pageNo: number;
+            pageSize: number;
+            selectedFilter: StudentReportFilterInterface;
+        }) => getStudentReport(studentId, instituteId, pageNo, pageSize, selectedFilter),
+        onSuccess: (data) => {
+            setStudentReportData(data);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const clearSearch = () => {
+        setSearchText("");
+        selectedFilter["name"] = "";
+        getStudentReportMutation.mutate({
+            studentId: selectedStudent?.id,
+            instituteId,
+            pageNo,
+            pageSize: 10,
+            selectedFilter: {
+                ...selectedFilter,
+                name: "",
+            },
+        });
     };
+
+    const handleSearch = (searchValue: string) => {
+        setSearchText(searchValue);
+        getStudentReportMutation.mutate({
+            studentId: selectedStudent?.id,
+            instituteId,
+            pageNo,
+            pageSize: 10,
+            selectedFilter: {
+                ...selectedFilter,
+                name: searchValue,
+            },
+        });
+    };
+
+    useEffect(() => {
+        setStudentReportData(data);
+    }, [data]);
 
     if (isLoading) return <DashboardLoader />;
 
     return (
         <div className="flex flex-col gap-10">
             <div className="flex justify-between">
-                <MyInput
-                    inputType="text"
-                    placeholder="Search test, subject"
-                    size="large"
-                    input={searchInput}
-                    onChangeFunction={handleSearchInputChange}
+                <AssessmentDetailsSearchComponent
+                    onSearch={handleSearch}
+                    searchText={searchText}
+                    setSearchText={setSearchText}
+                    clearSearch={clearSearch}
+                    placeholderText="Search text, subject"
                 />
             </div>
             <div className="flex flex-col gap-10">
-                {testRecordData.data && testRecordData.data.length > 0 ? (
-                    testRecordData.data.map((test, ind) => (
-                        <div
-                            className="flex w-full flex-col gap-2 rounded-lg border border-primary-300 p-4"
-                            key={ind}
-                        >
-                            <div className="flex w-full gap-4">
-                                <div className="text-subtitle">{test.name}</div>
-                                <StatusChips status={test.status} />
-                            </div>
-                            {test.status === "active" ? (
-                                <div className="flex w-full flex-col gap-8">
-                                    <div className="flex items-center justify-between">
-                                        <div>Subject: {test.subject}</div>
-                                        <div>Attempted Date: {test.attemptDate}</div>
+                {studentReportData.content && studentReportData.content.length > 0 ? (
+                    studentReportData.content.map(
+                        (studentReport: AssessmentReportStudentInterface, index: number) => (
+                            <div
+                                className="flex w-full flex-col gap-2 rounded-lg border border-primary-300 p-4"
+                                key={index}
+                            >
+                                <div className="flex w-full gap-4">
+                                    <div className="text-subtitle">
+                                        {studentReport.assessment_name}
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <div>Marks: {test.marks}</div>
-                                        <div>Duration: {test.duration}</div>
-                                    </div>
-                                    <div className="flex w-full justify-end">
-                                        <MyButton
-                                            buttonType="secondary"
-                                            layoutVariant="default"
-                                            scale="medium"
-                                            onClick={() => handleViewReport(test)}
-                                        >
-                                            View Report
-                                        </MyButton>
-                                    </div>
+                                    <StatusChips
+                                        status={
+                                            studentReport.assessment_status === "PENDING"
+                                                ? "pending"
+                                                : studentReport.assessment_status === "ENDED"
+                                                  ? "Attempted"
+                                                  : "Not Attempted"
+                                        }
+                                    />
                                 </div>
-                            ) : (
-                                <div className="flex w-full flex-col gap-8">
-                                    <div>Subject: {test.subject}</div>
-                                    <div>Test Schedule: {test.testSchedule}</div>
-                                    {test.status === "pending" && (
+                                {studentReport.assessment_status === "ENDED" ? (
+                                    <div className="flex w-full flex-col gap-8">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                Subject:{" "}
+                                                {getSubjectNameById(
+                                                    instituteDetails?.subjects || [],
+                                                    studentReport.subject_id,
+                                                ) || ""}
+                                            </div>
+                                            <div>
+                                                Attempted Date:{" "}
+                                                {
+                                                    extractDateTime(
+                                                        convertToLocalDateTime(
+                                                            studentReport.attempt_date,
+                                                        ),
+                                                    ).date
+                                                }
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div>Marks: {studentReport.total_marks}</div>
+                                            <div>
+                                                Duration: {studentReport.duration_in_seconds * 60}{" "}
+                                                min
+                                            </div>
+                                        </div>
                                         <div className="flex w-full justify-end">
                                             <MyButton
-                                                scale="medium"
                                                 buttonType="secondary"
                                                 layoutVariant="default"
+                                                scale="medium"
+                                                // onClick={() => handleViewReport(test)}
                                             >
-                                                Send Reminder
+                                                View Report
                                             </MyButton>
                                         </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    ))
+                                    </div>
+                                ) : (
+                                    <div className="flex w-full flex-col gap-8">
+                                        <div>
+                                            Subject:{" "}
+                                            {getSubjectNameById(
+                                                instituteDetails?.subjects || [],
+                                                studentReport.subject_id,
+                                            ) || ""}
+                                        </div>
+                                        <div>
+                                            Assessment Schedule:{" "}
+                                            {convertToLocalDateTime(studentReport.start_time)}
+                                            &nbsp;-&nbsp;
+                                            {convertToLocalDateTime(studentReport.end_time)}
+                                        </div>
+                                        {studentReport.assessment_status === "PENDING" && (
+                                            <div className="flex w-full justify-end">
+                                                <MyButton
+                                                    scale="medium"
+                                                    buttonType="secondary"
+                                                    layoutVariant="default"
+                                                >
+                                                    Send Reminder
+                                                </MyButton>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ),
+                    )
                 ) : (
                     <p className="py-4 text-center text-subtitle">No test record available </p>
                 )}
@@ -132,6 +237,12 @@ export const StudentTestRecord = ({
                     testReport={selectedTest.testReport}
                 />
             )}
+
+            <MyPagination
+                currentPage={pageNo}
+                totalPages={studentReportData.total_pages}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 };
