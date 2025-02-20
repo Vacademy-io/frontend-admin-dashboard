@@ -19,6 +19,7 @@ export const StudentSidebar = () => {
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
     const { toggleSidebar } = useSidebar();
+    // const { selectedStudent } = useStudentSidebar();
 
     useEffect(() => {
         if (state == "expanded") {
@@ -39,7 +40,7 @@ export const StudentSidebar = () => {
                 className={`sidebar-content flex flex-col gap-10 border-r-2 border-r-neutral-300 bg-primary-50 p-6 text-neutral-600`}
             >
                 <SidebarHeader>
-                    <div className={`} flex flex-col items-center justify-center gap-10`}>
+                    <div className={`flex flex-col items-center justify-center gap-10`}>
                         <div className={`flex w-full items-center justify-between`}>
                             <div className="text-h3 font-semibold text-primary-500">
                                 Student Profile

@@ -22,6 +22,7 @@ interface Session {
     id: string;
     session_name: string;
     status: string;
+    start_date?: string;
 }
 
 interface Level {
@@ -99,6 +100,8 @@ export const AddCourseForm = ({
 
     const [levelList, setLevelList] = useState<Level[]>(getAllLevels);
     const [sessionList, setSessionList] = useState<Session[]>(getAllSessions);
+    const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
+    const [newSessionStartDate, setNewSessionStartDate] = useState<string>("");
 
     const form = useForm<AddCourseData>({
         resolver: zodResolver(formSchema),
@@ -112,25 +115,25 @@ export const AddCourseForm = ({
         },
     });
 
-    const handleAddLevel = (levelName: string) => {
+    const handleAddLevel = (levelName: string, durationInDays: number | null) => {
         const newLevel = {
             id: "",
             new_level: true,
             level_name: levelName,
-            duration_in_days: null,
+            duration_in_days: durationInDays,
             thumbnail_id: null,
         };
 
         setLevelList((prevLevelList) => [...prevLevelList, newLevel]);
     };
 
-    const handleAddSession = (sessionName: string) => {
+    const handleAddSession = (sessionName: string, startDate: string) => {
         const newSession = {
             id: "",
             new_session: true,
             session_name: sessionName,
             status: "INACTIVE",
-            start_date: new Date().toISOString(),
+            start_date: startDate,
         };
         setSessionList((prevSessionList) => [...prevSessionList, newSession]);
     };
@@ -281,37 +284,47 @@ export const AddCourseForm = ({
                         </MyButton>
                     </div>
                 </div>
-
-                <FormField
-                    control={form.control}
-                    name="contain_levels"
-                    render={({ field }) => (
-                        <FormItem className="space-y-2">
-                            <label className="text-sm font-medium">Contains Levels?</label>
-                            <FormControl>
-                                <RadioGroup
-                                    value={field.value ? "true" : "false"}
-                                    onValueChange={(value) => field.onChange(value === "true")}
-                                    className="flex gap-4"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="true" id="contain_levels_true" />
-                                        <label htmlFor="contain_levels_true" className="text-sm">
-                                            Yes
-                                        </label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="false" id="contain_levels_false" />
-                                        <label htmlFor="contain_levels_false" className="text-sm">
-                                            No
-                                        </label>
-                                    </div>
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {!initialValues && (
+                    <FormField
+                        control={form.control}
+                        name="contain_levels"
+                        render={({ field }) => (
+                            <FormItem className="space-y-2">
+                                <label className="text-sm font-medium">Contains Levels?</label>
+                                <FormControl>
+                                    <RadioGroup
+                                        value={field.value ? "true" : "false"}
+                                        onValueChange={(value) => field.onChange(value === "true")}
+                                        className="flex gap-4"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="true" id="contain_levels_true" />
+                                            <label
+                                                htmlFor="contain_levels_true"
+                                                className="text-sm"
+                                            >
+                                                Yes
+                                            </label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem
+                                                value="false"
+                                                id="contain_levels_false"
+                                            />
+                                            <label
+                                                htmlFor="contain_levels_false"
+                                                className="text-sm"
+                                            >
+                                                No
+                                            </label>
+                                        </div>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
 
                 {containLevels && (
                     <FormField
@@ -336,7 +349,6 @@ export const AddCourseForm = ({
                                                                 const levels = [
                                                                     ...(field.value || []),
                                                                 ];
-                                                                // const levelIndex = levels.findIndex(l => l.id === level.id);
 
                                                                 if (!checked) {
                                                                     field.onChange(
@@ -345,13 +357,34 @@ export const AddCourseForm = ({
                                                                                 l.id !== level.id,
                                                                         ),
                                                                     );
+                                                                } else {
+                                                                    // Add level with duration when checked
+                                                                    const newLevel = {
+                                                                        ...level,
+                                                                        new_level: level.id === "",
+                                                                        duration_in_days:
+                                                                            level.duration_in_days ||
+                                                                            null,
+                                                                        sessions: [],
+                                                                    };
+                                                                    field.onChange([
+                                                                        ...levels,
+                                                                        newLevel,
+                                                                    ]);
                                                                 }
                                                             }}
                                                         />
-
-                                                        <span className="text-sm font-medium">
-                                                            {level.level_name}
-                                                        </span>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium">
+                                                                {level.level_name}
+                                                            </span>
+                                                            {level.duration_in_days && (
+                                                                <span className="text-xs text-neutral-500">
+                                                                    Duration:{" "}
+                                                                    {level.duration_in_days} days
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <ChevronDownIcon className="h-4 w-4" />
                                                 </CollapsibleTrigger>
@@ -396,33 +429,25 @@ export const AddCourseForm = ({
                                                                             levels.push({
                                                                                 ...level,
                                                                                 new_level:
-                                                                                    level.id === "", // true only for new levels
+                                                                                    level.id === "",
                                                                                 sessions: [
                                                                                     {
                                                                                         ...session,
                                                                                         new_session:
                                                                                             session.id ===
-                                                                                            "", // true only for new sessions
+                                                                                            "",
+                                                                                        start_date:
+                                                                                            session.start_date, // Include start_date
                                                                                     },
                                                                                 ],
                                                                             });
-                                                                            // } else if (levelIndex !== -1) {
-                                                                            //     const currentSessions = levels[levelIndex]?.sessions || [];
-                                                                            //     if (levels[levelIndex]) {
-                                                                            //         levels[levelIndex].sessions = checked
-                                                                            //             ? [...currentSessions, { ...session, new_session: session.id === "" }]
-                                                                            //             : currentSessions.filter(s => s.id !== session.id);
-                                                                            //         levels[levelIndex].new_level = level.id === "";
-                                                                            //     }
-                                                                            // }
                                                                         } else if (
                                                                             levelIndex !== -1 &&
                                                                             levels[levelIndex]
                                                                         ) {
                                                                             const currentLevel =
-                                                                                levels[levelIndex]; // Create a separate variable that TypeScript can track
+                                                                                levels[levelIndex];
                                                                             if (currentLevel) {
-                                                                                // Additional type guard
                                                                                 const currentSessions =
                                                                                     currentLevel.sessions ||
                                                                                     [];
@@ -435,6 +460,8 @@ export const AddCourseForm = ({
                                                                                                   new_session:
                                                                                                       session.id ===
                                                                                                       "",
+                                                                                                  start_date:
+                                                                                                      session.start_date, // Include start_date
                                                                                               },
                                                                                           ]
                                                                                         : currentSessions.filter(
@@ -451,54 +478,88 @@ export const AddCourseForm = ({
                                                                         field.onChange(levels);
                                                                     }}
                                                                 />
-                                                                <span className="text-sm">
-                                                                    {session.session_name}
-                                                                </span>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm">
+                                                                        {session.session_name}
+                                                                    </span>
+                                                                    {session.start_date && (
+                                                                        <span className="text-xs text-neutral-500">
+                                                                            Starts:{" "}
+                                                                            {new Date(
+                                                                                session.start_date,
+                                                                            ).toLocaleDateString()}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         ))}
                                                         {showNewSessionInput ? (
-                                                            <div className="flex items-center gap-4">
-                                                                <MyInput
-                                                                    inputType="text"
-                                                                    inputPlaceholder="Enter session name"
-                                                                    className="w-[260px]"
-                                                                    input={newSessionName}
-                                                                    onChangeFunction={(e) =>
-                                                                        setNewSessionName(
-                                                                            e.target.value,
-                                                                        )
-                                                                    }
-                                                                />
-                                                                <MyButton
-                                                                    onClick={() => {
-                                                                        if (newSessionName) {
-                                                                            handleAddSession(
-                                                                                newSessionName,
-                                                                            );
-                                                                            setNewSessionName("");
+                                                            <div className="flex items-end gap-4">
+                                                                <div className="flex flex-col gap-4">
+                                                                    <MyInput
+                                                                        inputType="text"
+                                                                        inputPlaceholder="Enter session name"
+                                                                        className="w-[260px]"
+                                                                        input={newSessionName}
+                                                                        onChangeFunction={(e) =>
+                                                                            setNewSessionName(
+                                                                                e.target.value,
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                    <MyInput
+                                                                        inputType="date"
+                                                                        inputPlaceholder="Start Date"
+                                                                        className="w-[200px] text-neutral-500"
+                                                                        input={newSessionStartDate}
+                                                                        onChangeFunction={(e) =>
+                                                                            setNewSessionStartDate(
+                                                                                e.target.value,
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div className="flex items-center gap-4">
+                                                                    <MyButton
+                                                                        onClick={() => {
+                                                                            if (
+                                                                                newSessionName &&
+                                                                                newSessionStartDate
+                                                                            ) {
+                                                                                handleAddSession(
+                                                                                    newSessionName,
+                                                                                    newSessionStartDate,
+                                                                                );
+                                                                                setNewSessionName(
+                                                                                    "",
+                                                                                );
+                                                                                setNewSessionStartDate(
+                                                                                    "",
+                                                                                );
+                                                                                setShowNewSessionInput(
+                                                                                    false,
+                                                                                );
+                                                                            }
+                                                                        }}
+                                                                        buttonType="primary"
+                                                                        layoutVariant="icon"
+                                                                        scale="small"
+                                                                    >
+                                                                        <Plus />
+                                                                    </MyButton>
+                                                                    <MyButton
+                                                                        onClick={() => {
                                                                             setShowNewSessionInput(
                                                                                 false,
                                                                             );
-                                                                        }
-                                                                    }}
-                                                                    buttonType="primary"
-                                                                    layoutVariant="icon"
-                                                                    scale="small"
-                                                                >
-                                                                    <Plus />
-                                                                </MyButton>
-                                                                <MyButton
-                                                                    onClick={() => {
-                                                                        setShowNewSessionInput(
-                                                                            false,
-                                                                        );
-                                                                    }}
-                                                                    buttonType="secondary"
-                                                                    layoutVariant="icon"
-                                                                    scale="small"
-                                                                >
-                                                                    <X />
-                                                                </MyButton>
+                                                                        }}
+                                                                        buttonType="secondary"
+                                                                        layoutVariant="icon"
+                                                                        scale="small"
+                                                                    >
+                                                                        <X />
+                                                                    </MyButton>
+                                                                </div>
                                                             </div>
                                                         ) : (
                                                             <MyButton
@@ -518,40 +579,59 @@ export const AddCourseForm = ({
                                             </Collapsible>
                                         ))}
                                         {showNewLevelInput ? (
-                                            <div className="flex items-center gap-4">
-                                                <MyInput
-                                                    inputType="text"
-                                                    inputPlaceholder="Enter level name"
-                                                    className="w-[260px]"
-                                                    input={newLevelName}
-                                                    onChangeFunction={(e) =>
-                                                        setNewLevelName(e.target.value)
-                                                    }
-                                                />
-                                                <MyButton
-                                                    onClick={() => {
-                                                        if (newLevelName) {
-                                                            handleAddLevel(newLevelName);
-                                                            setNewLevelName("");
-                                                            setShowNewLevelInput(false);
+                                            <div className="flex items-end gap-4">
+                                                <div className="flex flex-col gap-4">
+                                                    <MyInput
+                                                        inputType="text"
+                                                        inputPlaceholder="Enter level name"
+                                                        className="w-[260px]"
+                                                        input={newLevelName}
+                                                        onChangeFunction={(e) =>
+                                                            setNewLevelName(e.target.value)
                                                         }
-                                                    }}
-                                                    buttonType="primary"
-                                                    layoutVariant="icon"
-                                                    scale="small"
-                                                >
-                                                    <Plus />
-                                                </MyButton>
-                                                <MyButton
-                                                    onClick={() => {
-                                                        setShowNewLevelInput(false);
-                                                    }}
-                                                    buttonType="secondary"
-                                                    layoutVariant="icon"
-                                                    scale="small"
-                                                >
-                                                    <X />
-                                                </MyButton>
+                                                    />
+                                                    <MyInput
+                                                        inputType="number"
+                                                        inputPlaceholder="Duration (days)"
+                                                        className="w-[150px]"
+                                                        input={newLevelDuration?.toString() || ""}
+                                                        onChangeFunction={(e) =>
+                                                            setNewLevelDuration(
+                                                                Number(e.target.value),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <MyButton
+                                                        onClick={() => {
+                                                            if (newLevelName) {
+                                                                handleAddLevel(
+                                                                    newLevelName,
+                                                                    newLevelDuration,
+                                                                );
+                                                                setNewLevelName("");
+                                                                setNewLevelDuration(null);
+                                                                setShowNewLevelInput(false);
+                                                            }
+                                                        }}
+                                                        buttonType="primary"
+                                                        layoutVariant="icon"
+                                                        scale="small"
+                                                    >
+                                                        <Plus />
+                                                    </MyButton>
+                                                    <MyButton
+                                                        onClick={() => {
+                                                            setShowNewLevelInput(false);
+                                                        }}
+                                                        buttonType="secondary"
+                                                        layoutVariant="icon"
+                                                        scale="small"
+                                                    >
+                                                        <X />
+                                                    </MyButton>
+                                                </div>
                                             </div>
                                         ) : (
                                             <MyButton

@@ -26,6 +26,7 @@ interface Authority {
 }
 
 export interface IAccessToken {
+    fullname: string;
     user: string;
     email: string;
     is_root_user: boolean;

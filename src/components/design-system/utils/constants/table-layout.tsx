@@ -57,3 +57,54 @@ export const ACTIVITY_STATS_COLUMN_WIDTHS: ColumnWidthConfig = {
     time_spent: "min-w-[120px]",
     last_active: "min-w-[120px]",
 };
+
+export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_INTERNAL_WIDTH: ColumnWidthConfig = {
+    checkbox: "min-w-[56px] sticky left-0",
+    details: "min-w-[72px] sticky left-0",
+    full_name: "min-w-[180px] sticky left-[52px]",
+    package_session_id: "min-w-[240px]",
+    attempt_date: "min-w-[180px]",
+    start_time: "min-w-[240px]",
+    end_time: "min-w-[180px]",
+    duration: "min-w-[180px]",
+    score: "min-w-[180px]",
+    evaluation_status: "min-w-[180px]",
+};
+
+export const ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_INTERNAL_WIDTH: ColumnWidthConfig = {
+    checkbox: "min-w-[20px] sticky left-0",
+    details: "min-w-[20px] sticky left-0",
+    full_name: "min-w-[96px] sticky left-[52px]",
+    start_time: "min-w-[240px]",
+};
+
+export const ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_INTERNAL_WIDTH: ColumnWidthConfig = {
+    checkbox: "min-w-[20px] sticky left-0",
+    details: "min-w-[20px] sticky left-0",
+    full_name: "min-w-[460px] sticky left-[52px]",
+};
+
+export const ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
+    checkbox: "min-w-[56px] sticky left-0",
+    details: "min-w-[20px] sticky left-0",
+    full_name: "min-w-[180px] sticky left-[52px]",
+    attempt_date: "min-w-[180px]",
+    start_time: "min-w-[240px]",
+    end_time: "min-w-[180px]",
+    duration: "min-w-[180px]",
+    score: "min-w-[180px]",
+    evaluation_status: "min-w-[180px]",
+};
+
+export const ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
+    checkbox: "min-w-[20px] sticky left-0",
+    details: "min-w-[20px] sticky left-0",
+    full_name: "min-w-[96px] sticky left-[52px]",
+    start_time: "min-w-[240px]",
+};
+
+export const ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
+    checkbox: "min-w-[20px] sticky left-0",
+    details: "min-w-[20px] sticky left-0",
+    full_name: "min-w-[460px] sticky left-[52px]",
+};

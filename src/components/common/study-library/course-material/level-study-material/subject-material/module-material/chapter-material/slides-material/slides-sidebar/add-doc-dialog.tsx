@@ -12,6 +12,7 @@ import { convertDocToHtml } from "./utils/doc-to-html";
 import { useRouter } from "@tanstack/react-router";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { useReplaceBase64ImagesWithNetworkUrls } from "@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 interface FormData {
     docFile: FileList | null;
@@ -31,6 +32,7 @@ export const AddDocDialog = ({
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
     const replaceBase64ImagesWithNetworkUrls = useReplaceBase64ImagesWithNetworkUrls();
+    const { setActiveItem, getSlideById } = useContentStore();
 
     const form = useForm<FormData>({
         defaultValues: {
@@ -72,9 +74,9 @@ export const AddDocDialog = ({
         try {
             const HTMLContent = await convertDocToHtml(file);
             const processedHtml = await replaceBase64ImagesWithNetworkUrls(HTMLContent);
-
-            await addUpdateDocumentSlide({
-                id: crypto.randomUUID(),
+            const slideId = crypto.randomUUID();
+            const response = await addUpdateDocumentSlide({
+                id: slideId,
                 title: file.name,
                 image_file_id: "",
                 description: file.name,
@@ -92,7 +94,14 @@ export const AddDocDialog = ({
             });
 
             toast.success("PDF uploaded successfully!");
-            openState?.(false);
+
+            if (response) {
+                setTimeout(() => {
+                    setActiveItem(getSlideById(slideId));
+                }, 500);
+                openState?.(false);
+                toast.success("PDF uploaded successfully!");
+            }
 
             console.log("Item successfully added to store");
 

@@ -14,6 +14,8 @@ import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo, VacademyLogo } f
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
 import { useNavigate } from "@tanstack/react-router";
+import useOrganizationStore from "../onboarding/-zustand-store/step1OrganizationZustand";
+import { useEffect } from "react";
 
 const items = [
     {
@@ -36,6 +38,7 @@ const FormSchema = z.object({
 
 export function SignUpComponent() {
     const navigate = useNavigate();
+    const { resetForm } = useOrganizationStore();
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -44,7 +47,16 @@ export function SignUpComponent() {
                 lms: false,
             },
         },
+        mode: "onChange",
     });
+
+    function onSubmit(data: z.infer<typeof FormSchema>) {
+        console.log(data);
+    }
+
+    useEffect(() => {
+        resetForm();
+    }, []);
 
     return (
         <div className="flex w-full">
@@ -54,7 +66,10 @@ export function SignUpComponent() {
             </div>
             <div className="flex w-1/2 items-center justify-center">
                 <Form {...form}>
-                    <form className="flex w-[350px] flex-col items-center justify-center space-y-8">
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex w-[350px] flex-col items-center justify-center space-y-8"
+                    >
                         <FormField
                             control={form.control}
                             name="items"
@@ -108,7 +123,7 @@ export function SignUpComponent() {
                             )}
                         />
                         <MyButton
-                            type="button"
+                            type="submit"
                             scale="large"
                             buttonType="primary"
                             layoutVariant="default"
@@ -121,6 +136,7 @@ export function SignUpComponent() {
                                     },
                                 })
                             }
+                            disable={!form.formState.isValid}
                         >
                             <Plus size={32} />
                             Create Free Account

@@ -1,5 +1,3 @@
-import { SubjectDefaultImage } from "@/assets/svgs";
-import { useSidebar } from "@/components/ui/sidebar";
 import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { LevelMenuOptions } from "./level-menu-options";
@@ -14,7 +12,6 @@ export const LevelCard = ({
     onDelete: (levelId: string) => void;
     onEdit: ({ requestData }: { requestData: AddLevelData }) => void;
 }) => {
-    const { open } = useSidebar();
     const navigate = useNavigate();
     const router = useRouter();
 
@@ -43,15 +40,15 @@ export const LevelCard = ({
 
     return (
         <div
-            className={`relative flex cursor-pointer flex-col items-center gap-4 rounded-xl border py-5 pt-10 shadow-md ${
-                open ? "h-[330px] w-[360px]" : "h-[330px] w-[420px]"
-            }`}
+            className={`relative flex h-[100px] w-full cursor-pointer items-center gap-4 rounded-xl border border-neutral-200 bg-neutral-50 py-5`}
             onClick={handleLevelCardClick}
         >
-            <SubjectDefaultImage />
-            <div className="flex w-full justify-center gap-3 px-5">
-                <div className="text-semibold w-full text-wrap text-center text-title font-semibold text-neutral-600">
-                    {level.name}
+            <div className="flex w-full items-end justify-between gap-3 px-5">
+                <div className="flex flex-col text-wrap">
+                    <p className="text-subtitle font-semibold text-neutral-600">{level.name}</p>
+                    <p className="text-caption text-neutral-400">
+                        Duration: {level.duration_in_days} days
+                    </p>
                 </div>
                 <LevelMenuOptions
                     onDelete={onDelete}

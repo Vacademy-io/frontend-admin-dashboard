@@ -145,7 +145,11 @@ export const LevelPage = () => {
                         />
                     </div>
 
-                    <div className={`grid grid-cols-3 ${open ? "gap-4" : "gap-8"} justify-between`}>
+                    <div
+                        className={`grid ${
+                            open ? "grid-cols-4 gap-4" : "grid-cols-5 gap-8"
+                        } justify-between`}
+                    >
                         {levelList.map((level, key) => (
                             <div key={key}>
                                 <LevelCard

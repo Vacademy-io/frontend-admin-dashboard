@@ -49,7 +49,6 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
     });
     form.watch();
     function onSubmit(values: FormValues) {
-        console.log(values);
         handleCompleteCurrentStep();
         setFormData(values);
     }

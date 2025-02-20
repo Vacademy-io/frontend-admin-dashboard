@@ -12,14 +12,14 @@ const SessionSchema = z.object({
     status: z.string(),
 });
 
-const LevelSchema = z.object({
+export const LevelSchema = z.object({
     id: z.string(),
     level_name: z.string(),
     duration_in_days: z.number().nullable(),
     thumbnail_id: z.string().nullable(),
 });
 
-const PackageSchema = z.object({
+export const PackageSchema = z.object({
     id: z.string(),
     package_name: z.string(),
     thumbnail_id: z.string().nullable(),

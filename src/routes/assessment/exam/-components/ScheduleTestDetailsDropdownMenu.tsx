@@ -27,10 +27,11 @@ export function ScheduleTestDetailsDropdownLive({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/exam/assessment-details/$assessmentId/$examType",
+            to: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
+                assesssmentType: scheduleTestContent.assessment_visibility,
             },
         });
     };
@@ -188,10 +189,11 @@ export function ScheduleTestDetailsDropdownUpcoming({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/exam/assessment-details/$assessmentId/$examType",
+            to: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
+                assesssmentType: scheduleTestContent.assessment_visibility,
             },
         });
     };
@@ -270,10 +272,11 @@ export function ScheduleTestDetailsDropdownPrevious({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/exam/assessment-details/$assessmentId/$examType",
+            to: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
+                assesssmentType: scheduleTestContent.assessment_visibility,
             },
         });
     };
@@ -365,10 +368,11 @@ export function ScheduleTestDetailsDropdowDrafts({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/exam/assessment-details/$assessmentId/$examType",
+            to: "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
+                assesssmentType: scheduleTestContent.assessment_visibility,
             },
         });
     };

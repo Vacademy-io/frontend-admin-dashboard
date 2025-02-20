@@ -21,8 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
 import { Question } from "phosphor-react";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { FaWhatsapp } from "react-icons/fa6";
-import { SiGmail } from "react-icons/si";
+import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
 import useInstituteLogoStore from "./institutelogo-global-zustand";
 
@@ -37,15 +36,19 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
     useEffect(() => {
-        const fetchPublicUrl = async () => {
-            if (data?.institute_logo_file_id) {
-                const publicUrl = await getPublicUrl(data.institute_logo_file_id);
-                setInstituteLogo(publicUrl);
-            }
-        };
+        const timer = setTimeout(() => {
+            const fetchPublicUrl = async () => {
+                if (data?.institute_logo_file_id) {
+                    const publicUrl = await getPublicUrl(data.institute_logo_file_id);
+                    setInstituteLogo(publicUrl);
+                }
+            };
 
-        fetchPublicUrl();
-    }, [data?.institute_logo_file_id, getPublicUrl]);
+            fetchPublicUrl();
+        }, 300); // Adjust the debounce time as needed
+
+        return () => clearTimeout(timer); // Cleanup the timeout on component unmount
+    }, [data?.institute_logo_file_id]);
 
     if (isLoading) return <DashboardLoader />;
     return (
@@ -137,7 +140,7 @@ function SupportOptions() {
                                     className="flex w-full cursor-pointer items-center gap-1"
                                     onClick={goToWhatsappSupport}
                                 >
-                                    <FaWhatsapp />
+                                    <WhatsappLogo />
                                     WhatsApp
                                 </div>
                             </CommandItem>
@@ -147,7 +150,7 @@ function SupportOptions() {
                                     className="flex w-full cursor-pointer items-center gap-1"
                                     onClick={goToMailSupport}
                                 >
-                                    <SiGmail />
+                                    <EnvelopeSimple />
                                     Mail us
                                 </div>
                             </CommandItem>

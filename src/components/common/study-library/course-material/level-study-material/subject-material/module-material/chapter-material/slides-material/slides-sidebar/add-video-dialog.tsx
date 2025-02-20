@@ -7,6 +7,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { toast } from "sonner";
 import { Route } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 const formSchema = z.object({
     videoUrl: z
@@ -28,11 +29,13 @@ export const AddVideoDialog = ({
 }) => {
     const { chapterId } = Route.useSearch();
     const { addUpdateVideoSlide } = useSlides(chapterId);
+    const { setActiveItem, getSlideById } = useContentStore();
 
     const handleSubmit = async (data: FormValues) => {
         try {
+            const slideId = crypto.randomUUID();
             await addUpdateVideoSlide({
-                id: crypto.randomUUID(),
+                id: slideId,
                 title: data.videoName,
                 description: data.videoName,
                 image_file_id: null,
@@ -51,6 +54,9 @@ export const AddVideoDialog = ({
             toast.success("Video added successfully!");
             form.reset();
             openState?.(false);
+            setTimeout(() => {
+                setActiveItem(getSlideById(slideId));
+            }, 500);
         } catch (error) {
             toast.error("Failed to add video");
         }
