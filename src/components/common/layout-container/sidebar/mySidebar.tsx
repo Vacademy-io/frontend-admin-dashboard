@@ -15,12 +15,14 @@ import React, { useEffect, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { filterMenuList, getModuleFlags } from "./helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
 import { Question } from "phosphor-react";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
+import { FaWhatsapp } from "react-icons/fa6";
+import { SiGmail } from "react-icons/si";
 import { useRouter } from "@tanstack/react-router";
 import useInstituteLogoStore from "./institutelogo-global-zustand";
 import { filterMenuList, getModuleFlags } from "./helper";
@@ -32,6 +34,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const sideBarItems = filterMenuList(subModules, SidebarItemsData);
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
+    const subModules = getModuleFlags(data?.sub_modules);
+    const sideBarItems = filterMenuList(subModules, SidebarItemsData);
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
@@ -140,7 +144,7 @@ function SupportOptions() {
                                     className="flex w-full cursor-pointer items-center gap-1"
                                     onClick={goToWhatsappSupport}
                                 >
-                                    <WhatsappLogo />
+                                    <FaWhatsapp />
                                     WhatsApp
                                 </div>
                             </CommandItem>
@@ -150,7 +154,7 @@ function SupportOptions() {
                                     className="flex w-full cursor-pointer items-center gap-1"
                                     onClick={goToMailSupport}
                                 >
-                                    <EnvelopeSimple />
+                                    <SiGmail />
                                     Mail us
                                 </div>
                             </CommandItem>
