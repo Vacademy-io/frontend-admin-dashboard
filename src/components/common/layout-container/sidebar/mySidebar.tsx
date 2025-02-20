@@ -25,13 +25,10 @@ import { FaWhatsapp } from "react-icons/fa6";
 import { SiGmail } from "react-icons/si";
 import { useRouter } from "@tanstack/react-router";
 import useInstituteLogoStore from "./institutelogo-global-zustand";
-import { filterMenuList, getModuleFlags } from "./helper";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
-    const subModules = getModuleFlags(data?.sub_modules);
-    const sideBarItems = filterMenuList(subModules, SidebarItemsData);
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
     const subModules = getModuleFlags(data?.sub_modules);

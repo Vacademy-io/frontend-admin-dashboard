@@ -81,7 +81,7 @@ export const CourseMaterial = () => {
     }, [studyLibraryData]);
 
     useEffect(() => {
-        setNavHeading("Study Library");
+        setNavHeading("Learning Center");
     }, []);
 
     return (
