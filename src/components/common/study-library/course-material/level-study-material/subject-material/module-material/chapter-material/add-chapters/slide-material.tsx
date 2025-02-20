@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import YooptaEditor, { createYooptaEditor, YooptaContentValue } from "@yoopta/editor";
+import YooptaEditor, { createYooptaEditor } from "@yoopta/editor";
 import { useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import PDFViewer from "../slides-material/pdf-viewer";
@@ -64,6 +64,28 @@ export const SlideMaterial = () => {
         setIsEditing(false);
     };
 
+    const setEditorContent = () => {
+        console.log("inside set function");
+        const editorContent = html.deserialize(editor, activeItem?.document_data || "");
+        editor.setEditorValue(editorContent);
+        setContent(
+            <div className="w-full">
+                <YooptaEditor
+                    editor={editor}
+                    plugins={plugins}
+                    tools={TOOLS}
+                    marks={MARKS}
+                    value={editorContent}
+                    selectionBoxRoot={selectionRef}
+                    autoFocus
+                    onChange={() => {}}
+                    className="size-full"
+                    style={{ width: "100%", height: "100%" }}
+                />
+            </div>,
+        );
+    };
+
     const loadContent = async () => {
         if (!activeItem) {
             setContent(
@@ -95,27 +117,13 @@ export const SlideMaterial = () => {
         }
 
         if (activeItem?.document_type === "DOC" && activeItem.document_data) {
-            let editorContent: YooptaContentValue | undefined;
             try {
-                editorContent = html.deserialize(editor, activeItem.document_data || "");
-
-                editor.setEditorValue(editorContent);
-                setContent(
-                    <div className="w-full">
-                        <YooptaEditor
-                            editor={editor}
-                            plugins={plugins}
-                            tools={TOOLS}
-                            marks={MARKS}
-                            value={editorContent}
-                            selectionBoxRoot={selectionRef}
-                            autoFocus
-                            onChange={() => {}}
-                            className="size-full"
-                            style={{ width: "100%", height: "100%" }}
-                        />
-                    </div>,
-                );
+                setTimeout(() => {
+                    console.log("editor: ", editor);
+                    console.log("document data: ", activeItem.document_data);
+                    setEditorContent();
+                }, 300);
+                setEditorContent();
             } catch (error) {
                 console.error("Error preparing document content:", error);
                 setContent(<div>Error loading document content</div>);
