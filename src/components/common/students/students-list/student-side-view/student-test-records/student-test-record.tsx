@@ -148,7 +148,7 @@ export const StudentTestRecord = ({
         setStudentReportData(data);
     }, [data]);
 
-    if (isLoading) return <DashboardLoader />;
+    if (isLoading || viewStudentTestReportMutation.status === "pending") return <DashboardLoader />;
 
     return (
         <div className="flex flex-col gap-10">
