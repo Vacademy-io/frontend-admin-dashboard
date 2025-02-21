@@ -27,7 +27,7 @@ import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab
 import AssessmentSubmissionsTab from "./-components/AssessmentSubmissionsTab";
 
 export const Route = createFileRoute(
-    "/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/",
+    "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/",
 )({
     component: () => (
         <LayoutContainer>
