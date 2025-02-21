@@ -7,7 +7,11 @@ import {
     STEP3_ASSESSMENT_URL,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { Steps } from "@/types/assessments/assessment-data-type";
+import {
+    ConvertedCustomField,
+    CustomFields,
+    Steps,
+} from "@/types/assessments/assessment-data-type";
 import { z } from "zod";
 import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-schema";
@@ -197,28 +201,6 @@ export const handlePostAssessmentPreview = async (
 };
 
 // Type definition for each converted custom field
-interface ConvertedCustomField {
-    name: string;
-    type: string;
-    default_value: string;
-    description: string;
-    is_mandatory: boolean;
-    key: string;
-    comma_separated_options: string;
-}
-
-// Assuming customFields is an object where keys are strings and values are the custom field details
-type CustomFields = {
-    type: string;
-    name: string;
-    oldKey: boolean;
-    isRequired: boolean;
-    options?: { id: number; value: string }[];
-    default_value?: string;
-    description?: string;
-    key?: string;
-    is_mandatory?: boolean;
-}[];
 
 // Function that converts customFields to the desired structure
 const convertCustomFields = (customFields: CustomFields): ConvertedCustomField[] => {

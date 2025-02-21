@@ -15,12 +15,16 @@ import { StudentLearningProgress } from "./student-learning-progress/student-lea
 import { StudentTestRecord } from "./student-test-records/student-test-record";
 import { StudentSideViewData } from "./student-view-dummy-data/student-view-dummy-data";
 
-export const StudentSidebar = () => {
+export const StudentSidebar = ({
+    selectedTab,
+    examType,
+}: {
+    selectedTab?: string;
+    examType?: string;
+}) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
     const { toggleSidebar } = useSidebar();
-    // const { selectedStudent } = useStudentSidebar();
-
     useEffect(() => {
         if (state == "expanded") {
             document.body.classList.add("sidebar-open");
@@ -119,7 +123,7 @@ export const StudentSidebar = () => {
                         />
                     )}
                     {category == "testRecord" && (
-                        <StudentTestRecord testRecordData={StudentSideViewData.test_record} />
+                        <StudentTestRecord selectedTab={selectedTab} examType={examType} />
                     )}
                 </SidebarMenu>
             </SidebarContent>
