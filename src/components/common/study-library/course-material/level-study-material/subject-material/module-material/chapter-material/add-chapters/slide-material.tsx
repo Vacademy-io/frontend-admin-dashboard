@@ -114,7 +114,7 @@ export const SlideMaterial = () => {
                     marks={MARKS}
                     value={editorContent}
                     selectionBoxRoot={selectionRef}
-                    autoFocus
+                    autoFocus={true}
                     onChange={() => {}}
                     className="size-full"
                     style={{ width: "100%", height: "100%" }}

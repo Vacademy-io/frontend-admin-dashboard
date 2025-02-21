@@ -97,7 +97,7 @@ export const ChapterSidebarSlides = ({
             <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
                 {fields.map((slide) => (
                     <SortableItem key={slide.id} value={slide.id} asChild>
-                        <div className="w-full">
+                        <div className="w-full" onClick={() => setActiveItem(slide)}>
                             <div
                                 className={`flex w-full items-center gap-3 rounded-xl ${
                                     open ? "px-4 py-2" : "px-4 py-4"
@@ -107,10 +107,7 @@ export const ChapterSidebarSlides = ({
                                         : "hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500"
                                 }`}
                             >
-                                <div
-                                    className="flex flex-1 items-center gap-3"
-                                    onClick={() => setActiveItem(slide)}
-                                >
+                                <div className="flex flex-1 items-center gap-3">
                                     {getIcon(slide)}
                                     <p
                                         className={`flex-1 text-subtitle ${
