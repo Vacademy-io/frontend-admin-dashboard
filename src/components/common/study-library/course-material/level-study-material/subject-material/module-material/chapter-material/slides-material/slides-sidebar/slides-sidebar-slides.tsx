@@ -70,12 +70,13 @@ export const ChapterSidebarSlides = () => {
                         <div className="w-full cursor-grab active:cursor-grabbing">
                             <div
                                 onClick={() => setActiveItem(slide)}
-                                className={`flex w-full items-center gap-3 rounded-xl px-4 py-2 ${
+                                className={`flex w-full items-center gap-3 rounded-xl ${
+                                    open ? "px-4 py-2" : "px-4 py-4"
+                                } ${
                                     slide.slide_id === activeItem?.slide_id
                                         ? "border border-neutral-200 bg-white text-primary-500"
                                         : "hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500"
                                 }`}
-                                title={slide.document_title || slide.video_title || ""}
                             >
                                 {getIcon(slide)}
                                 <p
@@ -88,19 +89,21 @@ export const ChapterSidebarSlides = () => {
                                         18,
                                     )}
                                 </p>
-                                <div className="drag-handle-container">
-                                    <SortableDragHandle
-                                        variant="ghost"
-                                        size="icon"
-                                        className="cursor-grab hover:bg-neutral-100"
-                                    >
-                                        <DotsSixVertical
-                                            className={`size-6 flex-shrink-0 ${
-                                                open ? "visible" : "hidden"
-                                            }`}
-                                        />
-                                    </SortableDragHandle>
-                                </div>
+                                {open && (
+                                    <div className="drag-handle-container">
+                                        <SortableDragHandle
+                                            variant="ghost"
+                                            size="icon"
+                                            className="cursor-grab hover:bg-neutral-100"
+                                        >
+                                            <DotsSixVertical
+                                                className={`size-6 flex-shrink-0 ${
+                                                    open ? "visible" : "hidden"
+                                                }`}
+                                            />
+                                        </SortableDragHandle>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </SortableItem>
