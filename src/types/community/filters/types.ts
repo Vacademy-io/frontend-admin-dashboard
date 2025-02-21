@@ -1,8 +1,3 @@
-export interface Tag {
-    tagId: string;
-    tagSource: string;
-}
-
 export interface QuestionEntityData {
     id: string;
     textId: string;
@@ -29,12 +24,27 @@ export interface QuestionPaperEntityData {
     access: string;
 }
 
-export interface Entity {
+export interface Entity<T> {
+    entityType: "QUESTION" | "QUESTION_PAPER";
     entityId: string;
-    entityName: "QUESTION" | "QUESTION_PAPER";
-    tags: Tag[];
-    entityData: QuestionEntityData | QuestionPaperEntityData;
+    entityData: T;
 }
 
-// Example: Array of entities
-export type EntityList = Entity[];
+export interface FilteredEntityApiResponse {
+    content: Array<Entity<QuestionEntityData> | Entity<QuestionPaperEntityData>>;
+    pageNo: number;
+    pageSize: number;
+    totalPages: number;
+    totalElements: number;
+    last: boolean;
+}
+
+export interface Tag {
+    tagId: string;
+    tagSource: string;
+}
+
+export interface FilterRequest {
+    type?: "QUESTION_PAPER" | "QUESTION";
+    tags?: Tag[];
+}

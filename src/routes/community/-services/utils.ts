@@ -1,13 +1,20 @@
-import { GET_QUESTION_PAPER_FILTERED_DATA_PUBLIC, INIT_FILTERS } from "@/constants/urls";
+import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
+import {
+    GET_QUESTION_PAPER_FILTERED_DATA_PUBLIC,
+    INIT_FILTERS,
+    GET_FILTERED_ENTITY_DATA,
+} from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 // import {
 //     transformFilterData,
 // } from "./helper";
 import { FilterOption } from "@/types/assessments/question-paper-filter";
+import { FilterRequest, FilteredEntityApiResponse, Tag } from "@/types/community/filters/types";
 import {
     PaginatedResponse,
     // QuestionPaperInterface,
 } from "@/types/assessments/question-paper-template";
+
 export async function fetchStaticData() {
     try {
         const response = await authenticatedAxiosInstance({
@@ -19,6 +26,58 @@ export async function fetchStaticData() {
         throw new Error(`${error}`);
     }
 }
+
+export const getFilteredEntityData = async (
+    pageNo: number,
+    pageSize: number,
+    data: FilterRequest,
+): Promise<FilteredEntityApiResponse> => {
+    try {
+        const response = await authenticatedAxiosInstance({
+            method: "POST",
+            url: `${GET_FILTERED_ENTITY_DATA}`,
+            params: {
+                pageNo,
+                pageSize,
+            },
+            data,
+        });
+        return response?.data;
+    } catch (error: unknown) {
+        throw new Error(`${error}`);
+    }
+};
+
+export const mapFiltersToTags = (): FilterRequest => {
+    const { selected } = useSelectedFilterStore.getState();
+
+    const tags: Tag[] = [];
+
+    if (selected.difficulty) {
+        tags.push({ tagId: selected.difficulty, tagSource: "DIFFICULTY" });
+    }
+    if (selected.level) {
+        tags.push({ tagId: selected.level.levelId, tagSource: "LEVEL" });
+    }
+    if (selected.subject) {
+        tags.push({ tagId: selected.subject.subjectId, tagSource: "SUBJECT" });
+    }
+    if (selected.topic) {
+        tags.push({ tagId: selected.topic, tagSource: "TOPIC" });
+    }
+    if (selected.stream) {
+        tags.push({ tagId: selected.stream.streamId, tagSource: "STREAM" });
+    }
+    //TODO: for now only type available is question paper in future new types will be added
+    // return {
+    //     type: selected.type as "QUESTION_PAPER" | "QUESTION", // Ensure it's of the correct type
+    //     tags: tags.length > 0 ? tags : undefined, // Only include `tags` if there are any
+    // };
+    return {
+        type: "QUESTION_PAPER", // Ensure it's of the correct type
+        tags: tags.length > 0 ? tags : undefined, // Only include `tags` if there are any
+    };
+};
 
 export const getQuestionPaperDataWithFilters = async (
     pageNo: number,
@@ -41,5 +100,3 @@ export const getQuestionPaperDataWithFilters = async (
         throw new Error(`${error}`);
     }
 };
-
-export const getFilteredEntityData = async () => {};

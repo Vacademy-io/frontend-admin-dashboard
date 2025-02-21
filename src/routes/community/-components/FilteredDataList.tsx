@@ -1,44 +1,69 @@
 import { DataCard } from "./DataCard";
-// import { useMutation } from "@tanstack/react-query";
-import { getQuestionPaperDataWithFilters } from "../-services/utils";
+import { useMutation } from "@tanstack/react-query";
+import { getFilteredEntityData, mapFiltersToTags } from "../-services/utils";
 // import { FilterOption } from "@/types/assessments/question-paper-filter";
 import { useState, useEffect } from "react";
-import { QuestionPaperInterface } from "@/types/assessments/question-paper-template";
 import { MyPagination } from "@/components/design-system/pagination";
+import {
+    QuestionEntityData,
+    QuestionPaperEntityData,
+    Entity,
+    FilterRequest,
+} from "@/types/community/filters/types";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
 
 export function FilteredDataList() {
-    const [questionPaperList, setQuestionPaperList] = useState<QuestionPaperInterface[]>([]);
+    const [questionPaperList, setQuestionPaperList] = useState<
+        Array<Entity<QuestionEntityData> | Entity<QuestionPaperEntityData>>
+    >([]);
     const [currentPage, setCurrentPage] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [totalPages, setTotalPages] = useState<number>(0);
+    const { selected } = useSelectedFilterStore();
+
     const pageSize = 8;
-    // const getFilteredData = useMutation({
-    //     mutationFn: ({
-    //         pageNo,
-    //         pageSize,
-    //         data,
-    //     }: {
-    //         pageNo: number;
-    //         pageSize: number;
-    //         data: Record<string, FilterOption[]>;
-    //     }) => getQuestionPaperDataWithFilters(pageNo, pageSize, data),
-    //     onSuccess: (data) => {
-    //         setQuestionPaperList(data.content);
-    //     },
-    //     onError: (error: unknown) => {
-    //         throw error;
-    //     },
-    // });
+    const getFilteredData = useMutation({
+        mutationFn: ({
+            pageNo,
+            pageSize,
+            data,
+        }: {
+            pageNo: number;
+            pageSize: number;
+            data: FilterRequest;
+        }) => getFilteredEntityData(pageNo, pageSize, data),
+        onSuccess: (data) => {
+            setQuestionPaperList(data.content);
+            setIsLoading(false);
+        },
+        onError: (error: unknown) => {
+            setIsLoading(false);
+            throw error;
+        },
+    });
 
     useEffect(() => {
-        // setIsLoading(true);
+        setIsLoading(true);
+        getFilteredData.mutate({
+            pageNo: currentPage,
+            pageSize,
+            data: mapFiltersToTags(),
+        });
+    }, [currentPage, selected]);
+
+    useEffect(() => {
+        setIsLoading(true);
         const timeoutId = setTimeout(() => {
-            getQuestionPaperDataWithFilters(0, pageSize, {})
+            getFilteredEntityData(0, pageSize, { type: "QUESTION_PAPER" })
                 .then((data) => {
                     setQuestionPaperList(data.content);
-                    // setIsLoading(false);
+                    setTotalPages(data.totalPages);
+                    setIsLoading(false);
                 })
                 .catch((error) => {
                     console.error(error);
-                    // setIsLoading(false);
+                    setIsLoading(false);
                 });
         }, 0);
 
@@ -46,16 +71,31 @@ export function FilteredDataList() {
             clearTimeout(timeoutId);
         };
     }, []);
+
+    function renderDataCard(entity: Entity<QuestionEntityData> | Entity<QuestionPaperEntityData>) {
+        if (entity.entityType === "QUESTION_PAPER") {
+            const questionPaperData = entity.entityData as QuestionPaperEntityData;
+            return (
+                <DataCard
+                    key={questionPaperData.id}
+                    data={questionPaperData}
+                    title={questionPaperData.title}
+                />
+            );
+        } else if (entity.entityType === "QUESTION") {
+            const questionData = entity.entityData as QuestionEntityData;
+            return <DataCard key={questionData.id} data={questionData} title={""} />;
+        } else return <></>;
+    }
+    if (isLoading) return <DashboardLoader />;
     return (
         <>
             <div className="mx-10 mb-4 grid grid-cols-4 gap-6">
-                {questionPaperList?.map((question, idx) => (
-                    <DataCard key={idx} title={question.title} />
-                ))}
+                {questionPaperList?.map((entity) => renderDataCard(entity))}
             </div>
             <MyPagination
                 currentPage={currentPage}
-                totalPages={5}
+                totalPages={totalPages}
                 onPageChange={setCurrentPage}
             ></MyPagination>
         </>
