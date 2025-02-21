@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useFilterDataForAssesment } from "../../../../../exam/-utils.ts/useFiltersData";
+import { useFilterDataForAssesment } from "../../../../../assessment-list/-utils.ts/useFiltersData";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
