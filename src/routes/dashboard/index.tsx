@@ -95,7 +95,7 @@ export function DashboardComponent() {
             </p>
             {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
                 <iframe
-                    className="mt-6 size-full h-[80vh] rounded-xl"
+                    className="m-auto mt-6 h-[70vh] w-[70%] rounded-xl"
                     src="https://www.youtube.com/embed/ovEtbkMzcUQ"
                     title="YouTube video player"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -176,7 +176,36 @@ export function DashboardComponent() {
                                         <Plus size={32} />
                                         Create
                                     </MyButton>
+                                    <MyButton
+                                        type="submit"
+                                        scale="medium"
+                                        id="first-course"
+                                        buttonType="secondary"
+                                        layoutVariant="default"
+                                        className="text-sm"
+                                    >
+                                        <Plus size={32} />
+                                        Add Study Slides
+                                    </MyButton>
                                 </div>
+                                <CardDescription className="flex items-center gap-4 py-6">
+                                    <div className="flex items-center gap-2">
+                                        <span>Courses</span>
+                                        <span className="text-primary-500">{data.batch_count}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span>Level</span>
+                                        <span className="text-primary-500">
+                                            {data.student_count}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span>Subjects</span>
+                                        <span className="text-primary-500">
+                                            {data.student_count}
+                                        </span>
+                                    </div>
+                                </CardDescription>
                                 <CardDescription className="flex justify-center">
                                     <DashboardCreateCourse />
                                 </CardDescription>
@@ -286,6 +315,32 @@ export function DashboardComponent() {
                                             </DialogContent>
                                         </Dialog>
                                     </div>
+                                    <CardDescription className="flex items-center gap-4 py-6">
+                                        <div className="flex items-center gap-2">
+                                            <span>Live</span>
+                                            <span className="text-primary-500">
+                                                {data.batch_count}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span>Upcoming</span>
+                                            <span className="text-primary-500">
+                                                {data.student_count}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span>Previous</span>
+                                            <span className="text-primary-500">
+                                                {data.student_count}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span>Drafts</span>
+                                            <span className="text-primary-500">
+                                                {data.student_count}
+                                            </span>
+                                        </div>
+                                    </CardDescription>
                                     <CardDescription className="mt-2 flex items-center justify-center">
                                         <CreateAssessmentDashboardLogo className="mt-4" />
                                     </CardDescription>

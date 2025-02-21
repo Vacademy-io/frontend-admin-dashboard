@@ -52,7 +52,7 @@ export function Navbar() {
     };
 
     return (
-        <div className="flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
+        <div className="sticky top-0 flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
                 <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
                     <SidebarSimple className="text-neutral-600" />
