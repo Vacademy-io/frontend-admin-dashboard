@@ -30,7 +30,7 @@ import {
     OPTIONS_LABELS,
     QUESTION_LABELS,
 } from "@/constants/dummy-data";
-import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
+import { useFilterDataForAssesment } from "../../assessment-list/-utils.ts/useFiltersData";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";

@@ -8,13 +8,18 @@ export const BasicInfoFormSchema = z.object({
         assessmentInstructions: z.string(),
         liveDateRange: z
             .object({
-                startDate: z.string(), // Assuming these are ISO strings or formatted dates
-                endDate: z.string(),
+                startDate: z.string().optional(),
+                endDate: z.string().optional(),
             })
-            .refine((data) => new Date(data.endDate) > new Date(data.startDate), {
-                message: "End date must be greater than start date",
-                path: ["endDate"], // The path to associate the error with
-            }),
+            .refine(
+                (data) =>
+                    (!data.startDate && !data.endDate) || // Allow empty
+                    new Date(data.endDate!) > new Date(data.startDate!), // Date comparison
+                {
+                    message: "End date must be greater than start date",
+                    path: ["endDate"],
+                },
+            ),
     }),
     assessmentPreview: z.object({
         checked: z.boolean(),

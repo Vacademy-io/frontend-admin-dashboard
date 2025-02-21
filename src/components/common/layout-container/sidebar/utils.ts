@@ -29,7 +29,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: BookOpen,
-        title: "Study Library",
+        title: "Learning Center",
         id: "study-library",
         to: "/study-library",
     },
@@ -41,7 +41,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
         subItems: [
             {
                 subItem: "Assessment List",
-                subItemLink: "/assessment/exam",
+                subItemLink: "/assessment/assessment-list",
             },
             {
                 subItem: "Question Papers",

@@ -37,7 +37,7 @@ export const AddVideoDialog = ({
             await addUpdateVideoSlide({
                 id: slideId,
                 title: data.videoName,
-                description: data.videoName,
+                description: null,
                 image_file_id: null,
                 slide_order: 0,
                 video_slide: {

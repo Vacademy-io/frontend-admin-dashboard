@@ -8,7 +8,7 @@ import { PencilSimpleLine } from "phosphor-react";
 import { useForm, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { uploadQuestionPaperFormSchema } from "../-utils/upload-question-paper-form-schema";
-import { useFilterDataForAssesment } from "../../exam/-utils.ts/useFiltersData";
+import { useFilterDataForAssesment } from "../../assessment-list/-utils.ts/useFiltersData";
 import { useState } from "react";
 
 interface FormData {

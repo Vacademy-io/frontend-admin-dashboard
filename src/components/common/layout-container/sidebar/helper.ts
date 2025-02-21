@@ -17,7 +17,6 @@ export function filterMenuList(
 ) {
     return menuList.filter((item) => {
         if (item.to === "/assessment" && !subModules.assess) return false;
-        if (item.to === "/study-library" && !subModules.lms) return false;
         return true;
     });
 }

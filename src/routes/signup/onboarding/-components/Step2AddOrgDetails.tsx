@@ -6,9 +6,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
-import { RoleType } from "@/constants/dummy-data";
 import { useNavigate } from "@tanstack/react-router";
-import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
 import { useAddOrgStore } from "../-zustand-store/step2AddOrgZustand";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
@@ -59,7 +57,7 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
             email: formDataAddOrg.email || "",
             password: formDataAddOrg.password || "",
             confirmPassword: formDataAddOrg.confirmPassword || "",
-            roleType: formDataAddOrg.roleType || [],
+            roleType: ["ADMIN"],
         },
         mode: "onChange",
     });
@@ -69,9 +67,7 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
         !!getValues("username") &&
         !!getValues("email") &&
         !!getValues("password") &&
-        !!getValues("confirmPassword") &&
-        (getValues("roleType").length > 0 ? true : false);
-    form.watch("roleType");
+        !!getValues("confirmPassword");
 
     const handleSignupInstituteMutation = useMutation({
         mutationFn: async ({
@@ -120,7 +116,7 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
     return (
         <FormProvider {...form}>
             <form>
-                <div className="flex flex-col items-center justify-center gap-8">
+                <div className="my-6 flex flex-col items-center justify-center gap-8">
                     <h1 className="text-[1.6rem]">Create your profile in the organization</h1>
                     <FormField
                         control={form.control}
@@ -231,19 +227,6 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                                 </FormControl>
                             </FormItem>
                         )}
-                    />
-                    <MultiSelectDropdown
-                        form={form}
-                        label="Role Type"
-                        name="roleType"
-                        options={RoleType.map((option, index) => ({
-                            value: option,
-                            label: option,
-                            _id: index,
-                        }))}
-                        control={form.control}
-                        className="w-96"
-                        required
                     />
                     <MyButton
                         type="button"

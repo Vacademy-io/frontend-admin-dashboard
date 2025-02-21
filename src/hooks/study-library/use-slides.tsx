@@ -31,7 +31,7 @@ export interface Slide {
 interface VideoSlidePayload {
     id?: string;
     title: string;
-    description: string;
+    description: string | null;
     image_file_id: string | null;
     slide_order: number;
     video_slide: {
@@ -49,7 +49,7 @@ interface DocumentSlidePayload {
     id: string;
     title: string;
     image_file_id: string;
-    description: string;
+    description: string | null;
     slide_order: number;
     document_slide: {
         id: string;

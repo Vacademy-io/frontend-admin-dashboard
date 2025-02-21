@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useFilterDataForAssesment } from "../../../../../exam/-utils.ts/useFiltersData";
+import { useFilterDataForAssesment } from "../../../../../assessment-list/-utils.ts/useFiltersData";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
@@ -109,16 +109,20 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     // Determine if all fields are filled
     const isFormValid1 =
-        !!assessmentName &&
-        !!liveDateRangeStartDate &&
-        !!liveDateRangeEndDate &&
-        Object.entries(form.formState.errors).length === 0;
+        examType === "EXAM" || examType === "SURVEY"
+            ? !!assessmentName &&
+              !!liveDateRangeStartDate &&
+              !!liveDateRangeEndDate &&
+              Object.entries(form.formState.errors).length === 0
+            : !!assessmentName && Object.entries(form.formState.errors).length === 0;
 
     const isFormValid2 =
-        !!assessmentName &&
-        !!liveDateRangeStartDate &&
-        !!liveDateRangeEndDate &&
-        Object.entries(form.formState.errors).length === 0;
+        examType === "EXAM" || examType === "SURVEY"
+            ? !!assessmentName &&
+              !!liveDateRangeStartDate &&
+              !!liveDateRangeEndDate &&
+              Object.entries(form.formState.errors).length === 0
+            : !!assessmentName && Object.entries(form.formState.errors).length === 0;
 
     const handleSubmitStep1Form = useMutation({
         mutationFn: ({
@@ -337,7 +341,16 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             </FormItem>
                         )}
                     />
-                    <h1>Live Date Range</h1>
+                    {getStepKey({
+                        assessmentDetails,
+                        currentStep,
+                        key: "boundation_start_date",
+                    }) &&
+                        getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "boundation_end_date",
+                        }) && <h1>Live Date Range</h1>}
                     <div className="-mt-2 flex items-start gap-4">
                         {getStepKey({
                             assessmentDetails,
@@ -444,34 +457,37 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             }
                         />
                     )}
-                    {getStepKey({
-                        assessmentDetails,
-                        currentStep,
-                        key: "submission_type",
-                    }) && (
-                        <SelectField
-                            label="Submission Type"
-                            name="submissionType"
-                            options={
-                                assessmentDetails[currentStep]?.field_options?.submission_type?.map(
-                                    (distribution, index) => ({
-                                        value: distribution.value,
-                                        label: distribution.value,
-                                        _id: index,
-                                    }),
-                                ) || [] // Fallback to an empty array if undefined
-                            }
-                            control={form.control}
-                            className="w-56 font-thin"
-                            required={
-                                getStepKey({
-                                    assessmentDetails,
-                                    currentStep,
-                                    key: "submission_type",
-                                }) === "REQUIRED"
-                            }
-                        />
-                    )}
+                    {watch("evaluationType") === "MANUAL" &&
+                        getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "submission_type",
+                        }) && (
+                            <SelectField
+                                label="Submission Type"
+                                name="submissionType"
+                                options={
+                                    assessmentDetails[
+                                        currentStep
+                                    ]?.field_options?.submission_type?.map(
+                                        (distribution, index) => ({
+                                            value: distribution.value,
+                                            label: distribution.value,
+                                            _id: index,
+                                        }),
+                                    ) || [] // Fallback to an empty array if undefined
+                                }
+                                control={form.control}
+                                className="w-56 font-thin"
+                                required={
+                                    getStepKey({
+                                        assessmentDetails,
+                                        currentStep,
+                                        key: "submission_type",
+                                    }) === "REQUIRED"
+                                }
+                            />
+                        )}
                     {getStepKey({
                         assessmentDetails,
                         currentStep,

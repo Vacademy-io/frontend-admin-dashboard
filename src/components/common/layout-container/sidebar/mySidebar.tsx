@@ -21,8 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
 import { Question } from "phosphor-react";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { FaWhatsapp } from "react-icons/fa6";
-import { SiGmail } from "react-icons/si";
+import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
 import { useRouter } from "@tanstack/react-router";
 import useInstituteLogoStore from "./institutelogo-global-zustand";
 
@@ -65,7 +64,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             state == "expanded" ? "pl-4" : "pl-0"
                         }`}
                     >
-                        <img src={instituteLogo} alt="logo" className="size-12" />
+                        <img src={instituteLogo} alt="logo" className="size-12 rounded-full" />
                         <SidebarGroup
                             className={`text-[18px] font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}
                         >
@@ -141,7 +140,7 @@ function SupportOptions() {
                                     className="flex w-full cursor-pointer items-center gap-1"
                                     onClick={goToWhatsappSupport}
                                 >
-                                    <FaWhatsapp />
+                                    <WhatsappLogo />
                                     WhatsApp
                                 </div>
                             </CommandItem>
@@ -151,7 +150,7 @@ function SupportOptions() {
                                     className="flex w-full cursor-pointer items-center gap-1"
                                     onClick={goToMailSupport}
                                 >
-                                    <SiGmail />
+                                    <EnvelopeSimple />
                                     Mail us
                                 </div>
                             </CommandItem>

@@ -18,8 +18,14 @@ import useOrganizationStore from "../onboarding/-zustand-store/step1Organization
 import { useEffect } from "react";
 
 const items = [
-    { id: "assess", label: "Assess" },
-    { id: "lms", label: "LMS" },
+    {
+        id: "assess",
+        label: "Assess",
+    },
+    {
+        id: "lms",
+        label: "LMS",
+    },
 ] as const;
 
 const FormSchema = z.object({
@@ -36,20 +42,17 @@ export function SignUpComponent() {
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            items: { assess: true, lms: false }, // LMS checked by default
+            items: {
+                assess: false,
+                lms: false,
+            },
         },
+        mode: "onChange",
     });
 
-    const handleCheckedChange = (id: "assess" | "lms", checked: boolean) => {
-        const selectedItems = form.getValues("items");
-        const checkedCount = Object.values(selectedItems).filter(Boolean).length;
-
-        if (!checked && checkedCount === 1) {
-            return; // Prevent deselecting the last checked item
-        }
-
-        form.setValue(`items.${id}`, checked);
-    };
+    function onSubmit(data: z.infer<typeof FormSchema>) {
+        console.log(data);
+    }
 
     useEffect(() => {
         resetForm();
@@ -63,7 +66,10 @@ export function SignUpComponent() {
             </div>
             <div className="flex w-1/2 items-center justify-center">
                 <Form {...form}>
-                    <form className="flex w-[350px] flex-col items-center justify-center space-y-8">
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex w-[350px] flex-col items-center justify-center space-y-8"
+                    >
                         <FormField
                             control={form.control}
                             name="items"
@@ -99,12 +105,7 @@ export function SignUpComponent() {
                                                             <FormControl className="flex items-center justify-center">
                                                                 <Checkbox
                                                                     checked={field.value}
-                                                                    onCheckedChange={(checked) =>
-                                                                        handleCheckedChange(
-                                                                            item.id,
-                                                                            checked as boolean,
-                                                                        )
-                                                                    }
+                                                                    onCheckedChange={field.onChange}
                                                                     className={`mt-1 size-5 border shadow-none ${
                                                                         field.value
                                                                             ? "border-none bg-green-500 text-white"
@@ -122,7 +123,7 @@ export function SignUpComponent() {
                             )}
                         />
                         <MyButton
-                            type="button"
+                            type="submit"
                             scale="large"
                             buttonType="primary"
                             layoutVariant="default"
@@ -135,6 +136,7 @@ export function SignUpComponent() {
                                     },
                                 })
                             }
+                            disable={!form.formState.isValid}
                         >
                             <Plus size={32} />
                             Create Free Account

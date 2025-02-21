@@ -10,6 +10,9 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 import { useSidebar } from "@/components/ui/sidebar";
 import { SortableDragHandle } from "@/components/ui/sortable";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
+import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 interface SubjectCardProps {
     subject: SubjectType;
@@ -23,6 +26,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
     const { getPublicUrl } = useFileUpload();
     const router = useRouter();
     const { open } = useSidebar();
+    const { data } = useSuspenseQuery(useInstituteQuery());
 
     const handleCardClick = (e: React.MouseEvent) => {
         if (
@@ -34,6 +38,8 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
         ) {
             return;
         }
+
+        if (!getModuleFlags(data?.sub_modules).lms) return;
 
         const currentPath = router.state.location.pathname;
         const searchParams = router.state.location.search;
@@ -73,7 +79,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
                     open ? "h-[260px]" : "h-[300px]"
                 } cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border border-neutral-100 p-4 shadow-md`}
             >
-                <div className="drag-handle-container absolute right-0 top-2 z-10">
+                <div className="drag-handle-container absolute right-0 top-2 z-10 rounded-lg bg-white">
                     <SortableDragHandle
                         variant="ghost"
                         size="icon"
