@@ -79,3 +79,4 @@ export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.w
 
 export const INIT_FILTERS = `${BASE_URL}/community-service/init/question-filters`;
 export const GET_QUESTION_PAPER_FILTERED_DATA_PUBLIC = `${BASE_URL}/assessment-service/question-paper/public/view/v1/get-with-filters`;
+export const GET_FILTERED_ENTITY_DATA = `${BASE_URL}/community-service/get-entity`;

@@ -21,7 +21,7 @@ export const LayoutContainer = ({
             <div>
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
-            <div className="w-full flex-1">
+            <div className="flex w-full flex-1 flex-col">
                 <Navbar />
                 <div
                     className={cn(
@@ -29,7 +29,7 @@ export const LayoutContainer = ({
                         open
                             ? intrnalMargin
                                 ? `max-w-[calc(100vw-322px-56px)]`
-                                : `max-w-[calc(100vw-322px)]`
+                                : `max-w-[calc(100vw-320px)]`
                             : intrnalMargin
                               ? `max-w-[calc(100vw-132px-56px)]`
                               : `max-w-[calc(100vw-132px)]`,

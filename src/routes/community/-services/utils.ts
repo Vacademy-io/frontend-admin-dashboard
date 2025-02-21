@@ -41,3 +41,5 @@ export const getQuestionPaperDataWithFilters = async (
         throw new Error(`${error}`);
     }
 };
+
+export const getFilteredEntityData = async () => {};

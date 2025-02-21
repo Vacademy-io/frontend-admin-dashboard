@@ -1,4 +1,6 @@
+// import { QuestionEntityData, QuestionPaperEntityData } from "@/types/community/filters/types";
 interface DataCardProps {
+    // data: QuestionEntityData | QuestionPaperEntityData;
     title?: string;
 }
 
