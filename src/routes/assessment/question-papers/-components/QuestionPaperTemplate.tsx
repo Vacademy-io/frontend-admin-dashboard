@@ -6,7 +6,6 @@ import { useFieldArray } from "react-hook-form";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { SSDCLogo } from "@/svgs";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PPTComponentFactory } from "./QuestionPaperTemplatesTypes/PPTComponentFactory";
@@ -29,6 +28,7 @@ import { toast } from "sonner";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { QuestionPaperEditDialog } from "./QuestionPaperEditDialogue";
 import { useRefetchStore } from "../-global-states/refetch-store";
+import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
 
 export function QuestionPaperTemplate({
     form,
@@ -42,6 +42,7 @@ export function QuestionPaperTemplate({
     currentQuestionImageIndex,
     setCurrentQuestionImageIndex,
 }: QuestionPaperTemplateProps) {
+    const { instituteLogo } = useInstituteLogoStore();
     const { handleRefetchData } = useRefetchStore();
     const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
@@ -290,7 +291,11 @@ export function QuestionPaperTemplate({
                     <div>
                         <div className="flex items-center justify-between bg-primary-100 p-2">
                             <div className="flex items-start gap-2">
-                                <SSDCLogo />
+                                <img
+                                    src={instituteLogo}
+                                    alt="logo"
+                                    className="size-12 rounded-full"
+                                />
                                 <FormField
                                     control={control}
                                     name="title"

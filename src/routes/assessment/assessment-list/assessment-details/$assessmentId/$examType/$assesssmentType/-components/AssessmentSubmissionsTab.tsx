@@ -21,8 +21,8 @@ import { MyButton } from "@/components/design-system/button";
 import { ArrowCounterClockwise, Export } from "phosphor-react";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useFilterDataForAssesment } from "@/routes/assessment/exam/-utils.ts/useFiltersData";
-import { ScheduleTestFilters } from "@/routes/assessment/exam/-components/ScheduleTestFilters";
+import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
+import { ScheduleTestFilters } from "@/routes/assessment/assessment-list/-components/ScheduleTestFilters";
 import { MyFilterOption } from "@/types/assessments/my-filter";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import AssessmentSubmissionsFilterButtons from "./AssessmentSubmissionsFilterButtons";
@@ -44,7 +44,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { BatchesFilterData } = useFilterDataForAssesment(initData);
     const instituteId = getInstituteId();
-    const { assessmentId, assesssmentType } = Route.useParams();
+    const { assessmentId, examType, assesssmentType } = Route.useParams();
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
     const [selectedTab, setSelectedTab] = useState("Attempted");
     const [batchSelectionTab, setBatchSelectionTab] = useState("batch");
@@ -904,7 +904,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 onRowSelectionChange={handleRowSelectionChange}
                                 currentPage={page}
                             />
-                            <StudentSidebar />
+                            <StudentSidebar selectedTab={selectedTab} examType={examType} />
                         </SidebarProvider>
                     </TabsContent>
                     <MyPagination

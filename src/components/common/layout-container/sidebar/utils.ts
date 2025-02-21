@@ -41,7 +41,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
         subItems: [
             {
                 subItem: "Assessment List",
-                subItemLink: "/assessment/exam",
+                subItemLink: "/assessment/assessment-list",
             },
             {
                 subItem: "Question Papers",

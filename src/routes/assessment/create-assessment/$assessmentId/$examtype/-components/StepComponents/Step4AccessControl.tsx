@@ -122,7 +122,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 });
                 handleCompleteCurrentStep();
                 navigate({
-                    to: "/assessment/exam",
+                    to: "/assessment/assessment-list",
                 });
             }
         },
@@ -182,7 +182,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 handleCompleteCurrentStep();
                 queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
                 navigate({
-                    to: "/assessment/exam",
+                    to: "/assessment/assessment-list",
                 });
             }
         },

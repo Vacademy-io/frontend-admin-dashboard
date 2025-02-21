@@ -33,4 +33,13 @@ export interface FilterChipsProps {
 // }
 
 // Status Types
-export type ActivityStatus = "active" | "inactive" | "pending" | "error";
+export type ActivityStatus =
+    | "active"
+    | "inactive"
+    | "pending"
+    | "error"
+    | "PENDING"
+    | "LIVE"
+    | "ENDED"
+    | "Attempted"
+    | "Not Attempted";
