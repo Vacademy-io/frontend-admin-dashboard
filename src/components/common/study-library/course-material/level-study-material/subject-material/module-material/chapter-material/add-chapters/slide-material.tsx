@@ -58,14 +58,6 @@ export const SlideMaterial = () => {
         setHeading(e.target.value);
     };
 
-    // const saveHeading = () => {
-    //     if (activeItem) {
-    //         const updatedItem = { ...activeItem, name: heading };
-    //         setActiveItem(updatedItem); // Use setActiveItem to update the store
-    //     }
-    //     setIsEditing(false);
-    // };
-
     const updateHeading = async () => {
         if (activeItem) {
             if (activeItem.video_url != null) {
@@ -179,7 +171,10 @@ export const SlideMaterial = () => {
         return;
     };
 
-    const handlePublishUnpublishSlide = async (setIsOpen: Dispatch<SetStateAction<boolean>>) => {
+    const handlePublishUnpublishSlide = async (
+        setIsOpen: Dispatch<SetStateAction<boolean>>,
+        notify: boolean,
+    ) => {
         const status = activeItem?.status == "PUBLISHED" ? "DRAFT" : "PUBLISHED";
         const operation = status == "DRAFT" ? "unpublish" : "publish";
         if (activeItem?.document_type == "DOC" || activeItem?.document_type == "PDF") {
@@ -202,7 +197,7 @@ export const SlideMaterial = () => {
                     },
                     status: status,
                     new_slide: false,
-                    notify: false,
+                    notify: notify,
                 });
                 toast.success(`slide ${operation}ed successfully!`);
                 setIsOpen(false);
@@ -225,7 +220,7 @@ export const SlideMaterial = () => {
                     },
                     status: status,
                     new_slide: false,
-                    notify: false,
+                    notify: notify,
                 });
                 toast.success(`slide ${operation}ed successfully!`);
                 setIsOpen(false);
