@@ -15,7 +15,13 @@ import { StudentLearningProgress } from "./student-learning-progress/student-lea
 import { StudentTestRecord } from "./student-test-records/student-test-record";
 import { StudentSideViewData } from "./student-view-dummy-data/student-view-dummy-data";
 
-export const StudentSidebar = ({ selectedTab }: { selectedTab?: string }) => {
+export const StudentSidebar = ({
+    selectedTab,
+    examType,
+}: {
+    selectedTab?: string;
+    examType?: string;
+}) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
     const { toggleSidebar } = useSidebar();
@@ -116,7 +122,9 @@ export const StudentSidebar = ({ selectedTab }: { selectedTab?: string }) => {
                             learningProgressData={StudentSideViewData.learning_progress}
                         />
                     )}
-                    {category == "testRecord" && <StudentTestRecord selectedTab={selectedTab} />}
+                    {category == "testRecord" && (
+                        <StudentTestRecord selectedTab={selectedTab} examType={examType} />
+                    )}
                 </SidebarMenu>
             </SidebarContent>
         </Sidebar>

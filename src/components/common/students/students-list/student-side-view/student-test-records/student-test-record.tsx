@@ -9,22 +9,28 @@ import {
     getStudentReport,
     handleStudentReportData,
     viewStudentReport,
-} from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyPagination } from "@/components/design-system/pagination";
-import { AssessmentDetailsSearchComponent } from "@/routes/assessment/exam/assessment-details/$assessmentId/$examType/$assesssmentType/-components/SearchComponent";
+import { AssessmentDetailsSearchComponent } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/SearchComponent";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { AssessmentReportStudentInterface } from "@/types/assessments/assessment-overview";
-
 export interface StudentReportFilterInterface {
     name: string;
     status: string[];
     sort_columns: Record<string, string>; // Assuming it can have dynamic keys with any value
 }
 
-export const StudentTestRecord = ({ selectedTab }: { selectedTab: string | undefined }) => {
+export const StudentTestRecord = ({
+    selectedTab,
+    examType,
+}: {
+    selectedTab: string | undefined;
+    examType: string | undefined;
+}) => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+
     const [searchText, setSearchText] = useState("");
     const [selectedFilter] = useState<StudentReportFilterInterface>({
         name: "",
@@ -226,6 +232,7 @@ export const StudentTestRecord = ({ selectedTab }: { selectedTab: string | undef
                                                 onClose={() => setSelectedTest(null)}
                                                 testReport={selectedTest}
                                                 studentReport={studentReport}
+                                                examType={examType}
                                             />
                                         )}
                                     </div>
