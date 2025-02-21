@@ -1,43 +1,21 @@
 // publish-dialog.tsx
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { TokenKey } from "@/constants/auth/tokens";
-import { useSlides } from "@/hooks/study-library/use-slides";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { useRouter } from "@tanstack/react-router";
 import { Dispatch, SetStateAction } from "react";
-import { toast } from "sonner";
 
 interface PublishUnpublishDialogProps {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
+    handlePublishUnpublishSlide: (setIsOpen: Dispatch<SetStateAction<boolean>>) => void;
 }
 
-export const PublishUnpublishDialog = ({ isOpen, setIsOpen }: PublishUnpublishDialogProps) => {
-    const router = useRouter();
-    const { chapterId, slideId } = router.state.location.search;
-    const { updateSlideStatus } = useSlides(chapterId || "");
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+export const PublishUnpublishDialog = ({
+    isOpen,
+    setIsOpen,
+    handlePublishUnpublishSlide,
+}: PublishUnpublishDialogProps) => {
     const { activeItem } = useContentStore();
-
-    const handlePublishUnpublish = async () => {
-        const status = trigger == publishTrigger ? "PUBLISHED" : "DRAFT";
-        try {
-            await updateSlideStatus({
-                chapterId: chapterId || "",
-                slideId: slideId || "",
-                status: status,
-                instituteId: INSTITUTE_ID || "",
-            });
-            toast.success("Slide published successfully!");
-            setIsOpen(false);
-        } catch (error) {
-            toast.error("Failed to publish the slide");
-        }
-    };
 
     const publishTrigger = (
         <MyButton buttonType="primary" scale="medium" layoutVariant="default">
@@ -70,7 +48,12 @@ export const PublishUnpublishDialog = ({ isOpen, setIsOpen }: PublishUnpublishDi
                     <MyButton buttonType="secondary" onClick={() => setIsOpen(false)}>
                         Cancel
                     </MyButton>
-                    <MyButton buttonType="primary" onClick={handlePublishUnpublish}>
+                    <MyButton
+                        buttonType="primary"
+                        onClick={() => {
+                            handlePublishUnpublishSlide(setIsOpen);
+                        }}
+                    >
                         Yes, I&apos;m sure
                     </MyButton>
                 </div>
