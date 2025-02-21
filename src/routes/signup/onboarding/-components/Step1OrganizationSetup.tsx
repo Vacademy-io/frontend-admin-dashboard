@@ -47,6 +47,11 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
         },
         mode: "onChange",
     });
+    const isValid =
+        !!form.getValues("profilePictureUrl") &&
+        !!form.getValues("instituteProfilePic") &&
+        !!form.getValues("instituteName") &&
+        !!form.getValues("instituteType");
     form.watch();
     function onSubmit(values: FormValues) {
         handleCompleteCurrentStep();
@@ -150,6 +155,7 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
                         layoutVariant="default"
                         onClick={form.handleSubmit(onSubmit)}
                         className="mt-4"
+                        disable={!isValid}
                     >
                         Continue
                     </MyButton>
