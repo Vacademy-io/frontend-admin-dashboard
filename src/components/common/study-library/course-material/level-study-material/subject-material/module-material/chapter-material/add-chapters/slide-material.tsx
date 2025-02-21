@@ -13,7 +13,7 @@ import { SlidesMenuOption } from "../slides-material/slides-menu-options/slides-
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
 import { useRouter } from "@tanstack/react-router";
 import { getPublicUrl } from "@/services/upload_file";
-import { PublishDialog } from "../slides-material/publish-slide-dialog";
+import { PublishUnpublishDialog } from "../slides-material/publish-slide-dialog";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { toast } from "sonner";
 import { Check, PencilSimpleLine } from "phosphor-react";
@@ -293,7 +293,7 @@ export const SlideMaterial = () => {
                                 Save Draft
                             </MyButton>
                         )}
-                        <PublishDialog
+                        <PublishUnpublishDialog
                             isOpen={isPublishDialogOpen}
                             setIsOpen={setIsPublishDialogOpen}
                         />

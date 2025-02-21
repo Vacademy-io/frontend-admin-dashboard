@@ -4,29 +4,32 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { TokenKey } from "@/constants/auth/tokens";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { useRouter } from "@tanstack/react-router";
 import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 
-interface PublishDialogProps {
+interface PublishUnpublishDialogProps {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export const PublishDialog = ({ isOpen, setIsOpen }: PublishDialogProps) => {
+export const PublishUnpublishDialog = ({ isOpen, setIsOpen }: PublishUnpublishDialogProps) => {
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
     const { updateSlideStatus } = useSlides(chapterId || "");
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+    const { activeItem } = useContentStore();
 
-    const handlePublish = async () => {
+    const handlePublishUnpublish = async () => {
+        const status = trigger == publishTrigger ? "PUBLISHED" : "DRAFT";
         try {
             await updateSlideStatus({
                 chapterId: chapterId || "",
                 slideId: slideId || "",
-                status: "PUBLISHED",
+                status: status,
                 instituteId: INSTITUTE_ID || "",
             });
             toast.success("Slide published successfully!");
@@ -36,11 +39,19 @@ export const PublishDialog = ({ isOpen, setIsOpen }: PublishDialogProps) => {
         }
     };
 
-    const trigger = (
+    const publishTrigger = (
         <MyButton buttonType="primary" scale="medium" layoutVariant="default">
             Publish
         </MyButton>
     );
+
+    const unpublishTrigger = (
+        <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
+            Unpublish
+        </MyButton>
+    );
+
+    const trigger = activeItem?.status == "PUBLISHED" ? unpublishTrigger : publishTrigger;
 
     return (
         <MyDialog
@@ -51,12 +62,15 @@ export const PublishDialog = ({ isOpen, setIsOpen }: PublishDialogProps) => {
             trigger={trigger}
         >
             <div className="flex w-full flex-col gap-6">
-                <p>Are you sure you want to publish this slide?</p>
+                <p>
+                    Are you sure you want to {trigger == unpublishTrigger ? "unpublish" : "publish"}{" "}
+                    this slide?
+                </p>
                 <div className="flex justify-end gap-4">
                     <MyButton buttonType="secondary" onClick={() => setIsOpen(false)}>
                         Cancel
                     </MyButton>
-                    <MyButton buttonType="primary" onClick={handlePublish}>
+                    <MyButton buttonType="primary" onClick={handlePublishUnpublish}>
                         Yes, I&apos;m sure
                     </MyButton>
                 </div>
