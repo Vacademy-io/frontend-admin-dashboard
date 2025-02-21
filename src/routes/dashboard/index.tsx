@@ -124,9 +124,13 @@ export function DashboardComponent() {
                         </CardDescription>
                     </CardHeader>
                 </Card>
-                <div className="flex gap-6">
-                    <div className="flex flex-1 flex-col gap-6">
-                        <Card className="bg-neutral-50 shadow-none">
+                <div className={`flex ${subModules.assess ? "flex-col" : "flex-row"} gap-6`}>
+                    <div
+                        className={`flex flex-1 ${
+                            subModules.assess ? "flex-row" : "flex-col"
+                        } gap-6`}
+                    >
+                        <Card className="flex-1 bg-neutral-50 shadow-none">
                             <CardHeader className="flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
                                     <CardTitle>Add users to various role types</CardTitle>
@@ -161,7 +165,39 @@ export function DashboardComponent() {
                                 </div>
                             </CardHeader>
                         </Card>
-                        <Card className="bg-neutral-50 shadow-none">
+                        <Card className="flex-1 grow bg-neutral-50 shadow-none">
+                            <CardHeader className="flex flex-col gap-3">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle>Enroll students in institute batches</CardTitle>
+                                    <MyButton
+                                        type="submit"
+                                        scale="medium"
+                                        buttonType="secondary"
+                                        id="quick-enrollment"
+                                        layoutVariant="default"
+                                        className="text-sm"
+                                        onClick={handleEnrollButtonClick}
+                                    >
+                                        Enroll
+                                    </MyButton>
+                                </div>
+                                <CardDescription className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <span>Batches</span>
+                                        <span className="text-primary-500">{data.batch_count}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span>Students</span>
+                                        <span className="text-primary-500">
+                                            {data.student_count}
+                                        </span>
+                                    </div>
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </div>
+                    <div className="flex flex-1 flex-row gap-6">
+                        <Card className="flex-1 bg-neutral-50 shadow-none">
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle>Create your first course</CardTitle>
@@ -211,40 +247,8 @@ export function DashboardComponent() {
                                 </CardDescription>
                             </CardHeader>
                         </Card>
-                    </div>
-                    <div className="flex flex-1 flex-col gap-6">
-                        <Card className="grow bg-neutral-50 shadow-none">
-                            <CardHeader className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle>Enroll students in institute batches</CardTitle>
-                                    <MyButton
-                                        type="submit"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        id="quick-enrollment"
-                                        layoutVariant="default"
-                                        className="text-sm"
-                                        onClick={handleEnrollButtonClick}
-                                    >
-                                        Enroll
-                                    </MyButton>
-                                </div>
-                                <CardDescription className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <span>Batches</span>
-                                        <span className="text-primary-500">{data.batch_count}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span>Students</span>
-                                        <span className="text-primary-500">
-                                            {data.student_count}
-                                        </span>
-                                    </div>
-                                </CardDescription>
-                            </CardHeader>
-                        </Card>
                         {subModules.assess && (
-                            <Card className="grow bg-neutral-50 shadow-none">
+                            <Card className="flex-1 grow bg-neutral-50 shadow-none">
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
                                         <CardTitle>Create your first assessment</CardTitle>
