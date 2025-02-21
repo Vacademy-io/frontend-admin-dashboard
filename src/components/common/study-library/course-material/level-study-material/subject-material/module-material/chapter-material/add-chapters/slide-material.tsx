@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import YooptaEditor, { createYooptaEditor } from "@yoopta/editor";
-import { useEffect, useMemo, useRef } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
 import PDFViewer from "../slides-material/pdf-viewer";
 import { ActivityStatsSidebar } from "../slides-material/stats-dialog/activity-sidebar";
@@ -13,7 +13,7 @@ import { SlidesMenuOption } from "../slides-material/slides-menu-options/slides-
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
 import { useRouter } from "@tanstack/react-router";
 import { getPublicUrl } from "@/services/upload_file";
-import { PublishDialog } from "../slides-material/publish-slide-dialog";
+import { PublishUnpublishDialog } from "../slides-material/publish-slide-dialog";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { toast } from "sonner";
 import { Check, PencilSimpleLine } from "phosphor-react";
@@ -57,14 +57,6 @@ export const SlideMaterial = () => {
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
     };
-
-    // const saveHeading = () => {
-    //     if (activeItem) {
-    //         const updatedItem = { ...activeItem, name: heading };
-    //         setActiveItem(updatedItem); // Use setActiveItem to update the store
-    //     }
-    //     setIsEditing(false);
-    // };
 
     const updateHeading = async () => {
         if (activeItem) {
@@ -122,7 +114,7 @@ export const SlideMaterial = () => {
                     marks={MARKS}
                     value={editorContent}
                     selectionBoxRoot={selectionRef}
-                    autoFocus
+                    autoFocus={true}
                     onChange={() => {}}
                     className="size-full"
                     style={{ width: "100%", height: "100%" }}
@@ -177,6 +169,65 @@ export const SlideMaterial = () => {
         }
 
         return;
+    };
+
+    const handlePublishUnpublishSlide = async (
+        setIsOpen: Dispatch<SetStateAction<boolean>>,
+        notify: boolean,
+    ) => {
+        const status = activeItem?.status == "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+        const operation = status == "DRAFT" ? "unpublish" : "publish";
+        if (activeItem?.document_type == "DOC" || activeItem?.document_type == "PDF") {
+            const data = editor.getEditorValue();
+            const htmlString = html.serialize(editor, data);
+            const formattedHtmlString = formatHTMLString(htmlString);
+            try {
+                await addUpdateDocumentSlide({
+                    id: activeItem?.slide_id || "",
+                    title: activeItem?.slide_title || "",
+                    image_file_id: activeItem?.document_cover_file_id || "",
+                    description: activeItem?.slide_title || "",
+                    slide_order: 0,
+                    document_slide: {
+                        id: activeItem?.document_id || "",
+                        type: activeItem.document_type,
+                        data: formattedHtmlString,
+                        title: activeItem?.document_title || "",
+                        cover_file_id: activeItem.document_cover_file_id || "",
+                    },
+                    status: status,
+                    new_slide: false,
+                    notify: notify,
+                });
+                toast.success(`slide ${operation}ed successfully!`);
+                setIsOpen(false);
+            } catch {
+                toast.error(`Error in ${operation}ing the slide`);
+            }
+        } else {
+            try {
+                await addUpdateVideoSlide({
+                    id: activeItem?.slide_id,
+                    title: activeItem?.slide_title || "",
+                    description: activeItem?.slide_description || "",
+                    image_file_id: activeItem?.document_cover_file_id || "",
+                    slide_order: 0,
+                    video_slide: {
+                        id: activeItem?.video_id || "",
+                        description: activeItem?.video_description || "",
+                        url: activeItem?.video_url || "",
+                        title: activeItem?.video_title || "",
+                    },
+                    status: status,
+                    new_slide: false,
+                    notify: notify,
+                });
+                toast.success(`slide ${operation}ed successfully!`);
+                setIsOpen(false);
+            } catch {
+                toast.error(`Error in ${operation}ing the slide`);
+            }
+        }
     };
 
     useEffect(() => {
@@ -293,9 +344,10 @@ export const SlideMaterial = () => {
                                 Save Draft
                             </MyButton>
                         )}
-                        <PublishDialog
+                        <PublishUnpublishDialog
                             isOpen={isPublishDialogOpen}
                             setIsOpen={setIsPublishDialogOpen}
+                            handlePublishUnpublishSlide={handlePublishUnpublishSlide}
                         />
                     </div>
                     <SlidesMenuOption />
