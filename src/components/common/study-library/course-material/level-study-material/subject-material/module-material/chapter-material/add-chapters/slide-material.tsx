@@ -181,6 +181,8 @@ export const SlideMaterial = () => {
             const data = editor.getEditorValue();
             const htmlString = html.serialize(editor, data);
             const formattedHtmlString = formatHTMLString(htmlString);
+            const documentData =
+                activeItem?.document_type == "PDF" ? activeItem.document_data : formattedHtmlString;
             try {
                 await addUpdateDocumentSlide({
                     id: activeItem?.slide_id || "",
@@ -191,7 +193,7 @@ export const SlideMaterial = () => {
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: activeItem.document_type,
-                        data: formattedHtmlString,
+                        data: documentData || "",
                         title: activeItem?.document_title || "",
                         cover_file_id: activeItem.document_cover_file_id || "",
                     },
