@@ -13,7 +13,7 @@ import { useSelectedSessionStore } from "@/stores/study-library/selected-session
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { LevelSchema } from "@/schemas/student/student-list/institute-schema";
 import { useEffect } from "react";
-
+import { Checkbox } from "@/components/ui/checkbox";
 // // Form schema
 const formSchema = z.object({
     chapterName: z.string().min(1, "Chapter name is required"),
@@ -166,7 +166,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex max-h-[80vh] w-full flex-col gap-6 overflow-y-auto p-6 text-neutral-600"
+                className="flex max-h-[80vh] w-full flex-col gap-6 p-3 text-neutral-600"
             >
                 {/* Chapter Name field remains the same */}
                 <FormField
@@ -188,7 +188,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                     )}
                 />
 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 overflow-y-auto">
                     <div className="text-subtitle font-semibold">Chapter Visibility</div>
                     <div className="text-body text-neutral-500">
                         Select the levels you want to grant access to this chapter.
@@ -221,17 +221,17 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                             className="flex flex-col gap-2 rounded-lg p-4"
                                         >
                                             <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
+                                                <Checkbox
+                                                    className="bg-white"
                                                     checked={allSelected}
-                                                    onChange={() =>
+                                                    onCheckedChange={() => {
                                                         handleSelectAllForCourse(
                                                             course.package_dto.id,
                                                             course.levels,
                                                             field,
-                                                        )
-                                                    }
-                                                    className="h-4 w-4 rounded"
+                                                        );
+                                                    }}
+                                                    aria-label="Select all"
                                                 />
                                                 <span className="font-semibold">
                                                     {course.package_dto.package_name}
@@ -256,8 +256,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                         : "visible"
                                                                 }`}
                                                             >
-                                                                <input
-                                                                    type="checkbox"
+                                                                <Checkbox
                                                                     checked={
                                                                         packageSessionId
                                                                             ? (
@@ -267,12 +266,13 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                               )
                                                                             : false
                                                                     }
-                                                                    onChange={(e) => {
+                                                                    onCheckedChange={(
+                                                                        checked: boolean,
+                                                                    ) => {
                                                                         if (!packageSessionId)
                                                                             return;
 
-                                                                        const newValue = e.target
-                                                                            .checked
+                                                                        const newValue = checked
                                                                             ? [
                                                                                   ...(field.value ||
                                                                                       []),
@@ -285,9 +285,9 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                                       id !==
                                                                                       packageSessionId,
                                                                               );
+
                                                                         field.onChange(newValue);
                                                                     }}
-                                                                    className="h-4 w-4 rounded"
                                                                 />
                                                                 <span className="text-sm">
                                                                     {level.level_name}
@@ -306,7 +306,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                 </div>
 
                 {/* Submit button remains the same */}
-                <div className="sticky bottom-0 flex w-full items-center justify-end bg-white py-4">
+                <div className="flex w-full items-center justify-end bg-white">
                     <MyButton
                         type="submit"
                         buttonType="primary"

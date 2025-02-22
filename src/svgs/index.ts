@@ -18,3 +18,5 @@ export { default as OnboardingFrame } from "./onboarding-frame.svg";
 export { default as OnboardingSignup } from "./onboarding-signup.svg";
 export { default as DashboardCreateCourse } from "./dashboard-create-course.svg";
 export { default as CreateAssessmentDashboardLogo } from "./create-assessment-dashboard.svg";
+export { default as EmptyLevelPage } from "./empty-level-page.svg";
+export { default as EmptyCoursePage } from "./empty-course-image.svg";
