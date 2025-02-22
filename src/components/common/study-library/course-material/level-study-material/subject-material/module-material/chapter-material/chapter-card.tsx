@@ -19,16 +19,7 @@ export const ChapterCard = ({ chapter, onDelete, onEdit }: ChapterCardProps) => 
     const { courseId, levelId, subjectId, moduleId } = router.state.location.search;
     const navigate = useNavigate();
 
-    const handleCardClick = (e: React.MouseEvent) => {
-        if (
-            (e.target as HTMLElement).closest(".menu-options-container") ||
-            (e.target as HTMLElement).closest('[role="menu"]') ||
-            (e.target as HTMLElement).closest(".drag-handle-container") ||
-            (e.target as HTMLElement).closest('[role="dialog"]')
-        ) {
-            return;
-        }
-
+    const navigateToSlidePage = () => {
         const currentPath = router.state.location.pathname;
 
         navigate({
@@ -43,13 +34,30 @@ export const ChapterCard = ({ chapter, onDelete, onEdit }: ChapterCardProps) => 
         });
     };
 
+    const handleCardClick = (e: React.MouseEvent) => {
+        if (
+            (e.target as HTMLElement).closest(".menu-options-container") ||
+            (e.target as HTMLElement).closest('[role="menu"]') ||
+            (e.target as HTMLElement).closest(".drag-handle-container") ||
+            (e.target as HTMLElement).closest('[role="dialog"]')
+        ) {
+            return;
+        }
+        navigateToSlidePage();
+    };
+
     return (
         <div onClick={handleCardClick} className="w-full cursor-pointer">
             <div className="flex w-full flex-col justify-center gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md">
                 <div className="flex items-center justify-between text-subtitle font-semibold">
                     <div>{chapter.chapter.chapter_name}</div>
                     <div className="flex items-center gap-6">
-                        <ChapterMenuOptions chapter={chapter} onDelete={onDelete} onEdit={onEdit} />
+                        <ChapterMenuOptions
+                            chapter={chapter}
+                            onDelete={onDelete}
+                            onEdit={onEdit}
+                            viewChapterDetails={navigateToSlidePage}
+                        />
                         <SortableDragHandle
                             variant="ghost"
                             size="icon"
