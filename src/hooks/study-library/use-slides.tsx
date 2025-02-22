@@ -6,6 +6,7 @@ import {
     ADD_UPDATE_VIDEO_SLIDE,
     ADD_UPDATE_DOCUMENT_SLIDE,
     UPDATE_SLIDE_STATUS,
+    UPDATE_SLIDE_ORDER,
 } from "@/constants/urls";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
@@ -70,6 +71,16 @@ interface UpdateStatusParams {
     instituteId: string;
 }
 
+export type slideOrderPayloadType = {
+    slide_id: string;
+    slide_order: number;
+}[];
+
+interface UpdateSlideOrderParams {
+    chapterId: string;
+    slideOrderPayload: slideOrderPayloadType;
+}
+
 export const useSlides = (chapterId: string) => {
     const queryClient = useQueryClient();
     const { setItems } = useContentStore();
@@ -84,7 +95,6 @@ export const useSlides = (chapterId: string) => {
             setItems(response.data);
             return response.data;
         },
-        staleTime: 3600000,
     });
 
     const addUpdateVideoSlideMutation = useMutation({
@@ -130,6 +140,20 @@ export const useSlides = (chapterId: string) => {
         },
     });
 
+    const updateSlideOrderMutation = useMutation({
+        mutationFn: async ({ chapterId, slideOrderPayload }: UpdateSlideOrderParams) => {
+            return await authenticatedAxiosInstance.put(
+                `${UPDATE_SLIDE_ORDER}?chapterId=${chapterId}`,
+                slideOrderPayload,
+            );
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["slides"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+        },
+    });
+
     return {
         slides: getSlidesQuery.data,
         isLoading: getSlidesQuery.isLoading,
@@ -137,7 +161,10 @@ export const useSlides = (chapterId: string) => {
         addUpdateVideoSlide: addUpdateVideoSlideMutation.mutateAsync,
         addUpdateDocumentSlide: addUpdateDocumentSlideMutation.mutateAsync,
         updateSlideStatus: updateSlideStatus.mutateAsync,
+        updateSlideOrder: updateSlideOrderMutation.mutateAsync,
         isUpdating:
-            addUpdateVideoSlideMutation.isPending || addUpdateDocumentSlideMutation.isPending,
+            addUpdateVideoSlideMutation.isPending ||
+            addUpdateDocumentSlideMutation.isPending ||
+            updateSlideOrderMutation.isPending,
     };
 };

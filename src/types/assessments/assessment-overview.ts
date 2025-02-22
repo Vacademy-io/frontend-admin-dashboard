@@ -118,3 +118,26 @@ export interface ResponseQuestionListClose {
         | StudentDetailsPendingClose[]
         | StudentDetailsOngoingClose[];
 }
+
+export interface AssessmentReportStudentInterface {
+    attempt_date: string; // ISO date string
+    end_time: string; // ISO date string
+    attempt_status: string; // Add other possible statuses if needed
+    duration_in_seconds: number;
+    assessment_status: string; // Add other possible statuses if needed
+    attempt_id: string;
+    start_time: string; // ISO date string
+    assessment_id: string;
+    total_marks: number;
+    assessment_name: string;
+    subject_id: string;
+}
+
+export interface AssessmentReportInterface {
+    content: AssessmentReportStudentInterface[];
+    page_no: number;
+    page_size: number;
+    total_elements: number;
+    total_pages: number;
+    last: boolean;
+}

@@ -11,6 +11,20 @@ export const ActivityStatusData: Record<
         };
     }
 > = {
+    Attempted: {
+        icon: CheckCircle,
+        color: {
+            bg: "bg-success-50",
+            icon: "text-success-600",
+        },
+    },
+    "Not Attempted": {
+        icon: XCircle,
+        color: {
+            bg: "bg-neutral-100",
+            icon: "text-neutral-600",
+        },
+    },
     active: {
         icon: CheckCircle,
         color: {
@@ -37,6 +51,27 @@ export const ActivityStatusData: Record<
         color: {
             bg: "bg-danger-100",
             icon: "text-danger-600",
+        },
+    },
+    LIVE: {
+        icon: CheckCircle,
+        color: {
+            bg: "bg-success-50",
+            icon: "text-success-600",
+        },
+    },
+    ENDED: {
+        icon: XCircle,
+        color: {
+            bg: "bg-neutral-100",
+            icon: "text-neutral-600",
+        },
+    },
+    PENDING: {
+        icon: WarningCircle,
+        color: {
+            bg: "bg-warning-100",
+            icon: "text-warning-600",
         },
     },
 };

@@ -5,16 +5,15 @@ import { StatusIcon } from "../../status-icon";
 import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
 
 interface TopicProps {
-    studyMedium: string;
     topicData: TopicActivityDetails;
 }
 
-export const Topic = ({ studyMedium, topicData }: TopicProps) => {
+export const Topic = ({ topicData }: TopicProps) => {
     const openDialog = useActivityStatsStore((state) => state.openDialog);
 
     const handleOpenDialog = () => {
         if (topicData.activity_log) {
-            openDialog(topicData.id, topicData.topic, studyMedium, topicData.activity_log);
+            openDialog(topicData.id);
         }
     };
 

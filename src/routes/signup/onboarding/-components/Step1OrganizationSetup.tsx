@@ -47,11 +47,7 @@ const Step1OrganizationSetup: React.FC<OrganizationOnboardingProps> = ({
         },
         mode: "onChange",
     });
-    const isValid =
-        !!form.getValues("profilePictureUrl") &&
-        !!form.getValues("instituteProfilePic") &&
-        !!form.getValues("instituteName") &&
-        !!form.getValues("instituteType");
+    const isValid = !!form.getValues("instituteName") && !!form.getValues("instituteType");
     form.watch();
     function onSubmit(values: FormValues) {
         handleCompleteCurrentStep();
