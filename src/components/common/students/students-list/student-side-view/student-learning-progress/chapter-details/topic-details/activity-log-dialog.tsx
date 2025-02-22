@@ -61,10 +61,14 @@ export const ActivityLogDialog = () => {
             activityDate: formatDateTime(item.start_time_in_millis).split(",")[0],
             startTime: formatDateTime(item.start_time_in_millis).split(",")[1],
             endTime: formatDateTime(item.end_time_in_millis).split(",")[1],
-            duration: `${Math.round(
-                (item.end_time_in_millis - item.start_time_in_millis) / 1000 / 60,
-            )} mins`,
+            duration: `${(
+                (item.end_time_in_millis - item.start_time_in_millis) /
+                1000 /
+                60
+            ).toFixed(2)} mins`,
             lastPageRead: item.percentage_watched,
+            videos: item.videos,
+            documents: item.documents,
         }));
 
         return {
