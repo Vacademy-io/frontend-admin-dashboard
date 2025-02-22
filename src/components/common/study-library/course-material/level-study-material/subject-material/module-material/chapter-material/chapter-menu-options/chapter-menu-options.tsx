@@ -13,14 +13,21 @@ interface ChapterMenuOptionsProps {
     chapter: ChapterWithSlides;
     onDelete: () => void;
     onEdit: (updatedChapter: ChapterWithSlides) => void;
+    viewChapterDetails: () => void;
 }
 
-export const ChapterMenuOptions = ({ chapter, onDelete, onEdit }: ChapterMenuOptionsProps) => {
+export const ChapterMenuOptions = ({
+    chapter,
+    onDelete,
+    onEdit,
+    viewChapterDetails,
+}: ChapterMenuOptionsProps) => {
     const [openDialog, setOpenDialog] = useState<"copy" | "move" | "delete" | "edit" | null>(null);
 
     const handleSelect = (value: string) => {
         switch (value) {
             case "view":
+                viewChapterDetails();
                 break;
             case "edit":
                 setOpenDialog("edit");

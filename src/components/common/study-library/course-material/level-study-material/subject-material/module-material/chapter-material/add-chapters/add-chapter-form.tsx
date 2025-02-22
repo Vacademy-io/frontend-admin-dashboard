@@ -14,6 +14,7 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { LevelSchema } from "@/schemas/student/student-list/institute-schema";
 import { useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 // // Form schema
 const formSchema = z.object({
     chapterName: z.string().min(1, "Chapter name is required"),
@@ -30,14 +31,14 @@ interface AddChapterFormProps {
 
 export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChapterFormProps) => {
     const router = useRouter();
-    // const courseId: string = router.state.location.search.courseId || "";
-    // const levelId: string = router.state.location.search.levelId || "";
+    const courseId: string = router.state.location.search.courseId || "";
+    const levelId: string = router.state.location.search.levelId || "";
     const { selectedSession } = useSelectedSessionStore();
     const sessionId: string = selectedSession?.id || "";
     const moduleId: string = router.state.location.search.moduleId || "";
     const addChapterMutation = useAddChapter();
     const updateChapterMutation = useUpdateChapter();
-    // const package_session_id = useGetPackageSessionId(courseId, sessionId, levelId) || "";
+    const package_session_id = useGetPackageSessionId(courseId, sessionId, levelId) || "";
     const { getPackageWiseLevels, getPackageSessionId } = useInstituteDetailsStore();
     const coursesWithLevels = getPackageWiseLevels({
         sessionId: sessionId,
@@ -60,7 +61,10 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
         resolver: zodResolver(formSchema),
         defaultValues: {
             chapterName: initialValues?.chapter.chapter_name || "",
-            visibility: defaultVisibility,
+            visibility: {
+                ...defaultVisibility,
+                [courseId]: package_session_id ? [package_session_id] : [], // Add the package_session_id to the corresponding course
+            },
         },
     });
 
@@ -246,6 +250,8 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                 sessionId: sessionId,
                                                                 levelId: level.id,
                                                             });
+                                                        const isPreChecked =
+                                                            packageSessionId === package_session_id;
 
                                                         return (
                                                             <label
@@ -258,13 +264,14 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                             >
                                                                 <Checkbox
                                                                     checked={
-                                                                        packageSessionId
+                                                                        isPreChecked || // Add this condition
+                                                                        (packageSessionId
                                                                             ? (
                                                                                   field.value || []
                                                                               ).includes(
                                                                                   packageSessionId,
                                                                               )
-                                                                            : false
+                                                                            : false)
                                                                     }
                                                                     onCheckedChange={(
                                                                         checked: boolean,
