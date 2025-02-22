@@ -6,6 +6,7 @@ import { ChapterSidebarSlides } from "@/components/common/study-library/course-m
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { studyLibrarySteps } from "@/constants/intro/steps";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
+import { slideOrderPayloadType, useSlides } from "@/hooks/study-library/use-slides";
 import useIntroJsTour from "@/hooks/use-intro";
 import { truncateString } from "@/lib/reusable/truncateString";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
@@ -52,6 +53,10 @@ function RouteComponent() {
     const { open, state, toggleSidebar } = useSidebar();
     const navigate = useNavigate();
     const { activeItem } = useContentStore();
+    const [subjectName, setSubjectName] = useState("");
+    const [moduleName, setModuleName] = useState("");
+    const chapterName = useChapterName(chapterId);
+    const { updateSlideOrder } = useSlides(chapterId);
 
     useIntroJsTour({
         key: StudyLibraryIntroKey.addSlidesStep,
@@ -89,9 +94,16 @@ function RouteComponent() {
         setInputSearch(e.target.value);
     };
 
-    const [subjectName, setSubjectName] = useState("");
-    const [moduleName, setModuleName] = useState("");
-    const chapterName = useChapterName(chapterId);
+    const handleSlideOrderChange = async (slideOrderPayload: slideOrderPayloadType) => {
+        try {
+            await updateSlideOrder({
+                chapterId: chapterId,
+                slideOrderPayload: slideOrderPayload,
+            });
+        } catch (error) {
+            console.log("error updating slide order: ", error);
+        }
+    };
 
     const trucatedChapterName = truncateString(chapterName || "", 9);
 
@@ -137,7 +149,7 @@ function RouteComponent() {
                             }}
                         />
                     )}
-                    <ChapterSidebarSlides />
+                    <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
                 </div>
             </div>
             <SidebarFooter className="absolute bottom-0 flex w-full items-center justify-center py-10">

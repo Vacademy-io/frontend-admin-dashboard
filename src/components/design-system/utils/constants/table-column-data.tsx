@@ -10,7 +10,6 @@ import { StudentMenuOptions } from "../../table-components/student-menu-options/
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ActivityLogType } from "@/components/common/students/students-list/student-side-view/student-view-dummy-data/learning-progress";
 import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
-import { ActivityLog } from "@/components/common/students/students-list/student-side-view/student-view-dummy-data/learning-progress";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -232,12 +231,7 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
             // Create a regular function to handle the click
             const handleClick = () => {
                 const store = useActivityStatsStore.getState();
-                store.openDialog(
-                    row.original.user_id,
-                    "Activity Details",
-                    "Activity Stats",
-                    ActivityLog,
-                );
+                store.openDialog(row.original.user_id);
             };
 
             return (

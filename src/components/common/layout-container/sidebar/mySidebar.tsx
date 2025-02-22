@@ -64,7 +64,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             state == "expanded" ? "pl-4" : "pl-0"
                         }`}
                     >
-                        <img src={instituteLogo} alt="logo" className="size-12" />
+                        <img src={instituteLogo} alt="logo" className="size-12 rounded-full" />
                         <SidebarGroup
                             className={`text-[18px] font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}
                         >

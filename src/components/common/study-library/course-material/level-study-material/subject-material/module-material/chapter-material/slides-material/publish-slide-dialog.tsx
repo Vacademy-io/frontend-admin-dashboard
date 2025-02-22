@@ -1,46 +1,89 @@
 // publish-dialog.tsx
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { TokenKey } from "@/constants/auth/tokens";
-import { useSlides } from "@/hooks/study-library/use-slides";
-import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { useRouter } from "@tanstack/react-router";
-import { Dispatch, SetStateAction } from "react";
-import { toast } from "sonner";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { Dispatch, SetStateAction, useState } from "react";
 
-interface PublishDialogProps {
+interface PublishUnpublishDialogProps {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
+    handlePublishUnpublishSlide: (
+        setIsOpen: Dispatch<SetStateAction<boolean>>,
+        notify: boolean,
+    ) => void;
+}
+interface NotifyDialogProps {
+    openNotifyDialog: boolean;
+    setOpenNotifyDialog: Dispatch<SetStateAction<boolean>>;
+    handleNotify: (notify: boolean) => void;
 }
 
-export const PublishDialog = ({ isOpen, setIsOpen }: PublishDialogProps) => {
-    const router = useRouter();
-    const { chapterId, slideId } = router.state.location.search;
-    const { updateSlideStatus } = useSlides(chapterId || "");
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+const NotifyDialog = ({
+    openNotifyDialog,
+    setOpenNotifyDialog,
+    handleNotify,
+}: NotifyDialogProps) => {
+    return (
+        <MyDialog
+            heading="Notify"
+            dialogWidth="w-[400px]"
+            open={openNotifyDialog}
+            onOpenChange={setOpenNotifyDialog}
+        >
+            <div className="flex w-full flex-col gap-6">
+                <p>Do you want to send the notification to students about this slide?</p>
+                <div className="flex justify-end gap-4">
+                    <MyButton
+                        buttonType="secondary"
+                        onClick={() => {
+                            handleNotify(false);
+                        }}
+                    >
+                        No
+                    </MyButton>
+                    <MyButton
+                        buttonType="primary"
+                        onClick={() => {
+                            handleNotify(true);
+                        }}
+                    >
+                        Yes
+                    </MyButton>
+                </div>
+            </div>
+        </MyDialog>
+    );
+};
 
-    const handlePublish = async () => {
-        try {
-            await updateSlideStatus({
-                chapterId: chapterId || "",
-                slideId: slideId || "",
-                status: "PUBLISHED",
-                instituteId: INSTITUTE_ID || "",
-            });
-            toast.success("Slide published successfully!");
-            setIsOpen(false);
-        } catch (error) {
-            toast.error("Failed to publish the slide");
-        }
-    };
+export const PublishUnpublishDialog = ({
+    isOpen,
+    setIsOpen,
+    handlePublishUnpublishSlide,
+}: PublishUnpublishDialogProps) => {
+    const { activeItem } = useContentStore();
+    const [notify, setNotify] = useState(false);
+    const [openNotifyDialog, setOpenNotifyDialog] = useState(false);
 
-    const trigger = (
+    const publishTrigger = (
         <MyButton buttonType="primary" scale="medium" layoutVariant="default">
             Publish
         </MyButton>
     );
+
+    const unpublishTrigger = (
+        <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
+            Unpublish
+        </MyButton>
+    );
+
+    const trigger = activeItem?.status == "PUBLISHED" ? unpublishTrigger : publishTrigger;
+
+    const handleNotify = (notify: boolean) => {
+        setNotify(notify);
+        setOpenNotifyDialog(false);
+        setIsOpen(false);
+        handlePublishUnpublishSlide(setIsOpen, notify);
+    };
 
     return (
         <MyDialog
@@ -51,14 +94,33 @@ export const PublishDialog = ({ isOpen, setIsOpen }: PublishDialogProps) => {
             trigger={trigger}
         >
             <div className="flex w-full flex-col gap-6">
-                <p>Are you sure you want to publish this slide?</p>
+                <p>
+                    Are you sure you want to {trigger == unpublishTrigger ? "unpublish" : "publish"}{" "}
+                    this slide?
+                </p>
                 <div className="flex justify-end gap-4">
                     <MyButton buttonType="secondary" onClick={() => setIsOpen(false)}>
                         Cancel
                     </MyButton>
-                    <MyButton buttonType="primary" onClick={handlePublish}>
+
+                    <MyButton
+                        buttonType="primary"
+                        onClick={() => {
+                            if (trigger == unpublishTrigger) {
+                                handlePublishUnpublishSlide(setIsOpen, notify);
+                            } else {
+                                setOpenNotifyDialog(true);
+                            }
+                        }}
+                    >
                         Yes, I&apos;m sure
                     </MyButton>
+
+                    <NotifyDialog
+                        openNotifyDialog={openNotifyDialog}
+                        setOpenNotifyDialog={setOpenNotifyDialog}
+                        handleNotify={handleNotify}
+                    />
                 </div>
             </div>
         </MyDialog>

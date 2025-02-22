@@ -1,14 +1,14 @@
-// import { LanguageDropdown } from "@/components/common/localization/language-dropdown";
 import { FormContainerProps } from "@/types/login/loginTypes";
 import { LoginImage } from "@/assets/svgs";
-import { SSDC_Logo } from "@/assets/svgs";
+import useInstituteLogoStore from "../../layout-container/sidebar/institutelogo-global-zustand";
 
 export function FormContainer({ children }: FormContainerProps) {
+    const { instituteLogo } = useInstituteLogoStore();
     return (
         <div className="flex min-h-screen w-screen bg-white">
             <div className="relative flex w-full items-center justify-center bg-primary-100">
                 <div className="absolute left-8 top-8">
-                    <SSDC_Logo />
+                    <img src={instituteLogo} alt="logo" className="size-12 rounded-full" />
                 </div>
                 <LoginImage />
             </div>

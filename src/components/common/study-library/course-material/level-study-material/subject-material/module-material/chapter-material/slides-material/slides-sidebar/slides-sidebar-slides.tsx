@@ -1,26 +1,45 @@
-// components/common/study-library/slides-sidebar-slides.tsx
 import { useSidebar } from "@/components/ui/sidebar";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { truncateString } from "@/lib/reusable/truncateString";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from "@phosphor-icons/react";
 import { ReactNode, useEffect } from "react";
-import { Slide, useSlides } from "@/hooks/study-library/use-slides";
+import { Slide, slideOrderPayloadType, useSlides } from "@/hooks/study-library/use-slides";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
+import { useFieldArray, useForm } from "react-hook-form";
 
-export const ChapterSidebarSlides = () => {
+interface FormValues {
+    slides: Slide[];
+}
+
+export const ChapterSidebarSlides = ({
+    handleSlideOrderChange,
+}: {
+    handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
+}) => {
     const { open } = useSidebar();
-    const { setItems, activeItem, setActiveItem, reorderItems } = useContentStore();
+    const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
     const { slides, isLoading } = useSlides(chapterId || "");
 
+    const form = useForm<FormValues>({
+        defaultValues: {
+            slides: items || [],
+        },
+    });
+
+    const { fields, move } = useFieldArray({
+        control: form.control,
+        name: "slides",
+    });
+
     useEffect(() => {
         if (slides?.length) {
+            form.reset({ slides });
             setItems(slides);
 
-            // If we have a slideId in URL, find that slide
             if (slideId) {
                 const targetSlide: Slide = slides.find(
                     (slide: Slide) => slide.slide_id === slideId,
@@ -31,7 +50,6 @@ export const ChapterSidebarSlides = () => {
                 }
             }
 
-            // If no slideId or slide not found, set first slide as active
             setActiveItem(slides[0]);
         } else {
             setActiveItem(null);
@@ -55,7 +73,19 @@ export const ChapterSidebarSlides = () => {
     };
 
     const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
-        reorderItems(activeIndex, overIndex);
+        move(activeIndex, overIndex);
+
+        // Create order payload after move
+        const updatedFields = form.getValues("slides");
+
+        // Create order payload with the updated order
+        const orderPayload = updatedFields.map((slide, index) => ({
+            slide_id: slide.slide_id,
+            slide_order: index + 1,
+        }));
+
+        // Call the handler to update the order through API
+        handleSlideOrderChange(orderPayload);
     };
 
     if (isLoading) {
@@ -63,44 +93,48 @@ export const ChapterSidebarSlides = () => {
     }
 
     return (
-        <Sortable value={slides} onMove={handleMove} fast={false}>
+        <Sortable value={fields} onMove={handleMove} fast={false}>
             <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
-                {slides?.map((slide: Slide) => (
-                    <SortableItem key={slide.slide_id} value={slide.slide_id} asChild>
-                        <div className="w-full cursor-grab active:cursor-grabbing">
+                {fields.map((slide) => (
+                    <SortableItem key={slide.id} value={slide.id} asChild>
+                        <div className="w-full" onClick={() => setActiveItem(slide)}>
                             <div
-                                onClick={() => setActiveItem(slide)}
-                                className={`flex w-full items-center gap-3 rounded-xl px-4 py-2 ${
+                                className={`flex w-full items-center gap-3 rounded-xl ${
+                                    open ? "px-4 py-2" : "px-4 py-4"
+                                } ${
                                     slide.slide_id === activeItem?.slide_id
                                         ? "border border-neutral-200 bg-white text-primary-500"
                                         : "hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500"
                                 }`}
-                                title={slide.document_title || slide.video_title || ""}
                             >
-                                {getIcon(slide)}
-                                <p
-                                    className={`flex-1 text-subtitle ${
-                                        open ? "visible" : "hidden"
-                                    } text-body`}
-                                >
-                                    {truncateString(
-                                        slide.document_title || slide.video_title || "",
-                                        18,
-                                    )}
-                                </p>
-                                <div className="drag-handle-container">
-                                    <SortableDragHandle
-                                        variant="ghost"
-                                        size="icon"
-                                        className="cursor-grab hover:bg-neutral-100"
+                                <div className="flex flex-1 items-center gap-3">
+                                    {getIcon(slide)}
+                                    <p
+                                        className={`flex-1 text-subtitle ${
+                                            open ? "visible" : "hidden"
+                                        } text-body`}
                                     >
-                                        <DotsSixVertical
-                                            className={`size-6 flex-shrink-0 ${
-                                                open ? "visible" : "hidden"
-                                            }`}
-                                        />
-                                    </SortableDragHandle>
+                                        {truncateString(
+                                            slide.document_title || slide.video_title || "",
+                                            18,
+                                        )}
+                                    </p>
                                 </div>
+                                {open && (
+                                    <div className="drag-handle-container">
+                                        <SortableDragHandle
+                                            variant="ghost"
+                                            size="icon"
+                                            className="cursor-grab hover:bg-neutral-100 active:cursor-grabbing"
+                                        >
+                                            <DotsSixVertical
+                                                className={`size-6 flex-shrink-0 ${
+                                                    open ? "visible" : "hidden"
+                                                }`}
+                                            />
+                                        </SortableDragHandle>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </SortableItem>
