@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
-import { ArrowSquareOut, CaretUpDown } from "@phosphor-icons/react";
+import { ArrowSquareOut, CaretUpDown, Info } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyDropdown } from "../../dropdown";
 import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
@@ -10,6 +10,7 @@ import { StudentMenuOptions } from "../../table-components/student-menu-options/
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ActivityLogType } from "@/components/common/students/students-list/student-side-view/student-view-dummy-data/learning-progress";
 import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -190,6 +191,11 @@ export interface ActivityLogDialogProps {
     studyType: string;
 }
 
+const LastPageReadHeader = () => {
+    const { activeItem } = useContentStore();
+    return <>{activeItem?.video_url != null ? "Percentage Watched" : "Total Pages Read"}</>;
+};
+
 export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
     {
         accessorKey: "activityDate",
@@ -209,7 +215,12 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
     },
     {
         accessorKey: "lastPageRead",
-        header: "Last Page Read",
+        header: () => <LastPageReadHeader />,
+    },
+    {
+        accessorKey: "Details",
+        header: "Info",
+        cell: () => <Info size={20} className="cursor-pointer text-primary-500" />,
     },
 ];
 
