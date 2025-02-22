@@ -15,14 +15,14 @@ class StudyMediumFactory {
         "E-Book": {
             render: (topicsData: ChapterDetailsType) =>
                 topicsData.e_book?.map((topicData, key) => (
-                    <Topic studyMedium="E-Book" topicData={topicData} key={key} />
+                    <Topic topicData={topicData} key={key} />
                 )) || [],
             getLength: (topicsData: ChapterDetailsType) => topicsData.e_book?.length || 0,
         },
         Videos: {
             render: (topicsData: ChapterDetailsType) =>
                 topicsData.videos?.map((topicData, key) => (
-                    <Topic studyMedium="Videos" topicData={topicData} key={key} />
+                    <Topic topicData={topicData} key={key} />
                 )) || [],
             getLength: (topicsData: ChapterDetailsType) => topicsData.videos?.length || 0,
         },
