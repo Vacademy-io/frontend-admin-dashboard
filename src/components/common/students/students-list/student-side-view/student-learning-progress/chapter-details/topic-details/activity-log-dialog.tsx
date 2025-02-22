@@ -67,6 +67,8 @@ export const ActivityLogDialog = () => {
                 60
             ).toFixed(2)} mins`,
             lastPageRead: item.percentage_watched,
+            videos: item.videos,
+            documents: item.documents,
         }));
 
         return {
