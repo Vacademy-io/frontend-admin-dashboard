@@ -19,11 +19,11 @@ export const LayoutContainer = ({
             <div>
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
-            <div className="w-full flex-1">
+            <div className="flex w-full flex-1 flex-col">
                 <Navbar />
                 <div
                     className={cn(
-                        "m-7",
+                        "m-7 flex flex-1 flex-col",
                         open ? "max-w-[calc(100vw-379px)]" : "max-w-[calc(100vw-188px)]",
                         className,
                     )}

@@ -48,7 +48,9 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={handleBackClick} className="cursor-pointer" />
-            <div>{`${levelId == "DEFAULT" ? courseName : levelName} Subjects`}</div>
+            <div>
+                {levelName} {courseName}
+            </div>
         </div>
     );
 

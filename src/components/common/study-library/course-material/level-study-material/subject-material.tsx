@@ -3,7 +3,6 @@ import { useRouter } from "@tanstack/react-router";
 import { AddSubjectButton } from "./subject-material/add-subject.tsx/add-subject-button";
 import { Subjects } from "./subject-material/add-subject.tsx/subjects";
 import { useEffect, useState } from "react";
-import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import {
     StudyLibrarySessionType,
     SubjectType,
@@ -15,7 +14,7 @@ import { useDeleteSubject } from "@/services/study-library/subject-operations/de
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SessionDropdown } from "../../study-library-session-dropdown";
 import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
-import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
+// import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 import { useUpdateSubjectOrder } from "@/services/study-library/subject-operations/updateSubjectOrder";
 import { orderSubjectPayloadType } from "@/types/study-library/order-payload";
@@ -24,7 +23,7 @@ import { useSelectedSessionStore } from "@/stores/study-library/selected-session
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
-import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
+// import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
 
 export const SubjectMaterial = () => {
     const router = useRouter();
@@ -44,7 +43,7 @@ export const SubjectMaterial = () => {
     const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
         initialSession,
     );
-    const [searchInput, setSearchInput] = useState("");
+    // const [searchInput, setSearchInput] = useState("");
 
     // Custom hooks (always called unconditionally)
     const addSubjectMutation = useAddSubject();
@@ -74,13 +73,13 @@ export const SubjectMaterial = () => {
         setSubjects(newSubjects);
     }, [currentSession, studyLibraryData]);
 
-    const classNumber = getLevelName(levelId);
+    // const classNumber = getLevelName(levelId);
     const packageSessionIds =
         useGetPackageSessionId(courseId, currentSession?.id ?? "", levelId) || "";
 
-    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchInput(e.target.value);
-    };
+    // const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setSearchInput(e.target.value);
+    // };
 
     const handleAddSubject = async (newSubject: SubjectType) => {
         if (packageSessionIds.length === 0) {
@@ -115,7 +114,7 @@ export const SubjectMaterial = () => {
         return <p>Missing required parameters</p>;
     }
 
-    const courseName = getCourseNameById(courseId);
+    // const courseName = getCourseNameById(courseId);
 
     const isLoading =
         addSubjectMutation.isPending ||
@@ -126,17 +125,13 @@ export const SubjectMaterial = () => {
         <DashboardLoader />
     ) : (
         <div className="flex size-full flex-col gap-8 text-neutral-600">
-            <div className="flex items-center justify-between gap-80">
+            <div className="flex items-center justify-between gap-8">
                 <div className="flex w-full flex-col gap-2">
-                    <div className="text-h3 font-semibold">
-                        {`Manage ${classNumber} Class Resources`}
-                    </div>
+                    <div className="text-h3 font-semibold">{`Manage Batch Subjects`}</div>
                     <div className="text-subtitle">
-                        {`Explore and manage resources for ${
-                            levelId == "DEFAULT" ? courseName : classNumber
-                        }. Click on a subject to view and
+                        Explore and manage resources for the batch. Click on a subject to view and
                         organize eBooks and video lectures, or upload new content to enrich your
-                        study library.`}
+                        learning centre.
                     </div>
                 </div>
                 <AddSubjectButton onAddSubject={handleAddSubject} />
@@ -148,11 +143,12 @@ export const SubjectMaterial = () => {
                     className="text-title font-semibold"
                     sessionList={sessionList}
                 />
-                <SearchInput
+                {/* TODO: aad search fuctionlity when api is created
+                    <SearchInput
                     searchInput={searchInput}
                     onSearchChange={handleSearchInputChange}
                     placeholder="Search subject"
-                />
+                /> */}
             </div>
             <Subjects
                 subjects={subjects}

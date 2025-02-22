@@ -63,10 +63,10 @@ export const CourseCard = ({
                 <img
                     src={imageUrl}
                     alt={course.package_name}
-                    className={`size-full rounded-lg object-cover`}
+                    className={`size-full h-[85%] rounded-lg object-cover`}
                 />
             ) : (
-                <SubjectDefaultImage className={`size-full rounded-lg object-cover`} />
+                <SubjectDefaultImage className={`size-full h-[85%] rounded-lg object-cover`} />
             )}
             <div className="flex w-full justify-between gap-3">
                 <div className="text-semibold w-full text-wrap text-center text-subtitle font-semibold text-neutral-600">

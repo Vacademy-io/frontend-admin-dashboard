@@ -254,53 +254,55 @@ export const SlideMaterial = () => {
 
     return (
         <div className="flex w-full flex-col" ref={selectionRef}>
-            <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
-                {isEditing ? (
-                    <div className="flex items-center justify-center gap-2">
-                        <input
-                            type="text"
-                            value={heading}
-                            onChange={handleHeadingChange}
-                            className="w-full text-h3 font-semibold text-neutral-600 focus:outline-none"
-                            autoFocus
-                        />
-                        <Check
-                            onClick={updateHeading}
-                            className="cursor-pointer hover:text-primary-500"
-                        />
-                    </div>
-                ) : (
-                    <div className="flex items-center justify-center gap-2">
-                        <h3 className="text-h3 font-semibold text-neutral-600">
-                            {heading || "No content selected"}
-                        </h3>
-                        <PencilSimpleLine
-                            className="cursor-pointer hover:text-primary-500"
-                            onClick={() => setIsEditing(true)}
-                        />
-                    </div>
-                )}
-                <div className="flex items-center gap-6">
+            {activeItem && (
+                <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
+                    {isEditing ? (
+                        <div className="flex items-center justify-center gap-2">
+                            <input
+                                type="text"
+                                value={heading}
+                                onChange={handleHeadingChange}
+                                className="w-full text-h3 font-semibold text-neutral-600 focus:outline-none"
+                                autoFocus
+                            />
+                            <Check
+                                onClick={updateHeading}
+                                className="cursor-pointer hover:text-primary-500"
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center gap-2">
+                            <h3 className="text-h3 font-semibold text-neutral-600">
+                                {heading || "No content selected"}
+                            </h3>
+                            <PencilSimpleLine
+                                className="cursor-pointer hover:text-primary-500"
+                                onClick={() => setIsEditing(true)}
+                            />
+                        </div>
+                    )}
                     <div className="flex items-center gap-6">
-                        <ActivityStatsSidebar />
-                        {activeItem?.document_type == "DOC" && (
-                            <MyButton
-                                buttonType="secondary"
-                                scale="medium"
-                                layoutVariant="default"
-                                onClick={handleSaveDraftClick}
-                            >
-                                Save Draft
-                            </MyButton>
-                        )}
-                        <PublishDialog
-                            isOpen={isPublishDialogOpen}
-                            setIsOpen={setIsPublishDialogOpen}
-                        />
+                        <div className="flex items-center gap-6">
+                            <ActivityStatsSidebar />
+                            {activeItem?.document_type == "DOC" && (
+                                <MyButton
+                                    buttonType="secondary"
+                                    scale="medium"
+                                    layoutVariant="default"
+                                    onClick={handleSaveDraftClick}
+                                >
+                                    Save Draft
+                                </MyButton>
+                            )}
+                            <PublishDialog
+                                isOpen={isPublishDialogOpen}
+                                setIsOpen={setIsPublishDialogOpen}
+                            />
+                        </div>
+                        <SlidesMenuOption />
                     </div>
-                    <SlidesMenuOption />
                 </div>
-            </div>
+            )}
             <div
                 className={`mx-auto mt-14 ${
                     activeItem?.document_type == "PDF" ? "h-[calc(100vh-200px)]" : "h-full"
