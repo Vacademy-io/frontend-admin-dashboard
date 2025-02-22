@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 import { TokenKey } from "@/constants/auth/tokens";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
@@ -109,7 +110,7 @@ export const AddCourseForm = ({
             id: initialValues?.id || "",
             course_name: initialValues?.course_name || "",
             thumbnail_file_id: initialValues?.thumbnail_file_id || fileId,
-            contain_levels: initialValues?.contain_levels || false,
+            contain_levels: initialValues?.contain_levels || true,
             status: initialValues?.status || "ACTIVE",
             levels: [],
         },
@@ -201,7 +202,7 @@ export const AddCourseForm = ({
                 onSubmit={(e) => {
                     form.handleSubmit(onSubmit)(e);
                 }}
-                className="flex max-h-[80vh] flex-col gap-6 overflow-y-auto p-2 text-neutral-600"
+                className="flex max-h-[80vh] flex-col gap-8 overflow-y-auto p-2 text-neutral-600"
             >
                 <FormField
                     control={form.control}
@@ -250,28 +251,6 @@ export const AddCourseForm = ({
                             isUploading ? "hidden" : "visible"
                         }`}
                     >
-                        {/* <div className="w-full flex gap-6 items-end">
-                                <MyInput
-                                    label="Image link"
-                                    inputPlaceholder="Paste link to an image..."
-                                    inputType="text"
-                                    className="w-[300px]"
-                                    input={imageUrl}
-                                    onChangeFunction={handleImageUrlChange}
-                                />
-                                <MyButton
-                                   onClick={() => fileInputRef.current?.click()}
-                                   disabled={isUploading || isUploadingFile}
-                                   buttonType="primary"
-                                   layoutVariant="icon"
-                                   scale="small"
-                                   type="button"
-                                   className="mb-2"
-                                >
-                                    <Check />
-                                </MyButton>
-                            </div>
-                            <p>OR</p> */}
                         <MyButton
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isUploading || isUploadingFile}
@@ -284,18 +263,23 @@ export const AddCourseForm = ({
                         </MyButton>
                     </div>
                 </div>
+
+                <Separator />
+
                 {!initialValues && (
                     <FormField
                         control={form.control}
                         name="contain_levels"
                         render={({ field }) => (
                             <FormItem className="space-y-2">
-                                <label className="text-sm font-medium">Contains Levels?</label>
+                                <label className="text-subtitle font-semibold">
+                                    Contains Levels?
+                                </label>
                                 <FormControl>
                                     <RadioGroup
                                         value={field.value ? "true" : "false"}
                                         onValueChange={(value) => field.onChange(value === "true")}
-                                        className="flex gap-4"
+                                        className="flex gap-8"
                                     >
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem value="true" id="contain_levels_true" />
@@ -375,9 +359,17 @@ export const AddCourseForm = ({
                                                             }}
                                                         />
                                                         <div className="flex flex-col">
-                                                            <span className="text-sm font-medium">
-                                                                {level.level_name}
-                                                            </span>
+                                                            <div className="flex flex-col items-start">
+                                                                <p className="text-subtitle font-semibold">
+                                                                    {" "}
+                                                                    {level.level_name}
+                                                                </p>
+                                                                <p className="text-caption text-neutral-400">
+                                                                    Days:{" "}
+                                                                    {level.duration_in_days || 0}
+                                                                </p>
+                                                            </div>
+
                                                             {level.duration_in_days && (
                                                                 <span className="text-xs text-neutral-500">
                                                                     Duration:{" "}
@@ -479,9 +471,16 @@ export const AddCourseForm = ({
                                                                     }}
                                                                 />
                                                                 <div className="flex flex-col">
-                                                                    <span className="text-sm">
-                                                                        {session.session_name}
-                                                                    </span>
+                                                                    <div className="flex flex-col items-start">
+                                                                        <p className="text-subtitle font-semibold">
+                                                                            {" "}
+                                                                            {session.session_name}
+                                                                        </p>
+                                                                        <p className="text-caption text-neutral-400">
+                                                                            Start Date:{" "}
+                                                                            {session.start_date}
+                                                                        </p>
+                                                                    </div>
                                                                     {session.start_date && (
                                                                         <span className="text-xs text-neutral-500">
                                                                             Starts:{" "}
@@ -506,6 +505,8 @@ export const AddCourseForm = ({
                                                                                 e.target.value,
                                                                             )
                                                                         }
+                                                                        required={true}
+                                                                        label="New Session"
                                                                     />
                                                                     <MyInput
                                                                         inputType="date"
@@ -517,6 +518,8 @@ export const AddCourseForm = ({
                                                                                 e.target.value,
                                                                             )
                                                                         }
+                                                                        required={true}
+                                                                        label="Start Date"
                                                                     />
                                                                 </div>
                                                                 <div className="flex items-center gap-4">
@@ -589,17 +592,21 @@ export const AddCourseForm = ({
                                                         onChangeFunction={(e) =>
                                                             setNewLevelName(e.target.value)
                                                         }
+                                                        required={true}
+                                                        label="Level"
                                                     />
                                                     <MyInput
                                                         inputType="number"
                                                         inputPlaceholder="Duration (days)"
-                                                        className="w-[150px]"
+                                                        className="w-[200px]"
                                                         input={newLevelDuration?.toString() || ""}
                                                         onChangeFunction={(e) =>
                                                             setNewLevelDuration(
                                                                 Number(e.target.value),
                                                             )
                                                         }
+                                                        required={true}
+                                                        label="Days"
                                                     />
                                                 </div>
                                                 <div className="flex items-center gap-4">

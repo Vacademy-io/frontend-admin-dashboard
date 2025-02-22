@@ -353,3 +353,12 @@ html {
     background-color: rgba(33, 150, 243, 0.2) !important;
     outline: 2px solid orange !important;
 }
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+}
