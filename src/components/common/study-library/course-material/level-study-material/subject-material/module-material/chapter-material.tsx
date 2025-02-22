@@ -7,7 +7,7 @@ import {
     ChapterWithSlides,
     useModulesWithChaptersStore,
 } from "@/stores/study-library/use-modules-with-chapters-store";
-import { getModuleById } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getModulesWithChaptersByModuleId";
+// import { getModuleById } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getModulesWithChaptersByModuleId";
 import { Chapters } from "./chapter-material/chapters";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
 import { useRouter } from "@tanstack/react-router";
@@ -27,7 +27,7 @@ export interface FormValues {
 export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }) => {
     const [isChapterLoading, setIsChapterLoading] = useState(true);
     const { modulesWithChaptersData } = useModulesWithChaptersStore();
-    const [moduleWithChapters, setModulesWithChapters] = useState(getModuleById(currentModuleId));
+    // const [moduleWithChapters, setModulesWithChapters] = useState(getModuleById(currentModuleId));
     const [existingChapters, setExistingChapters] = useState(
         getChaptersByModuleId(currentModuleId) || [],
     );
@@ -103,18 +103,16 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
 
     useEffect(() => {
         setSelectedSession(currentSession);
-        setModulesWithChapters(getModuleById(currentModuleId));
+        // setModulesWithChapters(getModuleById(currentModuleId));
         setExistingChapters(getChaptersByModuleId(currentModuleId) || []);
     }, [currentSession, modulesWithChaptersData]);
 
     return (
         <div className="flex size-full flex-col gap-8 text-neutral-600">
             <div className="flex items-center justify-between gap-80">
-                <div className="flex items-center justify-between gap-80">
+                <div className="flex items-center justify-between gap-8">
                     <div className="flex w-full flex-col gap-2">
-                        <p className="text-h3 font-semibold">
-                            {moduleWithChapters?.module.module_name}
-                        </p>
+                        <p className="text-h3 font-semibold">Manage Chapter</p>
                         <p className="text-subtitle">
                             Explore and manage chapters. Click on a chapter to view and access
                             eBooks, video lectures, and study resources, or add new materials to

@@ -651,10 +651,17 @@ export const AddCourseForm = ({
                         )}
                     />
                 )}
-
-                <MyButton type="submit" buttonType="primary" layoutVariant="default" scale="large">
-                    {initialValues ? "Save Changes" : "Add"}
-                </MyButton>
+                <div className="flex w-full items-center justify-center">
+                    <MyButton
+                        type="submit"
+                        buttonType="primary"
+                        layoutVariant="default"
+                        scale="large"
+                        className="w-[140px]"
+                    >
+                        {initialValues ? "Save Changes" : "Add"}
+                    </MyButton>
+                </div>
             </form>
         </Form>
     );

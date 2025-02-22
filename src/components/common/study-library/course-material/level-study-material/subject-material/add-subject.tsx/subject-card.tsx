@@ -93,10 +93,10 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
                     <img
                         src={imageUrl}
                         alt={subject.subject_name}
-                        className={`size-full rounded-lg object-cover`}
+                        className={`size-full h-[85%] rounded-lg object-cover`}
                     />
                 ) : (
-                    <SubjectDefaultImage className={`size-full rounded-lg object-cover`} />
+                    <SubjectDefaultImage className={`size-full h-[85%] rounded-lg object-cover`} />
                 )}
                 <div className="flex items-center justify-between gap-5">
                     <div className="text-h2 font-semibold">{subject.subject_name}</div>
