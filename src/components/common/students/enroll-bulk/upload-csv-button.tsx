@@ -31,7 +31,7 @@ interface FileState {
 }
 
 interface UploadCSVButtonProps {
-    disable: boolean;
+    disable?: boolean;
 }
 
 interface PreviewDialogProps {
@@ -287,7 +287,7 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                         buttonType="primary"
                         scale="large"
                         layoutVariant="default"
-                        disabled={disable}
+                        disabled={disable || false}
                     >
                         Upload CSV
                     </MyButton>
