@@ -1,7 +1,6 @@
 import { DialogHeader } from "@/components/ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
-import { UploadCSVButton } from "./upload-csv-button";
 import { z } from "zod";
 import { Form, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +8,7 @@ import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { MyDropdown } from "../enroll-manually/dropdownForPackageItems";
 import { DropdownItemType } from "../enroll-manually/dropdownTypesForPackageItems";
+import { CSVFormatDialog } from "./csv-format-dialog";
 
 const enrollBulkFormSchema = z.object({
     course: z.object({
@@ -188,7 +188,8 @@ export const EnrollBulkDialog = () => {
                     </FormProvider>
                 </Form>
 
-                <UploadCSVButton />
+                {/* <UploadCSVButton /> */}
+                <CSVFormatDialog />
             </DialogDescription>
         </DialogHeader>
     );

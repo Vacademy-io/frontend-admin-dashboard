@@ -288,6 +288,7 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                         scale="large"
                         layoutVariant="default"
                         disabled={disable || false}
+                        type="submit"
                     >
                         Upload CSV
                     </MyButton>
