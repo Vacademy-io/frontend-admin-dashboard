@@ -51,7 +51,6 @@ export const CSVFormatDialog = ({ packageDetails }: { packageDetails: enrollBulk
     };
 
     const onSubmit = (data: CSVFormatFormType) => {
-        handleOpenChange();
         setCsvFormatFormValues(data);
     };
 
