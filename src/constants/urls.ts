@@ -1,4 +1,5 @@
 export const BASE_URL = "https://backend-stage.vacademy.io";
+export const BASE_URL_LEARNER_DASHBOARD = "https://frontend-learner-dashboard-app.pages.dev";
 
 export const SSDC_INSTITUTE_ID = "69ca11c6-54e1-4e99-9498-50c9a4272ce6";
 

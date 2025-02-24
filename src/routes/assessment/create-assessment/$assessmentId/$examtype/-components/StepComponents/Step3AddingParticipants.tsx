@@ -40,9 +40,9 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAssessmentUrlStore } from "../../-utils/zustand-global-states/step1-basic-info";
 import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
 import { useParams } from "@tanstack/react-router";
+import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -55,7 +55,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const examType = params.examtype;
     const assessmentId = params.assessmentId;
     const storeDataStep3 = useTestAccessStore((state) => state);
-    const { assessmentUrl } = useAssessmentUrlStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -76,6 +75,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             type: examType,
         }),
     );
+
     const { batches_for_sessions } = instituteDetails || {};
     const transformedBatches = transformBatchData(batches_for_sessions || []);
 
@@ -121,7 +121,9 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 checked: false,
                 student_details: [],
             },
-            join_link: storeDataStep3?.join_link || assessmentUrl,
+            join_link:
+                storeDataStep3?.join_link ||
+                `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`,
             show_leaderboard: storeDataStep3?.show_leaderboard || false,
             notify_student: storeDataStep3?.notify_student || {
                 when_assessment_created: false,

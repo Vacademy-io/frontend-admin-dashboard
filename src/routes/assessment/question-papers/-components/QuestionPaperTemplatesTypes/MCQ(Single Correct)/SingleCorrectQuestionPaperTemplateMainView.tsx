@@ -34,6 +34,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     const option2 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${1}`);
     const option3 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${2}`);
     const option4 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${3}`);
+    console.log(getValues(`questions.${currentQuestionIndex}`));
 
     const handleRemovePicture = (currentQuestionImageIndex: number) => {
         // Filter out the image to be removed
@@ -176,8 +177,8 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
-
             <div className="flex flex-wrap items-end justify-center gap-8">
+                {/* Code to show uploaded images in UI */}
                 {Array.isArray(allQuestions) &&
                     allQuestions.length > 0 &&
                     Array.isArray(imageDetails) &&
@@ -216,6 +217,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             </div>
                         );
                     })}
+                {/* Code to upload images in question */}
                 {Array.isArray(imageDetails) && imageDetails.length < 4 && (
                     <QuestionImagePreviewDialogue
                         form={form}
@@ -225,7 +227,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     />
                 )}
             </div>
-
+            {/* options */}
             <div className="flex w-full grow flex-col gap-4">
                 <span className="-mb-3">{answersType}</span>
                 <div className="flex gap-4">

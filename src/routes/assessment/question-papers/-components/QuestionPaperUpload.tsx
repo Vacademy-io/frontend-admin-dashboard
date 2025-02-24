@@ -233,7 +233,6 @@ export const QuestionPaperUpload = ({
             });
             if (index !== undefined) {
                 // Check if index is defined
-
                 sectionsForm?.setValue(
                     `section.${index}.adaptive_marking_for_each_question`,
                     transformQuestionsData.map((question) => ({
@@ -586,7 +585,7 @@ export const QuestionPaperUpload = ({
                                         questionPaperId={questionPaperId}
                                         isViewMode={false}
                                         isManualCreated={isManualCreated}
-                                        buttonText="Create"
+                                        buttonText="Add Questions"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
                                         currentQuestionImageIndex={currentQuestionImageIndex}
