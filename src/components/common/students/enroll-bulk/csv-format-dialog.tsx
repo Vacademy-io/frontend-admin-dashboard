@@ -2,7 +2,6 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -15,52 +14,36 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { UploadCSVButton } from "./upload-csv-button";
+import { enrollBulkFormType } from "@/types/students/bulk-upload-types";
+import { CSVFormatFormType } from "@/types/students/bulk-upload-types";
+import { csvFormatSchema } from "@/types/students/bulk-upload-types";
 
-const csvFormatSchema = z.object({
-    autoGenerateUsername: z.boolean().default(true),
-    autoGeneratePassword: z.boolean().default(true),
-    autoGenerateEnrollmentId: z.boolean().default(true),
-    setCommonExpiryDate: z.boolean().default(true),
-    daysFromToday: z.string().default("365"),
-    addStudentStatus: z.boolean().default(true),
-    studentStatus: z.string().default("Active"),
-    // Optional CSV columns
-    fatherName: z.boolean().default(true),
-    motherName: z.boolean().default(true),
-    guardianName: z.boolean().default(true),
-    parentEmail: z.boolean().default(true),
-    parentMobile: z.boolean().default(true),
-    collegeName: z.boolean().default(true),
-    state: z.boolean().default(true),
-    city: z.boolean().default(true),
-    pincode: z.boolean().default(true),
-});
-
-type CSVFormatFormType = z.infer<typeof csvFormatSchema>;
-
-export const CSVFormatDialog = () => {
+export const CSVFormatDialog = ({ packageDetails }: { packageDetails: enrollBulkFormType }) => {
     const [openDialog, setOpenDialog] = useState(false);
+
+    const defaultValues = {
+        autoGenerateUsername: true,
+        autoGeneratePassword: true,
+        autoGenerateEnrollmentId: true,
+        setCommonExpiryDate: true,
+        daysFromToday: "365",
+        addStudentStatus: true,
+        studentStatus: "Active",
+        fatherName: false,
+        motherName: false,
+        guardianName: false,
+        parentEmail: false,
+        parentMobile: false,
+        collegeName: false,
+        state: false,
+        city: false,
+        pincode: false,
+    };
+    const [csvFormatFormValues, setCsvFormatFormValues] = useState(defaultValues);
 
     const form = useForm<CSVFormatFormType>({
         resolver: zodResolver(csvFormatSchema),
-        defaultValues: {
-            autoGenerateUsername: true,
-            autoGeneratePassword: true,
-            autoGenerateEnrollmentId: true,
-            setCommonExpiryDate: true,
-            daysFromToday: "365",
-            addStudentStatus: true,
-            studentStatus: "Active",
-            fatherName: false,
-            motherName: false,
-            guardianName: false,
-            parentEmail: false,
-            parentMobile: false,
-            collegeName: false,
-            state: false,
-            city: false,
-            pincode: false,
-        },
+        defaultValues: defaultValues,
     });
 
     const handleOpenChange = () => {
@@ -68,13 +51,12 @@ export const CSVFormatDialog = () => {
     };
 
     const onSubmit = (data: CSVFormatFormType) => {
-        console.log(data);
-        // Handle download logic here
         handleOpenChange();
+        setCsvFormatFormValues(data);
     };
 
     const triggerButton = (
-        <MyButton buttonType="primary" layoutVariant="default" scale="large">
+        <MyButton buttonType="primary" layoutVariant="default" scale="large" type="submit">
             Done
         </MyButton>
     );
@@ -267,7 +249,10 @@ export const CSVFormatDialog = () => {
                         </div>
 
                         <div className="mt-4 flex justify-end">
-                            <UploadCSVButton />
+                            <UploadCSVButton
+                                packageDetails={packageDetails}
+                                csvFormatDetails={csvFormatFormValues}
+                            />
                         </div>
                     </form>
                 </Form>

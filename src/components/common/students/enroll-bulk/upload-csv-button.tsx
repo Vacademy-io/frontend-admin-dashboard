@@ -19,11 +19,17 @@ import {
 import { createSchemaFromHeaders } from "./utils/bulk-upload-validation";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
 import { BulkUploadTable } from "./bulk-upload-table";
-import { SchemaFields } from "@/types/students/bulk-upload-types";
+import {
+    CSVFormatFormType,
+    enrollBulkFormType,
+    SchemaFields,
+} from "@/types/students/bulk-upload-types";
 import { toast } from "sonner";
 import { submitBulkUpload } from "@/hooks/student-list-section/enroll-student-bulk/submit-bulk-upload";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import Papa from "papaparse";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 interface FileState {
     file: File | null;
@@ -32,6 +38,8 @@ interface FileState {
 
 interface UploadCSVButtonProps {
     disable?: boolean;
+    packageDetails: enrollBulkFormType;
+    csvFormatDetails: CSVFormatFormType;
 }
 
 interface PreviewDialogProps {
@@ -76,14 +84,49 @@ const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialogProps)
     );
 };
 
-export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
+export const UploadCSVButton = ({
+    disable,
+    packageDetails,
+    csvFormatDetails,
+}: UploadCSVButtonProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [fileState, setFileState] = useState<FileState>({ file: null });
+
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+
+    const requestPayload = {
+        auto_generate_config: {
+            auto_generate_username: csvFormatDetails.autoGenerateUsername,
+            auto_generate_password: csvFormatDetails.autoGeneratePassword,
+            auto_generate_enrollment_id: csvFormatDetails.autoGenerateEnrollmentId,
+        },
+        optional_fields_config: {
+            include_address_line: false,
+            include_region: csvFormatDetails.state,
+            include_city: csvFormatDetails.city,
+            include_pin_code: csvFormatDetails.pincode,
+            include_father_name: csvFormatDetails.fatherName,
+            include_mother_name: csvFormatDetails.motherName,
+            include_parents_mobile_number: csvFormatDetails.parentMobile,
+            include_parents_email: csvFormatDetails.parentEmail,
+            include_linked_institute_name: csvFormatDetails.collegeName,
+        },
+        expiry_and_status_config: {
+            include_expiry_days: csvFormatDetails.setCommonExpiryDate,
+            include_enrollment_status: csvFormatDetails.state,
+            expiry_days: parseInt(csvFormatDetails.daysFromToday),
+            enrollment_status: csvFormatDetails.studentStatus,
+        },
+    };
+
     const { data, isLoading } = useBulkUploadInit(
         {
-            instituteId: "c70f40a5-e4d3-4b6c-a498-e612d0d4b133",
-            sessionId: "1",
+            instituteId: INSTITUTE_ID || "",
+            sessionId: packageDetails.session.id,
+            bulkUploadInitRequest: requestPayload,
         },
         {
             enabled: isOpen,

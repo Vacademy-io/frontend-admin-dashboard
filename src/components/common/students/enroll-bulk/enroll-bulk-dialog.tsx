@@ -1,7 +1,6 @@
 import { DialogHeader } from "@/components/ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
-import { z } from "zod";
 import { Form, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
@@ -9,27 +8,28 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { MyDropdown } from "../enroll-manually/dropdownForPackageItems";
 import { DropdownItemType } from "../enroll-manually/dropdownTypesForPackageItems";
 import { CSVFormatDialog } from "./csv-format-dialog";
-
-const enrollBulkFormSchema = z.object({
-    course: z.object({
-        id: z.string(),
-        name: z.string(),
-    }),
-    session: z.object({
-        id: z.string(),
-        name: z.string(),
-    }),
-    level: z.object({
-        id: z.string(),
-        name: z.string(),
-    }),
-});
-
-type enrollBulkFormType = z.infer<typeof enrollBulkFormSchema>;
+import { enrollBulkFormSchema } from "@/types/students/bulk-upload-types";
+import { enrollBulkFormType } from "@/types/students/bulk-upload-types";
 
 export const EnrollBulkDialog = () => {
     const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage } =
         useInstituteDetailsStore();
+
+    const defaultFormValues = {
+        course: {
+            id: "",
+            name: "",
+        },
+        session: {
+            id: "",
+            name: "",
+        },
+        level: {
+            id: "",
+            name: "",
+        },
+    };
+    const [formValues, setFormValues] = useState<enrollBulkFormType>(defaultFormValues);
 
     const [courseList, setCourseList] = useState<DropdownItemType[]>(getCourseFromPackage());
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
@@ -37,20 +37,7 @@ export const EnrollBulkDialog = () => {
 
     const form = useForm<enrollBulkFormType>({
         resolver: zodResolver(enrollBulkFormSchema),
-        defaultValues: {
-            course: {
-                id: "",
-                name: "",
-            },
-            session: {
-                id: "",
-                name: "",
-            },
-            level: {
-                id: "",
-                name: "",
-            },
-        },
+        defaultValues: defaultFormValues,
     });
 
     useEffect(() => {
@@ -100,6 +87,10 @@ export const EnrollBulkDialog = () => {
         );
     }, [form.watch("course"), form.watch("session"), form.watch("level")]);
 
+    const onSubmitEnrollBulkForm = (values: enrollBulkFormType) => {
+        setFormValues(values);
+    };
+
     return (
         <DialogHeader className="w-full">
             <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
@@ -108,7 +99,7 @@ export const EnrollBulkDialog = () => {
             <DialogDescription className="flex w-full flex-col items-center justify-center gap-6 p-6 text-neutral-600">
                 <Form {...form} className="w-full">
                     <FormProvider {...form}>
-                        <form onSubmit={form.handleSubmit(() => {})}>
+                        <form onSubmit={form.handleSubmit(onSubmitEnrollBulkForm)}>
                             <div className="flex w-full flex-col gap-4">
                                 <FormField
                                     control={form.control}
@@ -189,7 +180,7 @@ export const EnrollBulkDialog = () => {
                 </Form>
 
                 {/* <UploadCSVButton /> */}
-                <CSVFormatDialog />
+                <CSVFormatDialog packageDetails={formValues} />
             </DialogDescription>
         </DialogHeader>
     );

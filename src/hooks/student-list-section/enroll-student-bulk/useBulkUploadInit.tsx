@@ -5,19 +5,23 @@ import {
     BulkUploadSchema,
 } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { INIT_CSV_BULK } from "@/constants/urls";
+import { CSVFormatConfig } from "@/types/students/bulk-upload-types";
 
 interface BulkUploadInitParams {
     instituteId: string;
     sessionId: string;
+    bulkUploadInitRequest: CSVFormatConfig;
 }
 
-const fetchBulkUploadInit = async ({ instituteId, sessionId }: BulkUploadInitParams) => {
-    const response = await authenticatedAxiosInstance.get<BulkUploadResponse>(INIT_CSV_BULK, {
-        params: {
-            instituteId,
-            sessionId,
-        },
-    });
+const fetchBulkUploadInit = async ({
+    instituteId,
+    sessionId,
+    bulkUploadInitRequest,
+}: BulkUploadInitParams) => {
+    const response = await authenticatedAxiosInstance.post<BulkUploadResponse>(
+        `${INIT_CSV_BULK}?instituteId=${instituteId}&sessionId=${sessionId}`,
+        bulkUploadInitRequest,
+    );
 
     const validatedData = BulkUploadSchema.parse(response.data);
     return validatedData;
