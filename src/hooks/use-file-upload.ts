@@ -1,6 +1,6 @@
 // hooks/use-file-upload.ts
 import { useMutation } from "@tanstack/react-query";
-import { UploadFileInS3, getPublicUrl } from "@/services/upload_file";
+import { UploadFileInS3, getPublicUrl, getPublicUrls } from "@/services/upload_file";
 
 export const useFileUpload = () => {
     const uploadMutation = useMutation({
@@ -46,9 +46,21 @@ export const useFileUpload = () => {
         },
     });
 
+    const getMultipleUrlMutation = useMutation({
+        mutationFn: async (fileIds: string) => {
+            try {
+                return await getPublicUrls(fileIds);
+            } catch (error) {
+                console.error("Get URL error:", error);
+                throw error;
+            }
+        },
+    });
+
     return {
         uploadFile: uploadMutation.mutateAsync,
         getPublicUrl: getUrlMutation.mutateAsync,
+        getMultiplePublicUrl: getMultipleUrlMutation.mutateAsync,
         isUploading: uploadMutation.isPending,
         isGettingUrl: getUrlMutation.isPending,
         error: uploadMutation.error || getUrlMutation.error,

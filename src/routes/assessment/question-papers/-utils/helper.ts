@@ -35,6 +35,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+    console.log(data);
     return {
         title: data.title,
         institute_id: INSTITUTE_ID, // Assuming there's no direct mapping for institute_id
@@ -52,7 +53,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                               type: "HTML", // Assuming option content is HTML
                               content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
-                          media_id: null, // Assuming no direct mapping for option media ID
+                          media_id: opt.image.imageName, // Assuming no direct mapping for option media ID
                           option_order: null,
                           created_on: null,
                           updated_on: null,
@@ -71,7 +72,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                               type: "HTML", // Assuming option content is HTML
                               content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
-                          media_id: null, // Assuming no direct mapping for option media ID
+                          media_id: opt.image.imageName, // Assuming no direct mapping for option media ID
                           option_order: null,
                           created_on: null,
                           updated_on: null,
@@ -98,6 +99,10 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                 },
             });
 
+            const correctOptionIdsCnt = question.multipleChoiceOptions.filter(
+                (option) => option.isSelected,
+            ).length;
+
             return {
                 id: null,
                 preview_id: question.questionId, // Assuming no direct mapping for preview_id
@@ -106,13 +111,32 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     type: "HTML", // Assuming the content is HTML
                     content: question.questionName.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                 },
-                media_id: null, // Assuming no direct mapping for media_id
+                media_id: question?.imageDetails?.map((img) => img.imageName).join(","), // Assuming no direct mapping for media_id
                 created_at: null,
                 updated_at: null,
                 question_response_type: null, // Assuming no direct mapping for response type
                 question_type: question.questionType,
                 access_level: null, // Assuming no direct mapping for access level
                 auto_evaluation_json, // Add auto_evaluation_json
+                marking_json: JSON.stringify({
+                    type: question.questionType,
+                    data: {
+                        totalMark: question.questionMark || "",
+                        negativeMark: question.questionPenalty || "",
+                        negativeMarkingPercentage:
+                            question.questionMark && question.questionPenalty
+                                ? (Number(question.questionPenalty) /
+                                      Number(question.questionMark)) *
+                                  100
+                                : "",
+                        ...(question.questionType === "MCQM" && {
+                            partialMarking: correctOptionIdsCnt ? 1 / correctOptionIdsCnt : 0,
+                            partialMarkingPercentage: correctOptionIdsCnt
+                                ? (1 / correctOptionIdsCnt) * 100
+                                : 0,
+                        }),
+                    },
+                }),
                 evaluation_type: null, // Assuming no direct mapping for evaluation type
                 explanation_text: {
                     id: null, // Assuming no direct mapping for explanation text ID
@@ -265,18 +289,19 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
     return data.map((item) => {
         const correctOptionIds =
             JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
+        const markingJson = item.marking_json ? JSON.parse(item.marking_json) : {};
         const baseQuestion: MyQuestion = {
             id: item.id || "",
             questionId: item.id || item.preview_id || undefined,
             questionName: item.text?.content || "",
             explanation: item.explanation_text?.content || "",
             questionType: item.question_type === "MCQS" ? "MCQS" : "MCQM",
-            questionPenalty: "",
+            questionMark: markingJson.data?.totalMark || "0",
+            questionPenalty: markingJson.data?.negativeMark || "0",
             questionDuration: {
                 hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
                 min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
             },
-            questionMark: "",
             singleChoiceOptions: [],
             multipleChoiceOptions: [],
         };

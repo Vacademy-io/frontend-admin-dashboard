@@ -106,6 +106,7 @@ export interface QuestionResponse {
     question_type: string;
     access_level: string;
     auto_evaluation_json: string;
+    marking_json: string;
     evaluation_type: string;
     explanation_text: ExplanationText;
     default_question_time_mins: number | null;
