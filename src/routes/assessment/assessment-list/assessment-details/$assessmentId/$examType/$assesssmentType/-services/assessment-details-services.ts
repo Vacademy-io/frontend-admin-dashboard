@@ -13,7 +13,7 @@ import { AssessmentStudentLeaderboardInterface } from "../-components/Assessment
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
 import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSubmissionsTab";
 import { StudentReportFilterInterface } from "@/components/common/students/students-list/student-side-view/student-test-records/student-test-record";
-import { SelectedFilterQuestionWise } from "../-components/QuestionAssessmentStatus";
+import { SelectedFilterQuestionWise } from "@/types/assessments/student-questionwise-status";
 
 export const savePrivateQuestions = async (questions: AssessmentDetailQuestions) => {
     const response = await authenticatedAxiosInstance({
