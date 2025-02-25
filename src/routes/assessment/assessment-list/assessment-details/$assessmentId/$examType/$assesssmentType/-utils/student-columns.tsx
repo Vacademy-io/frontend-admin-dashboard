@@ -1,7 +1,6 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { CaretUp, CaretDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { AssessmentStatusOptions } from "../-components/AssessmentStatusOptions";
@@ -12,15 +11,6 @@ import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
 }
-
-const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
-    const { packageName, levelName } = useGetStudentBatch(package_session_id);
-    return (
-        <div>
-            {levelName} {packageName}
-        </div>
-    );
-};
 
 const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
     const { setSelectedStudent } = useStudentSidebar();
@@ -86,7 +76,6 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
     {
         accessorKey: "package_session_id",
         header: "Batch",
-        cell: ({ row }) => <BatchCell package_session_id={row.original.package_session_id} />,
     },
     {
         accessorKey: "attempt_date",
@@ -449,7 +438,6 @@ export const assessmentStatusStudentQuestionResponseInternal: ColumnDef<StudentT
     {
         accessorKey: "package_session_id",
         header: "Batch",
-        cell: ({ row }) => <BatchCell package_session_id={row.original.package_session_id} />,
     },
     {
         accessorKey: "institute_enrollment_id",
@@ -496,6 +484,76 @@ export const assessmentStatusStudentQuestionResponseExternal: ColumnDef<StudentT
     },
     {
         accessorKey: "responseTime",
+        header: "Response Time",
+    },
+];
+
+export const studentInternalOrCloseQuestionWise: ColumnDef<StudentTable>[] = [
+    {
+        accessorKey: "full_name",
+        header: (props) => {
+            const meta = props.table.options.meta as CustomTableMeta;
+            return (
+                <div className="relative">
+                    <MyDropdown
+                        dropdownList={["ASC", "DESC"]}
+                        onSelect={(value) => {
+                            meta.onSort?.("full_name", value);
+                        }}
+                    >
+                        <button className="flex w-full cursor-pointer items-center justify-between">
+                            <div>Student Name</div>
+                            <div>
+                                <CaretUp />
+                                <CaretDown />
+                            </div>
+                        </button>
+                    </MyDropdown>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "package_session_id",
+        header: "Batch",
+    },
+    {
+        accessorKey: "registration_id",
+        header: "Enrollment Number",
+    },
+    {
+        accessorKey: "response_time_in_seconds",
+        header: "Response Time",
+    },
+];
+
+export const studentExternalQuestionWise: ColumnDef<StudentTable>[] = [
+    {
+        accessorKey: "full_name",
+        header: (props) => {
+            const meta = props.table.options.meta as CustomTableMeta;
+            return (
+                <div className="relative">
+                    <MyDropdown
+                        dropdownList={["ASC", "DESC"]}
+                        onSelect={(value) => {
+                            meta.onSort?.("full_name", value);
+                        }}
+                    >
+                        <button className="flex w-full cursor-pointer items-center justify-between">
+                            <div>Student Name</div>
+                            <div>
+                                <CaretUp />
+                                <CaretDown />
+                            </div>
+                        </button>
+                    </MyDropdown>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "response_time_in_seconds",
         header: "Response Time",
     },
 ];
