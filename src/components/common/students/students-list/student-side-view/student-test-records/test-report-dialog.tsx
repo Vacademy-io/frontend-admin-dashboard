@@ -301,8 +301,9 @@ export const TestReportDialog = ({
                                                     }`}
                                                 >
                                                     <div>
-                                                        {review.student_response_options.length >
-                                                        0 ? (
+                                                        {review.student_response_options &&
+                                                        review.student_response_options.length >
+                                                            0 ? (
                                                             review.student_response_options.map(
                                                                 (option, idx) => {
                                                                     return (

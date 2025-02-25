@@ -19,10 +19,11 @@ import {
     parseHtmlToString,
     transformQuestionInsightsQuestionsData,
 } from "../-utils/helper";
+import QuestionAssessmentStatus from "./QuestionAssessmentStatus";
 
 export function QuestionInsightsComponent() {
     const instituteId = getInstituteId();
-    const { assessmentId, examType } = Route.useParams();
+    const { assessmentId, examType, assesssmentType } = Route.useParams();
     const { data: assessmentDetails } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId,
@@ -256,13 +257,17 @@ export function QuestionInsightsComponent() {
                                                         <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                             Correct Respondents
                                                         </h1>
-                                                        {/* <QuestionAssessmentStatus
-                                                            type="question"
-                                                            studentsListData={
-                                                                question.studentResponseList
-                                                                    .correctResponse
+                                                        <QuestionAssessmentStatus
+                                                            assessmentId={assessmentId}
+                                                            sectionId={selectedSection}
+                                                            questionId={
+                                                                question
+                                                                    .assessment_question_preview_dto
+                                                                    .questionId
                                                             }
-                                                        /> */}
+                                                            assesssmentType={assesssmentType}
+                                                            questionStatus="CORRECT"
+                                                        />
                                                     </DialogContent>
                                                 </Dialog>
                                             </div>
@@ -308,13 +313,17 @@ export function QuestionInsightsComponent() {
                                                         <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                             Partially Correct Respondents
                                                         </h1>
-                                                        {/* <QuestionAssessmentStatus
-                                                            type="question"
-                                                            studentsListData={
-                                                                question.studentResponseList
-                                                                    .partiallyCorrect
+                                                        <QuestionAssessmentStatus
+                                                            assessmentId={assessmentId}
+                                                            sectionId={selectedSection}
+                                                            questionId={
+                                                                question
+                                                                    .assessment_question_preview_dto
+                                                                    .questionId
                                                             }
-                                                        /> */}
+                                                            assesssmentType={assesssmentType}
+                                                            questionStatus="PARTIAL_CORRECT"
+                                                        />
                                                     </DialogContent>
                                                 </Dialog>
                                             </div>
@@ -358,13 +367,17 @@ export function QuestionInsightsComponent() {
                                                         <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                             Wrong Respondents
                                                         </h1>
-                                                        {/* <QuestionAssessmentStatus
-                                                            type="question"
-                                                            studentsListData={
-                                                                question.studentResponseList
-                                                                    .wrongResponse
+                                                        <QuestionAssessmentStatus
+                                                            assessmentId={assessmentId}
+                                                            sectionId={selectedSection}
+                                                            questionId={
+                                                                question
+                                                                    .assessment_question_preview_dto
+                                                                    .questionId
                                                             }
-                                                        /> */}
+                                                            assesssmentType={assesssmentType}
+                                                            questionStatus="INCORRECT"
+                                                        />
                                                     </DialogContent>
                                                 </Dialog>
                                             </div>
@@ -407,12 +420,17 @@ export function QuestionInsightsComponent() {
                                                         <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                             Skipped Respondents
                                                         </h1>
-                                                        {/* <QuestionAssessmentStatus
-                                                            type="question"
-                                                            studentsListData={
-                                                                question.studentResponseList.skipped
+                                                        <QuestionAssessmentStatus
+                                                            assessmentId={assessmentId}
+                                                            sectionId={selectedSection}
+                                                            questionId={
+                                                                question
+                                                                    .assessment_question_preview_dto
+                                                                    .questionId
                                                             }
-                                                        /> */}
+                                                            assesssmentType={assesssmentType}
+                                                            questionStatus="PENDING"
+                                                        />
                                                     </DialogContent>
                                                 </Dialog>
                                             </div>
