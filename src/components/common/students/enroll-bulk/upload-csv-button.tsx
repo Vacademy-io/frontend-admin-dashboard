@@ -116,7 +116,7 @@ export const UploadCSVButton = ({
         },
         expiry_and_status_config: {
             include_expiry_days: csvFormatDetails.setCommonExpiryDate,
-            include_enrollment_status: csvFormatDetails.state,
+            include_enrollment_status: csvFormatDetails.addStudentStatus,
             expiry_days: parseInt(csvFormatDetails.daysFromToday),
             enrollment_status: csvFormatDetails.studentStatus,
         },
