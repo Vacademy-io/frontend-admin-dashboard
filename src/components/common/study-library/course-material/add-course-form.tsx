@@ -538,7 +538,7 @@ export const AddCourseForm = ({
                                                                         <MyInput
                                                                             inputType="text"
                                                                             inputPlaceholder="Enter session name"
-                                                                            className="w-[260px]"
+                                                                            className="w-[230]"
                                                                             input={newSessionName}
                                                                             onChangeFunction={(e) =>
                                                                                 setNewSessionName(
@@ -614,7 +614,7 @@ export const AddCourseForm = ({
                                                                     buttonType="text"
                                                                     layoutVariant="default"
                                                                     scale="small"
-                                                                    className="text-primary-500 hover:bg-white"
+                                                                    className="text-primary-500 hover:bg-white active:bg-white"
                                                                 >
                                                                     <Plus /> Add Session
                                                                 </MyButton>
@@ -630,7 +630,7 @@ export const AddCourseForm = ({
                                                     <MyInput
                                                         inputType="text"
                                                         inputPlaceholder="Enter level name"
-                                                        className="w-[260px]"
+                                                        className="w-[230px]"
                                                         input={newLevelName}
                                                         onChangeFunction={(e) =>
                                                             setNewLevelName(e.target.value)
@@ -689,7 +689,7 @@ export const AddCourseForm = ({
                                                 buttonType="text"
                                                 layoutVariant="default"
                                                 scale="small"
-                                                className="text-primary-500 hover:bg-white"
+                                                className="text-primary-500 hover:bg-white active:bg-white"
                                             >
                                                 <Plus /> Add Level
                                             </MyButton>
