@@ -25,11 +25,12 @@ import {
     SchemaFields,
 } from "@/types/students/bulk-upload-types";
 import { toast } from "sonner";
-import { submitBulkUpload } from "@/hooks/student-list-section/enroll-student-bulk/submit-bulk-upload";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import Papa from "papaparse";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
+import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 
 interface FileState {
     file: File | null;
@@ -92,7 +93,12 @@ export const UploadCSVButton = ({
     const [isOpen, setIsOpen] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [fileState, setFileState] = useState<FileState>({ file: null });
-
+    const { mutateAsync } = useBulkUploadMutation();
+    const packageSessionId = useGetPackageSessionId(
+        packageDetails.course.id,
+        packageDetails.session.id,
+        packageDetails.level.id,
+    );
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
@@ -151,7 +157,6 @@ export const UploadCSVButton = ({
 
             setFileState({ file });
             const schema = createSchemaFromHeaders(data.headers);
-            console.log(schema);
 
             try {
                 const result = await validateCsvData(file, schema);
@@ -209,21 +214,30 @@ export const UploadCSVButton = ({
         }
     };
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const { csvData } = useBulkUploadStore();
 
     const handleDoneClick = async () => {
         if (!csvData || !data?.submit_api) return;
 
         try {
-            setIsSubmitting(true);
-
             const transformedData = csvData.map((row) => {
                 const newRow = { ...row };
+
+                // Add the package session ID to all rows
+                if (packageSessionId) {
+                    newRow["PACKAGE_SESSION"] = String(packageSessionId);
+                }
+
                 data.headers.forEach((header) => {
                     // Handle package session IDs and other enum types
                     if (header.type === "enum" && header.send_option_id && header.option_ids) {
                         const displayValue = row[header.column_name] as string;
+
+                        // Skip processing for PACKAGE_SESSION as we've already set it
+                        if (header.column_name === "PACKAGE_SESSION") {
+                            return;
+                        }
+
                         if (displayValue) {
                             for (const [id, value] of Object.entries(header.option_ids)) {
                                 if (value === displayValue) {
@@ -234,25 +248,11 @@ export const UploadCSVButton = ({
                         }
                     }
 
-                    // Handle date formatting if needed
-                    // if (header.type === "date" && header.format) {
-                    //     const dateValue = row[header.column_name] as string;
-                    //     if (dateValue) {
-                    //         try {
-                    //             // Parse DD-MM-YYYY format and convert to API expected format
-                    //             const [day, month, year] = dateValue.split("-").map(num => num.padStart(2, '0'));
-                    //             const formattedDate = `${year}-${month}-${day}T00:00:00.000Z`;
-                    //             newRow[header.column_name] = formattedDate;
-                    //         } catch (error) {
-                    //             console.error(`Error formatting date for ${header.column_name}:`, error);
-                    //             newRow[header.column_name] = dateValue;
-                    //         }
-                    //     }
-                    // }
+                    // Handle date formatting
                     if (header.type === "date" && header.format) {
                         const dateValue = row[header.column_name] as string;
                         if (dateValue) {
-                            // First convert to desired format if it's in Excel format
+                            // Convert to desired format if it's in Excel format
                             const formattedDateValue = convertExcelDateToDesiredFormat(dateValue);
 
                             // Validate the format
@@ -280,9 +280,11 @@ export const UploadCSVButton = ({
                 return newRow;
             });
 
-            const response = await submitBulkUpload({
+            // Use the mutation to submit the data
+            const response = await mutateAsync({
                 data: transformedData,
                 instituteId: data.submit_api.request_params.instituteId,
+                bulkUploadInitRequest: requestPayload,
             });
 
             // Parse the CSV response
@@ -316,9 +318,7 @@ export const UploadCSVButton = ({
             }
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
-            toast.error("Failed to enroll students");
-        } finally {
-            setIsSubmitting(false);
+            // Error toasts are already handled in the mutation
         }
     };
 
@@ -417,9 +417,9 @@ export const UploadCSVButton = ({
                                     layoutVariant="default"
                                     type="button"
                                     onClick={handleDoneClick}
-                                    disabled={!fileState.file || isSubmitting}
+                                    disabled={!fileState.file}
                                 >
-                                    {isSubmitting ? "Submitting..." : "Done"}
+                                    Done
                                 </MyButton>
                             </div>
                         </DialogFooter>

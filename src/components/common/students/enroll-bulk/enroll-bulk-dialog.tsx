@@ -10,10 +10,12 @@ import { DropdownItemType } from "../enroll-manually/dropdownTypesForPackageItem
 import { CSVFormatDialog } from "./csv-format-dialog";
 import { enrollBulkFormSchema } from "@/types/students/bulk-upload-types";
 import { enrollBulkFormType } from "@/types/students/bulk-upload-types";
+import { MyButton } from "@/components/design-system/button";
 
 export const EnrollBulkDialog = () => {
     const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage } =
         useInstituteDetailsStore();
+    const [openSetFormatDialog, setOpenSetFormatDialog] = useState(false);
 
     const defaultFormValues = {
         course: {
@@ -89,6 +91,12 @@ export const EnrollBulkDialog = () => {
 
     const onSubmitEnrollBulkForm = (values: enrollBulkFormType) => {
         setFormValues(values);
+        setOpenSetFormatDialog(true);
+    };
+
+    // This handles form submission without page reload
+    const handleDoneClick = () => {
+        form.handleSubmit(onSubmitEnrollBulkForm)();
     };
 
     return (
@@ -174,13 +182,24 @@ export const EnrollBulkDialog = () => {
                                         </FormItem>
                                     )}
                                 />
+                                <MyButton
+                                    buttonType="primary"
+                                    layoutVariant="default"
+                                    scale="large"
+                                    type="button"
+                                    onClick={handleDoneClick}
+                                >
+                                    Done
+                                </MyButton>
                             </div>
                         </form>
                     </FormProvider>
                 </Form>
-
-                {/* <UploadCSVButton /> */}
-                <CSVFormatDialog packageDetails={formValues} />
+                <CSVFormatDialog
+                    packageDetails={formValues}
+                    openDialog={openSetFormatDialog}
+                    setOpenDialog={setOpenSetFormatDialog}
+                />
             </DialogDescription>
         </DialogHeader>
     );

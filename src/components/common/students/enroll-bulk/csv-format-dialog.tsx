@@ -1,7 +1,6 @@
-import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -18,8 +17,16 @@ import { enrollBulkFormType } from "@/types/students/bulk-upload-types";
 import { CSVFormatFormType } from "@/types/students/bulk-upload-types";
 import { csvFormatSchema } from "@/types/students/bulk-upload-types";
 
-export const CSVFormatDialog = ({ packageDetails }: { packageDetails: enrollBulkFormType }) => {
-    const [openDialog, setOpenDialog] = useState(false);
+export const CSVFormatDialog = ({
+    packageDetails,
+    openDialog,
+    setOpenDialog,
+}: {
+    packageDetails: enrollBulkFormType;
+    openDialog: boolean;
+    setOpenDialog: Dispatch<SetStateAction<boolean>>;
+}) => {
+    // const [openDialog, setOpenDialog] = useState(false);
 
     const defaultValues = {
         autoGenerateUsername: true,
@@ -54,15 +61,15 @@ export const CSVFormatDialog = ({ packageDetails }: { packageDetails: enrollBulk
         setCsvFormatFormValues(data);
     };
 
-    const triggerButton = (
-        <MyButton buttonType="primary" layoutVariant="default" scale="large" type="submit">
-            Done
-        </MyButton>
-    );
+    // const triggerButton = (
+    //     <MyButton buttonType="primary" layoutVariant="default" scale="large" type="submit">
+    //         Done
+    //     </MyButton>
+    // );
 
     return (
         <MyDialog
-            trigger={triggerButton}
+            // trigger={triggerButton}
             heading="Download Template"
             dialogWidth="w-full"
             open={openDialog}
