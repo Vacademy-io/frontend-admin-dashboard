@@ -22,6 +22,7 @@ import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtili
 import { TokenKey } from "@/constants/auth/tokens";
 import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
 import { PreviewDialog } from "./preview-dialog";
+import { toast } from "sonner";
 
 interface FileState {
     file: File | null;
@@ -46,7 +47,7 @@ export const UploadCSVButton = ({
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-    const { csvData, setCsvData, setCsvErrors } = useBulkUploadStore();
+    const { csvData, setCsvData, csvErrors, setCsvErrors } = useBulkUploadStore();
 
     const requestPayload = {
         auto_generate_config: {
@@ -112,14 +113,18 @@ export const UploadCSVButton = ({
 
                 // Show error summary if any errors exist
                 if (result.errors.length > 0) {
-                    console.warn(`Found ${result.errors.length} validation errors in the CSV`);
-                    // Could use toast notification here to alert user about errors
-                    // toast.warning(`Found ${result.errors.length} validation errors. Please check and fix the highlighted fields.`);
+                    toast.error(" Please fix validation errors before uploading!", {
+                        className: "error-toast",
+                        duration: 3000,
+                    });
                 }
             } catch (err) {
                 const error = err instanceof Error ? err.message : "Error parsing CSV";
                 setFileState({ file: null, error });
-                console.error("Error parsing CSV:", err);
+                toast.error(" Error parsing csv", {
+                    className: "error-toast",
+                    duration: 3000,
+                });
             }
         },
         [data?.headers, setCsvData, setCsvErrors],
@@ -172,20 +177,40 @@ export const UploadCSVButton = ({
         if (!csvData || !data?.submit_api) return;
 
         try {
-            const response = await mutateAsync({
+            await mutateAsync({
                 data: csvData,
                 instituteId: data.submit_api.request_params.instituteId,
                 bulkUploadInitRequest: requestPayload,
             });
             setCsvData(csvData);
             setShowPreview(true);
-            console.log("csv respones: ", response);
+            toast.success("Upload Successful", {
+                className: "success-toast",
+                duration: 3000,
+            });
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
+            toast.error("Upload Failed", {
+                className: "error-toast",
+                duration: 3000,
+            });
         }
     };
 
     const handleDoneClick = async () => {
+        // Check if there are validation errors before proceeding with upload
+        if (csvErrors && csvErrors.length > 0) {
+            toast.error("Please fix the errors", {
+                className: "error-toast",
+                duration: 3000,
+            });
+
+            // Automatically open preview to show errors
+            setShowPreview(true);
+            return;
+        }
+
+        // No errors, proceed with upload
         uploadCsv();
     };
 
