@@ -14,7 +14,7 @@ import { useDropzone } from "react-dropzone";
 import {
     validateCsvData,
     createAndDownloadCsv,
-    convertExcelDateToDesiredFormat,
+    // convertExcelDateToDesiredFormat,
 } from "./utils/csv-utils";
 import { createSchemaFromHeaders } from "./utils/bulk-upload-validation";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
@@ -24,13 +24,13 @@ import {
     enrollBulkFormType,
     SchemaFields,
 } from "@/types/students/bulk-upload-types";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
-import Papa from "papaparse";
+// import Papa from "papaparse";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
-import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
+// import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 
 interface FileState {
     file: File | null;
@@ -51,12 +51,12 @@ interface PreviewDialogProps {
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
 }
 
-interface ResponseRow {
-    STATUS: string;
-    STATUS_MESSAGE: string;
-    ERROR: string;
-    [key: string]: string; // for other potential fields
-}
+// interface ResponseRow {
+//     STATUS: string;
+//     STATUS_MESSAGE: string;
+//     ERROR: string;
+//     [key: string]: string; // for other potential fields
+// }
 
 const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialogProps) => {
     return (
@@ -94,14 +94,15 @@ export const UploadCSVButton = ({
     const [showPreview, setShowPreview] = useState(false);
     const [fileState, setFileState] = useState<FileState>({ file: null });
     const { mutateAsync } = useBulkUploadMutation();
-    const packageSessionId = useGetPackageSessionId(
-        packageDetails.course.id,
-        packageDetails.session.id,
-        packageDetails.level.id,
-    );
+    // const packageSessionId = useGetPackageSessionId(
+    //     packageDetails.course.id,
+    //     packageDetails.session.id,
+    //     packageDetails.level.id,
+    // );
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+    const { csvData, setCsvData, setCsvErrors } = useBulkUploadStore();
 
     const requestPayload = {
         auto_generate_config: {
@@ -138,7 +139,6 @@ export const UploadCSVButton = ({
             enabled: isOpen,
         },
     );
-    const { setCsvData, setCsvErrors } = useBulkUploadStore();
 
     const onDrop = useCallback(
         async (acceptedFiles: File[], rejectedFiles: unknown[]) => {
@@ -161,7 +161,7 @@ export const UploadCSVButton = ({
             try {
                 const result = await validateCsvData(file, schema);
                 setCsvData(result.data);
-                setCsvErrors(result.errors);
+                // setCsvErrors(result.errors);
             } catch (err) {
                 const error = err instanceof Error ? err.message : "Error parsing CSV";
                 setFileState({ file: null, error });
@@ -183,7 +183,7 @@ export const UploadCSVButton = ({
         if (!open) {
             setFileState({ file: null });
             setCsvData(undefined);
-            setCsvErrors([]);
+            // setCsvErrors([]);
         }
         setIsOpen(open);
     };
@@ -214,112 +214,25 @@ export const UploadCSVButton = ({
         }
     };
 
-    const { csvData } = useBulkUploadStore();
-
-    const handleDoneClick = async () => {
+    const uploadCsv = async () => {
         if (!csvData || !data?.submit_api) return;
 
         try {
-            const transformedData = csvData.map((row) => {
-                const newRow = { ...row };
-
-                // Add the package session ID to all rows
-                if (packageSessionId) {
-                    newRow["PACKAGE_SESSION"] = String(packageSessionId);
-                }
-
-                data.headers.forEach((header) => {
-                    // Handle package session IDs and other enum types
-                    if (header.type === "enum" && header.send_option_id && header.option_ids) {
-                        const displayValue = row[header.column_name] as string;
-
-                        // Skip processing for PACKAGE_SESSION as we've already set it
-                        if (header.column_name === "PACKAGE_SESSION") {
-                            return;
-                        }
-
-                        if (displayValue) {
-                            for (const [id, value] of Object.entries(header.option_ids)) {
-                                if (value === displayValue) {
-                                    newRow[header.column_name] = id;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    // Handle date formatting
-                    if (header.type === "date" && header.format) {
-                        const dateValue = row[header.column_name] as string;
-                        if (dateValue) {
-                            // Convert to desired format if it's in Excel format
-                            const formattedDateValue = convertExcelDateToDesiredFormat(dateValue);
-
-                            // Validate the format
-                            const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
-                            if (!dateRegex.test(formattedDateValue)) {
-                                console.error(
-                                    `Invalid date format for ${header.column_name}: ${formattedDateValue}`,
-                                );
-                                return;
-                            }
-
-                            // Use the formatted date
-                            newRow[header.column_name] = formattedDateValue;
-                        }
-                    }
-
-                    // Handle numeric fields
-                    if (header.type === "integer") {
-                        const numValue = row[header.column_name];
-                        if (numValue) {
-                            newRow[header.column_name] = parseInt(numValue.toString(), 10);
-                        }
-                    }
-                });
-                return newRow;
-            });
-
-            // Use the mutation to submit the data
             const response = await mutateAsync({
-                data: transformedData,
+                data: csvData,
                 instituteId: data.submit_api.request_params.instituteId,
                 bulkUploadInitRequest: requestPayload,
             });
-
-            // Parse the CSV response
-            const parsedResponse = Papa.parse<ResponseRow>(response, {
-                header: true,
-            }).data;
-
-            // Update the CSV data with response information
-            const updatedCsvData = csvData.map((row, index) => {
-                const responseRow = parsedResponse[index];
-                if (!responseRow) return row;
-
-                return {
-                    ...row,
-                    STATUS: responseRow.STATUS === "true" ? "Success" : "Failed",
-                    STATUS_MESSAGE: responseRow.STATUS_MESSAGE || "",
-                    ERROR: responseRow.ERROR || "",
-                };
-            });
-
-            // Update the store with the response data
-            setCsvData(updatedCsvData);
+            setCsvData(csvData);
             setShowPreview(true);
-
-            // Show success toast if no errors
-            const hasErrors = parsedResponse.some((row) => row.STATUS !== "true");
-            if (!hasErrors) {
-                toast.success("All students enrolled successfully");
-            } else {
-                toast.error("Some students could not be enrolled. Please check the errors.");
-            }
+            console.log("csv respones: ", response);
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
-            // Error toasts are already handled in the mutation
         }
+    };
+
+    const handleDoneClick = async () => {
+        uploadCsv();
     };
 
     return (

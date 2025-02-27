@@ -1,10 +1,8 @@
 // bulk-upload-columns.tsx
 import { type ColumnDef } from "@tanstack/react-table";
-import { MyButton } from "@/components/design-system/button";
 import { type ErrorType, type SchemaFields } from "@/types/students/bulk-upload-types";
 import { cn } from "@/lib/utils";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
-import { CheckCircle } from "@phosphor-icons/react";
 
 // bulk-upload-columns.tsx
 export const createBulkUploadColumns = (
@@ -38,31 +36,6 @@ export const createBulkUploadColumns = (
                 );
             },
         });
-    });
-
-    // Add validation status column - always visible
-    columns.push({
-        id: "validation_status",
-        header: "Validation Status",
-        cell: ({ row }) => {
-            const rowErrors = csvErrors.filter((error) => error.path[0] === row.index);
-            return (
-                <div className="flex items-center text-xl">
-                    {rowErrors.length > 0 ? (
-                        <MyButton
-                            layoutVariant="default"
-                            scale="small"
-                            className="cursor-pointer bg-danger-500 hover:bg-danger-400 active:bg-danger-600"
-                            buttonType="primary"
-                        >
-                            Check errors
-                        </MyButton>
-                    ) : (
-                        <CheckCircle className="text-green-500" />
-                    )}
-                </div>
-            );
-        },
     });
 
     // Only add these columns if upload API was hit
