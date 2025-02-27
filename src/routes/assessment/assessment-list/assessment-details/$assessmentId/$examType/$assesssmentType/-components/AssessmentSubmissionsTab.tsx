@@ -29,6 +29,7 @@ import AssessmentSubmissionsFilterButtons from "./AssessmentSubmissionsFilterBut
 import { StudentSidebar } from "@/components/common/students/students-list/student-side-view/student-side-view";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { StudentSidebarContext } from "@/context/selected-student-sidebar-context";
+import { BulkActions } from "@/components/common/students/students-list/student-list-section/bulk-actions/bulk-actions";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -72,6 +73,10 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const currentPageSelection = rowSelections[page] || {};
+    const totalSelectedCount = Object.values(rowSelections).reduce(
+        (count, pageSelection) => count + Object.keys(pageSelection).length,
+        0,
+    );
 
     const [attemptedCount, setAttemptedCount] = useState(0);
     const [ongoingCount, setOngoingCount] = useState(0);
@@ -99,6 +104,8 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         },
     });
 
+    const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
+
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
             typeof updaterOrValue === "function"
@@ -109,6 +116,26 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
             ...prev,
             [page]: newSelection,
         }));
+    };
+
+    const handleResetSelections = () => {
+        setRowSelections({});
+    };
+
+    const getSelectedStudents = (): StudentTable[] => {
+        return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
+            const pageData = allPagesData[parseInt(pageNum)];
+            if (!pageData) return [];
+
+            return Object.entries(selections)
+                .filter(([, isSelected]) => isSelected)
+                .map(([index]) => pageData[parseInt(index)])
+                .filter((student): student is StudentTable => student !== undefined);
+        });
+    };
+
+    const getSelectedStudentIds = (): string[] => {
+        return getSelectedStudents().map((student) => student.id);
     };
 
     const getAssessmentColumn = {
@@ -670,6 +697,15 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, []);
 
+    useEffect(() => {
+        if (participantsData?.content) {
+            setAllPagesData((prev) => ({
+                ...prev,
+                [page]: participantsData.content,
+            }));
+        }
+    }, [participantsData?.content, page]);
+
     if (isParticipantsLoading) return <DashboardLoader />;
 
     return (
@@ -907,11 +943,19 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             <StudentSidebar selectedTab={selectedTab} examType={examType} />
                         </SidebarProvider>
                     </TabsContent>
-                    <MyPagination
-                        currentPage={page}
-                        totalPages={participantsData.total_pages}
-                        onPageChange={handlePageChange}
-                    />
+                    <div className="flex">
+                        <BulkActions
+                            selectedCount={totalSelectedCount}
+                            selectedStudentIds={getSelectedStudentIds()}
+                            selectedStudents={getSelectedStudents()}
+                            onReset={handleResetSelections}
+                        />
+                        <MyPagination
+                            currentPage={page}
+                            totalPages={participantsData.total_pages}
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
                 </div>
             </Tabs>
         </StudentSidebarContext.Provider>
