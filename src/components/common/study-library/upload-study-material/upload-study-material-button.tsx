@@ -29,8 +29,10 @@ export const UploadStudyMaterialButton = () => {
             onOpenChange={handleOpenChange}
         >
             <StudyMaterialDetailsForm
-                fields={["session", "year_class", "subject", "module", "chapter", "file_type"]}
-                onFormSubmit={() => {}}
+                fields={["course", "session", "level", "subject", "module", "chapter", "file_type"]}
+                onFormSubmit={(data: { id: string; name: string }[]) => {
+                    console.log(data);
+                }}
                 submitButtonName="Submit"
             />
         </MyDialog>

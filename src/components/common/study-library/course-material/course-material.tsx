@@ -1,7 +1,7 @@
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect, useState } from "react";
-// import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
-// import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
+import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
+import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
 import { CourseCard } from "./course-card";
@@ -97,8 +97,8 @@ export const CourseMaterial = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-4">
-                    {/* <CreateStudyDocButton />
-                    <UploadStudyMaterialButton /> */}
+                    <CreateStudyDocButton />
+                    <UploadStudyMaterialButton />
                     <AddCourseButton onSubmit={handleAddCourse} />
                 </div>
             </div>

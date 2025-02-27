@@ -16,7 +16,7 @@ export const MoveToDialog = ({ openDialog, setOpenDialog }: MoveTo) => {
             onOpenChange={() => setOpenDialog(null)}
         >
             <StudyMaterialDetailsForm
-                fields={["session", "year_class", "subject", "module"]}
+                fields={["course", "session", "level", "subject", "module"]}
                 onFormSubmit={() => {}}
                 submitButtonName="Move"
             />

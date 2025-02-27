@@ -19,11 +19,18 @@ import {
 import { createSchemaFromHeaders } from "./utils/bulk-upload-validation";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
 import { BulkUploadTable } from "./bulk-upload-table";
-import { SchemaFields } from "@/types/students/bulk-upload-types";
+import {
+    CSVFormatFormType,
+    enrollBulkFormType,
+    SchemaFields,
+} from "@/types/students/bulk-upload-types";
 import { toast } from "sonner";
-import { submitBulkUpload } from "@/hooks/student-list-section/enroll-student-bulk/submit-bulk-upload";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import Papa from "papaparse";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
+import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
+import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 
 interface FileState {
     file: File | null;
@@ -31,7 +38,9 @@ interface FileState {
 }
 
 interface UploadCSVButtonProps {
-    disable: boolean;
+    disable?: boolean;
+    packageDetails: enrollBulkFormType;
+    csvFormatDetails: CSVFormatFormType;
 }
 
 interface PreviewDialogProps {
@@ -76,14 +85,54 @@ const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialogProps)
     );
 };
 
-export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
+export const UploadCSVButton = ({
+    disable,
+    packageDetails,
+    csvFormatDetails,
+}: UploadCSVButtonProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [fileState, setFileState] = useState<FileState>({ file: null });
+    const { mutateAsync } = useBulkUploadMutation();
+    const packageSessionId = useGetPackageSessionId(
+        packageDetails.course.id,
+        packageDetails.session.id,
+        packageDetails.level.id,
+    );
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+
+    const requestPayload = {
+        auto_generate_config: {
+            auto_generate_username: csvFormatDetails.autoGenerateUsername,
+            auto_generate_password: csvFormatDetails.autoGeneratePassword,
+            auto_generate_enrollment_id: csvFormatDetails.autoGenerateEnrollmentId,
+        },
+        optional_fields_config: {
+            include_address_line: false,
+            include_region: csvFormatDetails.state,
+            include_city: csvFormatDetails.city,
+            include_pin_code: csvFormatDetails.pincode,
+            include_father_name: csvFormatDetails.fatherName,
+            include_mother_name: csvFormatDetails.motherName,
+            include_parents_mobile_number: csvFormatDetails.parentMobile,
+            include_parents_email: csvFormatDetails.parentEmail,
+            include_linked_institute_name: csvFormatDetails.collegeName,
+        },
+        expiry_and_status_config: {
+            include_expiry_days: csvFormatDetails.setCommonExpiryDate,
+            include_enrollment_status: csvFormatDetails.addStudentStatus,
+            expiry_days: parseInt(csvFormatDetails.daysFromToday),
+            enrollment_status: csvFormatDetails.studentStatus,
+        },
+    };
+
     const { data, isLoading } = useBulkUploadInit(
         {
-            instituteId: "c70f40a5-e4d3-4b6c-a498-e612d0d4b133",
-            sessionId: "1",
+            instituteId: INSTITUTE_ID || "",
+            sessionId: packageDetails.session.id,
+            bulkUploadInitRequest: requestPayload,
         },
         {
             enabled: isOpen,
@@ -108,7 +157,6 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
 
             setFileState({ file });
             const schema = createSchemaFromHeaders(data.headers);
-            console.log(schema);
 
             try {
                 const result = await validateCsvData(file, schema);
@@ -166,21 +214,30 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
         }
     };
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const { csvData } = useBulkUploadStore();
 
     const handleDoneClick = async () => {
         if (!csvData || !data?.submit_api) return;
 
         try {
-            setIsSubmitting(true);
-
             const transformedData = csvData.map((row) => {
                 const newRow = { ...row };
+
+                // Add the package session ID to all rows
+                if (packageSessionId) {
+                    newRow["PACKAGE_SESSION"] = String(packageSessionId);
+                }
+
                 data.headers.forEach((header) => {
                     // Handle package session IDs and other enum types
                     if (header.type === "enum" && header.send_option_id && header.option_ids) {
                         const displayValue = row[header.column_name] as string;
+
+                        // Skip processing for PACKAGE_SESSION as we've already set it
+                        if (header.column_name === "PACKAGE_SESSION") {
+                            return;
+                        }
+
                         if (displayValue) {
                             for (const [id, value] of Object.entries(header.option_ids)) {
                                 if (value === displayValue) {
@@ -191,25 +248,11 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                         }
                     }
 
-                    // Handle date formatting if needed
-                    // if (header.type === "date" && header.format) {
-                    //     const dateValue = row[header.column_name] as string;
-                    //     if (dateValue) {
-                    //         try {
-                    //             // Parse DD-MM-YYYY format and convert to API expected format
-                    //             const [day, month, year] = dateValue.split("-").map(num => num.padStart(2, '0'));
-                    //             const formattedDate = `${year}-${month}-${day}T00:00:00.000Z`;
-                    //             newRow[header.column_name] = formattedDate;
-                    //         } catch (error) {
-                    //             console.error(`Error formatting date for ${header.column_name}:`, error);
-                    //             newRow[header.column_name] = dateValue;
-                    //         }
-                    //     }
-                    // }
+                    // Handle date formatting
                     if (header.type === "date" && header.format) {
                         const dateValue = row[header.column_name] as string;
                         if (dateValue) {
-                            // First convert to desired format if it's in Excel format
+                            // Convert to desired format if it's in Excel format
                             const formattedDateValue = convertExcelDateToDesiredFormat(dateValue);
 
                             // Validate the format
@@ -237,9 +280,11 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                 return newRow;
             });
 
-            const response = await submitBulkUpload({
+            // Use the mutation to submit the data
+            const response = await mutateAsync({
                 data: transformedData,
                 instituteId: data.submit_api.request_params.instituteId,
+                bulkUploadInitRequest: requestPayload,
             });
 
             // Parse the CSV response
@@ -273,9 +318,7 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
             }
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
-            toast.error("Failed to enroll students");
-        } finally {
-            setIsSubmitting(false);
+            // Error toasts are already handled in the mutation
         }
     };
 
@@ -287,7 +330,8 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                         buttonType="primary"
                         scale="large"
                         layoutVariant="default"
-                        disabled={disable}
+                        disabled={disable || false}
+                        type="submit"
                     >
                         Upload CSV
                     </MyButton>
@@ -373,9 +417,9 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                                     layoutVariant="default"
                                     type="button"
                                     onClick={handleDoneClick}
-                                    disabled={!fileState.file || isSubmitting}
+                                    disabled={!fileState.file}
                                 >
-                                    {isSubmitting ? "Submitting..." : "Done"}
+                                    Done
                                 </MyButton>
                             </div>
                         </DialogFooter>

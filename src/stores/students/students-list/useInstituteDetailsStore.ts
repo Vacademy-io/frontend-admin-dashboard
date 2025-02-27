@@ -57,7 +57,7 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
         const { instituteDetails } = get();
         if (!instituteDetails) return [];
 
-        return instituteDetails.batches_for_sessions
+        const levels = instituteDetails.batches_for_sessions
             .filter((batch) => {
                 if (params?.courseId && params?.sessionId) {
                     return (
@@ -77,13 +77,24 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                 id: batch.level.id,
                 name: batch.level.level_name,
             }));
+
+        // Create a map to track unique items by ID
+        const uniqueMap = new Map();
+
+        // Add each item to the map, using id as the key
+        levels.forEach((item) => {
+            uniqueMap.set(item.id, item);
+        });
+
+        // Convert the map values back to an array
+        return Array.from(uniqueMap.values());
     },
 
     getCourseFromPackage: (params) => {
         const { instituteDetails } = get();
         if (!instituteDetails) return [];
 
-        return instituteDetails.batches_for_sessions
+        const courses = instituteDetails.batches_for_sessions
             .filter((batch) => {
                 if (params?.levelId && params?.sessionId) {
                     return (
@@ -102,13 +113,24 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                 id: batch.package_dto.id,
                 name: batch.package_dto.package_name,
             }));
+
+        // Create a map to track unique items by ID
+        const uniqueMap = new Map();
+
+        // Add each item to the map, using id as the key
+        courses.forEach((item) => {
+            uniqueMap.set(item.id, item);
+        });
+
+        // Convert the map values back to an array
+        return Array.from(uniqueMap.values());
     },
 
     getSessionFromPackage: (params) => {
         const { instituteDetails } = get();
         if (!instituteDetails) return [];
 
-        return instituteDetails.batches_for_sessions
+        const sessions = instituteDetails.batches_for_sessions
             .filter((batch) => {
                 if (params?.courseId && params?.levelId) {
                     return (
@@ -128,6 +150,17 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                 id: batch.session.id,
                 name: batch.session.session_name,
             }));
+
+        // Create a map to track unique items by ID
+        const uniqueMap = new Map();
+
+        // Add each item to the map, using id as the key
+        sessions.forEach((item) => {
+            uniqueMap.set(item.id, item);
+        });
+
+        // Convert the map values back to an array
+        return Array.from(uniqueMap.values());
     },
 
     getPackageSessionId: (params) => {

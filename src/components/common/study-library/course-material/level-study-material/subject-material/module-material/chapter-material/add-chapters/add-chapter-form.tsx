@@ -45,7 +45,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
     });
 
     useEffect(() => {
-        console.log("session id: ", sessionId);
+        console.log("initial values: ", initialValues);
     }, []);
 
     // Create default visibility object
@@ -192,10 +192,12 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                     )}
                 />
 
-                <div className="flex flex-col gap-4 overflow-y-auto">
+                <div className="flex flex-col gap-2 overflow-y-auto">
                     <div className="text-subtitle font-semibold">Chapter Visibility</div>
                     <div className="text-body text-neutral-500">
-                        Select the levels you want to grant access to this chapter.
+                        Select the levels you want to grant access to this chapter. Only the chosen
+                        levels will be able to view the content. You can update visibility at any
+                        time.
                     </div>
 
                     <div className="grid grid-cols-3 gap-6">
@@ -222,7 +224,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                     return (
                                         <FormItem
                                             key={course.package_dto.id}
-                                            className="flex flex-col gap-2 rounded-lg p-4"
+                                            className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <Checkbox
@@ -326,7 +328,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                             ? `${mode === "create" ? "Adding" : "Updating"}...`
                             : mode === "create"
                               ? "Add Chapter"
-                              : "Update Chapter"}
+                              : "Edit Chapter"}
                     </MyButton>
                 </div>
             </form>
