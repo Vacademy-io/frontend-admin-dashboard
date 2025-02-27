@@ -9,22 +9,27 @@ import { useRouter } from "@tanstack/react-router";
 export const ModulesWithChaptersProvider = ({
     subjectId,
     children,
+    packageSessionId,
 }: {
     subjectId: string;
     children: React.ReactNode;
+    packageSessionId?: string;
 }) => {
-    const router = useRouter();
-    const { courseId, levelId } = router.state.location.search;
-    const { selectedSession } = useSelectedSessionStore();
+    const GetPackageSessionId = () => {
+        const router = useRouter();
+        const { selectedSession } = useSelectedSessionStore();
+        const { courseId, levelId } = router.state.location.search;
+        return useGetPackageSessionId(courseId || "", selectedSession?.id || "", levelId || "");
+    };
 
-    const packageSessionId = useGetPackageSessionId(
-        courseId || "",
-        selectedSession?.id || "",
-        levelId || "",
-    );
+    let myPackageSessionId = packageSessionId;
+
+    if (myPackageSessionId == undefined) {
+        myPackageSessionId = GetPackageSessionId();
+    }
     // Always call the query hook, but control its execution with enabled
     const { isLoading } = useQuery({
-        ...useModulesWithChaptersQuery(subjectId, packageSessionId || ""),
+        ...useModulesWithChaptersQuery(subjectId, myPackageSessionId || ""),
         staleTime: 3600000,
     });
 

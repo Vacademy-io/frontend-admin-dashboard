@@ -46,46 +46,27 @@ export const EnrollBulkDialog = () => {
         const values = form.watch();
 
         // Update course list when session or level changes
-        // Helper function to remove duplicates based on id
-        const removeDuplicates = (list: DropdownItemType[]) => {
-            const seen = new Set();
-            return list.filter((item) => {
-                if (seen.has(item.id)) {
-                    return false;
-                }
-                seen.add(item.id);
-                return true;
-            });
-        };
-
-        // Update course list when session or level changes
         setCourseList(
-            removeDuplicates(
-                getCourseFromPackage({
-                    sessionId: values.session.id,
-                    levelId: values.level.id,
-                }),
-            ),
+            getCourseFromPackage({
+                sessionId: values.session.id,
+                levelId: values.level.id,
+            }),
         );
 
         // Update session list when course or level changes
         setSessionList(
-            removeDuplicates(
-                getSessionFromPackage({
-                    courseId: values.course.id,
-                    levelId: values.level.id,
-                }),
-            ),
+            getSessionFromPackage({
+                courseId: values.course.id,
+                levelId: values.level.id,
+            }),
         );
 
         // Update level list when course or session changes
         setLevelList(
-            removeDuplicates(
-                getLevelsFromPackage({
-                    courseId: values.course.id,
-                    sessionId: values.session.id,
-                }),
-            ),
+            getLevelsFromPackage({
+                courseId: values.course.id,
+                sessionId: values.session.id,
+            }),
         );
     }, [form.watch("course"), form.watch("session"), form.watch("level")]);
 

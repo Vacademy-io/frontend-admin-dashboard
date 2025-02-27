@@ -48,6 +48,19 @@ export const MyDropdown = ({
         handleValueChange(""); // Reset the value to an empty string or null
     };
 
+    // Helper function to get display text from the currentValue
+    const getDisplayText = () => {
+        if (!currentValue) return placeholder;
+
+        if (isDropdownItem(currentValue)) {
+            return currentValue.label;
+        } else if (isDropdownItemType(currentValue)) {
+            return currentValue.name;
+        } else {
+            return currentValue; // It's a string
+        }
+    };
+
     const renderMenuItem = (item: string | DropdownItem | DropdownItemType) => {
         if (isDropdownItem(item)) {
             if (item.subItems) {
@@ -133,7 +146,7 @@ export const MyDropdown = ({
                         disabled={disable}
                     >
                         <div className={`truncate ${!currentValue ? "text-neutral-400" : ""}`}>
-                            {currentValue || placeholder}
+                            {getDisplayText()}
                         </div>
                         <div className="ml-2 flex-shrink-0">
                             <CaretDown className={`${isOpen ? "hidden" : "visible"} size-[18px]`} />
