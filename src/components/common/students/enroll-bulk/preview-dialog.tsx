@@ -7,13 +7,13 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
-import { BulkUploadTable } from "./bulk-upload-table";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
 import { Warning } from "@phosphor-icons/react";
 import { StatusColumnRenderer } from "./status-column-rendered";
 import { Row } from "@tanstack/react-table";
 import { SchemaFields } from "@/types/students/bulk-upload-types";
+import { EditableBulkUploadTable } from "./bulk-upload-table";
 
 interface PreviewDialogProps {
     isOpen: boolean;
@@ -29,7 +29,14 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     headers,
     onEdit,
 }) => {
-    const { csvData, csvErrors } = useBulkUploadStore();
+    const { csvData, csvErrors, setIsEditing } = useBulkUploadStore();
+
+    // When the dialog closes, ensure edit mode is turned off
+    React.useEffect(() => {
+        if (!isOpen) {
+            setIsEditing(false);
+        }
+    }, [isOpen, setIsEditing]);
 
     // Group errors by type for summary
     const errorSummary = React.useMemo(() => {
@@ -67,27 +74,6 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
         const uniqueRows = new Set(csvErrors.map((err) => err.path[0]));
         return uniqueRows.size;
     }, [csvErrors]);
-
-    // Generate bulk upload columns with status column
-    const enhancedHeaders = React.useMemo(() => {
-        return [
-            {
-                column_name: "STATUS",
-                type: "status",
-                optional: true,
-                order: -1,
-                // Add other required properties with default values
-                options: null,
-                send_option_id: null,
-                option_ids: null,
-                format: null,
-                regex: null,
-                regex_error_message: null,
-                sample_values: [],
-            } as Header,
-            ...(headers || []),
-        ];
-    }, [headers]);
 
     // Create a wrapped status column renderer with proper type safety
     const CustomStatusColumnRenderer = React.useCallback(
@@ -153,8 +139,8 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                 )}
 
                 <DialogDescription className="flex flex-col overflow-x-scroll p-6">
-                    <BulkUploadTable
-                        headers={enhancedHeaders}
+                    <EditableBulkUploadTable
+                        headers={headers}
                         onEdit={onEdit}
                         statusColumnRenderer={CustomStatusColumnRenderer}
                     />
