@@ -16,7 +16,6 @@ import {
     createAndDownloadCsv,
     // convertExcelDateToDesiredFormat,
 } from "./utils/csv-utils";
-import { createSchemaFromHeaders } from "./utils/bulk-upload-validation";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
 import { BulkUploadTable } from "./bulk-upload-table";
 import {
@@ -153,15 +152,25 @@ export const UploadCSVButton = ({
                 return;
             }
 
-            if (!data?.headers) return;
+            if (!data?.headers) {
+                setFileState({ file: null, error: "Headers configuration not available" });
+                return;
+            }
 
             setFileState({ file });
-            const schema = createSchemaFromHeaders(data.headers);
 
             try {
-                const result = await validateCsvData(file, schema);
+                // Pass headers to the validation function
+                const result = await validateCsvData(file, data.headers);
                 setCsvData(result.data);
-                // setCsvErrors(result.errors);
+                setCsvErrors(result.errors);
+
+                // Show error summary if any errors exist
+                if (result.errors.length > 0) {
+                    console.warn(`Found ${result.errors.length} validation errors in the CSV`);
+                    // Could use toast notification here to alert user about errors
+                    // toast.warning(`Found ${result.errors.length} validation errors. Please check and fix the highlighted fields.`);
+                }
             } catch (err) {
                 const error = err instanceof Error ? err.message : "Error parsing CSV";
                 setFileState({ file: null, error });

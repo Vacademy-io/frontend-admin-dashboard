@@ -1,14 +1,14 @@
-// bulk-upload-columns.tsx
+// updated bulk-upload-columns.tsx
 import { type ColumnDef } from "@tanstack/react-table";
 import { type ErrorType, type SchemaFields } from "@/types/students/bulk-upload-types";
 import { cn } from "@/lib/utils";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
+import { FieldErrorDisplay } from "./error-field-display,";
 
-// bulk-upload-columns.tsx
 export const createBulkUploadColumns = (
     csvErrors: ErrorType[],
     headers?: Header[],
-    isPostUpload: boolean = false, // Add this parameter to check if upload API was hit
+    isPostUpload: boolean = false,
 ): Array<ColumnDef<SchemaFields>> => {
     const columns: Array<ColumnDef<SchemaFields>> = [];
 
@@ -16,7 +16,22 @@ export const createBulkUploadColumns = (
     headers?.forEach((header) => {
         columns.push({
             accessorKey: header.column_name,
-            header: header.column_name.replace(/_/g, " "),
+            header: () => {
+                return (
+                    <div className="flex flex-col">
+                        <span>{header.column_name.replace(/_/g, " ")}</span>
+                        {!header.optional && (
+                            <span className="text-xs text-danger-500">*Required</span>
+                        )}
+                        {header.type === "enum" && header.options && (
+                            <span className="text-xs text-neutral-500">(Select one)</span>
+                        )}
+                        {header.type === "date" && header.format && (
+                            <span className="text-xs text-neutral-500">({header.format})</span>
+                        )}
+                    </div>
+                );
+            },
             cell: ({ getValue, row }) => {
                 const error = csvErrors.find(
                     (error) => error.path[0] === row.index && error.path[1] === header.column_name,
@@ -25,13 +40,8 @@ export const createBulkUploadColumns = (
                 const value = getValue();
 
                 return (
-                    <div
-                        className={cn(
-                            "overflow-hidden overflow-ellipsis text-nowrap",
-                            error && "border border-red-400",
-                        )}
-                    >
-                        {value as string}
+                    <div className={cn("relative py-2", error && "bg-danger-50")}>
+                        <FieldErrorDisplay error={error} value={value as string} />
                     </div>
                 );
             },
