@@ -156,8 +156,6 @@ export const SlideMaterial = () => {
         if (activeItem?.document_type === "DOC" && activeItem.document_data) {
             try {
                 setTimeout(() => {
-                    console.log("editor: ", editor);
-                    console.log("document data: ", activeItem.document_data);
                     setEditorContent();
                 }, 300);
                 setEditorContent();

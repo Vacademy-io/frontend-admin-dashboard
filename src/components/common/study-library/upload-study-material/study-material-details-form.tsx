@@ -14,8 +14,6 @@ import {
 } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useEffect, useState } from "react";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
-import { useNavigate } from "@tanstack/react-router";
-import { useDialogStore } from "@/stores/study-library/slide-add-dialogs-store";
 
 export type AvailableFields =
     | "course"
@@ -33,28 +31,30 @@ export type FieldValue = {
 
 export type StudyMaterialDetailsFormProps = {
     fields: AvailableFields[];
-    onFormSubmit: (data: FieldValue[]) => void;
+    onFormSubmit: (data: {
+        [x: string]:
+            | {
+                  id: string;
+                  name: string;
+              }
+            | undefined;
+    }) => void;
     submitButtonName: string;
 };
 
 // Form validation schema
+const fieldObjectSchema = z
+    .object({
+        id: z.string(),
+        name: z.string(),
+    })
+    .optional();
+
 const createFormSchema = (fields: AvailableFields[]) => {
-    const schemaObject: Record<string, z.ZodTypeAny> = {};
+    const schemaObject: Record<string, typeof fieldObjectSchema> = {};
 
     fields.forEach((field) => {
-        if (field === "file_type") {
-            schemaObject[field] = z.object({
-                id: z.string(),
-                name: z.string(),
-            });
-        } else {
-            schemaObject[field] = z
-                .object({
-                    id: z.string(),
-                    name: z.string(),
-                })
-                .optional();
-        }
+        schemaObject[field] = fieldObjectSchema;
     });
 
     return z.object(schemaObject);
@@ -75,13 +75,9 @@ export const StudyMaterialDetailsForm = ({
     const formSchema = createFormSchema(fields);
     type FormValues = z.infer<typeof formSchema>;
 
-    const { openDocUploadDialog, openPdfDialog, openVideoDialog } = useDialogStore();
-
-    const navigate = useNavigate();
-
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: fields.reduce<Record<string, unknown>>(
+        defaultValues: fields.reduce<Partial<FormValues>>(
             (acc, field) => ({
                 ...acc,
                 [field]: field === "file_type" ? { id: "", name: "" } : undefined,
@@ -238,37 +234,7 @@ export const StudyMaterialDetailsForm = ({
     };
 
     const onSubmit = (data: FormValues) => {
-        // Convert the form data object to an array of field values
-        const fieldsArray: FieldValue[] = [];
-
-        // Iterate through all fields and add non-undefined values to array
-        fields.forEach((fieldName) => {
-            const fieldValue = data[fieldName];
-            if (fieldValue) {
-                fieldsArray.push({
-                    id: fieldValue.id,
-                    name: fieldValue.name,
-                });
-            }
-        });
-
-        // onFormSubmit(fieldsArray);
-        navigate({
-            to: "/study-library/courses/levels/subjects/modules/chapters/slides",
-            search: {
-                courseId: data.course?.id || "",
-                levelId: data.level?.id || "",
-                subjectId: data.subject?.id || "",
-                moduleId: data.module?.id || "",
-                chapterId: data.chapter?.id || "",
-                slideId: "",
-            },
-        });
-        if (data.file_type?.id == "PDF") openPdfDialog();
-        else if (data.file_type?.id == "DOC") openDocUploadDialog();
-        else openVideoDialog();
-
-        onFormSubmit(fieldsArray);
+        onFormSubmit(data);
     };
 
     return (
