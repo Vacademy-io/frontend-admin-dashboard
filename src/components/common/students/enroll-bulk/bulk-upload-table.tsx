@@ -9,10 +9,12 @@ import { createAndDownloadCsv } from "./utils/csv-utils";
 import { useState, useMemo } from "react";
 import { MyTable } from "@/components/design-system/table";
 import { SchemaFields } from "@/types/students/bulk-upload-types";
+import { Row } from "@tanstack/react-table";
 
 interface BulkUploadTableProps {
     headers: Header[];
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
+    statusColumnRenderer?: (props: { row: Row<SchemaFields> }) => JSX.Element;
 }
 
 interface RowWithError extends SchemaFields {
@@ -21,15 +23,13 @@ interface RowWithError extends SchemaFields {
 
 const ITEMS_PER_PAGE = 10;
 
-export function BulkUploadTable({ headers }: BulkUploadTableProps) {
+export function BulkUploadTable({ headers, statusColumnRenderer }: BulkUploadTableProps) {
     const { csvData, csvErrors } = useBulkUploadStore();
     const [page, setPage] = useState(0);
     const [searchInput, setSearchInput] = useState("");
     const [searchFilter, setSearchFilter] = useState("");
 
-    // const isPostUpload = csvData?.some((row) => "STATUS" in row) ?? false;
-
-    const columns = createBulkUploadColumns(csvErrors, headers);
+    const columns = createBulkUploadColumns(csvErrors, headers, false, statusColumnRenderer);
 
     const filteredData = useMemo(() => {
         if (!csvData) return [];
@@ -144,15 +144,14 @@ export function BulkUploadTable({ headers }: BulkUploadTableProps) {
 
             <div className="no-scrollbar">
                 <div className="no-scrollbar">
-                    {" "}
-                    {/* Minimum width to ensure horizontal scroll */}
                     <MyTable<SchemaFields>
                         data={paginatedData}
                         columns={columns}
                         isLoading={false}
                         error={null}
                         columnWidths={{
-                            status: "w-[100px]", // Changed to fixed widths
+                            STATUS: "w-[100px]",
+                            status: "w-[100px]",
                             error: "w-[200px]",
                             ...headers.reduce(
                                 (acc, header) => ({

@@ -11,25 +11,17 @@ import { ImportFileImage } from "@/assets/svgs";
 import { useBulkUploadInit } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadInit";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import {
-    validateCsvData,
-    createAndDownloadCsv,
-    // convertExcelDateToDesiredFormat,
-} from "./utils/csv-utils";
+import { validateCsvData, createAndDownloadCsv } from "./utils/csv-utils";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
-import { BulkUploadTable } from "./bulk-upload-table";
 import {
     CSVFormatFormType,
     enrollBulkFormType,
     SchemaFields,
 } from "@/types/students/bulk-upload-types";
-// import { toast } from "sonner";
-import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
-// import Papa from "papaparse";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
-// import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
+import { PreviewDialog } from "./preview-dialog";
 
 interface FileState {
     file: File | null;
@@ -42,48 +34,6 @@ interface UploadCSVButtonProps {
     csvFormatDetails: CSVFormatFormType;
 }
 
-interface PreviewDialogProps {
-    isOpen: boolean;
-    onClose: () => void;
-    file: File | null;
-    headers: Header[];
-    onEdit?: (rowIndex: number, columnId: string, value: string) => void;
-}
-
-// interface ResponseRow {
-//     STATUS: string;
-//     STATUS_MESSAGE: string;
-//     ERROR: string;
-//     [key: string]: string; // for other potential fields
-// }
-
-const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialogProps) => {
-    return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="h-[80vh] w-[80vw] max-w-[1200px] overflow-hidden p-0 font-normal">
-                <DialogHeader className="h-full">
-                    <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                        Preview Data
-                    </div>
-                </DialogHeader>
-                <DialogDescription className="flex flex-col overflow-x-scroll p-6">
-                    <BulkUploadTable headers={headers} onEdit={onEdit} />
-                </DialogDescription>
-                <DialogFooter className="border-t px-6 py-4">
-                    <MyButton
-                        buttonType="primary"
-                        scale="large"
-                        layoutVariant="default"
-                        onClick={onClose}
-                    >
-                        Close
-                    </MyButton>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
 export const UploadCSVButton = ({
     disable,
     packageDetails,
@@ -93,11 +43,6 @@ export const UploadCSVButton = ({
     const [showPreview, setShowPreview] = useState(false);
     const [fileState, setFileState] = useState<FileState>({ file: null });
     const { mutateAsync } = useBulkUploadMutation();
-    // const packageSessionId = useGetPackageSessionId(
-    //     packageDetails.course.id,
-    //     packageDetails.session.id,
-    //     packageDetails.level.id,
-    // );
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
