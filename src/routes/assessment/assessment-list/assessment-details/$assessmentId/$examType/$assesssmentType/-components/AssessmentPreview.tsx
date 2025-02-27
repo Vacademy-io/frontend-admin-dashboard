@@ -46,7 +46,8 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { savePrivateQuestions } from "../-services/assessment-details-services";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
-import { transformResponseDataToMyQuestionsSchema } from "@/routes/assessment/question-papers/-utils/helper";
+import { processQuestions } from "@/routes/assessment/question-papers/-utils/helper";
+import { MyQuestion } from "@/types/assessments/question-paper-form";
 
 interface Announcement {
     id: string;
@@ -287,9 +288,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     const handleSubmitSectionsForm = useMutation({
         mutationFn: ({ data }: { data: AssessmentDetailQuestions }) => savePrivateQuestions(data),
         onSuccess: async (data) => {
-            const transformedQuestionsData = transformResponseDataToMyQuestionsSchema(
-                data.questions,
-            );
+            const transformedQuestionsData: MyQuestion[] = await processQuestions(data.questions);
 
             const getSectionsWithAddedQuestionsCnt = getSectionsWithEmptyQuestionIds(
                 form.getValues(),
