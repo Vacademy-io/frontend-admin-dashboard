@@ -454,8 +454,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                 className="h-9 min-w-10"
                                 onClick={() =>
                                     copyToClipboard(
-                                        `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
-                                            "",
+                                        `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`,
                                     )
                                 }
                             >
@@ -466,10 +465,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                 </div>
                 <div className="flex items-center gap-4">
                     <QRCode
-                        value={
-                            `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
-                            ""
-                        }
+                        value={`${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`}
                         className="size-14"
                         id={`qr-code-svg-participants`}
                     />
