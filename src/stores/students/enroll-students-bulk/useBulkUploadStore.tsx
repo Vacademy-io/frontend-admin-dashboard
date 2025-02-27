@@ -1,6 +1,8 @@
 // updated-useBulkUploadStore.ts
 import { create } from "zustand";
 import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
+import { validateCellValue } from "@/components/common/students/enroll-bulk/utils/cell-validation-utils";
+import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 
 interface BulkUploadStoreState {
     csvData: SchemaFields[] | undefined;
@@ -11,6 +13,7 @@ interface BulkUploadStoreState {
     setIsEditing: (value: boolean) => void;
     updateCellValue: (rowIndex: number, columnId: string, value: string) => void;
     validateRows: () => void;
+    validateSingleCell: (rowIndex: number, columnId: string, value: string, header: Header) => void;
 }
 
 export const useBulkUploadStore = create<BulkUploadStoreState>((set, get) => ({
@@ -37,5 +40,21 @@ export const useBulkUploadStore = create<BulkUploadStoreState>((set, get) => ({
         // This would be implemented with validation logic
         // based on the headers and data
         // For now it's a placeholder for future implementation
+    },
+    validateSingleCell: (rowIndex, columnId, value, header) => {
+        const { csvErrors } = get();
+
+        // Remove existing errors for this cell
+        const filteredErrors = csvErrors.filter(
+            (error) => !(error.path[0] === rowIndex && error.path[1] === columnId),
+        );
+
+        // Validate the new value
+        const cellError = validateCellValue(value, header, rowIndex);
+
+        // Update errors state
+        set({
+            csvErrors: cellError ? [...filteredErrors, cellError] : filteredErrors,
+        });
     },
 }));

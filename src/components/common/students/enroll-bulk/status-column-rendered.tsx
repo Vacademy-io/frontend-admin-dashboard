@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CheckCircle } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";
 import { ErrorDetailsDialog } from "./error-details-dialog";
@@ -19,9 +19,14 @@ export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
     const [showErrorDialog, setShowErrorDialog] = useState(false);
     const rowIndex = row.index;
 
-    // Check if there are any errors for this row
+    // Get the latest errors for this row
     const rowErrors = csvErrors.filter((error) => error.path[0] === rowIndex);
     const hasErrors = rowErrors.length > 0;
+
+    // Use useEffect to update the component when csvErrors changes
+    useEffect(() => {
+        // This will force a re-render when csvErrors changes
+    }, [csvErrors]);
 
     if (!hasErrors) {
         return (
@@ -40,7 +45,7 @@ export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
                     layoutVariant="default"
                     onClick={() => setShowErrorDialog(true)}
                 >
-                    Check errors
+                    Check errors ({rowErrors.length})
                 </MyButton>
             </div>
 

@@ -9,7 +9,7 @@ type ParseResult = {
 };
 
 // Utility to check if a date string matches the expected format
-const isValidDateFormat = (dateStr: string, format: string): boolean => {
+export const isValidDateFormat = (dateStr: string, format: string): boolean => {
     // Convert format patterns to regex patterns
     const formatToRegex = (format: string): RegExp => {
         const pattern = format
