@@ -491,7 +491,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                               type: "HTML", // Assuming option content is HTML
                               content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
-                          media_id: null, // Assuming no direct mapping for option media ID
+                          media_id: String(opt?.image?.imageName), // Assuming no direct mapping for option media ID
                           option_order: null,
                           created_on: null,
                           updated_on: null,
@@ -510,7 +510,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                               type: "HTML", // Assuming option content is HTML
                               content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
-                          media_id: null, // Assuming no direct mapping for option media ID
+                          media_id: String(opt?.image?.imageName), // Assuming no direct mapping for option media ID
                           option_order: null,
                           created_on: null,
                           updated_on: null,
@@ -544,7 +544,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                     type: "HTML", // Assuming the content is HTML
                     content: question?.questionName?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                 },
-                media_id: null, // Assuming no direct mapping for media_id
+                media_id: String(question?.imageDetails?.map((img) => img.imageName).join(",")), // Assuming no direct mapping for media_id
                 created_at: null,
                 updated_at: null,
                 question_response_type: null, // Assuming no direct mapping for response type

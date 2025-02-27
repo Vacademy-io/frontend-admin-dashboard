@@ -8,6 +8,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { getPublicUrls } from "@/services/upload_file";
 
 export function formatStructure(structure: string, value: string | number): string {
     // If structure does not contain parentheses, just replace the number/letter with the value
@@ -35,7 +36,6 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-    console.log(data);
     return {
         title: data.title,
         institute_id: INSTITUTE_ID, // Assuming there's no direct mapping for institute_id
@@ -285,7 +285,48 @@ export const getIdBySubjectName = (
     return subject?.id || "N/A";
 };
 
-export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[]) => {
+const fetchImageUrls = async (mediaIds: string[]) => {
+    if (mediaIds.length === 0) return {};
+
+    const uniqueMediaIds = [...new Set(mediaIds)].join(",");
+    const data = await getPublicUrls(uniqueMediaIds);
+
+    // Create a mapping of media_id -> url
+    const mediaIdToUrlMap: Record<string, string> = {};
+    data.forEach((item: { id: string; url: string }) => {
+        mediaIdToUrlMap[item.id] = item.url;
+    });
+
+    return mediaIdToUrlMap;
+};
+
+const getMediaIdToUrlMap = async (data: QuestionResponse[]) => {
+    const allMediaIds: string[] = [];
+
+    data.forEach((item) => {
+        console.log(item);
+        if (item.media_id) {
+            allMediaIds.push(...item.media_id.split(","));
+        }
+        item.options.forEach((option) => {
+            if (option.media_id) {
+                allMediaIds.push(option.media_id);
+            }
+        });
+    });
+
+    return await fetchImageUrls(allMediaIds);
+};
+
+export const processQuestions = async (data: QuestionResponse[]) => {
+    const mediaIdToUrlMap = await getMediaIdToUrlMap(data);
+    return transformResponseDataToMyQuestionsSchema(data, mediaIdToUrlMap);
+};
+
+export const transformResponseDataToMyQuestionsSchema = (
+    data: QuestionResponse[],
+    mediaIdToUrlMap: Record<string, string>,
+) => {
     return data.map((item) => {
         const correctOptionIds =
             JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
@@ -302,6 +343,16 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
                 hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
                 min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
             },
+            imageDetails:
+                item.media_id !== "" && item.media_id !== null
+                    ? item.media_id?.split(",").map((id) => ({
+                          imageId: "",
+                          imageName: "",
+                          imageTitle: "",
+                          imageFile: mediaIdToUrlMap[id] || "",
+                          isDeleted: false,
+                      }))
+                    : [],
             singleChoiceOptions: [],
             multipleChoiceOptions: [],
         };
@@ -310,7 +361,16 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
             baseQuestion.singleChoiceOptions = item.options.map((option) => ({
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
-                image: {},
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile:
+                        option.media_id !== null && option.media_id !== ""
+                            ? mediaIdToUrlMap[option.media_id!]
+                            : "",
+                    isDeleted: false,
+                },
             }));
             baseQuestion.multipleChoiceOptions = Array(4).fill({
                 name: "",
@@ -327,7 +387,16 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
             baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
-                image: {},
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile:
+                        option.media_id !== null && option.media_id !== ""
+                            ? mediaIdToUrlMap[option.media_id!]
+                            : "",
+                    isDeleted: false,
+                },
             }));
             baseQuestion.singleChoiceOptions = Array(4).fill({
                 name: "",

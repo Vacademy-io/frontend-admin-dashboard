@@ -9,7 +9,7 @@ interface Option {
     preview_id: number;
     question_id: number | null;
     text: TextContent;
-    media_id: number | null;
+    media_id: string;
     option_order: number | null;
     created_on: string | null;
     updated_on: string | null;
@@ -20,7 +20,7 @@ interface Question {
     id: number | null;
     preview_id?: string;
     text: TextContent;
-    media_id: number | null;
+    media_id: string;
     created_at: string | null;
     updated_at: string | null;
     question_response_type: string | null;
