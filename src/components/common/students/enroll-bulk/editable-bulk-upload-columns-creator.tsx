@@ -1,21 +1,18 @@
 // editable-bulk-upload-table.tsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { type Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
 import { StudentSearchBox } from "../../student-search-box";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
-import {
-    convertExcelDateToDesiredFormat,
-    createAndDownloadCsv,
-    isValidDateFormat,
-} from "./utils/csv-utils";
+import { createAndDownloadCsv } from "./utils/csv-utils";
 import { MyTable } from "@/components/design-system/table";
-import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
+import { SchemaFields } from "@/types/students/bulk-upload-types";
 import { Row } from "@tanstack/react-table";
 import { createEditableBulkUploadColumns } from "./bulk-upload-columns";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { validateRowData, revalidateAllData } from "./utils/cell-validation-utils";
 
 interface EditableBulkUploadTableProps {
     headers: Header[];
@@ -29,133 +26,98 @@ interface RowWithError extends SchemaFields {
 
 const ITEMS_PER_PAGE = 10;
 
-export const validateCellValue = (
-    value: string,
-    header: Header,
-    rowIndex: number,
-): ValidationError | null => {
-    const fieldName = header.column_name;
-
-    // Skip validation if the field is optional and empty
-    if (header.optional && (!value || value.trim() === "")) {
-        return null;
-    }
-
-    // Check if required field is missing
-    if (!header.optional && (!value || value.trim() === "")) {
-        return {
-            path: [rowIndex, fieldName],
-            message: `${fieldName.replace(/_/g, " ")} is required`,
-            resolution: `Please provide a value for ${fieldName.replace(/_/g, " ")}`,
-            currentVal: "N/A",
-            format: "",
-        };
-    }
-
-    // If field has a value, validate according to type
-    if (value) {
-        // Enum validation
-        if (header.type === "enum" && header.options && header.options.length > 0) {
-            if (!header.options.includes(value)) {
-                return {
-                    path: [rowIndex, fieldName],
-                    message: `Invalid value for ${fieldName.replace(/_/g, " ")}`,
-                    resolution: `Value must be one of: ${header.options.join(", ")}`,
-                    currentVal: value,
-                    format: header.options.join(", "),
-                };
-            }
-        }
-
-        // Date validation
-        if (header.type === "date" && header.format) {
-            const formattedDate = convertExcelDateToDesiredFormat(value, header.format);
-
-            if (!isValidDateFormat(formattedDate, header.format)) {
-                return {
-                    path: [rowIndex, fieldName],
-                    message: `Invalid date format for ${fieldName.replace(/_/g, " ")}`,
-                    resolution: `Date must be in format: ${header.format}`,
-                    currentVal: value,
-                    format: header.format,
-                };
-            }
-        }
-
-        // Regex validation
-        if (header.regex) {
-            try {
-                const regex = new RegExp(header.regex);
-                if (!regex.test(value)) {
-                    return {
-                        path: [rowIndex, fieldName],
-                        message:
-                            header.regex_error_message ||
-                            `Invalid format for ${fieldName.replace(/_/g, " ")}`,
-                        resolution: `Please check the format`,
-                        currentVal: value,
-                        format: header.regex,
-                    };
-                }
-            } catch (e) {
-                console.error(`Invalid regex pattern: ${header.regex}`);
-            }
-        }
-    }
-
-    // No validation errors
-    return null;
-};
-
 export function EditableBulkUploadTable({
     headers,
     onEdit,
     statusColumnRenderer,
 }: EditableBulkUploadTableProps) {
-    const { csvData, csvErrors, setIsEditing, isEditing, setCsvData } = useBulkUploadStore();
+    const { csvData, csvErrors, setIsEditing, isEditing, setCsvData, setCsvErrors } =
+        useBulkUploadStore();
     const [page, setPage] = useState(0);
     const [searchInput, setSearchInput] = useState("");
     const [searchFilter, setSearchFilter] = useState("");
     const [editCell, setEditCell] = useState<{ rowIndex: number; columnId: string } | null>(null);
-    const { setCsvErrors } = useBulkUploadStore();
+
+    // Add status header if it doesn't exist in the headers
+    const enhancedHeaders = useMemo(() => {
+        const hasStatusHeader = headers.some((h) => h.column_name === "STATUS");
+        if (!hasStatusHeader) {
+            return [
+                {
+                    column_name: "STATUS",
+                    type: "status",
+                    optional: true,
+                    order: -1,
+                    options: null,
+                    send_option_id: null,
+                    option_ids: null,
+                    format: null,
+                    regex: null,
+                    regex_error_message: null,
+                    sample_values: [],
+                } as Header,
+                ...headers,
+            ];
+        }
+        return headers;
+    }, [headers]);
 
     const handleCellEdit = (rowIndex: number, columnId: string, value: string) => {
         if (!csvData) return;
 
         // Create a new data array with the updated value
         const newData = [...csvData];
-        newData[rowIndex] = { ...newData[rowIndex], [columnId]: value };
 
-        // Update the data
-        setCsvData(newData);
+        // Ensure the row exists before updating
+        if (rowIndex >= 0 && rowIndex < newData.length) {
+            newData[rowIndex] = {
+                ...newData[rowIndex],
+                [columnId]: value,
+            };
 
-        // Find the header for this column to use in validation
-        const header = headers.find((h) => h.column_name === columnId);
-        if (header) {
-            // Remove old errors for this specific cell
-            const updatedErrors = csvErrors.filter(
-                (error) => !(error.path[0] === rowIndex && error.path[1] === columnId),
-            );
+            // Update the data
+            setCsvData(newData);
 
-            // Validate the new value
-            const cellError = validateCellValue(value, header, rowIndex);
+            // Revalidate the edited row to update errors
+            const header = headers.find((h) => h.column_name === columnId);
+            if (header) {
+                // Get all errors except for the ones for the edited cell
+                const otherErrors = csvErrors.filter(
+                    (error) => !(error.path[0] === rowIndex && error.path[1] === columnId),
+                );
 
-            // Set updated errors
-            setCsvErrors(cellError ? [...updatedErrors, cellError] : updatedErrors);
+                // Validate the updated row
+                const rowData = newData[rowIndex];
+                // Make sure rowData is defined before validation
+                if (rowData) {
+                    const newRowErrors = validateRowData(rowData, headers, rowIndex);
+                    // Combine errors
+                    setCsvErrors([...otherErrors, ...newRowErrors]);
+                }
+            }
+
+            // Call external edit handler if provided
+            if (onEdit) {
+                onEdit(rowIndex, columnId, value);
+            }
         }
 
-        // Call external edit handler if provided
-        if (onEdit) {
-            onEdit(rowIndex, columnId, value);
-        }
-
+        // Reset edit cell state
         setEditCell(null);
     };
+
+    // Revalidate all data when editing is enabled/disabled
+    useEffect(() => {
+        if (csvData && headers.length > 0) {
+            const allErrors = revalidateAllData(csvData, headers);
+            setCsvErrors(allErrors);
+        }
+    }, [isEditing]);
 
     const columns = useMemo(() => {
         return createEditableBulkUploadColumns({
             csvErrors,
-            headers,
+            headers: enhancedHeaders,
             isPostUpload: false,
             statusColumnRenderer,
             isEditing,
@@ -167,7 +129,7 @@ export function EditableBulkUploadTable({
             editCell,
             handleCellEdit,
         });
-    }, [csvErrors, headers, statusColumnRenderer, isEditing, editCell, csvData]);
+    }, [csvErrors, enhancedHeaders, statusColumnRenderer, isEditing, editCell, csvData]);
 
     const filteredData = useMemo(() => {
         if (!csvData) return [];
@@ -310,7 +272,7 @@ export function EditableBulkUploadTable({
                             STATUS: "w-[100px]",
                             status: "w-[100px]",
                             error: "w-[200px]",
-                            ...headers.reduce(
+                            ...enhancedHeaders.reduce(
                                 (acc, header) => ({
                                     ...acc,
                                     [header.column_name]: "w-[180px]",

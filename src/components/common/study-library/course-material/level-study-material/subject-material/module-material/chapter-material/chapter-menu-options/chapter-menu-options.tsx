@@ -3,7 +3,7 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsThree } from "phosphor-react";
 import { useState } from "react";
-import { dropdownList } from "@/constants/study-library/chapter-menu-options";
+import { dropdownList } from "@/constants/study-library/chapter-menu-options-list";
 import { MoveToDialog } from "./move-dialog";
 import { CopyToDialog } from "./copy-dialog";
 import { AddChapterForm } from "../add-chapters/add-chapter-form";
@@ -77,10 +77,10 @@ export const ChapterMenuOptions = ({
             </MyDialog>
 
             {/* Copy Dialog */}
-            <CopyToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            <CopyToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} chapter={chapter} />
 
             {/* Move Dialog */}
-            <MoveToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            <MoveToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} chapter={chapter} />
         </>
     );
 };
