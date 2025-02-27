@@ -46,7 +46,9 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { savePrivateQuestions } from "../-services/assessment-details-services";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
-import { transformResponseDataToMyQuestionsSchema } from "@/routes/assessment/question-papers/-utils/helper";
+import { processQuestions } from "@/routes/assessment/question-papers/-utils/helper";
+import { MyQuestion } from "@/types/assessments/question-paper-form";
+import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 
 interface Announcement {
     id: string;
@@ -287,9 +289,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     const handleSubmitSectionsForm = useMutation({
         mutationFn: ({ data }: { data: AssessmentDetailQuestions }) => savePrivateQuestions(data),
         onSuccess: async (data) => {
-            const transformedQuestionsData = transformResponseDataToMyQuestionsSchema(
-                data.questions,
-            );
+            const transformedQuestionsData: MyQuestion[] = await processQuestions(data.questions);
 
             const getSectionsWithAddedQuestionsCnt = getSectionsWithEmptyQuestionIds(
                 form.getValues(),
@@ -444,7 +444,8 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                     <div className="flex items-center gap-8">
                         <div className="flex items-center gap-4">
                             <span className="px-3 py-2 text-sm underline">
-                                {assessmentDetails[0]?.saved_data.assessment_url}
+                                {`${BASE_URL_LEARNER_DASHBOARD}/register?code=
+                                ${assessmentDetails[0]?.saved_data.assessment_url}`}
                             </span>
                             <MyButton
                                 type="button"
@@ -453,7 +454,8 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                 className="h-9 min-w-10"
                                 onClick={() =>
                                     copyToClipboard(
-                                        assessmentDetails[0]?.saved_data.assessment_url || "",
+                                        `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
+                                            "",
                                     )
                                 }
                             >
@@ -464,7 +466,10 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                 </div>
                 <div className="flex items-center gap-4">
                     <QRCode
-                        value={assessmentDetails[0]?.saved_data.assessment_url || ""}
+                        value={
+                            `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
+                            ""
+                        }
                         className="size-14"
                         id={`qr-code-svg-participants`}
                     />
