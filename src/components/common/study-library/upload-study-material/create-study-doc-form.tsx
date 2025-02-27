@@ -14,6 +14,8 @@ import {
 } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useEffect, useState } from "react";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
+import { useDialogStore } from "@/stores/study-library/slide-add-dialogs-store";
+import { useNavigate } from "@tanstack/react-router";
 
 // Form validation schema
 const formSchema = z.object({
@@ -62,6 +64,10 @@ export const CreateStudyDocForm = () => {
         getLevelsFromPackage,
         getPackageSessionId,
     } = useInstituteDetailsStore();
+
+    const { openDocUploadDialog } = useDialogStore();
+
+    const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -208,8 +214,18 @@ export const CreateStudyDocForm = () => {
     };
 
     const onSubmit = (data: z.infer<typeof formSchema>) => {
-        console.log(data);
-        // Handle form submission
+        navigate({
+            to: "/study-library/courses/levels/subjects/modules/chapters/slides",
+            search: {
+                courseId: data.course?.id || "",
+                levelId: data.level?.id || "",
+                subjectId: data.subject?.id || "",
+                moduleId: data.module?.id || "",
+                chapterId: data.chapter?.id || "",
+                slideId: "",
+            },
+        });
+        openDocUploadDialog();
     };
 
     return (
