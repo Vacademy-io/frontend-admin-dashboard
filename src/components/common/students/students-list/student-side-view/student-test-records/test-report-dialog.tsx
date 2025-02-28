@@ -101,7 +101,9 @@ export const TestReportDialog = ({
                             {extractDateTime(convertToLocalDateTime(studentReport.start_time)).date}
                         </div>
                         <div>Marks: {studentReport.total_marks}</div>
-                        <div>Duration: {studentReport.duration_in_seconds * 60} min</div>
+                        <div>
+                            Duration: {(studentReport.duration_in_seconds % 60).toFixed(2)} min
+                        </div>
                         <div>
                             Start Time:{" "}
                             {extractDateTime(convertToLocalDateTime(studentReport.start_time)).time}
