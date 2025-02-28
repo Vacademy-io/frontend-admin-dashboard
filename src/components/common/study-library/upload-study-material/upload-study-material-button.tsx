@@ -3,9 +3,13 @@ import { MyButton } from "@/components/design-system/button";
 import { BookOpenText } from "@phosphor-icons/react";
 import { useState } from "react";
 import { StudyMaterialDetailsForm } from "./study-material-details-form";
+import { useNavigate } from "@tanstack/react-router";
+import { useDialogStore } from "@/stores/study-library/slide-add-dialogs-store";
 
 export const UploadStudyMaterialButton = () => {
     const [openDialog, setOpenDialog] = useState(false);
+    const navigate = useNavigate();
+    const { openDocUploadDialog, openPdfDialog, openVideoDialog } = useDialogStore();
 
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
@@ -20,6 +24,31 @@ export const UploadStudyMaterialButton = () => {
         </MyButton>
     );
 
+    const handleSubmitForm = (data: {
+        [x: string]:
+            | {
+                  id: string;
+                  name: string;
+              }
+            | undefined;
+    }) => {
+        navigate({
+            to: "/study-library/courses/levels/subjects/modules/chapters/slides",
+            search: {
+                courseId: data.course?.id || "",
+                levelId: data.level?.id || "",
+                subjectId: data.subject?.id || "",
+                moduleId: data.module?.id || "",
+                chapterId: data.chapter?.id || "",
+                slideId: "",
+            },
+        });
+
+        if (data.file_type?.id === "PDF") openPdfDialog();
+        else if (data.file_type?.id === "DOC") openDocUploadDialog();
+        else openVideoDialog();
+    };
+
     return (
         <MyDialog
             trigger={triggerButton}
@@ -29,8 +58,8 @@ export const UploadStudyMaterialButton = () => {
             onOpenChange={handleOpenChange}
         >
             <StudyMaterialDetailsForm
-                fields={["session", "year_class", "subject", "module", "chapter", "file_type"]}
-                onFormSubmit={() => {}}
+                fields={["course", "session", "level", "subject", "module", "chapter", "file_type"]}
+                onFormSubmit={handleSubmitForm}
                 submitButtonName="Submit"
             />
         </MyDialog>

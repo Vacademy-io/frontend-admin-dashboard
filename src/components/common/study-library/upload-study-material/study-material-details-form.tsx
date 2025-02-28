@@ -1,67 +1,69 @@
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyDropdown } from "@/components/design-system/dropdown";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { MyDropdown } from "../../students/enroll-manually/dropdownForPackageItems";
 import { MyButton } from "@/components/design-system/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useGetSessions } from "@/hooks/student-list-section/useFilters";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
+import { ModulesWithChapters } from "@/stores/study-library/use-modules-with-chapters-store";
+import { useEffect, useMemo, useState } from "react";
+import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
+import { useQuery } from "@tanstack/react-query";
+import { useModulesWithChaptersQuery } from "@/services/study-library/getModulesWithChapters";
 
 export type AvailableFields =
+    | "course"
     | "session"
-    | "year_class"
+    | "level"
     | "subject"
     | "module"
     | "chapter"
     | "file_type";
 
+export type FieldValue = {
+    id: string;
+    name: string;
+};
+
 export type StudyMaterialDetailsFormProps = {
     fields: AvailableFields[];
-    onFormSubmit: (data: unknown) => void;
+    onFormSubmit: (data: {
+        [x: string]:
+            | {
+                  id: string;
+                  name: string;
+              }
+            | undefined;
+    }) => void;
     submitButtonName: string;
 };
 
-type FieldConfig = {
-    label: string;
-    placeholder: string;
-    getList: () => string[];
+// Form validation schema
+const fieldObjectSchema = z
+    .object({
+        id: z.string(),
+        name: z.string(),
+    })
+    .optional();
+
+const createFormSchema = (fields: AvailableFields[]) => {
+    const schemaObject: Record<string, typeof fieldObjectSchema> = {};
+
+    fields.forEach((field) => {
+        schemaObject[field] = fieldObjectSchema;
+    });
+
+    return z.object(schemaObject);
 };
 
-// Later when APIs are integrated, replace the array returns with actual API calls
-const FIELD_CONFIG: Record<AvailableFields, FieldConfig> = {
-    session: {
-        label: "Session",
-        placeholder: "Select Session",
-        getList: useGetSessions,
-    },
-    year_class: {
-        label: "Year/Class",
-        placeholder: "Select Year/Class",
-        getList: () => ["10th Class", "9th Class", "8th Class"], // Will be replaced with API call
-    },
-    subject: {
-        label: "Subject",
-        placeholder: "Select Subject",
-        getList: () => ["Chemistry", "Biology", "Physics", "Olympiad", "Mathematics"], // Will be replaced with API call
-    },
-    module: {
-        label: "Module",
-        placeholder: "Select Module",
-        getList: () => ["Live Session", "NCERT"], // Will be replaced with API call
-    },
-    chapter: {
-        label: "Chapter",
-        placeholder: "Select Chapter",
-        getList: () => [
-            "Chapter 1: Light - Reflection and Refraction",
-            "Chapter 2: The Human Eye and The Colourful World",
-            "Chapter 3: Extra Numericals For Light and Human Eye",
-        ], // Will be replaced with API call
-    },
-    file_type: {
-        label: "File Type",
-        placeholder: "Select File Type",
-        getList: () => ["E-Book", "Video"], // Will be replaced with API call
-    },
+// Custom hook to fetch modules with chapters
+const useModulesWithChapters = (subjectId: string, packageSessionId?: string) => {
+    return useQuery({
+        ...useModulesWithChaptersQuery(subjectId, packageSessionId || ""),
+        staleTime: 3600000,
+        enabled: !!subjectId && !!packageSessionId, // Only run the query if both values are present
+    });
 };
 
 export const StudyMaterialDetailsForm = ({
@@ -69,57 +71,192 @@ export const StudyMaterialDetailsForm = ({
     onFormSubmit,
     submitButtonName,
 }: StudyMaterialDetailsFormProps) => {
-    const createDynamicSchema = () => {
-        const schemaObject: Record<string, z.ZodString> = {};
-        fields.forEach((field) => {
-            schemaObject[field] = z.string().min(1, "This field is required");
-        });
-        return z.object(schemaObject);
-    };
+    const {
+        getCourseFromPackage,
+        getSessionFromPackage,
+        getLevelsFromPackage,
+        getPackageSessionId,
+    } = useInstituteDetailsStore();
 
-    const formSchema = createDynamicSchema();
+    const formSchema = createFormSchema(fields);
     type FormValues = z.infer<typeof formSchema>;
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: fields.reduce(
+        defaultValues: fields.reduce<Partial<FormValues>>(
             (acc, field) => ({
                 ...acc,
-                [field]: "",
+                [field]: field === "file_type" ? { id: "", name: "" } : undefined,
             }),
             {},
         ),
         mode: "onTouched",
     });
 
-    const { watch } = form;
-    const formValues = watch();
+    const { watch, getValues } = form;
 
-    const isDropdownDisabled = (fieldName: AvailableFields): boolean => {
-        const currentIndex = fields.indexOf(fieldName);
-        if (currentIndex === 0) return false;
+    // Get course list
+    const courseList = getCourseFromPackage();
 
-        const previousField = fields[currentIndex - 1];
-        return previousField ? !formValues[previousField] : false;
+    // Get session list based on selected course
+    const sessionList = getSessionFromPackage({
+        courseId: getValues("course")?.id,
+    });
+
+    // Get level list based on selected course and session
+    const levelList = getLevelsFromPackage({
+        courseId: getValues("course")?.id,
+        sessionId: getValues("session")?.id,
+    });
+
+    // Get subject list
+    const subjectList = getCourseSubjects(
+        getValues("course")?.id || "",
+        getValues("session")?.id || "",
+        getValues("level")?.id || "",
+    );
+    const formattedSubjectList = useMemo(
+        () =>
+            subjectList.map((subject) => ({
+                id: subject.id,
+                name: subject.subject_name,
+            })),
+        [subjectList],
+    );
+
+    // Get package session ID for modules
+    const fetchPackageSessionId = () => {
+        return getPackageSessionId({
+            courseId: getValues("course")?.id || "",
+            sessionId: getValues("session")?.id || "",
+            levelId: getValues("level")?.id || "",
+        });
     };
 
-    const onSubmit = (data: FormValues) => {
-        onFormSubmit(data);
+    const [packageSessionId, setPackageSessionId] = useState(fetchPackageSessionId());
+
+    useEffect(() => {
+        const newPackageSessionId = fetchPackageSessionId();
+        setPackageSessionId(newPackageSessionId);
+    }, [watch("course"), watch("session"), watch("level")]);
+
+    const { data: modulesWithChaptersData, error: modulesError } = useModulesWithChapters(
+        form.watch("subject")?.id || "",
+        packageSessionId || undefined,
+    );
+
+    if (modulesError) {
+        console.error("Error fetching modules with chapters:", modulesError);
+    }
+
+    // Format module list
+    const formattedModuleList = useMemo(() => {
+        return (
+            modulesWithChaptersData?.map((object: ModulesWithChapters) => ({
+                id: object.module.id,
+                name: object.module.module_name,
+            })) || []
+        );
+    }, [modulesWithChaptersData]);
+
+    // Get chapters list based on selected module
+    const chaptersList = getChaptersByModuleId(getValues("module")?.id || "");
+
+    const formattedChapterList = useMemo(() => {
+        if (!chaptersList) return [];
+        return chaptersList.map((chapter) => ({
+            id: chapter.chapter.id,
+            name: chapter.chapter.chapter_name,
+        }));
+    }, [chaptersList]);
+
+    // File type list formatted to match the FieldValue type
+    const fileTypeList = [
+        { id: "PDF", name: "PDF" },
+        { id: "DOC", name: "DOC" },
+        { id: "VIDEO", name: "VIDEO" },
+    ];
+
+    // Function to determine if a dropdown should be disabled
+    const isDropdownDisabled = (fieldName: AvailableFields): boolean => {
+        switch (fieldName) {
+            case "course":
+                return false;
+            case "session":
+                return !watch("course");
+            case "level":
+                return !watch("session");
+            case "subject":
+                return !watch("level");
+            case "module":
+                return !watch("subject");
+            case "chapter":
+                return !watch("module");
+            case "file_type":
+                return false;
+            default:
+                return false;
+        }
+    };
+
+    // Get the appropriate list for each field
+    const getListForField = (fieldName: AvailableFields): FieldValue[] => {
+        switch (fieldName) {
+            case "course":
+                return courseList;
+            case "session":
+                return sessionList;
+            case "level":
+                return levelList;
+            case "subject":
+                return formattedSubjectList;
+            case "module":
+                return formattedModuleList;
+            case "chapter":
+                return formattedChapterList;
+            case "file_type":
+                return fileTypeList;
+            default:
+                return [];
+        }
+    };
+
+    // Get label and placeholder for each field
+    const getFieldConfig = (fieldName: AvailableFields) => {
+        const config = {
+            course: { label: "Course", placeholder: "Select Course" },
+            session: { label: "Session", placeholder: "Select Session" },
+            level: { label: "Year/Class", placeholder: "Select Year/Class" },
+            subject: { label: "Subject", placeholder: "Select Subject" },
+            module: { label: "Module", placeholder: "Select Module" },
+            chapter: { label: "Chapter", placeholder: "Select Chapter" },
+            file_type: { label: "File Type", placeholder: "Select File Type" },
+        };
+
+        return config[fieldName];
+    };
+
+    const onSubmit = async (data: FormValues) => {
+        try {
+            await onFormSubmit(data);
+        } catch (error) {
+            console.error("Form submission error:", error);
+        }
     };
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {fields.map((fieldName) => {
-                    const config = FIELD_CONFIG[fieldName];
-                    const list = config.getList();
+                    const config = getFieldConfig(fieldName);
+                    const list = getListForField(fieldName);
 
                     return (
                         <FormField
                             key={fieldName}
                             control={form.control}
                             name={fieldName}
-                            render={({ field: { onChange, value }, fieldState }) => (
+                            render={({ field, fieldState }) => (
                                 <FormItem>
                                     <FormControl>
                                         <div className="flex flex-col gap-1">
@@ -129,15 +266,13 @@ export const StudyMaterialDetailsForm = ({
                                             </div>
                                             <MyDropdown
                                                 placeholder={config.placeholder}
-                                                currentValue={value}
+                                                currentValue={field.value}
                                                 dropdownList={list}
-                                                onSelect={(selectedValue) => {
-                                                    onChange(selectedValue);
-                                                    form.trigger(fieldName);
-                                                }}
+                                                onSelect={field.onChange}
                                                 disable={isDropdownDisabled(fieldName)}
                                                 error={fieldState.error?.message}
                                             />
+                                            <FormMessage className="text-danger-600" />
                                         </div>
                                     </FormControl>
                                 </FormItem>

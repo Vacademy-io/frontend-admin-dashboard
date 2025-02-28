@@ -25,7 +25,7 @@ export const LayoutContainer = ({
                 <Navbar />
                 <div
                     className={cn(
-                        intrnalMargin ? `m-7` : `m-0`,
+                        intrnalMargin ? `m-7 flex flex-1 flex-col` : `m-0`,
                         open
                             ? intrnalMargin
                                 ? `max-w-[calc(100vw-322px-56px)]`

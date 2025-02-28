@@ -14,11 +14,7 @@ import {
     PaginatedResponse,
     QuestionPaperInterface,
 } from "@/types/assessments/question-paper-template";
-import {
-    getLevelNameById,
-    getSubjectNameById,
-    transformResponseDataToMyQuestionsSchema,
-} from "../-utils/helper";
+import { getLevelNameById, getSubjectNameById, processQuestions } from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { MyQuestion } from "@/types/assessments/question-paper-form";
@@ -98,12 +94,11 @@ export const QuestionPapersList = ({
 
     const handleGetQuestionPaperData = useMutation({
         mutationFn: ({ id }: { id: string }) => getQuestionPaperById(id),
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
             setIsSavedQuestionPaperDialogOpen(false);
-            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
+            const transformQuestionsData: MyQuestion[] = await processQuestions(
                 data.question_dtolist,
             );
-
             if (sectionsForm && index !== undefined) {
                 sectionsForm.setValue(
                     `section.${index}.adaptive_marking_for_each_question`,

@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Check } from "phosphor-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { OptionImageDialogueProps } from "@/types/assessments/upload-image-dialogue";
+import { getInstituteId } from "@/constants/helper";
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
     form,
@@ -14,22 +16,40 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
     option,
     currentQuestionIndex,
 }) => {
+    const instituteId = getInstituteId();
+    const [isUploading, setIsUploading] = useState(false);
+    console.log(isUploading);
+    const { uploadFile, getPublicUrl } = useFileUpload();
     const { getValues, setValue } = form;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const handleFileSubmit = (file: File) => {
-        setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
-            file.name,
-        );
+    const handleFileSubmit = async (file: File) => {
+        try {
+            setIsUploading(true);
+            const fileId = await uploadFile({
+                file,
+                setIsUploading,
+                userId: "your-user-id",
+                source: instituteId,
+                sourceId: "STUDENTS",
+            });
 
-        // Generate the image preview URL
-        const imageUrl = URL.createObjectURL(file);
-
-        setValue(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
-            imageUrl,
-        );
+            if (fileId) {
+                setValue(
+                    `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
+                    fileId,
+                );
+                const publicUrl = await getPublicUrl(fileId);
+                setValue(
+                    `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
+                    publicUrl,
+                );
+            }
+        } catch (error) {
+            console.error("Upload failed:", error);
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const handleFileSelect = () => {
@@ -50,7 +70,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                 <div className="flex items-center gap-4 px-8 py-4">
                     <FormField
                         control={form.control}
-                        name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`}
+                        name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -67,7 +87,7 @@ export const OptionUploadImagePreview: React.FC<OptionImageDialogueProps> = ({
                         className="bg-primary-500 p-3"
                         disabled={
                             !getValues(
-                                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageName`,
+                                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.image.imageFile`,
                             )
                         }
                     >

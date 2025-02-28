@@ -44,6 +44,23 @@ export const MyDropdown = ({
         setIsOpen(false);
     };
 
+    const handleClearAll = () => {
+        handleValueChange(""); // Reset the value to an empty string or null
+    };
+
+    // Helper function to get display text from the currentValue
+    const getDisplayText = () => {
+        if (!currentValue) return placeholder;
+
+        if (isDropdownItem(currentValue)) {
+            return currentValue.label;
+        } else if (isDropdownItemType(currentValue)) {
+            return currentValue.name;
+        } else {
+            return currentValue; // It's a string
+        }
+    };
+
     const renderMenuItem = (item: string | DropdownItem | DropdownItemType) => {
         if (isDropdownItem(item)) {
             if (item.subItems) {
@@ -129,7 +146,7 @@ export const MyDropdown = ({
                         disabled={disable}
                     >
                         <div className={`truncate ${!currentValue ? "text-neutral-400" : ""}`}>
-                            {currentValue || placeholder}
+                            {getDisplayText()}
                         </div>
                         <div className="ml-2 flex-shrink-0">
                             <CaretDown className={`${isOpen ? "hidden" : "visible"} size-[18px]`} />
@@ -143,6 +160,13 @@ export const MyDropdown = ({
                         sideOffset={5}
                         align="start"
                     >
+                        {/* Add "Clear All Fields" option */}
+                        <DropdownMenuItem
+                            className="cursor-pointer truncate px-3 py-2 text-center text-subtitle text-neutral-400 hover:bg-primary-50 hover:outline-none"
+                            onClick={handleClearAll}
+                        >
+                            Clear All Fields
+                        </DropdownMenuItem>
                         {dropdownList.map((item) => renderMenuItem(item))}
                     </DropdownMenuContent>
                 </DropdownMenuPortal>

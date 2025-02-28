@@ -83,7 +83,7 @@ export const Modules = ({
                             <div className="cursor-grab active:cursor-grabbing">
                                 <ModuleCard
                                     key={index}
-                                    module={moduleWithChapters.module}
+                                    module={moduleWithChapters}
                                     onDelete={() => onDeleteModule(moduleWithChapters.module)}
                                     onEdit={(updatedModule) => onEditModule(updatedModule)}
                                 />

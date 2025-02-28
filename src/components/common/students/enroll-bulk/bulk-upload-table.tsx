@@ -1,18 +1,26 @@
-// bulk-upload-table.tsx
-import { createBulkUploadColumns } from "./bulk-upload-columns";
+// editable-bulk-upload-table.tsx
+import React, { useState, useMemo } from "react";
 import { type Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
 import { StudentSearchBox } from "../../student-search-box";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
-import { createAndDownloadCsv } from "./utils/csv-utils";
-import { useState, useMemo } from "react";
+import {
+    convertExcelDateToDesiredFormat,
+    createAndDownloadCsv,
+    isValidDateFormat,
+} from "./utils/csv-utils";
 import { MyTable } from "@/components/design-system/table";
-import { SchemaFields } from "@/types/students/bulk-upload-types";
+import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
+import { Row } from "@tanstack/react-table";
+import { createEditableBulkUploadColumns } from "./bulk-upload-columns";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
-interface BulkUploadTableProps {
+interface EditableBulkUploadTableProps {
     headers: Header[];
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
+    statusColumnRenderer?: (props: { row: Row<SchemaFields> }) => JSX.Element;
 }
 
 interface RowWithError extends SchemaFields {
@@ -21,15 +29,145 @@ interface RowWithError extends SchemaFields {
 
 const ITEMS_PER_PAGE = 10;
 
-export function BulkUploadTable({ headers }: BulkUploadTableProps) {
-    const { csvData, csvErrors } = useBulkUploadStore();
+export const validateCellValue = (
+    value: string,
+    header: Header,
+    rowIndex: number,
+): ValidationError | null => {
+    const fieldName = header.column_name;
+
+    // Skip validation if the field is optional and empty
+    if (header.optional && (!value || value.trim() === "")) {
+        return null;
+    }
+
+    // Check if required field is missing
+    if (!header.optional && (!value || value.trim() === "")) {
+        return {
+            path: [rowIndex, fieldName],
+            message: `${fieldName.replace(/_/g, " ")} is required`,
+            resolution: `Please provide a value for ${fieldName.replace(/_/g, " ")}`,
+            currentVal: "N/A",
+            format: "",
+        };
+    }
+
+    // If field has a value, validate according to type
+    if (value) {
+        // Enum validation
+        if (header.type === "enum" && header.options && header.options.length > 0) {
+            if (!header.options.includes(value)) {
+                return {
+                    path: [rowIndex, fieldName],
+                    message: `Invalid value for ${fieldName.replace(/_/g, " ")}`,
+                    resolution: `Value must be one of: ${header.options.join(", ")}`,
+                    currentVal: value,
+                    format: header.options.join(", "),
+                };
+            }
+        }
+
+        // Date validation
+        if (header.type === "date" && header.format) {
+            const formattedDate = convertExcelDateToDesiredFormat(value, header.format);
+
+            if (!isValidDateFormat(formattedDate, header.format)) {
+                return {
+                    path: [rowIndex, fieldName],
+                    message: `Invalid date format for ${fieldName.replace(/_/g, " ")}`,
+                    resolution: `Date must be in format: ${header.format}`,
+                    currentVal: value,
+                    format: header.format,
+                };
+            }
+        }
+
+        // Regex validation
+        if (header.regex) {
+            try {
+                const regex = new RegExp(header.regex);
+                if (!regex.test(value)) {
+                    return {
+                        path: [rowIndex, fieldName],
+                        message:
+                            header.regex_error_message ||
+                            `Invalid format for ${fieldName.replace(/_/g, " ")}`,
+                        resolution: `Please check the format`,
+                        currentVal: value,
+                        format: header.regex,
+                    };
+                }
+            } catch (e) {
+                console.error(`Invalid regex pattern: ${header.regex}`);
+            }
+        }
+    }
+
+    // No validation errors
+    return null;
+};
+
+export function EditableBulkUploadTable({
+    headers,
+    onEdit,
+    statusColumnRenderer,
+}: EditableBulkUploadTableProps) {
+    const { csvData, csvErrors, setIsEditing, isEditing, setCsvData } = useBulkUploadStore();
     const [page, setPage] = useState(0);
     const [searchInput, setSearchInput] = useState("");
     const [searchFilter, setSearchFilter] = useState("");
+    const [editCell, setEditCell] = useState<{ rowIndex: number; columnId: string } | null>(null);
+    const { setCsvErrors } = useBulkUploadStore();
 
-    const isPostUpload = csvData?.some((row) => "STATUS" in row) ?? false;
+    const handleCellEdit = (rowIndex: number, columnId: string, value: string) => {
+        if (!csvData) return;
 
-    const columns = createBulkUploadColumns(csvErrors, headers, isPostUpload);
+        // Create a new data array with the updated value
+        const newData = [...csvData];
+        newData[rowIndex] = { ...newData[rowIndex], [columnId]: value };
+
+        // Update the data
+        setCsvData(newData);
+
+        // Find the header for this column to use in validation
+        const header = headers.find((h) => h.column_name === columnId);
+        if (header) {
+            // Remove old errors for this specific cell
+            const updatedErrors = csvErrors.filter(
+                (error) => !(error.path[0] === rowIndex && error.path[1] === columnId),
+            );
+
+            // Validate the new value
+            const cellError = validateCellValue(value, header, rowIndex);
+
+            // Set updated errors
+            setCsvErrors(cellError ? [...updatedErrors, cellError] : updatedErrors);
+        }
+
+        // Call external edit handler if provided
+        if (onEdit) {
+            onEdit(rowIndex, columnId, value);
+        }
+
+        setEditCell(null);
+    };
+
+    const columns = useMemo(() => {
+        return createEditableBulkUploadColumns({
+            csvErrors,
+            headers,
+            isPostUpload: false,
+            statusColumnRenderer,
+            isEditing,
+            onCellClick: (rowIndex, columnId) => {
+                if (isEditing) {
+                    setEditCell({ rowIndex, columnId });
+                }
+            },
+            editCell,
+            handleCellEdit,
+        });
+    }, [csvErrors, headers, statusColumnRenderer, isEditing, editCell, csvData]);
 
     const filteredData = useMemo(() => {
         if (!csvData) return [];
@@ -108,8 +246,27 @@ export function BulkUploadTable({ headers }: BulkUploadTableProps) {
 
     const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
 
+    const toggleEditing = (value: boolean) => {
+        setIsEditing(value);
+        setEditCell(null); // Reset any active edit cell when toggling
+    };
+
     return (
         <div className="no-scrollbar flex flex-col gap-6 px-6">
+            <div className="mb-4 flex flex-col gap-2">
+                <div className="flex items-center space-x-2">
+                    <Switch checked={isEditing} onCheckedChange={toggleEditing} id="edit-mode" />
+                    <Label htmlFor="edit-mode" className="font-medium text-neutral-900">
+                        Enable Editing Mode
+                    </Label>
+                </div>
+                {isEditing && (
+                    <div className="ml-6 text-sm text-neutral-600">
+                        Double click on cell to edit
+                    </div>
+                )}
+            </div>
+
             <div className="no-scrollbar flex items-center justify-between">
                 <StudentSearchBox
                     searchInput={searchInput}
@@ -144,15 +301,14 @@ export function BulkUploadTable({ headers }: BulkUploadTableProps) {
 
             <div className="no-scrollbar">
                 <div className="no-scrollbar">
-                    {" "}
-                    {/* Minimum width to ensure horizontal scroll */}
                     <MyTable<SchemaFields>
                         data={paginatedData}
                         columns={columns}
                         isLoading={false}
                         error={null}
                         columnWidths={{
-                            status: "w-[100px]", // Changed to fixed widths
+                            STATUS: "w-[100px]",
+                            status: "w-[100px]",
                             error: "w-[200px]",
                             ...headers.reduce(
                                 (acc, header) => ({

@@ -6,6 +6,8 @@ import {
     assessmentStatusStudentOngoingColumnsInternal,
     assessmentStatusStudentPendingColumnsExternal,
     assessmentStatusStudentPendingColumnsInternal,
+    studentExternalQuestionWise,
+    studentInternalOrCloseQuestionWise,
 } from "./student-columns";
 import { AdaptiveMarking } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-hooks/getQuestionsDataForSection";
 import { Section } from "@/types/assessments/assessment-steps";
@@ -30,11 +32,11 @@ import {
     ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_INTERNAL_WIDTH,
     ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_EXTERNAL_WIDTH,
     ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_INTERNAL_WIDTH,
+    QUESTION_WISE_COLUMNS_EXTERNAL_WIDTH,
+    QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH,
 } from "@/components/design-system/utils/constants/table-layout";
 import { convertToLocalDateTime, extractDateTime } from "@/constants/helper";
-
-// import { sectionsEditQuestionFormType } from "../-components/AssessmentPreview";
-// import { QuestionAssessmentPreview } from "@/types/assessment-preview-interface";
+import { StudentResponseQuestionwiseInterface } from "@/types/assessments/student-questionwise-status";
 
 export const convertMarksRankData = (leaderboard: StudentLeaderboardEntry[]) => {
     const rankMap = new Map();
@@ -134,6 +136,52 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
     }
 };
 
+export const getQuestionWiseFilteredDataStudentData = (
+    studentsListData: StudentResponseQuestionwiseInterface[],
+    assesssmentType: string,
+    selectedTab: string,
+    batches_for_sessions: BatchDetailsInterface[],
+) => {
+    switch (assesssmentType) {
+        case "PUBLIC": {
+            return studentsListData.map((student) => {
+                if (selectedTab === "internal") {
+                    return {
+                        id: student.user_id,
+                        full_name: student.participant_name,
+                        package_session_id: getBatchNameById(
+                            batches_for_sessions,
+                            student.source_id,
+                        ),
+                        registration_id: student.registration_id,
+                        response_time_in_seconds: student.response_time_in_seconds + " sec",
+                    };
+                }
+                return {
+                    id: student.user_id,
+                    full_name: student.participant_name,
+                    response_time_in_seconds: student.response_time_in_seconds + " sec",
+                };
+            });
+        }
+
+        case "PRIVATE": {
+            return studentsListData.map((student) => {
+                return {
+                    id: student.user_id,
+                    full_name: student.participant_name,
+                    package_session_id: getBatchNameById(batches_for_sessions, student.source_id),
+                    registration_id: student.registration_id,
+                    response_time_in_seconds: student.response_time_in_seconds + " sec",
+                };
+            });
+        }
+
+        default:
+            return [];
+    }
+};
+
 export const getAllColumnsForTable = (type: string, selectedParticipantsTab: string) => {
     if (type === "PUBLIC") {
         if (selectedParticipantsTab === "internal")
@@ -185,6 +233,42 @@ export const getAllColumnsForTableWidth = (type: string, selectedParticipantsTab
         Attempted: ASSESSMENT_STATUS_STUDENT_ATTEMPTED_COLUMNS_EXTERNAL_WIDTH,
         Ongoing: ASSESSMENT_STATUS_STUDENT_ONGOING_COLUMNS_EXTERNAL_WIDTH,
         Pending: ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_EXTERNAL_WIDTH,
+    };
+};
+
+export const getAllColumnsForTableQuestionWise = (
+    assesssmentType: string,
+    selectedParticipantsTab: string,
+) => {
+    if (assesssmentType === "PUBLIC") {
+        if (selectedParticipantsTab === "internal")
+            return {
+                studentInternalOrCloseQuestionWise,
+            };
+        return {
+            studentExternalQuestionWise,
+        };
+    }
+    return {
+        studentInternalOrCloseQuestionWise,
+    };
+};
+
+export const getAllColumnsForTableWidthQuestionWise = (
+    assesssmentType: string,
+    selectedParticipantsTab: string,
+) => {
+    if (assesssmentType === "PUBLIC") {
+        if (selectedParticipantsTab === "internal")
+            return {
+                QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH,
+            };
+        return {
+            QUESTION_WISE_COLUMNS_EXTERNAL_WIDTH,
+        };
+    }
+    return {
+        QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH,
     };
 };
 
@@ -407,7 +491,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                               type: "HTML", // Assuming option content is HTML
                               content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
-                          media_id: null, // Assuming no direct mapping for option media ID
+                          media_id: String(opt?.image?.imageName), // Assuming no direct mapping for option media ID
                           option_order: null,
                           created_on: null,
                           updated_on: null,
@@ -426,7 +510,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                               type: "HTML", // Assuming option content is HTML
                               content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
-                          media_id: null, // Assuming no direct mapping for option media ID
+                          media_id: String(opt?.image?.imageName), // Assuming no direct mapping for option media ID
                           option_order: null,
                           created_on: null,
                           updated_on: null,
@@ -460,7 +544,7 @@ export function transformSectionQuestions(questions: AssessmentSectionQuestionIn
                     type: "HTML", // Assuming the content is HTML
                     content: question?.questionName?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                 },
-                media_id: null, // Assuming no direct mapping for media_id
+                media_id: String(question?.imageDetails?.map((img) => img.imageName).join(",")), // Assuming no direct mapping for media_id
                 created_at: null,
                 updated_at: null,
                 question_response_type: null, // Assuming no direct mapping for response type

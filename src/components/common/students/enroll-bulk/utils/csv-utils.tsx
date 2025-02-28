@@ -1,125 +1,196 @@
 // utils/csv-utils.ts
-import { z } from "zod";
 import Papa from "papaparse";
-import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
+import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 
 type ParseResult = {
     data: SchemaFields[];
     errors: ValidationError[];
 };
 
-export const convertExcelDateToDesiredFormat = (dateString: string): string => {
+// Utility to check if a date string matches the expected format
+export const isValidDateFormat = (dateStr: string, format: string): boolean => {
+    // Convert format patterns to regex patterns
+    const formatToRegex = (format: string): RegExp => {
+        const pattern = format
+            .replace(/DD/g, "(0[1-9]|[12][0-9]|3[01])")
+            .replace(/MM/g, "(0[1-9]|1[012])")
+            .replace(/YYYY/g, "\\d{4}")
+            .replace(/-/g, "\\-")
+            .replace(/\//g, "\\/");
+        return new RegExp(`^${pattern}$`);
+    };
+
+    return formatToRegex(format).test(dateStr);
+};
+
+export const convertExcelDateToDesiredFormat = (
+    dateString: string,
+    targetFormat: string = "DD-MM-YYYY",
+): string => {
     // Handle Excel date format (Mon Dec 11 00:00:00 GMT X)
-    if (dateString.includes("GMT")) {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, "0");
-        const month = (date.getMonth() + 1).toString().padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
+    if (dateString.includes("GMT") || dateString.match(/^\d+$/)) {
+        try {
+            let date;
+            // If it's a number (Excel serialized date)
+            if (dateString.match(/^\d+$/)) {
+                // Excel dates start from December 30, 1899
+                const excelEpoch = new Date(1899, 11, 30);
+                const days = parseInt(dateString);
+                date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
+            } else {
+                date = new Date(dateString);
+            }
+
+            if (isNaN(date.getTime())) {
+                return dateString; // Return original if parsing failed
+            }
+
+            const day = date.getDate().toString().padStart(2, "0");
+            const month = (date.getMonth() + 1).toString().padStart(2, "0");
+            const year = date.getFullYear();
+
+            // Format according to target format
+            if (targetFormat === "DD-MM-YYYY") {
+                return `${day}-${month}-${year}`;
+            } else if (targetFormat === "MM-DD-YYYY") {
+                return `${month}-${day}-${year}`;
+            } else if (targetFormat === "YYYY-MM-DD") {
+                return `${year}-${month}-${day}`;
+            }
+        } catch (error) {
+            console.error("Date conversion error:", error);
+        }
     }
+
     return dateString;
 };
 
-export const createSchemaFromHeaders = (headers: Header[]) => {
-    const schemaFields: Record<string, z.ZodType> = {};
-
-    headers.forEach((header) => {
-        if (header.type === "enum" && header.options && header.options.length > 0) {
-            const enumSchema = z.enum([header.options[0], ...header.options.slice(1)] as [
-                string,
-                ...string[],
-            ]);
-            schemaFields[header.column_name] = header.optional ? enumSchema.optional() : enumSchema;
-        } else if (header.type === "date" && header.format) {
-            const baseFieldSchema = z.string();
-            const validatedFieldSchema = header.regex
-                ? baseFieldSchema.regex(
-                      new RegExp(header.regex),
-                      header.regex_error_message ??
-                          `Invalid date format. Expected ${header.format}`,
-                  )
-                : baseFieldSchema;
-
-            schemaFields[header.column_name] = header.optional
-                ? validatedFieldSchema.optional()
-                : validatedFieldSchema.min(1, `${header.column_name} is required`);
-        } else if (header.type === "integer") {
-            const fieldSchema = z.string().transform((val) => {
-                const num = parseInt(val);
-                if (isNaN(num)) throw new Error("Not a valid number");
-                return num;
-            });
-
-            schemaFields[header.column_name] = header.optional
-                ? fieldSchema.optional()
-                : fieldSchema;
-        } else if (header.type === "regex" && header.regex) {
-            const fieldSchema = z
-                .string()
-                .regex(new RegExp(header.regex), header.regex_error_message ?? "Invalid format");
-
-            schemaFields[header.column_name] = header.optional
-                ? fieldSchema.optional()
-                : fieldSchema;
-        } else {
-            // Default string type
-            const baseFieldSchema = z.string();
-            const fieldSchema = header.regex
-                ? baseFieldSchema.regex(
-                      new RegExp(header.regex),
-                      header.regex_error_message ?? "Invalid format",
-                  )
-                : baseFieldSchema;
-
-            schemaFields[header.column_name] = header.optional
-                ? fieldSchema.optional()
-                : fieldSchema.min(1, `${header.column_name} is required`);
-        }
-    });
-
-    return z.object(schemaFields);
-};
-
-export const validateCsvData = (file: File, schema: z.ZodType): Promise<ParseResult> => {
+// Enhanced validation function
+export const validateCsvData = (file: File, headers: Header[]): Promise<ParseResult> => {
     return new Promise((resolve, reject) => {
         Papa.parse<SchemaFields>(file, {
             header: true,
             skipEmptyLines: true,
-            transform: (value, field) => {
-                // Check if this is a date column
-                if (field === "ENROLLMENT_DATE" || field === "DATE_OF_BIRTH") {
-                    return convertExcelDateToDesiredFormat(value);
-                }
-                return value;
-            },
+            transform: (value) => value.trim(), // Trim values to handle whitespace
             complete: (results) => {
                 const allErrors: ValidationError[] = [];
+                const processedData = results.data.map((row, rowIndex) => {
+                    const processedRow: SchemaFields = { ...row };
 
-                results.data.forEach((row, rowIndex) => {
-                    const validationResult = schema.safeParse(row);
+                    // Validate each field according to its type and constraints
+                    headers.forEach((header) => {
+                        const fieldName = header.column_name;
+                        const value = row[fieldName] as string;
 
-                    if (!validationResult.success) {
-                        validationResult.error.errors.forEach((error) => {
-                            // Ensure we have a valid column name from the error path
-                            const columnName =
-                                typeof error.path[0] === "string"
-                                    ? error.path[0]
-                                    : Object.keys(row)[error.path[0] as number] || "";
+                        // Skip validation if the field is optional and empty
+                        if (header.optional && (!value || value.trim() === "")) {
+                            return;
+                        }
 
+                        // Check if required field is missing
+                        if (!header.optional && (!value || value.trim() === "")) {
                             allErrors.push({
-                                path: [rowIndex, columnName],
-                                message: error.message,
-                                resolution: `Please check the value for ${columnName}`,
-                                currentVal: String(row[columnName] ?? "N/A"),
+                                path: [rowIndex, fieldName],
+                                message: `${fieldName.replace(/_/g, " ")} is required`,
+                                resolution: `Please provide a value for ${fieldName.replace(
+                                    /_/g,
+                                    " ",
+                                )}`,
+                                currentVal: "N/A",
                                 format: "",
                             });
-                        });
-                    }
+                            return;
+                        }
+
+                        // If field has a value, validate according to type
+                        if (value) {
+                            // Enum validation
+                            if (
+                                header.type === "enum" &&
+                                header.options &&
+                                header.options.length > 0
+                            ) {
+                                if (!header.options.includes(value)) {
+                                    allErrors.push({
+                                        path: [rowIndex, fieldName],
+                                        message: `Invalid value for ${fieldName.replace(
+                                            /_/g,
+                                            " ",
+                                        )}`,
+                                        resolution: `Value must be one of: ${header.options.join(
+                                            ", ",
+                                        )}`,
+                                        currentVal: value,
+                                        format: header.options.join(", "),
+                                    });
+                                } else if (header.send_option_id && header.option_ids) {
+                                    // Map display value to ID if needed
+                                    const option = Object.entries(header.option_ids).find(
+                                        ([displayValue]) => displayValue === value,
+                                    );
+
+                                    if (option) {
+                                        processedRow[fieldName] = option[1];
+                                    }
+                                }
+                            }
+
+                            // Date validation
+                            if (header.type === "date" && header.format) {
+                                const formattedDate = convertExcelDateToDesiredFormat(
+                                    value,
+                                    header.format,
+                                );
+
+                                if (!isValidDateFormat(formattedDate, header.format)) {
+                                    allErrors.push({
+                                        path: [rowIndex, fieldName],
+                                        message: `Invalid date format for ${fieldName.replace(
+                                            /_/g,
+                                            " ",
+                                        )}`,
+                                        resolution: `Date must be in format: ${header.format}`,
+                                        currentVal: value,
+                                        format: header.format,
+                                    });
+                                } else {
+                                    processedRow[fieldName] = formattedDate;
+                                }
+                            }
+
+                            // Regex validation
+                            if (header.regex) {
+                                try {
+                                    const regex = new RegExp(header.regex);
+                                    if (!regex.test(value)) {
+                                        allErrors.push({
+                                            path: [rowIndex, fieldName],
+                                            message:
+                                                header.regex_error_message ||
+                                                `Invalid format for ${fieldName.replace(
+                                                    /_/g,
+                                                    " ",
+                                                )}`,
+                                            resolution: `Please check the format`,
+                                            currentVal: value,
+                                            format: header.regex,
+                                        });
+                                    }
+                                } catch (e) {
+                                    console.error(`Invalid regex pattern: ${header.regex}`);
+                                }
+                            }
+
+                            // Additional validations can be added here for other types
+                        }
+                    });
+
+                    return processedRow;
                 });
 
                 resolve({
-                    data: results.data,
+                    data: processedData,
                     errors: allErrors,
                 });
             },

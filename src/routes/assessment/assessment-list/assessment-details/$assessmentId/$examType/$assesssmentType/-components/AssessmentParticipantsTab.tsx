@@ -13,6 +13,7 @@ import {
     transformBatchData,
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
 import { getBatchDetails } from "../-utils/helper";
+import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 
 const AssessmentParticipantsTab = () => {
     const { assessmentId, examType } = Route.useParams();
@@ -58,7 +59,7 @@ const AssessmentParticipantsTab = () => {
                         <div className="flex items-center gap-8">
                             <div className="flex items-center gap-4">
                                 <span className="rounded-md border px-3 py-2 text-sm">
-                                    {assessmentDetails[0]?.saved_data.assessment_url}
+                                    {`${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`}
                                 </span>
                                 <MyButton
                                     type="button"
@@ -67,7 +68,8 @@ const AssessmentParticipantsTab = () => {
                                     className="h-9 min-w-10"
                                     onClick={() =>
                                         copyToClipboard(
-                                            assessmentDetails[0]?.saved_data.assessment_url || "",
+                                            `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
+                                                "",
                                         )
                                     }
                                 >
@@ -81,7 +83,10 @@ const AssessmentParticipantsTab = () => {
                         <div className="flex items-center gap-8">
                             <div className="flex items-start gap-4">
                                 <QRCode
-                                    value={assessmentDetails[0]?.saved_data.assessment_url || ""}
+                                    value={
+                                        `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
+                                        ""
+                                    }
                                     className="size-16"
                                     id={`qr-code-svg-participants`}
                                 />

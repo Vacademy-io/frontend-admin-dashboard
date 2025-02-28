@@ -98,7 +98,7 @@ export function MyTable<T>({
     if (!table) return <DashboardLoader />;
 
     return (
-        <div className="w-full overflow-visible rounded-lg border">
+        <div className="h-auto w-full overflow-visible rounded-lg border">
             <div className="max-w-full overflow-visible rounded-lg">
                 <Table className="rounded-lg">
                     <TableHeader className="relative bg-primary-200">

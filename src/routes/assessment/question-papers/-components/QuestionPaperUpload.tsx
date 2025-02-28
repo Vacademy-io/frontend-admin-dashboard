@@ -18,11 +18,7 @@ import {
     MyQuestion,
     MyQuestionPaperFormInterface,
 } from "../../../../types/assessments/question-paper-form";
-import {
-    getIdByLevelName,
-    getIdBySubjectName,
-    transformResponseDataToMyQuestionsSchema,
-} from "../-utils/helper";
+import { getIdByLevelName, getIdBySubjectName, processQuestions } from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import {
     ANSWER_LABELS,
@@ -223,7 +219,7 @@ export const QuestionPaperUpload = ({
         },
         onSuccess: async (data) => {
             const getQuestionPaper = await getQuestionPaperById(data.saved_question_paper_id);
-            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
+            const transformQuestionsData: MyQuestion[] = await processQuestions(
                 getQuestionPaper.question_dtolist,
             );
             setCurrentQuestionIndex(0);
@@ -233,7 +229,6 @@ export const QuestionPaperUpload = ({
             });
             if (index !== undefined) {
                 // Check if index is defined
-
                 sectionsForm?.setValue(
                     `section.${index}.adaptive_marking_for_each_question`,
                     transformQuestionsData.map((question) => ({
@@ -322,9 +317,9 @@ export const QuestionPaperUpload = ({
         onSettled: () => {
             setIsProgress(false);
         },
-        onSuccess: (data) => {
-            const transformQuestionsData = transformResponseDataToMyQuestionsSchema(data);
-            setValue("questions", transformResponseDataToMyQuestionsSchema(data));
+        onSuccess: async (data) => {
+            const transformQuestionsData = await processQuestions(data);
+            setValue("questions", transformQuestionsData);
             if (index !== undefined) {
                 sectionsForm?.setValue(`section.${index}`, {
                     ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
@@ -586,7 +581,7 @@ export const QuestionPaperUpload = ({
                                         questionPaperId={questionPaperId}
                                         isViewMode={false}
                                         isManualCreated={isManualCreated}
-                                        buttonText="Create"
+                                        buttonText="Add Questions"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
                                         currentQuestionImageIndex={currentQuestionImageIndex}

@@ -8,5 +8,5 @@ export const InitStudyLibraryProvider = ({ children }: { children: React.ReactNo
         ...useStudyLibraryQuery(),
     });
 
-    return <div>{isLoading ? <DashboardLoader /> : children}</div>;
+    return <div className="flex flex-1 flex-col">{isLoading ? <DashboardLoader /> : children}</div>;
 };

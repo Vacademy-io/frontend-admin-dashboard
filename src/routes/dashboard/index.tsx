@@ -200,7 +200,7 @@ export function DashboardComponent() {
                         <Card className="flex-1 bg-neutral-50 shadow-none">
                             <CardHeader>
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>Create your first course</CardTitle>
+                                    <CardTitle>Learning Center</CardTitle>
                                     <MyButton
                                         type="submit"
                                         scale="medium"
@@ -232,13 +232,13 @@ export function DashboardComponent() {
                                     <div className="flex items-center gap-2">
                                         <span>Level</span>
                                         <span className="text-primary-500">
-                                            {data.student_count}
+                                            {instituteDetails?.levels?.length}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span>Subjects</span>
                                         <span className="text-primary-500">
-                                            {data.student_count}
+                                            {instituteDetails?.subjects?.length}
                                         </span>
                                     </div>
                                 </CardDescription>
@@ -251,7 +251,7 @@ export function DashboardComponent() {
                             <Card className="flex-1 grow bg-neutral-50 shadow-none">
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
-                                        <CardTitle>Create your first assessment</CardTitle>
+                                        <CardTitle>Assessment</CardTitle>
                                         <Dialog>
                                             <DialogTrigger>
                                                 <MyButton
