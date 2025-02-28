@@ -2,7 +2,6 @@
 // @ts-nocheck
 
 import { useEffect, useState } from "react";
-import { MyTable } from "@/components/design-system/table";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +28,8 @@ import AssessmentSubmissionsFilterButtons from "./AssessmentSubmissionsFilterBut
 import { StudentSidebar } from "@/components/common/students/students-list/student-side-view/student-side-view";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { StudentSidebarContext } from "@/context/selected-student-sidebar-context";
-import { BulkActions } from "@/components/common/students/students-list/student-list-section/bulk-actions/bulk-actions";
+import { BulkActions } from "./bulk-actions/bulk-actions";
+import { AssessmentSubmissionsStudentTable } from "@/components/design-system/assessment-submissions-student-table";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -135,7 +135,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     };
 
     const getSelectedStudentIds = (): string[] => {
-        return getSelectedStudents().map((student) => student.id);
+        return getSelectedStudents().map((student) => student.user_id);
     };
 
     const getAssessmentColumn = {
@@ -912,7 +912,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
                     <TabsContent value={selectedTab}>
                         <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
-                            <MyTable
+                            <AssessmentSubmissionsStudentTable
                                 data={{
                                     content: getAssessmentSubmissionsFilteredDataStudentData(
                                         participantsData.content,
