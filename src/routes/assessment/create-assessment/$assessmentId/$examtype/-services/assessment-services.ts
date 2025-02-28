@@ -5,6 +5,7 @@ import {
     STEP2_ASSESSMENT_URL,
     STEP2_QUESTIONS_URL,
     STEP3_ASSESSMENT_URL,
+    STEP4_ASSESSMENT_URL,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import {
@@ -288,36 +289,62 @@ export const handlePostStep4Data = async (
     instituteId: string | undefined,
     type: string | undefined,
 ) => {
-    const convertedData = {
+    const addedData = {
         assessment_creation_access: {
+            batch_ids: [],
             roles: data.assessment_creation_access.roles
                 .filter((role) => role.isSelected)
                 .map((role) => role.roleName),
             user_ids: data.assessment_creation_access.users.map((user) => user.email),
         },
         live_assessment_notification_access: {
+            batch_ids: [],
             roles: data.live_assessment_notification.roles
                 .filter((role) => role.isSelected)
                 .map((role) => role.roleName),
             user_ids: data.live_assessment_notification.users.map((user) => user.email),
         },
         assessment_submission_and_report_access: {
+            batch_ids: [],
             roles: data.assessment_submission_and_report_access.roles
                 .filter((role) => role.isSelected)
                 .map((role) => role.roleName),
             user_ids: data.assessment_submission_and_report_access.users.map((user) => user.email),
         },
         evaluation_process_access: {
+            batch_ids: [],
             roles: data.evaluation_process.roles
                 .filter((role) => role.isSelected)
                 .map((role) => role.roleName),
             user_ids: data.evaluation_process.users.map((user) => user.email),
         },
     };
+    const deletedData = {
+        assessment_creation_access: {
+            batch_ids: [],
+            roles: [],
+            user_ids: [],
+        },
+        live_assessment_notification_access: {
+            batch_ids: [],
+            roles: [],
+            user_ids: [],
+        },
+        assessment_submission_and_report_access: {
+            batch_ids: [],
+            roles: [],
+            user_ids: [],
+        },
+        evaluation_process_access: {
+            batch_ids: [],
+            roles: [],
+            user_ids: [],
+        },
+    };
     const response = await authenticatedAxiosInstance({
         method: "POST",
-        url: STEP3_ASSESSMENT_URL,
-        data: convertedData,
+        url: STEP4_ASSESSMENT_URL,
+        data: { added_accesses: addedData, deleted_accesses: deletedData },
         params: {
             assessmentId,
             instituteId,
