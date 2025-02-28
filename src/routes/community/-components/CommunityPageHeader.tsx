@@ -6,10 +6,26 @@ import HeadingSvg5 from "../-svgs/headerDisplay-5.svg";
 import HeadingSvg6 from "../-svgs/headerDisplay-6.svg";
 import { FilterLevelDropdown } from "../-components/FilterDropdown";
 import { useFilterStore } from "../-store/useFilterOptions";
+import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
 import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
+import { useState } from "react";
+import { debounce } from "lodash";
+import { useCallback } from "react";
 
 export const CommunityPageHeader = () => {
     const { options } = useFilterStore();
+    const { setName } = useSelectedFilterStore();
+    const [search, setSearch] = useState<string>("");
+    const debouncedSetName = useCallback(
+        debounce((value: string) => {
+            setName(value);
+        }, 1000), // 300ms delay
+        [],
+    );
+    const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        debouncedSetName(e.target.value);
+        setSearch(e.target.value);
+    };
     return (
         <div className="flex h-[380px] flex-col items-center justify-center py-5">
             <div className="flex w-full flex-row items-center justify-center">
@@ -33,8 +49,8 @@ export const CommunityPageHeader = () => {
                 </div>
                 <div className="ml-[40px] mr-[50px] flex flex-col gap-4 text-center text-h2">
                     <SearchInput
-                        searchInput=""
-                        onSearchChange={() => {}}
+                        searchInput={search}
+                        onSearchChange={onSearchChange}
                         placeholder="Search Question Papers"
                     />
                     <FilterLevelDropdown

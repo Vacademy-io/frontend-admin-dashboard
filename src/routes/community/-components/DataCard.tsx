@@ -10,8 +10,13 @@ export function DataCard({ title, data }: DataCardProps) {
     const navigate = useNavigate();
 
     const navigateToDisplayQuestionPaper = () => {
+        console.log("here");
+        console.log("data : ", data);
         if ("id" in data) {
-            navigate({ to: `/community/question-paper` });
+            navigate({
+                to: `/community/question-paper`,
+                search: { id: data.id },
+            });
         }
     };
     return (

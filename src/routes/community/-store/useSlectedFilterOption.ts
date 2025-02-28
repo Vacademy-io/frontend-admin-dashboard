@@ -16,6 +16,8 @@ interface SelectedFilterStore {
         filterKey: keyof SelectedFilters,
         value: string | Level | Stream | Subject | null,
     ) => void;
+    name: string;
+    setName: (value: string) => void;
     clearFilters: () => void;
 }
 
@@ -28,6 +30,8 @@ export const useSelectedFilterStore = create<SelectedFilterStore>((set) => ({
         topic: null,
         stream: null,
     },
+    name: "",
+    setName: (value: string) => set(() => ({ name: value })),
     setSelected: (filterKey, value) =>
         set((state) => ({
             selected: { ...state.selected, [filterKey]: value },

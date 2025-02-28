@@ -49,7 +49,7 @@ export const getFilteredEntityData = async (
 };
 
 export const mapFiltersToTags = (): FilterRequest => {
-    const { selected } = useSelectedFilterStore.getState();
+    const { selected, name } = useSelectedFilterStore.getState();
 
     const tags: Tag[] = [];
 
@@ -75,6 +75,7 @@ export const mapFiltersToTags = (): FilterRequest => {
     // };
     return {
         type: "QUESTION_PAPER", // Ensure it's of the correct type
+        name: name,
         tags: tags.length > 0 ? tags : undefined, // Only include `tags` if there are any
     };
 };

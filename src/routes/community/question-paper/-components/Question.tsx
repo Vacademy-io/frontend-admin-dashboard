@@ -1,12 +1,28 @@
 import { MyButton } from "@/components/design-system/button";
-
-export function Question() {
+import { Question as QusetionDto } from "@/types/community/filters/questionDto";
+import { processHtmlString } from "../-service/utils";
+interface QuestionProps {
+    idx: number;
+    questionData: QusetionDto;
+}
+export function Question({ idx, questionData }: QuestionProps) {
     return (
         <div className="flex flex-1 flex-col bg-sidebar-background p-6">
             <div className="flex flex-row items-center justify-between">
                 <div>
-                    <div className="text-subtitle">Question number</div>
-                    <div className="text-body">Question</div>
+                    <div className="text-subtitle">Question {idx + 1}</div>
+                    {processHtmlString(questionData.text.content).map((item, index) =>
+                        item.type === "text" ? (
+                            <span key={index}>{item.content}</span>
+                        ) : (
+                            <img
+                                key={index}
+                                src={item.content}
+                                alt={`Question image ${index + 1}`}
+                                className=""
+                            />
+                        ),
+                    )}
                 </div>
                 <div className="flex flex-row items-center gap-4">
                     <MyButton buttonType="secondary" scale="small">

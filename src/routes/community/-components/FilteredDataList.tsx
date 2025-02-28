@@ -20,7 +20,7 @@ export function FilteredDataList() {
     const [currentPage, setCurrentPage] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [totalPages, setTotalPages] = useState<number>(0);
-    const { selected } = useSelectedFilterStore();
+    const { selected, name } = useSelectedFilterStore();
 
     const pageSize = 8;
     const getFilteredData = useMutation({
@@ -50,7 +50,7 @@ export function FilteredDataList() {
             pageSize,
             data: mapFiltersToTags(),
         });
-    }, [currentPage, selected]);
+    }, [currentPage, selected, name]);
 
     useEffect(() => {
         setIsLoading(true);

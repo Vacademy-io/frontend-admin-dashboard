@@ -46,5 +46,17 @@ export interface Tag {
 
 export interface FilterRequest {
     type?: "QUESTION_PAPER" | "QUESTION";
+    name?: string;
     tags?: Tag[];
+}
+
+interface TagResponse {
+    tagId: string;
+    tagSource: string;
+    tagName: string;
+}
+
+export interface QuestionPaperData {
+    questionPaper: QuestionPaperEntityData;
+    tags: TagResponse[];
 }
