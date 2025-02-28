@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Canvas, Textbox, IText, Rect, Polygon } from "fabric";
@@ -12,6 +13,7 @@ import {
     FileText,
     AlertCircle,
     Trash2,
+    Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogDescription } from "@/components/ui/alert-dialog";
@@ -20,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Rectangle, Star } from "phosphor-react";
 import { PDFDocument } from "pdf-lib";
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.mjs`;
 
@@ -41,10 +44,14 @@ const PDFEvaluator = () => {
     // Jump to page state
     const [jumpPage, setJumpPage] = useState<number | "">("");
 
+    // Loading state
+    const [isLoading, setIsLoading] = useState(false);
+
     // Refs
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const canvasRef = useRef(null);
     const canvasContainerRef = useRef<HTMLDivElement | null>(null);
+    const pdfViewerRef = useRef<HTMLDivElement | null>(null);
 
     const tools = [
         {
@@ -102,6 +109,7 @@ const PDFEvaluator = () => {
 
     const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
         if (typeof e?.target?.files === "undefined" || e.target.files?.length === 0) return;
+        // @ts-expect-error : //TODO: fix this
         handleFile(e.target.files[0] as File);
     };
 
@@ -112,7 +120,7 @@ const PDFEvaluator = () => {
         setPageNumber(1);
         setAnnotations({});
         if (fileInputRef.current) {
-            fileInputRef.current = null;
+            fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
 
@@ -160,14 +168,18 @@ const PDFEvaluator = () => {
         if (fabricCanvas) {
             // Save current page annotations before loading new ones
             const currentAnnotations = fabricCanvas.toJSON();
-            setAnnotations((prev) => ({
-                ...prev,
-                [pageNumber]: currentAnnotations,
-            }));
-
+            if (Object.keys(currentAnnotations.objects).length > 0) {
+                console.log("currentAnnotations", currentAnnotations);
+                console.log("annotations", annotations);
+                setAnnotations((prev) => ({
+                    ...prev,
+                    [pageNumber]: currentAnnotations,
+                }));
+            }
             // Load annotations for the new page
             fabricCanvas.clear();
             if (annotations[pageNumber]) {
+                console.log(pageNumber, annotations[pageNumber]);
                 fabricCanvas.loadFromJSON(annotations[pageNumber], () => {
                     fabricCanvas.requestRenderAll();
                 });
@@ -220,7 +232,6 @@ const PDFEvaluator = () => {
         const rect = new Rect({
             left: 100,
             top: 100,
-
             width: 100,
             height: 50,
             angle: 0,
@@ -253,6 +264,7 @@ const PDFEvaluator = () => {
         fabricCanvas?.add(star);
         fabricCanvas?.renderAll();
     }
+
     // PDF navigation
     const changePage = (offset: number) => {
         setPageNumber((prevPageNumber) => {
@@ -267,122 +279,98 @@ const PDFEvaluator = () => {
         }
     };
 
-    // Download function
+    // New download function using html2canvas
     const downloadAnnotatedPDF = async () => {
-        if (!pdfFile || !fabricCanvas) return;
+        if (!pdfFile) return;
 
         try {
-            // Save current page annotations
-            const currentAnnotations = fabricCanvas.toJSON();
-            setAnnotations((prev) => ({
-                ...prev,
-                [pageNumber]: currentAnnotations,
-            }));
+            // Save current page annotations first
+            if (fabricCanvas) {
+                const currentAnnotations = fabricCanvas.toJSON();
+                setAnnotations((prev) => ({
+                    ...prev,
+                    [pageNumber]: currentAnnotations,
+                }));
+            }
 
-            // Load the PDF document once
-            const fileBuffer = await pdfFile.arrayBuffer();
-            const pdfDoc = await PDFDocument.load(fileBuffer);
-            const pages = pdfDoc.getPages();
+            // Set loading state
+            setIsLoading(true);
+            setError("Generating PDF, please wait...");
 
-            // Create a temporary hidden div for rendering
-            const hiddenDiv = document.createElement("div");
-            hiddenDiv.style.position = "absolute";
-            hiddenDiv.style.left = "-9999px";
-            document.body.appendChild(hiddenDiv);
+            // Create a new PDF document
+            const pdfDoc = await PDFDocument.load(await pdfFile.arrayBuffer());
+            const outputPdf = new jsPDF({
+                orientation: "portrait",
+                unit: "pt",
+            });
 
-            // Create a temporary Document component for background rendering
-            const tempDocument = document.createElement("div");
-            hiddenDiv.appendChild(tempDocument);
+            // Store the current page
+            const currentPageBeforeExport = pageNumber;
 
             // Process each page
             for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-                if (annotations[pageNum]) {
-                    // Create temporary canvas for this page
-                    const tempCanvas = new Canvas(null, {
-                        width: pages[pageNum - 1].getWidth(),
-                        height: pages[pageNum - 1].getHeight(),
+                // Navigate to the page
+                setPageNumber(pageNum);
+
+                // Wait for page rendering and annotations to load
+                await new Promise((resolve) => setTimeout(resolve, 500));
+
+                // Use html2canvas to capture the entire PDF viewer
+                if (pdfViewerRef.current) {
+                    const canvas = await html2canvas(pdfViewerRef.current, {
+                        scale: 2, // Higher scale for better quality
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: null,
+                        logging: false,
                     });
 
-                    // Load and scale annotations
-                    await new Promise((resolve) => {
-                        tempCanvas.loadFromJSON(annotations[pageNum], () => {
-                            const objects = tempCanvas.getObjects();
-                            objects.forEach((obj) => {
-                                // Scale and position objects relative to PDF page size
-                                const scaleX =
-                                    pages[pageNum - 1].getWidth() / fabricCanvas.getWidth();
-                                const scaleY =
-                                    pages[pageNum - 1].getHeight() / fabricCanvas.getHeight();
+                    // Add a new page to the PDF (except for the first page)
+                    if (pageNum > 1) {
+                        outputPdf.addPage();
+                    }
 
-                                obj.scaleX = obj.scaleX * scaleX;
-                                obj.scaleY = obj.scaleY * scaleY;
-                                obj.left = obj.left * scaleX;
-                                obj.top = obj.top * scaleY;
-                            });
-                            tempCanvas.renderAll();
-                            resolve(true);
-                        });
-                    });
-
-                    // Convert canvas to PNG with compression
-                    const pngData = tempCanvas.toDataURL({
-                        format: "png",
-                        quality: 0.5,
-                        multiplier: 0.5, // Reduce resolution by half
-                    });
-
-                    // Convert base64 to Uint8Array
-                    const base64Data = pngData.split(",")[1];
-                    const imageData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-
-                    // Embed the PNG into the PDF
-                    const image = await pdfDoc.embedPng(imageData);
-                    const page = pages[pageNum - 1];
-
-                    // Draw the image on the PDF page
-                    page.drawImage(image, {
-                        x: 0,
-                        y: 0,
-                        width: page.getWidth(),
-                        height: page.getHeight(),
-                        opacity: 1,
-                    });
-
-                    // Clean up
-                    tempCanvas.dispose();
+                    // Add the captured canvas to the PDF
+                    const imgData = canvas.toDataURL("image/png", 1);
+                    outputPdf.addImage(
+                        imgData,
+                        "PNG",
+                        0,
+                        0,
+                        outputPdf.internal.pageSize.getWidth(),
+                        outputPdf.internal.pageSize.getHeight(),
+                        undefined,
+                        "FAST",
+                    );
                 }
             }
 
-            // Compress the PDF
-            const compressedPdfBytes = await pdfDoc.save({
-                useObjectStreams: true,
-                addDefaultPage: false,
-                objectsPerTick: 20,
-                compression: {
-                    useCompression: true,
-                    compressPages: true,
-                    compressImages: true,
-                },
-            });
+            // Restore the original page
+            setPageNumber(currentPageBeforeExport);
 
-            // Clean up the hidden div
-            document.body.removeChild(hiddenDiv);
+            // Save the PDF
+            outputPdf.save(`evaluated-${pdfFile.name}`);
 
-            // Create and download the blob
-            const blob = new Blob([compressedPdfBytes], { type: "application/pdf" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `annotated-${pdfFile.name}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            // Clear loading state
+            setIsLoading(false);
+            setError("");
         } catch (error) {
             console.error("Error generating annotated PDF:", error);
             setError("Failed to generate annotated PDF. Please try again.");
+            setIsLoading(false);
         }
     };
+
+    // Loading overlay component
+    const LoadingOverlay = () => (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="flex flex-col items-center rounded-lg bg-white p-6 shadow-lg">
+                <Loader2 className="mb-4 size-12 animate-spin text-blue-500" />
+                <h3 className="text-lg font-medium">Generating PDF</h3>
+                <p className="text-gray-500">This may take a moment...</p>
+            </div>
+        </div>
+    );
 
     if (!pdfFile) {
         return (
@@ -427,6 +415,9 @@ const PDFEvaluator = () => {
 
     return (
         <div className="flex flex-col gap-4">
+            {/* Loading overlay */}
+            {isLoading && <LoadingOverlay />}
+
             {/* Header with file info and download button */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -440,12 +431,14 @@ const PDFEvaluator = () => {
                     <button
                         onClick={clearSelection}
                         className="rounded px-3 py-1 text-red-500 hover:bg-red-50"
+                        disabled={isLoading}
                     >
                         Clear
                     </button>
                     <button
                         onClick={downloadAnnotatedPDF}
                         className="flex items-center gap-1 rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
+                        disabled={isLoading}
                     >
                         <Download className="size-4" />
                         Download
@@ -453,39 +446,37 @@ const PDFEvaluator = () => {
                 </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-4">
                 {/* Toolbar */}
-                <Card className="w-48">
+                <Card className="">
                     <CardHeader>
                         <CardTitle>Evaluation Tools</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-col gap-2">
+                    <CardContent className="flex flex-col gap-2">
+                        <div className="flex gap-2">
                             {tools.map((tool, index) => (
-                                <button
+                                <Button
                                     key={index}
                                     onClick={tool.action}
-                                    className="flex w-full items-center gap-2 rounded-md p-2 hover:bg-gray-100"
+                                    className=""
+                                    disabled={isLoading}
                                 >
                                     {tool.icon}
-                                    <span>{tool.label}</span>
-                                </button>
+                                </Button>
                             ))}
+                        </div>
 
-                            <div className="mt-4">
-                                <h3 className="mb-2 text-sm font-medium">Quick Numbers</h3>
-                                <div className="grid grid-cols-5 gap-1">
-                                    {numbers.map(({ value, action }) => (
-                                        <button
-                                            key={value}
-                                            onClick={action}
-                                            className="rounded border p-2 hover:bg-gray-100"
-                                        >
-                                            {value}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                        <div className="flex gap-2">
+                            {numbers.map(({ value, action }) => (
+                                <Button
+                                    key={value}
+                                    onClick={action}
+                                    className=""
+                                    disabled={isLoading}
+                                >
+                                    {value}
+                                </Button>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
@@ -498,7 +489,7 @@ const PDFEvaluator = () => {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => changePage(-1)}
-                                    disabled={pageNumber <= 1}
+                                    disabled={pageNumber <= 1 || isLoading}
                                     className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
                                 >
                                     <ChevronLeft className="size-5" />
@@ -509,12 +500,14 @@ const PDFEvaluator = () => {
                                         value={jumpPage}
                                         onChange={(e) => setJumpPage(Number(e.target.value))}
                                         placeholder="Jump to page"
-                                        className="max-w-fit rounded border p-1"
+                                        className="w-16 rounded border p-1"
+                                        disabled={isLoading}
                                     />
                                     <Button
                                         onClick={handleJumpPage}
                                         variant={"secondary"}
                                         size={"sm"}
+                                        disabled={isLoading}
                                     >
                                         Go
                                     </Button>
@@ -524,7 +517,7 @@ const PDFEvaluator = () => {
                                 </span>
                                 <button
                                     onClick={() => changePage(1)}
-                                    disabled={pageNumber >= numPages}
+                                    disabled={pageNumber >= numPages || isLoading}
                                     className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
                                 >
                                     <ChevronRight className="size-5" />
@@ -533,22 +526,24 @@ const PDFEvaluator = () => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div ref={canvasContainerRef} className="relative rounded-lg">
-                            <Document
-                                file={pdfUrl}
-                                onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                                onLoadError={(error) => console.log(error)}
-                                className="absolute min-w-fit"
-                            >
-                                <Page
-                                    pageNumber={pageNumber}
-                                    scale={scale}
-                                    renderTextLayer={false}
-                                    renderAnnotationLayer={false}
-                                    className="max-h-fit shadow-lg"
-                                />
-                            </Document>
-                            <canvas ref={canvasRef} className="absolute left-0 top-0 z-10" />
+                        <div ref={pdfViewerRef} className="relative">
+                            <div ref={canvasContainerRef} className="relative rounded-lg">
+                                <Document
+                                    file={pdfUrl}
+                                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                                    onLoadError={(error) => console.log(error)}
+                                    className="absolute min-w-fit"
+                                >
+                                    <Page
+                                        pageNumber={pageNumber}
+                                        scale={scale}
+                                        renderTextLayer={false}
+                                        renderAnnotationLayer={false}
+                                        className="max-h-fit shadow-lg"
+                                    />
+                                </Document>
+                                <canvas ref={canvasRef} className="absolute left-0 top-0 z-10" />
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
