@@ -9,7 +9,7 @@ import {
 import { MyButton } from "@/components/design-system/button";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
-import { Warning } from "@phosphor-icons/react";
+// import { Warning } from "@phosphor-icons/react";
 import { StatusColumnRenderer } from "./status-column-rendered";
 import { Row } from "@tanstack/react-table";
 import { SchemaFields } from "@/types/students/bulk-upload-types";
@@ -39,41 +39,41 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     }, [isOpen, setIsEditing]);
 
     // Group errors by type for summary
-    const errorSummary = React.useMemo(() => {
-        if (!csvErrors || csvErrors.length === 0) return null;
+    // const errorSummary = React.useMemo(() => {
+    //     if (!csvErrors || csvErrors.length === 0) return null;
 
-        const summary = {
-            requiredMissing: 0,
-            invalidFormat: 0,
-            invalidEnum: 0,
-            invalidDate: 0,
-            other: 0,
-        };
+    //     const summary = {
+    //         requiredMissing: 0,
+    //         invalidFormat: 0,
+    //         invalidEnum: 0,
+    //         invalidDate: 0,
+    //         other: 0,
+    //     };
 
-        csvErrors.forEach((error) => {
-            if (error.message.includes("required")) {
-                summary.requiredMissing++;
-            } else if (error.message.includes("format")) {
-                summary.invalidFormat++;
-            } else if (error.message.includes("Invalid value for")) {
-                summary.invalidEnum++;
-            } else if (error.message.includes("date")) {
-                summary.invalidDate++;
-            } else {
-                summary.other++;
-            }
-        });
+    //     csvErrors.forEach((error) => {
+    //         if (error.message.includes("required")) {
+    //             summary.requiredMissing++;
+    //         } else if (error.message.includes("format")) {
+    //             summary.invalidFormat++;
+    //         } else if (error.message.includes("Invalid value for")) {
+    //             summary.invalidEnum++;
+    //         } else if (error.message.includes("date")) {
+    //             summary.invalidDate++;
+    //         } else {
+    //             summary.other++;
+    //         }
+    //     });
 
-        return summary;
-    }, [csvErrors]);
+    //     return summary;
+    // }, [csvErrors]);
 
     // Count of affected rows
-    const affectedRows = React.useMemo(() => {
-        if (!csvErrors || csvErrors.length === 0) return 0;
+    // const affectedRows = React.useMemo(() => {
+    //     if (!csvErrors || csvErrors.length === 0) return 0;
 
-        const uniqueRows = new Set(csvErrors.map((err) => err.path[0]));
-        return uniqueRows.size;
-    }, [csvErrors]);
+    //     const uniqueRows = new Set(csvErrors.map((err) => err.path[0]));
+    //     return uniqueRows.size;
+    // }, [csvErrors]);
 
     // Create a wrapped status column renderer with proper type safety
     const CustomStatusColumnRenderer = React.useCallback(
@@ -92,7 +92,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                     </div>
                 </DialogHeader>
 
-                {csvErrors.length > 0 && (
+                {/* {csvErrors.length > 0 && (
                     <div className="mx-6 mt-4 rounded-md bg-danger-50 p-4">
                         <div className="flex items-center">
                             <Warning className="h-5 w-5 text-danger-500" />
@@ -136,7 +136,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                             </div>
                         )}
                     </div>
-                )}
+                )} */}
 
                 <DialogDescription className="flex flex-col overflow-x-scroll p-6">
                     <EditableBulkUploadTable

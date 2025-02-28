@@ -35,6 +35,7 @@ export const validateCellValue = (
     rowIndex: number,
 ): ValidationError | null => {
     const fieldName = header.column_name;
+    console.log("inside validate cell value");
 
     // Skip validation if the field is optional and empty
     if (header.optional && (!value || value.trim() === "")) {
@@ -70,6 +71,7 @@ export const validateCellValue = (
         // Date validation
         if (header.type === "date" && header.format) {
             const formattedDate = convertExcelDateToDesiredFormat(value, header.format);
+            console.log("formattedDate: ", formattedDate);
 
             if (!isValidDateFormat(formattedDate, header.format)) {
                 return {
