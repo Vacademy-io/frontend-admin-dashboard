@@ -81,12 +81,14 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             <DialogContent className="no-scrollbar h-[80vh] w-[80vw] max-w-[1200px] overflow-hidden p-0 font-normal">
                 {uploadCompleted && uploadResponse ? (
                     // Show upload results using the new component
-                    <UploadResultsTable
-                        data={uploadResponse}
-                        onViewError={handleViewError}
-                        onClose={onClose}
-                        onDownloadResponse={onDownloadResponse}
-                    />
+                    <DialogDescription className="flex flex-col overflow-x-scroll p-6">
+                        <UploadResultsTable
+                            data={uploadResponse}
+                            onViewError={handleViewError}
+                            onClose={onClose}
+                            onDownloadResponse={onDownloadResponse}
+                        />
+                    </DialogDescription>
                 ) : (
                     // Show preview/validation UI
                     <>
