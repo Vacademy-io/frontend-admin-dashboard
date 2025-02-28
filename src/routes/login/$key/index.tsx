@@ -30,7 +30,6 @@ function RouteComponent() {
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
             if (response) {
-                console.log(response);
                 queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
                 setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
                 setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
