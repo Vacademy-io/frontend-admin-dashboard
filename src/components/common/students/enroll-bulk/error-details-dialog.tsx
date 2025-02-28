@@ -19,7 +19,6 @@ interface ErrorDetailsDialogProps {
     isApiError?: boolean;
 }
 
-// Error Details Dialog Component
 export const ErrorDetailsDialog = ({
     isOpen,
     onClose,
@@ -27,6 +26,42 @@ export const ErrorDetailsDialog = ({
     rowData,
     isApiError = false,
 }: ErrorDetailsDialogProps) => {
+    // For API errors, extract useful details from the error message
+    const getFormattedApiError = (errorMessage: string) => {
+        if (!errorMessage) return { mainError: "Unknown error", details: "" };
+
+        // Try to extract and format JDBC constraint error messages which contain "Detail:"
+        const jdbcPattern = /JDBC exception executing SQL \[(.*?)\] \[(.*?)\]/;
+        const detailPattern = /Detail: (.*?)(?=\]|\n|$)/;
+
+        const jdbcMatch = errorMessage.match(jdbcPattern);
+        const detailMatch = errorMessage.match(detailPattern);
+
+        if (jdbcMatch && jdbcMatch.length > 2) {
+            const sqlStatement = jdbcMatch[1];
+            const errorDesc = jdbcMatch[2];
+            const detail = detailMatch ? detailMatch[1] : "";
+
+            return {
+                mainError: errorDesc,
+                details: detail,
+                sqlStatement: sqlStatement,
+            };
+        }
+
+        // If we can't extract a structured error, just return the raw message
+        return {
+            mainError:
+                errorMessage.length > 200 ? errorMessage.substring(0, 197) + "..." : errorMessage,
+            details: errorMessage.length > 200 ? errorMessage : "",
+        };
+    };
+
+    const formattedError =
+        isApiError && errors.length > 0 && errors[0]?.currentVal
+            ? getFormattedApiError(errors[0].currentVal)
+            : null;
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="w-[800px] max-w-[900px] p-0 font-normal">
@@ -39,17 +74,36 @@ export const ErrorDetailsDialog = ({
 
                 <div className="p-6">
                     {isApiError ? (
-                        // Display API errors
+                        // Display API errors with better formatting
                         <div className="space-y-4">
                             <div className="rounded-md bg-danger-50 p-4">
                                 <h3 className="mb-2 text-lg font-medium text-danger-700">
                                     Upload failed for this entry
                                 </h3>
-                                <div className="whitespace-pre-wrap text-danger-600">
-                                    {rowData.ERROR ||
-                                        rowData.STATUS_MESSAGE ||
-                                        "Unknown error occurred during upload."}
-                                </div>
+                                {formattedError ? (
+                                    <div className="text-danger-600">
+                                        <p className="font-medium">{formattedError.mainError}</p>
+                                        {formattedError.details && (
+                                            <p className="mt-2">{formattedError.details}</p>
+                                        )}
+                                        {formattedError.sqlStatement && (
+                                            <div className="mt-3">
+                                                <p className="text-sm text-neutral-700">
+                                                    SQL Statement:
+                                                </p>
+                                                <p className="mt-1 rounded bg-neutral-100 p-2 font-mono text-xs">
+                                                    {formattedError.sqlStatement}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="whitespace-pre-wrap text-danger-600">
+                                        {rowData.ERROR ||
+                                            rowData.STATUS_MESSAGE ||
+                                            "Unknown error occurred during upload."}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-4">
