@@ -1,12 +1,12 @@
 import { MyButton } from "@/components/design-system/button";
 import { CaretUpDown, XCircle } from "@phosphor-icons/react";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
 import { BulkActionsMenu } from "./bulk-actions-menu";
+import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
 
 interface BulkActionsProps {
     selectedCount: number;
     selectedStudentIds: string[];
-    selectedStudents: StudentTable[]; // Add this prop
+    selectedStudents: SubmissionStudentData[]; // Add this prop
     onReset: () => void;
 }
 
@@ -26,7 +26,7 @@ export const BulkActions = ({
                 [{selectedCount}] <div>Selected</div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-20">
                 <MyButton
                     buttonType="secondary"
                     scale="medium"
@@ -37,7 +37,6 @@ export const BulkActions = ({
                     Reset
                     <XCircle />
                 </MyButton>
-
                 <BulkActionsMenu
                     selectedCount={selectedCount}
                     selectedStudentIds={selectedStudentIds}

@@ -1,24 +1,31 @@
-import { MyDropdown } from "@/components/design-system/dropdown";
-import { BulkActionInfo } from "@/types/students/bulk-actions-types";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { AssessmentSubmissionsBulkActionInfo } from "@/types/students/bulk-actions-types";
 import { ReactNode } from "react";
-import { BulkActionDropdownList } from "@/constants/student-list/bulk-actions-menu-options";
 import { useSubmissionsBulkActionsDialogStore } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStore";
+import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubTrigger,
+    DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
+import { MyButton } from "@/components/design-system/button";
 
 interface BulkActionsMenuProps {
     selectedCount: number;
     selectedStudentIds: string[];
-    selectedStudents: StudentTable[];
+    selectedStudents: SubmissionStudentData[];
     trigger: ReactNode;
 }
 
 export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuProps) => {
     const {
-        openBulkChangeBatchDialog,
-        openBulkExtendSessionDialog,
-        openBulkReRegisterDialog,
-        openBulkTerminateRegistrationDialog,
-        openBulkDeleteDialog,
+        openBulkProvideReattemptDialog,
+        openBulkProvideRevaluateAssessmentDialog,
+        openBulkProvideRevaluateQuestionWiseDialog,
+        openBulkProvideReleaseDialog,
     } = useSubmissionsBulkActionsDialogStore();
 
     const handleMenuOptionsChange = (value: string) => {
@@ -29,34 +36,77 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
             return;
         }
 
-        const bulkActionInfo: BulkActionInfo = {
+        const bulkActionInfo: AssessmentSubmissionsBulkActionInfo = {
             selectedStudentIds: validStudents.map((student) => student.user_id),
             selectedStudents: validStudents,
             displayText: `${validStudents.length} students`,
         };
 
         switch (value) {
-            case "Change Batch":
-                openBulkChangeBatchDialog(bulkActionInfo);
+            case "Provide Reattempt":
+                openBulkProvideReattemptDialog(bulkActionInfo);
                 break;
-            case "Extend Session":
-                openBulkExtendSessionDialog(bulkActionInfo);
+            case "Revaluate Question Wise":
+                openBulkProvideRevaluateQuestionWiseDialog(bulkActionInfo);
                 break;
-            case "Re-register for Next Session":
-                openBulkReRegisterDialog(bulkActionInfo);
+            case "Revaluate Entire Assessment":
+                openBulkProvideRevaluateAssessmentDialog(bulkActionInfo);
                 break;
-            case "Terminate Registration":
-                openBulkTerminateRegistrationDialog(bulkActionInfo);
-                break;
-            case "Delete":
-                openBulkDeleteDialog(bulkActionInfo);
+            case "Release Result":
+                openBulkProvideReleaseDialog(bulkActionInfo);
                 break;
         }
     };
 
     return (
-        <MyDropdown dropdownList={BulkActionDropdownList} onSelect={handleMenuOptionsChange}>
-            {trigger}
-        </MyDropdown>
+        <>
+            <DropdownMenu>
+                <DropdownMenuTrigger>
+                    <MyButton
+                        type="button"
+                        scale="small"
+                        buttonType="secondary"
+                        className="w-6 !min-w-6"
+                    >
+                        {trigger}
+                    </MyButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => handleMenuOptionsChange("Provide Reattempt")}
+                    >
+                        Provide Reattempt
+                    </DropdownMenuItem>
+                    <DropdownMenuSub>
+                        <DropdownMenuSubTrigger className="cursor-pointer">
+                            Revaluate
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() => handleMenuOptionsChange("Revaluate Question Wise")}
+                            >
+                                Question Wise
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() =>
+                                    handleMenuOptionsChange("Revaluate Entire Assessment")
+                                }
+                            >
+                                Entire Assessment
+                            </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => handleMenuOptionsChange("Release Result")}
+                    >
+                        Release Result
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </>
     );
 };

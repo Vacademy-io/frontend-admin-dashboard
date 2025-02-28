@@ -42,3 +42,9 @@ export const EvaluationType = ["Auto", "Manual", "PDF", "VIDEO"];
 export const InstituteType = ["Coaching Institute", "School", "University", "Corporate"];
 
 export const RoleType = ["ADMIN", "CREATOR", "EVALUATOR"];
+
+export const BulkActionDropdownStudentSubmissionsList = [
+    "Provide Reattempt",
+    "Revaluate",
+    "Release Result",
+];

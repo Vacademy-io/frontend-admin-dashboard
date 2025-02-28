@@ -1,175 +1,136 @@
-// stores/useDialogStore.ts
 import { create } from "zustand";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
-import { BulkActionInfo } from "@/types/students/bulk-actions-types";
+import { AssessmentSubmissionsBulkActionInfo } from "@/types/students/bulk-actions-types";
+import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
 
 interface AssessmentSubmissionsDialogStore {
-    isChangeBatchOpen: boolean;
-    isExtendSessionOpen: boolean;
-    isReRegisterOpen: boolean;
-    isTerminateRegistrationOpen: boolean;
-    isDeleteOpen: boolean;
-    selectedStudent: StudentTable | null;
-    bulkActionInfo: BulkActionInfo | null;
+    isProvideReattemptOpen: boolean;
+    isProvideRevaluateAssessment: boolean;
+    isProvideRevaluateQuestionWise: boolean;
+    isReleaseResult: boolean;
+    selectedStudent: SubmissionStudentData | null;
+    bulkActionInfo: AssessmentSubmissionsBulkActionInfo | null;
     isBulkAction: boolean;
 
     // Individual student actions
-    openChangeBatchDialog: (student: StudentTable) => void;
-    openExtendSessionDialog: (student: StudentTable) => void;
-    openReRegisterDialog: (student: StudentTable) => void;
-    openTerminateRegistrationDialog: (student: StudentTable) => void;
-    openDeleteDialog: (student: StudentTable) => void;
+    openProvideReattemptDialog: (student: SubmissionStudentData) => void;
+    openProvideRevaluateAssessmentDialog: (student: SubmissionStudentData) => void;
+    openProvideRevaluateQuestionWiseDialog: (student: SubmissionStudentData) => void;
+    openProvideReleaseDialog: (student: SubmissionStudentData) => void;
 
     // Bulk actions
-    openBulkChangeBatchDialog: (info: BulkActionInfo) => void;
-    openBulkExtendSessionDialog: (info: BulkActionInfo) => void;
-    openBulkReRegisterDialog: (info: BulkActionInfo) => void;
-    openBulkTerminateRegistrationDialog: (info: BulkActionInfo) => void;
-    openBulkDeleteDialog: (info: BulkActionInfo) => void;
+    openBulkProvideReattemptDialog: (info: AssessmentSubmissionsBulkActionInfo) => void;
+    openBulkProvideRevaluateAssessmentDialog: (info: AssessmentSubmissionsBulkActionInfo) => void;
+    openBulkProvideRevaluateQuestionWiseDialog: (info: AssessmentSubmissionsBulkActionInfo) => void;
+    openBulkProvideReleaseDialog: (info: AssessmentSubmissionsBulkActionInfo) => void;
 
     closeAllDialogs: () => void;
 }
 
 export const useSubmissionsBulkActionsDialogStore = create<AssessmentSubmissionsDialogStore>(
     (set) => ({
-        isChangeBatchOpen: false,
-        isExtendSessionOpen: false,
-        isReRegisterOpen: false,
-        isTerminateRegistrationOpen: false,
-        isDeleteOpen: false,
+        isProvideReattemptOpen: false,
+        isProvideRevaluateAssessment: false,
+        isProvideRevaluateQuestionWise: false,
+        isReleaseResult: false,
         selectedStudent: null,
         bulkActionInfo: null,
         isBulkAction: false,
 
         // Individual student actions
-        openChangeBatchDialog: (student) =>
+        openProvideReattemptDialog: (student) =>
             set({
-                isChangeBatchOpen: true,
+                isProvideReattemptOpen: true,
+                isProvideRevaluateAssessment: false,
+                isProvideRevaluateQuestionWise: false,
+                isReleaseResult: false,
                 selectedStudent: student,
                 bulkActionInfo: null,
                 isBulkAction: false,
-                isExtendSessionOpen: false,
-                isReRegisterOpen: false,
-                isTerminateRegistrationOpen: false,
-                isDeleteOpen: false,
             }),
 
-        openExtendSessionDialog: (student) =>
+        openProvideRevaluateAssessmentDialog: (student) =>
             set({
-                isExtendSessionOpen: true,
+                isProvideReattemptOpen: false,
+                isProvideRevaluateAssessment: true,
+                isProvideRevaluateQuestionWise: false,
+                isReleaseResult: false,
                 selectedStudent: student,
                 bulkActionInfo: null,
                 isBulkAction: false,
-                isChangeBatchOpen: false,
-                isReRegisterOpen: false,
-                isTerminateRegistrationOpen: false,
-                isDeleteOpen: false,
             }),
 
-        openReRegisterDialog: (student) =>
+        openProvideRevaluateQuestionWiseDialog: (student) =>
             set({
-                isReRegisterOpen: true,
+                isProvideReattemptOpen: false,
+                isProvideRevaluateAssessment: false,
+                isProvideRevaluateQuestionWise: true,
+                isReleaseResult: true,
                 selectedStudent: student,
                 bulkActionInfo: null,
                 isBulkAction: false,
-                isChangeBatchOpen: false,
-                isExtendSessionOpen: false,
-                isTerminateRegistrationOpen: false,
-                isDeleteOpen: false,
             }),
 
-        openTerminateRegistrationDialog: (student) =>
+        openProvideReleaseDialog: (student) =>
             set({
-                isTerminateRegistrationOpen: true,
+                isProvideReattemptOpen: false,
+                isProvideRevaluateAssessment: false,
+                isProvideRevaluateQuestionWise: false,
+                isReleaseResult: true,
                 selectedStudent: student,
                 bulkActionInfo: null,
                 isBulkAction: false,
-                isChangeBatchOpen: false,
-                isExtendSessionOpen: false,
-                isReRegisterOpen: false,
-                isDeleteOpen: false,
             }),
-
-        openDeleteDialog: (student) =>
-            set({
-                isDeleteOpen: true,
-                selectedStudent: student,
-                bulkActionInfo: null,
-                isBulkAction: false,
-                isChangeBatchOpen: false,
-                isExtendSessionOpen: false,
-                isReRegisterOpen: false,
-                isTerminateRegistrationOpen: false,
-            }),
-
         // Bulk actions
-        openBulkChangeBatchDialog: (info) =>
+        openBulkProvideReattemptDialog: (info) =>
             set({
-                isChangeBatchOpen: true,
+                isProvideReattemptOpen: true,
+                isProvideRevaluateAssessment: false,
+                isProvideRevaluateQuestionWise: false,
+                isReleaseResult: false,
+                selectedStudent: null,
                 bulkActionInfo: info,
                 isBulkAction: true,
-                selectedStudent: null,
-                isExtendSessionOpen: false,
-                isReRegisterOpen: false,
-                isTerminateRegistrationOpen: false,
-                isDeleteOpen: false,
             }),
 
-        openBulkExtendSessionDialog: (info) =>
+        openBulkProvideRevaluateAssessmentDialog: (info) =>
             set({
-                isExtendSessionOpen: true,
+                isProvideReattemptOpen: false,
+                isProvideRevaluateAssessment: true,
+                isProvideRevaluateQuestionWise: false,
+                isReleaseResult: false,
+                selectedStudent: null,
                 bulkActionInfo: info,
                 isBulkAction: true,
-                selectedStudent: null,
-                isChangeBatchOpen: false,
-                isReRegisterOpen: false,
-                isTerminateRegistrationOpen: false,
-                isDeleteOpen: false,
             }),
 
-        openBulkReRegisterDialog: (info) =>
+        openBulkProvideRevaluateQuestionWiseDialog: (info) =>
             set({
-                isReRegisterOpen: true,
+                isProvideReattemptOpen: false,
+                isProvideRevaluateAssessment: false,
+                isProvideRevaluateQuestionWise: true,
+                isReleaseResult: false,
+                selectedStudent: null,
                 bulkActionInfo: info,
                 isBulkAction: true,
-                selectedStudent: null,
-                isChangeBatchOpen: false,
-                isExtendSessionOpen: false,
-                isTerminateRegistrationOpen: false,
-                isDeleteOpen: false,
             }),
 
-        openBulkTerminateRegistrationDialog: (info) =>
+        openBulkProvideReleaseDialog: (info) =>
             set({
-                isTerminateRegistrationOpen: true,
+                isProvideReattemptOpen: false,
+                isProvideRevaluateAssessment: false,
+                isProvideRevaluateQuestionWise: false,
+                isReleaseResult: true,
+                selectedStudent: null,
                 bulkActionInfo: info,
                 isBulkAction: true,
-                selectedStudent: null,
-                isChangeBatchOpen: false,
-                isExtendSessionOpen: false,
-                isReRegisterOpen: false,
-                isDeleteOpen: false,
-            }),
-
-        openBulkDeleteDialog: (info) =>
-            set({
-                isDeleteOpen: true,
-                bulkActionInfo: info,
-                isBulkAction: true,
-                selectedStudent: null,
-                isChangeBatchOpen: false,
-                isExtendSessionOpen: false,
-                isReRegisterOpen: false,
-                isTerminateRegistrationOpen: false,
             }),
 
         closeAllDialogs: () =>
             set({
-                isChangeBatchOpen: false,
-                isExtendSessionOpen: false,
-                isReRegisterOpen: false,
-                isTerminateRegistrationOpen: false,
-                isDeleteOpen: false,
+                isProvideReattemptOpen: false,
+                isProvideRevaluateAssessment: false,
+                isProvideRevaluateQuestionWise: false,
+                isReleaseResult: false,
                 selectedStudent: null,
                 bulkActionInfo: null,
                 isBulkAction: false,

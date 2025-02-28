@@ -868,46 +868,70 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     </div>
                 </div>
                 {selectedParticipantsTab === "internal" && (
-                    <Tabs
-                        value={batchSelectionTab}
-                        onValueChange={handleBatchSeletectionTab}
-                        className="flex w-full flex-col gap-4"
-                    >
-                        <TabsList className="mb-2 ml-4 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
-                            <TabsTrigger
-                                value="batch"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    batchSelectionTab === "batch"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
-                                        batchSelectionTab === "batch" ? "text-primary-500" : ""
+                    <div className="flex items-center justify-between">
+                        <Tabs
+                            value={batchSelectionTab}
+                            onValueChange={handleBatchSeletectionTab}
+                            className="flex w-fit flex-col gap-4"
+                        >
+                            <TabsList className="mb-2 ml-4 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                                <TabsTrigger
+                                    value="batch"
+                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                        batchSelectionTab === "batch"
+                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                            : "border-none bg-transparent"
                                     }`}
                                 >
-                                    Batch Selection
-                                </span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="individual"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    batchSelectionTab === "individual"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
-                                        batchSelectionTab === "individual" ? "text-primary-500" : ""
+                                    <span
+                                        className={`${
+                                            batchSelectionTab === "batch" ? "text-primary-500" : ""
+                                        }`}
+                                    >
+                                        Batch Selection
+                                    </span>
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="individual"
+                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                        batchSelectionTab === "individual"
+                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                            : "border-none bg-transparent"
                                     }`}
                                 >
-                                    Individual Selection
-                                </span>
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                                    <span
+                                        className={`${
+                                            batchSelectionTab === "individual"
+                                                ? "text-primary-500"
+                                                : ""
+                                        }`}
+                                    >
+                                        Individual Selection
+                                    </span>
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                        {selectedTab === "Attempted" && (
+                            <div className="mt-2 flex justify-between gap-6">
+                                <MyButton
+                                    type="button"
+                                    scale="large"
+                                    buttonType="secondary"
+                                    className="font-medium"
+                                >
+                                    Revaluate
+                                </MyButton>
+                                <MyButton
+                                    type="button"
+                                    scale="large"
+                                    buttonType="secondary"
+                                    className="font-medium"
+                                >
+                                    Release Result
+                                </MyButton>
+                            </div>
+                        )}
+                    </div>
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
                     <TabsContent value={selectedTab}>
@@ -943,7 +967,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             <StudentSidebar selectedTab={selectedTab} examType={examType} />
                         </SidebarProvider>
                     </TabsContent>
-                    <div className="flex">
+                    <div className="flex justify-between">
                         <BulkActions
                             selectedCount={totalSelectedCount}
                             selectedStudentIds={getSelectedStudentIds()}

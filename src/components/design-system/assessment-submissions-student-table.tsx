@@ -14,14 +14,13 @@ import {
     OnChangeFn,
     ColumnDef,
 } from "@tanstack/react-table";
-import { ChangeBatchDialog } from "./table-components/student-menu-options/change-batch-dialog";
-import { ExtendSessionDialog } from "./table-components/student-menu-options/extend-session-dialog";
-import { ReRegisterDialog } from "./table-components/student-menu-options/re-register-dialog";
-import { TerminateRegistrationDialog } from "./table-components/student-menu-options/terminate-registration-dialog";
-import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 import { ColumnWidthConfig } from "./utils/constants/table-layout";
 import { DashboardLoader } from "../core/dashboard-loader";
 import { useSubmissionsBulkActionsDialogStore } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStore";
+import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-reattempt-dialog";
+import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-revaluate-assessment-dialog";
+import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-release-result";
+import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-revaluate-questionwise-dialog";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -84,11 +83,10 @@ export function AssessmentSubmissionsStudentTable<T>({
     });
 
     const {
-        isChangeBatchOpen,
-        isExtendSessionOpen,
-        isReRegisterOpen,
-        isTerminateRegistrationOpen,
-        isDeleteOpen,
+        isProvideReattemptOpen,
+        isProvideRevaluateAssessment,
+        isProvideRevaluateQuestionWise,
+        isReleaseResult,
         closeAllDialogs,
     } = useSubmissionsBulkActionsDialogStore();
 
@@ -140,41 +138,33 @@ export function AssessmentSubmissionsStudentTable<T>({
                     </TableBody>
                 </Table>
             </div>
-            <ChangeBatchDialog
+
+            <ProvideReattemptDialog
                 trigger={null}
-                open={isChangeBatchOpen}
+                open={isProvideReattemptOpen}
                 onOpenChange={(open) => {
                     if (!open) closeAllDialogs();
                 }}
             />
 
-            <ExtendSessionDialog
+            <ProvideRevaluateAssessmentDialog
                 trigger={null}
-                open={isExtendSessionOpen}
+                open={isProvideRevaluateAssessment}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+            <ProvideRevaluateQuestionWiseDialog
+                trigger={null}
+                open={isProvideRevaluateQuestionWise}
                 onOpenChange={(open) => {
                     if (!open) closeAllDialogs();
                 }}
             />
 
-            <ReRegisterDialog
+            <ProvideReleaseResultDialog
                 trigger={null}
-                open={isReRegisterOpen}
-                onOpenChange={(open) => {
-                    if (!open) closeAllDialogs();
-                }}
-            />
-
-            <TerminateRegistrationDialog
-                trigger={null}
-                open={isTerminateRegistrationOpen}
-                onOpenChange={(open) => {
-                    if (!open) closeAllDialogs();
-                }}
-            />
-
-            <DeleteStudentDialog
-                trigger={null}
-                open={isDeleteOpen}
+                open={isReleaseResult}
                 onOpenChange={(open) => {
                     if (!open) closeAllDialogs();
                 }}
