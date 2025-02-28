@@ -3,7 +3,7 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsThree } from "phosphor-react";
 import { useState } from "react";
-import { dropdownList } from "@/constants/study-library/chapter-menu-options";
+import { dropdownList } from "@/constants/study-library/chapter-menu-options-list";
 import { MoveToDialog } from "./move-dialog";
 import { CopyToDialog } from "./copy-dialog";
 import { AddChapterForm } from "../add-chapters/add-chapter-form";
@@ -13,14 +13,21 @@ interface ChapterMenuOptionsProps {
     chapter: ChapterWithSlides;
     onDelete: () => void;
     onEdit: (updatedChapter: ChapterWithSlides) => void;
+    viewChapterDetails: () => void;
 }
 
-export const ChapterMenuOptions = ({ chapter, onDelete, onEdit }: ChapterMenuOptionsProps) => {
+export const ChapterMenuOptions = ({
+    chapter,
+    onDelete,
+    onEdit,
+    viewChapterDetails,
+}: ChapterMenuOptionsProps) => {
     const [openDialog, setOpenDialog] = useState<"copy" | "move" | "delete" | "edit" | null>(null);
 
     const handleSelect = (value: string) => {
         switch (value) {
             case "view":
+                viewChapterDetails();
                 break;
             case "edit":
                 setOpenDialog("edit");
@@ -70,10 +77,10 @@ export const ChapterMenuOptions = ({ chapter, onDelete, onEdit }: ChapterMenuOpt
             </MyDialog>
 
             {/* Copy Dialog */}
-            <CopyToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            <CopyToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} chapter={chapter} />
 
             {/* Move Dialog */}
-            <MoveToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+            <MoveToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} chapter={chapter} />
         </>
     );
 };

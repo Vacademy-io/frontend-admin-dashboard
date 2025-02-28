@@ -39,3 +39,6 @@ export { EmptySlideMaterial };
 
 import SSDC_Logo from "./Background.svg";
 export { SSDC_Logo };
+
+import EmptyStudentListImage from "./empty-students-image.svg";
+export { EmptyStudentListImage };

@@ -117,4 +117,27 @@ interface StepData {
     field_options?: Record<string, FieldOption[]>;
 }
 
+export interface ConvertedCustomField {
+    name: string;
+    type: string;
+    default_value: string;
+    description: string;
+    is_mandatory: boolean;
+    key: string;
+    comma_separated_options: string;
+}
+
+// Assuming customFields is an object where keys are strings and values are the custom field details
+export type CustomFields = {
+    type: string;
+    name: string;
+    oldKey: boolean;
+    isRequired: boolean;
+    options?: { id: number; value: string }[];
+    default_value?: string;
+    description?: string;
+    key?: string;
+    is_mandatory?: boolean;
+}[];
+
 export type Steps = StepData[];

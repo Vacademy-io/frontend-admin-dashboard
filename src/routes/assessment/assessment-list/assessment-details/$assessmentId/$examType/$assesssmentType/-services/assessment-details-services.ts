@@ -2,13 +2,18 @@ import {
     GET_ADMIN_PARTICIPANTS,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
+    GET_PARTICIPANTS_QUESTION_WISE,
     GET_QUESTIONS_INSIGHTS_URL,
     PRIVATE_ADD_QUESTIONS,
+    STUDENT_REPORT_DETAIL_URL,
+    STUDENT_REPORT_URL,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
 import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSubmissionsTab";
+import { StudentReportFilterInterface } from "@/components/common/students/students-list/student-side-view/student-test-records/student-test-record";
+import { SelectedFilterQuestionWise } from "@/types/assessments/student-questionwise-status";
 
 export const savePrivateQuestions = async (questions: AssessmentDetailQuestions) => {
     const response = await authenticatedAxiosInstance({
@@ -182,6 +187,137 @@ export const handleAdminParticipantsData = ({
         ],
         queryFn: () =>
             getAdminParticipants(assessmentId, instituteId, pageNo, pageSize, selectedFilter),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
+export const getStudentReport = async (
+    studentId: string | undefined,
+    instituteId: string | undefined,
+    pageNo: number,
+    pageSize: number,
+    selectedFilter: StudentReportFilterInterface,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: STUDENT_REPORT_URL,
+        params: {
+            studentId,
+            instituteId,
+            pageNo,
+            pageSize,
+        },
+        data: selectedFilter,
+    });
+    return response?.data;
+};
+
+export const viewStudentReport = async (
+    assessmentId: string,
+    attemptId: string,
+    instituteId: string | undefined,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: STUDENT_REPORT_DETAIL_URL,
+        params: {
+            assessmentId,
+            attemptId,
+            instituteId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleStudentReportData = ({
+    studentId,
+    instituteId,
+    pageNo,
+    pageSize,
+    selectedFilter,
+}: {
+    studentId: string | undefined;
+    instituteId: string | undefined;
+    pageNo: number;
+    pageSize: number;
+    selectedFilter: StudentReportFilterInterface;
+}) => {
+    return {
+        queryKey: [
+            "GET_STUDENT_REPORT_DETAILS",
+            studentId,
+            instituteId,
+            pageNo,
+            pageSize,
+            selectedFilter,
+        ],
+        queryFn: () => getStudentReport(studentId, instituteId, pageNo, pageSize, selectedFilter),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
+export const getParticipantsListQuestionwise = async (
+    assessmentId: string,
+    sectionId: string | undefined,
+    questionId: string | undefined,
+    pageNo: number,
+    pageSize: number,
+    selectedFilter: SelectedFilterQuestionWise,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: GET_PARTICIPANTS_QUESTION_WISE,
+        params: {
+            assessmentId,
+            sectionId,
+            questionId,
+            pageNo,
+            pageSize,
+        },
+        data: {
+            ...selectedFilter,
+            registration_source_id: selectedFilter.registration_source_id.map(
+                (batch: { id: string; name: string }) => batch.id,
+            ),
+        },
+    });
+    return response?.data;
+};
+
+export const handleParticipantsListQuestionwise = ({
+    assessmentId,
+    sectionId,
+    questionId,
+    pageNo,
+    pageSize,
+    selectedFilter,
+}: {
+    assessmentId: string;
+    sectionId: string | undefined;
+    questionId: string | undefined;
+    pageNo: number;
+    pageSize: number;
+    selectedFilter: SelectedFilterQuestionWise;
+}) => {
+    return {
+        queryKey: [
+            "GET_PARTICIPANTS_LIST_QUESTION_WISE",
+            assessmentId,
+            sectionId,
+            questionId,
+            pageNo,
+            pageSize,
+            selectedFilter,
+        ],
+        queryFn: () =>
+            getParticipantsListQuestionwise(
+                assessmentId,
+                sectionId,
+                questionId,
+                pageNo,
+                pageSize,
+                selectedFilter,
+            ),
         staleTime: 60 * 60 * 1000,
     };
 };

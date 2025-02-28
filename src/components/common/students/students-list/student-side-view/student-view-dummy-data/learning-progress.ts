@@ -6,133 +6,29 @@ export interface TopicActivityDetails {
     activity_log?: ActivityLogType[]; // Change from 'ActivityLogType[] | ""' to optional array
 }
 
+// Define this where your ActivityLogType is defined
 export interface ActivityLogType {
-    id: string;
     activityDate: string;
     startTime: string;
     endTime: string;
     duration: string;
-    lastPageRead: string;
+    lastPageRead: number;
+    videos: {
+        id: string;
+        start_time_in_millis: number;
+        end_time_in_millis: number;
+    }[];
+    documents: {
+        id: string;
+        start_time_in_millis: number;
+        end_time_in_millis: number;
+        page_number: number;
+    }[];
 }
 export interface ChapterDetailsType {
     e_book?: TopicActivityDetails[];
     videos?: TopicActivityDetails[];
 }
-
-export const ActivityLog: ActivityLogType[] = [
-    {
-        id: "1",
-        activityDate: "13/10/2024",
-        startTime: "11:05 AM",
-        endTime: "11:16 AM",
-        duration: "11 min",
-        lastPageRead: "Page 2",
-    },
-    {
-        id: "2",
-        activityDate: "13/10/2024",
-        startTime: "02:30 PM",
-        endTime: "03:15 PM",
-        duration: "45 min",
-        lastPageRead: "Page 15",
-    },
-    {
-        id: "3",
-        activityDate: "14/10/2024",
-        startTime: "09:15 AM",
-        endTime: "10:00 AM",
-        duration: "45 min",
-        lastPageRead: "Page 28",
-    },
-    {
-        id: "4",
-        activityDate: "14/10/2024",
-        startTime: "02:00 PM",
-        endTime: "02:30 PM",
-        duration: "30 min",
-        lastPageRead: "Page 35",
-    },
-    {
-        id: "5",
-        activityDate: "15/10/2024",
-        startTime: "10:20 AM",
-        endTime: "11:05 AM",
-        duration: "45 min",
-        lastPageRead: "Page 48",
-    },
-    {
-        id: "6",
-        activityDate: "15/10/2024",
-        startTime: "03:45 PM",
-        endTime: "04:15 PM",
-        duration: "30 min",
-        lastPageRead: "Page 55",
-    },
-    {
-        id: "7",
-        activityDate: "16/10/2024",
-        startTime: "11:30 AM",
-        endTime: "12:15 PM",
-        duration: "45 min",
-        lastPageRead: "Page 67",
-    },
-    {
-        id: "8",
-        activityDate: "16/10/2024",
-        startTime: "04:00 PM",
-        endTime: "04:45 PM",
-        duration: "45 min",
-        lastPageRead: "Page 82",
-    },
-    {
-        id: "9",
-        activityDate: "17/10/2024",
-        startTime: "09:45 AM",
-        endTime: "10:30 AM",
-        duration: "45 min",
-        lastPageRead: "Page 95",
-    },
-    {
-        id: "10",
-        activityDate: "17/10/2024",
-        startTime: "02:15 PM",
-        endTime: "03:00 PM",
-        duration: "45 min",
-        lastPageRead: "Page 108",
-    },
-    {
-        id: "11",
-        activityDate: "18/10/2024",
-        startTime: "10:00 AM",
-        endTime: "10:45 AM",
-        duration: "45 min",
-        lastPageRead: "Page 120",
-    },
-    {
-        id: "12",
-        activityDate: "18/10/2024",
-        startTime: "03:30 PM",
-        endTime: "04:15 PM",
-        duration: "45 min",
-        lastPageRead: "Page 133",
-    },
-    {
-        id: "14",
-        activityDate: "19/10/2024",
-        startTime: "11:15 AM",
-        endTime: "12:00 PM",
-        duration: "45 min",
-        lastPageRead: "Page 145",
-    },
-    {
-        id: "15",
-        activityDate: "19/10/2024",
-        startTime: "02:45 PM",
-        endTime: "03:30 PM",
-        duration: "45 min",
-        lastPageRead: "Page 158",
-    },
-];
 
 export const ChapterDetails: ChapterDetailsType = {
     e_book: [
@@ -141,21 +37,21 @@ export const ChapterDetails: ChapterDetailsType = {
             topic: "Understanding the Human Eye",
             status: "done",
             last_viewed: "13/10/2024, 11:00AM",
-            activity_log: ActivityLog, // Add the activity log data instead of empty string
+            activity_log: [], // Add the activity log data instead of empty string
         },
         {
             id: "sdfa",
             topic: "Defects of Vision and Their Correction",
             status: "done",
             last_viewed: "13/10/2024, 11:00AM",
-            activity_log: ActivityLog,
+            activity_log: [],
         },
         {
             id: "sdfa",
             topic: "Refraction of Light Through the Eye",
             status: "pending",
             last_viewed: "13/10/2024, 11:00AM",
-            activity_log: ActivityLog,
+            activity_log: [],
         },
     ],
     videos: [
@@ -164,14 +60,14 @@ export const ChapterDetails: ChapterDetailsType = {
             topic: "Understanding the Human Eye",
             status: "done",
             last_viewed: "13/10/2024, 11:00AM",
-            activity_log: ActivityLog,
+            activity_log: [],
         },
         {
             id: "sdfa",
             topic: "Refraction of Light Through the Eye",
             status: "pending",
             last_viewed: "13/10/2024, 11:00AM",
-            activity_log: ActivityLog,
+            activity_log: [],
         },
     ],
 };
@@ -200,7 +96,7 @@ export const LearningProgressSubject: LearningProgressSubjectType[] = [
                 status: "done",
                 name: "Light - Reflection and Refraction",
                 chapter_details: ChapterDetails,
-                activity_log: ActivityLog,
+                activity_log: [],
             },
             {
                 number: 2,
@@ -217,7 +113,7 @@ export const LearningProgressSubject: LearningProgressSubjectType[] = [
                 status: "pending",
                 name: "Electricity",
                 chapter_details: ChapterDetails,
-                activity_log: ActivityLog,
+                activity_log: [],
             },
             {
                 number: 5,

@@ -108,3 +108,15 @@ export const ASSESSMENT_STATUS_STUDENT_PENDING_COLUMNS_EXTERNAL_WIDTH: ColumnWid
     details: "min-w-[20px] sticky left-0",
     full_name: "min-w-[460px] sticky left-[52px]",
 };
+
+export const QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH: ColumnWidthConfig = {
+    full_name: "min-w-[180px] sticky",
+    package_session_id: "min-w-[240px]",
+    registration_id: "min-w-[180px]",
+    response_time_in_seconds: "min-w-[240px]",
+};
+
+export const QUESTION_WISE_COLUMNS_EXTERNAL_WIDTH: ColumnWidthConfig = {
+    full_name: "min-w-[180px] sticky",
+    response_time_in_seconds: "min-w-[240px]",
+};

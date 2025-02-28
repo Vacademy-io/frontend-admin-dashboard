@@ -166,7 +166,7 @@ export const AddLevelForm = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <div className="flex flex-col gap-2">
+                                            <div className="mr-4 flex flex-col gap-2 rounded-lg border border-neutral-200 p-4">
                                                 Sessions
                                                 {sessionList.map((session) => (
                                                     <div
@@ -203,9 +203,14 @@ export const AddLevelForm = ({
                                                                 field.onChange(sessions);
                                                             }}
                                                         />
-                                                        <span className="text-sm">
-                                                            {session.session_name}
-                                                        </span>
+                                                        <div className="flex flex-col items-center text-sm">
+                                                            <p className="text-sm">
+                                                                {session.session_name}
+                                                            </p>
+                                                            <p className="text-caption text-neutral-400">
+                                                                Start date: {session.start_date}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 ))}
                                                 {showNewSessionInput ? (
@@ -214,7 +219,7 @@ export const AddLevelForm = ({
                                                             <MyInput
                                                                 inputType="text"
                                                                 inputPlaceholder="Enter session name"
-                                                                className="w-[260px]"
+                                                                className="w-[230px]"
                                                                 input={newSessionName}
                                                                 onChangeFunction={(e) =>
                                                                     setNewSessionName(
@@ -276,7 +281,7 @@ export const AddLevelForm = ({
                                                         buttonType="text"
                                                         layoutVariant="default"
                                                         scale="small"
-                                                        className="text-primary-500 hover:bg-white"
+                                                        className="text-primary-500 hover:bg-white active:bg-white"
                                                     >
                                                         <Plus /> Add Session
                                                     </MyButton>

@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { EnvelopeSimple, WhatsappLogo } from "phosphor-react";
+import { goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
 
 type FormValues = z.infer<typeof forgotPasswordSchema>;
 
@@ -84,7 +86,7 @@ export function ForgotPassword() {
                     />
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
-                            <div className="flex w-full flex-col items-center justify-center gap-20">
+                            <div className="flex w-full flex-col items-center justify-center gap-8">
                                 <FormField
                                     control={form.control}
                                     name="email"
@@ -126,6 +128,40 @@ export function ForgotPassword() {
                                         >
                                             Back to Login
                                         </Link>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <span className="w-full border-t border-black" />
+                                        </div>
+                                        <div className="relative flex justify-center text-xs uppercase">
+                                            <span className="bg-background px-2 text-muted-foreground">
+                                                Or connect with us
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <MyButton
+                                            buttonType="secondary"
+                                            type="button"
+                                            className="w-full"
+                                            onClick={goToWhatsappSupport}
+                                        >
+                                            <WhatsappLogo className="size-6" />
+                                            WhatsApp
+                                        </MyButton>
+                                        <MyButton
+                                            buttonType="secondary"
+                                            type="button"
+                                            className="w-full"
+                                            onClick={goToMailSupport}
+                                        >
+                                            <EnvelopeSimple className="size-6" />
+                                            Email
+                                        </MyButton>
                                     </div>
                                 </div>
                             </div>

@@ -44,7 +44,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { BatchesFilterData } = useFilterDataForAssesment(initData);
     const instituteId = getInstituteId();
-    const { assessmentId, assesssmentType } = Route.useParams();
+    const { assessmentId, examType, assesssmentType } = Route.useParams();
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
     const [selectedTab, setSelectedTab] = useState("Attempted");
     const [batchSelectionTab, setBatchSelectionTab] = useState("batch");
@@ -904,7 +904,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 onRowSelectionChange={handleRowSelectionChange}
                                 currentPage={page}
                             />
-                            <StudentSidebar />
+                            <StudentSidebar selectedTab={selectedTab} examType={examType} />
                         </SidebarProvider>
                     </TabsContent>
                     <MyPagination
