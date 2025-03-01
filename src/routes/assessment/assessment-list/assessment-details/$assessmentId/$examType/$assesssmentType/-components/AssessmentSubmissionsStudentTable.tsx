@@ -96,10 +96,17 @@ export function AssessmentSubmissionsStudentTable<T>({
         closeAllDialogs,
     } = useSubmissionsBulkActionsDialogStoreAttempted();
 
-    const { increaseAssessmentTime, closeSubmission } =
-        useSubmissionsBulkActionsDialogStoreOngoing();
+    const {
+        increaseAssessmentTime,
+        closeSubmission,
+        closeAllDialogs: closeAllDialogsOngoing,
+    } = useSubmissionsBulkActionsDialogStoreOngoing();
 
-    const { sendReminder, removeParticipants } = useSubmissionsBulkActionsDialogStorePending();
+    const {
+        sendReminder,
+        removeParticipants,
+        closeAllDialogs: closeAllDialogsPending,
+    } = useSubmissionsBulkActionsDialogStorePending();
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading data</div>;
@@ -185,7 +192,7 @@ export function AssessmentSubmissionsStudentTable<T>({
                 trigger={null}
                 open={increaseAssessmentTime}
                 onOpenChange={(open) => {
-                    if (!open) closeAllDialogs();
+                    if (!open) closeAllDialogsOngoing();
                 }}
                 durationDistribution="ASSESSMENT"
             />
@@ -194,7 +201,7 @@ export function AssessmentSubmissionsStudentTable<T>({
                 trigger={null}
                 open={closeSubmission}
                 onOpenChange={(open) => {
-                    if (!open) closeAllDialogs();
+                    if (!open) closeAllDialogsOngoing();
                 }}
             />
 
@@ -202,7 +209,7 @@ export function AssessmentSubmissionsStudentTable<T>({
                 trigger={null}
                 open={sendReminder}
                 onOpenChange={(open) => {
-                    if (!open) closeAllDialogs();
+                    if (!open) closeAllDialogsPending();
                 }}
             />
 
@@ -210,7 +217,7 @@ export function AssessmentSubmissionsStudentTable<T>({
                 trigger={null}
                 open={removeParticipants}
                 onOpenChange={(open) => {
-                    if (!open) closeAllDialogs();
+                    if (!open) closeAllDialogsPending();
                 }}
             />
         </div>
