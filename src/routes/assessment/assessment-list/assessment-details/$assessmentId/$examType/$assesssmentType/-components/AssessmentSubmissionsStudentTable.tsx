@@ -14,13 +14,13 @@ import {
     OnChangeFn,
     ColumnDef,
 } from "@tanstack/react-table";
-import { ColumnWidthConfig } from "./utils/constants/table-layout";
-import { DashboardLoader } from "../core/dashboard-loader";
 import { useSubmissionsBulkActionsDialogStore } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStore";
 import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-reattempt-dialog";
 import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-revaluate-assessment-dialog";
 import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-release-result";
 import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-revaluate-questionwise-dialog";
+import { ColumnWidthConfig } from "@/components/design-system/utils/constants/table-layout";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";

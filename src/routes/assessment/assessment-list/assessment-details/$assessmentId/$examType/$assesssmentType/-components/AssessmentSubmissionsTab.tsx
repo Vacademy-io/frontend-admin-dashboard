@@ -17,7 +17,7 @@ import { getInstituteId } from "@/constants/helper";
 import { getAdminParticipants } from "../-services/assessment-details-services";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise, Export } from "phosphor-react";
+import { ArrowCounterClockwise, Export, WarningCircle } from "phosphor-react";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
@@ -29,7 +29,8 @@ import { StudentSidebar } from "@/components/common/students/students-list/stude
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { StudentSidebarContext } from "@/context/selected-student-sidebar-context";
 import { BulkActions } from "./bulk-actions/bulk-actions";
-import { AssessmentSubmissionsStudentTable } from "@/components/design-system/assessment-submissions-student-table";
+import { AssessmentSubmissionsStudentTable } from "./AssessmentSubmissionsStudentTable";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -913,22 +914,83 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                         </Tabs>
                         {selectedTab === "Attempted" && (
                             <div className="mt-2 flex justify-between gap-6">
-                                <MyButton
-                                    type="button"
-                                    scale="large"
-                                    buttonType="secondary"
-                                    className="font-medium"
-                                >
-                                    Revaluate
-                                </MyButton>
-                                <MyButton
-                                    type="button"
-                                    scale="large"
-                                    buttonType="secondary"
-                                    className="font-medium"
-                                >
-                                    Release Result
-                                </MyButton>
+                                <Dialog>
+                                    <DialogTrigger>
+                                        <MyButton
+                                            type="button"
+                                            scale="large"
+                                            buttonType="secondary"
+                                            className="font-medium"
+                                        >
+                                            Revaluate
+                                        </MyButton>
+                                    </DialogTrigger>
+                                    <DialogContent className="flex flex-col p-0">
+                                        <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
+                                            Revaluate All Students
+                                        </h1>
+                                        <div className="flex flex-col gap-2 p-4">
+                                            <div className="flex items-center text-danger-600">
+                                                <p>Attention</p>
+                                                <WarningCircle size={18} />
+                                            </div>
+                                            <h1>
+                                                Are you sure you want to revaluate for all students?
+                                            </h1>
+                                            <div className="flex justify-end">
+                                                <DialogClose>
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="large"
+                                                        buttonType="primary"
+                                                        className="mt-4 font-medium"
+                                                    >
+                                                        Yes
+                                                    </MyButton>
+                                                </DialogClose>
+                                            </div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                                <Dialog>
+                                    <DialogTrigger>
+                                        <MyButton
+                                            type="button"
+                                            scale="large"
+                                            buttonType="secondary"
+                                            className="font-medium"
+                                        >
+                                            Release Result
+                                        </MyButton>
+                                    </DialogTrigger>
+                                    <DialogContent className="flex flex-col p-0">
+                                        <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
+                                            Release Result For All Students
+                                        </h1>
+                                        <div className="flex flex-col gap-2 p-4">
+                                            <div className="flex items-center text-danger-600">
+                                                <p>Attention</p>
+                                                <WarningCircle size={18} />
+                                            </div>
+                                            <h1>
+                                                Are you sure you want to release result for all
+                                                students?
+                                            </h1>
+                                            <div className="flex justify-end">
+                                                <DialogClose>
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="large"
+                                                        buttonType="primary"
+                                                        className="mt-4 font-medium"
+                                                    >
+                                                        Yes
+                                                    </MyButton>
+                                                </DialogClose>
+                                            </div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                         )}
                     </div>
