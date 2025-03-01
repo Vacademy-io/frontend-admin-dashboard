@@ -9,17 +9,15 @@ import { CSVFormatConfig } from "@/types/students/bulk-upload-types";
 
 interface BulkUploadInitParams {
     instituteId: string;
-    sessionId: string;
     bulkUploadInitRequest: CSVFormatConfig;
 }
 
 const fetchBulkUploadInit = async ({
     instituteId,
-    sessionId,
     bulkUploadInitRequest,
 }: BulkUploadInitParams) => {
     const response = await authenticatedAxiosInstance.post<BulkUploadResponse>(
-        `${INIT_CSV_BULK}?instituteId=${instituteId}&sessionId=${sessionId}`,
+        `${INIT_CSV_BULK}?instituteId=${instituteId}`,
         bulkUploadInitRequest,
     );
 

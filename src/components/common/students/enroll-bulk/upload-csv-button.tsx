@@ -24,6 +24,7 @@ import { TokenKey } from "@/constants/auth/tokens";
 import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
 import { PreviewDialog } from "./preview-dialog";
 import { toast } from "sonner";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface FileState {
     file: File | null;
@@ -59,6 +60,12 @@ export const UploadCSVButton = ({
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const { csvData, setCsvData, csvErrors, setCsvErrors } = useBulkUploadStore();
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const packageSessionId = getPackageSessionId({
+        courseId: packageDetails.course.id || "",
+        sessionId: packageDetails.session.id || "",
+        levelId: packageDetails.level.id || "",
+    });
 
     const requestPayload = {
         auto_generate_config: {
@@ -88,7 +95,6 @@ export const UploadCSVButton = ({
     const { data, isLoading } = useBulkUploadInit(
         {
             instituteId: INSTITUTE_ID || "",
-            sessionId: packageDetails.session.id,
             bulkUploadInitRequest: requestPayload,
         },
         {
@@ -225,6 +231,8 @@ export const UploadCSVButton = ({
                 data: csvData,
                 instituteId: data.submit_api.request_params.instituteId,
                 bulkUploadInitRequest: requestPayload,
+                packageSessionId: packageSessionId || "",
+                notify: false,
             });
 
             // Process the API response
