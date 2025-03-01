@@ -177,13 +177,7 @@ export function StudentRevaluateQuestionWiseComponent({
                     </TabsContent>
                 </Tabs>
                 <div className="p-8 text-right">
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="primary"
-                        className="font-thin"
-                        onClick={onClose} // Logs final selection
-                    >
+                    <MyButton type="button" scale="large" buttonType="primary" onClick={onClose}>
                         Revaluate
                     </MyButton>
                 </div>
