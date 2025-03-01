@@ -14,19 +14,19 @@ import {
     OnChangeFn,
     ColumnDef,
 } from "@tanstack/react-table";
-import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted/provide-reattempt-dialog";
-import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted/provide-revaluate-assessment-dialog";
-import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted/provide-release-result";
-import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted/provide-revaluate-questionwise-dialog";
+import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-reattempt-dialog";
+import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-revaluate-assessment-dialog";
+import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-release-result";
+import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-revaluate-questionwise-dialog";
 import { ColumnWidthConfig } from "@/components/design-system/utils/constants/table-layout";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useSubmissionsBulkActionsDialogStoreAttempted } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
 import { useSubmissionsBulkActionsDialogStoreOngoing } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing";
-import { IncreaseAssessmentTimeDialog } from "./assessment-menu-options-ongoing/increase-assessment-time-component";
-import { CloseSubmissionDialog } from "./assessment-menu-options-ongoing/close-submission-component";
+import { IncreaseAssessmentTimeDialog } from "./assessment-menu-options-ongoing-bulk/increase-assessment-time-component";
+import { CloseSubmissionDialog } from "./assessment-menu-options-ongoing-bulk/close-submission-component";
 import { useSubmissionsBulkActionsDialogStorePending } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStorePending";
-import { SendReminderDialog } from "./assessment-menu-options-pending/send-reminder-component";
-import { RemoveParticipantsDialog } from "./assessment-menu-options-pending/remove-participants-component";
+import { SendReminderDialog } from "./assessment-menu-options-pending-bulk/send-reminder-component";
+import { RemoveParticipantsDialog } from "./assessment-menu-options-pending-bulk/remove-participants-component";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
