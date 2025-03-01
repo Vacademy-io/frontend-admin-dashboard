@@ -136,8 +136,7 @@ const ScheduleTestDetails = ({
                 <div className="flex items-center gap-2 text-sm text-neutral-500">
                     <h1 className="!font-normal text-black">Join Link:</h1>
                     <span className="px-3 py-2 text-sm underline">
-                        {`${BASE_URL_LEARNER_DASHBOARD}/register?code=
-                                ${scheduleTestContent.join_link}`}
+                        {`${BASE_URL_LEARNER_DASHBOARD}/register?code=${scheduleTestContent.join_link}`}
                     </span>
                     <MyButton
                         type="button"
