@@ -14,13 +14,19 @@ import {
     OnChangeFn,
     ColumnDef,
 } from "@tanstack/react-table";
-import { useSubmissionsBulkActionsDialogStore } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStore";
-import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-reattempt-dialog";
-import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-revaluate-assessment-dialog";
-import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-release-result";
-import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options/provide-revaluate-questionwise-dialog";
+import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted/provide-reattempt-dialog";
+import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted/provide-revaluate-assessment-dialog";
+import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted/provide-release-result";
+import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted/provide-revaluate-questionwise-dialog";
 import { ColumnWidthConfig } from "@/components/design-system/utils/constants/table-layout";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useSubmissionsBulkActionsDialogStoreAttempted } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
+import { useSubmissionsBulkActionsDialogStoreOngoing } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing";
+import { IncreaseAssessmentTimeDialog } from "./assessment-menu-options-ongoing/increase-assessment-time-component";
+import { CloseSubmissionDialog } from "./assessment-menu-options-ongoing/close-submission-component";
+import { useSubmissionsBulkActionsDialogStorePending } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStorePending";
+import { SendReminderDialog } from "./assessment-menu-options-pending/send-reminder-component";
+import { RemoveParticipantsDialog } from "./assessment-menu-options-pending/remove-participants-component";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -88,7 +94,12 @@ export function AssessmentSubmissionsStudentTable<T>({
         isProvideRevaluateQuestionWise,
         isReleaseResult,
         closeAllDialogs,
-    } = useSubmissionsBulkActionsDialogStore();
+    } = useSubmissionsBulkActionsDialogStoreAttempted();
+
+    const { increaseAssessmentTime, closeSubmission } =
+        useSubmissionsBulkActionsDialogStoreOngoing();
+
+    const { sendReminder, removeParticipants } = useSubmissionsBulkActionsDialogStorePending();
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading data</div>;
@@ -165,6 +176,39 @@ export function AssessmentSubmissionsStudentTable<T>({
             <ProvideReleaseResultDialog
                 trigger={null}
                 open={isReleaseResult}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <IncreaseAssessmentTimeDialog
+                trigger={null}
+                open={increaseAssessmentTime}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+                durationDistribution="ASSESSMENT"
+            />
+
+            <CloseSubmissionDialog
+                trigger={null}
+                open={closeSubmission}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <SendReminderDialog
+                trigger={null}
+                open={sendReminder}
+                onOpenChange={(open) => {
+                    if (!open) closeAllDialogs();
+                }}
+            />
+
+            <RemoveParticipantsDialog
+                trigger={null}
+                open={removeParticipants}
                 onOpenChange={(open) => {
                     if (!open) closeAllDialogs();
                 }}

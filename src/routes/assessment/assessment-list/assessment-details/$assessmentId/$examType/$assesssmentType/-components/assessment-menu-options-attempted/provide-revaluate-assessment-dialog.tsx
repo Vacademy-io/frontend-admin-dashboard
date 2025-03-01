@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
-import { useSubmissionsBulkActionsDialogStore } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStore";
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyButton } from "@/components/design-system/button";
+import { useSubmissionsBulkActionsDialogStoreAttempted } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
 
 interface ProvideDialogDialogProps {
     trigger: ReactNode;
@@ -9,9 +9,9 @@ interface ProvideDialogDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-const ProvideReattemptDialogContent = () => {
+const ProvideRevaluateAssessmentDialogContent = () => {
     const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } =
-        useSubmissionsBulkActionsDialogStore();
+        useSubmissionsBulkActionsDialogStoreAttempted();
 
     const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.student_name;
 
@@ -27,8 +27,8 @@ const ProvideReattemptDialogContent = () => {
     return (
         <div className="flex flex-col gap-6 px-4 pb-2 text-neutral-600">
             <h1>
-                Are you sure you want to provide&nbsp;
-                <span className="text-primary-500">{displayText}</span>&nbsp;reattempt?
+                Are you sure you want to revaluate assessment for selected&nbsp;
+                <span className="text-primary-500">{displayText}</span>&nbsp;?
             </h1>
             <MyButton
                 buttonType="primary"
@@ -42,7 +42,7 @@ const ProvideReattemptDialogContent = () => {
     );
 };
 
-export const ProvideReattemptDialog = ({
+export const ProvideRevaluateAssessmentDialog = ({
     trigger,
     open,
     onOpenChange,
@@ -50,9 +50,9 @@ export const ProvideReattemptDialog = ({
     return (
         <MyDialog
             trigger={trigger}
-            heading="Provide Reattempt"
+            heading="Revaluate Assessment"
             dialogWidth="w-[400px] max-w-[400px]"
-            content={<ProvideReattemptDialogContent />}
+            content={<ProvideRevaluateAssessmentDialogContent />}
             open={open}
             onOpenChange={onOpenChange}
         />

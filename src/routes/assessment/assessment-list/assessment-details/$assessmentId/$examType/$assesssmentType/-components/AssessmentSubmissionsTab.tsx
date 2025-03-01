@@ -1035,6 +1035,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             selectedStudentIds={getSelectedStudentIds()}
                             selectedStudents={getSelectedStudents()}
                             onReset={handleResetSelections}
+                            selectedTab={selectedTab}
                         />
                         <MyPagination
                             currentPage={page}

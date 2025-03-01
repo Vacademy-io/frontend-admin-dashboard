@@ -54,35 +54,31 @@ const RemoveParticipantComponent = ({
     onClose: () => void;
 }) => {
     return (
-        <Dialog open>
-            <DialogContent className="flex flex-col p-0">
-                <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
-                    Remove Participant
-                </h1>
-                <div className="flex flex-col gap-2 p-4">
-                    <div className="flex items-center text-danger-600">
-                        <p>Attention</p>
-                        <WarningCircle size={18} />
-                    </div>
-                    <h1>
-                        Are you sure you want remove{" "}
-                        <span className="text-primary-500">{student.full_name}</span> from this
-                        Assessment?
-                    </h1>
-                    <div className="flex justify-end">
-                        <MyButton
-                            type="button"
-                            scale="large"
-                            buttonType="primary"
-                            className="mt-4 font-medium"
-                            onClick={onClose}
-                        >
-                            Remove
-                        </MyButton>
-                    </div>
+        <DialogContent className="flex flex-col p-0">
+            <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Remove Participant</h1>
+            <div className="flex flex-col gap-2 p-4">
+                <div className="flex items-center text-danger-600">
+                    <p>Attention</p>
+                    <WarningCircle size={18} />
                 </div>
-            </DialogContent>
-        </Dialog>
+                <h1>
+                    Are you sure you want remove{" "}
+                    <span className="text-primary-500">{student.full_name}</span> from this
+                    Assessment?
+                </h1>
+                <div className="flex justify-end">
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="primary"
+                        className="mt-4 font-medium"
+                        onClick={onClose}
+                    >
+                        Remove
+                    </MyButton>
+                </div>
+            </div>
+        </DialogContent>
     );
 };
 

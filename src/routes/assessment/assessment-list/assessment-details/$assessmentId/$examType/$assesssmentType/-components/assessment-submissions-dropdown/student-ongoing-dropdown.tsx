@@ -71,7 +71,7 @@ const IncreaseAssessmentTimeComponent = ({
                 Increase Assessment Time
             </h1>
             {distributionDuration === "ASSESSMENT" && (
-                <div className="flex flex-col gap-2 p-4">
+                <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-4">
                     <h1>Entire Assessment</h1>
                     <h3>Increase By</h3>
                     <Select value={selectedSection} onValueChange={setSelectedSection}>
@@ -100,7 +100,7 @@ const IncreaseAssessmentTimeComponent = ({
                 </div>
             )}
             {distributionDuration === "SECTION" && (
-                <div className="flex flex-col gap-2 p-4">
+                <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-4">
                     <h1>Section 1</h1>
                     <h3>Increase By</h3>
                     <Select value={selectedSection} onValueChange={setSelectedSection}>
@@ -143,7 +143,7 @@ const IncreaseAssessmentTimeComponent = ({
                 </div>
             )}
             {distributionDuration === "QUESTION" && (
-                <div className="flex flex-col gap-2 p-4">
+                <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-4">
                     <h1>Question 1</h1>
                     <h3>Increase By</h3>
                     <Select value={selectedSection} onValueChange={setSelectedSection}>

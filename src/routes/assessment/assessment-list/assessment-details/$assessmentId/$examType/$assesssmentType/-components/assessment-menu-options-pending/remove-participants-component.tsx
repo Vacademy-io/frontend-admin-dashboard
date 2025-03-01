@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
-import { useSubmissionsBulkActionsDialogStore } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStore";
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyButton } from "@/components/design-system/button";
+import { useSubmissionsBulkActionsDialogStorePending } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStorePending";
 
 interface ProvideDialogDialogProps {
     trigger: ReactNode;
@@ -9,9 +9,9 @@ interface ProvideDialogDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-const ProvideReleaseResultDialogContent = () => {
+const RemoveParticipantsDialogContent = () => {
     const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } =
-        useSubmissionsBulkActionsDialogStore();
+        useSubmissionsBulkActionsDialogStorePending();
 
     const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.student_name;
 
@@ -27,7 +27,7 @@ const ProvideReleaseResultDialogContent = () => {
     return (
         <div className="flex flex-col gap-6 px-4 pb-2 text-neutral-600">
             <h1>
-                Are you sure you want to release result for selected&nbsp;
+                Are you sure you want to remove participants for&nbsp;
                 <span className="text-primary-500">{displayText}</span>&nbsp;?
             </h1>
             <MyButton
@@ -42,7 +42,7 @@ const ProvideReleaseResultDialogContent = () => {
     );
 };
 
-export const ProvideReleaseResultDialog = ({
+export const RemoveParticipantsDialog = ({
     trigger,
     open,
     onOpenChange,
@@ -50,9 +50,9 @@ export const ProvideReleaseResultDialog = ({
     return (
         <MyDialog
             trigger={trigger}
-            heading="Release Result"
+            heading="Remove Participants"
             dialogWidth="w-[400px] max-w-[400px]"
-            content={<ProvideReleaseResultDialogContent />}
+            content={<RemoveParticipantsDialogContent />}
             open={open}
             onOpenChange={onOpenChange}
         />

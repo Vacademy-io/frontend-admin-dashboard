@@ -26,8 +26,8 @@ interface AssessmentSubmissionsDialogStore {
     closeAllDialogs: () => void;
 }
 
-export const useSubmissionsBulkActionsDialogStore = create<AssessmentSubmissionsDialogStore>(
-    (set) => ({
+export const useSubmissionsBulkActionsDialogStoreAttempted =
+    create<AssessmentSubmissionsDialogStore>((set) => ({
         isProvideReattemptOpen: false,
         isProvideRevaluateAssessment: false,
         isProvideRevaluateQuestionWise: false,
@@ -135,5 +135,4 @@ export const useSubmissionsBulkActionsDialogStore = create<AssessmentSubmissions
                 bulkActionInfo: null,
                 isBulkAction: false,
             }),
-    }),
-);
+    }));

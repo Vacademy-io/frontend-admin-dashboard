@@ -1,6 +1,5 @@
 import { AssessmentSubmissionsBulkActionInfo } from "@/types/students/bulk-actions-types";
 import { ReactNode } from "react";
-import { useSubmissionsBulkActionsDialogStore } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStore";
 import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
 import {
     DropdownMenu,
@@ -12,6 +11,7 @@ import {
     DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { MyButton } from "@/components/design-system/button";
+import { useSubmissionsBulkActionsDialogStoreAttempted } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
 
 interface BulkActionsMenuProps {
     selectedCount: number;
@@ -20,13 +20,13 @@ interface BulkActionsMenuProps {
     trigger: ReactNode;
 }
 
-export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuProps) => {
+export const BulkActionsMenuAttempted = ({ selectedStudents, trigger }: BulkActionsMenuProps) => {
     const {
         openBulkProvideReattemptDialog,
         openBulkProvideRevaluateAssessmentDialog,
         openBulkProvideRevaluateQuestionWiseDialog,
         openBulkProvideReleaseDialog,
-    } = useSubmissionsBulkActionsDialogStore();
+    } = useSubmissionsBulkActionsDialogStoreAttempted();
 
     const handleMenuOptionsChange = (value: string) => {
         const validStudents = selectedStudents.filter((student) => student && student.user_id);

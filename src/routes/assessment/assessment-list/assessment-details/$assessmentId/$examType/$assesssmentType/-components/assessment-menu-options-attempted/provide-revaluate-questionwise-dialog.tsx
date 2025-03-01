@@ -1,5 +1,4 @@
 import { ReactNode, useEffect, useState } from "react";
-import { useSubmissionsBulkActionsDialogStore } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStore";
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { getInstituteId } from "@/constants/helper";
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSubmissionsBulkActionsDialogStoreAttempted } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
 
 interface ProvideDialogDialogProps {
     trigger: ReactNode;
@@ -28,7 +28,7 @@ interface ProvideDialogDialogProps {
 
 const ProvideRevaluateQuestionWiseDialogContent = () => {
     const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } =
-        useSubmissionsBulkActionsDialogStore();
+        useSubmissionsBulkActionsDialogStoreAttempted();
 
     const handleSubmit = () => {
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
