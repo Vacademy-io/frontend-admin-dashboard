@@ -1,4 +1,5 @@
 export const BASE_URL = "https://backend-stage.vacademy.io";
+export const BASE_URL_LEARNER_DASHBOARD = "https://frontend-learner-dashboard-app.pages.dev";
 
 export const SSDC_INSTITUTE_ID = "69ca11c6-54e1-4e99-9498-50c9a4272ce6";
 
@@ -30,6 +31,7 @@ export const STEP1_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/b
 export const STEP2_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/add-questions/create/v1/submit`;
 export const STEP2_QUESTIONS_URL = `${BASE_URL}/assessment-service/assessment/add-questions/create/v1/questions-of-sections`;
 export const STEP3_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/add-participants/create/v1/submit`;
+export const STEP4_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/add-access/create/v1/submit`;
 export const GET_ASSESSMENT_INIT_DETAILS = `${BASE_URL}/assessment-service/assessment/admin/assessment-admin-list-init`;
 export const GET_ASSESSMENT_LISTS = `${BASE_URL}/assessment-service/assessment/admin/assessment-admin-list-filter`;
 export const PUBLISH_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/publish/v1/`;
@@ -38,6 +40,7 @@ export const GET_OVERVIEW_URL = `${BASE_URL}/assessment-service/assessment/admin
 export const GET_LEADERBOARD_URL = `${BASE_URL}/assessment-service/assessment/admin/get-leaderboard`;
 export const GET_QUESTIONS_INSIGHTS_URL = `${BASE_URL}/assessment-service/assessment/admin/get-question-insights`;
 export const GET_ADMIN_PARTICIPANTS = `${BASE_URL}/assessment-service/assessment/admin-participants/all/registered-participants`;
+export const GET_PARTICIPANTS_QUESTION_WISE = `${BASE_URL}/assessment-service/assessment/admin-participants/all/respondent-list`;
 
 export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
 export const GET_SIGNED_URL_PUBLIC = `${BASE_URL}/media-service/public/get-signed-url`;
@@ -67,6 +70,8 @@ export const ADD_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/add-chapte
 export const DELETE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/delete-chapter`;
 export const UPDATE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/update-chapter`;
 export const UPDATE_CHAPTER_ORDER = `${BASE_URL}/admin-core-service/chapter/v1/update-chapter-order`;
+export const COPY_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/copy`;
+export const MOVE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/move`;
 
 export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
 export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
@@ -77,5 +82,8 @@ export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/a
 export const ADD_UPDATE_DOCUMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-document-slide`;
 export const UPDATE_SLIDE_STATUS = `${BASE_URL}/admin-core-service/slide/v1/update-status`;
 export const UPDATE_SLIDE_ORDER = `${BASE_URL}/admin-core-service/slide/v1/update-slide-order`;
+export const GET_SLIDE_ACTIVITY = `${BASE_URL}/admin-core-service/learner-tracking/activity-log/v1/learner-activity`;
+export const GET_USER_VIDEO_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-video-activity-logs`;
+export const GET_USER_DOC_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-document-activity-logs`;
 
 export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;

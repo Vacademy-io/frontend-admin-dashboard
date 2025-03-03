@@ -13,8 +13,10 @@ export const OptionImagePreview: React.FC<AssessmentOptionImagePreviewDialoguePr
     currentQuestionIndex,
     isUploadedAgain,
 }) => {
-    const { setValue, getValues } = form;
-
+    const { setValue, getValues, watch } = form;
+    watch(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}`,
+    );
     const handleRemovePicture = () => {
         setValue(
             `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.image.isDeleted`,

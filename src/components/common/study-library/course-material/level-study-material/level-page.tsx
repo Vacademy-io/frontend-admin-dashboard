@@ -20,6 +20,7 @@ import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
 import { useUpdateLevel } from "@/services/study-library/level-operations/update-level";
+import { EmptyLevelPage } from "@/svgs";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
@@ -114,27 +115,41 @@ export const LevelPage = () => {
         );
     };
 
+    const LevelHeader = () => {
+        return (
+            <div className="flex items-center gap-8">
+                <div className="flex flex-col gap-2">
+                    <div className="text-h3 font-semibold">Level Management</div>
+                    <div className="text-subtitle">
+                        Effortlessly manage classes, subjects, and resources to ensure students have
+                        access to the best education materials. Organize, upload, and track study
+                        resources for all levels in one place.
+                    </div>
+                </div>
+                <div className="flex flex-col items-center gap-4">
+                    <AddLevelButton onSubmit={handleAddLevel} />
+                </div>
+            </div>
+        );
+    };
+
     return (
-        <div className="relative flex flex-col gap-8 text-neutral-600">
+        <div className="relative flex flex-1 flex-col gap-8 text-neutral-600">
             {!courseId ? (
                 <div>Course not found</div>
             ) : sessionList.length === 0 ? (
-                <div>No sessions found</div>
+                <div className="flex flex-1 flex-col">
+                    {LevelHeader()}
+                    <div className="flex w-full flex-1 flex-col items-center justify-center gap-4">
+                        <div className="w-fit">
+                            <EmptyLevelPage />
+                        </div>
+                        <div className="text-center">No level have been created yet.</div>
+                    </div>
+                </div>
             ) : (
                 <>
-                    <div className="flex items-center gap-20">
-                        <div className="flex flex-col gap-2">
-                            <div className="text-h3 font-semibold">Class & Resource Management</div>
-                            <div className="text-subtitle">
-                                Effortlessly manage classes, subjects, and resources to ensure
-                                students have access to the best education materials. Organize,
-                                upload, and track study resources for all levels in one place.
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center gap-4">
-                            <AddLevelButton onSubmit={handleAddLevel} />
-                        </div>
-                    </div>
+                    {LevelHeader()}
 
                     <div className="flex items-center gap-6">
                         <SessionDropdown

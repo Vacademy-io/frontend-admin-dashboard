@@ -22,6 +22,7 @@ import { StudentSidebar } from "../student-side-view/student-side-view";
 import useIntroJsTour from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { studentManagementSteps } from "@/constants/intro/steps";
+import { EmptyStudentListImage } from "@/assets/svgs";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -140,37 +141,46 @@ export const StudentsListSection = () => {
                     page={page}
                     pageSize={10}
                 />
-                <div className="max-w-full">
-                    <div className="max-w-full">
-                        <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
-                            <MyTable<StudentTable>
-                                data={studentTableData}
-                                columns={myColumns}
-                                isLoading={loadingData}
-                                error={loadingError}
-                                onSort={handleSort}
-                                columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
-                                rowSelection={currentPageSelection}
-                                onRowSelectionChange={handleRowSelectionChange}
-                                currentPage={page}
-                            />
-                            <StudentSidebar />
-                        </SidebarProvider>
+                {!studentTableData || studentTableData.content.length == 0 ? (
+                    <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
+                        <EmptyStudentListImage />
+                        <p>No student data available</p>
                     </div>
-                </div>
-                <div className="flex">
-                    <BulkActions
-                        selectedCount={totalSelectedCount}
-                        selectedStudentIds={getSelectedStudentIds()}
-                        selectedStudents={getSelectedStudents()}
-                        onReset={handleResetSelections}
-                    />
-                    <MyPagination
-                        currentPage={page}
-                        totalPages={studentTableData?.total_pages || 1}
-                        onPageChange={handlePageChange}
-                    />
-                </div>
+                ) : (
+                    <div className="flex flex-col gap-5">
+                        <div className="h-auto max-w-full">
+                            <div className="max-w-full">
+                                <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                                    <MyTable<StudentTable>
+                                        data={studentTableData}
+                                        columns={myColumns}
+                                        isLoading={loadingData}
+                                        error={loadingError}
+                                        onSort={handleSort}
+                                        columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
+                                        rowSelection={currentPageSelection}
+                                        onRowSelectionChange={handleRowSelectionChange}
+                                        currentPage={page}
+                                    />
+                                    <StudentSidebar />
+                                </SidebarProvider>
+                            </div>
+                        </div>
+                        <div className="flex">
+                            <BulkActions
+                                selectedCount={totalSelectedCount}
+                                selectedStudentIds={getSelectedStudentIds()}
+                                selectedStudents={getSelectedStudents()}
+                                onReset={handleResetSelections}
+                            />
+                            <MyPagination
+                                currentPage={page}
+                                totalPages={studentTableData?.total_pages || 1}
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
         </section>
     );

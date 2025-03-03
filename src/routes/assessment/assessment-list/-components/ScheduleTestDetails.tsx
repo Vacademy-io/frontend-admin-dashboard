@@ -16,6 +16,7 @@ import {
     handleDownloadQRCode,
 } from "../../create-assessment/$assessmentId/$examtype/-utils/helper";
 import { ScheduleTestMainDropdownComponent } from "./ScheduleTestDetailsDropdownMenu";
+import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -134,22 +135,29 @@ const ScheduleTestDetails = ({
             <div className="flex justify-between">
                 <div className="flex items-center gap-2 text-sm text-neutral-500">
                     <h1 className="!font-normal text-black">Join Link:</h1>
-                    <p>{scheduleTestContent.join_link}</p>
+                    <span className="px-3 py-2 text-sm underline">
+                        {`${BASE_URL_LEARNER_DASHBOARD}/register?code=${scheduleTestContent.join_link}`}
+                    </span>
                     <MyButton
                         type="button"
                         scale="small"
                         buttonType="secondary"
                         className="h-8 min-w-8"
-                        onClick={() => copyToClipboard(scheduleTestContent.join_link)}
+                        onClick={() =>
+                            copyToClipboard(`${BASE_URL_LEARNER_DASHBOARD}/register?code=
+                            ${scheduleTestContent.join_link}`)
+                        }
                     >
                         <Copy size={32} />
                     </MyButton>
                 </div>
                 <div className="flex items-center gap-4">
                     <QRCode
-                        value={scheduleTestContent.join_link}
+                        value={`${BASE_URL_LEARNER_DASHBOARD}/register?code=
+                            ${scheduleTestContent.join_link}`}
                         className="size-16"
-                        id={`qr-code-svg-assessment-list-${scheduleTestContent.assessment_id}`}
+                        id={`qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=
+                            ${scheduleTestContent.join_link}`}
                     />
                     <MyButton
                         type="button"
@@ -158,7 +166,8 @@ const ScheduleTestDetails = ({
                         className="h-8 min-w-8"
                         onClick={() =>
                             handleDownloadQRCode(
-                                `qr-code-svg-assessment-list-${scheduleTestContent.assessment_id}`,
+                                `qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=
+                            ${scheduleTestContent.join_link}`,
                             )
                         }
                     >

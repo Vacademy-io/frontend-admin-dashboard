@@ -13,7 +13,8 @@ import { useSelectedSessionStore } from "@/stores/study-library/selected-session
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { LevelSchema } from "@/schemas/student/student-list/institute-schema";
 import { useEffect } from "react";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 // // Form schema
 const formSchema = z.object({
     chapterName: z.string().min(1, "Chapter name is required"),
@@ -30,21 +31,21 @@ interface AddChapterFormProps {
 
 export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChapterFormProps) => {
     const router = useRouter();
-    // const courseId: string = router.state.location.search.courseId || "";
-    // const levelId: string = router.state.location.search.levelId || "";
+    const courseId: string = router.state.location.search.courseId || "";
+    const levelId: string = router.state.location.search.levelId || "";
     const { selectedSession } = useSelectedSessionStore();
     const sessionId: string = selectedSession?.id || "";
     const moduleId: string = router.state.location.search.moduleId || "";
     const addChapterMutation = useAddChapter();
     const updateChapterMutation = useUpdateChapter();
-    // const package_session_id = useGetPackageSessionId(courseId, sessionId, levelId) || "";
+    const package_session_id = useGetPackageSessionId(courseId, sessionId, levelId) || "";
     const { getPackageWiseLevels, getPackageSessionId } = useInstituteDetailsStore();
     const coursesWithLevels = getPackageWiseLevels({
         sessionId: sessionId,
     });
 
     useEffect(() => {
-        console.log("session id: ", sessionId);
+        console.log("initial values: ", initialValues);
     }, []);
 
     // Create default visibility object
@@ -60,7 +61,10 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
         resolver: zodResolver(formSchema),
         defaultValues: {
             chapterName: initialValues?.chapter.chapter_name || "",
-            visibility: defaultVisibility,
+            visibility: {
+                ...defaultVisibility,
+                [courseId]: package_session_id ? [package_session_id] : [], // Add the package_session_id to the corresponding course
+            },
         },
     });
 
@@ -166,7 +170,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex max-h-[80vh] w-full flex-col gap-6 overflow-y-auto p-6 text-neutral-600"
+                className="flex max-h-[80vh] w-full flex-col gap-6 p-3 text-neutral-600"
             >
                 {/* Chapter Name field remains the same */}
                 <FormField
@@ -188,10 +192,12 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                     )}
                 />
 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2 overflow-y-auto">
                     <div className="text-subtitle font-semibold">Chapter Visibility</div>
                     <div className="text-body text-neutral-500">
-                        Select the levels you want to grant access to this chapter.
+                        Select the levels you want to grant access to this chapter. Only the chosen
+                        levels will be able to view the content. You can update visibility at any
+                        time.
                     </div>
 
                     <div className="grid grid-cols-3 gap-6">
@@ -218,20 +224,20 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                     return (
                                         <FormItem
                                             key={course.package_dto.id}
-                                            className="flex flex-col gap-2 rounded-lg p-4"
+                                            className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4"
                                         >
                                             <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
+                                                <Checkbox
+                                                    className="bg-white"
                                                     checked={allSelected}
-                                                    onChange={() =>
+                                                    onCheckedChange={() => {
                                                         handleSelectAllForCourse(
                                                             course.package_dto.id,
                                                             course.levels,
                                                             field,
-                                                        )
-                                                    }
-                                                    className="h-4 w-4 rounded"
+                                                        );
+                                                    }}
+                                                    aria-label="Select all"
                                                 />
                                                 <span className="font-semibold">
                                                     {course.package_dto.package_name}
@@ -246,6 +252,8 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                 sessionId: sessionId,
                                                                 levelId: level.id,
                                                             });
+                                                        const isPreChecked =
+                                                            packageSessionId === package_session_id;
 
                                                         return (
                                                             <label
@@ -256,23 +264,24 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                         : "visible"
                                                                 }`}
                                                             >
-                                                                <input
-                                                                    type="checkbox"
+                                                                <Checkbox
                                                                     checked={
-                                                                        packageSessionId
+                                                                        isPreChecked || // Add this condition
+                                                                        (packageSessionId
                                                                             ? (
                                                                                   field.value || []
                                                                               ).includes(
                                                                                   packageSessionId,
                                                                               )
-                                                                            : false
+                                                                            : false)
                                                                     }
-                                                                    onChange={(e) => {
+                                                                    onCheckedChange={(
+                                                                        checked: boolean,
+                                                                    ) => {
                                                                         if (!packageSessionId)
                                                                             return;
 
-                                                                        const newValue = e.target
-                                                                            .checked
+                                                                        const newValue = checked
                                                                             ? [
                                                                                   ...(field.value ||
                                                                                       []),
@@ -285,9 +294,9 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                                       id !==
                                                                                       packageSessionId,
                                                                               );
+
                                                                         field.onChange(newValue);
                                                                     }}
-                                                                    className="h-4 w-4 rounded"
                                                                 />
                                                                 <span className="text-sm">
                                                                     {level.level_name}
@@ -306,7 +315,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                 </div>
 
                 {/* Submit button remains the same */}
-                <div className="sticky bottom-0 flex w-full items-center justify-end bg-white py-4">
+                <div className="flex w-full items-center justify-end bg-white">
                     <MyButton
                         type="submit"
                         buttonType="primary"
@@ -319,7 +328,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                             ? `${mode === "create" ? "Adding" : "Updating"}...`
                             : mode === "create"
                               ? "Add Chapter"
-                              : "Update Chapter"}
+                              : "Edit Chapter"}
                     </MyButton>
                 </div>
             </form>

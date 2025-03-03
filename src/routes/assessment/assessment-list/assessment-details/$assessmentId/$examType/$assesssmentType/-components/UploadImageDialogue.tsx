@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Check } from "phosphor-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { AssessmentUploadImageDialogueProps } from "@/types/assessment-upload-image-dialog";
+import { getInstituteId } from "@/constants/helper";
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
     form,
@@ -15,22 +17,42 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
     currentQuestionIndex,
     currentQuestionImageIndex,
 }) => {
+    const instituteId = getInstituteId();
+    const [isUploading, setIsUploading] = useState(false);
+    console.log(isUploading);
+    const { uploadFile, getPublicUrl } = useFileUpload();
     const { getValues, setValue } = form;
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const handleFileSubmit = (file: File) => {
-        setValue(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
-            file.name,
-        );
+    const handleFileSubmit = async (file: File) => {
+        try {
+            setIsUploading(true);
+            const fileId = await uploadFile({
+                file,
+                setIsUploading,
+                userId: "your-user-id",
+                source: instituteId,
+                sourceId: "STUDENTS",
+            });
 
-        // Generate the image preview URL
-        const imageUrl = URL.createObjectURL(file);
+            if (fileId) {
+                setValue(
+                    `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
+                    fileId,
+                );
 
-        setValue(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
-            imageUrl,
-        );
+                const publicUrl = await getPublicUrl(fileId);
+
+                setValue(
+                    `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
+                    publicUrl,
+                );
+            }
+        } catch (error) {
+            console.error("Upload failed:", error);
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const handleFileSelect = () => {
@@ -57,7 +79,7 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
                 <div className="flex items-center gap-4 px-8 py-4">
                     <FormField
                         control={form.control}
-                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -75,7 +97,7 @@ const UploadImageDialogue: React.FC<AssessmentUploadImageDialogueProps> = ({
                         className="bg-primary-500 p-3"
                         disabled={
                             !getValues(
-                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageName`,
+                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails.${currentQuestionImageIndex}.imageFile`,
                             )
                         }
                     >

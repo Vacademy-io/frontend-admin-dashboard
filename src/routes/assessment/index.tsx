@@ -42,6 +42,7 @@ function AssessmentPage() {
                     content="This page shows all types of assessments that you can create here."
                 />
             </Helmet>
+            <div className="pb-6 text-title font-semibold">Create Assessment</div>
             <div className="flex size-auto flex-col items-center justify-center gap-11">
                 <div className="flex items-center gap-12">
                     <div

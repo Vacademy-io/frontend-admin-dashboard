@@ -70,7 +70,7 @@ export const Chapters = ({
             {!fields.length && (
                 <div className="flex w-full flex-col items-center justify-center gap-8 rounded-lg py-10">
                     <EmptyChaptersImage />
-                    <div>No Modules have been added yet.</div>
+                    <div>No Chapters have been added yet.</div>
                 </div>
             )}
             <Sortable value={fields} onMove={handleMove} fast={false}>

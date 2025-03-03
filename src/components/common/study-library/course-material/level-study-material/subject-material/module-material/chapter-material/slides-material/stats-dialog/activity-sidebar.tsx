@@ -2,7 +2,6 @@ import {
     ActivityStatsColumns,
     ActivityStatsColumnsType,
 } from "@/components/design-system/utils/constants/table-column-data";
-import { dummyData } from "./dummy-data";
 import { MyPagination } from "@/components/design-system/pagination";
 import { usePaginationState } from "@/hooks/pagination";
 import { useMemo, useState } from "react";
@@ -13,6 +12,10 @@ import { StudentSearchBox } from "@/components/common/student-search-box";
 import { MyInput } from "@/components/design-system/input";
 import { ActivityLogDialog } from "@/components/common/students/students-list/student-side-view/student-learning-progress/chapter-details/topic-details/activity-log-dialog";
 import { Dialog, DialogHeader, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useRouter } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getSlideActivityStats } from "@/services/study-library/slide-operations/slide-activity-stats";
+import { UserActivity } from "@/types/study-library/activity-stats-response-type";
 
 export const ActivityStatsSidebar = () => {
     const [searchInput, setSearchInput] = useState("");
@@ -30,27 +33,65 @@ export const ActivityStatsSidebar = () => {
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEndDate(e.target.value);
     };
+    const router = useRouter();
+    const { slideId } = router.state.location.search;
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
         initialPageSize: 4,
     });
 
+    const {
+        data: activityStats,
+        isLoading,
+        error,
+    } = useQuery(
+        getSlideActivityStats({
+            slideId: slideId as string,
+            page,
+            size: pageSize,
+        }),
+    );
+
+    const formatTimeSpent = (timeInSeconds: number) => {
+        const hours = Math.floor(timeInSeconds / 3600);
+        const minutes = Math.floor((timeInSeconds % 3600) / 60);
+        const seconds = timeInSeconds % 60;
+
+        return `${hours}h ${minutes}m ${seconds}s`;
+    };
     const tableData = useMemo(() => {
-        const startIndex = page * pageSize;
-        const endIndex = startIndex + pageSize;
-        const paginatedItems = dummyData.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(dummyData.length / pageSize);
+        if (!activityStats)
+            return {
+                content: [],
+                total_pages: 0,
+                page_no: 0,
+                page_size: pageSize,
+                total_elements: 0,
+                last: true,
+            };
+
+        const transformedContent = activityStats.content.map((item: UserActivity) => ({
+            id: item.userId, // Using userId as id
+            user_id: item.userId,
+            full_name: item.fullName,
+            institute_enrollment_id: "EN" + Math.random().toString(36).substr(2, 8), // Dummy data
+            username: "user_" + item.userId.substring(0, 6), // Dummy data
+            time_spent: formatTimeSpent(item.totalTimeSpent), // You'll need to implement this
+            last_active: new Date(item.lastActive).toLocaleString(),
+        }));
 
         return {
-            content: paginatedItems,
-            total_pages: totalPages,
+            content: transformedContent,
+            total_pages: activityStats.totalPages,
             page_no: page,
             page_size: pageSize,
-            total_elements: dummyData.length,
-            last: page === totalPages - 1,
+            total_elements: activityStats.totalElements,
+            last: activityStats.last,
         };
-    }, [dummyData, page, pageSize]);
+    }, [activityStats, page, pageSize]);
+
+    // Helper function to format time spent
 
     return (
         <Dialog>
@@ -122,8 +163,8 @@ export const ActivityStatsSidebar = () => {
                                 <MyTable<ActivityStatsColumnsType>
                                     data={tableData}
                                     columns={ActivityStatsColumns}
-                                    isLoading={false}
-                                    error={null}
+                                    isLoading={isLoading}
+                                    error={error}
                                     columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
                                     currentPage={page}
                                 />

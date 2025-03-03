@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -11,16 +10,27 @@ import { useRouter } from "@tanstack/react-router";
 import { useSlides } from "@/hooks/study-library/use-slides";
 import { formatHTMLString } from "../../add-chapters/slide-material";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useDialogStore } from "@/stores/study-library/slide-add-dialogs-store";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
-    const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
-    const [isDocUploadDialogOpen, setIsDocUploadDialogOpen] = useState(false);
-    const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
     const { setActiveItem, getSlideById } = useContentStore();
+
+    // Use the Zustand store instead of useState
+    const {
+        isPdfDialogOpen,
+        isDocUploadDialogOpen,
+        isVideoDialogOpen,
+        openPdfDialog,
+        closePdfDialog,
+        openDocUploadDialog,
+        closeDocUploadDialog,
+        openVideoDialog,
+        closeVideoDialog,
+    } = useDialogStore();
 
     const dropdownList = [
         {
@@ -47,10 +57,10 @@ export const ChapterSidebarAddButton = () => {
     const handleSelect = async (value: string) => {
         switch (value) {
             case "pdf":
-                setIsPdfDialogOpen(true);
+                openPdfDialog(); // Use store action instead of setState
                 break;
             case "upload-doc":
-                setIsDocUploadDialogOpen(true);
+                openDocUploadDialog(); // Use store action instead of setState
                 break;
             case "create-doc": {
                 try {
@@ -85,7 +95,7 @@ export const ChapterSidebarAddButton = () => {
                 break;
             }
             case "video":
-                setIsVideoDialogOpen(true);
+                openVideoDialog(); // Use store action instead of setState
                 break;
         }
     };
@@ -111,9 +121,9 @@ export const ChapterSidebarAddButton = () => {
                 heading="Upload PDF"
                 dialogWidth="w-[400px]"
                 open={isPdfDialogOpen}
-                onOpenChange={setIsPdfDialogOpen}
+                onOpenChange={closePdfDialog} // Pass the action function directly
             >
-                <AddPdfDialog openState={setIsPdfDialogOpen} />
+                <AddPdfDialog openState={(open) => !open && closePdfDialog()} />
             </MyDialog>
 
             {/* Doc Upload Dialog */}
@@ -122,9 +132,9 @@ export const ChapterSidebarAddButton = () => {
                 heading="Upload Document"
                 dialogWidth="w-[400px]"
                 open={isDocUploadDialogOpen}
-                onOpenChange={setIsDocUploadDialogOpen}
+                onOpenChange={closeDocUploadDialog} // Pass the action function directly
             >
-                <AddDocDialog openState={setIsDocUploadDialogOpen} />
+                <AddDocDialog openState={(open) => !open && closeDocUploadDialog()} />
             </MyDialog>
 
             {/* Video Upload Dialog */}
@@ -133,9 +143,9 @@ export const ChapterSidebarAddButton = () => {
                 heading="Upload Video"
                 dialogWidth="w-[400px]"
                 open={isVideoDialogOpen}
-                onOpenChange={setIsVideoDialogOpen}
+                onOpenChange={closeVideoDialog} // Pass the action function directly
             >
-                <AddVideoDialog openState={setIsVideoDialogOpen} />
+                <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
             </MyDialog>
         </>
     );

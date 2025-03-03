@@ -3,7 +3,7 @@ import { AddModulesButton } from "./module-material/add-modules.tsx/add-modules-
 import { Modules } from "./module-material/add-modules.tsx/modules";
 import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useRouter } from "@tanstack/react-router";
-import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
+// import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useAddModule } from "@/services/study-library/module-operations/add-module";
 import { useUpdateModule } from "@/services/study-library/module-operations/update-module";
@@ -30,7 +30,7 @@ export const ModuleMaterial = () => {
     const deleteModuleMutation = useDeleteModule();
     const updateModuleOrderMutation = useUpdateModuleOrder();
 
-    const [searchInput, setSearchInput] = useState("");
+    // const [searchInput, setSearchInput] = useState("");
 
     const { courseId, subjectId, levelId } = router.state.location.search;
     const sessionList = subjectId ? getSubjectSessions(subjectId) : [];
@@ -62,9 +62,9 @@ export const ModuleMaterial = () => {
     const subject = getSubjectName(subjectId);
     const levelName = getLevelName(levelId);
 
-    const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchInput(e.target.value);
-    };
+    // const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setSearchInput(e.target.value);
+    // };
 
     const handleAddModule = (module: Module) => {
         addModuleMutation.mutate({ subjectId, module });
@@ -91,7 +91,7 @@ export const ModuleMaterial = () => {
 
     return (
         <div className="flex size-full flex-col gap-8 text-neutral-600">
-            <div className="flex items-center justify-between gap-80">
+            <div className="flex items-center justify-between gap-8">
                 <div className="flex w-full flex-col gap-2">
                     <div className="text-h3 font-semibold">Manage Your Modules</div>
                     <div className="text-subtitle">
@@ -109,11 +109,12 @@ export const ModuleMaterial = () => {
                     className="text-title font-semibold"
                     sessionList={sessionList}
                 />
-                <SearchInput
+                {/* TODO: add search fuctinality when api is ready
+                    <SearchInput
                     searchInput={searchInput}
                     onSearchChange={handleSearchInputChange}
                     placeholder="Search module"
-                />
+                /> */}
             </div>
             <Modules
                 modules={modulesWithChaptersData}

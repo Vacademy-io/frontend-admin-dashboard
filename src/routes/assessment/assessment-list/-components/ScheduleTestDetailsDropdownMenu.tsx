@@ -566,7 +566,7 @@ const ScheduleTestReopenDialog = ({ onClose }: { onClose: () => void }) => {
             <DialogContent className="flex flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Reopen Assessment</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
-                    <div className="flex flex-col gap-4 p-4 pt-3">
+                    <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-1">
                             <span className="text-danger-600">Attention</span>
                             <Info size={18} className="text-danger-600" />
@@ -578,7 +578,7 @@ const ScheduleTestReopenDialog = ({ onClose }: { onClose: () => void }) => {
                         </h1>
                     </div>
                     <h1>Select assessment reopening date and time</h1>
-                    <div className="flex items-center">
+                    <div className="flex items-center justify-between">
                         <div>
                             <h1 className="mb-1 text-sm">
                                 Start Date & Time <span className="text-danger-600">*</span>

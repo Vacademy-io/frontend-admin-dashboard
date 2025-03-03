@@ -1,7 +1,7 @@
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect, useState } from "react";
-// import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
-// import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
+import { UploadStudyMaterialButton } from "../upload-study-material/upload-study-material-button";
+import { CreateStudyDocButton } from "../upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
 import { CourseCard } from "./course-card";
@@ -15,6 +15,7 @@ import { toast } from "sonner"; // Import Toaster from sonner
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
+import { EmptyCoursePage } from "@/svgs";
 
 export const CourseMaterial = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -86,7 +87,7 @@ export const CourseMaterial = () => {
 
     return (
         <div className="relative flex w-full flex-col gap-8 text-neutral-600">
-            <div className="flex items-center gap-20">
+            <div className="flex items-center gap-8">
                 <div className="flex flex-col gap-2">
                     <div className="text-h3 font-semibold">Organize Your Courses</div>
                     <div className="text-subtitle">
@@ -96,8 +97,8 @@ export const CourseMaterial = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-center gap-4">
-                    {/* <CreateStudyDocButton />
-                    <UploadStudyMaterialButton /> */}
+                    <CreateStudyDocButton />
+                    <UploadStudyMaterialButton />
                     <AddCourseButton onSubmit={handleAddCourse} />
                 </div>
             </div>
@@ -116,6 +117,13 @@ export const CourseMaterial = () => {
                         />
                     </div>
                 ))}
+            </div>
+            <div>
+                {courses.length === 0 && (
+                    <div className="flex flex-1 flex-col items-center justify-center py-10">
+                        <EmptyCoursePage />
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -16,7 +16,7 @@ export const CopyToDialog = ({ openDialog, setOpenDialog }: CopyTo) => {
             onOpenChange={() => setOpenDialog(null)}
         >
             <StudyMaterialDetailsForm
-                fields={["session", "year_class", "subject", "module", "chapter"]}
+                fields={["course", "session", "level", "subject", "module", "chapter"]}
                 onFormSubmit={() => {}}
                 submitButtonName="Copy"
             />

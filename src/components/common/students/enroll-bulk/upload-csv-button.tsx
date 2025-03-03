@@ -11,19 +11,19 @@ import { ImportFileImage } from "@/assets/svgs";
 import { useBulkUploadInit } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadInit";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import {
-    validateCsvData,
-    createAndDownloadCsv,
-    convertExcelDateToDesiredFormat,
-} from "./utils/csv-utils";
-import { createSchemaFromHeaders } from "./utils/bulk-upload-validation";
+import { validateCsvData, createAndDownloadCsv } from "./utils/csv-utils";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
-import { BulkUploadTable } from "./bulk-upload-table";
-import { SchemaFields } from "@/types/students/bulk-upload-types";
+import {
+    CSVFormatFormType,
+    enrollBulkFormType,
+    SchemaFields,
+} from "@/types/students/bulk-upload-types";
+import { parseApiResponse, getUploadStats } from "./utils/parse-api-response-string";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
+import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
+import { PreviewDialog } from "./preview-dialog";
 import { toast } from "sonner";
-import { submitBulkUpload } from "@/hooks/student-list-section/enroll-student-bulk/submit-bulk-upload";
-import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
-import Papa from "papaparse";
 
 interface FileState {
     file: File | null;
@@ -31,65 +31,70 @@ interface FileState {
 }
 
 interface UploadCSVButtonProps {
-    disable: boolean;
+    disable?: boolean;
+    packageDetails: enrollBulkFormType;
+    csvFormatDetails: CSVFormatFormType;
 }
 
-interface PreviewDialogProps {
-    isOpen: boolean;
-    onClose: () => void;
-    file: File | null;
-    headers: Header[];
-    onEdit?: (rowIndex: number, columnId: string, value: string) => void;
+// Define a more specific type for API responses
+interface ApiResponse {
+    data?: SchemaFields[] | string;
+    success?: boolean;
+    message?: string;
+    status?: number;
 }
 
-interface ResponseRow {
-    STATUS: string;
-    STATUS_MESSAGE: string;
-    ERROR: string;
-    [key: string]: string; // for other potential fields
-}
-
-const PreviewDialog = ({ isOpen, onClose, headers, onEdit }: PreviewDialogProps) => {
-    return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="h-[80vh] w-[80vw] max-w-[1200px] overflow-hidden p-0 font-normal">
-                <DialogHeader className="h-full">
-                    <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                        Preview Data
-                    </div>
-                </DialogHeader>
-                <DialogDescription className="flex flex-col overflow-x-scroll p-6">
-                    <BulkUploadTable headers={headers} onEdit={onEdit} />
-                </DialogDescription>
-                <DialogFooter className="border-t px-6 py-4">
-                    <MyButton
-                        buttonType="primary"
-                        scale="large"
-                        layoutVariant="default"
-                        onClick={onClose}
-                    >
-                        Close
-                    </MyButton>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-};
-
-export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
+export const UploadCSVButton = ({
+    disable,
+    packageDetails,
+    csvFormatDetails,
+}: UploadCSVButtonProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [fileState, setFileState] = useState<FileState>({ file: null });
+    const [uploadCompleted, setUploadCompleted] = useState(false);
+    const [uploadResponse, setUploadResponse] = useState<SchemaFields[] | null>(null);
+    const { mutateAsync } = useBulkUploadMutation();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+    const { csvData, setCsvData, csvErrors, setCsvErrors } = useBulkUploadStore();
+
+    const requestPayload = {
+        auto_generate_config: {
+            auto_generate_username: csvFormatDetails.autoGenerateUsername,
+            auto_generate_password: csvFormatDetails.autoGeneratePassword,
+            auto_generate_enrollment_id: csvFormatDetails.autoGenerateEnrollmentId,
+        },
+        optional_fields_config: {
+            include_address_line: false,
+            include_region: csvFormatDetails.state,
+            include_city: csvFormatDetails.city,
+            include_pin_code: csvFormatDetails.pincode,
+            include_father_name: csvFormatDetails.fatherName,
+            include_mother_name: csvFormatDetails.motherName,
+            include_parents_mobile_number: csvFormatDetails.parentMobile,
+            include_parents_email: csvFormatDetails.parentEmail,
+            include_linked_institute_name: csvFormatDetails.collegeName,
+        },
+        expiry_and_status_config: {
+            include_expiry_days: csvFormatDetails.setCommonExpiryDate,
+            include_enrollment_status: csvFormatDetails.addStudentStatus,
+            expiry_days: parseInt(csvFormatDetails.daysFromToday),
+            enrollment_status: csvFormatDetails.studentStatus,
+        },
+    };
+
     const { data, isLoading } = useBulkUploadInit(
         {
-            instituteId: "c70f40a5-e4d3-4b6c-a498-e612d0d4b133",
-            sessionId: "1",
+            instituteId: INSTITUTE_ID || "",
+            sessionId: packageDetails.session.id,
+            bulkUploadInitRequest: requestPayload,
         },
         {
             enabled: isOpen,
         },
     );
-    const { setCsvData, setCsvErrors } = useBulkUploadStore();
 
     const onDrop = useCallback(
         async (acceptedFiles: File[], rejectedFiles: unknown[]) => {
@@ -104,20 +109,35 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                 return;
             }
 
-            if (!data?.headers) return;
+            if (!data?.headers) {
+                setFileState({ file: null, error: "Headers configuration not available" });
+                return;
+            }
 
             setFileState({ file });
-            const schema = createSchemaFromHeaders(data.headers);
-            console.log(schema);
+            setUploadCompleted(false);
+            setUploadResponse(null);
 
             try {
-                const result = await validateCsvData(file, schema);
+                // Pass headers to the validation function
+                const result = await validateCsvData(file, data.headers);
                 setCsvData(result.data);
                 setCsvErrors(result.errors);
+
+                // Show error summary if any errors exist
+                if (result.errors.length > 0) {
+                    toast.error("Please fix validation errors before uploading!", {
+                        className: "error-toast",
+                        duration: 3000,
+                    });
+                }
             } catch (err) {
                 const error = err instanceof Error ? err.message : "Error parsing CSV";
                 setFileState({ file: null, error });
-                console.error("Error parsing CSV:", err);
+                toast.error("Error parsing CSV", {
+                    className: "error-toast",
+                    duration: 3000,
+                });
             }
         },
         [data?.headers, setCsvData, setCsvErrors],
@@ -135,7 +155,7 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
         if (!open) {
             setFileState({ file: null });
             setCsvData(undefined);
-            setCsvErrors([]);
+            // setCsvErrors([]);
         }
         setIsOpen(open);
     };
@@ -166,116 +186,104 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
         }
     };
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const { csvData } = useBulkUploadStore();
+    const processApiResponse = (response: ApiResponse | string): SchemaFields[] => {
+        // Handle different response formats
+        if (typeof response !== "string" && response.data && Array.isArray(response.data)) {
+            return response.data as SchemaFields[];
+        }
 
-    const handleDoneClick = async () => {
+        // If response is a string or has data as string
+        const responseText =
+            typeof response === "string"
+                ? response
+                : response && typeof response.data === "string"
+                  ? response.data
+                  : "";
+
+        if (responseText) {
+            return parseApiResponse(responseText);
+        }
+
+        return [];
+    };
+
+    const generateUploadMessage = (stats: ReturnType<typeof getUploadStats>): string => {
+        if (stats.allSuccessful) {
+            return "File uploaded successfully";
+        } else if (stats.partialSuccess) {
+            return `File uploaded, ${stats.failed} entries are not uploaded due to errors`;
+        } else {
+            return "File upload failed due to errors in entries";
+        }
+    };
+
+    const uploadCsv = async () => {
         if (!csvData || !data?.submit_api) return;
 
         try {
-            setIsSubmitting(true);
-
-            const transformedData = csvData.map((row) => {
-                const newRow = { ...row };
-                data.headers.forEach((header) => {
-                    // Handle package session IDs and other enum types
-                    if (header.type === "enum" && header.send_option_id && header.option_ids) {
-                        const displayValue = row[header.column_name] as string;
-                        if (displayValue) {
-                            for (const [id, value] of Object.entries(header.option_ids)) {
-                                if (value === displayValue) {
-                                    newRow[header.column_name] = id;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    // Handle date formatting if needed
-                    // if (header.type === "date" && header.format) {
-                    //     const dateValue = row[header.column_name] as string;
-                    //     if (dateValue) {
-                    //         try {
-                    //             // Parse DD-MM-YYYY format and convert to API expected format
-                    //             const [day, month, year] = dateValue.split("-").map(num => num.padStart(2, '0'));
-                    //             const formattedDate = `${year}-${month}-${day}T00:00:00.000Z`;
-                    //             newRow[header.column_name] = formattedDate;
-                    //         } catch (error) {
-                    //             console.error(`Error formatting date for ${header.column_name}:`, error);
-                    //             newRow[header.column_name] = dateValue;
-                    //         }
-                    //     }
-                    // }
-                    if (header.type === "date" && header.format) {
-                        const dateValue = row[header.column_name] as string;
-                        if (dateValue) {
-                            // First convert to desired format if it's in Excel format
-                            const formattedDateValue = convertExcelDateToDesiredFormat(dateValue);
-
-                            // Validate the format
-                            const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
-                            if (!dateRegex.test(formattedDateValue)) {
-                                console.error(
-                                    `Invalid date format for ${header.column_name}: ${formattedDateValue}`,
-                                );
-                                return;
-                            }
-
-                            // Use the formatted date
-                            newRow[header.column_name] = formattedDateValue;
-                        }
-                    }
-
-                    // Handle numeric fields
-                    if (header.type === "integer") {
-                        const numValue = row[header.column_name];
-                        if (numValue) {
-                            newRow[header.column_name] = parseInt(numValue.toString(), 10);
-                        }
-                    }
-                });
-                return newRow;
-            });
-
-            const response = await submitBulkUpload({
-                data: transformedData,
+            const response = await mutateAsync({
+                data: csvData,
                 instituteId: data.submit_api.request_params.instituteId,
+                bulkUploadInitRequest: requestPayload,
             });
 
-            // Parse the CSV response
-            const parsedResponse = Papa.parse<ResponseRow>(response, {
-                header: true,
-            }).data;
+            // Process the API response
+            const responseData = processApiResponse(response);
+            setUploadResponse(responseData);
 
-            // Update the CSV data with response information
-            const updatedCsvData = csvData.map((row, index) => {
-                const responseRow = parsedResponse[index];
-                if (!responseRow) return row;
+            // Analyze the results
+            const stats = getUploadStats(responseData);
+            const message = generateUploadMessage(stats);
 
-                return {
-                    ...row,
-                    STATUS: responseRow.STATUS === "true" ? "Success" : "Failed",
-                    STATUS_MESSAGE: responseRow.STATUS_MESSAGE || "",
-                    ERROR: responseRow.ERROR || "",
-                };
-            });
-
-            // Update the store with the response data
-            setCsvData(updatedCsvData);
-            setShowPreview(true);
-
-            // Show success toast if no errors
-            const hasErrors = parsedResponse.some((row) => row.STATUS !== "true");
-            if (!hasErrors) {
-                toast.success("All students enrolled successfully");
+            // Show appropriate toast based on results
+            if (stats.allSuccessful) {
+                toast.success(message, {
+                    className: "success-toast",
+                    duration: 3000,
+                });
+            } else if (stats.partialSuccess) {
+                toast.warning(message, {
+                    className: "warning-toast",
+                    duration: 3000,
+                });
             } else {
-                toast.error("Some students could not be enrolled. Please check the errors.");
+                toast.error(message, {
+                    className: "error-toast",
+                    duration: 3000,
+                });
             }
+
+            setUploadCompleted(true);
+            setShowPreview(true);
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
-            toast.error("Failed to enroll students");
-        } finally {
-            setIsSubmitting(false);
+            toast.error("Upload Failed", {
+                className: "error-toast",
+                duration: 3000,
+            });
+        }
+    };
+
+    const handleDoneClick = async () => {
+        // Check if there are validation errors before proceeding with upload
+        if (csvErrors && csvErrors.length > 0) {
+            toast.error("Please fix the errors", {
+                className: "error-toast",
+                duration: 3000,
+            });
+
+            // Automatically open preview to show errors
+            setShowPreview(true);
+            return;
+        }
+
+        // No errors, proceed with upload
+        uploadCsv();
+    };
+
+    const handleDownloadResponse = () => {
+        if (uploadResponse && uploadResponse.length > 0) {
+            createAndDownloadCsv(uploadResponse, "upload_response.csv");
         }
     };
 
@@ -287,7 +295,8 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                         buttonType="primary"
                         scale="large"
                         layoutVariant="default"
-                        disabled={disable}
+                        disabled={disable || false}
+                        type="submit"
                     >
                         Upload CSV
                     </MyButton>
@@ -365,7 +374,7 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                                     onClick={() => setShowPreview(true)}
                                     disabled={!fileState.file || !data?.headers}
                                 >
-                                    Preview
+                                    {uploadCompleted ? "Show Uploaded File" : "Preview"}
                                 </MyButton>
                                 <MyButton
                                     buttonType="primary"
@@ -373,9 +382,9 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                                     layoutVariant="default"
                                     type="button"
                                     onClick={handleDoneClick}
-                                    disabled={!fileState.file || isSubmitting}
+                                    disabled={!fileState.file}
                                 >
-                                    {isSubmitting ? "Submitting..." : "Done"}
+                                    Done
                                 </MyButton>
                             </div>
                         </DialogFooter>
@@ -390,6 +399,9 @@ export const UploadCSVButton = ({ disable }: UploadCSVButtonProps) => {
                     file={fileState.file}
                     headers={data.headers}
                     onEdit={handleEditCell}
+                    uploadCompleted={uploadCompleted}
+                    uploadResponse={uploadResponse}
+                    onDownloadResponse={handleDownloadResponse}
                 />
             )}
         </>
