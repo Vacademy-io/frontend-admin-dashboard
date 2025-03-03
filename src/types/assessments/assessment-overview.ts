@@ -145,6 +145,7 @@ export interface AssessmentReportInterface {
 export interface AssessmentRevaluateStudentInterface {
     id: string;
     full_name: string;
+    attempt_id: string;
     package_session_id: string;
     attempt_date: string; // Consider using Date if parsing is needed
     start_time: string;

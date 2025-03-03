@@ -50,3 +50,11 @@ export interface AssessmentRevaluateQuestionWiseInterface {
     top3_correct_response_dto: top3CorrectResponse[]; // Assuming unknown structure
     total_attempts: number;
 }
+
+export interface SelectedFilterRevaluateInterface {
+    questions: {
+        section_id: string;
+        question_ids: string[];
+    }[];
+    attempt_ids: string[];
+}

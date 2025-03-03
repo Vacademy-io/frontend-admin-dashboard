@@ -3,11 +3,18 @@ import { AssessmentRevaluateStudentInterface } from "@/types/assessments/assessm
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { getInstituteId } from "@/constants/helper";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
 import { Route } from "../..";
-import { handleGetQuestionInsightsData } from "../../-services/assessment-details-services";
-import { parseHtmlToString, transformQuestionInsightsQuestionsData } from "../../-utils/helper";
+import {
+    getRevaluateStudentResult,
+    handleGetQuestionInsightsData,
+} from "../../-services/assessment-details-services";
+import {
+    parseHtmlToString,
+    transformQuestionInsightsQuestionsData,
+    transformQuestionsDataToRevaluateAPI,
+} from "../../-utils/helper";
 import {
     Table,
     TableBody,
@@ -18,7 +25,11 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyButton } from "@/components/design-system/button";
-import { AssessmentRevaluateQuestionWiseInterface } from "@/types/assessments/assessment-revaluate-question-wise";
+import {
+    AssessmentRevaluateQuestionWiseInterface,
+    SelectedFilterRevaluateInterface,
+} from "@/types/assessments/assessment-revaluate-question-wise";
+import { toast } from "sonner";
 
 export function StudentRevaluateQuestionWiseComponent({
     student,
@@ -27,8 +38,16 @@ export function StudentRevaluateQuestionWiseComponent({
     student: AssessmentRevaluateStudentInterface;
     onClose: () => void;
 }) {
-    console.log(student);
     const instituteId = getInstituteId();
+    const [selectedFilter] = useState<SelectedFilterRevaluateInterface>({
+        questions: [
+            {
+                section_id: "",
+                question_ids: [],
+            },
+        ],
+        attempt_ids: [],
+    });
     const { assessmentId, examType } = Route.useParams();
 
     const { data: assessmentDetails } = useSuspenseQuery(
@@ -79,6 +98,46 @@ export function StudentRevaluateQuestionWiseComponent({
                           .map((q) => q.assessment_question_preview_dto.questionId)
                           .filter((id): id is string => Boolean(id)), // Ensures no `undefined` values
             };
+        });
+    };
+
+    const getRevaluateResultMutation = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+            methodType,
+            selectedFilter,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+            methodType: string;
+            selectedFilter: SelectedFilterRevaluateInterface;
+        }) => getRevaluateStudentResult(assessmentId, instituteId, methodType, selectedFilter),
+        onSuccess: () => {
+            toast.success(
+                "Your attempt for this assessment has been revaluated. Please check your email!",
+                {
+                    className: "success-toast",
+                    duration: 4000,
+                },
+            );
+            onClose();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleRevaluateStudent = () => {
+        getRevaluateResultMutation.mutate({
+            assessmentId,
+            instituteId,
+            methodType: "PARTICIPANTS_AND_QUESTIONS",
+            selectedFilter: {
+                ...selectedFilter,
+                questions: transformQuestionsDataToRevaluateAPI(selectedQuestions),
+                attempt_ids: [student.attempt_id],
+            },
         });
     };
 
@@ -177,7 +236,12 @@ export function StudentRevaluateQuestionWiseComponent({
                     </TabsContent>
                 </Tabs>
                 <div className="p-8 text-right">
-                    <MyButton type="button" scale="large" buttonType="primary" onClick={onClose}>
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="primary"
+                        onClick={handleRevaluateStudent}
+                    >
                         Revaluate
                     </MyButton>
                 </div>

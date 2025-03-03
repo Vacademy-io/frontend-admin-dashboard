@@ -31,6 +31,8 @@ import { StudentSidebarContext } from "@/context/selected-student-sidebar-contex
 import { BulkActions } from "./bulk-actions/bulk-actions";
 import { AssessmentSubmissionsStudentTable } from "./AssessmentSubmissionsStudentTable";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import AssessmentGlobalLevelRevaluateAssessment from "./assessment-global-level-revaluate/assessment-global-level-revaluate-assessment";
+import { AssessmentGlobalLevelRevaluateQuestionWise } from "./assessment-global-level-revaluate/assessment-global-level-revaluate-question-wise";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -925,30 +927,13 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                             Revaluate
                                         </MyButton>
                                     </DialogTrigger>
-                                    <DialogContent className="flex flex-col p-0">
-                                        <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
-                                            Revaluate All Students
+                                    <DialogContent className="p-0">
+                                        <h1 className="rounded-t-lg bg-primary-50 p-4 text-primary-500">
+                                            Revaluate Result
                                         </h1>
-                                        <div className="flex flex-col gap-2 p-4">
-                                            <div className="flex items-center text-danger-600">
-                                                <p>Attention</p>
-                                                <WarningCircle size={18} />
-                                            </div>
-                                            <h1>
-                                                Are you sure you want to revaluate for all students?
-                                            </h1>
-                                            <div className="flex justify-end">
-                                                <DialogClose>
-                                                    <MyButton
-                                                        type="button"
-                                                        scale="large"
-                                                        buttonType="primary"
-                                                        className="mt-4 font-medium"
-                                                    >
-                                                        Yes
-                                                    </MyButton>
-                                                </DialogClose>
-                                            </div>
+                                        <div className="flex flex-col items-center justify-center gap-4 p-4">
+                                            <AssessmentGlobalLevelRevaluateAssessment />
+                                            <AssessmentGlobalLevelRevaluateQuestionWise />
                                         </div>
                                     </DialogContent>
                                 </Dialog>
