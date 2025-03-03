@@ -220,12 +220,19 @@ export const StatusChips = ({
     className,
     showIcon = true,
 }: {
-    status: ActivityStatus;
+    status: ActivityStatus | "ACTIVE" | "TEMINATED" | "INACTIVE";
     children?: ReactNode;
     className?: string;
     showIcon?: boolean;
 }) => {
-    const statusData = ActivityStatusData[status];
+    const normalizedStatus =
+        status === "ACTIVE"
+            ? "active"
+            : status === "INACTIVE"
+              ? "inactive"
+              : (status as ActivityStatus);
+
+    const statusData = ActivityStatusData[normalizedStatus];
     const StatusIcon = statusData.icon;
 
     return (

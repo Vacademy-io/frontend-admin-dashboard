@@ -3,6 +3,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Navbar } from "./top-navbar.tsx/navbar";
 import { cn } from "@/lib/utils";
 import React from "react";
+import { StudentSidebarProvider } from "@/providers/student-list/student-sidebar-provider";
 
 export const LayoutContainer = ({
     children,
@@ -21,15 +22,17 @@ export const LayoutContainer = ({
             </div>
             <div className="flex w-full flex-1 flex-col">
                 <Navbar />
-                <div
-                    className={cn(
-                        "m-7 flex flex-1 flex-col",
-                        open ? "max-w-[calc(100vw-379px)]" : "max-w-[calc(100vw-188px)]",
-                        className,
-                    )}
-                >
-                    {children}
-                </div>
+                <StudentSidebarProvider>
+                    <div
+                        className={cn(
+                            "m-7 flex flex-1 flex-col",
+                            open ? "max-w-[calc(100vw-379px)]" : "max-w-[calc(100vw-188px)]",
+                            className,
+                        )}
+                    >
+                        {children}
+                    </div>
+                </StudentSidebarProvider>
             </div>
         </div>
     );
