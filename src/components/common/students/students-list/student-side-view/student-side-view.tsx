@@ -13,7 +13,6 @@ import { StatusChips } from "@/components/design-system/chips";
 import { StudentOverview } from "./student-overview/student-overview";
 import { StudentLearningProgress } from "./student-learning-progress/student-learning-progress";
 import { StudentTestRecord } from "./student-test-records/student-test-record";
-import { StudentSideViewData } from "./student-view-dummy-data/student-view-dummy-data";
 import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
 import { getPublicUrl } from "@/services/upload_file";
 
@@ -98,7 +97,7 @@ export const StudentSidebar = ({
                                     setCategory("learningProgress");
                                 }}
                             >
-                                {StudentSideViewData.learning_progress.title}
+                                Learning Progress
                             </div>
                             <div
                                 className={`w-full py-[9px] text-center ${
@@ -110,7 +109,7 @@ export const StudentSidebar = ({
                                     setCategory("testRecord");
                                 }}
                             >
-                                {StudentSideViewData.test_record.title}
+                                Test Records
                             </div>
                         </div>
                     </div>
@@ -140,11 +139,7 @@ export const StudentSidebar = ({
                     </SidebarMenuItem>
 
                     {category == "overview" && <StudentOverview />}
-                    {category == "learningProgress" && (
-                        <StudentLearningProgress
-                            learningProgressData={StudentSideViewData.learning_progress}
-                        />
-                    )}
+                    {category == "learningProgress" && <StudentLearningProgress />}
                     {category == "testRecord" && (
                         <StudentTestRecord selectedTab={selectedTab} examType={examType} />
                     )}

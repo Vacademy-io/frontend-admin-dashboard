@@ -21,7 +21,9 @@ export interface ModulesWithChaptersProgressType {
     chapters: ChapterWithProgress[];
 }
 
-export type StudentSubjectsDetailsTypes = {
+export interface SubjectWithDetails {
     subject_dto: SubjectType;
     modules: ModulesWithChaptersProgressType[];
-}[];
+}
+
+export type StudentSubjectsDetailsTypes = SubjectWithDetails[];

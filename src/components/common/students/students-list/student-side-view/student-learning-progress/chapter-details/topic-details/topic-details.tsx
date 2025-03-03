@@ -1,70 +1,71 @@
-import { useState } from "react";
-import { ChapterDetailsType } from "../../../student-view-dummy-data/learning-progress";
-import { Topic } from "./topic";
+import { useEffect, useState } from "react";
 import { StudyMediumToggleMenu } from "./study-medium-toggle-menu";
+import { ChapterWithProgress } from "@/types/students/student-subjects-details-types";
+import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
+import { useStudentSlidesProgressQuery } from "@/services/student-list-section/getStudentChapterSlides";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { SlideWithStatusType } from "@/types/students/student-slides-progress-type";
 
-// First, create interfaces/types for the components
-interface StudyMediumConfig {
-    render: (topicsData: ChapterDetailsType) => JSX.Element[];
-    getLength: (topicsData: ChapterDetailsType) => number;
+export interface slideType {
+    id: string;
+    name: string;
+    slides: SlideWithStatusType[] | null;
 }
 
-// Create a factory class to handle different study mediums
-class StudyMediumFactory {
-    private static mediumConfig: Record<string, StudyMediumConfig> = {
-        "E-Book": {
-            render: (topicsData: ChapterDetailsType) =>
-                topicsData.e_book?.map((topicData, key) => (
-                    <Topic topicData={topicData} key={key} />
-                )) || [],
-            getLength: (topicsData: ChapterDetailsType) => topicsData.e_book?.length || 0,
-        },
-        Videos: {
-            render: (topicsData: ChapterDetailsType) =>
-                topicsData.videos?.map((topicData, key) => (
-                    <Topic topicData={topicData} key={key} />
-                )) || [],
-            getLength: (topicsData: ChapterDetailsType) => topicsData.videos?.length || 0,
-        },
-    };
+export const TopicDetails = ({ chapterDetails }: { chapterDetails: ChapterWithProgress }) => {
+    const { selectedStudent } = useStudentSidebar();
+    const {
+        data: SlideWithProgress,
+        isLoading,
+        isError,
+        error,
+    } = useStudentSlidesProgressQuery({
+        userId: selectedStudent?.user_id || "",
+        chapterId: chapterDetails.id,
+    });
+    const [documentSlides, setDocumentSlides] = useState<SlideWithStatusType[] | null>(null);
+    const [videoSlides, setVideoSlides] = useState<SlideWithStatusType[] | null>(null);
+    const [selectedSlideType, setSelectedSlideType] = useState<slideType | null>(null);
 
-    static getConfig(medium: string): StudyMediumConfig {
-        const config = this.mediumConfig[medium];
-        if (!config) {
-            // Provide a default configuration or throw an error
-            throw new Error(`Invalid study medium: ${medium}`);
-        }
-        return config;
-    }
+    const slideTypes: slideType[] = [
+        { id: "DOC", name: "E-Book", slides: documentSlides },
+        { id: "VIDEO", name: "Video", slides: videoSlides },
+    ];
 
-    static getAvailableMediums(topicsData: ChapterDetailsType): string[] {
-        return Object.keys(this.mediumConfig).filter((medium) => {
-            const config = this.mediumConfig[medium];
-            return config && config.getLength(topicsData) > 0;
-        });
-    }
-}
+    useEffect(() => {
+        const documents = SlideWithProgress?.filter((slide) => slide.video_url != null) || null;
+        const videos = SlideWithProgress?.filter((slide) => slide.video_url == null) || null;
+        setDocumentSlides(documents);
+        setVideoSlides(videos);
+        const slide = slideTypes[0];
+        setSelectedSlideType(slide || null);
+        console.log("selected slide type: ", selectedSlideType);
+    }, [chapterDetails]);
 
-// Refactored TopicDetails component
-export const TopicDetails = ({ topicsData }: { topicsData: ChapterDetailsType }) => {
-    const [studyMedium, setStudyMedium] = useState("E-Book");
-    const availableMediums = StudyMediumFactory.getAvailableMediums(topicsData);
-    const currentConfig = StudyMediumFactory.getConfig(studyMedium);
+    if (isLoading) return <DashboardLoader />;
+    if (isError || error) return <p>Error getting slides</p>;
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex">
-                {availableMediums.map((medium) => (
-                    <div key={medium} onClick={() => setStudyMedium(medium)}>
-                        <StudyMediumToggleMenu
-                            menuOption={studyMedium}
-                            len={StudyMediumFactory.getConfig(medium).getLength(topicsData)}
-                            name={medium}
-                        />
+        <>
+            {SlideWithProgress == null || SlideWithProgress == undefined ? (
+                <p>Slides are not created for this chapter</p>
+            ) : slideTypes == null ? (
+                <p>slide data not available</p>
+            ) : (
+                <div className="flex flex-col gap-4">
+                    <div className="flex">
+                        {slideTypes?.map((slideType, index) => (
+                            <div key={index} onClick={() => setSelectedSlideType(slideType)}>
+                                <StudyMediumToggleMenu
+                                    slideTypeDetails={slideType}
+                                    selectedSlideType={selectedSlideType}
+                                />
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
-            <div className="flex flex-col gap-4">{currentConfig.render(topicsData)}</div>
-        </div>
+                    <div></div>
+                </div>
+            )}
+        </>
     );
 };
