@@ -37,7 +37,7 @@ interface ProvideDialogDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-const ProvideRevaluateQuestionWiseDialogContent = () => {
+export const ProvideRevaluateQuestionWiseDialogContent = () => {
     const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } =
         useSubmissionsBulkActionsDialogStoreAttempted();
 

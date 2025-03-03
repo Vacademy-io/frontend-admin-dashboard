@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 export function AssessmentGlobalLevelRevaluateQuestionWise() {
+    const [openDialog, setOpenDialog] = useState(false);
     const instituteId = getInstituteId();
     const [selectedFilter] = useState<SelectedFilterRevaluateInterface>({
         questions: [
@@ -114,6 +115,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
                     duration: 4000,
                 },
             );
+            setOpenDialog(false);
         },
         onError: (error: unknown) => {
             throw error;
@@ -139,7 +141,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
 
     return (
         <>
-            <Dialog>
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogTrigger>
                     <MyButton
                         type="button"
@@ -208,40 +210,44 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody className="bg-neutral-50">
-                                    {selectedSectionData.map((question, index) => (
-                                        <TableRow
-                                            key={
-                                                question.assessment_question_preview_dto.questionId
-                                            }
-                                        >
-                                            <TableCell>{index + 1}</TableCell>
-                                            <TableCell>
-                                                {parseHtmlToString(
+                                    {selectedSectionData.length > 0 &&
+                                        selectedSectionData?.map((question, index) => (
+                                            <TableRow
+                                                key={
                                                     question.assessment_question_preview_dto
-                                                        .questionName,
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Checkbox
-                                                    checked={
-                                                        selectedQuestions[
-                                                            selectedSection!
-                                                        ]?.includes(
-                                                            question.assessment_question_preview_dto
-                                                                .questionId ?? "",
-                                                        ) || false
-                                                    }
-                                                    onCheckedChange={() =>
-                                                        handleCheckboxChange(
-                                                            question.assessment_question_preview_dto
-                                                                .questionId ?? "",
-                                                            selectedSection!,
-                                                        )
-                                                    }
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                                        .questionId
+                                                }
+                                            >
+                                                <TableCell>{index + 1}</TableCell>
+                                                <TableCell>
+                                                    {parseHtmlToString(
+                                                        question.assessment_question_preview_dto
+                                                            .questionName,
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Checkbox
+                                                        checked={
+                                                            selectedQuestions[
+                                                                selectedSection!
+                                                            ]?.includes(
+                                                                question
+                                                                    .assessment_question_preview_dto
+                                                                    .questionId ?? "",
+                                                            ) || false
+                                                        }
+                                                        onCheckedChange={() =>
+                                                            handleCheckboxChange(
+                                                                question
+                                                                    .assessment_question_preview_dto
+                                                                    .questionId ?? "",
+                                                                selectedSection!,
+                                                            )
+                                                        }
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
                                 </TableBody>
                             </Table>
                         </TabsContent>

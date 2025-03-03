@@ -10,6 +10,7 @@ import { MyButton } from "@/components/design-system/button";
 import { WarningCircle } from "phosphor-react";
 
 const AssessmentGlobalLevelRevaluateAssessment = () => {
+    const [openDialog, setOpenDialog] = useState(false);
     const { assessmentId } = Route.useParams();
     const instituteId = getInstituteId();
     const [selectedRevaluateFilter] = useState<SelectedFilterRevaluateInterface>({
@@ -41,6 +42,7 @@ const AssessmentGlobalLevelRevaluateAssessment = () => {
                     duration: 4000,
                 },
             );
+            setOpenDialog(false);
         },
         onError: (error: unknown) => {
             throw error;
@@ -58,7 +60,7 @@ const AssessmentGlobalLevelRevaluateAssessment = () => {
 
     return (
         <>
-            <Dialog>
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogTrigger>
                     <MyButton
                         type="button"
