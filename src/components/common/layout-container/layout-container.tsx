@@ -9,10 +9,12 @@ export const LayoutContainer = ({
     children,
     className,
     sidebarComponent,
+    intrnalMargin = true,
 }: {
     children?: React.ReactNode;
     className?: string;
     sidebarComponent?: React.ReactNode;
+    intrnalMargin?: boolean;
 }) => {
     const { open } = useSidebar();
     return (
@@ -25,8 +27,14 @@ export const LayoutContainer = ({
                 <StudentSidebarProvider>
                     <div
                         className={cn(
-                            "m-7 flex flex-1 flex-col",
-                            open ? "max-w-[calc(100vw-379px)]" : "max-w-[calc(100vw-188px)]",
+                            intrnalMargin ? `m-7 flex flex-1 flex-col` : `m-0`,
+                            open
+                                ? intrnalMargin
+                                    ? `max-w-[calc(100vw-322px-56px)]`
+                                    : `max-w-[calc(100vw-320px)]`
+                                : intrnalMargin
+                                  ? `max-w-[calc(100vw-132px-56px)]`
+                                  : `max-w-[calc(100vw-132px)]`,
                             className,
                         )}
                     >

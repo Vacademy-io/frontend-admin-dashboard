@@ -1,5 +1,5 @@
+import { House, Users, BookOpen, Scroll, Globe } from "@phosphor-icons/react";
 import { SidebarItemsType } from "../../../../types/layout-container/layout-container-types";
-import { House, Users, BookOpen, Scroll } from "@phosphor-icons/react";
 
 export const SidebarItemsData: SidebarItemsType[] = [
     {
@@ -48,5 +48,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: "/assessment/question-papers",
             },
         ],
+    },
+    {
+        icon: Globe,
+        id: "Community Centre",
+        title: "Community Centre",
+        to: "/community",
     },
 ];
