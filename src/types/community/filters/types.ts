@@ -50,7 +50,7 @@ export interface FilterRequest {
     tags?: Tag[];
 }
 
-interface TagResponse {
+export interface TagResponse {
     tagId: string;
     tagSource: string;
     tagName: string;

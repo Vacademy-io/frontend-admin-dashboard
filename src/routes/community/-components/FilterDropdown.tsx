@@ -155,6 +155,33 @@ export const FilterDifficultiesDropdown = ({
         </Select>
     );
 };
+export const FilterTypesDropdown = ({
+    placeholder = "Select an option",
+    FilterList,
+}: FilterDifficultiesDropdownProps) => {
+    const [selectedValue, setSelectedValue] = useState<string>("");
+    const { setSelected } = useSelectedFilterStore();
+    useEffect(() => {
+        if (selectedValue) {
+            setSelected("type", selectedValue);
+        }
+    }, [selectedValue, FilterList, setSelected]);
+
+    return (
+        <Select value={selectedValue} onValueChange={setSelectedValue}>
+            <SelectTrigger className="w-[250px] !outline-none">
+                <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+                {FilterList.map((option) => (
+                    <SelectItem key={option} value={option}>
+                        {option} {/* Display Name, but use ID as value */}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
+};
 
 export const SearchableFilterDropdown = () => {
     const [search, setSearch] = useState("");

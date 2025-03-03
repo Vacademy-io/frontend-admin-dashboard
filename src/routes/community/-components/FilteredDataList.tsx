@@ -12,6 +12,7 @@ import {
 } from "@/types/community/filters/types";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
+import { useFilterStore } from "../-store/useFilterOptions";
 
 export function FilteredDataList() {
     const [questionPaperList, setQuestionPaperList] = useState<
@@ -21,6 +22,7 @@ export function FilteredDataList() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [totalPages, setTotalPages] = useState<number>(0);
     const { selected, name } = useSelectedFilterStore();
+    const { selectedChips } = useFilterStore();
 
     const pageSize = 8;
     const getFilteredData = useMutation({
@@ -50,7 +52,7 @@ export function FilteredDataList() {
             pageSize,
             data: mapFiltersToTags(),
         });
-    }, [currentPage, selected, name]);
+    }, [currentPage, selected, name, selectedChips]);
 
     useEffect(() => {
         setIsLoading(true);

@@ -2,6 +2,7 @@ import {
     GET_QUESTION_PAPER_BY_ID,
     MARK_QUESTION_PAPER_STATUS,
     GET_TAGS_BY_QUESTION_PAPER_ID,
+    ADD_PUBLIC_QUESTION_PAPER_TO_PRIVATE_INSTITUTE,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { QuestionPaperData } from "@/types/community/filters/types";
@@ -89,6 +90,25 @@ export const getTageByQuestionPaperId = async (
             method: "GET",
             url: `${GET_TAGS_BY_QUESTION_PAPER_ID}`,
             params: {
+                questionPaperId,
+            },
+        });
+        return response?.data;
+    } catch (error: unknown) {
+        throw new Error(`${error}`);
+    }
+};
+
+export const addPublicQuestionPaperToPrivate = async (
+    instituteId: string,
+    questionPaperId: string,
+) => {
+    try {
+        const response = await authenticatedAxiosInstance({
+            method: "POST",
+            url: `${ADD_PUBLIC_QUESTION_PAPER_TO_PRIVATE_INSTITUTE}`,
+            params: {
+                instituteId,
                 questionPaperId,
             },
         });

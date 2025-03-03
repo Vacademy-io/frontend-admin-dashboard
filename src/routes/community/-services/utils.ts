@@ -1,4 +1,5 @@
 import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
+import { useFilterStore } from "../-store/useFilterOptions";
 import {
     GET_QUESTION_PAPER_FILTERED_DATA_PUBLIC,
     INIT_FILTERS,
@@ -50,7 +51,9 @@ export const getFilteredEntityData = async (
 
 export const mapFiltersToTags = (): FilterRequest => {
     const { selected, name } = useSelectedFilterStore.getState();
-
+    const { selectedChips } = useFilterStore.getState();
+    console.log(selected);
+    console.log(selectedChips);
     const tags: Tag[] = [];
 
     if (selected.difficulty) {
@@ -68,11 +71,16 @@ export const mapFiltersToTags = (): FilterRequest => {
     if (selected.stream) {
         tags.push({ tagId: selected.stream.streamId, tagSource: "STREAM" });
     }
+
+    for (let i = 0; i < selectedChips.length; i++) {
+        const chip = selectedChips[i]; // Store in a variable
+        if (chip?.tagId && chip?.tagSource) {
+            tags.push({ tagId: chip.tagId, tagSource: chip.tagSource });
+        }
+    }
+    console.log("tags ", tags);
+
     //TODO: for now only type available is question paper in future new types will be added
-    // return {
-    //     type: selected.type as "QUESTION_PAPER" | "QUESTION", // Ensure it's of the correct type
-    //     tags: tags.length > 0 ? tags : undefined, // Only include `tags` if there are any
-    // };
     return {
         type: "QUESTION_PAPER", // Ensure it's of the correct type
         name: name,
