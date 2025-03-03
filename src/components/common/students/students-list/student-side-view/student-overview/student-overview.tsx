@@ -2,30 +2,41 @@ import { SidebarMenuItem } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { MyButton } from "@/components/design-system/button";
 import { PencilSimpleLine } from "@phosphor-icons/react";
-import { StudentOverviewType } from "../student-view-dummy-data/student-view-dummy-data";
 import { ProgressBar } from "@/components/design-system/progress-bar";
 import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { OverViewData, OverviewDetailsType } from "../student-view-dummy-data/overview";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
-export const StudentOverview = ({ overviewData }: { overviewData: StudentOverviewType }) => {
+export const StudentOverview = () => {
     const { selectedStudent } = useStudentSidebar();
+    const [overviewData, setOverviewData] = useState<OverviewDetailsType[] | null>(null);
+
+    const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
+
     useEffect(() => {
-        console.log("selected Student: ", selectedStudent);
-    }, [selectedStudent]);
+        const details = getDetailsFromPackageSessionId({
+            packageSessionId: selectedStudent?.package_session_id || "",
+        });
+        setOverviewData(
+            OverViewData({ selectedStudent: selectedStudent, packageSessionDetails: details }),
+        );
+    }, [selectedStudent, instituteDetails]);
+
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
             <SidebarMenuItem className="flex w-full flex-col gap-2">
                 <div className="flex gap-2">
                     <div className="text-subtitle font-semibold">Session Expiry (Days)</div>
                     <span className="text-subtitle font-semibold text-success-600">
-                        {overviewData.session_expiry}
+                        {selectedStudent?.expiry_date || 0}
                     </span>
                 </div>
-                <ProgressBar progress={overviewData.session_expiry} />
+                <ProgressBar progress={selectedStudent?.expiry_date || 0} />
             </SidebarMenuItem>
             <SidebarMenuItem className="flex flex-col gap-10">
-                {overviewData.data && overviewData.data.length > 0 ? (
-                    overviewData.data.map((studentDetail, key) => (
+                {selectedStudent != null ? (
+                    overviewData?.map((studentDetail, key) => (
                         <div key={key} className="flex flex-col gap-10">
                             <div className="flex justify-between">
                                 <div className="flex flex-col gap-2">

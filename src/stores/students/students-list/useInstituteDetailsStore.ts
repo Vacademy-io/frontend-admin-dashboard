@@ -5,6 +5,7 @@ import {
     SessionType,
     PackageSchema,
     LevelSchema,
+    BatchForSessionType,
 } from "@/schemas/student/student-list/institute-schema";
 
 interface InstituteDetailsStore {
@@ -35,6 +36,9 @@ interface InstituteDetailsStore {
         package_dto: typeof PackageSchema._type;
         levels: (typeof LevelSchema._type)[];
     }>;
+    getDetailsFromPackageSessionId: (params: {
+        packageSessionId: string;
+    }) => BatchForSessionType | null;
 }
 
 export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get) => ({
@@ -223,5 +227,14 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
         );
 
         return Object.values(packageGroups);
+    },
+    getDetailsFromPackageSessionId: (params: { packageSessionId: string }) => {
+        const { instituteDetails } = get();
+
+        const matchingBatch = instituteDetails?.batches_for_sessions.find(
+            (batch) => batch.id === params.packageSessionId,
+        );
+
+        return matchingBatch || null;
     },
 }));
