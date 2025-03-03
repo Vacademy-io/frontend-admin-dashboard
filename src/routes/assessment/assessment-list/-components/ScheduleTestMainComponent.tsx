@@ -278,8 +278,8 @@ export const ScheduleTestMainComponent = () => {
             getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
                 get_live_assessments: false,
-                get_passed_assessments: true,
-                get_upcoming_assessments: false,
+                get_passed_assessments: false,
+                get_upcoming_assessments: true,
             })
                 .then((data) => {
                     setScheduleTestTabsData((prevTabs) =>
@@ -306,8 +306,8 @@ export const ScheduleTestMainComponent = () => {
             getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
                 get_live_assessments: false,
-                get_passed_assessments: false,
-                get_upcoming_assessments: true,
+                get_passed_assessments: true,
+                get_upcoming_assessments: false,
             })
                 .then((data) => {
                     setScheduleTestTabsData((prevTabs) =>
