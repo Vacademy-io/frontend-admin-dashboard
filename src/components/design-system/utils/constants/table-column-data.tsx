@@ -13,6 +13,7 @@ import { useActivityStatsStore } from "@/stores/study-library/activity-stats-sto
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { useState } from "react";
 import { LogDetailsDialog } from "@/components/common/students/students-list/student-side-view/student-learning-progress/chapter-details/topic-details/log-details-dialog";
+import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -24,6 +25,20 @@ const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
         <div>
             {levelName} {packageName}
         </div>
+    );
+};
+
+const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
+    const { setSelectedStudent } = useStudentSidebar();
+
+    return (
+        <SidebarTrigger
+            onClick={() => {
+                setSelectedStudent(row.original);
+            }}
+        >
+            <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
+        </SidebarTrigger>
     );
 };
 
@@ -67,11 +82,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: "details",
         header: "Details",
-        cell: () => (
-            <SidebarTrigger>
-                <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
-            </SidebarTrigger>
-        ),
+        cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
         accessorKey: "full_name",

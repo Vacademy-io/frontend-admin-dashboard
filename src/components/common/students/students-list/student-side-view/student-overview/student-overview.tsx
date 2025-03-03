@@ -4,8 +4,14 @@ import { MyButton } from "@/components/design-system/button";
 import { PencilSimpleLine } from "@phosphor-icons/react";
 import { StudentOverviewType } from "../student-view-dummy-data/student-view-dummy-data";
 import { ProgressBar } from "@/components/design-system/progress-bar";
+import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
+import { useEffect } from "react";
 
 export const StudentOverview = ({ overviewData }: { overviewData: StudentOverviewType }) => {
+    const { selectedStudent } = useStudentSidebar();
+    useEffect(() => {
+        console.log("selected Student: ", selectedStudent);
+    }, [selectedStudent]);
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
             <SidebarMenuItem className="flex w-full flex-col gap-2">
