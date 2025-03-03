@@ -90,7 +90,7 @@ export default function Evaluation({ totalPages, pagesVisited }: EvaluationProps
     }, []);
 
     return (
-        <Card className="mx-auto w-full max-w-md">
+        <Card className="w-full max-w-80">
             <CardHeader className="space-y-1">
                 <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-2">
                     <div className="text-center">

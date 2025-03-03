@@ -429,31 +429,10 @@ const PDFEvaluator = () => {
     }
 
     return (
-        <div className="flex w-full">
+        <div className="flex w-full justify-between">
             <div className="flex flex-col gap-4">
                 {/* Loading overlay */}
                 {isLoading && <LoadingOverlay />}
-
-                {/* Header with file info and download button */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <FileText className="size-5 text-blue-500" />
-                        <span>{pdfFile.name}</span>
-                        <span className="text-sm text-gray-500">
-                            ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
-                        </span>
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={downloadAnnotatedPDF}
-                            className="flex items-center gap-1 rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
-                            disabled={isLoading}
-                        >
-                            <Download className="size-4" />
-                            Download
-                        </button>
-                    </div>
-                </div>
 
                 <div className="flex flex-col gap-4">
                     {/* Toolbar */}
@@ -473,6 +452,14 @@ const PDFEvaluator = () => {
                                         {tool.icon}
                                     </Button>
                                 ))}
+                                <Button
+                                    onClick={downloadAnnotatedPDF}
+                                    className="flex items-center gap-1 rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
+                                    disabled={isLoading}
+                                >
+                                    <Download className="size-4" />
+                                    Download
+                                </Button>
                             </div>
 
                             <div className="flex gap-2">
