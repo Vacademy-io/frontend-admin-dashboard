@@ -23,6 +23,7 @@ import { Route as SignupOnboardingIndexImport } from "./routes/signup/onboarding
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index"
 import { Route as LoginKeyIndexImport } from "./routes/login/$key/index"
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index"
+import { Route as AssessmentEvaluationIndexImport } from "./routes/assessment/evaluation/index"
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index"
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index"
 import { Route as AssessmentExportAssessmentIdIndexImport } from "./routes/assessment/export/$assessmentId/index"
@@ -107,6 +108,12 @@ const AssessmentQuestionPapersIndexRoute =
     path: "/assessment/question-papers/",
     getParentRoute: () => rootRoute,
   } as any)
+
+const AssessmentEvaluationIndexRoute = AssessmentEvaluationIndexImport.update({
+  id: "/assessment/evaluation/",
+  path: "/assessment/evaluation/",
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AssessmentAssessmentListIndexRoute =
   AssessmentAssessmentListIndexImport.update({
@@ -226,6 +233,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AssessmentAssessmentListIndexImport
       parentRoute: typeof rootRoute
     }
+    "/assessment/evaluation/": {
+      id: "/assessment/evaluation/"
+      path: "/assessment/evaluation"
+      fullPath: "/assessment/evaluation"
+      preLoaderRoute: typeof AssessmentEvaluationIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/assessment/question-papers/": {
       id: "/assessment/question-papers/"
       path: "/assessment/question-papers"
@@ -337,6 +351,7 @@ export interface FileRoutesByFullPath {
   "/students": typeof StudentsIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
+  "/assessment/evaluation": typeof AssessmentEvaluationIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
   "/login/$key": typeof LoginKeyIndexRoute
   "/login/forgot-password": typeof LoginForgotPasswordIndexRoute
@@ -361,6 +376,7 @@ export interface FileRoutesByTo {
   "/students": typeof StudentsIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
+  "/assessment/evaluation": typeof AssessmentEvaluationIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
   "/login/$key": typeof LoginKeyIndexRoute
   "/login/forgot-password": typeof LoginForgotPasswordIndexRoute
@@ -386,6 +402,7 @@ export interface FileRoutesById {
   "/students/": typeof StudentsIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
   "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
+  "/assessment/evaluation/": typeof AssessmentEvaluationIndexRoute
   "/assessment/question-papers/": typeof AssessmentQuestionPapersIndexRoute
   "/login/$key/": typeof LoginKeyIndexRoute
   "/login/forgot-password/": typeof LoginForgotPasswordIndexRoute
@@ -412,6 +429,7 @@ export interface FileRouteTypes {
     | "/students"
     | "/study-library"
     | "/assessment/assessment-list"
+    | "/assessment/evaluation"
     | "/assessment/question-papers"
     | "/login/$key"
     | "/login/forgot-password"
@@ -435,6 +453,7 @@ export interface FileRouteTypes {
     | "/students"
     | "/study-library"
     | "/assessment/assessment-list"
+    | "/assessment/evaluation"
     | "/assessment/question-papers"
     | "/login/$key"
     | "/login/forgot-password"
@@ -458,6 +477,7 @@ export interface FileRouteTypes {
     | "/students/"
     | "/study-library/"
     | "/assessment/assessment-list/"
+    | "/assessment/evaluation/"
     | "/assessment/question-papers/"
     | "/login/$key/"
     | "/login/forgot-password/"
@@ -483,6 +503,7 @@ export interface RootRouteChildren {
   StudentsIndexRoute: typeof StudentsIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute
+  AssessmentEvaluationIndexRoute: typeof AssessmentEvaluationIndexRoute
   AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute
   LoginKeyIndexRoute: typeof LoginKeyIndexRoute
   LoginForgotPasswordIndexRoute: typeof LoginForgotPasswordIndexRoute
@@ -507,6 +528,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudentsIndexRoute: StudentsIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
+  AssessmentEvaluationIndexRoute: AssessmentEvaluationIndexRoute,
   AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
   LoginKeyIndexRoute: LoginKeyIndexRoute,
   LoginForgotPasswordIndexRoute: LoginForgotPasswordIndexRoute,
@@ -547,6 +569,7 @@ export const routeTree = rootRoute
         "/students/",
         "/study-library/",
         "/assessment/assessment-list/",
+        "/assessment/evaluation/",
         "/assessment/question-papers/",
         "/login/$key/",
         "/login/forgot-password/",
@@ -583,6 +606,9 @@ export const routeTree = rootRoute
     },
     "/assessment/assessment-list/": {
       "filePath": "assessment/assessment-list/index.tsx"
+    },
+    "/assessment/evaluation/": {
+      "filePath": "assessment/evaluation/index.tsx"
     },
     "/assessment/question-papers/": {
       "filePath": "assessment/question-papers/index.tsx"
