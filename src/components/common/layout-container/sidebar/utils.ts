@@ -32,6 +32,16 @@ export const SidebarItemsData: SidebarItemsType[] = [
         title: "Learning Center",
         id: "study-library",
         to: "/study-library",
+        subItems: [
+            {
+                subItem: "Courses",
+                subItemLink: "/study-library/courses",
+            },
+            {
+                subItem: "Session",
+                subItemLink: "/study-library/session",
+            },
+        ],
     },
     {
         icon: Scroll,
