@@ -207,7 +207,10 @@ export const StudentTestRecord = ({
                                         <div className="flex items-center justify-between">
                                             <div>Marks: {studentReport.total_marks}</div>
                                             <div>
-                                                Duration: {studentReport.duration_in_seconds * 60}{" "}
+                                                Duration:{" "}
+                                                {(studentReport.duration_in_seconds % 60).toFixed(
+                                                    2,
+                                                )}{" "}
                                                 min
                                             </div>
                                         </div>

@@ -6,16 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
-import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
-import {
-    ChapterWithSlides,
-    ModulesWithChapters,
-    useModulesWithChaptersStore,
-} from "@/stores/study-library/use-modules-with-chapters-store";
-import { useEffect, useState } from "react";
+import { ModulesWithChapters } from "@/stores/study-library/use-modules-with-chapters-store";
+import { useEffect, useMemo, useState } from "react";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
-import { useNavigate } from "@tanstack/react-router";
-import { useDialogStore } from "@/stores/study-library/slide-add-dialogs-store";
+import { useQuery } from "@tanstack/react-query";
+import { useModulesWithChaptersQuery } from "@/services/study-library/getModulesWithChapters";
 
 export type AvailableFields =
     | "course"
@@ -33,31 +28,42 @@ export type FieldValue = {
 
 export type StudyMaterialDetailsFormProps = {
     fields: AvailableFields[];
-    onFormSubmit: (data: FieldValue[]) => void;
+    onFormSubmit: (data: {
+        [x: string]:
+            | {
+                  id: string;
+                  name: string;
+              }
+            | undefined;
+    }) => void;
     submitButtonName: string;
 };
 
 // Form validation schema
+const fieldObjectSchema = z
+    .object({
+        id: z.string(),
+        name: z.string(),
+    })
+    .optional();
+
 const createFormSchema = (fields: AvailableFields[]) => {
-    const schemaObject: Record<string, z.ZodTypeAny> = {};
+    const schemaObject: Record<string, typeof fieldObjectSchema> = {};
 
     fields.forEach((field) => {
-        if (field === "file_type") {
-            schemaObject[field] = z.object({
-                id: z.string(),
-                name: z.string(),
-            });
-        } else {
-            schemaObject[field] = z
-                .object({
-                    id: z.string(),
-                    name: z.string(),
-                })
-                .optional();
-        }
+        schemaObject[field] = fieldObjectSchema;
     });
 
     return z.object(schemaObject);
+};
+
+// Custom hook to fetch modules with chapters
+const useModulesWithChapters = (subjectId: string, packageSessionId?: string) => {
+    return useQuery({
+        ...useModulesWithChaptersQuery(subjectId, packageSessionId || ""),
+        staleTime: 3600000,
+        enabled: !!subjectId && !!packageSessionId, // Only run the query if both values are present
+    });
 };
 
 export const StudyMaterialDetailsForm = ({
@@ -75,13 +81,9 @@ export const StudyMaterialDetailsForm = ({
     const formSchema = createFormSchema(fields);
     type FormValues = z.infer<typeof formSchema>;
 
-    const { openDocUploadDialog, openPdfDialog, openVideoDialog } = useDialogStore();
-
-    const navigate = useNavigate();
-
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: fields.reduce<Record<string, unknown>>(
+        defaultValues: fields.reduce<Partial<FormValues>>(
             (acc, field) => ({
                 ...acc,
                 [field]: field === "file_type" ? { id: "", name: "" } : undefined,
@@ -113,10 +115,14 @@ export const StudyMaterialDetailsForm = ({
         getValues("session")?.id || "",
         getValues("level")?.id || "",
     );
-    const formattedSubjectList = subjectList.map((subject) => ({
-        id: subject.id,
-        name: subject.subject_name,
-    }));
+    const formattedSubjectList = useMemo(
+        () =>
+            subjectList.map((subject) => ({
+                id: subject.id,
+                name: subject.subject_name,
+            })),
+        [subjectList],
+    );
 
     // Get package session ID for modules
     const fetchPackageSessionId = () => {
@@ -128,32 +134,41 @@ export const StudyMaterialDetailsForm = ({
     };
 
     const [packageSessionId, setPackageSessionId] = useState(fetchPackageSessionId());
-    const { modulesWithChaptersData } = useModulesWithChaptersStore();
+
+    useEffect(() => {
+        const newPackageSessionId = fetchPackageSessionId();
+        setPackageSessionId(newPackageSessionId);
+    }, [watch("course"), watch("session"), watch("level")]);
+
+    const { data: modulesWithChaptersData, error: modulesError } = useModulesWithChapters(
+        form.watch("subject")?.id || "",
+        packageSessionId || undefined,
+    );
+
+    if (modulesError) {
+        console.error("Error fetching modules with chapters:", modulesError);
+    }
 
     // Format module list
-    const formatModule = (moduleData: ModulesWithChapters[] | null) => {
-        return moduleData?.map((object) => ({
-            id: object.module.id,
-            name: object.module.module_name,
-        }));
-    };
-
-    const [formattedModuleList, setFormattedModuleList] = useState(
-        formatModule(modulesWithChaptersData),
-    );
+    const formattedModuleList = useMemo(() => {
+        return (
+            modulesWithChaptersData?.map((object: ModulesWithChapters) => ({
+                id: object.module.id,
+                name: object.module.module_name,
+            })) || []
+        );
+    }, [modulesWithChaptersData]);
 
     // Get chapters list based on selected module
     const chaptersList = getChaptersByModuleId(getValues("module")?.id || "");
 
-    const formatChapter = (chaptersList: ChapterWithSlides[] | null) => {
+    const formattedChapterList = useMemo(() => {
         if (!chaptersList) return [];
         return chaptersList.map((chapter) => ({
             id: chapter.chapter.id,
             name: chapter.chapter.chapter_name,
         }));
-    };
-
-    const [formattedChapterList, setFormattedChapterList] = useState(formatChapter(chaptersList));
+    }, [chaptersList]);
 
     // File type list formatted to match the FieldValue type
     const fileTypeList = [
@@ -161,21 +176,6 @@ export const StudyMaterialDetailsForm = ({
         { id: "DOC", name: "DOC" },
         { id: "VIDEO", name: "VIDEO" },
     ];
-
-    useEffect(() => {
-        setPackageSessionId(fetchPackageSessionId());
-        setFormattedModuleList(formatModule(modulesWithChaptersData));
-        setFormattedChapterList(
-            formatChapter(getChaptersByModuleId(getValues("module")?.id || "")),
-        );
-    }, [
-        watch("course"),
-        watch("session"),
-        watch("level"),
-        watch("subject"),
-        watch("module"),
-        modulesWithChaptersData,
-    ]);
 
     // Function to determine if a dropdown should be disabled
     const isDropdownDisabled = (fieldName: AvailableFields): boolean => {
@@ -193,7 +193,6 @@ export const StudyMaterialDetailsForm = ({
             case "chapter":
                 return !watch("module");
             case "file_type":
-                // File type can be selected at any time or based on your requirements
                 return false;
             default:
                 return false;
@@ -201,7 +200,7 @@ export const StudyMaterialDetailsForm = ({
     };
 
     // Get the appropriate list for each field
-    const getListForField = (fieldName: AvailableFields) => {
+    const getListForField = (fieldName: AvailableFields): FieldValue[] => {
         switch (fieldName) {
             case "course":
                 return courseList;
@@ -212,9 +211,9 @@ export const StudyMaterialDetailsForm = ({
             case "subject":
                 return formattedSubjectList;
             case "module":
-                return formattedModuleList || [];
+                return formattedModuleList;
             case "chapter":
-                return formattedChapterList || [];
+                return formattedChapterList;
             case "file_type":
                 return fileTypeList;
             default:
@@ -237,80 +236,48 @@ export const StudyMaterialDetailsForm = ({
         return config[fieldName];
     };
 
-    const onSubmit = (data: FormValues) => {
-        // Convert the form data object to an array of field values
-        const fieldsArray: FieldValue[] = [];
-
-        // Iterate through all fields and add non-undefined values to array
-        fields.forEach((fieldName) => {
-            const fieldValue = data[fieldName];
-            if (fieldValue) {
-                fieldsArray.push({
-                    id: fieldValue.id,
-                    name: fieldValue.name,
-                });
-            }
-        });
-
-        // onFormSubmit(fieldsArray);
-        navigate({
-            to: "/study-library/courses/levels/subjects/modules/chapters/slides",
-            search: {
-                courseId: data.course?.id || "",
-                levelId: data.level?.id || "",
-                subjectId: data.subject?.id || "",
-                moduleId: data.module?.id || "",
-                chapterId: data.chapter?.id || "",
-                slideId: "",
-            },
-        });
-        if (data.file_type?.id == "PDF") openPdfDialog();
-        else if (data.file_type?.id == "DOC") openDocUploadDialog();
-        else openVideoDialog();
-
-        onFormSubmit(fieldsArray);
+    const onSubmit = async (data: FormValues) => {
+        try {
+            await onFormSubmit(data);
+        } catch (error) {
+            console.error("Form submission error:", error);
+        }
     };
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {fields.map((fieldName, index) => {
+                {fields.map((fieldName) => {
                     const config = getFieldConfig(fieldName);
                     const list = getListForField(fieldName);
 
                     return (
-                        <ModulesWithChaptersProvider
-                            subjectId={getValues("subject")?.id || ""}
-                            packageSessionId={packageSessionId || ""}
-                            key={index}
-                        >
-                            <FormField
-                                key={fieldName}
-                                control={form.control}
-                                name={fieldName}
-                                render={({ field, fieldState }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div className="flex items-center gap-1">
-                                                    <span>{config.label}</span>
-                                                    <span className="text-primary-500">*</span>
-                                                </div>
-                                                <MyDropdown
-                                                    placeholder={config.placeholder}
-                                                    currentValue={field.value}
-                                                    dropdownList={list}
-                                                    onSelect={field.onChange}
-                                                    disable={isDropdownDisabled(fieldName)}
-                                                    error={fieldState.error?.message}
-                                                />
-                                                <FormMessage className="text-danger-600" />
+                        <FormField
+                            key={fieldName}
+                            control={form.control}
+                            name={fieldName}
+                            render={({ field, fieldState }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-1">
+                                                <span>{config.label}</span>
+                                                <span className="text-primary-500">*</span>
                                             </div>
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                        </ModulesWithChaptersProvider>
+                                            <MyDropdown
+                                                placeholder={config.placeholder}
+                                                currentValue={field.value}
+                                                dropdownList={list}
+                                                onSelect={field.onChange}
+                                                disable={isDropdownDisabled(fieldName)}
+                                                error={fieldState.error?.message}
+                                            />
+                                            <FormMessage className="text-danger-600" />
+                                        </div>
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
                     );
                 })}
                 <div className="w-full px-6 py-4">

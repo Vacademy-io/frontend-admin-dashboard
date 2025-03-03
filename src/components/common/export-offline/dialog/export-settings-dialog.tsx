@@ -17,6 +17,7 @@ import { useExportSettings, type ExportSettings } from "../contexts/export-setti
 import { useCallback, useState } from "react";
 import { Plus } from "lucide-react";
 import type { CustomField, CustomFieldType } from "../types/question";
+import { Minus } from "phosphor-react";
 
 interface ExportSettingsDialogProps {
     open: boolean;
@@ -68,42 +69,51 @@ export function ExportSettingsDialog({ open, onOpenChange }: ExportSettingsDialo
                         <h3 className="font-medium">Layout Settings</h3>
                         <div className="space-y-4">
                             <div className="flex w-full gap-x-4">
-                                <div className="w-1/2 space-y-2">
-                                    <Label>Export Format</Label>
-                                    <Select
-                                        value={settings.exportFormat}
-                                        onValueChange={(value) =>
-                                            handleSettingChange(
-                                                "exportFormat",
-                                                value as "pdf" | "docx",
-                                            )
-                                        }
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pdf">PDF</SelectItem>
-                                            <SelectItem value="docx">DOCX</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="w-1/2 space-y-2">
+                                <div className="flex w-1/2 items-center gap-2">
                                     <Label>Columns per Page</Label>
-                                    <div className="flex gap-2">
+                                    <div className="flex items-center space-x-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() =>
+                                                handleSettingChange(
+                                                    "columnsPerPage",
+                                                    Math.max(1, settings.columnsPerPage - 1),
+                                                )
+                                            }
+                                            disabled={settings.columnsPerPage <= 1}
+                                        >
+                                            <Minus className="size-4" />
+                                        </Button>
                                         <Input
                                             type="number"
                                             min={1}
                                             max={3}
+                                            className="w-fit text-center"
                                             value={settings.columnsPerPage}
-                                            onChange={(e) =>
+                                            onChange={(e) => {
+                                                const value = Number.parseInt(e.target.value);
                                                 handleSettingChange(
                                                     "columnsPerPage",
-                                                    Number(e.target.value),
+                                                    Math.min(Math.max(1, value), 3),
+                                                );
+                                            }}
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() =>
+                                                handleSettingChange(
+                                                    "columnsPerPage",
+                                                    Math.min(3, settings.columnsPerPage + 1),
                                                 )
                                             }
-                                        />
+                                            disabled={settings.columnsPerPage >= 3}
+                                        >
+                                            <Plus className="size-4" />
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
@@ -256,20 +266,51 @@ export function ExportSettingsDialog({ open, onOpenChange }: ExportSettingsDialo
                     <div className="space-y-4">
                         <h3 className="font-medium">Paper Sets</h3>
                         <div className="flex flex-col gap-y-2">
-                            <div className="space-y-2">
+                            <div className="flex items-center gap-2">
                                 <Label>Create Question Papers Sets</Label>
-                                <div className="flex gap-2">
+                                <div className="flex items-center space-x-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() =>
+                                            handleSettingChange(
+                                                "questionPaperSets",
+                                                Math.max(1, settings.questionPaperSets - 1),
+                                            )
+                                        }
+                                        disabled={settings.questionPaperSets <= 1}
+                                    >
+                                        <Minus className="size-4" />
+                                    </Button>
                                     <Input
                                         type="number"
                                         min={1}
+                                        max={3}
+                                        className="w-fit text-center"
                                         value={settings.questionPaperSets}
-                                        onChange={(e) =>
+                                        onChange={(e) => {
+                                            const value = Number.parseInt(e.target.value);
                                             handleSettingChange(
                                                 "questionPaperSets",
-                                                Number.parseInt(e.target.value),
+                                                Math.min(Math.max(1, value), 3),
+                                            );
+                                        }}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() =>
+                                            handleSettingChange(
+                                                "questionPaperSets",
+                                                Math.min(3, settings.questionPaperSets + 1),
                                             )
                                         }
-                                    />
+                                        disabled={settings.questionPaperSets >= 3}
+                                    >
+                                        <Plus className="size-4" />
+                                    </Button>
                                 </div>
                             </div>
 

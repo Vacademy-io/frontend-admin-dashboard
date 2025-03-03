@@ -7,9 +7,10 @@ import { AddModulesForm } from "./add-modules-form";
 import { SortableDragHandle } from "@/components/ui/sortable";
 import { Module } from "@/stores/study-library/use-modules-with-chapters-store";
 import { getPublicUrl } from "@/services/upload_file";
+import { ModulesWithChapters } from "../../../../../../../../stores/study-library/use-modules-with-chapters-store";
 
 interface ModuleCardProps {
-    module: Module;
+    module: ModulesWithChapters;
     onDelete: () => void;
     onEdit: (updatedModule: Module) => void;
 }
@@ -38,16 +39,16 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                 courseId: searchParams.courseId,
                 levelId: searchParams.levelId,
                 subjectId: searchParams.subjectId,
-                moduleId: module.id,
+                moduleId: module.module.id,
             },
         });
     };
 
     useEffect(() => {
         const fetchImageUrl = async () => {
-            if (module.thumbnail_id) {
+            if (module.module.thumbnail_id) {
                 try {
-                    const url = await getPublicUrl(module.thumbnail_id);
+                    const url = await getPublicUrl(module.module.thumbnail_id);
                     setImageUrl(url);
                 } catch (error) {
                     console.error("Failed to fetch image URL:", error);
@@ -56,7 +57,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
         };
 
         fetchImageUrl();
-    }, [module.thumbnail_id]);
+    }, [module.module.thumbnail_id]);
 
     return (
         <div onClick={handleCardClick} className="cursor-pointer">
@@ -64,7 +65,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                 className={`flex h-[300px] w-full flex-col gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-3 shadow-md`}
             >
                 <div className="flex items-center justify-between text-title font-semibold">
-                    <div>{module.module_name}</div>
+                    <div>{module.module.module_name}</div>
                     <div className="drag-handle-container">
                         <SortableDragHandle
                             variant="ghost"
@@ -80,7 +81,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                 {imageUrl ? (
                     <img
                         src={imageUrl}
-                        alt={module.module_name}
+                        alt={module.module.module_name}
                         className="h-[145px] rounded-lg object-cover"
                     />
                 ) : (
@@ -90,12 +91,14 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                 )}
 
                 <div className="flex gap-2 text-body font-semibold">
-                    <div className="text-primary-500">0</div>
+                    <div className="text-primary-500">{module.chapters.length}</div>
                     <div>Chapters</div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                    <div className="text-wrap text-body text-neutral-500">{module.description}</div>
+                    <div className="text-wrap text-body text-neutral-500">
+                        {module.module.description}
+                    </div>
                     <MenuOptions onDelete={onDelete} onEdit={() => setIsEditDialogOpen(true)} />
                 </div>
             </div>
@@ -108,7 +111,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
                 onOpenChange={setIsEditDialogOpen}
             >
                 <AddModulesForm
-                    initialValues={module}
+                    initialValues={module.module}
                     onSubmitSuccess={(updatedModule) => {
                         onEdit(updatedModule);
                         setIsEditDialogOpen(false);

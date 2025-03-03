@@ -21,10 +21,7 @@ const Checkbox = React.forwardRef<
     >
         {/* Default Checkmark (Visible when checked) */}
         <CheckboxPrimitive.Indicator
-            className={cn(
-                "flex items-center justify-center text-current transition-all",
-                // "group-hover:data-[state=checked]:hidden",
-            )}
+            className={cn("flex items-center justify-center text-current transition-all")}
         >
             <CheckIcon className="size-4 text-white" />
         </CheckboxPrimitive.Indicator>

@@ -77,9 +77,32 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                         </PaginationLink>
                     </PaginationItem>
 
-                    {totalPages > 1 && (
+                    {totalPages > 1 && (currentPage === 0 || currentPage === totalPages - 1) ? (
                         <>
                             <PaginationItem>
+                                <PaginationEllipsis />
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationLink
+                                    onClick={() => onPageChange(totalPages - 1)}
+                                    isActive={currentPage === totalPages - 1}
+                                    className="cursor-pointer"
+                                >
+                                    {totalPages}
+                                </PaginationLink>
+                            </PaginationItem>
+                        </>
+                    ) : (
+                        <>
+                            <PaginationItem className="flex flex-row">
+                                <PaginationEllipsis />
+                                <PaginationLink
+                                    // onClick={() => onPageChange(0)}
+                                    isActive={true}
+                                    className="cursor-pointer"
+                                >
+                                    {currentPage + 1}
+                                </PaginationLink>
                                 <PaginationEllipsis />
                             </PaginationItem>
                             <PaginationItem>
