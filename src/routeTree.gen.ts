@@ -22,8 +22,8 @@ import { Route as StudyLibraryCoursesIndexImport } from "./routes/study-library/
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as SignupOnboardingIndexImport } from "./routes/signup/onboarding/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
-import { Route as CommunityQuestionPaperIndexImport } from "./routes/community/question-paper/index";
 import { Route as LoginKeyIndexImport } from "./routes/login/$key/index";
+import { Route as CommunityQuestionPaperIndexImport } from "./routes/community/question-paper/index";
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index";
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index";
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index";
@@ -103,15 +103,15 @@ const LoginForgotPasswordIndexRoute = LoginForgotPasswordIndexImport.update({
     getParentRoute: () => rootRoute,
 } as any);
 
-const CommunityQuestionPaperIndexRoute = CommunityQuestionPaperIndexImport.update({
-    id: "/community/question-paper/",
-    path: "/community/question-paper/",
-    getParentRoute: () => rootRoute,
-} as any);
-
 const LoginKeyIndexRoute = LoginKeyIndexImport.update({
     id: "/login/$key/",
     path: "/login/$key/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const CommunityQuestionPaperIndexRoute = CommunityQuestionPaperIndexImport.update({
+    id: "/community/question-paper/",
+    path: "/community/question-paper/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -442,8 +442,8 @@ export interface FileRouteTypes {
         | "/study-library"
         | "/assessment/assessment-list"
         | "/assessment/question-papers"
-        | "/login/$key"
         | "/community/question-paper"
+        | "/login/$key"
         | "/login/forgot-password"
         | "/signup/onboarding"
         | "/students/students-list"
@@ -467,8 +467,8 @@ export interface FileRouteTypes {
         | "/study-library"
         | "/assessment/assessment-list"
         | "/assessment/question-papers"
-        | "/login/$key"
         | "/community/question-paper"
+        | "/login/$key"
         | "/login/forgot-password"
         | "/signup/onboarding"
         | "/students/students-list"
@@ -492,8 +492,8 @@ export interface FileRouteTypes {
         | "/study-library/"
         | "/assessment/assessment-list/"
         | "/assessment/question-papers/"
-        | "/login/$key/"
         | "/community/question-paper/"
+        | "/login/$key/"
         | "/login/forgot-password/"
         | "/signup/onboarding/"
         | "/students/students-list/"
@@ -545,8 +545,8 @@ const rootRouteChildren: RootRouteChildren = {
     StudyLibraryIndexRoute: StudyLibraryIndexRoute,
     AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
     AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
-    LoginKeyIndexRoute: LoginKeyIndexRoute,
     CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
+    LoginKeyIndexRoute: LoginKeyIndexRoute,
     LoginForgotPasswordIndexRoute: LoginForgotPasswordIndexRoute,
     SignupOnboardingIndexRoute: SignupOnboardingIndexRoute,
     StudentsStudentsListIndexRoute: StudentsStudentsListIndexRoute,
