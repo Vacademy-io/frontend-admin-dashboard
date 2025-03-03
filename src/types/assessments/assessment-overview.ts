@@ -141,3 +141,15 @@ export interface AssessmentReportInterface {
     total_pages: number;
     last: boolean;
 }
+
+export interface AssessmentRevaluateStudentInterface {
+    id: string;
+    full_name: string;
+    attempt_id: string;
+    package_session_id: string;
+    attempt_date: string; // Consider using Date if parsing is needed
+    start_time: string;
+    end_time: string;
+    duration: string;
+    score: string; // Consider using a more structured type like `{ obtained: number; total: number }` if needed
+}
