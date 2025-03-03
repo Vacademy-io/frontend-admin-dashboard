@@ -29,6 +29,9 @@ interface RowWithError extends SchemaFields {
 
 const ITEMS_PER_PAGE = 10;
 
+/**
+ * Validate a single cell value based on header definition
+ */
 export const validateCellValue = (
     value: string,
     header: Header,
@@ -105,6 +108,84 @@ export const validateCellValue = (
 
     // No validation errors
     return null;
+};
+
+/**
+ * Validate a full row of data
+ */
+export const validateRowData = (
+    rowData: SchemaFields,
+    headers: Header[],
+    rowIndex: number,
+): ValidationError[] => {
+    const errors: ValidationError[] = [];
+
+    // Validate each field according to its header
+    headers.forEach((header) => {
+        const fieldName = header.column_name;
+
+        // Skip non-data columns like STATUS, ERROR, etc.
+        if (["STATUS", "ERROR", "STATUS_MESSAGE"].includes(fieldName)) {
+            return;
+        }
+
+        const value = rowData[fieldName] as string;
+        const error = validateCellValue(value, header, rowIndex);
+
+        if (error) {
+            errors.push(error);
+        }
+    });
+
+    return errors;
+};
+
+/**
+ * Revalidate all data in the CSV
+ */
+export const revalidateAllData = (data: SchemaFields[], headers: Header[]): ValidationError[] => {
+    let allErrors: ValidationError[] = [];
+
+    // Validate each row
+    data.forEach((row, rowIndex) => {
+        const rowErrors = validateRowData(row, headers, rowIndex);
+        allErrors = [...allErrors, ...rowErrors];
+    });
+
+    return allErrors;
+};
+
+/**
+ * Check if a response row has errors
+ */
+export const hasErrors = (row: SchemaFields): boolean => {
+    return row.STATUS === "false" || !!row.ERROR;
+};
+
+/**
+ * Get upload statistics from response data
+ */
+export const getUploadStats = (responseData: SchemaFields[]) => {
+    if (!responseData || responseData.length === 0) {
+        return { successful: 0, failed: 0, total: 0 };
+    }
+
+    let successful = 0;
+    let failed = 0;
+
+    responseData.forEach((row) => {
+        if (row.STATUS === "true") {
+            successful++;
+        } else {
+            failed++;
+        }
+    });
+
+    return {
+        successful,
+        failed,
+        total: responseData.length,
+    };
 };
 
 export function EditableBulkUploadTable({

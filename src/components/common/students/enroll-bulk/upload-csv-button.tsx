@@ -18,11 +18,13 @@ import {
     enrollBulkFormType,
     SchemaFields,
 } from "@/types/students/bulk-upload-types";
+import { parseApiResponse, getUploadStats } from "./utils/parse-api-response-string";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
 import { PreviewDialog } from "./preview-dialog";
 import { toast } from "sonner";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface FileState {
     file: File | null;
@@ -35,6 +37,14 @@ interface UploadCSVButtonProps {
     csvFormatDetails: CSVFormatFormType;
 }
 
+// Define a more specific type for API responses
+interface ApiResponse {
+    data?: SchemaFields[] | string;
+    success?: boolean;
+    message?: string;
+    status?: number;
+}
+
 export const UploadCSVButton = ({
     disable,
     packageDetails,
@@ -43,11 +53,19 @@ export const UploadCSVButton = ({
     const [isOpen, setIsOpen] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [fileState, setFileState] = useState<FileState>({ file: null });
+    const [uploadCompleted, setUploadCompleted] = useState(false);
+    const [uploadResponse, setUploadResponse] = useState<SchemaFields[] | null>(null);
     const { mutateAsync } = useBulkUploadMutation();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const { csvData, setCsvData, csvErrors, setCsvErrors } = useBulkUploadStore();
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const packageSessionId = getPackageSessionId({
+        courseId: packageDetails.course.id || "",
+        sessionId: packageDetails.session.id || "",
+        levelId: packageDetails.level.id || "",
+    });
 
     const requestPayload = {
         auto_generate_config: {
@@ -77,7 +95,6 @@ export const UploadCSVButton = ({
     const { data, isLoading } = useBulkUploadInit(
         {
             instituteId: INSTITUTE_ID || "",
-            sessionId: packageDetails.session.id,
             bulkUploadInitRequest: requestPayload,
         },
         {
@@ -104,6 +121,8 @@ export const UploadCSVButton = ({
             }
 
             setFileState({ file });
+            setUploadCompleted(false);
+            setUploadResponse(null);
 
             try {
                 // Pass headers to the validation function
@@ -113,7 +132,7 @@ export const UploadCSVButton = ({
 
                 // Show error summary if any errors exist
                 if (result.errors.length > 0) {
-                    toast.error(" Please fix validation errors before uploading!", {
+                    toast.error("Please fix validation errors before uploading!", {
                         className: "error-toast",
                         duration: 3000,
                     });
@@ -121,7 +140,7 @@ export const UploadCSVButton = ({
             } catch (err) {
                 const error = err instanceof Error ? err.message : "Error parsing CSV";
                 setFileState({ file: null, error });
-                toast.error(" Error parsing csv", {
+                toast.error("Error parsing CSV", {
                     className: "error-toast",
                     duration: 3000,
                 });
@@ -173,21 +192,77 @@ export const UploadCSVButton = ({
         }
     };
 
+    const processApiResponse = (response: ApiResponse | string): SchemaFields[] => {
+        // Handle different response formats
+        if (typeof response !== "string" && response.data && Array.isArray(response.data)) {
+            return response.data as SchemaFields[];
+        }
+
+        // If response is a string or has data as string
+        const responseText =
+            typeof response === "string"
+                ? response
+                : response && typeof response.data === "string"
+                  ? response.data
+                  : "";
+
+        if (responseText) {
+            return parseApiResponse(responseText);
+        }
+
+        return [];
+    };
+
+    const generateUploadMessage = (stats: ReturnType<typeof getUploadStats>): string => {
+        if (stats.allSuccessful) {
+            return "File uploaded successfully";
+        } else if (stats.partialSuccess) {
+            return `File uploaded, ${stats.failed} entries are not uploaded due to errors`;
+        } else {
+            return "File upload failed due to errors in entries";
+        }
+    };
+
     const uploadCsv = async () => {
         if (!csvData || !data?.submit_api) return;
 
         try {
-            await mutateAsync({
+            const response = await mutateAsync({
                 data: csvData,
                 instituteId: data.submit_api.request_params.instituteId,
                 bulkUploadInitRequest: requestPayload,
+                packageSessionId: packageSessionId || "",
+                notify: false,
             });
-            setCsvData(csvData);
+
+            // Process the API response
+            const responseData = processApiResponse(response);
+            setUploadResponse(responseData);
+
+            // Analyze the results
+            const stats = getUploadStats(responseData);
+            const message = generateUploadMessage(stats);
+
+            // Show appropriate toast based on results
+            if (stats.allSuccessful) {
+                toast.success(message, {
+                    className: "success-toast",
+                    duration: 3000,
+                });
+            } else if (stats.partialSuccess) {
+                toast.warning(message, {
+                    className: "warning-toast",
+                    duration: 3000,
+                });
+            } else {
+                toast.error(message, {
+                    className: "error-toast",
+                    duration: 3000,
+                });
+            }
+
+            setUploadCompleted(true);
             setShowPreview(true);
-            toast.success("Upload Successful", {
-                className: "success-toast",
-                duration: 3000,
-            });
         } catch (error) {
             console.error("Error in handleDoneClick:", error);
             toast.error("Upload Failed", {
@@ -212,6 +287,12 @@ export const UploadCSVButton = ({
 
         // No errors, proceed with upload
         uploadCsv();
+    };
+
+    const handleDownloadResponse = () => {
+        if (uploadResponse && uploadResponse.length > 0) {
+            createAndDownloadCsv(uploadResponse, "upload_response.csv");
+        }
     };
 
     return (
@@ -301,7 +382,7 @@ export const UploadCSVButton = ({
                                     onClick={() => setShowPreview(true)}
                                     disabled={!fileState.file || !data?.headers}
                                 >
-                                    Preview
+                                    {uploadCompleted ? "Show Uploaded File" : "Preview"}
                                 </MyButton>
                                 <MyButton
                                     buttonType="primary"
@@ -326,6 +407,9 @@ export const UploadCSVButton = ({
                     file={fileState.file}
                     headers={data.headers}
                     onEdit={handleEditCell}
+                    uploadCompleted={uploadCompleted}
+                    uploadResponse={uploadResponse}
+                    onDownloadResponse={handleDownloadResponse}
                 />
             )}
         </>

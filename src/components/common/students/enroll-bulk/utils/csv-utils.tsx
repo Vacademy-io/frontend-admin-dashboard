@@ -10,18 +10,38 @@ type ParseResult = {
 
 // Utility to check if a date string matches the expected format
 export const isValidDateFormat = (dateStr: string, format: string): boolean => {
-    // Convert format patterns to regex patterns
-    const formatToRegex = (format: string): RegExp => {
-        const pattern = format
-            .replace(/DD/g, "(0[1-9]|[12][0-9]|3[01])")
-            .replace(/MM/g, "(0[1-9]|1[012])")
-            .replace(/YYYY/g, "\\d{4}")
-            .replace(/-/g, "\\-")
-            .replace(/\//g, "\\/");
-        return new RegExp(`^${pattern}$`);
-    };
+    // Normalize the format for case-insensitive comparison
+    const normalizedFormat = format.toUpperCase();
 
-    return formatToRegex(format).test(dateStr);
+    // Handle all date formats that are essentially DD-MM-YYYY
+    if (normalizedFormat === "DD-MM-YYYY" || normalizedFormat === "DD-MM-YYYY") {
+        // Validate dates in format XX-XX-XXXX where X is a digit
+        const regex = /^(\d{1,2})-(\d{1,2})-(\d{4})$/;
+        if (regex.test(dateStr)) {
+            const parts = dateStr.split("-");
+            if (parts.length === 3) {
+                const day = parseInt(parts[0] || "", 10);
+                const month = parseInt(parts[1] || "", 10);
+                const year = parseInt(parts[2] || "", 10);
+
+                // Check if the date is valid
+                return day >= 1 && day <= 31 && month >= 1 && month <= 12 && year > 0;
+            }
+        }
+        return false;
+    }
+
+    // For other formats, improve the regex pattern
+    let pattern = format;
+    // Case-insensitive replacements
+    pattern = pattern
+        .replace(/[Dd][Dd]/g, "(0[1-9]|[12][0-9]|3[01])")
+        .replace(/[Mm][Mm]/g, "(0[1-9]|1[012])")
+        .replace(/[Yy][Yy][Yy][Yy]/g, "\\d{4}")
+        .replace(/-/g, "\\-")
+        .replace(/\//g, "\\/");
+
+    return new RegExp(`^${pattern}$`).test(dateStr);
 };
 
 export const convertExcelDateToDesiredFormat = (

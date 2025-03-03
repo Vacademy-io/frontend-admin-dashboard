@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { CheckCircle } from "@phosphor-icons/react";
+import React, { useState } from "react";
+import { CheckCircle, X } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";
 import { ErrorDetailsDialog } from "./error-details-dialog";
 import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
 import { Row } from "@tanstack/react-table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface StatusColumnRendererProps {
     row: Row<SchemaFields>;
@@ -18,17 +19,66 @@ export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
 }) => {
     const [showErrorDialog, setShowErrorDialog] = useState(false);
     const rowIndex = row.index;
+    const rowData = row.original;
 
-    // Get the latest errors for this row
-    const rowErrors = csvErrors.filter((error) => error.path[0] === rowIndex);
-    const hasErrors = rowErrors.length > 0;
+    // Check if this is a post-upload row with API response status
+    const isPostUploadRow = rowData.STATUS !== undefined;
+    const apiSuccess = isPostUploadRow && rowData.STATUS === "true";
+    const apiError =
+        isPostUploadRow && !apiSuccess ? rowData.ERROR || rowData.STATUS_MESSAGE : null;
 
-    // Use useEffect to update the component when csvErrors changes
-    useEffect(() => {
-        // This will force a re-render when csvErrors changes
-    }, [csvErrors]);
+    // If this is a post-upload row, render based on API response
+    if (isPostUploadRow) {
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div className="flex justify-center">
+                            {apiSuccess ? (
+                                <CheckCircle className="h-6 w-6 text-success-500" weight="fill" />
+                            ) : (
+                                <div className="flex items-center justify-center">
+                                    <X className="h-6 w-6 text-danger-500" weight="bold" />
+                                </div>
+                            )}
+                        </div>
+                    </TooltipTrigger>
+                    {!apiSuccess && apiError && (
+                        <TooltipContent className="max-w-xs">
+                            <p className="text-sm text-danger-700">
+                                {typeof apiError === "string" && apiError.length > 100
+                                    ? apiError.substring(0, 97) + "..."
+                                    : apiError || "Upload failed"}
+                            </p>
+                        </TooltipContent>
+                    )}
+                </Tooltip>
 
-    if (!hasErrors) {
+                {!apiSuccess && showErrorDialog && (
+                    <ErrorDetailsDialog
+                        isOpen={showErrorDialog}
+                        onClose={() => setShowErrorDialog(false)}
+                        errors={[
+                            {
+                                path: [rowIndex, "ERROR"],
+                                message: "Upload failed",
+                                resolution: "Check the error details for more information",
+                                currentVal: String(apiError || "Unknown error"),
+                                format: "",
+                            },
+                        ]}
+                        rowData={rowData}
+                        isApiError={true}
+                    />
+                )}
+            </TooltipProvider>
+        );
+    }
+
+    // For pre-upload validation errors
+    const validationErrors = csvErrors.filter((error) => error.path[0] === rowIndex);
+
+    if (validationErrors.length === 0) {
         return (
             <div className="flex justify-center">
                 <CheckCircle className="h-6 w-6 text-success-500" weight="fill" />
@@ -45,7 +95,7 @@ export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
                     layoutVariant="default"
                     onClick={() => setShowErrorDialog(true)}
                 >
-                    Check errors ({rowErrors.length})
+                    Check errors ({validationErrors.length})
                 </MyButton>
             </div>
 
@@ -53,7 +103,7 @@ export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
                 <ErrorDetailsDialog
                     isOpen={showErrorDialog}
                     onClose={() => setShowErrorDialog(false)}
-                    errors={rowErrors}
+                    errors={validationErrors}
                     rowData={
                         (csvData && rowIndex >= 0 && rowIndex < csvData.length
                             ? csvData[rowIndex]
