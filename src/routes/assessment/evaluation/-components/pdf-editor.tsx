@@ -23,6 +23,9 @@ import { Rectangle, Star } from "phosphor-react";
 import { PDFDocument } from "pdf-lib";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import Evaluation from "./evaluation";
+import { FaCalculator } from "react-icons/fa6";
+import Calculator from "./calculator";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.mjs`;
 
@@ -36,6 +39,9 @@ const PDFEvaluator = () => {
     const [numPages, setNumPages] = useState<number>(0);
     const [pageNumber, setPageNumber] = useState(1);
     const [scale, setScale] = useState(1.0);
+    const [pagesVisited, setPagesVisited] = useState<number[]>([]);
+    const [docLoaded, setDocLoaded] = useState(false);
+    const [prevPageNumber, setPrevPageNumber] = useState(1);
 
     // Canvas states
     const [fabricCanvas, setFabricCanvas] = useState<Canvas | null>(null);
@@ -52,6 +58,8 @@ const PDFEvaluator = () => {
     const canvasRef = useRef(null);
     const canvasContainerRef = useRef<HTMLDivElement | null>(null);
     const pdfViewerRef = useRef<HTMLDivElement | null>(null);
+
+    const [openCalc, setOpenCalc] = useState(false);
 
     const tools = [
         {
@@ -71,6 +79,13 @@ const PDFEvaluator = () => {
             icon: <Trash2 className="size-4 text-red-600" />,
             label: "Delete",
             action: deleteSelectedShape,
+        },
+        {
+            icon: <FaCalculator className="size-4 text-red-600" />,
+            label: "Calculator",
+            action: () => {
+                setOpenCalc(true);
+            },
         },
     ];
 
@@ -111,17 +126,6 @@ const PDFEvaluator = () => {
         if (typeof e?.target?.files === "undefined" || e.target.files?.length === 0) return;
         // @ts-expect-error : //TODO: fix this
         handleFile(e.target.files[0] as File);
-    };
-
-    const clearSelection = () => {
-        setPdfFile(null);
-        setPdfUrl(null);
-        setError("");
-        setPageNumber(1);
-        setAnnotations({});
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ""; // Reset the file input to clear the selection
-        }
     };
 
     function deleteSelectedShape() {
@@ -168,22 +172,25 @@ const PDFEvaluator = () => {
         if (fabricCanvas) {
             // Save current page annotations before loading new ones
             const currentAnnotations = fabricCanvas.toJSON();
-            if (Object.keys(currentAnnotations.objects).length > 0) {
-                console.log("currentAnnotations", currentAnnotations);
-                console.log("annotations", annotations);
-                setAnnotations((prev) => ({
-                    ...prev,
-                    [pageNumber]: currentAnnotations,
-                }));
-            }
-            // Load annotations for the new page
+
+            // Always save the current state, even if it appears empty
+            setAnnotations((prev) => ({
+                ...prev,
+                [prevPageNumber]: currentAnnotations, // Use previous page number reference
+            }));
+
+            // Clear canvas for new page
             fabricCanvas.clear();
+
+            // Load annotations for the new page if they exist
             if (annotations[pageNumber]) {
-                console.log(pageNumber, annotations[pageNumber]);
                 fabricCanvas.loadFromJSON(annotations[pageNumber], () => {
                     fabricCanvas.requestRenderAll();
                 });
             }
+
+            // Update previous page reference
+            setPrevPageNumber(pageNumber);
         }
     }, [pageNumber]);
 
@@ -271,11 +278,19 @@ const PDFEvaluator = () => {
             const newPageNumber = prevPageNumber + offset;
             return Math.max(1, Math.min(newPageNumber, numPages));
         });
+        setPagesVisited((prev) => {
+            const newPagesVisited = [...prev, pageNumber];
+            return newPagesVisited;
+        });
     };
 
     const handleJumpPage = () => {
         if (jumpPage && jumpPage > 0 && jumpPage <= numPages) {
             setPageNumber(jumpPage);
+            setPagesVisited((prev) => {
+                const newPagesVisited = [...prev, pageNumber];
+                return newPagesVisited;
+            });
         }
     };
 
@@ -414,140 +429,143 @@ const PDFEvaluator = () => {
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            {/* Loading overlay */}
-            {isLoading && <LoadingOverlay />}
-
-            {/* Header with file info and download button */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <FileText className="size-5 text-blue-500" />
-                    <span>{pdfFile.name}</span>
-                    <span className="text-sm text-gray-500">
-                        ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
-                    </span>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={clearSelection}
-                        className="rounded px-3 py-1 text-red-500 hover:bg-red-50"
-                        disabled={isLoading}
-                    >
-                        Clear
-                    </button>
-                    <button
-                        onClick={downloadAnnotatedPDF}
-                        className="flex items-center gap-1 rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
-                        disabled={isLoading}
-                    >
-                        <Download className="size-4" />
-                        Download
-                    </button>
-                </div>
-            </div>
-
+        <div className="flex w-full">
             <div className="flex flex-col gap-4">
-                {/* Toolbar */}
-                <Card className="">
-                    <CardHeader>
-                        <CardTitle>Evaluation Tools</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-2">
-                        <div className="flex gap-2">
-                            {tools.map((tool, index) => (
-                                <Button
-                                    key={index}
-                                    onClick={tool.action}
-                                    className=""
-                                    disabled={isLoading}
-                                >
-                                    {tool.icon}
-                                </Button>
-                            ))}
-                        </div>
+                {/* Loading overlay */}
+                {isLoading && <LoadingOverlay />}
 
-                        <div className="flex gap-2">
-                            {numbers.map(({ value, action }) => (
-                                <Button
-                                    key={value}
-                                    onClick={action}
-                                    className=""
-                                    disabled={isLoading}
-                                >
-                                    {value}
-                                </Button>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Header with file info and download button */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <FileText className="size-5 text-blue-500" />
+                        <span>{pdfFile.name}</span>
+                        <span className="text-sm text-gray-500">
+                            ({(pdfFile.size / (1024 * 1024)).toFixed(2)} MB)
+                        </span>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={downloadAnnotatedPDF}
+                            className="flex items-center gap-1 rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
+                            disabled={isLoading}
+                        >
+                            <Download className="size-4" />
+                            Download
+                        </button>
+                    </div>
+                </div>
 
-                {/* PDF Viewer */}
-                <Card className="flex-1">
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Answer Sheet Evaluation</CardTitle>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => changePage(-1)}
-                                    disabled={pageNumber <= 1 || isLoading}
-                                    className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
-                                >
-                                    <ChevronLeft className="size-5" />
-                                </button>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="number"
-                                        value={jumpPage}
-                                        onChange={(e) => setJumpPage(Number(e.target.value))}
-                                        placeholder="Jump to page"
-                                        className="w-16 rounded border p-1"
-                                        disabled={isLoading}
-                                    />
+                <div className="flex flex-col gap-4">
+                    {/* Toolbar */}
+                    <Card className="">
+                        <CardHeader>
+                            <CardTitle>Evaluation Tools</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                                {tools.map((tool, index) => (
                                     <Button
-                                        onClick={handleJumpPage}
-                                        variant={"secondary"}
-                                        size={"sm"}
+                                        key={index}
+                                        onClick={tool.action}
+                                        className=""
                                         disabled={isLoading}
                                     >
-                                        Go
+                                        {tool.icon}
                                     </Button>
+                                ))}
+                            </div>
+
+                            <div className="flex gap-2">
+                                {numbers.map(({ value, action }) => (
+                                    <Button
+                                        key={value}
+                                        onClick={action}
+                                        className=""
+                                        disabled={isLoading}
+                                    >
+                                        {value}
+                                    </Button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* PDF Viewer */}
+                    <Card className="flex-1">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Answer Sheet Evaluation</CardTitle>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => changePage(-1)}
+                                        disabled={pageNumber <= 1 || isLoading}
+                                        className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
+                                    >
+                                        <ChevronLeft className="size-5" />
+                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            type="number"
+                                            value={jumpPage}
+                                            onChange={(e) => setJumpPage(Number(e.target.value))}
+                                            placeholder="Jump to page"
+                                            className="w-16 rounded border p-1"
+                                            disabled={isLoading}
+                                        />
+                                        <Button
+                                            onClick={handleJumpPage}
+                                            variant={"secondary"}
+                                            size={"sm"}
+                                            disabled={isLoading}
+                                        >
+                                            Go
+                                        </Button>
+                                    </div>
+                                    <span>
+                                        Page {pageNumber} of {numPages || "--"}
+                                    </span>
+                                    <button
+                                        onClick={() => changePage(1)}
+                                        disabled={pageNumber >= numPages || isLoading}
+                                        className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
+                                    >
+                                        <ChevronRight className="size-5" />
+                                    </button>
                                 </div>
-                                <span>
-                                    Page {pageNumber} of {numPages || "--"}
-                                </span>
-                                <button
-                                    onClick={() => changePage(1)}
-                                    disabled={pageNumber >= numPages || isLoading}
-                                    className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
-                                >
-                                    <ChevronRight className="size-5" />
-                                </button>
                             </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div ref={pdfViewerRef} className="relative">
-                            <div ref={canvasContainerRef} className="relative rounded-lg">
-                                <Document
-                                    file={pdfUrl}
-                                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                                    onLoadError={(error) => console.log(error)}
-                                    className="absolute min-w-fit"
-                                >
-                                    <Page
-                                        pageNumber={pageNumber}
-                                        scale={scale}
-                                        renderTextLayer={false}
-                                        renderAnnotationLayer={false}
-                                        className="max-h-fit shadow-lg"
+                        </CardHeader>
+                        <CardContent>
+                            <div ref={pdfViewerRef} className="relative">
+                                <div ref={canvasContainerRef} className="relative rounded-lg">
+                                    <Document
+                                        file={pdfUrl}
+                                        onLoadSuccess={({ numPages }) => {
+                                            setNumPages(numPages);
+                                            setDocLoaded(true);
+                                        }}
+                                        onLoadError={(error) => console.log(error)}
+                                        className="absolute min-w-fit"
+                                    >
+                                        <Page
+                                            pageNumber={pageNumber}
+                                            scale={scale}
+                                            renderTextLayer={false}
+                                            renderAnnotationLayer={false}
+                                            className="max-h-fit shadow-lg"
+                                        />
+                                    </Document>
+                                    <canvas
+                                        ref={canvasRef}
+                                        className="absolute left-0 top-0 z-10"
                                     />
-                                </Document>
-                                <canvas ref={canvasRef} className="absolute left-0 top-0 z-10" />
+                                </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
+            {docLoaded && <Evaluation totalPages={numPages} pagesVisited={pagesVisited} />}
+            {openCalc && <Calculator open={openCalc} onOpenChange={setOpenCalc} />}
         </div>
     );
 };
