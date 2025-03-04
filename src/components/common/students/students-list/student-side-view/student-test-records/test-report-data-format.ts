@@ -1,4 +1,4 @@
-import { TestReport } from "../student-view-dummy-data/test-record";
+import { TestReport } from "./test-record-type";
 
 export const TestReportDataFormat = (testReport: TestReport) => {
     const responseData = [

@@ -8,7 +8,6 @@ import { ActivityStatus } from "../types/chips-types";
 import { StatusChips } from "../../chips";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ActivityLogType } from "@/components/common/students/students-list/student-side-view/student-view-dummy-data/learning-progress";
 import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { useState } from "react";
@@ -17,6 +16,25 @@ import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
+}
+
+export interface ActivityLogType {
+    activityDate: string;
+    startTime: string;
+    endTime: string;
+    duration: string;
+    lastPageRead: number;
+    videos: {
+        id: string;
+        start_time_in_millis: number;
+        end_time_in_millis: number;
+    }[];
+    documents: {
+        id: string;
+        start_time_in_millis: number;
+        end_time_in_millis: number;
+        page_number: number;
+    }[];
 }
 
 const BatchCell = ({ package_session_id }: { package_session_id: string }) => {

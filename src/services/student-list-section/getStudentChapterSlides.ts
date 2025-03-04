@@ -1,5 +1,7 @@
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { GET_STUDENT_SLIDE_PROGRESS } from "@/constants/urls";
+import { useQuery } from "@tanstack/react-query";
+import { SlideWithProgressType } from "@/types/students/student-slides-progress-type";
 
 export const fetchStudentSlidesProgress = async (userId: string, chapterId: string) => {
     const response = await authenticatedAxiosInstance.get(GET_STUDENT_SLIDE_PROGRESS, {
@@ -18,12 +20,12 @@ export const useStudentSlidesProgressQuery = ({
     userId: string;
     chapterId: string;
 }) => {
-    return {
+    return useQuery<SlideWithProgressType | null>({
         queryKey: ["GET_STUDENT_SLIDES_PROGRESS", userId, chapterId],
         queryFn: async () => {
             const data = await fetchStudentSlidesProgress(userId, chapterId);
             return data;
         },
         staleTime: 3600000,
-    };
+    });
 };
