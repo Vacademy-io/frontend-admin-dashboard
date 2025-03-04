@@ -176,8 +176,6 @@ export const Step2SectionInfo = ({
         }
     }, [watch(`section.${index}`)]);
 
-    console.log(getValues(`section.${index}`));
-
     if (isLoading || adaptiveMarking.isLoading) return <DashboardLoader />;
 
     return (
