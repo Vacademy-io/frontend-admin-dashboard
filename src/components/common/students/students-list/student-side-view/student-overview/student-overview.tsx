@@ -5,7 +5,7 @@ import { PencilSimpleLine } from "@phosphor-icons/react";
 import { ProgressBar } from "@/components/design-system/progress-bar";
 import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
 import { useEffect, useState } from "react";
-import { OverViewData, OverviewDetailsType } from "../student-view-dummy-data/overview";
+import { OverViewData, OverviewDetailsType } from "./overview";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export const StudentOverview = () => {

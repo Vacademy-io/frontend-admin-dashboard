@@ -5,6 +5,7 @@ import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
 import { useStudentSlidesProgressQuery } from "@/services/student-list-section/getStudentChapterSlides";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SlideWithStatusType } from "@/types/students/student-slides-progress-type";
+import { Topic } from "./topic";
 
 export interface slideType {
     id: string;
@@ -37,10 +38,8 @@ export const TopicDetails = ({ chapterDetails }: { chapterDetails: ChapterWithPr
         const videos = SlideWithProgress?.filter((slide) => slide.video_url == null) || null;
         setDocumentSlides(documents);
         setVideoSlides(videos);
-        const slide = slideTypes[0];
-        setSelectedSlideType(slide || null);
-        console.log("selected slide type: ", selectedSlideType);
-    }, [chapterDetails]);
+        setSelectedSlideType(slideTypes[0] || null);
+    }, [chapterDetails, SlideWithProgress]);
 
     if (isLoading) return <DashboardLoader />;
     if (isError || error) return <p>Error getting slides</p>;
@@ -63,7 +62,11 @@ export const TopicDetails = ({ chapterDetails }: { chapterDetails: ChapterWithPr
                             </div>
                         ))}
                     </div>
-                    <div></div>
+                    <div className="flex flex-col gap-3">
+                        {selectedSlideType?.slides?.map((slide, index) => (
+                            <Topic key={index} slideData={slide} />
+                        ))}
+                    </div>
                 </div>
             )}
         </>
