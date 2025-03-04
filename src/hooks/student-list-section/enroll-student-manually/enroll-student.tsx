@@ -12,38 +12,6 @@ import {
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 
-// Define the request schema
-// const enrollStudentRequestSchema = z.object({
-//   user_details: z.object({
-//     username: z.string(),
-//     email: z.string(),
-//     full_name: z.string(),
-//     address_line: z.string(),
-//     city: z.string(),
-//     mobile_number: z.string(),
-//     date_of_birth: z.string(),
-//     gender: z.string(),
-//     password: z.string(),
-//     profile_pic_file_id: z.string().optional(),
-//     roles: z.array(z.string()),
-//     root_user: z.boolean()
-//   }),
-//   student_extra_details: z.object({
-//     fathers_name: z.string(),
-//     mothers_name: z.string(),
-//     parents_mobile_number: z.string(),
-//     parents_email: z.string(),
-//     linked_institute_name: z.string()
-//   }),
-//   institute_student_details: z.object({
-//     institute_id: z.string(),
-//     package_session_id: z.string(),
-//     enrollment_id: z.string(),
-//     enrollment_status: z.string(),
-//     enrollment_date: z.string(),
-//   })
-// });
-
 interface EnrollStudentParams {
     formData: {
         stepOneData: StepOneData | null;

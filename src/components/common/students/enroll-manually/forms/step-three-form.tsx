@@ -10,6 +10,8 @@ import { MyDropdown } from "@/components/design-system/dropdown";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepThreeData, stepThreeSchema } from "@/types/students/schema-enroll-students-manually";
+import PhoneInputField from "@/components/design-system/phone-input-field";
+import { useEffect } from "react";
 
 export const StepThreeForm = () => {
     const { stepThreeData, setStepThreeData, nextStep } = useFormStore();
@@ -32,6 +34,10 @@ export const StepThreeForm = () => {
         nextStep();
     };
 
+    useEffect(() => {
+        console.log("mobile field: ", form.getValues("mobileNumber"));
+    }, [form.watch("mobileNumber")]);
+
     return (
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
@@ -48,20 +54,15 @@ export const StepThreeForm = () => {
                             <FormField
                                 control={form.control}
                                 name="mobileNumber"
-                                render={({ field: { onChange, value, ...field } }) => (
+                                render={() => (
                                     <FormItem>
                                         <FormControl>
-                                            <MyInput
-                                                inputType="tel"
+                                            <PhoneInputField
                                                 label="Mobile Number"
-                                                inputPlaceholder="123 456 7890"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={form.formState.errors.mobileNumber?.message}
-                                                required={true}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
+                                                placeholder="123 456 7890"
+                                                name="mobileNumber"
+                                                control={form.control}
+                                                country="in"
                                             />
                                         </FormControl>
                                     </FormItem>

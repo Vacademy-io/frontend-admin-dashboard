@@ -9,6 +9,7 @@ import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepFourData, stepFourSchema } from "@/types/students/schema-enroll-students-manually";
+import PhoneInputField from "@/components/design-system/phone-input-field";
 
 export const StepFourForm = () => {
     const { stepFourData, setStepFourData, nextStep } = useFormStore();
@@ -135,23 +136,15 @@ export const StepFourForm = () => {
                             <FormField
                                 control={form.control}
                                 name="guardianMobileNumber"
-                                render={({ field: { onChange, value, ...field } }) => (
+                                render={() => (
                                     <FormItem>
                                         <FormControl>
-                                            <MyInput
-                                                inputType="tel"
+                                            <PhoneInputField
                                                 label="Parent/Guardian's Mobile Number"
-                                                inputPlaceholder="123 456 7890"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={
-                                                    form.formState.errors.guardianMobileNumber
-                                                        ?.message
-                                                }
-                                                required={true}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
+                                                placeholder="123 456 7890"
+                                                name="guardianMobileNumber"
+                                                control={form.control}
+                                                country="in"
                                             />
                                         </FormControl>
                                     </FormItem>

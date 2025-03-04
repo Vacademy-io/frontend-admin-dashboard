@@ -1,13 +1,8 @@
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { EnrollManuallyButton } from "./enroll-manually/enroll-manually-button";
 import { EnrollBulkButton } from "./enroll-bulk/enroll-bulk-button";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 export const EnrollStudentsButton = () => {
     return (
@@ -23,7 +18,7 @@ export const EnrollStudentsButton = () => {
                 </MyButton>
             </DialogTrigger>
             <DialogContent className="p-0 font-normal">
-                <DialogHeader>
+                <DialogTitle>
                     <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
                         Enroll Students
                     </div>
@@ -34,7 +29,7 @@ export const EnrollStudentsButton = () => {
                         </MyButton>
                         <EnrollBulkButton />
                     </DialogDescription>
-                </DialogHeader>
+                </DialogTitle>
             </DialogContent>
         </Dialog>
     );

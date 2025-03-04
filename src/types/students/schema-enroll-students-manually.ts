@@ -27,7 +27,7 @@ export const stepTwoSchema = z.object({
 
 // Step Three Schema
 export const stepThreeSchema = z.object({
-    mobileNumber: z.string().regex(/^\d{10}$/, "Mobile number must be 10 digits"),
+    mobileNumber: z.string(),
     email: z.string().email("Invalid email format"),
     state: z.string().min(1, "State is required"),
     city: z.string().min(1, "City is required"),
