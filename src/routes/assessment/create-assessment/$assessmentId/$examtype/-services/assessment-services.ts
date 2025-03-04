@@ -98,6 +98,39 @@ export const getQuestionDataForSection = ({
     };
 };
 
+function getTestBoundation(
+    testType: string | undefined,
+    liveDateRange: { startDate?: string; endDate?: string },
+) {
+    switch (testType) {
+        case "LIVE":
+            return {
+                start_date: convertToUTC(liveDateRange.startDate || ""),
+                end_date: convertToUTC(liveDateRange.endDate || ""),
+            };
+        case "SURVEY":
+            return {
+                start_date: convertToUTC(liveDateRange.startDate || ""),
+                end_date: convertToUTC(liveDateRange.endDate || ""),
+            };
+        case "PRACTICE":
+            return {
+                start_date: new Date().toISOString(),
+                end_date: new Date("9999-12-31T23:59:59.999Z").toISOString(),
+            };
+        case "MOCK":
+            return {
+                start_date: new Date().toISOString(),
+                end_date: new Date("9999-12-31T23:59:59.999Z").toISOString(),
+            };
+        default:
+            return {
+                start_date: convertToUTC(liveDateRange.startDate || ""),
+                end_date: convertToUTC(liveDateRange.endDate || ""),
+            };
+    }
+}
+
 export const handlePostStep1Data = async (
     data: z.infer<typeof BasicInfoFormSchema>,
     assessmentId: string | null | undefined,
@@ -111,10 +144,7 @@ export const handlePostStep1Data = async (
             subject_id: data.testCreation.subject,
             assessment_instructions_html: data.testCreation.assessmentInstructions,
         },
-        test_boundation: {
-            start_date: convertToUTC(data.testCreation.liveDateRange.startDate || ""),
-            end_date: convertToUTC(data.testCreation.liveDateRange.endDate || ""),
-        },
+        test_boundation: getTestBoundation(type, data.testCreation.liveDateRange),
         assessment_preview_time: data.assessmentPreview.checked
             ? parseInt(data.assessmentPreview.previewTimeLimit)
             : 0,

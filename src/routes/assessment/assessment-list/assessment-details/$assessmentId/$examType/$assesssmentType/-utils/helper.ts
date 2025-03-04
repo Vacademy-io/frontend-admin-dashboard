@@ -68,6 +68,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 if (selectedTab === "Attempted") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .date,
@@ -81,6 +82,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 } else if (selectedTab === "Ongoing") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
@@ -88,6 +90,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 } else if (selectedTab === "Pending") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                     };
                 }
@@ -100,6 +103,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 if (selectedTab === "Attempted") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         package_session_id: getBatchNameById(
                             batches_for_sessions,
@@ -117,6 +121,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 } else if (selectedTab === "Ongoing") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
@@ -124,6 +129,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 } else if (selectedTab === "Pending") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                     };
                 }
@@ -874,4 +880,11 @@ export function getCorrectOptionsForQuestion(options: MySingleChoiceOption[]) {
                 : null,
         )
         .filter((option) => option !== null);
+}
+
+export function transformQuestionsDataToRevaluateAPI(data: { [sectionId: string]: string[] }) {
+    return Object.entries(data).map(([section_id, question_ids]) => ({
+        section_id,
+        question_ids,
+    }));
 }

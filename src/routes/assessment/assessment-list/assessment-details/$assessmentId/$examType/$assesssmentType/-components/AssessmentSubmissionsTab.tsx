@@ -2,7 +2,6 @@
 // @ts-nocheck
 
 import { useEffect, useState } from "react";
-import { MyTable } from "@/components/design-system/table";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +17,7 @@ import { getInstituteId } from "@/constants/helper";
 import { getAdminParticipants } from "../-services/assessment-details-services";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise, Export } from "phosphor-react";
+import { ArrowCounterClockwise, Export, WarningCircle } from "phosphor-react";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
@@ -29,6 +28,11 @@ import AssessmentSubmissionsFilterButtons from "./AssessmentSubmissionsFilterBut
 import { StudentSidebar } from "@/components/common/students/students-list/student-side-view/student-side-view";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { StudentSidebarContext } from "@/context/selected-student-sidebar-context";
+import { BulkActions } from "./bulk-actions/bulk-actions";
+import { AssessmentSubmissionsStudentTable } from "./AssessmentSubmissionsStudentTable";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import AssessmentGlobalLevelRevaluateAssessment from "./assessment-global-level-revaluate/assessment-global-level-revaluate-assessment";
+import { AssessmentGlobalLevelRevaluateQuestionWise } from "./assessment-global-level-revaluate/assessment-global-level-revaluate-question-wise";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -72,6 +76,10 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const currentPageSelection = rowSelections[page] || {};
+    const totalSelectedCount = Object.values(rowSelections).reduce(
+        (count, pageSelection) => count + Object.keys(pageSelection).length,
+        0,
+    );
 
     const [attemptedCount, setAttemptedCount] = useState(0);
     const [ongoingCount, setOngoingCount] = useState(0);
@@ -99,6 +107,8 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         },
     });
 
+    const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
+
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
         const newSelection =
             typeof updaterOrValue === "function"
@@ -109,6 +119,26 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
             ...prev,
             [page]: newSelection,
         }));
+    };
+
+    const handleResetSelections = () => {
+        setRowSelections({});
+    };
+
+    const getSelectedStudents = (): StudentTable[] => {
+        return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
+            const pageData = allPagesData[parseInt(pageNum)];
+            if (!pageData) return [];
+
+            return Object.entries(selections)
+                .filter(([, isSelected]) => isSelected)
+                .map(([index]) => pageData[parseInt(index)])
+                .filter((student): student is StudentTable => student !== undefined);
+        });
+    };
+
+    const getSelectedStudentIds = (): string[] => {
+        return getSelectedStudents().map((student) => student.user_id);
     };
 
     const getAssessmentColumn = {
@@ -670,6 +700,15 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, []);
 
+    useEffect(() => {
+        if (participantsData?.content) {
+            setAllPagesData((prev) => ({
+                ...prev,
+                [page]: participantsData.content,
+            }));
+        }
+    }, [participantsData?.content, page]);
+
     if (isParticipantsLoading) return <DashboardLoader />;
 
     return (
@@ -832,51 +871,119 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     </div>
                 </div>
                 {selectedParticipantsTab === "internal" && (
-                    <Tabs
-                        value={batchSelectionTab}
-                        onValueChange={handleBatchSeletectionTab}
-                        className="flex w-full flex-col gap-4"
-                    >
-                        <TabsList className="mb-2 ml-4 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
-                            <TabsTrigger
-                                value="batch"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    batchSelectionTab === "batch"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
-                                        batchSelectionTab === "batch" ? "text-primary-500" : ""
+                    <div className="flex items-center justify-between">
+                        <Tabs
+                            value={batchSelectionTab}
+                            onValueChange={handleBatchSeletectionTab}
+                            className="flex w-fit flex-col gap-4"
+                        >
+                            <TabsList className="mb-2 ml-4 mt-6 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                                <TabsTrigger
+                                    value="batch"
+                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                        batchSelectionTab === "batch"
+                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                            : "border-none bg-transparent"
                                     }`}
                                 >
-                                    Batch Selection
-                                </span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="individual"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    batchSelectionTab === "individual"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
-                                        batchSelectionTab === "individual" ? "text-primary-500" : ""
+                                    <span
+                                        className={`${
+                                            batchSelectionTab === "batch" ? "text-primary-500" : ""
+                                        }`}
+                                    >
+                                        Batch Selection
+                                    </span>
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="individual"
+                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                        batchSelectionTab === "individual"
+                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                            : "border-none bg-transparent"
                                     }`}
                                 >
-                                    Individual Selection
-                                </span>
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                                    <span
+                                        className={`${
+                                            batchSelectionTab === "individual"
+                                                ? "text-primary-500"
+                                                : ""
+                                        }`}
+                                    >
+                                        Individual Selection
+                                    </span>
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                        {selectedTab === "Attempted" && (
+                            <div className="mt-2 flex justify-between gap-6">
+                                <Dialog>
+                                    <DialogTrigger>
+                                        <MyButton
+                                            type="button"
+                                            scale="large"
+                                            buttonType="secondary"
+                                            className="font-medium"
+                                        >
+                                            Revaluate
+                                        </MyButton>
+                                    </DialogTrigger>
+                                    <DialogContent className="p-0">
+                                        <h1 className="rounded-t-lg bg-primary-50 p-4 text-primary-500">
+                                            Revaluate Result
+                                        </h1>
+                                        <div className="flex flex-col items-center justify-center gap-4 p-4">
+                                            <AssessmentGlobalLevelRevaluateAssessment />
+                                            <AssessmentGlobalLevelRevaluateQuestionWise />
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                                <Dialog>
+                                    <DialogTrigger>
+                                        <MyButton
+                                            type="button"
+                                            scale="large"
+                                            buttonType="secondary"
+                                            className="font-medium"
+                                        >
+                                            Release Result
+                                        </MyButton>
+                                    </DialogTrigger>
+                                    <DialogContent className="flex flex-col p-0">
+                                        <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
+                                            Release Result For All Students
+                                        </h1>
+                                        <div className="flex flex-col gap-2 p-4">
+                                            <div className="flex items-center text-danger-600">
+                                                <p>Attention</p>
+                                                <WarningCircle size={18} />
+                                            </div>
+                                            <h1>
+                                                Are you sure you want to release result for all
+                                                students?
+                                            </h1>
+                                            <div className="flex justify-end">
+                                                <DialogClose>
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="large"
+                                                        buttonType="primary"
+                                                        className="mt-4 font-medium"
+                                                    >
+                                                        Yes
+                                                    </MyButton>
+                                                </DialogClose>
+                                            </div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+                        )}
+                    </div>
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
                     <TabsContent value={selectedTab}>
                         <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
-                            <MyTable
+                            <AssessmentSubmissionsStudentTable
                                 data={{
                                     content: getAssessmentSubmissionsFilteredDataStudentData(
                                         participantsData.content,
@@ -907,11 +1014,20 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             <StudentSidebar selectedTab={selectedTab} examType={examType} />
                         </SidebarProvider>
                     </TabsContent>
-                    <MyPagination
-                        currentPage={page}
-                        totalPages={participantsData.total_pages}
-                        onPageChange={handlePageChange}
-                    />
+                    <div className="flex justify-between">
+                        <BulkActions
+                            selectedCount={totalSelectedCount}
+                            selectedStudentIds={getSelectedStudentIds()}
+                            selectedStudents={getSelectedStudents()}
+                            onReset={handleResetSelections}
+                            selectedTab={selectedTab}
+                        />
+                        <MyPagination
+                            currentPage={page}
+                            totalPages={participantsData.total_pages}
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
                 </div>
             </Tabs>
         </StudentSidebarContext.Provider>

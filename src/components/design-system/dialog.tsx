@@ -26,9 +26,9 @@ export const MyDialog = ({
             <DialogTrigger asChild>{trigger}</DialogTrigger>
             <DialogContent className={`${dialogWidth} p-0 font-normal`}>
                 <DialogHeader>
-                    <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
+                    <h1 className="rounded-t-lg bg-primary-50 px-6 py-4 font-semibold text-primary-500">
                         {heading}
-                    </div>
+                    </h1>
                     <DialogDescription asChild className=" ">
                         <div className="p-3">{children || content}</div>
                     </DialogDescription>
