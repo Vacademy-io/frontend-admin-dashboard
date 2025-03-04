@@ -23,6 +23,8 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { ScheduleTestTab } from "@/types/assessments/assessment-list";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -40,6 +42,7 @@ export interface SelectedQuestionPaperFilters {
 
 export const ScheduleTestMainComponent = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const [isOpen, setIsOpen] = useState(false);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { setNavHeading } = useNavHeadingStore();
@@ -49,6 +52,7 @@ export const ScheduleTestMainComponent = () => {
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
     const { AssessmentTypeData, AssessmentStatusData, ModeData } =
         useFilterDataForAssesmentInitData(initAssessmentData);
+    const { getCourseFromPackage } = useInstituteDetailsStore();
 
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] =
         useState<SelectedQuestionPaperFilters>({
@@ -360,6 +364,13 @@ export const ScheduleTestMainComponent = () => {
         setNavHeading(<h1 className="text-lg">Assessments List</h1>);
     }, []);
 
+    useEffect(() => {
+        const courseList = getCourseFromPackage();
+        if (courseList.length === 0) {
+            setIsOpen(true);
+        }
+    }, []);
+
     if (isLoading) return <DashboardLoader />;
     return (
         <>
@@ -449,6 +460,7 @@ export const ScheduleTestMainComponent = () => {
                     ))}
                 </Tabs>
             </div>
+            <NoCourseDialog type={"Creating assessment"} isOpen={isOpen} setIsOpen={setIsOpen} />
         </>
     );
 };
