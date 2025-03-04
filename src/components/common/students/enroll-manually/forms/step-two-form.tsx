@@ -181,7 +181,7 @@ export const StepTwoForm = () => {
                                                     currentValue={value.name}
                                                     dropdownList={levelList}
                                                     handleChange={onChange}
-                                                    placeholder="Select Session"
+                                                    placeholder="Select Level"
                                                 />
                                             </div>
                                         </FormControl>

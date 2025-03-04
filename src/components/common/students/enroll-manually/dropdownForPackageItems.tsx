@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CaretDown, CaretUp, CaretRight } from "@phosphor-icons/react";
 import {
     DropdownMenu,
@@ -33,6 +33,19 @@ export const MyDropdown = ({
     disable,
 }: myDropDownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        // Auto-select the only item if dropdownList has exactly one item and no current value is set
+        if (dropdownList.length === 1) {
+            const singleItem = dropdownList[0];
+            if (handleChange) {
+                singleItem && handleChange(singleItem);
+            }
+            if (onSelect) {
+                singleItem && onSelect(singleItem);
+            }
+        }
+    }, [dropdownList]);
 
     const handleValueChange = (value: string | DropdownItem | DropdownItemType) => {
         if (handleChange) {
