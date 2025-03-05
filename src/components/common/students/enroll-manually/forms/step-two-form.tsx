@@ -318,14 +318,18 @@ export const StepTwoForm = () => {
                                             <MyInput
                                                 inputType="number"
                                                 label="Enter access days"
-                                                inputPlaceholder="365"
+                                                inputPlaceholder="Eg. 365"
                                                 input={value}
-                                                onChangeFunction={onChange}
+                                                onChangeFunction={(e) =>
+                                                    onChange(Math.floor(Number(e.target.value)))
+                                                }
                                                 error={form.formState.errors.accessDays?.message}
                                                 required={true}
                                                 size="large"
                                                 className="w-full"
                                                 {...field}
+                                                step="1"
+                                                min="1"
                                             />
                                         </FormControl>
                                     </FormItem>

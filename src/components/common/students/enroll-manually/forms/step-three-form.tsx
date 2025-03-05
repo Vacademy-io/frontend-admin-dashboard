@@ -100,7 +100,7 @@ export const StepThreeForm = () => {
                                             <MyInput
                                                 inputType="text"
                                                 label="Address Line"
-                                                inputPlaceholder="Enter your address"
+                                                inputPlaceholder="Eg. 38, South Avenue, Central Perk"
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 size="large"
@@ -120,8 +120,8 @@ export const StepThreeForm = () => {
                                         <FormControl>
                                             <MyInput
                                                 inputType="text"
-                                                label="City"
-                                                inputPlaceholder="Enter your city"
+                                                label="City/Village"
+                                                inputPlaceholder="Eg. Mumbai"
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 size="large"
@@ -142,7 +142,7 @@ export const StepThreeForm = () => {
                                             <MyInput
                                                 inputType="text"
                                                 label="State"
-                                                inputPlaceholder="Enter your state"
+                                                inputPlaceholder="Eg. Maharashtra"
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 size="large"
@@ -162,7 +162,7 @@ export const StepThreeForm = () => {
                                             <MyInput
                                                 inputType="number"
                                                 label="Pincode"
-                                                inputPlaceholder="Enter your pincode"
+                                                inputPlaceholder="Eg.425562"
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 size="large"

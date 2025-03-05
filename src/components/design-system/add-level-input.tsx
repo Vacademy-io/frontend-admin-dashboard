@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { Plus, X } from "@phosphor-icons/react";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 interface AddLevelInputProps {
     newLevelName: string;
@@ -9,7 +9,6 @@ interface AddLevelInputProps {
     newLevelDuration: number | null;
     setNewLevelDuration: Dispatch<SetStateAction<number | null>>;
     handleAddLevel: (levelName: string, durationInDays: number | null) => void;
-    setShowNewLevelInput: Dispatch<SetStateAction<boolean>>;
 }
 
 export const AddLevelInput = ({
@@ -18,57 +17,77 @@ export const AddLevelInput = ({
     newLevelDuration,
     setNewLevelDuration,
     handleAddLevel,
-    setShowNewLevelInput,
 }: AddLevelInputProps) => {
+    const [showNewLevelInput, setShowNewLevelInput] = useState(false);
     return (
-        <div className="ml-3 flex items-end gap-4">
-            <div className="flex flex-col gap-4">
-                <MyInput
-                    inputType="text"
-                    inputPlaceholder="Enter level name"
-                    className="w-[230px]"
-                    input={newLevelName}
-                    onChangeFunction={(e) => setNewLevelName(e.target.value)}
-                    required={true}
-                    label="Level"
-                />
-                <MyInput
-                    inputType="number"
-                    inputPlaceholder="Duration (days)"
-                    className="w-[200px]"
-                    input={newLevelDuration?.toString() || ""}
-                    onChangeFunction={(e) => setNewLevelDuration(Number(e.target.value))}
-                    required={true}
-                    label="Days"
-                />
-            </div>
-            <div className="flex items-center gap-4">
+        <>
+            {showNewLevelInput ? (
+                <div className="ml-3 flex items-end gap-4">
+                    <div className="flex flex-col gap-4">
+                        <MyInput
+                            inputType="text"
+                            inputPlaceholder="Eg. 10th standard"
+                            className="w-[230px]"
+                            input={newLevelName}
+                            onChangeFunction={(e) => setNewLevelName(e.target.value)}
+                            required={true}
+                            label="Level"
+                        />
+                        <MyInput
+                            inputType="number"
+                            inputPlaceholder="Eg. 365 days"
+                            className="w-[200px]"
+                            input={newLevelDuration?.toString() || ""}
+                            onChangeFunction={(e) =>
+                                setNewLevelDuration(Math.floor(Number(e.target.value)))
+                            }
+                            required={true}
+                            label="Days"
+                            step="1"
+                            min="1"
+                        />
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <MyButton
+                            onClick={() => {
+                                if (newLevelName) {
+                                    handleAddLevel(newLevelName, newLevelDuration);
+                                    setNewLevelName("");
+                                    setNewLevelDuration(null);
+                                    setShowNewLevelInput(false);
+                                }
+                            }}
+                            buttonType="primary"
+                            layoutVariant="icon"
+                            scale="small"
+                            type="button"
+                        >
+                            <Plus />
+                        </MyButton>
+                        <MyButton
+                            onClick={() => {
+                                setShowNewLevelInput(false);
+                            }}
+                            buttonType="secondary"
+                            layoutVariant="icon"
+                            scale="small"
+                            type="button"
+                        >
+                            <X />
+                        </MyButton>
+                    </div>
+                </div>
+            ) : (
                 <MyButton
-                    onClick={() => {
-                        if (newLevelName) {
-                            handleAddLevel(newLevelName, newLevelDuration);
-                            setNewLevelName("");
-                            setNewLevelDuration(null);
-                            setShowNewLevelInput(false);
-                        }
-                    }}
-                    buttonType="primary"
-                    layoutVariant="icon"
+                    onClick={() => setShowNewLevelInput(true)}
+                    buttonType="text"
+                    layoutVariant="default"
                     scale="small"
+                    className="w-fit text-primary-500 hover:bg-white active:bg-white"
                 >
-                    <Plus />
+                    <Plus /> Add Level
                 </MyButton>
-                <MyButton
-                    onClick={() => {
-                        setShowNewLevelInput(false);
-                    }}
-                    buttonType="secondary"
-                    layoutVariant="icon"
-                    scale="small"
-                >
-                    <X />
-                </MyButton>
-            </div>
-        </div>
+            )}
+        </>
     );
 };

@@ -13,7 +13,6 @@ import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtili
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DotsThree } from "@phosphor-icons/react";
-import { Plus } from "phosphor-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -21,6 +20,7 @@ import { AddLevelInput } from "../../../../design-system/add-level-input";
 import { AddSessionInput } from "../../../../design-system/add-session-input";
 import { LevelInSessionField } from "./level-field";
 import { SessionType } from "@/schemas/student/student-list/institute-schema";
+import { CourseInfoDialog } from "./course-info-dialog";
 
 // Updated Session interface with levels array
 export interface Session {
@@ -109,9 +109,7 @@ export const AddCourseForm = ({
         initialValues?.thumbnail_file_id || undefined,
     );
     const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
-    const [showNewLevelInput, setShowNewLevelInput] = useState(false);
     const [newLevelName, setNewLevelName] = useState("");
-    const [showNewSessionInput, setShowNewSessionInput] = useState(false);
     const [newSessionName, setNewSessionName] = useState("");
     const [disableAddButton, setDisableAddButton] = useState(false);
 
@@ -261,26 +259,31 @@ export const AddCourseForm = ({
                 }}
                 className="flex max-h-[80vh] flex-col gap-8 overflow-y-auto p-2 text-neutral-600"
             >
-                <FormField
-                    control={form.control}
-                    name="course_name"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                                <MyInput
-                                    label="Course"
-                                    required={true}
-                                    inputType="text"
-                                    inputPlaceholder="Enter course name"
-                                    className="w-full"
-                                    input={field.value}
-                                    onChangeFunction={(e) => field.onChange(e.target.value)}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="flex justify-between">
+                    <div className="w-full">
+                        <FormField
+                            control={form.control}
+                            name="course_name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MyInput
+                                            label="Course"
+                                            required={true}
+                                            inputType="text"
+                                            inputPlaceholder="Enter course name"
+                                            className="w-full"
+                                            input={field.value}
+                                            onChangeFunction={(e) => field.onChange(e.target.value)}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    <CourseInfoDialog />
+                </div>
 
                 <div
                     className={`relative flex w-full flex-col items-center justify-center gap-3 ${
@@ -418,6 +421,7 @@ export const AddCourseForm = ({
                                                                         buttonType="secondary"
                                                                         layoutVariant="icon"
                                                                         scale="small"
+                                                                        type="button"
                                                                     >
                                                                         <DotsThree />
                                                                     </MyButton>
@@ -437,68 +441,34 @@ export const AddCourseForm = ({
                                                                             field={field}
                                                                         />
                                                                     ))}
-                                                                    {showNewLevelInput ? (
-                                                                        <AddLevelInput
-                                                                            newLevelName={
-                                                                                newLevelName
-                                                                            }
-                                                                            setNewLevelName={
-                                                                                setNewLevelName
-                                                                            }
-                                                                            newLevelDuration={
-                                                                                newLevelDuration
-                                                                            }
-                                                                            setNewLevelDuration={
-                                                                                setNewLevelDuration
-                                                                            }
-                                                                            handleAddLevel={
-                                                                                handleAddLevel
-                                                                            }
-                                                                            setShowNewLevelInput={
-                                                                                setShowNewLevelInput
-                                                                            }
-                                                                        />
-                                                                    ) : (
-                                                                        <MyButton
-                                                                            onClick={() =>
-                                                                                setShowNewLevelInput(
-                                                                                    true,
-                                                                                )
-                                                                            }
-                                                                            buttonType="text"
-                                                                            layoutVariant="default"
-                                                                            scale="small"
-                                                                            className="w-fit text-primary-500 hover:bg-white active:bg-white"
-                                                                        >
-                                                                            <Plus /> Add Level
-                                                                        </MyButton>
-                                                                    )}
+                                                                    <AddLevelInput
+                                                                        newLevelName={newLevelName}
+                                                                        setNewLevelName={
+                                                                            setNewLevelName
+                                                                        }
+                                                                        newLevelDuration={
+                                                                            newLevelDuration
+                                                                        }
+                                                                        setNewLevelDuration={
+                                                                            setNewLevelDuration
+                                                                        }
+                                                                        handleAddLevel={
+                                                                            handleAddLevel
+                                                                        }
+                                                                    />
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 );
                                             })}
-                                            {showNewSessionInput ? (
-                                                <AddSessionInput
-                                                    newSessionName={newSessionName}
-                                                    setNewSessionName={setNewSessionName}
-                                                    newSessionStartDate={newSessionStartDate}
-                                                    setNewSessionStartDate={setNewSessionStartDate}
-                                                    handleAddSession={handleAddSession}
-                                                    setShowNewSessionInput={setShowNewSessionInput}
-                                                />
-                                            ) : (
-                                                <MyButton
-                                                    onClick={() => setShowNewSessionInput(true)}
-                                                    buttonType="text"
-                                                    layoutVariant="default"
-                                                    scale="small"
-                                                    className="w-fit text-primary-500 hover:bg-white active:bg-white"
-                                                >
-                                                    <Plus /> Add Session
-                                                </MyButton>
-                                            )}
+                                            <AddSessionInput
+                                                newSessionName={newSessionName}
+                                                setNewSessionName={setNewSessionName}
+                                                newSessionStartDate={newSessionStartDate}
+                                                setNewSessionStartDate={setNewSessionStartDate}
+                                                handleAddSession={handleAddSession}
+                                            />
                                         </div>
                                     </FormControl>
                                     <FormMessage />
