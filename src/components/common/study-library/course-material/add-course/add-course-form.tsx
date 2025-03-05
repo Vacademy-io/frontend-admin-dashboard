@@ -17,8 +17,8 @@ import { Plus } from "phosphor-react";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { AddLevelInput } from "./add-level-input";
-import { AddSessionInput } from "./add-session-input";
+import { AddLevelInput } from "../../../../design-system/add-level-input";
+import { AddSessionInput } from "../../../../design-system/add-session-input";
 import { LevelInSessionField } from "./level-field";
 import { SessionType } from "@/schemas/student/student-list/institute-schema";
 

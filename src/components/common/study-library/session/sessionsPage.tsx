@@ -16,7 +16,7 @@ export function SessionsPage() {
     return (
         <div>
             <SessionHeader></SessionHeader>
-            <div className="my-10 flex flex-col gap-6">
+            <div className="my-10 flex flex-col gap-6 text-neutral-600">
                 {sessionData?.map((session, idx) => <SessionCard key={idx} data={session} />)}
             </div>
         </div>

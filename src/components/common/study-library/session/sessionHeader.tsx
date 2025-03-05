@@ -1,9 +1,8 @@
-import { MyButton } from "@/components/design-system/button";
-import { Plus } from "phosphor-react";
+import { AddSessionDialog } from "./session-operations/add-session/add-session-dialog";
 
 export default function SessionHeader() {
     return (
-        <div className="flex flex-row gap-6">
+        <div className="flex flex-row gap-6 text-neutral-600">
             <div className="flex flex-col gap-2">
                 <div className="text-xl font-[600]">Manage Your Sessions</div>
                 <div className="text-base">
@@ -13,10 +12,7 @@ export default function SessionHeader() {
                 </div>
             </div>
             <div>
-                <MyButton>
-                    {" "}
-                    <Plus /> Add New Session
-                </MyButton>
+                <AddSessionDialog />
             </div>
         </div>
     );
