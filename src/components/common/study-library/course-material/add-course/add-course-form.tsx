@@ -221,10 +221,16 @@ export const AddCourseForm = ({
     };
 
     const onSubmit = (data: AddCourseData) => {
+        // Filter out any sessions that might have no levels
+        const filteredSessions =
+            data.sessions?.filter((session) => session.levels && session.levels.length > 0) || [];
+
         const submissionData = {
             ...data,
             status: "ACTIVE",
+            sessions: filteredSessions,
         };
+
         console.log("Form submitted with data:", submissionData);
         onSubmitCourse({ courseId: submissionData.id, requestData: submissionData });
         setOpenDialog(false);

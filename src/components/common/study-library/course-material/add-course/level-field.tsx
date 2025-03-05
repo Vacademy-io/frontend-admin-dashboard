@@ -51,6 +51,12 @@ export const LevelInSessionField = ({ level, session, field }: LevelInSessionFie
                                       },
                                   ]
                                 : currentLevels.filter((l) => l.id !== level.id);
+
+                            // If no levels are selected in this session after unchecking,
+                            // remove the session from the form value
+                            if (currentSession.levels.length === 0) {
+                                sessions.splice(sessionIndex, 1);
+                            }
                         }
                     }
 
