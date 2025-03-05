@@ -1,3 +1,5 @@
+import { RolesDummyDataType } from "@/types/dashboard/user-roles";
+
 export const QUESTION_TYPES = [
     "MCQS",
     "MCQM",
@@ -52,7 +54,7 @@ export const RoleTypeUserStatus = [
     { id: "2", name: "DISABLED" },
 ];
 
-export const RolesDummyData = {
+export const RolesDummyData: RolesDummyDataType = {
     instituteUsers: [
         {
             id: "1",

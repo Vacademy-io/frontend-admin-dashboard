@@ -2,8 +2,14 @@ import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { RoleTypeEmptyScreen } from "@/svgs";
 import InviteUsersOptions from "./InviteUsersOptions";
+import { RolesDummyDataType, UserRolesDataEntry } from "@/types/dashboard/user-roles";
 
-const InviteUsersTab = ({ selectedTab, selectedTabData }) => {
+interface InviteUsersTabProps {
+    selectedTab: keyof RolesDummyDataType;
+    selectedTabData: UserRolesDataEntry[];
+}
+
+const InviteUsersTab: React.FC<InviteUsersTabProps> = ({ selectedTab, selectedTabData }) => {
     return (
         <>
             {selectedTab === "invites" && selectedTabData.length === 0 ? (

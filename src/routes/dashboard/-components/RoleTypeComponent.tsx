@@ -11,14 +11,18 @@ import RoleTypeFilterButtons from "./RoleTypeFilterButtons";
 import InviteUsersComponent from "./InviteUsersComponent";
 import InviteUsersTab from "./InviteUsersTab";
 import InstituteUsersComponent from "./InstituteUsersTab";
+import { RolesDummyDataType } from "@/types/dashboard/user-roles";
 
 export interface RoleTypeSelectedFilter {
     roleType: { id: string; name: string }[];
     status: { id: string; name: string }[];
 }
 
+// Type for tabs
+type TabKey = keyof RolesDummyDataType;
+
 const RoleTypeComponent = () => {
-    const [selectedTab, setSelectedTab] = useState("instituteUsers");
+    const [selectedTab, setSelectedTab] = useState<TabKey>("instituteUsers");
     const [selectedFilter, setSelectedFilter] = useState({
         roleType: [],
         status: [],
@@ -44,6 +48,12 @@ const RoleTypeComponent = () => {
         });
     };
 
+    const handleTabChange = (value: string) => {
+        if (value === "instituteUsers" || value === "invites") {
+            setSelectedTab(value as TabKey);
+        }
+    };
+
     return (
         <Dialog>
             <DialogTrigger>
@@ -64,7 +74,7 @@ const RoleTypeComponent = () => {
                 </h1>
                 <Tabs
                     value={selectedTab}
-                    onValueChange={setSelectedTab}
+                    onValueChange={handleTabChange}
                     className="flex flex-col justify-between p-4"
                 >
                     <div className="flex items-center justify-start gap-8">

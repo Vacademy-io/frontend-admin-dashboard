@@ -3,8 +3,17 @@ import { TabsContent } from "@/components/ui/tabs";
 import { RoleTypeEmptyScreen, RoleTypeUserIcon } from "@/svgs";
 import { CheckCircle, XCircle } from "phosphor-react";
 import InstituteUsersOptions from "./InstituteUsersOptions";
+import { RolesDummyDataType, UserRolesDataEntry } from "@/types/dashboard/user-roles";
 
-const InstituteUsersComponent = ({ selectedTab, selectedTabData }) => {
+interface InviteUsersTabProps {
+    selectedTab: keyof RolesDummyDataType;
+    selectedTabData: UserRolesDataEntry[];
+}
+
+const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
+    selectedTab,
+    selectedTabData,
+}) => {
     return (
         <>
             {selectedTab === "instituteUsers" && selectedTabData.length === 0 ? (

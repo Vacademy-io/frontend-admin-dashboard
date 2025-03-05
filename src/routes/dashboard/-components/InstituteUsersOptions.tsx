@@ -13,12 +13,18 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
 import { RoleType } from "@/constants/dummy-data";
+import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
 export const inviteUsersSchema = z.object({
     roleType: z.array(z.string()).min(1, "At least one role type is required"),
 });
 type FormValues = z.infer<typeof inviteUsersSchema>;
 
-const ChangeRoleTypeComponent = ({ student, onClose }: { student: any; onClose: () => void }) => {
+interface ChangeRoleTypeComponentProps {
+    student: UserRolesDataEntry;
+    onClose: () => void;
+}
+
+const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({ student, onClose }) => {
     //need to previous already assigned roles
     const form = useForm<FormValues>({
         resolver: zodResolver(inviteUsersSchema),
@@ -33,6 +39,7 @@ const ChangeRoleTypeComponent = ({ student, onClose }: { student: any; onClose: 
 
     function onSubmit(values: FormValues) {
         console.log(values);
+        onClose();
     }
 
     useEffect(() => {
@@ -78,7 +85,12 @@ const ChangeRoleTypeComponent = ({ student, onClose }: { student: any; onClose: 
     );
 };
 
-const DisableUserComponent = ({ student, onClose }: { student: any; onClose: () => void }) => {
+interface DisableUserComponentProps {
+    student: UserRolesDataEntry;
+    onClose: () => void;
+}
+
+const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, onClose }) => {
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Disable User</h1>
@@ -107,7 +119,12 @@ const DisableUserComponent = ({ student, onClose }: { student: any; onClose: () 
     );
 };
 
-const DeleteUserComponent = ({ student, onClose }: { student: any; onClose: () => void }) => {
+interface DeleteUserComponentProps {
+    student: UserRolesDataEntry;
+    onClose: () => void;
+}
+
+const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({ student, onClose }) => {
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Delete User</h1>
@@ -136,7 +153,7 @@ const DeleteUserComponent = ({ student, onClose }: { student: any; onClose: () =
     );
 };
 
-const InstituteUsersOptions = ({ user }: { user: any }) => {
+const InstituteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
 

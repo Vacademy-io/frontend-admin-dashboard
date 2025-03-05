@@ -15,6 +15,7 @@ import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
 import { RoleType } from "@/constants/dummy-data";
+import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
 
 export const inviteUsersSchema = z.object({
     name: z.string().min(1, "Full name is required"),
@@ -23,7 +24,12 @@ export const inviteUsersSchema = z.object({
 });
 type FormValues = z.infer<typeof inviteUsersSchema>;
 
-const EditComponent = ({ student, onClose }: { student: any; onClose: () => void }) => {
+interface EditComponentProps {
+    student: UserRolesDataEntry;
+    onClose: () => void;
+}
+
+const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
     const form = useForm<FormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
@@ -43,6 +49,7 @@ const EditComponent = ({ student, onClose }: { student: any; onClose: () => void
 
     function onSubmit(values: FormValues) {
         console.log(values);
+        onClose();
     }
 
     useEffect(() => {
@@ -134,7 +141,12 @@ const EditComponent = ({ student, onClose }: { student: any; onClose: () => void
     );
 };
 
-const ResendInviteComponent = ({ student, onClose }: { student: any; onClose: () => void }) => {
+interface ResendInviteComponentProps {
+    student: UserRolesDataEntry;
+    onClose: () => void;
+}
+
+const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, onClose }) => {
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Resend Invite</h1>
@@ -163,7 +175,12 @@ const ResendInviteComponent = ({ student, onClose }: { student: any; onClose: ()
     );
 };
 
-const CancelInviteComponent = ({ student, onClose }: { student: any; onClose: () => void }) => {
+interface CancelInviteComponentProps {
+    student: UserRolesDataEntry;
+    onClose: () => void;
+}
+
+const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, onClose }) => {
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Cancel Invite</h1>
@@ -192,7 +209,7 @@ const CancelInviteComponent = ({ student, onClose }: { student: any; onClose: ()
     );
 };
 
-const InviteUsersOptions = ({ user }: { user: any }) => {
+const InviteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
