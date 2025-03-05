@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
-import { MyDropdown } from "@/components/design-system/dropdown";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepThreeData, stepThreeSchema } from "@/types/students/schema-enroll-students-manually";
@@ -15,16 +14,16 @@ import { useEffect } from "react";
 
 export const StepThreeForm = () => {
     const { stepThreeData, setStepThreeData, nextStep } = useFormStore();
-    const stateList = ["Madhya Pradesh", "Himachal Pradesh", "Rajasthan"];
-    const cityList = ["Bhopal", "Indore", "Delhi"];
 
     const form = useForm<StepThreeData>({
         resolver: zodResolver(stepThreeSchema),
         defaultValues: stepThreeData || {
             mobileNumber: "",
             email: "",
-            state: "Madhya Pradesh",
-            city: "Bhopal",
+            addressLine: "",
+            city: "",
+            state: "",
+            pincode: "",
         },
         mode: "onChange",
     });
@@ -94,24 +93,20 @@ export const StepThreeForm = () => {
 
                             <FormField
                                 control={form.control}
-                                name="state"
-                                render={({ field: { onChange, value } }) => (
+                                name="addressLine"
+                                render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
                                         <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    State{" "}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
-                                                </div>
-                                                <MyDropdown
-                                                    currentValue={value}
-                                                    dropdownList={stateList}
-                                                    handleChange={onChange}
-                                                    placeholder="Select State"
-                                                />
-                                            </div>
+                                            <MyInput
+                                                inputType="text"
+                                                label="Address Line"
+                                                inputPlaceholder="Enter your address"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
                                         </FormControl>
                                     </FormItem>
                                 )}
@@ -120,23 +115,60 @@ export const StepThreeForm = () => {
                             <FormField
                                 control={form.control}
                                 name="city"
-                                render={({ field: { onChange, value } }) => (
+                                render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
                                         <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    City{" "}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
-                                                </div>
-                                                <MyDropdown
-                                                    currentValue={value}
-                                                    dropdownList={cityList}
-                                                    handleChange={onChange}
-                                                    placeholder="Select City"
-                                                />
-                                            </div>
+                                            <MyInput
+                                                inputType="text"
+                                                label="City"
+                                                inputPlaceholder="Enter your city"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="state"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                label="State"
+                                                inputPlaceholder="Enter your state"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="pincode"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="number"
+                                                label="Pincode"
+                                                inputPlaceholder="Enter your pincode"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
                                         </FormControl>
                                     </FormItem>
                                 )}
