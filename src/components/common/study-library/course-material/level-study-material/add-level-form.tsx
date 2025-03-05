@@ -149,7 +149,9 @@ export const AddLevelForm = ({
                                     inputPlaceholder="Enter duration in days"
                                     className="w-[352px]"
                                     input={field.value?.toString() || ""}
-                                    onChangeFunction={(e) => field.onChange(Number(e.target.value))}
+                                    onChangeFunction={(e) =>
+                                        field.onChange(Math.floor(Number(e.target.value)))
+                                    }
                                 />
                             </FormControl>
                             <FormMessage />

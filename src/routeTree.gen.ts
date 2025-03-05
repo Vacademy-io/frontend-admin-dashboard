@@ -18,6 +18,7 @@ import { Route as LoginIndexImport } from "./routes/login/index";
 import { Route as DashboardIndexImport } from "./routes/dashboard/index";
 import { Route as CommunityIndexImport } from "./routes/community/index";
 import { Route as AssessmentIndexImport } from "./routes/assessment/index";
+import { Route as StudyLibrarySessionIndexImport } from "./routes/study-library/session/index";
 import { Route as StudyLibraryCoursesIndexImport } from "./routes/study-library/courses/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as SignupOnboardingIndexImport } from "./routes/signup/onboarding/index";
@@ -76,6 +77,12 @@ const CommunityIndexRoute = CommunityIndexImport.update({
 const AssessmentIndexRoute = AssessmentIndexImport.update({
     id: "/assessment/",
     path: "/assessment/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const StudyLibrarySessionIndexRoute = StudyLibrarySessionIndexImport.update({
+    id: "/study-library/session/",
+    path: "/study-library/session/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -290,6 +297,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibraryCoursesIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/study-library/session/": {
+            id: "/study-library/session/";
+            path: "/study-library/session";
+            fullPath: "/study-library/session";
+            preLoaderRoute: typeof StudyLibrarySessionIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/assessment/export/$assessmentId/": {
             id: "/assessment/export/$assessmentId/";
             path: "/assessment/export/$assessmentId";
@@ -367,6 +381,7 @@ export interface FileRoutesByFullPath {
     "/signup/onboarding": typeof SignupOnboardingIndexRoute;
     "/students/students-list": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses": typeof StudyLibraryCoursesIndexRoute;
+    "/study-library/session": typeof StudyLibrarySessionIndexRoute;
     "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
@@ -393,6 +408,7 @@ export interface FileRoutesByTo {
     "/signup/onboarding": typeof SignupOnboardingIndexRoute;
     "/students/students-list": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses": typeof StudyLibraryCoursesIndexRoute;
+    "/study-library/session": typeof StudyLibrarySessionIndexRoute;
     "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
@@ -420,6 +436,7 @@ export interface FileRoutesById {
     "/signup/onboarding/": typeof SignupOnboardingIndexRoute;
     "/students/students-list/": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute;
+    "/study-library/session/": typeof StudyLibrarySessionIndexRoute;
     "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
@@ -448,6 +465,7 @@ export interface FileRouteTypes {
         | "/signup/onboarding"
         | "/students/students-list"
         | "/study-library/courses"
+        | "/study-library/session"
         | "/assessment/export/$assessmentId"
         | "/study-library/courses/levels"
         | "/assessment/create-assessment/$assessmentId/$examtype"
@@ -473,6 +491,7 @@ export interface FileRouteTypes {
         | "/signup/onboarding"
         | "/students/students-list"
         | "/study-library/courses"
+        | "/study-library/session"
         | "/assessment/export/$assessmentId"
         | "/study-library/courses/levels"
         | "/assessment/create-assessment/$assessmentId/$examtype"
@@ -498,6 +517,7 @@ export interface FileRouteTypes {
         | "/signup/onboarding/"
         | "/students/students-list/"
         | "/study-library/courses/"
+        | "/study-library/session/"
         | "/assessment/export/$assessmentId/"
         | "/study-library/courses/levels/"
         | "/assessment/create-assessment/$assessmentId/$examtype/"
@@ -525,6 +545,7 @@ export interface RootRouteChildren {
     SignupOnboardingIndexRoute: typeof SignupOnboardingIndexRoute;
     StudentsStudentsListIndexRoute: typeof StudentsStudentsListIndexRoute;
     StudyLibraryCoursesIndexRoute: typeof StudyLibraryCoursesIndexRoute;
+    StudyLibrarySessionIndexRoute: typeof StudyLibrarySessionIndexRoute;
     AssessmentExportAssessmentIdIndexRoute: typeof AssessmentExportAssessmentIdIndexRoute;
     StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute;
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
@@ -551,6 +572,7 @@ const rootRouteChildren: RootRouteChildren = {
     SignupOnboardingIndexRoute: SignupOnboardingIndexRoute,
     StudentsStudentsListIndexRoute: StudentsStudentsListIndexRoute,
     StudyLibraryCoursesIndexRoute: StudyLibraryCoursesIndexRoute,
+    StudyLibrarySessionIndexRoute: StudyLibrarySessionIndexRoute,
     AssessmentExportAssessmentIdIndexRoute: AssessmentExportAssessmentIdIndexRoute,
     StudyLibraryCoursesLevelsIndexRoute: StudyLibraryCoursesLevelsIndexRoute,
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
@@ -591,6 +613,7 @@ export const routeTree = rootRoute
         "/signup/onboarding/",
         "/students/students-list/",
         "/study-library/courses/",
+        "/study-library/session/",
         "/assessment/export/$assessmentId/",
         "/study-library/courses/levels/",
         "/assessment/create-assessment/$assessmentId/$examtype/",
@@ -645,6 +668,9 @@ export const routeTree = rootRoute
     },
     "/study-library/courses/": {
       "filePath": "study-library/courses/index.tsx"
+    },
+    "/study-library/session/": {
+      "filePath": "study-library/session/index.tsx"
     },
     "/assessment/export/$assessmentId/": {
       "filePath": "assessment/export/$assessmentId/index.tsx"
