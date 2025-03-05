@@ -241,14 +241,17 @@ export const AddCourseForm = ({
     useEffect(() => {
         const containsLevelValue = form.getValues("contain_levels");
         const sessionValue = form.getValues("sessions");
-        if (containsLevelValue == true) {
+        const courseName = form.getValues("course_name");
+        if (courseName == "") {
+            setDisableAddButton(true);
+        } else if (containsLevelValue == true) {
             if (sessionValue?.length == 0) {
                 setDisableAddButton(true);
             } else setDisableAddButton(false);
         } else {
             setDisableAddButton(false);
         }
-    }, [form.watch("sessions")]);
+    }, [form.watch("sessions"), form.watch("course_name")]);
 
     return (
         <Form {...form}>
@@ -279,7 +282,11 @@ export const AddCourseForm = ({
                     )}
                 />
 
-                <div className="relative flex w-full flex-col items-center justify-center gap-3">
+                <div
+                    className={`relative flex w-full flex-col items-center justify-center gap-3 ${
+                        initialValues ? "mb-16" : "mb-0"
+                    }`}
+                >
                     {isUploading ? (
                         <div className="inset-0 flex h-[200px] w-[200px] items-center justify-center bg-white">
                             <DashboardLoader />
@@ -364,8 +371,8 @@ export const AddCourseForm = ({
                     />
                 )}
 
-                {containLevels && (
-                    <div className="flex flex-col gap-2">
+                {containLevels && !initialValues && (
+                    <div className="mb-20 flex flex-col gap-2">
                         <p className="text-body text-neutral-500">
                             Choose sessions to select a level
                         </p>
@@ -385,7 +392,7 @@ export const AddCourseForm = ({
                                                         <div
                                                             className={`rounded-lg border border-neutral-200 py-2 ${
                                                                 isSessionSelected
-                                                                    ? "bg-neutral-50"
+                                                                    ? "bg-neutral-100"
                                                                     : "bg-none"
                                                             }`}
                                                         >
@@ -500,14 +507,16 @@ export const AddCourseForm = ({
                         />
                     </div>
                 )}
-                <div className="flex w-full items-center justify-center">
+                <div
+                    className={`absolute bottom-0 flex w-[640px] items-center justify-center bg-white py-4`}
+                >
                     <MyButton
                         type="submit"
                         buttonType="primary"
                         layoutVariant="default"
                         scale="large"
                         className="w-[140px]"
-                        disable={disableAddButton}
+                        disable={!initialValues ? disableAddButton : false}
                     >
                         {initialValues ? "Save Changes" : "Add"}
                     </MyButton>

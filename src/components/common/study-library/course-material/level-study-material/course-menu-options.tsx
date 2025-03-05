@@ -42,7 +42,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
             </MyDropdown>
             <MyDialog
                 heading="Edit Course"
-                dialogWidth="w-[430px]"
+                dialogWidth="w-[700px]"
                 open={openEditDialog}
                 onOpenChange={handleOpenChange}
             >

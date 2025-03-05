@@ -67,15 +67,10 @@ export const LevelInSessionField = ({ level, session, field }: LevelInSessionFie
                 <div className="flex flex-col">
                     <div className="flex flex-col items-start">
                         <p className="text-subtitle font-semibold">{level.level_name}</p>
-                        <p className="text-caption text-neutral-400">
-                            Days: {level.duration_in_days || 0}
-                        </p>
                     </div>
-                    {level.duration_in_days && (
-                        <span className="text-xs text-neutral-500">
-                            Duration: {level.duration_in_days} days
-                        </span>
-                    )}
+                    <span className="text-xs text-neutral-500">
+                        Duration: {level.duration_in_days || 0} days
+                    </span>
                 </div>
                 <MyButton
                     buttonType="secondary"
