@@ -4,7 +4,7 @@ import { MyDropdown } from "@/components/design-system/dropdown";
 import { CourseType } from "@/stores/study-library/use-study-library-store";
 import { DotsThree } from "phosphor-react";
 import { useState } from "react";
-import { AddCourseData, AddCourseForm } from "../add-course-form";
+import { AddCourseData, AddCourseForm } from "../add-course/add-course-form";
 
 interface CourseMenuOptionsProps {
     onDelete: (courseId: string) => void;
@@ -42,7 +42,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
             </MyDropdown>
             <MyDialog
                 heading="Edit Course"
-                dialogWidth="w-[430px]"
+                dialogWidth="w-[700px]"
                 open={openEditDialog}
                 onOpenChange={handleOpenChange}
             >
@@ -52,7 +52,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                         course_name: course.package_name,
                         thumbnail_file_id: course.thumbnail_file_id,
                         contain_levels: false,
-                        levels: [],
+                        sessions: [],
                     }}
                     onSubmitCourse={onEdit}
                     setOpenDialog={setOpenEditDialog}

@@ -11,12 +11,16 @@ export interface StepTwoData {
     gender: string;
     collegeName: string;
     dateOfBirth?: string; // Make it optional
+    accessDays: string;
 }
 
 export interface StepThreeData {
     email: string;
-    city: string;
     mobileNumber: string;
+    addressLine?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
 }
 
 export interface StepFourData {

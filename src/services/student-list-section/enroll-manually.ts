@@ -17,8 +17,10 @@ export const enrollStudent = async ({
             username: formData.stepFiveData?.username || "",
             email: formData.stepThreeData?.email || "",
             full_name: formData.stepTwoData?.fullName || "",
-            address_line: "N/A",
+            address_line: formData.stepThreeData?.addressLine || "",
             city: formData.stepThreeData?.city || "",
+            region: formData.stepThreeData?.state || "",
+            pin_code: formData.stepThreeData?.pincode || "",
             mobile_number: formData.stepThreeData?.mobileNumber || "",
             date_of_birth: formData.stepTwoData?.dateOfBirth || "",
             gender: formData.stepTwoData?.gender || "",
@@ -40,7 +42,12 @@ export const enrollStudent = async ({
             enrollment_id: formData.stepTwoData?.enrollmentNumber || "",
             enrollment_status: "ACTIVE",
             enrollment_date: new Date().toISOString(),
+            group_id: null,
+            access_days: formData.stepTwoData?.accessDays,
         },
+        status: true,
+        status_message: "",
+        error_message: "",
     };
 
     const response = await authenticatedAxiosInstance.post(ENROLL_STUDENT_MANUALLY, requestBody);

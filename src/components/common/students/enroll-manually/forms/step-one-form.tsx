@@ -9,7 +9,7 @@ import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-
 import { StepOneData, stepOneSchema } from "@/types/students/schema-enroll-students-manually";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EnrollFormUploadImage } from "@/assets/svgs";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { MyButton } from "@/components/design-system/button";
@@ -23,8 +23,17 @@ export const StepOneForm = () => {
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const [isUploading, setIsUploading] = useState(false);
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
-    const { stepOneData, setStepOneData } = useFormStore();
+    const { stepOneData, setStepOneData, nextStep } = useFormStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [nextButtonDisable, setNextButtonDisable] = useState(true);
+
+    useEffect(() => {
+        if (stepOneData?.profilePictureUrl != undefined) {
+            setNextButtonDisable(false);
+        } else {
+            setNextButtonDisable(true);
+        }
+    }, [stepOneData?.profilePictureUrl]);
 
     const form = useForm<StepOneData>({
         resolver: zodResolver(stepOneSchema),
@@ -58,11 +67,18 @@ export const StepOneForm = () => {
         }
     };
 
+    const onSubmit = () => {
+        nextStep();
+    };
+
     return (
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
-                    <div className="flex flex-col items-center gap-20">
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex flex-col items-center gap-20"
+                    >
                         <FormItemWrapper<StepOneData> control={form.control} name="profilePicture">
                             <FormStepHeading stepNumber={1} heading="Add Student Profile Picture" />
                         </FormItemWrapper>
@@ -99,17 +115,21 @@ export const StepOneForm = () => {
                                         layoutVariant="icon"
                                         scale="small"
                                         className="bg-white"
+                                        type="button"
                                     >
-                                        {/* {(isUploading || isUploadingFile) ? "Uploading..." : "Upload Photo"} */}
                                         <PencilSimpleLine />
                                     </MyButton>
                                 </div>
                             </div>
                         </FormItemWrapper>
-                    </div>
+                    </form>
                 </Form>
             </DialogDescription>
-            <FormSubmitButtons stepNumber={1} />
+            <FormSubmitButtons
+                stepNumber={1}
+                finishButtonDisable={nextButtonDisable}
+                onNext={form.handleSubmit(onSubmit)}
+            />
         </div>
     );
 };

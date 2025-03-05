@@ -10,13 +10,10 @@ import { MyButton } from "@/components/design-system/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { stepFiveSchema, StepFiveData } from "@/types/students/schema-enroll-students-manually";
-// import { useQueryClient } from "@tanstack/react-query";
 import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/useEnrollStudent";
-// import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { getCurrentSession } from "../../students-list/utills/getCurrentSession";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-// import { EnrollStudentRequest } from "@/types/students/type-enroll-student-manually";
 
 export const StepFiveForm = () => {
     const [showCredentials, setShowCredentials] = useState(false);
@@ -40,7 +37,6 @@ export const StepFiveForm = () => {
     );
 
     useEffect(() => {
-        console.log("package session id: ", packageSessionId);
         setPackageSessionId(
             getPackageSessionId({
                 courseId: stepTwoData?.course.id || "",
@@ -58,8 +54,6 @@ export const StepFiveForm = () => {
         },
         mode: "onChange",
     });
-
-    // const mutation = useEnrollStudent();
 
     const generateUsername = () => {
         const sessionYear =
