@@ -150,7 +150,7 @@ export const AddCourseForm = ({
     function convertToFormSession(session: SessionType): Session {
         return {
             ...session,
-            start_date: "05/03/2025", // Default date for existing sessions
+            start_date: new Date().toISOString(), // Default date for existing sessions
             new_session: false,
             levels: [],
         };
@@ -366,7 +366,8 @@ export const AddCourseForm = ({
                                                                         {session.session_name}
                                                                     </p>
                                                                     <p className="text-caption text-neutral-400">
-                                                                        Start Date: 05/03/2025
+                                                                        Start Date:{" "}
+                                                                        {new Date().toISOString()}
                                                                     </p>
                                                                 </div>
                                                             </div>
