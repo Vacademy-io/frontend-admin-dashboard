@@ -20,47 +20,36 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AddLevelInput } from "./add-level-input";
 import { AddSessionInput } from "./add-session-input";
-import { SessionField } from "./session-field";
-import { LevelField } from "./level-field";
+import { LevelInSessionField } from "./level-field";
+import { SessionType } from "@/schemas/student/student-list/institute-schema";
 
+// Updated Session interface with levels array
 export interface Session {
     id: string;
     session_name: string;
     status: string;
     start_date?: string;
     new_session?: boolean;
+    levels: Level[]; // Add levels array to sessions
 }
 
+// Update Level interface (remove sessions)
 export interface Level {
     id: string;
     level_name: string;
     duration_in_days: number | null;
     thumbnail_id: string | null;
     new_level?: boolean;
-    sessions: Session[]; // Required - matches the schema
 }
 
-// Common form type
+// Update CourseFormData
 export interface CourseFormData {
     course_name: string;
     id?: string;
     thumbnail_file_id?: string;
     contain_levels?: boolean;
     status?: string;
-    levels?: {
-        id: string;
-        level_name: string;
-        duration_in_days: number | null;
-        thumbnail_id: string | null;
-        new_level?: boolean;
-        sessions: {
-            id: string;
-            session_name: string;
-            status: string;
-            start_date?: string;
-            new_session?: boolean;
-        }[];
-    }[];
+    sessions?: Session[]; // Changed from levels to sessions at top level
 }
 
 // Update the form schema
@@ -70,21 +59,21 @@ const formSchema = z.object({
     thumbnail_file_id: z.string().optional(),
     contain_levels: z.boolean().optional(),
     status: z.string().optional(),
-    levels: z
+    sessions: z
         .array(
             z.object({
                 id: z.string(),
-                new_level: z.boolean().optional(),
-                level_name: z.string(),
-                duration_in_days: z.number().nullable(),
-                thumbnail_id: z.string().nullable(),
-                sessions: z.array(
+                new_session: z.boolean().optional(),
+                session_name: z.string(),
+                status: z.string(),
+                start_date: z.string().optional(),
+                levels: z.array(
                     z.object({
                         id: z.string(),
-                        new_session: z.boolean().optional(),
-                        session_name: z.string(),
-                        status: z.string(),
-                        start_date: z.string().optional(),
+                        new_level: z.boolean().optional(),
+                        level_name: z.string(),
+                        duration_in_days: z.number().nullable(),
+                        thumbnail_id: z.string().nullable(),
                     }),
                 ),
             }),
@@ -135,10 +124,17 @@ export const AddCourseForm = ({
             sessions: [] as Session[],
         })),
     );
-    const [sessionList, setSessionList] = useState<Session[]>(getAllSessions);
+    const [sessionList, setSessionList] = useState<Session[]>([]);
+    // Then in useEffect:
+    useEffect(() => {
+        setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
+        setLevelList(getAllLevels());
+    }, [instituteDetails]);
+
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
     const [newSessionStartDate, setNewSessionStartDate] = useState<string>("");
 
+    // In the form initialization
     const form = useForm<AddCourseData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -147,9 +143,18 @@ export const AddCourseForm = ({
             thumbnail_file_id: initialValues?.thumbnail_file_id || fileId,
             contain_levels: initialValues?.contain_levels || true,
             status: initialValues?.status || "ACTIVE",
-            levels: [],
+            sessions: [], // Changed from levels to sessions
         },
     });
+
+    function convertToFormSession(session: SessionType): Session {
+        return {
+            ...session,
+            start_date: "05/03/2025", // Default date for existing sessions
+            new_session: false,
+            levels: [],
+        };
+    }
 
     const handleAddLevel = (levelName: string, durationInDays: number | null) => {
         const newLevel: Level = {
@@ -158,7 +163,6 @@ export const AddCourseForm = ({
             level_name: levelName,
             duration_in_days: durationInDays,
             thumbnail_id: null,
-            sessions: [], // Add empty sessions array
         };
 
         setLevelList((prevLevelList) => [...prevLevelList, newLevel]);
@@ -171,20 +175,10 @@ export const AddCourseForm = ({
             session_name: sessionName,
             status: "INACTIVE",
             start_date: startDate,
+            levels: [], // Initialize with empty levels array
         };
         setSessionList((prevSessionList) => [...prevSessionList, newSession]);
     };
-
-    useEffect(() => {
-        // Add empty sessions array to each level from getAllLevels
-        const levelsWithSessions = getAllLevels().map((level) => ({
-            ...level,
-            sessions: [] as Session[], // Add empty sessions array
-        }));
-
-        setLevelList(levelsWithSessions);
-        setSessionList(getAllSessions);
-    }, [instituteDetails]);
 
     useEffect(() => {
         const fetchImageUrl = async () => {
@@ -355,16 +349,28 @@ export const AddCourseForm = ({
                 {containLevels && (
                     <FormField
                         control={form.control}
-                        name="levels"
+                        name="sessions"
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
                                     <div className="flex flex-col gap-4">
-                                        {levelList.map((level) => (
-                                            <Collapsible key={level.id}>
+                                        {sessionList.map((session) => (
+                                            <Collapsible key={session.id}>
                                                 <div className="rounded-lg border border-neutral-200 py-2">
                                                     <CollapsibleTrigger className="flex w-[352px] items-center justify-between p-4">
-                                                        <LevelField field={field} level={level} />
+                                                        {/* Replace LevelField with SessionField component */}
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex flex-col">
+                                                                <div className="flex flex-col items-start">
+                                                                    <p className="text-subtitle font-semibold">
+                                                                        {session.session_name}
+                                                                    </p>
+                                                                    <p className="text-caption text-neutral-400">
+                                                                        Start Date: 05/03/2025
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                         <div className="flex items-center gap-2">
                                                             <MyButton
                                                                 buttonType="secondary"
@@ -373,7 +379,6 @@ export const AddCourseForm = ({
                                                             >
                                                                 <DotsThree />
                                                             </MyButton>
-                                                            {/* <ChevronDownIcon className="h-4 w-4" /> */}
                                                         </div>
                                                     </CollapsibleTrigger>
                                                     <CollapsibleContent className="ml-4 mr-6 mt-2">
@@ -381,44 +386,43 @@ export const AddCourseForm = ({
                                                             <Separator />
                                                         </div>
                                                         <div className="flex flex-col gap-2">
-                                                            {sessionList.map((session) => (
-                                                                <SessionField
-                                                                    key={session.id}
-                                                                    session={session}
+                                                            {levelList.map((level) => (
+                                                                /* Create new LevelInSessionField component */
+                                                                <LevelInSessionField
+                                                                    key={level.id}
                                                                     level={level}
+                                                                    session={session}
                                                                     field={field}
                                                                 />
                                                             ))}
-                                                            {showNewSessionInput ? (
-                                                                <AddSessionInput
-                                                                    newSessionName={newSessionName}
-                                                                    setNewSessionName={
-                                                                        setNewSessionName
+                                                            {showNewLevelInput ? (
+                                                                <AddLevelInput
+                                                                    newLevelName={newLevelName}
+                                                                    setNewLevelName={
+                                                                        setNewLevelName
                                                                     }
-                                                                    newSessionStartDate={
-                                                                        newSessionStartDate
+                                                                    newLevelDuration={
+                                                                        newLevelDuration
                                                                     }
-                                                                    setNewSessionStartDate={
-                                                                        setNewSessionStartDate
+                                                                    setNewLevelDuration={
+                                                                        setNewLevelDuration
                                                                     }
-                                                                    handleAddSession={
-                                                                        handleAddSession
-                                                                    }
-                                                                    setShowNewSessionInput={
-                                                                        setShowNewSessionInput
+                                                                    handleAddLevel={handleAddLevel}
+                                                                    setShowNewLevelInput={
+                                                                        setShowNewLevelInput
                                                                     }
                                                                 />
                                                             ) : (
                                                                 <MyButton
                                                                     onClick={() =>
-                                                                        setShowNewSessionInput(true)
+                                                                        setShowNewLevelInput(true)
                                                                     }
                                                                     buttonType="text"
                                                                     layoutVariant="default"
                                                                     scale="small"
                                                                     className="text-primary-500 hover:bg-white active:bg-white"
                                                                 >
-                                                                    <Plus /> Add Session
+                                                                    <Plus /> Add Level
                                                                 </MyButton>
                                                             )}
                                                         </div>
@@ -426,24 +430,24 @@ export const AddCourseForm = ({
                                                 </div>
                                             </Collapsible>
                                         ))}
-                                        {showNewLevelInput ? (
-                                            <AddLevelInput
-                                                newLevelName={newLevelName}
-                                                setNewLevelName={setNewLevelName}
-                                                newLevelDuration={newLevelDuration}
-                                                setNewLevelDuration={setNewLevelDuration}
-                                                handleAddLevel={handleAddLevel}
-                                                setShowNewLevelInput={setShowNewLevelInput}
+                                        {showNewSessionInput ? (
+                                            <AddSessionInput
+                                                newSessionName={newSessionName}
+                                                setNewSessionName={setNewSessionName}
+                                                newSessionStartDate={newSessionStartDate}
+                                                setNewSessionStartDate={setNewSessionStartDate}
+                                                handleAddSession={handleAddSession}
+                                                setShowNewSessionInput={setShowNewSessionInput}
                                             />
                                         ) : (
                                             <MyButton
-                                                onClick={() => setShowNewLevelInput(true)}
+                                                onClick={() => setShowNewSessionInput(true)}
                                                 buttonType="text"
                                                 layoutVariant="default"
                                                 scale="small"
                                                 className="text-primary-500 hover:bg-white active:bg-white"
                                             >
-                                                <Plus /> Add Level
+                                                <Plus /> Add Session
                                             </MyButton>
                                         )}
                                     </div>

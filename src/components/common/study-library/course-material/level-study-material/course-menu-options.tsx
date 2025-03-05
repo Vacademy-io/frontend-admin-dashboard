@@ -52,7 +52,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                         course_name: course.package_name,
                         thumbnail_file_id: course.thumbnail_file_id,
                         contain_levels: false,
-                        levels: [],
+                        sessions: [],
                     }}
                     onSubmitCourse={onEdit}
                     setOpenDialog={setOpenEditDialog}
