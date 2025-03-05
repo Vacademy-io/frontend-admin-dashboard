@@ -347,7 +347,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                         ? allSections.some((section) => {
                                               // Check if the question paper is uploaded
                                               const isQuestionPaperMissing =
-                                                  !section.adaptive_marking_for_each_question;
+                                                  section.adaptive_marking_for_each_question
+                                                      .length > 0
+                                                      ? false
+                                                      : true;
 
                                               // Check if section duration fields are valid based on durationDistribution
                                               const isSectionDurationMissing =

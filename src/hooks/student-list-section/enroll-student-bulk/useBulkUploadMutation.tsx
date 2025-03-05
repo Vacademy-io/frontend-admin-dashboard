@@ -10,6 +10,8 @@ interface SubmitBulkUploadParams {
     data: SchemaFields[];
     instituteId: string;
     bulkUploadInitRequest: CSVFormatConfig;
+    packageSessionId: string;
+    notify: boolean;
 }
 
 // Define the mutation function separately
@@ -17,6 +19,8 @@ const submitBulkUploadData = async ({
     data,
     instituteId,
     bulkUploadInitRequest,
+    packageSessionId,
+    notify,
 }: SubmitBulkUploadParams): Promise<string> => {
     // Create form data
     const formData = new FormData();
@@ -24,7 +28,8 @@ const submitBulkUploadData = async ({
     // Add instituteId and bulkUploadInitRequest as form fields
     formData.append("instituteId", instituteId);
     formData.append("bulkUploadInitRequest", JSON.stringify(bulkUploadInitRequest));
-
+    formData.append("packageSessionId", packageSessionId);
+    formData.append("notify", notify.toString());
     // Convert data to CSV and append as file
     const csvContent = Papa.unparse(data);
     const csvFile = new File([csvContent], "students.csv", { type: "text/csv" });

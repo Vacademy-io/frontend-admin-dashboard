@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { SectionHeader } from "./section-header";
 import { QuestionComponent } from "./question-component";
 import type { Section } from "../types/question";
@@ -219,6 +218,7 @@ export function PaperSet({ sections, setNumber, settings, instructions }: PaperS
                     availableHeight
                 ) {
                     // Add question to current column
+                    // @ts-expect-error : Object is possibly 'undefined'
                     currentQuestions[currentColumn].push(
                         <div
                             key={question.question_id}
@@ -246,6 +246,7 @@ export function PaperSet({ sections, setNumber, settings, instructions }: PaperS
                     // Move to next column or create new page
                     if (currentColumn < columns - 1) {
                         currentColumn++;
+                        // @ts-expect-error : Object is possibly 'undefined'
                         currentQuestions[currentColumn].push(
                             <div
                                 key={question.question_id}
@@ -302,6 +303,7 @@ export function PaperSet({ sections, setNumber, settings, instructions }: PaperS
                         availableHeight = calculateAvailableHeight(PAGE_HEIGHT);
 
                         // Add current question to new page
+                        // @ts-expect-error : Object is possibly 'undefined'
                         currentQuestions[currentColumn].push(
                             <div
                                 key={question.question_id}
@@ -345,6 +347,7 @@ export function PaperSet({ sections, setNumber, settings, instructions }: PaperS
                     </div>
                 );
                 currentContent.push(questionsGrid);
+                // @ts-expect-error : Expected 1 arguments, but got 2
                 pages.push(createPage(currentContent, true));
                 pageNumber++;
             }

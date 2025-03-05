@@ -13,7 +13,8 @@ import { StatusChips } from "@/components/design-system/chips";
 import { StudentOverview } from "./student-overview/student-overview";
 import { StudentLearningProgress } from "./student-learning-progress/student-learning-progress";
 import { StudentTestRecord } from "./student-test-records/student-test-record";
-import { StudentSideViewData } from "./student-view-dummy-data/student-view-dummy-data";
+import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
+import { getPublicUrl } from "@/services/upload_file";
 
 export const StudentSidebar = ({
     selectedTab,
@@ -25,6 +26,8 @@ export const StudentSidebar = ({
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
     const { toggleSidebar } = useSidebar();
+    const { selectedStudent } = useStudentSidebar();
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
     useEffect(() => {
         if (state == "expanded") {
             document.body.classList.add("sidebar-open");
@@ -37,6 +40,21 @@ export const StudentSidebar = ({
             document.body.classList.remove("sidebar-open");
         };
     }, [state]);
+
+    useEffect(() => {
+        const fetchImageUrl = async () => {
+            if (selectedStudent?.face_file_id) {
+                try {
+                    const url = await getPublicUrl(selectedStudent.face_file_id);
+                    setImageUrl(url);
+                } catch (error) {
+                    console.error("Failed to fetch image URL:", error);
+                }
+            }
+        };
+
+        fetchImageUrl();
+    }, [selectedStudent?.face_file_id]);
 
     return (
         <Sidebar side="right">
@@ -67,7 +85,7 @@ export const StudentSidebar = ({
                                     setCategory("overview");
                                 }}
                             >
-                                {StudentSideViewData.overview.title}
+                                Overview
                             </div>
                             <div
                                 className={`w-full py-[9px] text-center ${
@@ -79,7 +97,7 @@ export const StudentSidebar = ({
                                     setCategory("learningProgress");
                                 }}
                             >
-                                {StudentSideViewData.learning_progress.title}
+                                Learning Progress
                             </div>
                             <div
                                 className={`w-full py-[9px] text-center ${
@@ -91,7 +109,7 @@ export const StudentSidebar = ({
                                     setCategory("testRecord");
                                 }}
                             >
-                                {StudentSideViewData.test_record.title}
+                                Test Records
                             </div>
                         </div>
                     </div>
@@ -101,27 +119,27 @@ export const StudentSidebar = ({
                     <SidebarMenuItem className="flex w-full flex-col gap-6">
                         <div className="size-[240px] w-full items-center justify-center">
                             <div className="size-full rounded-full object-cover">
-                                {StudentSideViewData.student_pfp == "" && (
+                                {imageUrl == null ? (
                                     <DummyProfile className="size-full" />
+                                ) : (
+                                    <img
+                                        src={imageUrl}
+                                        alt="face profile"
+                                        className={`object-cover`}
+                                    />
                                 )}
                             </div>
                         </div>
                         <div className="flex w-full items-center justify-center gap-4">
                             <div className="text-h3 font-semibold text-neutral-600">
-                                {StudentSideViewData.student_name}
+                                {selectedStudent?.full_name}
                             </div>
-                            <StatusChips status={StudentSideViewData.status} />
+                            <StatusChips status={selectedStudent?.status || "INACTIVE"} />
                         </div>
                     </SidebarMenuItem>
 
-                    {category == "overview" && (
-                        <StudentOverview overviewData={StudentSideViewData.overview} />
-                    )}
-                    {category == "learningProgress" && (
-                        <StudentLearningProgress
-                            learningProgressData={StudentSideViewData.learning_progress}
-                        />
-                    )}
+                    {category == "overview" && <StudentOverview />}
+                    {category == "learningProgress" && <StudentLearningProgress />}
                     {category == "testRecord" && (
                         <StudentTestRecord selectedTab={selectedTab} examType={examType} />
                     )}

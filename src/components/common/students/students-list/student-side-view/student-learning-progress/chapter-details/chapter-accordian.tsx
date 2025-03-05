@@ -2,10 +2,19 @@ import { CaretUp, CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
 import { TopicDetails } from "./topic-details/topic-details";
 import { StatusIcon } from "../status-icon";
-import { ChapterType } from "../../student-view-dummy-data/learning-progress";
+import { ChapterWithProgress } from "@/types/students/student-subjects-details-types";
 
-export const ChapterAccordian = ({ ChapterDetails }: { ChapterDetails: ChapterType }) => {
+export const ChapterAccordian = ({
+    ChapterDetails,
+    key,
+}: {
+    ChapterDetails: ChapterWithProgress;
+    key: number;
+}) => {
     const [expand, setExpand] = useState(false);
+
+    const chapterCompletionStatus: "done" | "pending" =
+        ChapterDetails.percentage_completed >= 90 ? "done" : "pending";
 
     return (
         <div className="flex">
@@ -17,16 +26,14 @@ export const ChapterAccordian = ({ ChapterDetails }: { ChapterDetails: ChapterTy
                     }}
                 >
                     <div className="flex items-center gap-2">
-                        <StatusIcon status={ChapterDetails.status} />
+                        <StatusIcon status={chapterCompletionStatus} />
                         <div>
-                            Chapter {ChapterDetails.number}: {ChapterDetails.name}
+                            Chapter {key}: {ChapterDetails.chapter_name}
                         </div>
                     </div>
                     <div>{expand ? <CaretUp /> : <CaretDown />}</div>
                 </div>
-                {expand && ChapterDetails.chapter_details && (
-                    <TopicDetails topicsData={ChapterDetails.chapter_details} />
-                )}
+                {expand && <TopicDetails chapterDetails={ChapterDetails} />}
             </div>
         </div>
     );

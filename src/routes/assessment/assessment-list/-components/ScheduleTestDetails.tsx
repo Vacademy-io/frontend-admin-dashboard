@@ -91,7 +91,7 @@ const ScheduleTestDetails = ({
                     />
                 </div>
             </div>
-            <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
+            <div className="flex w-full items-start justify-start gap-8 text-sm text-neutral-500">
                 <div className="flex flex-col gap-4">
                     <p>Created on: {convertToLocalDateTime(scheduleTestContent.created_at)}</p>
                     <p>
@@ -103,17 +103,26 @@ const ScheduleTestDetails = ({
                     </p>
                 </div>
                 <div className="flex flex-col gap-4">
-                    <p>
-                        Start Date and Time:{" "}
-                        {convertToLocalDateTime(scheduleTestContent.bound_start_time)}
-                    </p>
-                    <p>Duration: {scheduleTestContent.duration} min</p>
+                    {(scheduleTestContent.play_mode === "EXAM" ||
+                        scheduleTestContent.play_mode === "SURVEY") && (
+                        <p>
+                            Start Date and Time:{" "}
+                            {convertToLocalDateTime(scheduleTestContent.bound_start_time)}
+                        </p>
+                    )}
+                    {(scheduleTestContent.play_mode === "EXAM" ||
+                        scheduleTestContent.play_mode === "MOCK") && (
+                        <p>Duration: {scheduleTestContent.duration} min</p>
+                    )}
                 </div>
                 <div className="flex flex-col gap-4">
-                    <p>
-                        End Date and Time:{" "}
-                        {convertToLocalDateTime(scheduleTestContent.bound_end_time)}
-                    </p>
+                    {(scheduleTestContent.play_mode === "EXAM" ||
+                        scheduleTestContent.play_mode === "SURVEY") && (
+                        <p>
+                            End Date and Time:{" "}
+                            {convertToLocalDateTime(scheduleTestContent.bound_end_time)}
+                        </p>
+                    )}
                     <p>Total Participants: {scheduleTestContent.user_registrations}</p>
                 </div>
             </div>

@@ -149,6 +149,7 @@ function PreviewWithSettings({
                     margin: 0 auto;
                     border: 1px #d3d3d3 solid;
                     border-radius: 5px;
+                    line-height: 1.5;
                     background: white;
                     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
                 }

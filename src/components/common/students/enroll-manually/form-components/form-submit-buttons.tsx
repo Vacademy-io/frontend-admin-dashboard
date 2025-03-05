@@ -38,9 +38,9 @@ export const FormSubmitButtons = ({
                     buttonType="primary"
                     scale="large"
                     layoutVariant="default"
-                    disabled={finishButtonDisable}
+                    disable={finishButtonDisable}
                     onClick={onNext}
-                    type="button"
+                    type="submit"
                 >
                     {stepNumber === 5 ? <span>Finish</span> : <span>Next</span>}
                 </MyButton>

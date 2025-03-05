@@ -7,10 +7,13 @@ import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Examination, Mock, Practice, Survey } from "@/svgs";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { cn } from "@/lib/utils";
 
 export const ScheduleTestHeaderDescription = () => {
     const isMobile = useIsMobile();
     const navigate = useNavigate();
+    const { getCourseFromPackage } = useInstituteDetailsStore();
 
     const handleRedirectRoute = (type: string) => {
         navigate({
@@ -52,7 +55,12 @@ export const ScheduleTestHeaderDescription = () => {
                 </p>
             </div>
             <Dialog>
-                <DialogTrigger>
+                <DialogTrigger
+                    disabled={getCourseFromPackage().length === 0}
+                    className={cn(
+                        getCourseFromPackage().length === 0 && "pointer-events-none opacity-55",
+                    )}
+                >
                     <MyButton
                         scale="large"
                         buttonType="primary"
