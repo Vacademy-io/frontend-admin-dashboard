@@ -26,7 +26,7 @@ export const AddCourseButton = ({ onSubmit }: AddCourseButtonProps) => {
         <MyDialog
             trigger={triggerButton}
             heading="Add Course"
-            dialogWidth="w-[430px]"
+            dialogWidth="w-[800px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
         >

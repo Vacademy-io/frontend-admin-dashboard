@@ -4,7 +4,6 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyButton } from "@/components/design-system/button";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { MyInput } from "@/components/design-system/input";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
@@ -257,7 +256,7 @@ export const AddCourseForm = ({
                                     required={true}
                                     inputType="text"
                                     inputPlaceholder="Enter course name"
-                                    className="w-[352px]"
+                                    className="w-full"
                                     input={field.value}
                                     onChangeFunction={(e) => field.onChange(e.target.value)}
                                 />
@@ -353,116 +352,124 @@ export const AddCourseForm = ({
                 )}
 
                 {containLevels && (
-                    <FormField
-                        control={form.control}
-                        name="sessions"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormControl>
-                                    <div className="flex flex-col gap-4">
-                                        {sessionList.map((session) => (
-                                            <Collapsible key={session.id}>
-                                                <div className="rounded-lg border border-neutral-200 py-2">
-                                                    <CollapsibleTrigger className="flex w-[352px] items-center justify-between p-4">
-                                                        {/* Replace LevelField with SessionField component */}
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="flex flex-col">
-                                                                <div className="flex flex-col items-start">
-                                                                    <p className="text-subtitle font-semibold">
-                                                                        {session.session_name}
-                                                                    </p>
-                                                                    <p className="text-caption text-neutral-400">
-                                                                        Start Date:{" "}
-                                                                        {new Date().toISOString()}
-                                                                    </p>
+                    <div className="flex flex-col gap-2">
+                        <p className="text-body text-neutral-500">
+                            Choose sessions to select a level
+                        </p>
+                        <FormField
+                            control={form.control}
+                            name="sessions"
+                            render={({ field }) => (
+                                <FormItem className="w-full">
+                                    <FormControl>
+                                        <div className="flex flex-col gap-4">
+                                            {sessionList.map((session) => (
+                                                <div key={session.id}>
+                                                    <div className="rounded-lg border border-neutral-200 py-2">
+                                                        <div className="flex w-full items-center justify-between p-4 pr-8">
+                                                            {/* Replace LevelField with SessionField component */}
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex flex-col">
+                                                                    <div className="flex flex-col items-start">
+                                                                        <p className="text-subtitle font-semibold">
+                                                                            {session.session_name}
+                                                                        </p>
+                                                                        <p className="text-caption text-neutral-400">
+                                                                            Start Date: 05/03/2025
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <MyButton
-                                                                buttonType="secondary"
-                                                                layoutVariant="icon"
-                                                                scale="small"
-                                                            >
-                                                                <DotsThree />
-                                                            </MyButton>
-                                                        </div>
-                                                    </CollapsibleTrigger>
-                                                    <CollapsibleContent className="ml-4 mr-6 mt-2">
-                                                        <div>
-                                                            <Separator />
-                                                        </div>
-                                                        <div className="flex flex-col gap-2">
-                                                            {levelList.map((level) => (
-                                                                /* Create new LevelInSessionField component */
-                                                                <LevelInSessionField
-                                                                    key={level.id}
-                                                                    level={level}
-                                                                    session={session}
-                                                                    field={field}
-                                                                />
-                                                            ))}
-                                                            {showNewLevelInput ? (
-                                                                <AddLevelInput
-                                                                    newLevelName={newLevelName}
-                                                                    setNewLevelName={
-                                                                        setNewLevelName
-                                                                    }
-                                                                    newLevelDuration={
-                                                                        newLevelDuration
-                                                                    }
-                                                                    setNewLevelDuration={
-                                                                        setNewLevelDuration
-                                                                    }
-                                                                    handleAddLevel={handleAddLevel}
-                                                                    setShowNewLevelInput={
-                                                                        setShowNewLevelInput
-                                                                    }
-                                                                />
-                                                            ) : (
+                                                            <div className="flex items-center gap-2">
                                                                 <MyButton
-                                                                    onClick={() =>
-                                                                        setShowNewLevelInput(true)
-                                                                    }
-                                                                    buttonType="text"
-                                                                    layoutVariant="default"
+                                                                    buttonType="secondary"
+                                                                    layoutVariant="icon"
                                                                     scale="small"
-                                                                    className="text-primary-500 hover:bg-white active:bg-white"
                                                                 >
-                                                                    <Plus /> Add Level
+                                                                    <DotsThree />
                                                                 </MyButton>
-                                                            )}
+                                                            </div>
                                                         </div>
-                                                    </CollapsibleContent>
+                                                        <div className="ml-4 mr-6 mt-2">
+                                                            <div>
+                                                                <Separator />
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                {levelList.map((level) => (
+                                                                    /* Create new LevelInSessionField component */
+                                                                    <LevelInSessionField
+                                                                        key={level.id}
+                                                                        level={level}
+                                                                        session={session}
+                                                                        field={field}
+                                                                    />
+                                                                ))}
+                                                                {showNewLevelInput ? (
+                                                                    <AddLevelInput
+                                                                        newLevelName={newLevelName}
+                                                                        setNewLevelName={
+                                                                            setNewLevelName
+                                                                        }
+                                                                        newLevelDuration={
+                                                                            newLevelDuration
+                                                                        }
+                                                                        setNewLevelDuration={
+                                                                            setNewLevelDuration
+                                                                        }
+                                                                        handleAddLevel={
+                                                                            handleAddLevel
+                                                                        }
+                                                                        setShowNewLevelInput={
+                                                                            setShowNewLevelInput
+                                                                        }
+                                                                    />
+                                                                ) : (
+                                                                    <MyButton
+                                                                        onClick={() =>
+                                                                            setShowNewLevelInput(
+                                                                                true,
+                                                                            )
+                                                                        }
+                                                                        buttonType="text"
+                                                                        layoutVariant="default"
+                                                                        scale="small"
+                                                                        className="w-fit text-primary-500 hover:bg-white active:bg-white"
+                                                                    >
+                                                                        <Plus /> Add Level
+                                                                    </MyButton>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </Collapsible>
-                                        ))}
-                                        {showNewSessionInput ? (
-                                            <AddSessionInput
-                                                newSessionName={newSessionName}
-                                                setNewSessionName={setNewSessionName}
-                                                newSessionStartDate={newSessionStartDate}
-                                                setNewSessionStartDate={setNewSessionStartDate}
-                                                handleAddSession={handleAddSession}
-                                                setShowNewSessionInput={setShowNewSessionInput}
-                                            />
-                                        ) : (
-                                            <MyButton
-                                                onClick={() => setShowNewSessionInput(true)}
-                                                buttonType="text"
-                                                layoutVariant="default"
-                                                scale="small"
-                                                className="text-primary-500 hover:bg-white active:bg-white"
-                                            >
-                                                <Plus /> Add Session
-                                            </MyButton>
-                                        )}
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                            ))}
+                                            {showNewSessionInput ? (
+                                                <AddSessionInput
+                                                    newSessionName={newSessionName}
+                                                    setNewSessionName={setNewSessionName}
+                                                    newSessionStartDate={newSessionStartDate}
+                                                    setNewSessionStartDate={setNewSessionStartDate}
+                                                    handleAddSession={handleAddSession}
+                                                    setShowNewSessionInput={setShowNewSessionInput}
+                                                />
+                                            ) : (
+                                                <MyButton
+                                                    onClick={() => setShowNewSessionInput(true)}
+                                                    buttonType="text"
+                                                    layoutVariant="default"
+                                                    scale="small"
+                                                    className="w-fit text-primary-500 hover:bg-white active:bg-white"
+                                                >
+                                                    <Plus /> Add Session
+                                                </MyButton>
+                                            )}
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
                 )}
                 <div className="flex w-full items-center justify-center">
                     <MyButton

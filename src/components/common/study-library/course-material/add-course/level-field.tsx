@@ -77,7 +77,13 @@ export const LevelInSessionField = ({ level, session, field }: LevelInSessionFie
                         </span>
                     )}
                 </div>
-                <MyButton buttonType="secondary" layoutVariant="icon" scale="small">
+                <MyButton
+                    buttonType="secondary"
+                    layoutVariant="icon"
+                    scale="small"
+                    type="button"
+                    className="hover:bg-white active:bg-white"
+                >
                     <DotsThree />
                 </MyButton>
             </div>
