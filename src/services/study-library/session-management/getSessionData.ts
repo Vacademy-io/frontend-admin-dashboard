@@ -14,3 +14,14 @@ export const getSessionData = async () => {
     });
     return response.data;
 };
+
+export const useSessionData = () => {
+    return {
+        queryKey: ["GET_SESSION_DATA"],
+        queryFn: async () => {
+            const data = await getSessionData();
+            return data;
+        },
+        staleTime: 3600000,
+    };
+};

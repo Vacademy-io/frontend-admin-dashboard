@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DotsThree } from "phosphor-react";
 import { Button } from "@/components/ui/button";
+import { DeleteSessionDialog } from "./deleteSessionDialog";
+import { MyButton } from "@/components/design-system/button";
 
 interface SessionCardProps {
     data: SessionData;
@@ -28,8 +30,18 @@ export function SessionCard({ data }: SessionCardProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                         <DropdownMenuItem className="cursor-pointer">Edit Session</DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer">
-                            Delete Session
+                        <DropdownMenuItem
+                            className="cursor-pointer hover:bg-white"
+                            onSelect={(e) => e.preventDefault()}
+                        >
+                            <DeleteSessionDialog
+                                triggerButton={
+                                    <MyButton buttonType="text" className="text-neutral-600">
+                                        Delete Session
+                                    </MyButton>
+                                }
+                                session={data}
+                            />
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

@@ -78,6 +78,11 @@ export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
 export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
 export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course`;
 
+export const GET_SESSION_DETAILS = `${BASE_URL}/admin-core-service/sessions/v1/session-details`;
+export const ADD_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/add`;
+export const EDIT_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/edit`;
+export const DELETE_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/delete-sessions`;
+
 export const GET_SLIDES = `${BASE_URL}/admin-core-service/slide/v1/get-slides`;
 export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-video-slide`;
 export const ADD_UPDATE_DOCUMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-document-slide`;
@@ -86,7 +91,6 @@ export const UPDATE_SLIDE_ORDER = `${BASE_URL}/admin-core-service/slide/v1/updat
 export const GET_SLIDE_ACTIVITY = `${BASE_URL}/admin-core-service/learner-tracking/activity-log/v1/learner-activity`;
 export const GET_USER_VIDEO_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-video-activity-logs`;
 export const GET_USER_DOC_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-document-activity-logs`;
-export const GET_SESSION_DETAILS = `${BASE_URL}/admin-core-service/sessions/v1/session-details`;
 export const GET_STUDENT_SUBJECT_PROGRESS = `${BASE_URL}/admin-core-service/subject/learner/v1/subjects`;
 export const GET_STUDENT_SLIDE_PROGRESS = `${BASE_URL}/admin-core-service/slide/institute-learner/v1/get-slides-with-status`;
 
