@@ -87,12 +87,9 @@ export const AddSessionForm = ({
         durationInDays: number | null,
         packageId: string,
     ) => {
-        // Create a unique ID for this new level
-        const tempId = `temp-${Date.now()}`;
-
         // Create the new level object
         const newLevel: LevelForSession = {
-            id: tempId, // Use the temp ID instead of null
+            id: "", // Use the temp ID instead of null
             new_level: true,
             level_name: levelName,
             duration_in_days: durationInDays,
@@ -112,7 +109,7 @@ export const AddSessionForm = ({
 
             // Add to local state for THIS package only with the same ID
             const levelForPackage: LevelType = {
-                id: tempId,
+                id: "",
                 level_name: levelName,
                 duration_in_days: durationInDays,
                 thumbnail_id: null,
