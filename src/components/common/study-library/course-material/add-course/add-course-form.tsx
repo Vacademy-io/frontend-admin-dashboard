@@ -358,7 +358,7 @@ export const AddCourseForm = ({
                         control={form.control}
                         name="contain_levels"
                         render={({ field }) => (
-                            <FormItem className="space-y-2">
+                            <FormItem className={`space-y-2 ${!containLevels ? "mb-20" : "mb-0"}`}>
                                 <label className="text-subtitle font-semibold">
                                     Contains Levels?
                                 </label>
