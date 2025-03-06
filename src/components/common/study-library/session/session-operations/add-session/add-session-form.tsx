@@ -50,21 +50,16 @@ export const AddSessionForm = ({
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
     // const [selectedLevels, setSelectedLevels] = useState<LevelForSession[]>([]);
     const addCourseMutation = useAddCourse();
-    const [locallyAddedLevels, setLocallyAddedLevels] = useState<LevelType[]>([]);
+    const [locallyAddedLevels, setLocallyAddedLevels] = useState<Record<string, LevelType[]>>({});
 
     useEffect(() => {
         // When refreshing packageWithLevels, combine existing levels with locally added ones
         const packages = getPackageWiseLevels();
 
-        // For each package, add the locally added levels if they don't exist already
+        // For each package, add only its own locally added levels
         const updatedPackages = packages.map((pkg) => {
-            // Check if each locally added level already exists in this package
-            const levelsToAdd = locallyAddedLevels.filter(
-                (newLevel) =>
-                    !pkg.levels.some(
-                        (existingLevel) => existingLevel.level_name === newLevel.level_name,
-                    ),
-            );
+            const packageId = pkg.package_dto.id;
+            const levelsToAdd = locallyAddedLevels[packageId] || [];
 
             return {
                 ...pkg,
@@ -92,9 +87,12 @@ export const AddSessionForm = ({
         durationInDays: number | null,
         packageId: string,
     ) => {
+        // Create a unique ID for this new level
+        const tempId = `temp-${Date.now()}`;
+
         // Create the new level object
         const newLevel: LevelForSession = {
-            id: null,
+            id: tempId, // Use the temp ID instead of null
             new_level: true,
             level_name: levelName,
             duration_in_days: durationInDays,
@@ -102,18 +100,29 @@ export const AddSessionForm = ({
             package_id: packageId,
         };
 
-        // Add to form values as before
-        form.setValue("levels", [...form.getValues("levels"), newLevel]);
+        // Check if this level name already exists for this package to avoid duplicates
+        const currentLevels = form.getValues("levels");
+        const levelNameExists = currentLevels.some(
+            (level) => level.level_name === levelName && level.package_id === packageId,
+        );
 
-        // Also add to local state for all packages to use
-        const levelForAllPackages: LevelType = {
-            id: `temp-${Date.now()}`, // Temporary ID for UI purposes
-            level_name: levelName,
-            duration_in_days: durationInDays,
-            thumbnail_id: null,
-        };
+        if (!levelNameExists) {
+            // Add to form values only if it doesn't exist
+            form.setValue("levels", [...currentLevels, newLevel]);
 
-        setLocallyAddedLevels((prev) => [...prev, levelForAllPackages]);
+            // Add to local state for THIS package only with the same ID
+            const levelForPackage: LevelType = {
+                id: tempId,
+                level_name: levelName,
+                duration_in_days: durationInDays,
+                thumbnail_id: null,
+            };
+
+            setLocallyAddedLevels((prev) => ({
+                ...prev,
+                [packageId]: [...(prev[packageId] || []), levelForPackage],
+            }));
+        }
 
         // Reset inputs
         setNewLevelName("");
