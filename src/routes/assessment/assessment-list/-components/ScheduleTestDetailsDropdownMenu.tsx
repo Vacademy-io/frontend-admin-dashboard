@@ -464,7 +464,7 @@ const ScheduleTestReminderDialog = ({ onClose }: { onClose: () => void }) => {
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Send Reminder</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex items-center gap-1">
@@ -532,7 +532,7 @@ const ScheduleTestDeleteDialog = ({
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Delete Assessment</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex items-center gap-1">
@@ -540,7 +540,7 @@ const ScheduleTestDeleteDialog = ({
                         <Info size={18} className="text-danger-600" />
                     </div>
                     <h1 className="-mt-2 font-thin">
-                        Are you sure you want to delete the Assessment named
+                        Are you sure you want to delete
                         <span className="text-primary-500">&nbsp;{scheduleTestContent.name}</span>?
                     </h1>
                     <div className="mt-2 flex justify-end">
@@ -563,7 +563,7 @@ const ScheduleTestPauseDialog = ({ onClose }: { onClose: () => void }) => {
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Pause Live Status</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div>
@@ -593,7 +593,7 @@ const ScheduleTestResumeDialog = ({ onClose }: { onClose: () => void }) => {
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
                     Resume Live Status
                 </h1>
@@ -624,7 +624,7 @@ const ScheduleTestReopenDialog = ({ onClose }: { onClose: () => void }) => {
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Reopen Assessment</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex flex-col gap-4">
