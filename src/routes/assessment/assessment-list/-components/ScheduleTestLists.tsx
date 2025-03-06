@@ -9,6 +9,7 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({
     pageNo,
     handlePageChange,
     selectedTab,
+    handleRefetchData,
 }) => {
     return (
         <TabsContent key={tab.value} value={tab.value}>
@@ -24,6 +25,7 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({
                             key={index}
                             scheduleTestContent={item}
                             selectedTab={selectedTab}
+                            handleRefetchData={handleRefetchData}
                         />
                     ))}
                     <MyPagination

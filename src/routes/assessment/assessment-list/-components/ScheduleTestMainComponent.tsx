@@ -25,6 +25,7 @@ import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtili
 import { TokenKey } from "@/constants/auth/tokens";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
+import { useRefetchStoreAssessment } from "../-global-store/refetch-store";
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -53,6 +54,9 @@ export const ScheduleTestMainComponent = () => {
     const { AssessmentTypeData, AssessmentStatusData, ModeData } =
         useFilterDataForAssesmentInitData(initAssessmentData);
     const { getCourseFromPackage } = useInstituteDetailsStore();
+    const setHandleRefetchDataAssessment = useRefetchStoreAssessment(
+        (state) => state.setHandleRefetchDataAssessment,
+    );
 
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] =
         useState<SelectedQuestionPaperFilters>({
@@ -203,9 +207,31 @@ export const ScheduleTestMainComponent = () => {
             data: SelectedQuestionPaperFilters;
         }) => getAssessmentListWithFilters(pageNo, pageSize, instituteId, data),
         onSuccess: (data) => {
-            setScheduleTestTabsData((prevTabs) =>
-                prevTabs.map((tab) => (tab.value === selectedTab ? { ...tab, data: data } : tab)),
-            );
+            if (selectedTab === "liveTests") {
+                setScheduleTestTabsData((prevTabs) =>
+                    prevTabs.map((tab) =>
+                        tab.value === "liveTests" ? { ...tab, data: data } : tab,
+                    ),
+                );
+            } else if (selectedTab === "upcomingTests") {
+                setScheduleTestTabsData((prevTabs) =>
+                    prevTabs.map((tab) =>
+                        tab.value === "upcomingTests" ? { ...tab, data: data } : tab,
+                    ),
+                );
+            } else if (selectedTab === "previousTests") {
+                setScheduleTestTabsData((prevTabs) =>
+                    prevTabs.map((tab) =>
+                        tab.value === "previousTests" ? { ...tab, data: data } : tab,
+                    ),
+                );
+            } else {
+                setScheduleTestTabsData((prevTabs) =>
+                    prevTabs.map((tab) =>
+                        tab.value === "draftTests" ? { ...tab, data: data } : tab,
+                    ),
+                );
+            }
         },
         onError: (error: unknown) => {
             throw error;
@@ -213,6 +239,20 @@ export const ScheduleTestMainComponent = () => {
     });
 
     const handleSubmitFilters = () => {
+        getFilteredData.mutate({
+            pageNo: pageNo,
+            pageSize: 10,
+            instituteId: INSTITUTE_ID,
+            data: {
+                ...selectedQuestionPaperFilters,
+                get_live_assessments: selectedTab === "liveTests" ? true : false,
+                get_passed_assessments: selectedTab === "previousTests" ? true : false,
+                get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+            },
+        });
+    };
+
+    const handleRefetchData = () => {
         getFilteredData.mutate({
             pageNo: pageNo,
             pageSize: 10,
@@ -371,6 +411,11 @@ export const ScheduleTestMainComponent = () => {
         }
     }, []);
 
+    // Define the handleRefetchData function here
+    useEffect(() => {
+        setHandleRefetchDataAssessment(handleRefetchData);
+    }, [setHandleRefetchDataAssessment]);
+
     if (isLoading) return <DashboardLoader />;
     return (
         <>
@@ -456,6 +501,7 @@ export const ScheduleTestMainComponent = () => {
                             pageNo={pageNo}
                             handlePageChange={handlePageChange}
                             selectedTab={selectedTab}
+                            handleRefetchData={handleRefetchData}
                         />
                     ))}
                 </Tabs>
