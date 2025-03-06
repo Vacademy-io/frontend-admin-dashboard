@@ -113,20 +113,54 @@ export const AddCourseForm = ({
     const [newSessionName, setNewSessionName] = useState("");
     const [disableAddButton, setDisableAddButton] = useState(false);
 
-    const { instituteDetails, getAllLevels, getAllSessions } = useInstituteDetailsStore();
+    const { instituteDetails, getAllSessions, getLevelsFromPackage2 } = useInstituteDetailsStore();
+    // At the top with other state variables
+    const [locallyAddedLevels, setLocallyAddedLevels] = useState<Record<string, Level[]>>({});
 
-    // Initialize with proper Level objects that include empty sessions arrays
-    const [levelList, setLevelList] = useState<Level[]>(
-        getAllLevels().map((level) => ({
-            ...level,
-            sessions: [] as Session[],
-        })),
-    );
+    // Update the handleAddLevel function
+    const handleAddLevel = (
+        levelName: string,
+        durationInDays: number | null,
+        sessionId: string,
+    ) => {
+        const newLevel: Level = {
+            id: "", // Use temporary ID for new levels
+            new_level: true,
+            level_name: levelName,
+            duration_in_days: durationInDays,
+            thumbnail_id: null,
+        };
+
+        // Add to locally tracked levels for this session
+        setLocallyAddedLevels((prev) => ({
+            ...prev,
+            [sessionId]: [...(prev[sessionId] || []), newLevel],
+        }));
+
+        // Update form sessions value if the session is already selected
+        const currentSessions = form.getValues("sessions") || [];
+        const sessionIndex = currentSessions.findIndex((s) => s.id === sessionId);
+
+        if (sessionIndex !== -1) {
+            // Session exists in form value, add the new level to it
+            const updatedSessions = [...currentSessions];
+            const currentSession = updatedSessions[sessionIndex];
+
+            if (currentSession) {
+                currentSession.levels = [...(currentSession.levels || []), newLevel];
+            }
+
+            form.setValue("sessions", updatedSessions);
+        }
+
+        // Reset inputs
+        setNewLevelName("");
+        setNewLevelDuration(null);
+    };
     const [sessionList, setSessionList] = useState<Session[]>([]);
     // Then in useEffect:
     useEffect(() => {
         setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
-        setLevelList(getAllLevels());
     }, [instituteDetails]);
 
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
@@ -153,18 +187,6 @@ export const AddCourseForm = ({
             levels: [],
         };
     }
-
-    const handleAddLevel = (levelName: string, durationInDays: number | null) => {
-        const newLevel: Level = {
-            id: "",
-            new_level: true,
-            level_name: levelName,
-            duration_in_days: durationInDays,
-            thumbnail_id: null,
-        };
-
-        setLevelList((prevLevelList) => [...prevLevelList, newLevel]);
-    };
 
     const handleAddSession = (sessionName: string, startDate: string) => {
         const newSession: Session = {
@@ -219,6 +241,7 @@ export const AddCourseForm = ({
     };
 
     const onSubmit = (data: AddCourseData) => {
+        console.log("Complete form data:", JSON.stringify(data, null, 2));
         // Filter out any sessions that might have no levels
         const filteredSessions =
             data.sessions?.filter((session) => session.levels && session.levels.length > 0) || [];
@@ -335,7 +358,7 @@ export const AddCourseForm = ({
                         control={form.control}
                         name="contain_levels"
                         render={({ field }) => (
-                            <FormItem className="space-y-2">
+                            <FormItem className={`space-y-2 ${!containLevels ? "mb-20" : "mb-0"}`}>
                                 <label className="text-subtitle font-semibold">
                                     Contains Levels?
                                 </label>
@@ -432,8 +455,22 @@ export const AddCourseForm = ({
                                                                     <Separator />
                                                                 </div>
                                                                 <div className="grid grid-cols-2 gap-4">
-                                                                    {levelList.map((level) => (
+                                                                    {getLevelsFromPackage2({
+                                                                        sessionId: session.id,
+                                                                    }).map((level) => (
                                                                         /* Create new LevelInSessionField component */
+                                                                        <LevelInSessionField
+                                                                            key={level.id}
+                                                                            level={level}
+                                                                            session={session}
+                                                                            field={field}
+                                                                        />
+                                                                    ))}
+                                                                    {(
+                                                                        locallyAddedLevels[
+                                                                            session.id
+                                                                        ] || []
+                                                                    ).map((level) => (
                                                                         <LevelInSessionField
                                                                             key={level.id}
                                                                             level={level}
@@ -452,8 +489,15 @@ export const AddCourseForm = ({
                                                                         setNewLevelDuration={
                                                                             setNewLevelDuration
                                                                         }
-                                                                        handleAddLevel={
-                                                                            handleAddLevel
+                                                                        handleAddLevel={(
+                                                                            name,
+                                                                            duration,
+                                                                        ) =>
+                                                                            handleAddLevel(
+                                                                                name,
+                                                                                duration,
+                                                                                session.id,
+                                                                            )
                                                                         }
                                                                     />
                                                                 </div>

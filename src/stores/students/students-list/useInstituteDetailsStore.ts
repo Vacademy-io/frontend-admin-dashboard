@@ -18,6 +18,7 @@ interface InstituteDetailsStore {
         courseId?: string;
         sessionId?: string;
     }) => Array<{ id: string; name: string }>;
+    getLevelsFromPackage2: (params?: { courseId?: string; sessionId?: string }) => Array<LevelType>;
     getCourseFromPackage: (params?: {
         levelId?: string;
         sessionId?: string;
@@ -81,6 +82,40 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                 id: batch.level.id,
                 name: batch.level.level_name,
             }));
+
+        // Create a map to track unique items by ID
+        const uniqueMap = new Map();
+
+        // Add each item to the map, using id as the key
+        levels.forEach((item) => {
+            uniqueMap.set(item.id, item);
+        });
+
+        // Convert the map values back to an array
+        return Array.from(uniqueMap.values());
+    },
+
+    getLevelsFromPackage2: (params) => {
+        const { instituteDetails } = get();
+        if (!instituteDetails) return [];
+
+        const levels = instituteDetails.batches_for_sessions
+            .filter((batch) => {
+                if (params?.courseId && params?.sessionId) {
+                    return (
+                        batch.package_dto.id === params.courseId &&
+                        batch.session.id === params.sessionId
+                    );
+                }
+                if (params?.courseId) {
+                    return batch.package_dto.id === params.courseId;
+                }
+                if (params?.sessionId) {
+                    return batch.session.id === params.sessionId;
+                }
+                return true;
+            })
+            .map((batch) => batch.level);
 
         // Create a map to track unique items by ID
         const uniqueMap = new Map();
