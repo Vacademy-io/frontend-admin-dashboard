@@ -11,7 +11,7 @@ export const AddSessionDialog = () => {
         setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
     };
     const handleAddSession = (sessionData: AddSessionDataType) => {
-        console.log(sessionData);
+        console.log("sessionData: ", sessionData);
     };
 
     return (

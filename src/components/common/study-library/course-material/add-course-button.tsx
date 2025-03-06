@@ -13,9 +13,10 @@ const triggerButton = (
 
 interface AddCourseButtonProps {
     onSubmit: ({ requestData }: { requestData: AddCourseData }) => void;
+    courseButton?: JSX.Element;
 }
 
-export const AddCourseButton = ({ onSubmit }: AddCourseButtonProps) => {
+export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleOpenChange = () => {
@@ -24,7 +25,7 @@ export const AddCourseButton = ({ onSubmit }: AddCourseButtonProps) => {
 
     return (
         <MyDialog
-            trigger={triggerButton}
+            trigger={courseButton ? courseButton : triggerButton}
             heading="Add Course"
             dialogWidth="w-[700px]"
             open={openDialog}
