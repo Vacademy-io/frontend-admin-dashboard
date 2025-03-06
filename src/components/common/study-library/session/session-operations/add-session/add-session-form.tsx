@@ -50,10 +50,30 @@ export const AddSessionForm = ({
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
     // const [selectedLevels, setSelectedLevels] = useState<LevelForSession[]>([]);
     const addCourseMutation = useAddCourse();
+    const [locallyAddedLevels, setLocallyAddedLevels] = useState<LevelType[]>([]);
 
     useEffect(() => {
-        setPackageWithLevels(getPackageWiseLevels());
-    }, [instituteDetails]);
+        // When refreshing packageWithLevels, combine existing levels with locally added ones
+        const packages = getPackageWiseLevels();
+
+        // For each package, add the locally added levels if they don't exist already
+        const updatedPackages = packages.map((pkg) => {
+            // Check if each locally added level already exists in this package
+            const levelsToAdd = locallyAddedLevels.filter(
+                (newLevel) =>
+                    !pkg.levels.some(
+                        (existingLevel) => existingLevel.level_name === newLevel.level_name,
+                    ),
+            );
+
+            return {
+                ...pkg,
+                levels: [...pkg.levels, ...levelsToAdd],
+            };
+        });
+
+        setPackageWithLevels(updatedPackages);
+    }, [instituteDetails, locallyAddedLevels]);
 
     const form = useForm<AddSessionDataType>({
         resolver: zodResolver(formSchema),
@@ -72,6 +92,7 @@ export const AddSessionForm = ({
         durationInDays: number | null,
         packageId: string,
     ) => {
+        // Create the new level object
         const newLevel: LevelForSession = {
             id: null,
             new_level: true,
@@ -81,7 +102,20 @@ export const AddSessionForm = ({
             package_id: packageId,
         };
 
+        // Add to form values as before
         form.setValue("levels", [...form.getValues("levels"), newLevel]);
+
+        // Also add to local state for all packages to use
+        const levelForAllPackages: LevelType = {
+            id: `temp-${Date.now()}`, // Temporary ID for UI purposes
+            level_name: levelName,
+            duration_in_days: durationInDays,
+            thumbnail_id: null,
+        };
+
+        setLocallyAddedLevels((prev) => [...prev, levelForAllPackages]);
+
+        // Reset inputs
         setNewLevelName("");
         setNewLevelDuration(null);
     };

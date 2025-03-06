@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DotsThree } from "@phosphor-icons/react";
 import { Level, Session, CourseFormData } from "./add-course-form";
 import { ControllerRenderProps } from "react-hook-form";
+import { useEffect } from "react";
 
 interface LevelInSessionFieldProps {
     level: Level;
@@ -12,6 +13,9 @@ interface LevelInSessionFieldProps {
 }
 
 export const LevelInSessionField = ({ level, session, field }: LevelInSessionFieldProps) => {
+    useEffect(() => {
+        console.log("level: ", level);
+    }, []);
     return (
         <div key={level.id} className="flex items-center gap-3 rounded-md p-2">
             <Checkbox
