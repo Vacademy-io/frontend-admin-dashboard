@@ -316,13 +316,20 @@ export const StepTwoForm = () => {
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
-                                                inputType="number"
+                                                inputType="number" // Keep as "number" for input behavior
                                                 label="Enter access days"
                                                 inputPlaceholder="Eg. 365"
-                                                input={value}
-                                                onChangeFunction={(e) =>
-                                                    onChange(Math.floor(Number(e.target.value)))
-                                                }
+                                                input={value} // Display the string value
+                                                onChangeFunction={(e) => {
+                                                    // Convert to number for validation, floor it, then convert back to string
+                                                    const numValue = Math.floor(
+                                                        Number(e.target.value),
+                                                    );
+                                                    // Only update if it's a valid number
+                                                    if (!isNaN(numValue)) {
+                                                        onChange(String(numValue)); // Store as string in form
+                                                    }
+                                                }}
                                                 error={form.formState.errors.accessDays?.message}
                                                 required={true}
                                                 size="large"
@@ -335,7 +342,6 @@ export const StepTwoForm = () => {
                                     </FormItem>
                                 )}
                             />
-
                             <FormField
                                 control={form.control}
                                 name="enrollmentNumber"
