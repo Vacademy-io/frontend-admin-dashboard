@@ -22,8 +22,10 @@ import { handleDeleteAssessment } from "../-services/assessment-services";
 
 export function ScheduleTestDetailsDropdownLive({
     scheduleTestContent,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
+    handleRefetchData: () => void;
 }) {
     const [isRemiderAlertDialogOpen, setIsRemiderAlertDialogOpen] = useState(false);
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
@@ -175,6 +177,7 @@ export function ScheduleTestDetailsDropdownLive({
             )}
             {isDeleteAssessmentDialog && (
                 <ScheduleTestDeleteDialog
+                    handleRefetchData={handleRefetchData}
                     scheduleTestContent={scheduleTestContent}
                     onClose={() => setIsDeleteAssessmentDialog(false)}
                 />
@@ -191,8 +194,10 @@ export function ScheduleTestDetailsDropdownLive({
 
 export function ScheduleTestDetailsDropdownUpcoming({
     scheduleTestContent,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
+    handleRefetchData: () => void;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const navigate = useNavigate();
@@ -266,6 +271,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
                 <ScheduleTestDeleteDialog
+                    handleRefetchData={handleRefetchData}
                     scheduleTestContent={scheduleTestContent}
                     onClose={() => setIsDeleteAssessmentDialog(false)}
                 />
@@ -276,8 +282,10 @@ export function ScheduleTestDetailsDropdownUpcoming({
 
 export function ScheduleTestDetailsDropdownPrevious({
     scheduleTestContent,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
+    handleRefetchData: () => void;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const [isReopenAssessment, setIsReopenAssessment] = useState(false);
@@ -363,6 +371,7 @@ export function ScheduleTestDetailsDropdownPrevious({
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
                 <ScheduleTestDeleteDialog
+                    handleRefetchData={handleRefetchData}
                     scheduleTestContent={scheduleTestContent}
                     onClose={() => setIsDeleteAssessmentDialog(false)}
                 />
@@ -376,8 +385,10 @@ export function ScheduleTestDetailsDropdownPrevious({
 
 export function ScheduleTestDetailsDropdowDrafts({
     scheduleTestContent,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
+    handleRefetchData: () => void;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const navigate = useNavigate();
@@ -427,6 +438,7 @@ export function ScheduleTestDetailsDropdowDrafts({
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
                 <ScheduleTestDeleteDialog
+                    handleRefetchData={handleRefetchData}
                     scheduleTestContent={scheduleTestContent}
                     onClose={() => setIsDeleteAssessmentDialog(false)}
                 />
@@ -438,23 +450,41 @@ export function ScheduleTestDetailsDropdowDrafts({
 export function ScheduleTestMainDropdownComponent({
     scheduleTestContent,
     selectedTab,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
     selectedTab: string;
+    handleRefetchData: () => void;
 }) {
     switch (selectedTab) {
         case "liveTests":
-            return <ScheduleTestDetailsDropdownLive scheduleTestContent={scheduleTestContent} />;
+            return (
+                <ScheduleTestDetailsDropdownLive
+                    scheduleTestContent={scheduleTestContent}
+                    handleRefetchData={handleRefetchData}
+                />
+            );
         case "upcomingTests":
             return (
-                <ScheduleTestDetailsDropdownUpcoming scheduleTestContent={scheduleTestContent} />
+                <ScheduleTestDetailsDropdownUpcoming
+                    scheduleTestContent={scheduleTestContent}
+                    handleRefetchData={handleRefetchData}
+                />
             );
         case "previousTests":
             return (
-                <ScheduleTestDetailsDropdownPrevious scheduleTestContent={scheduleTestContent} />
+                <ScheduleTestDetailsDropdownPrevious
+                    scheduleTestContent={scheduleTestContent}
+                    handleRefetchData={handleRefetchData}
+                />
             );
         case "draftTests":
-            return <ScheduleTestDetailsDropdowDrafts scheduleTestContent={scheduleTestContent} />;
+            return (
+                <ScheduleTestDetailsDropdowDrafts
+                    scheduleTestContent={scheduleTestContent}
+                    handleRefetchData={handleRefetchData}
+                />
+            );
         default:
             return null;
     }
@@ -488,9 +518,11 @@ const ScheduleTestReminderDialog = ({ onClose }: { onClose: () => void }) => {
 };
 
 const ScheduleTestDeleteDialog = ({
+    handleRefetchData,
     scheduleTestContent,
     onClose,
 }: {
+    handleRefetchData: () => void;
     scheduleTestContent: TestContent;
     onClose: () => void;
 }) => {
@@ -509,6 +541,7 @@ const ScheduleTestDeleteDialog = ({
                 duration: 2000,
             });
             onClose();
+            handleRefetchData();
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
