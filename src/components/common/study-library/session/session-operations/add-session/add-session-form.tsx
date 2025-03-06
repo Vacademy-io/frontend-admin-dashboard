@@ -48,9 +48,9 @@ export const AddSessionForm = ({
     const [packageWithLevels, setPackageWithLevels] = useState(getPackageWiseLevels());
     const [newLevelName, setNewLevelName] = useState("");
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
-    // const [selectedLevels, setSelectedLevels] = useState<LevelForSession[]>([]);
     const addCourseMutation = useAddCourse();
     const [locallyAddedLevels, setLocallyAddedLevels] = useState<Record<string, LevelType[]>>({});
+    const [disableAddButton, setDisableAddButton] = useState(true);
 
     useEffect(() => {
         // When refreshing packageWithLevels, combine existing levels with locally added ones
@@ -81,6 +81,19 @@ export const AddSessionForm = ({
             levels: initialValues?.levels || [],
         },
     });
+
+    // Add this useEffect to handle the disabled state of the Add button
+    useEffect(() => {
+        const sessionName = form.watch("session_name");
+        const startDate = form.watch("start_date");
+        const levels = form.watch("levels");
+
+        const hasValidName = sessionName.trim() !== "";
+        const hasValidDate = startDate !== "";
+        const hasSelectedLevels = levels.length > 0;
+
+        setDisableAddButton(!(hasValidName && hasValidDate && hasSelectedLevels));
+    }, [form.watch("session_name"), form.watch("start_date"), form.watch("levels")]);
 
     const handleAddLevel = (
         levelName: string,
@@ -155,6 +168,11 @@ export const AddSessionForm = ({
             .some((level) => level.id === levelId && level.package_id === packageId);
     };
 
+    // Add this function to check if a package has any selected levels
+    const hasSelectedLevelsInPackage = (packageId: string) => {
+        return form.getValues("levels").some((level) => level.package_id === packageId);
+    };
+
     const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
         addCourseMutation.mutate(
             { requestData: requestData },
@@ -216,7 +234,7 @@ export const AddSessionForm = ({
                     )}
                 />
 
-                <div className="flex flex-col gap-4">
+                <div className="mb-14 flex flex-col gap-4">
                     <p className="text-body text-neutral-500">Select levels from courses</p>
                     <FormField
                         control={form.control}
@@ -225,95 +243,108 @@ export const AddSessionForm = ({
                             <FormItem className="w-full">
                                 <FormControl>
                                     <div className="flex flex-col gap-4">
-                                        {packageWithLevels.map((packageItem) => (
-                                            <div
-                                                key={packageItem.package_dto.id}
-                                                className="rounded-lg border border-neutral-200 py-2"
-                                            >
-                                                <div className="flex w-full items-center justify-between p-4 pr-8">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex flex-col">
-                                                            <div className="flex flex-col items-start">
-                                                                <p className="text-subtitle font-semibold">
-                                                                    {
-                                                                        packageItem.package_dto
-                                                                            .package_name
-                                                                    }
-                                                                </p>
+                                        {packageWithLevels.map((packageItem) => {
+                                            const packageHasSelectedLevels =
+                                                hasSelectedLevelsInPackage(
+                                                    packageItem.package_dto.id,
+                                                );
+                                            return (
+                                                <div
+                                                    key={packageItem.package_dto.id}
+                                                    className={`rounded-lg border border-neutral-200 py-2 ${
+                                                        packageHasSelectedLevels
+                                                            ? "bg-neutral-100"
+                                                            : ""
+                                                    }`}
+                                                >
+                                                    <div className="flex w-full items-center justify-between p-4 pr-8">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex flex-col">
+                                                                <div className="flex flex-col items-start">
+                                                                    <p className="text-subtitle font-semibold">
+                                                                        {
+                                                                            packageItem.package_dto
+                                                                                .package_name
+                                                                        }
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <MyButton
+                                                                buttonType="secondary"
+                                                                layoutVariant="icon"
+                                                                scale="small"
+                                                                type="button"
+                                                            >
+                                                                <DotsThree />
+                                                            </MyButton>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <MyButton
-                                                            buttonType="secondary"
-                                                            layoutVariant="icon"
-                                                            scale="small"
-                                                            type="button"
-                                                        >
-                                                            <DotsThree />
-                                                        </MyButton>
-                                                    </div>
-                                                </div>
-                                                <div className="ml-4 mr-6 mt-2">
-                                                    <Separator />
-                                                    <div className="grid grid-cols-2">
-                                                        {packageItem.levels.map((level) => {
-                                                            const selected = isLevelSelected(
-                                                                level.id,
-                                                                packageItem.package_dto.id,
-                                                            );
-                                                            return (
-                                                                <div
-                                                                    key={level.id}
-                                                                    className="flex cursor-pointer items-center gap-2 rounded-md p-2"
-                                                                >
-                                                                    <Checkbox
-                                                                        className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
-                                                                        checked={selected}
-                                                                        onCheckedChange={() =>
-                                                                            handleSelectLevel(
-                                                                                level,
+                                                    <div className="ml-4 mr-6 mt-2">
+                                                        <Separator />
+                                                        <div className="grid grid-cols-2">
+                                                            {packageItem.levels.map((level) => {
+                                                                const selected = isLevelSelected(
+                                                                    level.id,
+                                                                    packageItem.package_dto.id,
+                                                                );
+                                                                return (
+                                                                    <div
+                                                                        key={level.id}
+                                                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2"
+                                                                    >
+                                                                        <Checkbox
+                                                                            className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+                                                                            checked={selected}
+                                                                            onCheckedChange={() =>
+                                                                                handleSelectLevel(
+                                                                                    level,
+                                                                                    packageItem
+                                                                                        .package_dto
+                                                                                        .id,
+                                                                                    selected,
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                        <span>
+                                                                            {level.level_name}
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                            {!initialValues && (
+                                                                <div className="mt-2">
+                                                                    <AddLevelInput
+                                                                        newLevelName={newLevelName}
+                                                                        setNewLevelName={
+                                                                            setNewLevelName
+                                                                        }
+                                                                        newLevelDuration={
+                                                                            newLevelDuration
+                                                                        }
+                                                                        setNewLevelDuration={
+                                                                            setNewLevelDuration
+                                                                        }
+                                                                        handleAddLevel={(
+                                                                            name,
+                                                                            duration,
+                                                                        ) =>
+                                                                            handleAddLevel(
+                                                                                name,
+                                                                                duration,
                                                                                 packageItem
                                                                                     .package_dto.id,
-                                                                                selected,
                                                                             )
                                                                         }
                                                                     />
-                                                                    <span>{level.level_name}</span>
                                                                 </div>
-                                                            );
-                                                        })}
-                                                        {!initialValues && (
-                                                            <div className="mt-2">
-                                                                <AddLevelInput
-                                                                    newLevelName={newLevelName}
-                                                                    setNewLevelName={
-                                                                        setNewLevelName
-                                                                    }
-                                                                    newLevelDuration={
-                                                                        newLevelDuration
-                                                                    }
-                                                                    setNewLevelDuration={
-                                                                        setNewLevelDuration
-                                                                    }
-                                                                    handleAddLevel={(
-                                                                        name,
-                                                                        duration,
-                                                                    ) =>
-                                                                        handleAddLevel(
-                                                                            name,
-                                                                            duration,
-                                                                            packageItem.package_dto
-                                                                                .id,
-                                                                        )
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        )}
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                         {!initialValues && (
                                             <AddCourseButton
                                                 onSubmit={handleAddCourse}
@@ -337,13 +368,14 @@ export const AddSessionForm = ({
                     />
                 </div>
 
-                <div className="mt-4 flex justify-end">
+                <div className="absolute bottom-0 mt-4 flex w-[640px] items-center justify-end bg-white py-3 pr-10">
                     <MyButton
                         type="submit"
                         buttonType="primary"
                         layoutVariant="default"
                         scale="large"
                         className="w-[140px]"
+                        disable={disableAddButton}
                     >
                         Add
                     </MyButton>
