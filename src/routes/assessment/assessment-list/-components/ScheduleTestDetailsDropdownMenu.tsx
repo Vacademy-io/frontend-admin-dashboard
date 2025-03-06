@@ -14,6 +14,11 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { TestContent } from "@/types/assessments/schedule-test-list";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { getInstituteId } from "@/constants/helper";
+import { handleDeleteAssessment } from "../-services/assessment-services";
 
 export function ScheduleTestDetailsDropdownLive({
     scheduleTestContent,
@@ -35,6 +40,7 @@ export function ScheduleTestDetailsDropdownLive({
             },
         });
     };
+
     const handleSendReminderClick = (assessmentId: string) => {
         console.log(assessmentId);
         setIsRemiderAlertDialogOpen(true);
@@ -168,7 +174,10 @@ export function ScheduleTestDetailsDropdownLive({
                 <ScheduleTestReminderDialog onClose={() => setIsRemiderAlertDialogOpen(false)} />
             )}
             {isDeleteAssessmentDialog && (
-                <ScheduleTestDeleteDialog onClose={() => setIsDeleteAssessmentDialog(false)} />
+                <ScheduleTestDeleteDialog
+                    scheduleTestContent={scheduleTestContent}
+                    onClose={() => setIsDeleteAssessmentDialog(false)}
+                />
             )}
             {isPauseLiveStatausDialog && (
                 <ScheduleTestPauseDialog onClose={() => setIsPauseLiveStatausDialog(false)} />
@@ -256,7 +265,10 @@ export function ScheduleTestDetailsDropdownUpcoming({
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
-                <ScheduleTestDeleteDialog onClose={() => setIsDeleteAssessmentDialog(false)} />
+                <ScheduleTestDeleteDialog
+                    scheduleTestContent={scheduleTestContent}
+                    onClose={() => setIsDeleteAssessmentDialog(false)}
+                />
             )}
         </>
     );
@@ -350,7 +362,10 @@ export function ScheduleTestDetailsDropdownPrevious({
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
-                <ScheduleTestDeleteDialog onClose={() => setIsDeleteAssessmentDialog(false)} />
+                <ScheduleTestDeleteDialog
+                    scheduleTestContent={scheduleTestContent}
+                    onClose={() => setIsDeleteAssessmentDialog(false)}
+                />
             )}
             {isReopenAssessment && (
                 <ScheduleTestReopenDialog onClose={() => setIsReopenAssessment(false)} />
@@ -411,7 +426,10 @@ export function ScheduleTestDetailsDropdowDrafts({
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
-                <ScheduleTestDeleteDialog onClose={() => setIsDeleteAssessmentDialog(false)} />
+                <ScheduleTestDeleteDialog
+                    scheduleTestContent={scheduleTestContent}
+                    onClose={() => setIsDeleteAssessmentDialog(false)}
+                />
             )}
         </>
     );
@@ -469,12 +487,53 @@ const ScheduleTestReminderDialog = ({ onClose }: { onClose: () => void }) => {
     );
 };
 
-const ScheduleTestDeleteDialog = ({ onClose }: { onClose: () => void }) => {
+const ScheduleTestDeleteDialog = ({
+    scheduleTestContent,
+    onClose,
+}: {
+    scheduleTestContent: TestContent;
+    onClose: () => void;
+}) => {
+    const instituteId = getInstituteId();
+    const handleDeleteAssessmentMutation = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+        }) => handleDeleteAssessment(assessmentId, instituteId),
+        onSuccess: async () => {
+            toast.success("Assessment has been deleted successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
+            onClose();
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
+        },
+    });
+
+    const deleteAssessment = () => {
+        handleDeleteAssessmentMutation.mutate({
+            assessmentId: scheduleTestContent.assessment_id,
+            instituteId,
+        });
+    };
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
             <DialogContent className="flex flex-col p-0">
-                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Send Reminder</h1>
+                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Delete Assessment</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex items-center gap-1">
                         <span className="text-danger-600">Attention</span>
@@ -482,13 +541,15 @@ const ScheduleTestDeleteDialog = ({ onClose }: { onClose: () => void }) => {
                     </div>
                     <h1 className="-mt-2 font-thin">
                         Are you sure you want to delete the Assessment named
-                        <span className="text-primary-500">
-                            &nbsp;The Human Eye and The Colourful World
-                        </span>
-                        ?
+                        <span className="text-primary-500">&nbsp;{scheduleTestContent.name}</span>?
                     </h1>
                     <div className="mt-2 flex justify-end">
-                        <MyButton type="button" scale="large" buttonType="primary">
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="primary"
+                            onClick={deleteAssessment}
+                        >
                             Delete
                         </MyButton>
                     </div>
