@@ -55,6 +55,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const examType = params.examtype;
     const assessmentId = params.assessmentId;
     const storeDataStep3 = useTestAccessStore((state) => state);
+    console.log(storeDataStep3);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -83,7 +84,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         resolver: zodResolver(testAccessSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            closed_test: storeDataStep3?.closed_test || true,
+            closed_test: storeDataStep3?.open_test?.checked ? false : true,
             open_test: storeDataStep3?.open_test || {
                 checked: false,
                 start_date: "",
