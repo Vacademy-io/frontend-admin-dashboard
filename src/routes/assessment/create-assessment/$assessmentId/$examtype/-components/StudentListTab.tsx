@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useGetSessions } from "@/hooks/student-list-section/useFilters";
 import { GetFilterData } from "@/constants/student-list/all-filters";
@@ -23,6 +23,8 @@ import { myAssessmentColumns } from "./assessment-columns";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import testAccessSchema from "../-utils/add-participants-schema";
+import { useTestAccessStore } from "../-utils/zustand-global-states/step3-adding-participants";
+
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 export const getCurrentSession = (): string => {
@@ -32,13 +34,19 @@ export const getCurrentSession = (): string => {
 };
 
 export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormType> }) => {
+    const storeDataStep3 = useTestAccessStore((state) => state);
+    const preExistingStudentIds = useMemo(() => {
+        return (storeDataStep3.select_individually?.student_details || []).map(
+            (student) => student.user_id,
+        );
+    }, [storeDataStep3.select_individually?.student_details]);
+
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const sessions = useGetSessions();
     const filters = GetFilterData(getCurrentSession());
     const [isAssessment] = useState(true);
-    const { setValue, getValues } = form;
+    const { setValue } = form;
 
-    console.log(getValues("select_individually.student_details"));
     const {
         columnFilters,
         appliedFilters,
@@ -65,6 +73,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         handleSort,
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters);
+
     const studentTableFilteredData = isAssessment
         ? {
               ...studentTableData,
@@ -73,6 +82,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
                       ?.filter((item) => item.status === "ACTIVE") // Filter for "ACTIVE" status
                       .map((item) => ({
                           id: item.id,
+                          user_id: item.user_id,
                           full_name: item.full_name,
                           package_session_id: item.package_session_id,
                           institute_enrollment_id: item.institute_enrollment_id,
@@ -87,44 +97,91 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         : studentTableData;
 
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
-    console.log(allPagesData);
-    useEffect(() => {
-        if (studentTableData?.content) {
-            setAllPagesData((prev) => ({
-                ...prev,
-                [page]: studentTableData.content,
-            }));
-        }
-    }, [studentTableData?.content, page]);
-
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
 
-    console.log(rowSelections);
     const handleRowSelectionChange: OnChangeFn<RowSelectionState> = (updaterOrValue) => {
-        const newSelection =
-            typeof updaterOrValue === "function"
-                ? updaterOrValue(rowSelections[page] || {})
-                : updaterOrValue;
+        // Get current page data
+        const currentPageData = studentTableFilteredData?.content || [];
 
-        setRowSelections((prev) => ({
-            ...prev,
-            [page]: newSelection,
-        }));
+        // If we receive a function updater
+        if (typeof updaterOrValue === "function") {
+            setRowSelections((prev) => {
+                // Get current page selections
+                const currentPageSelections = prev[page] || {};
+                // Call the updater function with current selections
+                const newIndexSelections = updaterOrValue(currentPageSelections);
+
+                // Map row indexes to user_ids
+                const newUserIdSelections: Record<string, boolean> = {};
+
+                // Convert index-based selection to user_id-based selection
+                Object.entries(newIndexSelections).forEach(([index, isSelected]) => {
+                    const rowIndex = parseInt(index);
+                    const student = currentPageData[rowIndex];
+                    if (student && student.user_id) {
+                        newUserIdSelections[student.user_id] = isSelected;
+                    }
+                });
+
+                return {
+                    ...prev,
+                    [page]: newUserIdSelections,
+                };
+            });
+        } else {
+            // If we receive a direct value (object)
+            const newIndexSelections = updaterOrValue;
+            const newUserIdSelections: Record<string, boolean> = {};
+
+            // Convert index-based selection to user_id-based selection
+            Object.entries(newIndexSelections).forEach(([index, isSelected]) => {
+                const rowIndex = parseInt(index);
+                const student = currentPageData[rowIndex];
+                if (student && student.user_id) {
+                    newUserIdSelections[student.user_id] = isSelected;
+                }
+            });
+
+            setRowSelections((prev) => ({
+                ...prev,
+                [page]: newUserIdSelections,
+            }));
+        }
     };
 
     const handleResetSelections = () => {
         setRowSelections({});
     };
 
+    const mapSelectionsToRowIndices = (): RowSelectionState => {
+        const currentPageData = studentTableFilteredData?.content || [];
+        const currentPageUserIdSelections = rowSelections[page] || {};
+        const indexBasedSelections: RowSelectionState = {};
+
+        // Map user_id selections back to row indexes for the table
+        currentPageData.forEach((student, index) => {
+            if (student.user_id && currentPageUserIdSelections[student.user_id]) {
+                indexBasedSelections[index] = true;
+            }
+        });
+
+        return indexBasedSelections;
+    };
+
     const getSelectedStudents = (): StudentTable[] => {
         return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
             const pageData = allPagesData[parseInt(pageNum)];
-            if (!pageData) return [];
 
-            return Object.entries(selections)
-                .filter(([, isSelected]) => isSelected)
-                .map(([index]) => pageData[parseInt(index)])
-                .filter((student): student is StudentTable => student !== undefined);
+            if (!pageData) return [];
+            const selectedStudents = Object.entries(selections).filter(
+                ([, isSelected]) => isSelected,
+            );
+
+            const filteredStudents = pageData.filter((student) =>
+                selectedStudents.some(([id]) => id === student.user_id),
+            );
+
+            return filteredStudents;
         });
     };
 
@@ -146,14 +203,49 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         );
 
         // Returning the IDs of the selected students
-        return getSelectedStudents().map((student) => student.id);
+        return getSelectedStudents().map((student) => student.user_id);
     };
 
-    const currentPageSelection = rowSelections[page] || {};
     const totalSelectedCount = Object.values(rowSelections).reduce(
         (count, pageSelection) => count + Object.keys(pageSelection).length,
         0,
     );
+
+    useEffect(() => {
+        if (studentTableData?.content) {
+            setAllPagesData((prev) => ({
+                ...prev,
+                [page]: studentTableData.content,
+            }));
+        }
+    }, [studentTableData?.content, page]);
+
+    useEffect(() => {
+        if (preExistingStudentIds.length > 0 && studentTableData?.content) {
+            // Create a new selections object based on pre-existing IDs
+            const initialSelections: Record<number, Record<string, boolean>> = {};
+
+            // First, initialize current page
+            const currentPageData = studentTableFilteredData?.content || [];
+            const currentPageSelections: Record<string, boolean> = {};
+
+            currentPageData.forEach((student) => {
+                if (student.user_id && preExistingStudentIds.includes(student.user_id)) {
+                    currentPageSelections[student.user_id] = true;
+                }
+            });
+
+            if (Object.keys(currentPageSelections).length > 0) {
+                initialSelections[page] = currentPageSelections;
+            }
+
+            // Update with initial selections for current page
+            setRowSelections((prev) => ({
+                ...prev,
+                ...initialSelections,
+            }));
+        }
+    }, [studentTableData?.content, page]);
 
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
@@ -195,7 +287,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
                                 ? STUDENT_LIST_ASSESSMENT_COLUMN_WIDTHS
                                 : STUDENT_LIST_COLUMN_WIDTHS
                         }
-                        rowSelection={currentPageSelection}
+                        rowSelection={mapSelectionsToRowIndices()}
                         onRowSelectionChange={handleRowSelectionChange}
                         currentPage={page}
                     />

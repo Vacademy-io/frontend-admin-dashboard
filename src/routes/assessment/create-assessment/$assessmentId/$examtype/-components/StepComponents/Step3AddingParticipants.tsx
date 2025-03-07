@@ -55,7 +55,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const examType = params.examtype;
     const assessmentId = params.assessmentId;
     const storeDataStep3 = useTestAccessStore((state) => state);
-    console.log(storeDataStep3);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -166,7 +165,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             instituteId: string | undefined;
             type: string | undefined;
         }) => handlePostStep3Data(data, assessmentId, instituteId, type),
-        onSuccess: async () => {
+        onSuccess: () => {
             syncStep3DataWithStore(form);
             toast.success("Step 3 data has been saved successfully!", {
                 className: "success-toast",
@@ -279,7 +278,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         );
     };
 
-    if (isLoading || handleSubmitStep3Form.status === "pending") return <DashboardLoader />;
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
@@ -908,9 +907,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                         <Copy size={32} />
                                     </MyButton>
                                 </div>
-                                <MyButton type="button" scale="large" buttonType="secondary">
-                                    Generate New Link
-                                </MyButton>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
