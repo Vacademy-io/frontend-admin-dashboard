@@ -125,11 +125,13 @@ export const StepOneForm = () => {
                     </form>
                 </Form>
             </DialogDescription>
-            <FormSubmitButtons
-                stepNumber={1}
-                finishButtonDisable={nextButtonDisable}
-                onNext={form.handleSubmit(onSubmit)}
-            />
+            <div className="">
+                <FormSubmitButtons
+                    stepNumber={1}
+                    finishButtonDisable={nextButtonDisable}
+                    onNext={form.handleSubmit(onSubmit)}
+                />
+            </div>
         </div>
     );
 };
