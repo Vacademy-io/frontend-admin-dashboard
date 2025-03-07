@@ -22,7 +22,7 @@ export const enrollStudent = async ({
             region: formData.stepThreeData?.state || "",
             pin_code: formData.stepThreeData?.pincode || "",
             mobile_number: formData.stepThreeData?.mobileNumber || "",
-            date_of_birth: formData.stepTwoData?.dateOfBirth || "",
+            date_of_birth: "",
             gender: formData.stepTwoData?.gender || "",
             password: formData.stepFiveData?.password || "",
             profile_pic_file_id: formData.stepOneData?.profilePicture || "",

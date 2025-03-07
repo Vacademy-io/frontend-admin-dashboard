@@ -405,7 +405,6 @@ export const StepTwoForm = () => {
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.collegeName?.message}
-                                                required={true}
                                                 size="large"
                                                 className="w-full"
                                                 {...field}
