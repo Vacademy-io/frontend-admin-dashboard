@@ -21,9 +21,11 @@ import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 const ScheduleTestDetails = ({
     scheduleTestContent,
     selectedTab,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
     selectedTab: string;
+    handleRefetchData: () => void;
 }) => {
     const { data: instituteDetails, isLoading } = useSuspenseQuery(useInstituteQuery());
     if (isLoading) return <DashboardLoader />;
@@ -88,6 +90,7 @@ const ScheduleTestDetails = ({
                     <ScheduleTestMainDropdownComponent
                         scheduleTestContent={scheduleTestContent}
                         selectedTab={selectedTab}
+                        handleRefetchData={handleRefetchData}
                     />
                 </div>
             </div>

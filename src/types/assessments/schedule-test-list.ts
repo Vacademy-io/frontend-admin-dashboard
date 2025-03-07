@@ -41,4 +41,5 @@ export interface ScheduleTestListsProps {
     pageNo: number;
     handlePageChange: (page: number) => void;
     selectedTab: string;
+    handleRefetchData: () => void;
 }

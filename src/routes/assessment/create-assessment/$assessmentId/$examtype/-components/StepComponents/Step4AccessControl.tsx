@@ -447,7 +447,13 @@ const AccessControlCards = ({
                                     return (
                                         <Badge
                                             key={idx}
-                                            className="cursor-pointer rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 shadow-none"
+                                            className={`cursor-pointer rounded-lg border border-neutral-300 ${
+                                                role.roleName === "EVALUATOR"
+                                                    ? "bg-[#F5F0FF]"
+                                                    : role.roleName === "CREATOR"
+                                                      ? "bg-[#FFF4F5]"
+                                                      : "bg-[#F4F9FF]"
+                                            } py-1.5 shadow-none`}
                                             onClick={() => handleSelectRole(role.roleId)}
                                         >
                                             Role: {role.roleName}
@@ -517,7 +523,13 @@ const AccessControlCards = ({
                         return (
                             <Badge
                                 key={idx}
-                                className="rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 shadow-none"
+                                className={`cursor-pointer rounded-lg border border-neutral-300 ${
+                                    role.roleName === "EVALUATOR"
+                                        ? "bg-[#F5F0FF]"
+                                        : role.roleName === "CREATOR"
+                                          ? "bg-[#FFF4F5]"
+                                          : "bg-[#F4F9FF]"
+                                } py-1.5 shadow-none`}
                             >
                                 Role: {role.roleName}
                                 <X
