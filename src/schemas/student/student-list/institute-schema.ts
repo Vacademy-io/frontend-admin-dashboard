@@ -10,6 +10,7 @@ const SessionSchema = z.object({
     id: z.string(),
     session_name: z.string(),
     status: z.string(),
+    start_date: z.string(),
 });
 
 export const LevelSchema = z.object({

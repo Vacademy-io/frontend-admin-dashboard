@@ -163,6 +163,10 @@ export const AddCourseForm = ({
         setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
     }, [instituteDetails]);
 
+    useEffect(() => {
+        console.log("sessionList: ", sessionList);
+    }, [sessionList]);
+
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
     const [newSessionStartDate, setNewSessionStartDate] = useState<string>("");
 
@@ -182,7 +186,6 @@ export const AddCourseForm = ({
     function convertToFormSession(session: SessionType): Session {
         return {
             ...session,
-            start_date: new Date().toISOString(), // Default date for existing sessions
             new_session: false,
             levels: [],
         };
@@ -433,8 +436,8 @@ export const AddCourseForm = ({
                                                                                 }
                                                                             </p>
                                                                             <p className="text-caption text-neutral-400">
-                                                                                Start Date:
-                                                                                05/03/2025
+                                                                                {session.start_date ||
+                                                                                    new Date().toISOString()}
                                                                             </p>
                                                                         </div>
                                                                     </div>
