@@ -23,7 +23,7 @@ export const stepTwoSchema = z.object({
         name: z.string(),
     }),
     accessDays: z.string().min(1, "Access days are required"),
-    collegeName: z.string().min(1, "College name is required"),
+    collegeName: z.string().optional(),
 });
 
 // Step Three Schema
@@ -38,11 +38,11 @@ export const stepThreeSchema = z.object({
 
 // Step Four Schema
 export const stepFourSchema = z.object({
-    fatherName: z.string().min(1, "Father's name is required"),
-    motherName: z.string().min(1, "Mother's name is required"),
+    fatherName: z.string().optional(),
+    motherName: z.string().optional(),
     guardianName: z.string().optional(),
-    guardianEmail: z.string().email("Invalid email format").min(1, "Guardian's email is required"),
-    guardianMobileNumber: z.string().regex(/^\d{10}$/, "Mobile number must be 10 digits"),
+    guardianEmail: z.string().email("Invalid email format").optional().or(z.literal("")),
+    guardianMobileNumber: z.string().optional(),
 });
 
 // Step Five Schema

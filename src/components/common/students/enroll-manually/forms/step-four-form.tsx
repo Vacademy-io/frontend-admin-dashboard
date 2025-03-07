@@ -54,7 +54,7 @@ export const StepFourForm = () => {
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.fatherName?.message}
-                                                required={true}
+                                                required={false}
                                                 size="large"
                                                 className="w-full"
                                                 {...field}
@@ -77,7 +77,7 @@ export const StepFourForm = () => {
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.motherName?.message}
-                                                required={true}
+                                                required={false}
                                                 size="large"
                                                 className="w-full"
                                                 {...field}
@@ -123,7 +123,7 @@ export const StepFourForm = () => {
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.guardianEmail?.message}
-                                                required={true}
+                                                required={false}
                                                 size="large"
                                                 className="w-full"
                                                 {...field}

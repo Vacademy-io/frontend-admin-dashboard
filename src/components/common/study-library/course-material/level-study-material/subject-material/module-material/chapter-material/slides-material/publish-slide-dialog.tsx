@@ -87,7 +87,7 @@ export const PublishUnpublishDialog = ({
 
     return (
         <MyDialog
-            heading="Publish Slide"
+            heading={`${trigger == unpublishTrigger ? "Unpublish" : "Publish"} Slide`}
             dialogWidth="w-[400px]"
             open={isOpen}
             onOpenChange={setIsOpen}
