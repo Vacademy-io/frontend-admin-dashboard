@@ -74,6 +74,14 @@ export const AssessmentBasicInfoTab = () => {
                     <h1 className="font-semibold">Attempt settings</h1>
                     <div className="flex items-center gap-6 text-sm">
                         <h1 className="whitespace-nowrap font-semibold">
+                            Assessment Reattempt Count:
+                        </h1>
+                        <h1 className="whitespace-nowrap font-thin">
+                            {assessmentDetails[0]?.saved_data?.reattempt_count}
+                        </h1>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                        <h1 className="whitespace-nowrap font-semibold">
                             Assessment Duration Settings:
                         </h1>
                         <h1 className="whitespace-nowrap font-thin">Entire Assessment duration</h1>
