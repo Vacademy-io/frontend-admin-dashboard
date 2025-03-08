@@ -49,10 +49,10 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({ stude
     }, []);
 
     return (
-        <DialogContent className="flex flex-col p-0">
+        <DialogContent className="flex w-[420px] flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Change Roles</h1>
             <FormProvider {...form}>
-                <form className="ml-16 flex flex-col items-start justify-center gap-4">
+                <form className="flex flex-col items-start justify-center gap-4 px-4">
                     <MultiSelectDropdown
                         form={form}
                         label="Role Type"
