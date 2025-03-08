@@ -175,15 +175,15 @@ export const StudentTestRecord = ({
                                     </div>
                                     <StatusChips
                                         status={
-                                            studentReport.assessment_status === "PENDING"
+                                            studentReport.attempt_status === "PENDING"
                                                 ? "pending"
-                                                : studentReport.assessment_status === "ENDED"
+                                                : studentReport.attempt_status === "ENDED"
                                                   ? "Attempted"
                                                   : "Not Attempted"
                                         }
                                     />
                                 </div>
-                                {studentReport.assessment_status === "ENDED" ? (
+                                {studentReport.attempt_status === "ENDED" ? (
                                     <div className="flex w-full flex-col gap-8">
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -205,7 +205,7 @@ export const StudentTestRecord = ({
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <div>Marks: {studentReport.total_marks}</div>
+                                            <div>Marks: {studentReport.total_marks.toFixed(2)}</div>
                                             <div>
                                                 Duration:{" "}
                                                 {(studentReport.duration_in_seconds % 60).toFixed(
@@ -254,7 +254,7 @@ export const StudentTestRecord = ({
                                             &nbsp;-&nbsp;
                                             {convertToLocalDateTime(studentReport.end_time)}
                                         </div>
-                                        {studentReport.assessment_status === "PENDING" && (
+                                        {studentReport.attempt_status === "PENDING" && (
                                             <div className="flex w-full justify-end">
                                                 <MyButton
                                                     scale="medium"
