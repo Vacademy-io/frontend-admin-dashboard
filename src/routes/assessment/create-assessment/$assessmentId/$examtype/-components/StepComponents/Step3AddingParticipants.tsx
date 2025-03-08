@@ -43,6 +43,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
 import { useParams } from "@tanstack/react-router";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
+import useIntroJsTour, { Step } from "@/hooks/use-intro";
+import { IntroKey } from "@/constants/storage/introKey";
+import { createAssesmentSteps } from "@/constants/intro/steps";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -278,6 +281,14 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         );
     };
 
+    useIntroJsTour({
+        key: IntroKey.assessmentStep3Participants,
+        steps: createAssesmentSteps
+            .filter((step) => step.element === "#add-participants")
+            .flatMap((step) => step.subStep || [])
+            .filter((subStep): subStep is Step => subStep !== undefined),
+    });
+
     if (isLoading || handleSubmitStep3Form.status === "pending") return <DashboardLoader />;
 
     return (
@@ -296,7 +307,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 </div>
                 <Separator className="my-4" />
                 <div className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3" id="open-assessment">
                         <h1>Participant Access Settings</h1>
                         <FormField
                             control={form.control}
@@ -871,7 +882,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     )}
                     <AddingParticipantsTab batches={transformedBatches} form={form} />
                     <Separator className="my-4" />
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between" id="join-link-qr-code">
                         <div className="flex flex-col gap-2">
                             <h1>Join Link</h1>
                             <div className="flex items-center gap-8">
@@ -960,7 +971,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                             </FormItem>
                         )}
                     />
-                    <div className="flex w-3/4 justify-between">
+                    <div className="flex w-3/4 justify-between" id="notify-via-email">
                         {getStepKey({
                             assessmentDetails,
                             currentStep,

@@ -40,6 +40,9 @@ import {
     calculateAveragePenalty,
     parseHtmlToString,
 } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
+import useIntroJsTour, { Step } from "@/hooks/use-intro";
+import { IntroKey } from "@/constants/storage/introKey";
+import { createAssesmentSteps } from "@/constants/intro/steps";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -176,6 +179,14 @@ export const Step2SectionInfo = ({
         }
     }, [watch(`section.${index}`)]);
 
+    useIntroJsTour({
+        key: IntroKey.assessmentStep2Questions,
+        steps: createAssesmentSteps
+            .filter((step) => step.element === "#add-question")
+            .flatMap((step) => step.subStep || [])
+            .filter((subStep): subStep is Step => subStep !== undefined),
+    });
+
     if (isLoading || adaptiveMarking.isLoading) return <DashboardLoader />;
 
     return (
@@ -269,7 +280,10 @@ export const Step2SectionInfo = ({
                 </div>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-8">
-                <div className="flex flex-wrap items-center justify-start gap-5">
+                <div
+                    className="flex flex-wrap items-center justify-start gap-5"
+                    id="upload-question-paper"
+                >
                     <h3>Upload Question Paper</h3>
                     <AlertDialog
                         open={isUploadFromDeviceDialogOpen}
@@ -385,7 +399,7 @@ export const Step2SectionInfo = ({
                         </DialogContent>
                     </Dialog>
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2" id="section-instructions">
                     <h1 className="font-thin">Section Description</h1>
                     <FormField
                         control={control}
@@ -540,7 +554,7 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
-                <div className="flex items-center gap-4 text-sm font-thin">
+                <div className="flex items-center gap-4 text-sm font-thin" id="marking-scheme">
                     <div className="flex flex-col font-normal">
                         <h1>
                             Marks Per Question

@@ -9,6 +9,7 @@ export interface Step {
     title: string;
     intro: string;
     position?: "left" | "right" | "top" | "bottom";
+    subStep?: Step[];
 }
 
 interface UseIntroJsTourProps {
@@ -21,10 +22,17 @@ interface UseIntroJsTourProps {
 const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsTourProps) => {
     const { getValue, setValue } = useLocalStorage<boolean>(key, false);
     const [hasDisplayedIntro, setHasDisplayedIntro] = useState(false);
+    const [introInstance, setIntroInstance] = useState<IntroJs | null>(null);
 
     useEffect(() => {
         if (!getValue() && !hasDisplayedIntro) {
+            // Cleanup existing instance before starting a new one
+            if (introInstance) {
+                introInstance.exit(true);
+            }
+
             const instance: IntroJs = introJs();
+            setIntroInstance(instance);
 
             // Handle single step case
             const isSingleStep = steps.length === 1;
@@ -44,72 +52,88 @@ const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsT
             });
 
             let clickListener: (event: MouseEvent) => void;
-            let exitByClickingOutside = false; // Flag to track exit by clicking outside
+            let exitByClickingOutside = false; // Track exit by clicking outside
 
             instance.onchange(() => {
+                // Cleanup previous listeners
                 if (clickListener) {
                     document.removeEventListener("click", clickListener);
                 }
+
                 const targetElement = document.querySelector(
                     steps[instance._currentStep]?.element ?? "",
                 );
 
-                // on click outside of introjs
+                if (targetElement) {
+                    const oldClickOnTarget = targetElement.getAttribute("data-intro-click");
+                    if (oldClickOnTarget) {
+                        targetElement.removeEventListener("click", JSON.parse(oldClickOnTarget));
+                    }
+                }
+
+                // Handle click outside to exit
                 clickListener = (event: MouseEvent) => {
+                    event.stopPropagation();
                     const target = event.target as HTMLElement;
                     if (target.classList.contains("introjs-overlay")) {
-                        exitByClickingOutside = true; // Set the flag
+                        exitByClickingOutside = true;
                         instance.exit(true);
                     }
                 };
 
-                // on click on target element
-                const clickOnTarget = () => {
-                    console.log("clicked on target");
+                // Handle click on the target element
+                const clickOnTarget = (e: Event) => {
+                    e.stopPropagation();
                     instance.exit(true);
                 };
 
-                targetElement?.addEventListener("click", clickOnTarget);
+                if (targetElement) {
+                    targetElement.setAttribute("data-intro-click", JSON.stringify(clickOnTarget));
+                    targetElement.addEventListener("click", clickOnTarget, { once: true });
+                }
+
                 document.addEventListener("click", clickListener);
             });
 
             instance.onbeforeexit(() => {
+                // If exited by clicking outside, allow it without confirmation
                 if (exitByClickingOutside) {
-                    exitByClickingOutside = false; // Reset the flag
-                    return true; // Bypass confirmation
-                }
-                if (steps.length > 0 && instance._currentStep === steps.length - 1) {
-                    if (!partial) setValue(true);
-                    if (onTourExit) {
-                        onTourExit();
-                    }
+                    exitByClickingOutside = false;
                     return true;
                 }
-                console.log("triggerd1");
-                return confirm("Are you sure you want to exit?");
+
+                // Directly allow exit without confirmation for all steps
+                return true; // Allow normal exit
+            });
+
+            instance.onexit(() => {
+                // Cleanup state and call exit callback
+                setHasDisplayedIntro(false);
+                if (!partial) setValue(true);
+                if (onTourExit) onTourExit();
             });
 
             // For single step, auto-complete after a delay
             if (isSingleStep) {
                 instance.oncomplete(() => {
                     if (!partial) setValue(true);
-                    if (onTourExit) {
-                        onTourExit();
-                    }
+                    if (onTourExit) onTourExit();
                 });
             }
 
             instance.start();
             setHasDisplayedIntro(true);
         }
+
+        return () => {
+            // Cleanup on unmount
+            if (introInstance) {
+                introInstance.exit(true);
+            }
+        };
     }, [getValue, setValue, steps, key, onTourExit, hasDisplayedIntro]);
 
-    // Optional: Reset the state if needed
-    // useEffect(() => {
-    //     return () => {
-    //         setHasDisplayedIntro(false);
-    //     };
-    // }, []);
+    return null;
 };
 
 export default useIntroJsTour;
