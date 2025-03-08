@@ -30,7 +30,7 @@ const AssessmentAccessControlTab = () => {
                                         ? "bg-[#F5F0FF]"
                                         : role === "CREATOR"
                                           ? "bg-[#FFF4F5]"
-                                          : "bg-black"
+                                          : "bg-[#F4F9FF]"
                                 } py-1.5 shadow-none`}
                             >
                                 Role: {role}
@@ -60,7 +60,7 @@ const AssessmentAccessControlTab = () => {
                                             ? "bg-[#F5F0FF]"
                                             : role === "CREATOR"
                                               ? "bg-[#FFF4F5]"
-                                              : "bg-black"
+                                              : "bg-[#F4F9FF]"
                                     } py-1.5 shadow-none`}
                                 >
                                     Role: {role}
@@ -93,7 +93,7 @@ const AssessmentAccessControlTab = () => {
                                             ? "bg-[#F5F0FF]"
                                             : role === "CREATOR"
                                               ? "bg-[#FFF4F5]"
-                                              : "bg-black"
+                                              : "bg-[#F4F9FF]"
                                     } py-1.5 shadow-none`}
                                 >
                                     Role: {role}
@@ -125,7 +125,7 @@ const AssessmentAccessControlTab = () => {
                                         ? "bg-[#F5F0FF]"
                                         : role === "CREATOR"
                                           ? "bg-[#FFF4F5]"
-                                          : "bg-black"
+                                          : "bg-[#F4F9FF]"
                                 } py-1.5 shadow-none`}
                             >
                                 Role: {role}

@@ -436,7 +436,7 @@ const AccessControlCards = ({
                             Add
                         </MyButton>
                     </DialogTrigger>
-                    <DialogContent className="!p-0">
+                    <DialogContent className="w-[520px] !p-0">
                         <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
                             Add Role/User
                         </h1>

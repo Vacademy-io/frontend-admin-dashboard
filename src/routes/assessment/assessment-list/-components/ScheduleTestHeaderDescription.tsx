@@ -71,7 +71,7 @@ export const ScheduleTestHeaderDescription = () => {
                         Create Assessment
                     </MyButton>
                 </DialogTrigger>
-                <DialogContent className="max-w-[80vw] p-0">
+                <DialogContent className="no-scrollbar !m-0 flex h-screen !w-4/5 flex-col gap-8 overflow-y-auto !p-0">
                     <h1 className="rounded-lg bg-primary-50 p-4 font-semibold text-primary-500">
                         Create Assessment
                     </h1>
