@@ -1,5 +1,6 @@
 import {
     GET_ADMIN_PARTICIPANTS,
+    GET_ASSESSMENT_TOTAL_MARKS_URL,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
     GET_PARTICIPANTS_QUESTION_WISE,
@@ -103,6 +104,25 @@ export const handleGetOverviewData = ({
     return {
         queryKey: ["GET_ASSESSMENT_DETAILS", assessmentId, instituteId],
         queryFn: () => getOverviewDetials(assessmentId, instituteId),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
+export const getAssessmentTotalMarks = async (assessmentId: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: GET_ASSESSMENT_TOTAL_MARKS_URL,
+        params: {
+            assessmentId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetAssessmentTotalMarksData = ({ assessmentId }: { assessmentId: string }) => {
+    return {
+        queryKey: ["GET_ASSESSMENT_TOTAL_MARKS", assessmentId],
+        queryFn: () => getAssessmentTotalMarks(assessmentId),
         staleTime: 60 * 60 * 1000,
     };
 };
