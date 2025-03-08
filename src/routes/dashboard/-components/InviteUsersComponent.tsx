@@ -44,12 +44,12 @@ const InviteUsersComponent = () => {
                     Invite Users
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[420px] flex-col p-0">
                 <h1 className="rounded-t-md bg-primary-50 p-4 font-semibold text-primary-500">
                     Invite User
                 </h1>
                 <FormProvider {...form}>
-                    <form className="ml-16 flex flex-col items-start justify-center gap-4">
+                    <form className="flex flex-col items-start justify-center gap-4 px-4">
                         <FormField
                             control={form.control}
                             name="name"
