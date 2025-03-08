@@ -50,7 +50,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         resolver: zodResolver(sectionDetailsSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            testDuration: {
+            testDuration: storeDataStep2.testDuration || {
                 entireTestDuration: {
                     checked: true, // Default to true
                     testDuration: {
