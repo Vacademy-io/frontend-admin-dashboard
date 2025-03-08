@@ -90,6 +90,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 previewTimeLimit:
                     storeDataStep1.assessmentPreview?.previewTimeLimit || timeLimit[0], // Default preview time
             },
+            reattemptCount: storeDataStep1.reattemptCount || "0",
             submissionType: storeDataStep1.submissionType || "",
             durationDistribution: storeDataStep1.durationDistribution || "",
             evaluationType: storeDataStep1.evaluationType || "",
@@ -239,6 +240,8 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                               )
                             : timeLimit[0], // Default preview time
                 },
+                reattemptCount:
+                    String(assessmentDetails[currentStep]?.saved_data?.reattempt_count) || "0",
                 submissionType: assessmentDetails[currentStep]?.saved_data?.submission_type || "",
                 durationDistribution:
                     assessmentDetails[currentStep]?.saved_data?.duration_distribution || "",
@@ -429,6 +432,38 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     </div>
                     <Separator />
                     <h1>Attempt Settings</h1>
+                    <FormField
+                        control={control}
+                        name="reattemptCount"
+                        render={({ field: { ...field } }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <MyInput
+                                        inputType="number"
+                                        inputPlaceholder="Reattempt Count"
+                                        input={field.value}
+                                        onKeyPress={(e) => {
+                                            const charCode = e.key;
+                                            if (!/[0-9]/.test(charCode)) {
+                                                e.preventDefault(); // Prevent non-numeric input
+                                            }
+                                        }}
+                                        onChangeFunction={(e) => {
+                                            const inputValue = e.target.value.replace(
+                                                /[^0-9]/g,
+                                                "",
+                                            ); // Remove non-numeric characters
+                                            field.onChange(inputValue); // Call onChange with the sanitized value
+                                        }}
+                                        required={true}
+                                        size="large"
+                                        label="Reattempt Count"
+                                        {...field}
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
                     {getStepKey({
                         assessmentDetails,
                         currentStep,

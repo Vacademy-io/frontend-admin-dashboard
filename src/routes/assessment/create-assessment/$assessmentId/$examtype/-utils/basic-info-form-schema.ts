@@ -25,6 +25,7 @@ export const BasicInfoFormSchema = z.object({
         checked: z.boolean(),
         previewTimeLimit: z.string(),
     }),
+    reattemptCount: z.string(),
     submissionType: z.string(),
     durationDistribution: z.string(),
     evaluationType: z.string(),
