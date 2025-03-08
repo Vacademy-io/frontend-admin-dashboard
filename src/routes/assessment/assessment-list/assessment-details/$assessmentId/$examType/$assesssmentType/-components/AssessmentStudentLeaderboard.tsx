@@ -9,6 +9,7 @@ import { Route } from "..";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import {
     getStudentLeaderboardDetails,
+    handleGetAssessmentTotalMarksData,
     handleGetLeaderboardData,
 } from "../-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
@@ -26,6 +27,9 @@ const AssessmentStudentLeaderboard = () => {
     const { batches_for_sessions } = instituteDetails || {};
     const instituteId = getInstituteId();
     const { assessmentId } = Route.useParams();
+    const { data: totalMarks } = useSuspenseQuery(
+        handleGetAssessmentTotalMarksData({ assessmentId }),
+    );
     const [selectedFilter] = useState<AssessmentStudentLeaderboardInterface>({
         name: "",
         status: [],
@@ -204,7 +208,10 @@ const AssessmentStudentLeaderboard = () => {
                                             </div>
                                             <div className="flex flex-col text-center text-neutral-500">
                                                 <span className="text-[12px]">Marks</span>
-                                                <span>{student.achieved_marks.toFixed(2)}/20</span>
+                                                <span>
+                                                    {student.achieved_marks.toFixed(2)}/
+                                                    {totalMarks.total_achievable_marks}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
