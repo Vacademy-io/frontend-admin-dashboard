@@ -9,12 +9,26 @@ import { DotsThree } from "phosphor-react";
 import { Button } from "@/components/ui/button";
 import { DeleteSessionDialog } from "./deleteSessionDialog";
 import { MyButton } from "@/components/design-system/button";
+import { AddSessionDialog } from "./session-operations/add-session/add-session-dialog";
+import { useState } from "react";
+import { AddSessionDataType } from "./session-operations/add-session/add-session-form";
 
 interface SessionCardProps {
     data: SessionData;
 }
 
 export function SessionCard({ data }: SessionCardProps) {
+    // const editSessionMutation = useEditSession();
+
+    const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
+    const handleOpenAddSessionDialog = () => {
+        setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
+    };
+
+    const handleEditSession = (sessionData: AddSessionDataType) => {
+        console.log(sessionData);
+    };
+
     return (
         <div className="flex flex-col gap-4 rounded-2xl border p-6">
             <div className="flex flex-row items-end justify-between">
@@ -29,7 +43,17 @@ export function SessionCard({ data }: SessionCardProps) {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                        <DropdownMenuItem className="cursor-pointer">Edit Session</DropdownMenuItem>
+                        <AddSessionDialog
+                            isAddSessionDiaogOpen={isAddSessionDiaogOpen}
+                            handleOpenAddSessionDialog={handleOpenAddSessionDialog}
+                            handleSubmit={handleEditSession}
+                            trigger={
+                                <MyButton buttonType="text" className="text-neutral-600">
+                                    Edit Session
+                                </MyButton>
+                            }
+                            initialValues={data}
+                        />
                         <DropdownMenuItem
                             className="cursor-pointer hover:bg-white"
                             onSelect={(e) => e.preventDefault()}
@@ -55,7 +79,7 @@ export function SessionCard({ data }: SessionCardProps) {
                             {item.level.map((level, idx) => (
                                 <div key={idx} className="flex flex-row items-center gap-1">
                                     <div className="size-2 rounded-full bg-neutral-300"></div>
-                                    <div className="text-sm">{level.level_name}</div>
+                                    <div className="text-sm">{level.level_dto.level_name}</div>
                                 </div>
                             ))}
                         </div>

@@ -14,7 +14,8 @@ import { AddCourseData } from "../../../course-material/add-course/add-course-fo
 import { toast } from "sonner";
 import { useAddCourse } from "@/services/study-library/course-operations/add-course";
 import { Checkbox } from "@/components/ui/checkbox";
-import { LevelType } from "@/schemas/student/student-list/institute-schema";
+import { LevelType, levelWithDetails } from "@/schemas/student/student-list/institute-schema";
+import { SessionData } from "@/types/study-library/session-types";
 
 const formSchema = z.object({
     id: z.string().nullable(),
@@ -40,7 +41,7 @@ export const AddSessionForm = ({
     initialValues,
     onSubmit,
 }: {
-    initialValues?: AddSessionDataType;
+    initialValues?: SessionData;
     onSubmit: (sessionData: AddSessionDataType) => void;
 }) => {
     const { instituteDetails, getPackageWiseLevels } = useInstituteDetailsStore();
@@ -63,7 +64,7 @@ export const AddSessionForm = ({
 
             return {
                 ...pkg,
-                levels: [...pkg.levels, ...levelsToAdd],
+                levels: [...pkg.level, ...levelsToAdd],
             };
         });
 
@@ -73,12 +74,12 @@ export const AddSessionForm = ({
     const form = useForm<AddSessionDataType>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            id: initialValues?.id || null,
-            session_name: initialValues?.session_name || "",
-            status: initialValues?.status || "ACTIVE",
-            start_date: initialValues?.start_date || new Date().toISOString(),
+            id: initialValues?.session.id || null,
+            session_name: initialValues?.session.session_name || "",
+            status: initialValues?.session.status || "ACTIVE",
+            start_date: initialValues?.session.start_date || new Date().toISOString(),
             new_session: initialValues ? false : true,
-            levels: initialValues?.levels || [],
+            levels: [],
         },
     });
 
@@ -139,23 +140,23 @@ export const AddSessionForm = ({
         setNewLevelDuration(null);
     };
 
-    const handleSelectLevel = (level: LevelType, packageId: string, isSelected: boolean) => {
+    const handleSelectLevel = (level: levelWithDetails, packageId: string, isSelected: boolean) => {
         const currentLevels = form.getValues("levels");
 
         if (isSelected) {
             // Remove the level if it's already selected
             const updatedLevels = currentLevels.filter(
-                (l) => !(l.id === level.id && l.package_id === packageId),
+                (l) => !(l.id === level.level_dto.id && l.package_id === packageId),
             );
             form.setValue("levels", updatedLevels);
         } else {
             // Add the level if it's not already selected
             const levelToAdd: LevelForSession = {
-                id: level.id,
+                id: level.level_dto.id,
                 new_level: false,
-                level_name: level.level_name,
-                duration_in_days: level.duration_in_days,
-                thumbnail_file_id: level.thumbnail_id,
+                level_name: level.level_dto.level_name,
+                duration_in_days: level.level_dto.duration_in_days,
+                thumbnail_file_id: level.level_dto.thumbnail_id,
                 package_id: packageId,
             };
             form.setValue("levels", [...currentLevels, levelToAdd]);
@@ -284,14 +285,14 @@ export const AddSessionForm = ({
                                                     <div className="ml-4 mr-6 mt-2">
                                                         <Separator />
                                                         <div className="grid grid-cols-2">
-                                                            {packageItem.levels.map((level) => {
+                                                            {packageItem.level.map((level) => {
                                                                 const selected = isLevelSelected(
-                                                                    level.id,
+                                                                    level.level_dto.id,
                                                                     packageItem.package_dto.id,
                                                                 );
                                                                 return (
                                                                     <div
-                                                                        key={level.id}
+                                                                        key={level.level_dto.id}
                                                                         className="flex cursor-pointer items-center gap-2 rounded-md p-2"
                                                                     >
                                                                         <Checkbox
@@ -308,7 +309,10 @@ export const AddSessionForm = ({
                                                                             }
                                                                         />
                                                                         <span>
-                                                                            {level.level_name}
+                                                                            {
+                                                                                level.level_dto
+                                                                                    .level_name
+                                                                            }
                                                                         </span>
                                                                     </div>
                                                                 );
