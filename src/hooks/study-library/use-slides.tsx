@@ -27,6 +27,8 @@ export interface Slide {
     slide_id: string;
     source_type: string;
     status: string;
+    published_data: string;
+    published_url: string;
 }
 
 interface VideoSlidePayload {
