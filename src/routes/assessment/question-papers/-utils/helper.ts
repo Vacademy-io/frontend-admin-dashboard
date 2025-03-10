@@ -304,7 +304,6 @@ const getMediaIdToUrlMap = async (data: QuestionResponse[]) => {
     const allMediaIds: string[] = [];
 
     data.forEach((item) => {
-        console.log(item);
         if (item.media_id) {
             allMediaIds.push(...item.media_id.split(","));
         }

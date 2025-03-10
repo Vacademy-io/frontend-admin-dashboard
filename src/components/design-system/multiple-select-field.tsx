@@ -97,7 +97,7 @@ export default function MultiSelectDropdown({
                                     </Popover>
                                 </FormControl>
                             </FormItem>
-                            <div className="mt-4 flex justify-start gap-4">
+                            <div className="mt-4 flex flex-wrap justify-start gap-4">
                                 {selectedOptions.map((value, index) => (
                                     <Badge key={index} className="bg-[#F4F9FF] px-2 py-1">
                                         {value}

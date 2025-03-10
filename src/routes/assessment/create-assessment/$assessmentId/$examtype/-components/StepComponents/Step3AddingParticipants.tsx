@@ -83,7 +83,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         resolver: zodResolver(testAccessSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            closed_test: storeDataStep3?.closed_test || true,
+            closed_test: storeDataStep3?.open_test?.checked ? false : true,
             open_test: storeDataStep3?.open_test || {
                 checked: false,
                 start_date: "",
@@ -165,7 +165,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             instituteId: string | undefined;
             type: string | undefined;
         }) => handlePostStep3Data(data, assessmentId, instituteId, type),
-        onSuccess: async () => {
+        onSuccess: () => {
             syncStep3DataWithStore(form);
             toast.success("Step 3 data has been saved successfully!", {
                 className: "success-toast",
@@ -278,7 +278,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         );
     };
 
-    if (isLoading || handleSubmitStep3Form.status === "pending") return <DashboardLoader />;
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
@@ -907,9 +907,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                         <Copy size={32} />
                                     </MyButton>
                                 </div>
-                                <MyButton type="button" scale="large" buttonType="secondary">
-                                    Generate New Link
-                                </MyButton>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">

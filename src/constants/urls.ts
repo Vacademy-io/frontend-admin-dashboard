@@ -43,6 +43,7 @@ export const GET_ADMIN_PARTICIPANTS = `${BASE_URL}/assessment-service/assessment
 export const GET_PARTICIPANTS_QUESTION_WISE = `${BASE_URL}/assessment-service/assessment/admin-participants/all/respondent-list`;
 export const GET_REVALUATE_STUDENT_RESULT = `${BASE_URL}/assessment-service/assessment/admin/revaluate`;
 export const GET_DELETE_ASSESSMENT_URL = `${BASE_URL}/assessment-service/assessment/create/v1/delete`;
+export const GET_ASSESSMENT_TOTAL_MARKS_URL = `${BASE_URL}/assessment-service/assessment/admin/init/total-marks`;
 
 export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
 export const GET_SIGNED_URL_PUBLIC = `${BASE_URL}/media-service/public/get-signed-url`;

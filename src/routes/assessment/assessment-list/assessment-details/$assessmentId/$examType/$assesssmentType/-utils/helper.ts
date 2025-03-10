@@ -61,6 +61,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
     type: string,
     selectedTab: string,
     batches_for_sessions: BatchDetailsInterface[],
+    totalMarks: number,
 ) => {
     switch (type) {
         case "PUBLIC": {
@@ -77,7 +78,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.and_time || ""))
                             .time,
                         duration: (student.duration % 60) + " min",
-                        score: student.score + "/20", // need to add total marks,
+                        score: `${student.score} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
@@ -116,7 +117,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.and_time || ""))
                             .time,
                         duration: (student.duration % 60) + " min",
-                        score: student.score + "/20", // need to add total marks
+                        score: `${student.score} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {

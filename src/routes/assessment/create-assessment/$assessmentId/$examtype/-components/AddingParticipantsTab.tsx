@@ -25,10 +25,22 @@ export function AddingParticipantsTab({
     batches: BatchData;
     form: UseFormReturn<TestAccessFormType>;
 }) {
-    const [selectedTab, setSelectedTab] = useState("Batch");
+    const [selectedTab, setSelectedTab] = useState(
+        form.getValues("select_individually.checked") === true ? "Individually" : "Batch",
+    );
     const handleChange = (value: string) => {
         setSelectedTab(value);
     };
+
+    useEffect(() => {
+        if (selectedTab === "Batch") {
+            form.setValue("select_batch.checked", true);
+            form.setValue("select_individually.checked", false);
+        } else {
+            form.setValue("select_batch.checked", false);
+            form.setValue("select_individually.checked", true);
+        }
+    }, [selectedTab]);
 
     return (
         <>
@@ -36,7 +48,7 @@ export function AddingParticipantsTab({
                 <TabsList className="mt-4 flex h-auto w-fit flex-wrap justify-start border border-neutral-500 !bg-transparent p-0">
                     <TabsTrigger
                         value="Batch"
-                        className={`flex gap-1.5 rounded-l-lg rounded-br-none rounded-tr-none p-2 pr-4 ${
+                        className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 pr-4 ${
                             selectedTab === "Batch"
                                 ? "!bg-primary-100 !text-neutral-500"
                                 : "bg-transparent px-4"
@@ -52,10 +64,10 @@ export function AddingParticipantsTab({
                     <Separator className="!h-9 bg-neutral-600" orientation="vertical" />
                     <TabsTrigger
                         value="Individually"
-                        className={`flex gap-1.5 rounded-bl-none rounded-br-lg rounded-tl-none rounded-tr-lg p-2 ${
+                        className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 ${
                             selectedTab === "Individually"
-                                ? "text-bg-teal-100 !bg-primary-100 pr-4"
-                                : "bg-transparent pl-4 pr-4"
+                                ? "!bg-primary-100 pr-4"
+                                : "bg-transparent px-4"
                         }`}
                     >
                         {selectedTab === "Individually" && (
