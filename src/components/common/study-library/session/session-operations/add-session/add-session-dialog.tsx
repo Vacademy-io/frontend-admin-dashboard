@@ -20,7 +20,7 @@ export const AddSessionDialog = ({
 }: AddSessionDialogProps) => {
     return (
         <MyDialog
-            heading="Add session"
+            heading={initialValues ? "Edit session" : "Add session"}
             trigger={trigger}
             dialogWidth="w-[700px]"
             open={isAddSessionDiaogOpen}

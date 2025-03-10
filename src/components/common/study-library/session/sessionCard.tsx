@@ -12,13 +12,15 @@ import { MyButton } from "@/components/design-system/button";
 import { AddSessionDialog } from "./session-operations/add-session/add-session-dialog";
 import { useState } from "react";
 import { AddSessionDataType } from "./session-operations/add-session/add-session-form";
+import { useEditSession } from "@/services/study-library/session-management/editSession";
+import { toast } from "sonner";
 
 interface SessionCardProps {
     data: SessionData;
 }
 
 export function SessionCard({ data }: SessionCardProps) {
-    // const editSessionMutation = useEditSession();
+    const editSessionMutation = useEditSession();
 
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const handleOpenAddSessionDialog = () => {
@@ -26,7 +28,47 @@ export function SessionCard({ data }: SessionCardProps) {
     };
 
     const handleEditSession = (sessionData: AddSessionDataType) => {
-        console.log(sessionData);
+        // Get all the selected package_session_ids from the form
+        const visiblePackageSessionIds = sessionData.levels
+            .filter((level) => level.package_session_id) // Filter out any null values
+            .map((level) => level.package_session_id)
+            .join(",");
+
+        // Get all package_session_ids from the original data
+        const allPackageSessionIds: string[] = [];
+        data.packages.forEach((packageItem) => {
+            packageItem.level.forEach((level) => {
+                if (level.package_session_id) {
+                    allPackageSessionIds.push(level.package_session_id);
+                }
+            });
+        });
+
+        // Find package_session_ids that are in the original data but not in the form data
+        const hiddenPackageSessionIds = allPackageSessionIds
+            .filter((id) => !sessionData.levels.some((level) => level.package_session_id === id))
+            .join(",");
+
+        const requestData = {
+            comma_separated_hidden_package_session_ids: hiddenPackageSessionIds,
+            session_name: sessionData.session_name,
+            start_date: sessionData.start_date,
+            status: sessionData.status,
+            comma_separated_visible_package_session_ids: visiblePackageSessionIds,
+        };
+
+        editSessionMutation.mutate(
+            { requestData: requestData, sessionId: sessionData.id || "" },
+            {
+                onSuccess: () => {
+                    toast.success("Session edited successfully");
+                    setIsAddSessionDiaogOpen(false);
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to edit session");
+                },
+            },
+        );
     };
 
     return (

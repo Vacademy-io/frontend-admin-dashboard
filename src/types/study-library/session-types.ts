@@ -21,7 +21,7 @@ interface Level {
 interface LevelWithStatus {
     level_dto: Level;
     package_session_id: string;
-    package_session_status: string;
+    package_session_status: "ACTIVE" | "INACTIVE";
     start_date: string;
 }
 
