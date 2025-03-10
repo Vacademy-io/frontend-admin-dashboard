@@ -435,39 +435,41 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                     </div>
                     <Separator />
                     <h1>Attempt Settings</h1>
-                    <FormField
-                        control={control}
-                        name="reattemptCount"
-                        render={({ field: { ...field } }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyInput
-                                        inputType="number"
-                                        inputPlaceholder="Reattempt Count"
-                                        input={field.value}
-                                        error={form.formState.errors.reattemptCount?.message}
-                                        onKeyPress={(e) => {
-                                            const charCode = e.key;
-                                            if (!/[0-9]/.test(charCode)) {
-                                                e.preventDefault(); // Prevent non-numeric input
-                                            }
-                                        }}
-                                        onChangeFunction={(e) => {
-                                            const inputValue = e.target.value.replace(
-                                                /[^0-9]/g,
-                                                "",
-                                            ); // Remove non-numeric characters
-                                            field.onChange(inputValue); // Call onChange with the sanitized value
-                                        }}
-                                        required={true}
-                                        size="large"
-                                        label="Reattempt Count"
-                                        {...field}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                    {examType === "EXAM" && (
+                        <FormField
+                            control={control}
+                            name="reattemptCount"
+                            render={({ field: { ...field } }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MyInput
+                                            inputType="number"
+                                            inputPlaceholder="Reattempt Count"
+                                            input={field.value}
+                                            error={form.formState.errors.reattemptCount?.message}
+                                            onKeyPress={(e) => {
+                                                const charCode = e.key;
+                                                if (!/[0-9]/.test(charCode)) {
+                                                    e.preventDefault(); // Prevent non-numeric input
+                                                }
+                                            }}
+                                            onChangeFunction={(e) => {
+                                                const inputValue = e.target.value.replace(
+                                                    /[^0-9]/g,
+                                                    "",
+                                                ); // Remove non-numeric characters
+                                                field.onChange(inputValue); // Call onChange with the sanitized value
+                                            }}
+                                            required={true}
+                                            size="large"
+                                            label="Reattempt Count"
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                     {getStepKey({
                         assessmentDetails,
                         currentStep,
