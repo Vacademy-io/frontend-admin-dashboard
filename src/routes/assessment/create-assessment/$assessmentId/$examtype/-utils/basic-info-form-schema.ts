@@ -25,7 +25,19 @@ export const BasicInfoFormSchema = z.object({
         checked: z.boolean(),
         previewTimeLimit: z.string(),
     }),
-    reattemptCount: z.string(),
+    reattemptCount: z
+        .string()
+        .default("1") // Default to "1" to prevent undefined errors
+        .refine(
+            (value) => {
+                const num = Number(value);
+                return !isNaN(num) && num > 0;
+            },
+            {
+                message: "Reattempt count must be greater than 0",
+                path: ["reattemptCount"],
+            },
+        ),
     submissionType: z.string(),
     durationDistribution: z.string(),
     evaluationType: z.string(),
