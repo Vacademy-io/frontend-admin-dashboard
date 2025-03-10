@@ -35,7 +35,7 @@ export const CSVFormatDialog = ({
         setCommonExpiryDate: true,
         daysFromToday: "365",
         addStudentStatus: true,
-        studentStatus: "Active",
+        studentStatus: "ACTIVE",
         fatherName: false,
         motherName: false,
         guardianName: false,
@@ -198,10 +198,10 @@ export const CSVFormatDialog = ({
                                                         <SelectValue placeholder="Select status" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="Active">
+                                                        <SelectItem value="ACTIVE">
                                                             Active
                                                         </SelectItem>
-                                                        <SelectItem value="Inactive">
+                                                        <SelectItem value="INACTIVE">
                                                             Inactive
                                                         </SelectItem>
                                                     </SelectContent>

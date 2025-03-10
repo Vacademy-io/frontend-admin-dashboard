@@ -60,7 +60,7 @@ export const SlideMaterial = () => {
 
     const updateHeading = async () => {
         if (activeItem) {
-            if (activeItem.video_url != null) {
+            if (activeItem.published_url != null) {
                 await addUpdateVideoSlide({
                     id: activeItem.slide_id,
                     title: heading,
@@ -70,7 +70,7 @@ export const SlideMaterial = () => {
                     video_slide: {
                         id: activeItem.video_id || "",
                         description: activeItem.video_description || "",
-                        url: activeItem.video_url,
+                        url: activeItem.published_url,
                         title: heading,
                     },
                     status: activeItem.status,
@@ -88,7 +88,7 @@ export const SlideMaterial = () => {
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: activeItem.document_type,
-                        data: activeItem.document_data || "", // Use the formatted HTML string
+                        data: activeItem.published_data || "", // Use the formatted HTML string
                         title: heading,
                         cover_file_id: activeItem.document_cover_file_id || "",
                     },
@@ -103,7 +103,7 @@ export const SlideMaterial = () => {
 
     const setEditorContent = () => {
         console.log("inside set function");
-        const editorContent = html.deserialize(editor, activeItem?.document_data || "");
+        const editorContent = html.deserialize(editor, activeItem?.published_data || "");
         editor.setEditorValue(editorContent);
         setContent(
             <div className="w-full">
@@ -134,12 +134,12 @@ export const SlideMaterial = () => {
             return;
         }
 
-        if (activeItem.video_url != null) {
-            console.log("video url: ", activeItem.video_url);
+        if (activeItem.published_url != null) {
+            console.log("video url: ", activeItem.published_url);
             setContent(
                 <div key={`video-${activeItem.slide_id}`} className="size-full">
                     <YouTubePlayer
-                        videoUrl={activeItem.video_url || ""}
+                        videoUrl={activeItem.published_url || ""}
                         videoTitle={activeItem.video_title}
                     />
                 </div>,
@@ -148,12 +148,12 @@ export const SlideMaterial = () => {
         }
 
         if (activeItem?.document_type == "PDF") {
-            const url = await getPublicUrl(activeItem?.document_data);
+            const url = await getPublicUrl(activeItem?.published_data);
             setContent(<PDFViewer pdfUrl={url} />);
             return;
         }
 
-        if (activeItem?.document_type === "DOC" && activeItem.document_data) {
+        if (activeItem?.document_type === "DOC" && activeItem.published_data) {
             try {
                 setTimeout(() => {
                     setEditorContent();
@@ -180,7 +180,9 @@ export const SlideMaterial = () => {
             const htmlString = html.serialize(editor, data);
             const formattedHtmlString = formatHTMLString(htmlString);
             const documentData =
-                activeItem?.document_type == "PDF" ? activeItem.document_data : formattedHtmlString;
+                activeItem?.document_type == "PDF"
+                    ? activeItem.published_data
+                    : formattedHtmlString;
             try {
                 await addUpdateDocumentSlide({
                     id: activeItem?.slide_id || "",
@@ -215,7 +217,7 @@ export const SlideMaterial = () => {
                     video_slide: {
                         id: activeItem?.video_id || "",
                         description: activeItem?.video_description || "",
-                        url: activeItem?.video_url || "",
+                        url: activeItem?.published_url || "",
                         title: activeItem?.video_title || "",
                     },
                     status: status,

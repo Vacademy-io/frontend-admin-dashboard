@@ -2,6 +2,7 @@ interface Session {
     id: string;
     session_name: string;
     status: string;
+    start_date: string;
 }
 
 interface PackageDTO {
@@ -17,9 +18,16 @@ interface Level {
     thumbnail_id: string | null;
 }
 
+interface LevelWithStatus {
+    level_dto: Level;
+    package_session_id: string;
+    package_session_status: "ACTIVE" | "INACTIVE";
+    start_date: string;
+}
+
 interface Package {
     package_dto: PackageDTO;
-    level: Level[];
+    level: LevelWithStatus[];
 }
 
 export interface SessionData {

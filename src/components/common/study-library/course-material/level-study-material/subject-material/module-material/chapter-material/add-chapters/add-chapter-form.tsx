@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useUpdateChapter } from "@/services/study-library/chapter-operations/update-chapter";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { LevelSchema } from "@/schemas/student/student-list/institute-schema";
+import { levelsWithPackageDetails } from "@/schemas/student/student-list/institute-schema";
 import { useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
@@ -70,7 +70,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
 
     const handleSelectAllForCourse = (
         courseId: string,
-        levels: (typeof LevelSchema._type)[],
+        levels: levelsWithPackageDetails,
         field: ControllerRenderProps<FormValues, `visibility.${string}`>,
     ) => {
         const allPackageSessionIds = levels
@@ -78,9 +78,8 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                 const psId = getPackageSessionId({
                     courseId: courseId,
                     sessionId: sessionId,
-                    levelId: level.id,
+                    levelId: level.level_dto.id,
                 });
-                console.log(`Getting PSId for level ${level.id}:`, psId);
                 return psId;
             })
             .filter((id): id is string => id !== null);
@@ -95,7 +94,6 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
     const onSubmit = async (data: FormValues) => {
         try {
             const selectedPackageSessionIds = Object.values(data.visibility).flat().join(",");
-            console.log(selectedPackageSessionIds);
             if (!selectedPackageSessionIds) {
                 toast.error("Please select at least one package for visibility");
                 return;
@@ -207,12 +205,12 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                 control={form.control}
                                 name={`visibility.${course.package_dto.id}`}
                                 render={({ field }) => {
-                                    const levelPackageSessionIds = course.levels
+                                    const levelPackageSessionIds = course.level
                                         .map((level) =>
                                             getPackageSessionId({
                                                 courseId: course.package_dto.id,
                                                 sessionId: sessionId,
-                                                levelId: level.id,
+                                                levelId: level.level_dto.id,
                                             }),
                                         )
                                         .filter((id): id is string => id !== null);
@@ -233,7 +231,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                     onCheckedChange={() => {
                                                         handleSelectAllForCourse(
                                                             course.package_dto.id,
-                                                            course.levels,
+                                                            course.level,
                                                             field,
                                                         );
                                                     }}
@@ -245,21 +243,21 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                             </div>
                                             <FormControl>
                                                 <div className="flex flex-col gap-2 pl-6">
-                                                    {course.levels.map((level) => {
+                                                    {course.level.map((level) => {
                                                         const packageSessionId =
                                                             getPackageSessionId({
                                                                 courseId: course.package_dto.id,
                                                                 sessionId: sessionId,
-                                                                levelId: level.id,
+                                                                levelId: level.level_dto.id,
                                                             });
                                                         const isPreChecked =
                                                             packageSessionId === package_session_id;
 
                                                         return (
                                                             <label
-                                                                key={level.id}
+                                                                key={level.level_dto.id}
                                                                 className={`flex items-center gap-2 ${
-                                                                    level.id === "DEFAULT"
+                                                                    level.level_dto.id === "DEFAULT"
                                                                         ? "visible"
                                                                         : "visible"
                                                                 }`}
@@ -299,7 +297,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                     }}
                                                                 />
                                                                 <span className="text-sm">
-                                                                    {level.level_name}
+                                                                    {level.level_dto.level_name}
                                                                 </span>
                                                             </label>
                                                         );
