@@ -25,6 +25,7 @@ import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-stude
 import { PreviewDialog } from "./preview-dialog";
 import { toast } from "sonner";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface FileState {
     file: File | null;
@@ -66,6 +67,7 @@ export const UploadCSVButton = ({
         sessionId: packageDetails.session.id || "",
         levelId: packageDetails.level.id || "",
     });
+    const queryClient = useQueryClient();
 
     const requestPayload = {
         auto_generate_config: {
@@ -249,11 +251,13 @@ export const UploadCSVButton = ({
                     className: "success-toast",
                     duration: 3000,
                 });
+                queryClient.invalidateQueries({ queryKey: ["yourQueryKey"] });
             } else if (stats.partialSuccess) {
                 toast.warning(message, {
                     className: "warning-toast",
                     duration: 3000,
                 });
+                queryClient.invalidateQueries({ queryKey: ["yourQueryKey"] });
             } else {
                 toast.error(message, {
                     className: "error-toast",
