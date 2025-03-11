@@ -51,8 +51,7 @@ export const ScheduleTestMainComponent = () => {
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
-    const { AssessmentTypeData, AssessmentStatusData, ModeData } =
-        useFilterDataForAssesmentInitData(initAssessmentData);
+    const { AssessmentTypeData, ModeData } = useFilterDataForAssesmentInitData(initAssessmentData);
     const { getCourseFromPackage } = useInstituteDetailsStore();
     const setHandleRefetchDataAssessment = useRefetchStoreAssessment(
         (state) => state.setHandleRefetchDataAssessment,
@@ -449,16 +448,6 @@ export const ScheduleTestMainComponent = () => {
                                 selectedItems={selectedQuestionPaperFilters["subjects_ids"] || []}
                                 onSelectionChange={(items) =>
                                     handleFilterChange("subjects_ids", items)
-                                }
-                            />
-                            <ScheduleTestFilters
-                                label="Status"
-                                data={AssessmentStatusData}
-                                selectedItems={
-                                    selectedQuestionPaperFilters["assessment_statuses"] || []
-                                }
-                                onSelectionChange={(items) =>
-                                    handleFilterChange("assessment_statuses", items)
                                 }
                             />
                             <ScheduleTestFilters
