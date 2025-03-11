@@ -286,116 +286,62 @@ export const ScheduleTestMainComponent = () => {
                 setIsLoading(false);
             });
     };
-
     useEffect(() => {
         setIsLoading(true);
+
         const timeoutId = setTimeout(() => {
-            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            const fetchLiveTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
                 get_live_assessments: true,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
-            })
-                .then((data) => {
-                    setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) =>
-                            tab.value === "liveTests" ? { ...tab, data: data } : tab,
-                        ),
-                    );
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    setIsLoading(false);
-                });
-        }, 0);
+            });
 
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timeoutId = setTimeout(() => {
-            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            const fetchUpcomingTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
                 get_live_assessments: false,
                 get_passed_assessments: false,
                 get_upcoming_assessments: true,
-            })
-                .then((data) => {
-                    setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) =>
-                            tab.value === "upcomingTests" ? { ...tab, data: data } : tab,
-                        ),
-                    );
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    setIsLoading(false);
-                });
-        }, 0);
+            });
 
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timeoutId = setTimeout(() => {
-            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            const fetchPreviousTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
                 get_live_assessments: false,
                 get_passed_assessments: true,
                 get_upcoming_assessments: false,
-            })
-                .then((data) => {
-                    setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) =>
-                            tab.value === "previousTests" ? { ...tab, data: data } : tab,
-                        ),
-                    );
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    setIsLoading(false);
-                });
-        }, 0);
+            });
 
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timeoutId = setTimeout(() => {
-            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            const fetchDraftTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
                 get_live_assessments: false,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
-            })
-                .then((data) => {
+            });
+
+            Promise.all([fetchLiveTests, fetchUpcomingTests, fetchPreviousTests, fetchDraftTests])
+                .then(([liveData, upcomingData, previousData, draftData]) => {
                     setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) =>
-                            tab.value === "draftTests" ? { ...tab, data: data } : tab,
-                        ),
+                        prevTabs.map((tab) => {
+                            if (tab.value === "liveTests") return { ...tab, data: liveData };
+                            if (tab.value === "upcomingTests")
+                                return { ...tab, data: upcomingData };
+                            if (tab.value === "previousTests")
+                                return { ...tab, data: previousData };
+                            if (tab.value === "draftTests") return { ...tab, data: draftData };
+                            return tab;
+                        }),
                     );
-                    setIsLoading(false);
                 })
                 .catch((error) => {
                     console.error(error);
+                })
+                .finally(() => {
                     setIsLoading(false);
                 });
-        }, 0);
+        }, 500); // Delay execution by 500ms
 
         return () => {
-            clearTimeout(timeoutId);
+            clearTimeout(timeoutId); // Cleanup to prevent duplicate calls
         };
     }, []);
 
