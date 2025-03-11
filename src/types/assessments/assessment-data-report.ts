@@ -20,6 +20,7 @@ interface AllSections {
 }
 
 interface QuestionOverallDetailDTO {
+    submitTime: string;
     completionTimeInSeconds: number;
     totalCorrectMarks: number;
     totalIncorrectMarks: number;

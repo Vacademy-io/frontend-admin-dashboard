@@ -22,6 +22,7 @@ export interface SubjectType {
     thumbnail_id: string | null;
     created_at: string | null;
     updated_at: string | null;
+    subject_order?: number;
 }
 
 export interface LevelWithDetailsType {

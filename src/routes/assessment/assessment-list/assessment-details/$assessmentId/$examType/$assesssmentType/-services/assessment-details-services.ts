@@ -1,9 +1,12 @@
 import {
     GET_ADMIN_PARTICIPANTS,
+    GET_ASSESSMENT_TOTAL_MARKS_URL,
+    GET_BATCH_DETAILS_URL,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
     GET_PARTICIPANTS_QUESTION_WISE,
     GET_QUESTIONS_INSIGHTS_URL,
+    GET_REVALUATE_STUDENT_RESULT,
     PRIVATE_ADD_QUESTIONS,
     STUDENT_REPORT_DETAIL_URL,
     STUDENT_REPORT_URL,
@@ -14,6 +17,8 @@ import { AssessmentDetailQuestions } from "../-utils/assessment-details-interfac
 import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSubmissionsTab";
 import { StudentReportFilterInterface } from "@/components/common/students/students-list/student-side-view/student-test-records/student-test-record";
 import { SelectedFilterQuestionWise } from "@/types/assessments/student-questionwise-status";
+import { SelectedFilterRevaluateInterface } from "@/types/assessments/assessment-revaluate-question-wise";
+import { AssessmentParticipantsInterface } from "../-components/AssessmentParticipantsList";
 
 export const savePrivateQuestions = async (questions: AssessmentDetailQuestions) => {
     const response = await authenticatedAxiosInstance({
@@ -101,6 +106,25 @@ export const handleGetOverviewData = ({
     return {
         queryKey: ["GET_ASSESSMENT_DETAILS", assessmentId, instituteId],
         queryFn: () => getOverviewDetials(assessmentId, instituteId),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
+export const getAssessmentTotalMarks = async (assessmentId: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: GET_ASSESSMENT_TOTAL_MARKS_URL,
+        params: {
+            assessmentId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetAssessmentTotalMarksData = ({ assessmentId }: { assessmentId: string }) => {
+    return {
+        queryKey: ["GET_ASSESSMENT_TOTAL_MARKS", assessmentId],
+        queryFn: () => getAssessmentTotalMarks(assessmentId),
         staleTime: 60 * 60 * 1000,
     };
 };
@@ -320,4 +344,40 @@ export const handleParticipantsListQuestionwise = ({
             ),
         staleTime: 60 * 60 * 1000,
     };
+};
+
+export const getRevaluateStudentResult = async (
+    assessmentId: string,
+    instituteId: string | undefined,
+    methodType: string,
+    selectedFilter: SelectedFilterRevaluateInterface,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: GET_REVALUATE_STUDENT_RESULT,
+        params: {
+            assessmentId,
+            instituteId,
+            methodType,
+        },
+        data: selectedFilter,
+    });
+    return response?.data;
+};
+
+export const getBatchDetailsListOfStudents = async (
+    pageNo: number,
+    pageSize: number,
+    selectedFilter: AssessmentParticipantsInterface,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: GET_BATCH_DETAILS_URL,
+        params: {
+            pageNo,
+            pageSize,
+        },
+        data: selectedFilter,
+    });
+    return response?.data;
 };

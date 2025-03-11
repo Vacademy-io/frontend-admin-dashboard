@@ -436,7 +436,7 @@ const AccessControlCards = ({
                             Add
                         </MyButton>
                     </DialogTrigger>
-                    <DialogContent className="!p-0">
+                    <DialogContent className="w-[520px] !p-0">
                         <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
                             Add Role/User
                         </h1>
@@ -447,7 +447,13 @@ const AccessControlCards = ({
                                     return (
                                         <Badge
                                             key={idx}
-                                            className="cursor-pointer rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 shadow-none"
+                                            className={`cursor-pointer rounded-lg border border-neutral-300 ${
+                                                role.roleName === "EVALUATOR"
+                                                    ? "bg-[#F5F0FF]"
+                                                    : role.roleName === "CREATOR"
+                                                      ? "bg-[#FFF4F5]"
+                                                      : "bg-[#F4F9FF]"
+                                            } py-1.5 shadow-none`}
                                             onClick={() => handleSelectRole(role.roleId)}
                                         >
                                             Role: {role.roleName}
@@ -517,7 +523,13 @@ const AccessControlCards = ({
                         return (
                             <Badge
                                 key={idx}
-                                className="rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 shadow-none"
+                                className={`cursor-pointer rounded-lg border border-neutral-300 ${
+                                    role.roleName === "EVALUATOR"
+                                        ? "bg-[#F5F0FF]"
+                                        : role.roleName === "CREATOR"
+                                          ? "bg-[#FFF4F5]"
+                                          : "bg-[#F4F9FF]"
+                                } py-1.5 shadow-none`}
                             >
                                 Role: {role.roleName}
                                 <X

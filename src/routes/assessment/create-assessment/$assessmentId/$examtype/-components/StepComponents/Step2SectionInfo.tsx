@@ -176,8 +176,6 @@ export const Step2SectionInfo = ({
         }
     }, [watch(`section.${index}`)]);
 
-    console.log(getValues(`section.${index}`));
-
     if (isLoading || adaptiveMarking.isLoading) return <DashboardLoader />;
 
     return (
@@ -427,6 +425,12 @@ export const Step2SectionInfo = ({
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (!/[0-9]/.test(charCode)) {
+                                                        e.preventDefault(); // Prevent non-numeric input
+                                                    }
+                                                }}
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
@@ -454,6 +458,12 @@ export const Step2SectionInfo = ({
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (!/[0-9]/.test(charCode)) {
+                                                        e.preventDefault(); // Prevent non-numeric input
+                                                    }
+                                                }}
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
@@ -496,6 +506,12 @@ export const Step2SectionInfo = ({
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (!/[0-9]/.test(charCode)) {
+                                                        e.preventDefault(); // Prevent non-numeric input
+                                                    }
+                                                }}
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
@@ -523,6 +539,12 @@ export const Step2SectionInfo = ({
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (!/[0-9]/.test(charCode)) {
+                                                        e.preventDefault(); // Prevent non-numeric input
+                                                    }
+                                                }}
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
                                                         /[^0-9]/g,
@@ -566,9 +588,15 @@ export const Step2SectionInfo = ({
                                         inputType="text"
                                         inputPlaceholder="00"
                                         input={field.value}
+                                        onKeyPress={(e) => {
+                                            const charCode = e.key;
+                                            if (!/[0-9.]/.test(charCode)) {
+                                                e.preventDefault(); // Prevent non-numeric input
+                                            }
+                                        }}
                                         onChangeFunction={(e) => {
                                             const inputValue = e.target.value.replace(
-                                                /[^0-9]/g,
+                                                /[^0-9.]/g,
                                                 "",
                                             ); // Remove non-numeric characters
                                             field.onChange(inputValue); // Call onChange with the sanitized value
@@ -613,13 +641,13 @@ export const Step2SectionInfo = ({
                                             input={field.value}
                                             onKeyPress={(e) => {
                                                 const charCode = e.key;
-                                                if (!/[0-9]/.test(charCode)) {
+                                                if (!/[0-9.]/.test(charCode)) {
                                                     e.preventDefault(); // Prevent non-numeric input
                                                 }
                                             }}
                                             onChangeFunction={(e) => {
                                                 const inputValue = e.target.value.replace(
-                                                    /[^0-9]/g,
+                                                    /[^0-9.]/g,
                                                     "",
                                                 ); // Remove non-numeric characters
                                                 field.onChange(inputValue); // Call onChange with the sanitized value
@@ -688,7 +716,7 @@ export const Step2SectionInfo = ({
                                             }
                                             onKeyPress={(e) => {
                                                 const charCode = e.key;
-                                                if (!/[0-9]/.test(charCode)) {
+                                                if (!/[0-9.]/.test(charCode)) {
                                                     e.preventDefault(); // Prevent non-numeric input
                                                 }
                                             }}
@@ -697,7 +725,7 @@ export const Step2SectionInfo = ({
                                             input={field.value}
                                             onChangeFunction={(e) => {
                                                 const inputValue = e.target.value.replace(
-                                                    /[^0-9]/g,
+                                                    /[^0-9.]/g,
                                                     "",
                                                 );
                                                 field.onChange(inputValue);

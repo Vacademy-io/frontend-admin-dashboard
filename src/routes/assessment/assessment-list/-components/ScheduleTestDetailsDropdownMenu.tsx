@@ -4,9 +4,9 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-    DropdownMenuSub,
-    DropdownMenuSubTrigger,
-    DropdownMenuSubContent,
+    // DropdownMenuSub,
+    // DropdownMenuSubTrigger,
+    // DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "@tanstack/react-router";
 import { DotsThree, Info } from "phosphor-react";
@@ -14,11 +14,18 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { TestContent } from "@/types/assessments/schedule-test-list";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { getInstituteId } from "@/constants/helper";
+import { handleDeleteAssessment } from "../-services/assessment-services";
 
 export function ScheduleTestDetailsDropdownLive({
     scheduleTestContent,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
+    handleRefetchData: () => void;
 }) {
     const [isRemiderAlertDialogOpen, setIsRemiderAlertDialogOpen] = useState(false);
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
@@ -35,36 +42,38 @@ export function ScheduleTestDetailsDropdownLive({
             },
         });
     };
-    const handleSendReminderClick = (assessmentId: string) => {
-        console.log(assessmentId);
-        setIsRemiderAlertDialogOpen(true);
-    };
+
+    // const handleSendReminderClick = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    //     setIsRemiderAlertDialogOpen(true);
+    // };
+
     const handleDeleteAssessmentClick = (assessmentId: string) => {
         console.log(assessmentId);
         setIsDeleteAssessmentDialog(true);
     };
 
-    const handleRescheduleAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleRescheduleAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
-    const handleDuplicateAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleDuplicateAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
-    const handlePauseLiveStatus = (assessmentId: string, value: number) => {
-        console.log(assessmentId, value);
-    };
+    // const handlePauseLiveStatus = (assessmentId: string, value: number) => {
+    //     console.log(assessmentId, value);
+    // };
 
-    const handleCustomPauseLiveAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-        setIsPauseLiveStatausDialog(true);
-    };
+    // const handleCustomPauseLiveAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    //     setIsPauseLiveStatausDialog(true);
+    // };
 
-    const handleResumeLiveAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-        setIsResumeLiveStatusDialog(true);
-    };
+    // const handleResumeLiveAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    //     setIsResumeLiveStatusDialog(true);
+    // };
     return (
         <>
             <DropdownMenu>
@@ -85,13 +94,13 @@ export function ScheduleTestDetailsDropdownLive({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => handleSendReminderClick(scheduleTestContent.assessment_id)}
                     >
                         Send Reminder
-                    </DropdownMenuItem>
-                    <DropdownMenuSub>
+                    </DropdownMenuItem> */}
+                    {/* <DropdownMenuSub>
                         <DropdownMenuSubTrigger className="cursor-pointer">
                             Pause Live Status
                         </DropdownMenuSubTrigger>
@@ -131,29 +140,29 @@ export function ScheduleTestDetailsDropdownLive({
                                 Custom
                             </DropdownMenuItem>
                         </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                    <DropdownMenuItem
+                    </DropdownMenuSub> */}
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
                             handleResumeLiveAssessment(scheduleTestContent.assessment_id)
                         }
                     >
                         Resume Live Status
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
+                    </DropdownMenuItem> */}
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
                             handleRescheduleAssessment(scheduleTestContent.assessment_id)
                         }
                     >
                         Reschedule Assessment
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
+                    </DropdownMenuItem> */}
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => handleDuplicateAssessment(scheduleTestContent.assessment_id)}
                     >
                         Duplicate Assessment
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
@@ -168,7 +177,11 @@ export function ScheduleTestDetailsDropdownLive({
                 <ScheduleTestReminderDialog onClose={() => setIsRemiderAlertDialogOpen(false)} />
             )}
             {isDeleteAssessmentDialog && (
-                <ScheduleTestDeleteDialog onClose={() => setIsDeleteAssessmentDialog(false)} />
+                <ScheduleTestDeleteDialog
+                    handleRefetchData={handleRefetchData}
+                    scheduleTestContent={scheduleTestContent}
+                    onClose={() => setIsDeleteAssessmentDialog(false)}
+                />
             )}
             {isPauseLiveStatausDialog && (
                 <ScheduleTestPauseDialog onClose={() => setIsPauseLiveStatausDialog(false)} />
@@ -182,8 +195,10 @@ export function ScheduleTestDetailsDropdownLive({
 
 export function ScheduleTestDetailsDropdownUpcoming({
     scheduleTestContent,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
+    handleRefetchData: () => void;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const navigate = useNavigate();
@@ -198,13 +213,13 @@ export function ScheduleTestDetailsDropdownUpcoming({
         });
     };
 
-    const handleRescheduleAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleRescheduleAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
-    const handleDuplicateAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleDuplicateAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
     const handleDeleteAssessmentClick = (assessmentId: string) => {
         console.log(assessmentId);
@@ -231,7 +246,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
                             handleRescheduleAssessment(scheduleTestContent.assessment_id)
@@ -244,7 +259,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
                         onClick={() => handleDuplicateAssessment(scheduleTestContent.assessment_id)}
                     >
                         Duplicate Assessment
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
@@ -256,7 +271,11 @@ export function ScheduleTestDetailsDropdownUpcoming({
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
-                <ScheduleTestDeleteDialog onClose={() => setIsDeleteAssessmentDialog(false)} />
+                <ScheduleTestDeleteDialog
+                    handleRefetchData={handleRefetchData}
+                    scheduleTestContent={scheduleTestContent}
+                    onClose={() => setIsDeleteAssessmentDialog(false)}
+                />
             )}
         </>
     );
@@ -264,8 +283,10 @@ export function ScheduleTestDetailsDropdownUpcoming({
 
 export function ScheduleTestDetailsDropdownPrevious({
     scheduleTestContent,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
+    handleRefetchData: () => void;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const [isReopenAssessment, setIsReopenAssessment] = useState(false);
@@ -281,23 +302,23 @@ export function ScheduleTestDetailsDropdownPrevious({
         });
     };
 
-    const handleRescheduleAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleRescheduleAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
-    const handleDuplicateAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleDuplicateAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
     const handleDeleteAssessmentClick = (assessmentId: string) => {
         console.log(assessmentId);
         setIsDeleteAssessmentDialog(true);
     };
 
-    const handleReopenAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-        setIsReopenAssessment(true);
-    };
+    // const handleReopenAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    //     setIsReopenAssessment(true);
+    // };
 
     return (
         <>
@@ -319,7 +340,7 @@ export function ScheduleTestDetailsDropdownPrevious({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
                             handleRescheduleAssessment(scheduleTestContent.assessment_id)
@@ -338,7 +359,7 @@ export function ScheduleTestDetailsDropdownPrevious({
                         onClick={() => handleReopenAssessment(scheduleTestContent.assessment_id)}
                     >
                         Reopen Assessment
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
@@ -350,7 +371,11 @@ export function ScheduleTestDetailsDropdownPrevious({
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
-                <ScheduleTestDeleteDialog onClose={() => setIsDeleteAssessmentDialog(false)} />
+                <ScheduleTestDeleteDialog
+                    handleRefetchData={handleRefetchData}
+                    scheduleTestContent={scheduleTestContent}
+                    onClose={() => setIsDeleteAssessmentDialog(false)}
+                />
             )}
             {isReopenAssessment && (
                 <ScheduleTestReopenDialog onClose={() => setIsReopenAssessment(false)} />
@@ -361,8 +386,10 @@ export function ScheduleTestDetailsDropdownPrevious({
 
 export function ScheduleTestDetailsDropdowDrafts({
     scheduleTestContent,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
+    handleRefetchData: () => void;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const navigate = useNavigate();
@@ -411,7 +438,11 @@ export function ScheduleTestDetailsDropdowDrafts({
                 </DropdownMenuContent>
             </DropdownMenu>
             {isDeleteAssessmentDialog && (
-                <ScheduleTestDeleteDialog onClose={() => setIsDeleteAssessmentDialog(false)} />
+                <ScheduleTestDeleteDialog
+                    handleRefetchData={handleRefetchData}
+                    scheduleTestContent={scheduleTestContent}
+                    onClose={() => setIsDeleteAssessmentDialog(false)}
+                />
             )}
         </>
     );
@@ -420,23 +451,41 @@ export function ScheduleTestDetailsDropdowDrafts({
 export function ScheduleTestMainDropdownComponent({
     scheduleTestContent,
     selectedTab,
+    handleRefetchData,
 }: {
     scheduleTestContent: TestContent;
     selectedTab: string;
+    handleRefetchData: () => void;
 }) {
     switch (selectedTab) {
         case "liveTests":
-            return <ScheduleTestDetailsDropdownLive scheduleTestContent={scheduleTestContent} />;
+            return (
+                <ScheduleTestDetailsDropdownLive
+                    scheduleTestContent={scheduleTestContent}
+                    handleRefetchData={handleRefetchData}
+                />
+            );
         case "upcomingTests":
             return (
-                <ScheduleTestDetailsDropdownUpcoming scheduleTestContent={scheduleTestContent} />
+                <ScheduleTestDetailsDropdownUpcoming
+                    scheduleTestContent={scheduleTestContent}
+                    handleRefetchData={handleRefetchData}
+                />
             );
         case "previousTests":
             return (
-                <ScheduleTestDetailsDropdownPrevious scheduleTestContent={scheduleTestContent} />
+                <ScheduleTestDetailsDropdownPrevious
+                    scheduleTestContent={scheduleTestContent}
+                    handleRefetchData={handleRefetchData}
+                />
             );
         case "draftTests":
-            return <ScheduleTestDetailsDropdowDrafts scheduleTestContent={scheduleTestContent} />;
+            return (
+                <ScheduleTestDetailsDropdowDrafts
+                    scheduleTestContent={scheduleTestContent}
+                    handleRefetchData={handleRefetchData}
+                />
+            );
         default:
             return null;
     }
@@ -446,7 +495,7 @@ const ScheduleTestReminderDialog = ({ onClose }: { onClose: () => void }) => {
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Send Reminder</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex items-center gap-1">
@@ -469,26 +518,72 @@ const ScheduleTestReminderDialog = ({ onClose }: { onClose: () => void }) => {
     );
 };
 
-const ScheduleTestDeleteDialog = ({ onClose }: { onClose: () => void }) => {
+const ScheduleTestDeleteDialog = ({
+    handleRefetchData,
+    scheduleTestContent,
+    onClose,
+}: {
+    handleRefetchData: () => void;
+    scheduleTestContent: TestContent;
+    onClose: () => void;
+}) => {
+    const instituteId = getInstituteId();
+    const handleDeleteAssessmentMutation = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+        }) => handleDeleteAssessment(assessmentId, instituteId),
+        onSuccess: async () => {
+            toast.success("Assessment has been deleted successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
+            onClose();
+            handleRefetchData();
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
+        },
+    });
+
+    const deleteAssessment = () => {
+        handleDeleteAssessmentMutation.mutate({
+            assessmentId: scheduleTestContent.assessment_id,
+            instituteId,
+        });
+    };
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
-                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Send Reminder</h1>
+            <DialogContent className="flex w-[500px] flex-col p-0">
+                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Delete Assessment</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex items-center gap-1">
                         <span className="text-danger-600">Attention</span>
                         <Info size={18} className="text-danger-600" />
                     </div>
                     <h1 className="-mt-2 font-thin">
-                        Are you sure you want to delete the Assessment named
-                        <span className="text-primary-500">
-                            &nbsp;The Human Eye and The Colourful World
-                        </span>
-                        ?
+                        Are you sure you want to delete
+                        <span className="text-primary-500">&nbsp;{scheduleTestContent.name}</span>?
                     </h1>
                     <div className="mt-2 flex justify-end">
-                        <MyButton type="button" scale="large" buttonType="primary">
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="primary"
+                            onClick={deleteAssessment}
+                        >
                             Delete
                         </MyButton>
                     </div>
@@ -502,7 +597,7 @@ const ScheduleTestPauseDialog = ({ onClose }: { onClose: () => void }) => {
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Pause Live Status</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div>
@@ -532,7 +627,7 @@ const ScheduleTestResumeDialog = ({ onClose }: { onClose: () => void }) => {
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
                     Resume Live Status
                 </h1>
@@ -563,7 +658,7 @@ const ScheduleTestReopenDialog = ({ onClose }: { onClose: () => void }) => {
     return (
         <Dialog open={true} onOpenChange={onClose}>
             <DialogTrigger>Open</DialogTrigger>
-            <DialogContent className="flex flex-col p-0">
+            <DialogContent className="flex w-[500px] flex-col p-0">
                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Reopen Assessment</h1>
                 <div className="flex flex-col gap-4 p-4 pt-3">
                     <div className="flex flex-col gap-4">

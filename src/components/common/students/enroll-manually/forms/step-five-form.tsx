@@ -10,13 +10,11 @@ import { MyButton } from "@/components/design-system/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { stepFiveSchema, StepFiveData } from "@/types/students/schema-enroll-students-manually";
-// import { useQueryClient } from "@tanstack/react-query";
 import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/useEnrollStudent";
-// import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { getCurrentSession } from "../../students-list/utills/getCurrentSession";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-// import { EnrollStudentRequest } from "@/types/students/type-enroll-student-manually";
+import { toast } from "sonner";
 
 export const StepFiveForm = () => {
     const [showCredentials, setShowCredentials] = useState(false);
@@ -27,7 +25,7 @@ export const StepFiveForm = () => {
         stepFourData,
         stepFiveData,
         setStepFiveData,
-        // resetForm,
+        resetForm,
     } = useFormStore();
 
     const { getPackageSessionId } = useInstituteDetailsStore();
@@ -40,7 +38,6 @@ export const StepFiveForm = () => {
     );
 
     useEffect(() => {
-        console.log("package session id: ", packageSessionId);
         setPackageSessionId(
             getPackageSessionId({
                 courseId: stepTwoData?.course.id || "",
@@ -59,16 +56,14 @@ export const StepFiveForm = () => {
         mode: "onChange",
     });
 
-    // const mutation = useEnrollStudent();
-
     const generateUsername = () => {
         const sessionYear =
-            stepTwoData?.session?.name.split("-")[0] || getCurrentSession().split("-")[0];
-        const courseMatch = stepTwoData?.course?.name.match(/(\d+)/) || ["", "09"];
-        const classNumber = courseMatch[1]?.padStart(2, "0") || "";
+            stepTwoData?.session?.name.split("-")[1] || getCurrentSession().split("-")[1];
+        const classNumber = stepTwoData?.level.name;
         const enrollmentLast3 = (stepTwoData?.enrollmentNumber || "001").slice(-3);
 
-        return `${sessionYear}-${classNumber}-${enrollmentLast3}`;
+        const username = `${sessionYear}-${classNumber}-${enrollmentLast3}`;
+        return username.replace(/\s+/g, "");
     };
 
     const generatePassword = () => {
@@ -117,11 +112,14 @@ export const StepFiveForm = () => {
                 },
                 packageSessionId: packageSessionId || "",
             });
+            toast.success("Student enrolled successfully");
             console.log(result);
+            resetForm();
             // Handle success
         } catch (error) {
             // Handle error
             console.error("Failed to enroll student:", error);
+            toast.error("Failed to enroll the student");
         }
     };
 

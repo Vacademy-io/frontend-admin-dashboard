@@ -61,6 +61,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
     type: string,
     selectedTab: string,
     batches_for_sessions: BatchDetailsInterface[],
+    totalMarks: number,
 ) => {
     switch (type) {
         case "PUBLIC": {
@@ -68,6 +69,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 if (selectedTab === "Attempted") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .date,
@@ -76,11 +78,12 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.and_time || ""))
                             .time,
                         duration: (student.duration % 60) + " min",
-                        score: student.score + "/20", // need to add total marks,
+                        score: `${student.score} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
@@ -88,6 +91,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 } else if (selectedTab === "Pending") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                     };
                 }
@@ -100,6 +104,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 if (selectedTab === "Attempted") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         package_session_id: getBatchNameById(
                             batches_for_sessions,
@@ -112,11 +117,12 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.and_time || ""))
                             .time,
                         duration: (student.duration % 60) + " min",
-                        score: student.score + "/20", // need to add total marks
+                        score: `${student.score} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
@@ -124,6 +130,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                 } else if (selectedTab === "Pending") {
                     return {
                         id: student.user_id,
+                        attempt_id: student.attempt_id,
                         full_name: student.student_name,
                     };
                 }
@@ -777,6 +784,22 @@ export function getBatchNameById(data: BatchDetailsInterface[] | undefined, id: 
     return "";
 }
 
+export function getBatchNamesByIds(
+    data: BatchDetailsInterface[] | undefined,
+    ids: string[],
+): string[] {
+    if (!data || !ids) return [];
+
+    return ids
+        .map((id) => {
+            const item = data.find((obj) => obj.id === id);
+            return item && item.level && item.package_dto
+                ? `${item.level.level_name} ${item.package_dto.package_name}`
+                : null;
+        })
+        .filter((name): name is string => name !== null);
+}
+
 export function calculatePercentiles(students: StudentLeaderboard[]) {
     const totalStudents = students.length;
 
@@ -874,4 +897,11 @@ export function getCorrectOptionsForQuestion(options: MySingleChoiceOption[]) {
                 : null,
         )
         .filter((option) => option !== null);
+}
+
+export function transformQuestionsDataToRevaluateAPI(data: { [sectionId: string]: string[] }) {
+    return Object.entries(data).map(([section_id, question_ids]) => ({
+        section_id,
+        question_ids,
+    }));
 }

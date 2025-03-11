@@ -83,7 +83,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         resolver: zodResolver(testAccessSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            closed_test: storeDataStep3?.closed_test || true,
+            closed_test: storeDataStep3?.open_test?.checked ? false : true,
             open_test: storeDataStep3?.open_test || {
                 checked: false,
                 start_date: "",
@@ -124,26 +124,26 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             join_link:
                 storeDataStep3?.join_link ||
                 `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`,
-            show_leaderboard: storeDataStep3?.show_leaderboard || false,
+            show_leaderboard: storeDataStep3?.show_leaderboard || true,
             notify_student: storeDataStep3?.notify_student || {
-                when_assessment_created: false,
+                when_assessment_created: true,
                 before_assessment_goes_live: {
-                    checked: false,
+                    checked: true,
                     value: "",
                 },
-                when_assessment_live: false,
-                when_assessment_report_generated: false,
+                when_assessment_live: true,
+                when_assessment_report_generated: true,
             },
             notify_parent: storeDataStep3?.notify_parent || {
-                when_assessment_created: false,
+                when_assessment_created: true,
                 before_assessment_goes_live: {
-                    checked: false,
+                    checked: true,
                     value: "",
                 },
-                when_assessment_live: false,
-                when_student_appears: false,
-                when_student_finishes_test: false,
-                when_assessment_report_generated: false,
+                when_assessment_live: true,
+                when_student_appears: true,
+                when_student_finishes_test: true,
+                when_assessment_report_generated: true,
             },
         },
         mode: "onChange",
@@ -165,7 +165,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             instituteId: string | undefined;
             type: string | undefined;
         }) => handlePostStep3Data(data, assessmentId, instituteId, type),
-        onSuccess: async () => {
+        onSuccess: () => {
             syncStep3DataWithStore(form);
             toast.success("Step 3 data has been saved successfully!", {
                 className: "success-toast",
@@ -278,7 +278,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         );
     };
 
-    if (isLoading || handleSubmitStep3Form.status === "pending") return <DashboardLoader />;
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
@@ -907,9 +907,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                         <Copy size={32} />
                                     </MyButton>
                                 </div>
-                                <MyButton type="button" scale="large" buttonType="secondary">
-                                    Generate New Link
-                                </MyButton>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">

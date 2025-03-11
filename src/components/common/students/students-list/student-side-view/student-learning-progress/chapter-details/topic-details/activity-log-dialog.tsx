@@ -14,8 +14,16 @@ import {
     getUserVideoDocActivityLogs,
 } from "@/services/study-library/slide-operations/user-slide-activity-logs";
 import { ActivityContent } from "@/types/study-library/user-slide-activity-response-type";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { SlideWithStatusType } from "@/types/students/student-slides-progress-type";
 
-export const ActivityLogDialog = () => {
+export const ActivityLogDialog = ({
+    selectedUser,
+    slideData,
+}: {
+    selectedUser?: StudentTable | null;
+    slideData?: SlideWithStatusType;
+}) => {
     const { isOpen, closeDialog, selectedUserId } = useActivityStatsStore();
     const { activeItem } = useContentStore();
 
@@ -24,20 +32,24 @@ export const ActivityLogDialog = () => {
         initialPageSize: 5,
     });
 
-    const queryConfig =
-        activeItem?.video_url != null
+    const queryConfig = useMemo(() => {
+        const userId = selectedUser && slideData ? selectedUser.user_id : selectedUserId || "";
+        const slideId = selectedUser && slideData ? slideData.slide_id : activeItem?.slide_id || "";
+
+        return activeItem?.video_url != null
             ? getUserVideoSlideActivityLogs({
-                  userId: selectedUserId || "",
-                  slideId: activeItem?.slide_id || "",
+                  userId,
+                  slideId,
                   pageNo: page,
                   pageSize: pageSize,
               })
             : getUserVideoDocActivityLogs({
-                  userId: selectedUserId || "",
-                  slideId: activeItem?.slide_id || "",
+                  userId,
+                  slideId,
                   pageNo: page,
                   pageSize: pageSize,
               });
+    }, [selectedUser, slideData, selectedUserId, activeItem, page, pageSize]);
 
     const { data: activityLogs, isLoading, error } = useQuery(queryConfig);
 
@@ -79,7 +91,7 @@ export const ActivityLogDialog = () => {
             total_elements: activityLogs.totalElements,
             last: activityLogs.last,
         };
-    }, [activityLogs, page, pageSize, activeItem]);
+    }, [activityLogs, page, pageSize, selectedUser, slideData, activeItem]);
 
     return (
         <Dialog open={isOpen} onOpenChange={closeDialog}>
