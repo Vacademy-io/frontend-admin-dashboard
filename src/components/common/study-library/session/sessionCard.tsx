@@ -20,6 +20,7 @@ interface SessionCardProps {
 }
 
 export function SessionCard({ data }: SessionCardProps) {
+    const [disableAddButton, setDisableAddButton] = useState(true);
     const editSessionMutation = useEditSession();
 
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
@@ -71,6 +72,21 @@ export function SessionCard({ data }: SessionCardProps) {
         );
     };
 
+    const submitButton = (
+        <div className="flex items-center justify-end">
+            <MyButton
+                type="submit"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                className="w-[140px]"
+                disable={disableAddButton}
+            >
+                Save Changes
+            </MyButton>
+        </div>
+    );
+
     return (
         <div className="flex flex-col gap-4 rounded-2xl border p-6">
             <div className="flex flex-row items-end justify-between">
@@ -95,6 +111,8 @@ export function SessionCard({ data }: SessionCardProps) {
                                 </MyButton>
                             }
                             initialValues={data}
+                            submitButton={submitButton}
+                            setDisableAddButton={setDisableAddButton}
                         />
                         <DropdownMenuItem
                             className="cursor-pointer hover:bg-white"

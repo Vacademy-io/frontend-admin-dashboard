@@ -95,7 +95,7 @@ export const ActivityLogDialog = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={closeDialog}>
-            <DialogContent className="max-w-[800px]">
+            <DialogContent className="w-[700px] max-w-[800px]">
                 <DialogHeader className="flex flex-col gap-6">
                     <div className="flex items-center justify-between">
                         <DialogTitle className="text-h3 font-semibold text-primary-500">
@@ -104,7 +104,7 @@ export const ActivityLogDialog = ({
                     </div>
                 </DialogHeader>
 
-                <div className="mt-6">
+                <div className="no-scrollbar mt-6 overflow-x-scroll">
                     <MyTable
                         data={tableData}
                         columns={activityLogColumns}

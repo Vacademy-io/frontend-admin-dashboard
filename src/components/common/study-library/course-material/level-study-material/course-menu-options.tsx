@@ -15,6 +15,7 @@ interface CourseMenuOptionsProps {
 export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOptionsProps) => {
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const DropdownList = ["Edit Course", "Delete Course"];
+    const [disableAddButton, setDisableAddButton] = useState(false);
 
     const handleMenuOptionsChange = (value: string) => {
         if (value === "Delete Course") {
@@ -27,6 +28,21 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
     const handleOpenChange = () => {
         setOpenEditDialog(!openEditDialog);
     };
+
+    const submitButton = (
+        <div className="items-center justify-center bg-white">
+            <MyButton
+                type="submit"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                className="w-[140px]"
+                disable={disableAddButton}
+            >
+                Save Changes
+            </MyButton>
+        </div>
+    );
 
     return (
         <>
@@ -45,6 +61,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                 dialogWidth="w-[700px]"
                 open={openEditDialog}
                 onOpenChange={handleOpenChange}
+                footer={submitButton}
             >
                 <AddCourseForm
                     initialValues={{
@@ -56,6 +73,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                     }}
                     onSubmitCourse={onEdit}
                     setOpenDialog={setOpenEditDialog}
+                    setDisableAddButton={setDisableAddButton}
                 />
             </MyDialog>
         </>

@@ -7,6 +7,8 @@ import { MyButton } from "@/components/design-system/button";
 import { Plus } from "@phosphor-icons/react";
 
 export default function SessionHeader() {
+    const [disableAddButton, setDisableAddButton] = useState(true);
+
     const addSessionMutation = useAddSession();
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const handleOpenAddSessionDialog = () => {
@@ -43,6 +45,21 @@ export default function SessionHeader() {
         );
     };
 
+    const submitButton = (
+        <div className="flex items-center justify-end">
+            <MyButton
+                type="submit"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                className="w-[140px]"
+                disable={disableAddButton}
+            >
+                Add
+            </MyButton>
+        </div>
+    );
+
     return (
         <div className="flex items-center justify-between text-neutral-600">
             <div className="flex flex-col gap-2">
@@ -63,6 +80,8 @@ export default function SessionHeader() {
                             <Plus /> Add New Session
                         </MyButton>
                     }
+                    submitButton={submitButton}
+                    setDisableAddButton={setDisableAddButton}
                 />
             </div>
         </div>

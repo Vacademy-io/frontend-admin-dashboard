@@ -1,5 +1,4 @@
 // add-subject-form.tsx
-import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -229,15 +228,6 @@ export const AddLevelForm = ({
                             />
                         </>
                     )}
-
-                    <MyButton
-                        type="submit"
-                        buttonType="primary"
-                        layoutVariant="default"
-                        scale="large"
-                    >
-                        {initialValues ? "Save Changes" : "Add"}
-                    </MyButton>
                 </div>
             </form>
         </Form>

@@ -92,12 +92,14 @@ interface AddCourseFormProps {
         requestData: AddCourseData;
     }) => void;
     setOpenDialog: Dispatch<SetStateAction<boolean>>;
+    setDisableAddButton: Dispatch<SetStateAction<boolean>>;
 }
 
 export const AddCourseForm = ({
     initialValues,
     onSubmitCourse,
     setOpenDialog,
+    setDisableAddButton,
 }: AddCourseFormProps) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -111,7 +113,6 @@ export const AddCourseForm = ({
     const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
     const [newLevelName, setNewLevelName] = useState("");
     const [newSessionName, setNewSessionName] = useState("");
-    const [disableAddButton, setDisableAddButton] = useState(false);
 
     const { instituteDetails, getAllSessions, getLevelsFromPackage2 } = useInstituteDetailsStore();
     // At the top with other state variables
@@ -283,7 +284,7 @@ export const AddCourseForm = ({
                 onSubmit={(e) => {
                     form.handleSubmit(onSubmit)(e);
                 }}
-                className="flex max-h-[80vh] flex-col gap-8 overflow-y-auto p-2 text-neutral-600"
+                className="flex max-h-[80vh] flex-col gap-8 p-2 text-neutral-600"
             >
                 <div className="flex justify-between">
                     <div className="w-full">
@@ -311,11 +312,7 @@ export const AddCourseForm = ({
                     <CourseInfoDialog />
                 </div>
 
-                <div
-                    className={`relative flex w-full flex-col items-center justify-center gap-3 ${
-                        initialValues ? "mb-16" : "mb-0"
-                    }`}
-                >
+                <div className={`relative flex w-full flex-col items-center justify-center gap-3`}>
                     {isUploading ? (
                         <div className="inset-0 flex h-[200px] w-[200px] items-center justify-center bg-white">
                             <DashboardLoader />
@@ -361,7 +358,7 @@ export const AddCourseForm = ({
                         control={form.control}
                         name="contain_levels"
                         render={({ field }) => (
-                            <FormItem className={`space-y-2 ${!containLevels ? "mb-20" : "mb-0"}`}>
+                            <FormItem className={`space-y-2`}>
                                 <label className="text-subtitle font-semibold">
                                     Contains Levels?
                                 </label>
@@ -401,7 +398,7 @@ export const AddCourseForm = ({
                 )}
 
                 {containLevels && !initialValues && (
-                    <div className="mb-20 flex flex-col gap-2">
+                    <div className="flex flex-col gap-2">
                         <p className="text-body text-neutral-500">
                             Choose sessions to select a level
                         </p>
@@ -524,20 +521,6 @@ export const AddCourseForm = ({
                         />
                     </div>
                 )}
-                <div
-                    className={`absolute bottom-0 flex w-[640px] items-center justify-center bg-white py-4`}
-                >
-                    <MyButton
-                        type="submit"
-                        buttonType="primary"
-                        layoutVariant="default"
-                        scale="large"
-                        className="w-[140px]"
-                        disable={!initialValues ? disableAddButton : false}
-                    >
-                        {initialValues ? "Save Changes" : "Add"}
-                    </MyButton>
-                </div>
             </form>
         </Form>
     );

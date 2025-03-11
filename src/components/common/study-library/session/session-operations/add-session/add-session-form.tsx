@@ -4,7 +4,7 @@ import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/f
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Plus, DotsThree } from "@phosphor-icons/react";
@@ -46,9 +46,11 @@ export type AddSessionDataType = z.infer<typeof formSchema>;
 export const AddSessionForm = ({
     initialValues,
     onSubmit,
+    setDisableAddButton,
 }: {
     initialValues?: SessionData;
     onSubmit: (sessionData: AddSessionDataType) => void;
+    setDisableAddButton: Dispatch<SetStateAction<boolean>>;
 }) => {
     const { instituteDetails, getPackageWiseLevels } = useInstituteDetailsStore();
 
@@ -57,7 +59,6 @@ export const AddSessionForm = ({
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
     const addCourseMutation = useAddCourse();
     const [locallyAddedLevels, setLocallyAddedLevels] = useState<Record<string, LevelType[]>>({});
-    const [disableAddButton, setDisableAddButton] = useState(true);
 
     // Add this inside the AddSessionForm component, before the return statement
     useEffect(() => {
@@ -249,7 +250,7 @@ export const AddSessionForm = ({
         <FormProvider {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="flex max-h-[80vh] flex-col gap-8 overflow-y-auto p-2 text-neutral-600"
+                className="flex max-h-[80vh] flex-col gap-8 p-2 text-neutral-600"
             >
                 <FormField
                     control={form.control}
@@ -292,7 +293,7 @@ export const AddSessionForm = ({
                     )}
                 />
 
-                <div className="mb-14 flex flex-col gap-4">
+                <div className="flex flex-col gap-4">
                     <p className="text-body text-neutral-500">Select levels from courses</p>
                     <FormField
                         control={form.control}
@@ -427,19 +428,6 @@ export const AddSessionForm = ({
                             </FormItem>
                         )}
                     />
-                </div>
-
-                <div className="absolute bottom-0 mt-4 flex w-[640px] items-center justify-end bg-white py-3 pr-10">
-                    <MyButton
-                        type="submit"
-                        buttonType="primary"
-                        layoutVariant="default"
-                        scale="large"
-                        className="w-[140px]"
-                        disable={disableAddButton}
-                    >
-                        {initialValues ? "Save" : "Add"}
-                    </MyButton>
                 </div>
             </form>
         </FormProvider>

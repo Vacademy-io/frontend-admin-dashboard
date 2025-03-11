@@ -29,6 +29,14 @@ export const LevelMenuOptions = ({ onDelete, onEdit, levelId, level }: LevelMenu
         setOpenEditDialog(!openEditDialog);
     };
 
+    const levelSubmitButton = (
+        <div className="flex w-full items-center justify-center">
+            <MyButton type="submit" buttonType="primary" layoutVariant="default" scale="large">
+                Save Changes
+            </MyButton>
+        </div>
+    );
+
     return (
         <>
             <MyDropdown dropdownList={DropdownList} onSelect={handleMenuOptionsChange}>
@@ -46,6 +54,7 @@ export const LevelMenuOptions = ({ onDelete, onEdit, levelId, level }: LevelMenu
                 dialogWidth="w-[430px]"
                 open={openEditDialog}
                 onOpenChange={handleOpenChange}
+                footer={levelSubmitButton}
             >
                 <AddLevelForm
                     initialValues={{

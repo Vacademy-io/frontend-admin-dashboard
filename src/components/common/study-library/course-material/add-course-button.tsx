@@ -18,10 +18,26 @@ interface AddCourseButtonProps {
 
 export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
+    const [disableAddButton, setDisableAddButton] = useState(false);
 
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
     };
+
+    const submitButton = (
+        <div className="items-center justify-center bg-white">
+            <MyButton
+                type="submit"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                className="w-[140px]"
+                disable={disableAddButton}
+            >
+                Add
+            </MyButton>
+        </div>
+    );
 
     return (
         <MyDialog
@@ -30,8 +46,13 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
             dialogWidth="w-[700px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
+            footer={submitButton}
         >
-            <AddCourseForm onSubmitCourse={onSubmit} setOpenDialog={setOpenDialog} />
+            <AddCourseForm
+                onSubmitCourse={onSubmit}
+                setOpenDialog={setOpenDialog}
+                setDisableAddButton={setDisableAddButton}
+            />
         </MyDialog>
     );
 };

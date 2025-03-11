@@ -23,6 +23,14 @@ interface AddLevelButtonProps {
     }) => void;
 }
 
+const levelSubmitButton = (
+    <div className="flex w-full items-center justify-center">
+        <MyButton type="submit" buttonType="primary" layoutVariant="default" scale="large">
+            Add
+        </MyButton>
+    </div>
+);
+
 export const AddLevelButton = ({ onSubmit }: AddLevelButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
 
@@ -37,6 +45,7 @@ export const AddLevelButton = ({ onSubmit }: AddLevelButtonProps) => {
             dialogWidth="w-[430px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
+            footer={levelSubmitButton}
         >
             <AddLevelForm onSubmitSuccess={onSubmit} setOpenDialog={setOpenDialog} />
         </MyDialog>
