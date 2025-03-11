@@ -26,7 +26,7 @@ export interface Slide {
     video_url: string | null;
     slide_id: string;
     source_type: string;
-    status: string;
+    status: "PUBLISHED" | "DRAFT" | "DELETED" | "UNSYNC";
     published_data: string;
     published_url: string;
 }
@@ -40,8 +40,11 @@ interface VideoSlidePayload {
     video_slide: {
         id: string;
         description: string;
-        url: string;
+        url: string | null;
         title: string;
+        video_length_in_millis: number;
+        published_url: string | null;
+        published_video_length_in_millis: number;
     };
     status: string;
     new_slide?: boolean;
@@ -57,9 +60,12 @@ interface DocumentSlidePayload {
     document_slide: {
         id: string;
         type: string;
-        data: string;
+        data: string | null;
         title: string;
         cover_file_id: string;
+        total_pages: number;
+        published_data: string | null;
+        published_document_total_pages: number;
     };
     status: string;
     new_slide: boolean;

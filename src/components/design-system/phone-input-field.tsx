@@ -27,7 +27,10 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
             name={name}
             render={({ field }) => (
                 <FormItem className="w-96">
-                    <FormLabel>{label}</FormLabel>
+                    <FormLabel>
+                        {label}
+                        <span className="text-danger-600">*</span>
+                    </FormLabel>
                     <FormControl>
                         <PhoneInput
                             {...field}
