@@ -124,26 +124,26 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             join_link:
                 storeDataStep3?.join_link ||
                 `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`,
-            show_leaderboard: storeDataStep3?.show_leaderboard || false,
+            show_leaderboard: storeDataStep3?.show_leaderboard || true,
             notify_student: storeDataStep3?.notify_student || {
-                when_assessment_created: false,
+                when_assessment_created: true,
                 before_assessment_goes_live: {
-                    checked: false,
+                    checked: true,
                     value: "",
                 },
-                when_assessment_live: false,
-                when_assessment_report_generated: false,
+                when_assessment_live: true,
+                when_assessment_report_generated: true,
             },
             notify_parent: storeDataStep3?.notify_parent || {
-                when_assessment_created: false,
+                when_assessment_created: true,
                 before_assessment_goes_live: {
-                    checked: false,
+                    checked: true,
                     value: "",
                 },
-                when_assessment_live: false,
-                when_student_appears: false,
-                when_student_finishes_test: false,
-                when_assessment_report_generated: false,
+                when_assessment_live: true,
+                when_student_appears: true,
+                when_student_finishes_test: true,
+                when_assessment_report_generated: true,
             },
         },
         mode: "onChange",
