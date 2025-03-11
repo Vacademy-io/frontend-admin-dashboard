@@ -784,6 +784,22 @@ export function getBatchNameById(data: BatchDetailsInterface[] | undefined, id: 
     return "";
 }
 
+export function getBatchNamesByIds(
+    data: BatchDetailsInterface[] | undefined,
+    ids: string[],
+): string[] {
+    if (!data || !ids) return [];
+
+    return ids
+        .map((id) => {
+            const item = data.find((obj) => obj.id === id);
+            return item && item.level && item.package_dto
+                ? `${item.level.level_name} ${item.package_dto.package_name}`
+                : null;
+        })
+        .filter((name): name is string => name !== null);
+}
+
 export function calculatePercentiles(students: StudentLeaderboard[]) {
     const totalStudents = students.length;
 

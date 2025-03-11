@@ -104,62 +104,102 @@ const AssessmentParticipantsTab = () => {
                     </div>
                 </div>
                 <Separator />
-                <div className="flex w-1/2 items-center justify-between">
-                    <p className="text-sm font-semibold">Show Leaderboard to Participants</p>
-                    <CheckCircle size={22} weight="fill" className="text-success-600" />
-                </div>
+                {assessmentDetails[2]?.saved_data?.notifications.participant_show_leaderboard && (
+                    <div className="flex w-1/2 items-center justify-between">
+                        <p className="text-sm font-semibold">Show Leaderboard to Participants</p>
+                        <CheckCircle size={22} weight="fill" className="text-success-600" />
+                    </div>
+                )}
                 <div className="flex w-full items-start gap-16">
+                    {/* Participants Data */}
                     <div className="flex w-1/2 flex-col gap-6">
                         <p className="font-semibold">Notify Participants via Email:</p>
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm">When Assessment is created:</p>
-                            <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <p className="flex items-center gap-6">
-                                <p className="text-sm">Before Assessment goes live:</p>
-                                <p className="text-sm">10 Min</p>
-                            </p>
-                            <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm">When Assessment goes live:</p>
-                            <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm">When assessment reports are generated:</p>
-                            <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
+                        {assessmentDetails[2]?.saved_data?.notifications
+                            .participant_when_assessment_created && (
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm">When Assessment is created:</p>
+                                <CheckCircle size={22} weight="fill" className="text-success-600" />
+                            </div>
+                        )}
+                        {assessmentDetails[2]?.saved_data?.notifications
+                            .participant_before_assessment_goes_live && (
+                            <div className="flex items-center justify-between">
+                                <p className="flex items-center gap-6">
+                                    <p className="text-sm">Before Assessment goes live:</p>
+                                    <p className="text-sm">
+                                        {
+                                            assessmentDetails[2]?.saved_data?.notifications
+                                                .participant_before_assessment_goes_live
+                                        }{" "}
+                                        Min
+                                    </p>
+                                </p>
+                                <CheckCircle size={22} weight="fill" className="text-success-600" />
+                            </div>
+                        )}
+                        {assessmentDetails[2]?.saved_data?.notifications
+                            .participant_when_assessment_live && (
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm">When Assessment goes live:</p>
+                                <CheckCircle size={22} weight="fill" className="text-success-600" />
+                            </div>
+                        )}
+                        {assessmentDetails[2]?.saved_data?.notifications
+                            .participant_when_assessment_report_generated && (
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm">When assessment reports are generated:</p>
+                                <CheckCircle size={22} weight="fill" className="text-success-600" />
+                            </div>
+                        )}
                     </div>
+                    {/* Parents Data */}
                     <div className="flex w-1/2 flex-col gap-6">
                         <p className="font-semibold">Notify Parents via Email:</p>
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm">When Assessment is created:</p>
-                            <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <p className="flex items-center gap-6">
-                                <p className="text-sm">Before Assessment goes live:</p>
-                                <p className="text-sm">10 Min</p>
-                            </p>
-                            <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm">When Assessment goes live:</p>
-                            <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
-                        <div className="flex items-center justify-between">
+                        {assessmentDetails[2]?.saved_data?.notifications
+                            .parent_when_assessment_created && (
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm">When Assessment is created:</p>
+                                <CheckCircle size={22} weight="fill" className="text-success-600" />
+                            </div>
+                        )}
+                        {assessmentDetails[2]?.saved_data?.notifications
+                            .parent_before_assessment_goes_live && (
+                            <div className="flex items-center justify-between">
+                                <p className="flex items-center gap-6">
+                                    <p className="text-sm">Before Assessment goes live:</p>
+                                    <p className="text-sm">
+                                        {
+                                            assessmentDetails[2]?.saved_data?.notifications
+                                                .parent_before_assessment_goes_live
+                                        }{" "}
+                                        Min
+                                    </p>
+                                </p>
+                                <CheckCircle size={22} weight="fill" className="text-success-600" />
+                            </div>
+                        )}
+                        {assessmentDetails[2]?.saved_data?.notifications
+                            .parent_when_assessment_live && (
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm">When Assessment goes live:</p>
+                                <CheckCircle size={22} weight="fill" className="text-success-600" />
+                            </div>
+                        )}
+                        {/* <div className="flex items-center justify-between">
                             <p className="text-sm">When students appears for the Assessment:</p>
                             <CheckCircle size={22} weight="fill" className="text-success-600" />
                         </div>
                         <div className="flex items-center justify-between">
                             <p className="text-sm">When students finishes the Assessment:</p>
                             <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm">When assessment reports are generated:</p>
-                            <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div>
+                        </div> */}
+                        {assessmentDetails[2]?.saved_data?.notifications
+                            .parent_when_assessment_report_generated && (
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm">When assessment reports are generated:</p>
+                                <CheckCircle size={22} weight="fill" className="text-success-600" />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

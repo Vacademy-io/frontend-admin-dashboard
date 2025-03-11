@@ -17,6 +17,7 @@ export interface TestContent {
     bound_end_time: string;
     user_registrations: number;
     batch_registrations: number;
+    batch_ids: string[];
     admin_accesses: string | null;
     subject_id: string | null;
     created_at: string;
