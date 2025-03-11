@@ -20,6 +20,7 @@ import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 import { getBatchNamesByIds } from "../assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -30,6 +31,7 @@ const ScheduleTestDetails = ({
     selectedTab: string;
     handleRefetchData: () => void;
 }) => {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const navigate = useNavigate();
     const { data: instituteDetails, isLoading } = useSuspenseQuery(useInstituteQuery());
     const batchIdsList = getBatchNamesByIds(
@@ -37,14 +39,16 @@ const ScheduleTestDetails = ({
         scheduleTestContent.batch_ids,
     );
     const handleNavigateAssessment = (assessmentId: string) => {
-        navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
-            params: {
-                assessmentId: assessmentId,
-                examType: scheduleTestContent.play_mode,
-                assesssmentType: scheduleTestContent.assessment_visibility,
-            },
-        });
+        if (!isDialogOpen) {
+            navigate({
+                to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+                params: {
+                    assessmentId: assessmentId,
+                    examType: scheduleTestContent.play_mode,
+                    assesssmentType: scheduleTestContent.assessment_visibility,
+                },
+            });
+        }
     };
 
     if (isLoading) return <DashboardLoader />;
@@ -111,8 +115,8 @@ const ScheduleTestDetails = ({
                         </Badge>
                     )}
                     {batchIdsList.length - 1 > 0 && (
-                        <Dialog>
-                            <DialogTrigger>
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger onClick={(e) => e.stopPropagation()}>
                                 <span className="text-sm text-primary-500">
                                     +{batchIdsList.length - 1} more
                                 </span>
