@@ -4,9 +4,9 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-    DropdownMenuSub,
-    DropdownMenuSubTrigger,
-    DropdownMenuSubContent,
+    // DropdownMenuSub,
+    // DropdownMenuSubTrigger,
+    // DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "@tanstack/react-router";
 import { DotsThree, Info } from "phosphor-react";
@@ -43,36 +43,37 @@ export function ScheduleTestDetailsDropdownLive({
         });
     };
 
-    const handleSendReminderClick = (assessmentId: string) => {
-        console.log(assessmentId);
-        setIsRemiderAlertDialogOpen(true);
-    };
+    // const handleSendReminderClick = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    //     setIsRemiderAlertDialogOpen(true);
+    // };
+
     const handleDeleteAssessmentClick = (assessmentId: string) => {
         console.log(assessmentId);
         setIsDeleteAssessmentDialog(true);
     };
 
-    const handleRescheduleAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleRescheduleAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
-    const handleDuplicateAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleDuplicateAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
-    const handlePauseLiveStatus = (assessmentId: string, value: number) => {
-        console.log(assessmentId, value);
-    };
+    // const handlePauseLiveStatus = (assessmentId: string, value: number) => {
+    //     console.log(assessmentId, value);
+    // };
 
-    const handleCustomPauseLiveAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-        setIsPauseLiveStatausDialog(true);
-    };
+    // const handleCustomPauseLiveAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    //     setIsPauseLiveStatausDialog(true);
+    // };
 
-    const handleResumeLiveAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-        setIsResumeLiveStatusDialog(true);
-    };
+    // const handleResumeLiveAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    //     setIsResumeLiveStatusDialog(true);
+    // };
     return (
         <>
             <DropdownMenu>
@@ -93,13 +94,13 @@ export function ScheduleTestDetailsDropdownLive({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => handleSendReminderClick(scheduleTestContent.assessment_id)}
                     >
                         Send Reminder
-                    </DropdownMenuItem>
-                    <DropdownMenuSub>
+                    </DropdownMenuItem> */}
+                    {/* <DropdownMenuSub>
                         <DropdownMenuSubTrigger className="cursor-pointer">
                             Pause Live Status
                         </DropdownMenuSubTrigger>
@@ -139,29 +140,29 @@ export function ScheduleTestDetailsDropdownLive({
                                 Custom
                             </DropdownMenuItem>
                         </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                    <DropdownMenuItem
+                    </DropdownMenuSub> */}
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
                             handleResumeLiveAssessment(scheduleTestContent.assessment_id)
                         }
                     >
                         Resume Live Status
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
+                    </DropdownMenuItem> */}
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
                             handleRescheduleAssessment(scheduleTestContent.assessment_id)
                         }
                     >
                         Reschedule Assessment
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
+                    </DropdownMenuItem> */}
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => handleDuplicateAssessment(scheduleTestContent.assessment_id)}
                     >
                         Duplicate Assessment
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
@@ -212,13 +213,13 @@ export function ScheduleTestDetailsDropdownUpcoming({
         });
     };
 
-    const handleRescheduleAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleRescheduleAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
-    const handleDuplicateAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleDuplicateAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
     const handleDeleteAssessmentClick = (assessmentId: string) => {
         console.log(assessmentId);
@@ -245,7 +246,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
                             handleRescheduleAssessment(scheduleTestContent.assessment_id)
@@ -258,7 +259,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
                         onClick={() => handleDuplicateAssessment(scheduleTestContent.assessment_id)}
                     >
                         Duplicate Assessment
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
@@ -301,23 +302,23 @@ export function ScheduleTestDetailsDropdownPrevious({
         });
     };
 
-    const handleRescheduleAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleRescheduleAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
-    const handleDuplicateAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-    };
+    // const handleDuplicateAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    // };
 
     const handleDeleteAssessmentClick = (assessmentId: string) => {
         console.log(assessmentId);
         setIsDeleteAssessmentDialog(true);
     };
 
-    const handleReopenAssessment = (assessmentId: string) => {
-        console.log(assessmentId);
-        setIsReopenAssessment(true);
-    };
+    // const handleReopenAssessment = (assessmentId: string) => {
+    //     console.log(assessmentId);
+    //     setIsReopenAssessment(true);
+    // };
 
     return (
         <>
@@ -339,7 +340,7 @@ export function ScheduleTestDetailsDropdownPrevious({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
                             handleRescheduleAssessment(scheduleTestContent.assessment_id)
@@ -358,7 +359,7 @@ export function ScheduleTestDetailsDropdownPrevious({
                         onClick={() => handleReopenAssessment(scheduleTestContent.assessment_id)}
                     >
                         Reopen Assessment
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() =>
