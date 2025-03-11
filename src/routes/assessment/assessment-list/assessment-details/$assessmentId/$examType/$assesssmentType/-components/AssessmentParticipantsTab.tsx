@@ -14,6 +14,7 @@ import {
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
 import { getBatchDetails } from "../-utils/helper";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
+import AssessmentParticipantsList from "./AssessmentParticipantsList";
 
 const AssessmentParticipantsTab = () => {
     const { assessmentId, examType } = Route.useParams();
@@ -32,6 +33,7 @@ const AssessmentParticipantsTab = () => {
         transformedBatches,
         assessmentDetails[2]?.saved_data.pre_batch_registrations,
     );
+
     if (isLoading) return <DashboardLoader />;
     return (
         <>
@@ -45,9 +47,7 @@ const AssessmentParticipantsTab = () => {
                                 className="flex items-center justify-between rounded-md border border-primary-200 bg-primary-50 px-4 py-2"
                             >
                                 <h1 className="text-sm">{batch.name}</h1>
-                                <div className="flex items-center">
-                                    <span className="text-primary-500">View List</span>
-                                </div>
+                                <AssessmentParticipantsList batchId={batch.id} />
                             </div>
                         ))}
                     </div>
