@@ -141,7 +141,19 @@ export const ScheduleTestMainComponent = () => {
             pageNo: pageNo,
             pageSize: 10,
             instituteId: INSTITUTE_ID,
-            data: selectedQuestionPaperFilters,
+            data: {
+                ...selectedQuestionPaperFilters,
+                get_live_assessments: selectedTab === "liveTests" ? true : false,
+                get_passed_assessments: selectedTab === "previousTests" ? true : false,
+                get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
+                name: "",
+            },
         });
     };
 
@@ -153,6 +165,15 @@ export const ScheduleTestMainComponent = () => {
             instituteId: INSTITUTE_ID,
             data: {
                 ...selectedQuestionPaperFilters,
+                get_live_assessments: selectedTab === "liveTests" ? true : false,
+                get_passed_assessments: selectedTab === "previousTests" ? true : false,
+                get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
                 name: [{ id: searchValue, name: searchValue }],
             },
         });
@@ -186,7 +207,12 @@ export const ScheduleTestMainComponent = () => {
                 get_passed_assessments: selectedTab === "previousTests" ? true : false,
                 get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
                 institute_ids: [initData?.id || ""],
-                assessment_statuses: [],
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
                 assessment_modes: [],
                 access_statuses: [],
             },
@@ -247,6 +273,12 @@ export const ScheduleTestMainComponent = () => {
                 get_live_assessments: selectedTab === "liveTests" ? true : false,
                 get_passed_assessments: selectedTab === "previousTests" ? true : false,
                 get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
             },
         });
     };
@@ -261,6 +293,12 @@ export const ScheduleTestMainComponent = () => {
                 get_live_assessments: selectedTab === "liveTests" ? true : false,
                 get_passed_assessments: selectedTab === "previousTests" ? true : false,
                 get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
             },
         });
     };
@@ -272,6 +310,12 @@ export const ScheduleTestMainComponent = () => {
             get_live_assessments: selectedTab === "liveTests" ? true : false,
             get_passed_assessments: selectedTab === "previousTests" ? true : false,
             get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+            assessment_statuses: [
+                {
+                    id: "0",
+                    name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                },
+            ],
         })
             .then((data) => {
                 setScheduleTestTabsData((prevTabs) =>
@@ -286,12 +330,19 @@ export const ScheduleTestMainComponent = () => {
                 setIsLoading(false);
             });
     };
+
     useEffect(() => {
         setIsLoading(true);
 
         const timeoutId = setTimeout(() => {
             const fetchLiveTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: "PUBLISHED",
+                    },
+                ],
                 get_live_assessments: true,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
@@ -299,6 +350,12 @@ export const ScheduleTestMainComponent = () => {
 
             const fetchUpcomingTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: "PUBLISHED",
+                    },
+                ],
                 get_live_assessments: false,
                 get_passed_assessments: false,
                 get_upcoming_assessments: true,
@@ -306,6 +363,12 @@ export const ScheduleTestMainComponent = () => {
 
             const fetchPreviousTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: "PUBLISHED",
+                    },
+                ],
                 get_live_assessments: false,
                 get_passed_assessments: true,
                 get_upcoming_assessments: false,
@@ -313,6 +376,12 @@ export const ScheduleTestMainComponent = () => {
 
             const fetchDraftTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: "DRAFT",
+                    },
+                ],
                 get_live_assessments: false,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
