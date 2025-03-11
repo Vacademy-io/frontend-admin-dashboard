@@ -19,6 +19,7 @@ import { ScheduleTestMainDropdownComponent } from "./ScheduleTestDetailsDropdown
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 import { getBatchNamesByIds } from "../assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useNavigate } from "@tanstack/react-router";
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -29,14 +30,29 @@ const ScheduleTestDetails = ({
     selectedTab: string;
     handleRefetchData: () => void;
 }) => {
+    const navigate = useNavigate();
     const { data: instituteDetails, isLoading } = useSuspenseQuery(useInstituteQuery());
     const batchIdsList = getBatchNamesByIds(
         instituteDetails?.batches_for_sessions,
         scheduleTestContent.batch_ids,
     );
+    const handleNavigateAssessment = (assessmentId: string) => {
+        navigate({
+            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            params: {
+                assessmentId: assessmentId,
+                examType: scheduleTestContent.play_mode,
+                assesssmentType: scheduleTestContent.assessment_visibility,
+            },
+        });
+    };
+
     if (isLoading) return <DashboardLoader />;
     return (
-        <div className="my-6 flex flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
+        <div
+            className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4"
+            onClick={() => handleNavigateAssessment(scheduleTestContent.assessment_id)}
+        >
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <h1 className="font-semibold">{scheduleTestContent.name}</h1>
