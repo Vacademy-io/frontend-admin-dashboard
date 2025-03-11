@@ -31,6 +31,7 @@ export const MyDropdown = ({
     placeholder = "Select an option",
     error,
     disable,
+    required = false,
 }: myDropDownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -174,12 +175,16 @@ export const MyDropdown = ({
                         align="start"
                     >
                         {/* Add "Clear All Fields" option */}
-                        <DropdownMenuItem
-                            className="cursor-pointer truncate px-3 py-2 text-center text-subtitle text-neutral-400 hover:bg-primary-50 hover:outline-none"
-                            onClick={handleClearAll}
-                        >
-                            Clear All Fields
-                        </DropdownMenuItem>
+                        {dropdownList.length == 1 && required == true ? (
+                            <></>
+                        ) : (
+                            <DropdownMenuItem
+                                className="cursor-pointer truncate px-3 py-2 text-center text-subtitle text-neutral-400 hover:bg-primary-50 hover:outline-none"
+                                onClick={handleClearAll}
+                            >
+                                Clear All Fields
+                            </DropdownMenuItem>
+                        )}
                         {dropdownList.map((item) => renderMenuItem(item))}
                     </DropdownMenuContent>
                 </DropdownMenuPortal>

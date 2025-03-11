@@ -201,6 +201,23 @@ export const StepTwoForm = () => {
         lastChangedField.current = null;
     }, [levelValue, getCourseFromPackage, getSessionFromPackage]);
 
+    // Add this effect to auto-select single options
+    useEffect(() => {
+        // If there's exactly one session and nothing is selected yet
+        if (sessionList.length === 1 && !sessionValue.id) {
+            handleSessionChange(sessionList[0]);
+        }
+
+        // Similar logic for course and level if needed
+        if (courseList.length === 1 && !courseValue.id) {
+            handleCourseChange(courseList[0]);
+        }
+
+        if (levelList.length === 1 && !levelValue.id) {
+            handleLevelChange(levelList[0]);
+        }
+    }, [sessionList, courseList, levelList]);
+
     return (
         <div>
             <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
@@ -252,6 +269,11 @@ export const StepTwoForm = () => {
                                                     dropdownList={courseList}
                                                     handleChange={handleCourseChange}
                                                     placeholder="Select Course"
+                                                    error={
+                                                        form.formState.errors.course?.id?.message ||
+                                                        form.formState.errors.course?.name?.message
+                                                    }
+                                                    required={true}
                                                 />
                                             </div>
                                         </FormControl>
@@ -277,6 +299,12 @@ export const StepTwoForm = () => {
                                                     dropdownList={sessionList}
                                                     handleChange={handleSessionChange}
                                                     placeholder="Select Session"
+                                                    error={
+                                                        form.formState.errors.session?.id
+                                                            ?.message ||
+                                                        form.formState.errors.session?.name?.message
+                                                    }
+                                                    required={true}
                                                 />
                                             </div>
                                         </FormControl>
@@ -302,6 +330,11 @@ export const StepTwoForm = () => {
                                                     dropdownList={levelList}
                                                     handleChange={handleLevelChange}
                                                     placeholder="Select Level"
+                                                    error={
+                                                        form.formState.errors.level?.id?.message ||
+                                                        form.formState.errors.level?.name?.message
+                                                    }
+                                                    required={true}
                                                 />
                                             </div>
                                         </FormControl>
@@ -385,6 +418,8 @@ export const StepTwoForm = () => {
                                                     dropdownList={genderList}
                                                     handleChange={onChange}
                                                     placeholder="Select Gender"
+                                                    error={form.formState.errors.gender?.message}
+                                                    required={true}
                                                 />
                                             </div>
                                         </FormControl>

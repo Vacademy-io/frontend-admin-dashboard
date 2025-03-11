@@ -11,16 +11,16 @@ export const stepTwoSchema = z.object({
     gender: z.string().min(1, "Gender is required"),
     enrollmentNumber: z.string().min(1, "Enrollment number is required"),
     course: z.object({
-        id: z.string(),
-        name: z.string(),
+        id: z.string().min(1, "This field is required"),
+        name: z.string().min(1, "This field is required"),
     }),
     session: z.object({
-        id: z.string(),
-        name: z.string(),
+        id: z.string().min(1, "This field is required"),
+        name: z.string().min(1, "This field is required"),
     }),
     level: z.object({
-        id: z.string(),
-        name: z.string(),
+        id: z.string().min(1, "This field is required"),
+        name: z.string().min(1, "This field is required"),
     }),
     accessDays: z.string().min(1, "Access days are required"),
     collegeName: z.string().optional(),
@@ -28,7 +28,7 @@ export const stepTwoSchema = z.object({
 
 // Step Three Schema
 export const stepThreeSchema = z.object({
-    mobileNumber: z.string(),
+    mobileNumber: z.string().min(1, "This field is required"),
     email: z.string().email("Invalid email format"),
     addressLine: z.string().optional(),
     city: z.string().optional(),
