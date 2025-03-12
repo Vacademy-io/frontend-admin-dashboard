@@ -16,6 +16,13 @@ import { MyInput } from "@/components/design-system/input";
 import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
 import { RoleType } from "@/constants/dummy-data";
 import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
+import {
+    handleDeleteDisableDashboardUsers,
+    handleResendUserInvitation,
+    handleUpdateUserInvitation,
+} from "../-services/dashboard-services";
+import { useMutation } from "@tanstack/react-query";
+import { getInstituteId } from "@/constants/helper";
 
 export const inviteUsersSchema = z.object({
     name: z.string().min(1, "Full name is required"),
@@ -27,9 +34,11 @@ type FormValues = z.infer<typeof inviteUsersSchema>;
 interface EditComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
+const EditComponent: React.FC<EditComponentProps> = ({ student, onClose, refetchData }) => {
+    const instituteId = getInstituteId();
     const form = useForm<FormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
@@ -47,16 +56,38 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
 
     form.watch("roleType");
 
+    const handleUpdateUserMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            data,
+            student,
+        }: {
+            instituteId: string | undefined;
+            data: z.infer<typeof inviteUsersSchema>;
+            student: UserRolesDataEntry;
+        }) => handleUpdateUserInvitation(instituteId, data, student),
+        onSuccess: () => {
+            onClose();
+            refetchData();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
     function onSubmit(values: FormValues) {
-        console.log(values);
-        onClose();
+        handleUpdateUserMutation.mutate({
+            instituteId,
+            data: values,
+            student,
+        });
     }
 
     useEffect(() => {
         form.reset({
-            name: student.name || "",
+            name: student.full_name || "",
             email: student.email || "",
-            roleType: student.roleType || [],
+            roleType: student.roles.map((role) => role.role_name) || [],
         });
     }, []);
 
@@ -144,9 +175,30 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
 interface ResendInviteComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, onClose }) => {
+const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({
+    student,
+    onClose,
+    refetchData,
+}) => {
+    const handleResendUserMutation = useMutation({
+        mutationFn: ({ userId }: { userId: string }) => handleResendUserInvitation(userId),
+        onSuccess: () => {
+            onClose();
+            refetchData();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handlResendUser = () => {
+        handleResendUserMutation.mutate({
+            userId: student.id,
+        });
+    };
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Resend Invite</h1>
@@ -157,7 +209,7 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, 
                 </div>
                 <h1>
                     Are you sure you want to resend invite to{" "}
-                    <span className="text-primary-500">{student.name}</span>?
+                    <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
                     <MyButton
@@ -165,7 +217,7 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, 
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={onClose} // Close the dialog when clicked
+                        onClick={handlResendUser} // Close the dialog when clicked
                     >
                         Yes
                     </MyButton>
@@ -178,9 +230,41 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, 
 interface CancelInviteComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, onClose }) => {
+const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({
+    student,
+    onClose,
+    refetchData,
+}) => {
+    const instituteId = getInstituteId();
+    const handleDisableUserMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            status,
+            userId,
+        }: {
+            instituteId: string | undefined;
+            status: string;
+            userId: string;
+        }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
+        onSuccess: () => {
+            onClose();
+            refetchData();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handlCancelInviteUser = () => {
+        handleDisableUserMutation.mutate({
+            instituteId,
+            status: "CANCEL",
+            userId: student.id,
+        });
+    };
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Cancel Invite</h1>
@@ -191,7 +275,7 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, 
                 </div>
                 <h1>
                     Are you sure you want to cancel invite for{" "}
-                    <span className="text-primary-500">{student.name}</span>?
+                    <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
                     <MyButton
@@ -199,7 +283,7 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, 
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={onClose} // Close the dialog when clicked
+                        onClick={handlCancelInviteUser} // Close the dialog when clicked
                     >
                         Yes
                     </MyButton>
@@ -209,7 +293,13 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, 
     );
 };
 
-const InviteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
+const InviteUsersOptions = ({
+    user,
+    refetchData,
+}: {
+    user: UserRolesDataEntry;
+    refetchData: () => void;
+}) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -239,13 +329,25 @@ const InviteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
             </DropdownMenu>
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 {selectedOption === "Edit" && (
-                    <EditComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <EditComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
                 {selectedOption === "Resend Invite" && (
-                    <ResendInviteComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <ResendInviteComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
                 {selectedOption === "Cancel Invite" && (
-                    <CancelInviteComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <CancelInviteComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
             </Dialog>
         </>
