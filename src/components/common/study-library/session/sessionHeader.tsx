@@ -2,11 +2,13 @@ import { useAddSession } from "@/services/study-library/session-management/addSe
 import { AddSessionDialog } from "./session-operations/add-session/add-session-dialog";
 import { AddSessionDataType } from "./session-operations/add-session/add-session-form";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "@phosphor-icons/react";
 
 export default function SessionHeader() {
+    const [disableAddButton, setDisableAddButton] = useState(true);
+
     const addSessionMutation = useAddSession();
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const handleOpenAddSessionDialog = () => {
@@ -43,6 +45,28 @@ export default function SessionHeader() {
         );
     };
 
+    const formSubmitRef = useRef(() => {});
+
+    const submitButton = (
+        <div className="flex items-center justify-end">
+            <MyButton
+                type="submit"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                className="w-[140px]"
+                disable={disableAddButton}
+                onClick={() => formSubmitRef.current()}
+            >
+                Add
+            </MyButton>
+        </div>
+    );
+
+    const submitFn = (fn: () => void) => {
+        formSubmitRef.current = fn;
+    };
+
     return (
         <div className="flex items-center justify-between text-neutral-600">
             <div className="flex flex-col gap-2">
@@ -63,6 +87,9 @@ export default function SessionHeader() {
                             <Plus /> Add New Session
                         </MyButton>
                     }
+                    submitButton={submitButton}
+                    setDisableAddButton={setDisableAddButton}
+                    submitFn={submitFn}
                 />
             </div>
         </div>

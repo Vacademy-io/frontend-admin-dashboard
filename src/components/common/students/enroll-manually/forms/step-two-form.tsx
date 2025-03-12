@@ -3,7 +3,6 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "../dropdownForPackageItems";
 import { useGetGenders } from "@/hooks/student-list-section/useFilters";
@@ -220,7 +219,7 @@ export const StepTwoForm = () => {
 
     return (
         <div>
-            <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
                         <FormItemWrapper<StepTwoData> control={form.control} name="fullName">
@@ -451,7 +450,7 @@ export const StepTwoForm = () => {
                         </div>
                     </form>
                 </Form>
-            </DialogDescription>
+            </div>
             <FormSubmitButtons stepNumber={2} onNext={form.handleSubmit(onSubmit)} />
         </div>
     );

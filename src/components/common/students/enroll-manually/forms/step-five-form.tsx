@@ -4,7 +4,6 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -125,7 +124,7 @@ export const StepFiveForm = () => {
 
     return (
         <div>
-            <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-20">
                         <FormItemWrapper<StepFiveData> control={form.control} name="username">
@@ -201,7 +200,7 @@ export const StepFiveForm = () => {
                         )}
                     </form>
                 </Form>
-            </DialogDescription>
+            </div>
             <FormSubmitButtons
                 stepNumber={5}
                 finishButtonDisable={!showCredentials}

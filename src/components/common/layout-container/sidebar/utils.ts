@@ -17,10 +17,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: "Students list",
                 subItemLink: "/students/students-list",
             },
-            // {
-            //     subItem: "Manage Batches and Sessions",
-            //     subItemLink: "/students/manage-batches",
-            // },
+            {
+                subItem: "Manage Batches",
+                subItemLink: "/students/manage-batches",
+            },
             // {
             //     subItem: "Enroll Requests",
             //     subItemLink: "/students/enroll-requests",
@@ -31,7 +31,6 @@ export const SidebarItemsData: SidebarItemsType[] = [
         icon: BookOpen,
         title: "Learning Center",
         id: "study-library",
-        to: "/study-library",
         subItems: [
             {
                 subItem: "Courses",

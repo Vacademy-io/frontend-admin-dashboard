@@ -4,7 +4,6 @@ import { Form } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepOneData, stepOneSchema } from "@/types/students/schema-enroll-students-manually";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -73,7 +72,7 @@ export const StepOneForm = () => {
 
     return (
         <div>
-            <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
@@ -124,7 +123,7 @@ export const StepOneForm = () => {
                         </FormItemWrapper>
                     </form>
                 </Form>
-            </DialogDescription>
+            </div>
             <div className="">
                 <FormSubmitButtons
                     stepNumber={1}
