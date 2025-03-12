@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Plus } from "phosphor-react";
 import { AddCourseData, AddCourseForm } from "./add-course/add-course-form";
 
@@ -19,6 +19,7 @@ interface AddCourseButtonProps {
 export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [disableAddButton, setDisableAddButton] = useState(false);
+    const formSubmitRef = useRef<() => void>(() => {});
 
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
@@ -27,7 +28,8 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
     const submitButton = (
         <div className="items-center justify-center bg-white">
             <MyButton
-                type="submit"
+                onClick={() => formSubmitRef.current()}
+                type="button"
                 buttonType="primary"
                 layoutVariant="default"
                 scale="large"
@@ -52,6 +54,9 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
                 onSubmitCourse={onSubmit}
                 setOpenDialog={setOpenDialog}
                 setDisableAddButton={setDisableAddButton}
+                submitForm={(submitFn) => {
+                    formSubmitRef.current = submitFn;
+                }}
             />
         </MyDialog>
     );

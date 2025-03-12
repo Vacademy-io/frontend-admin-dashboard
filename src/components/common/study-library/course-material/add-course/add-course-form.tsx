@@ -93,6 +93,7 @@ interface AddCourseFormProps {
     }) => void;
     setOpenDialog: Dispatch<SetStateAction<boolean>>;
     setDisableAddButton: Dispatch<SetStateAction<boolean>>;
+    submitForm?: (submitFn: () => void) => void;
 }
 
 export const AddCourseForm = ({
@@ -100,6 +101,7 @@ export const AddCourseForm = ({
     onSubmitCourse,
     setOpenDialog,
     setDisableAddButton,
+    submitForm,
 }: AddCourseFormProps) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -278,9 +280,25 @@ export const AddCourseForm = ({
         }
     }, [form.watch("sessions"), form.watch("course_name")]);
 
+    // Add this line to create a form ref
+    const formRef = useRef<HTMLFormElement>(null);
+
+    // Add this method to expose form submission
+
+    useEffect(() => {
+        if (submitForm) {
+            submitForm(() => {
+                if (formRef.current) {
+                    formRef.current.requestSubmit();
+                }
+            });
+        }
+    }, [submitForm]);
+
     return (
         <Form {...form}>
             <form
+                ref={formRef}
                 onSubmit={(e) => {
                     form.handleSubmit(onSubmit)(e);
                 }}

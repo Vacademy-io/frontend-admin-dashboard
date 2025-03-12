@@ -4,7 +4,7 @@ import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/f
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Plus, DotsThree } from "@phosphor-icons/react";
@@ -47,10 +47,12 @@ export const AddSessionForm = ({
     initialValues,
     onSubmit,
     setDisableAddButton,
+    submitForm,
 }: {
     initialValues?: SessionData;
     onSubmit: (sessionData: AddSessionDataType) => void;
     setDisableAddButton: Dispatch<SetStateAction<boolean>>;
+    submitForm: (submitFn: () => void) => void;
 }) => {
     const { instituteDetails, getPackageWiseLevels } = useInstituteDetailsStore();
 
@@ -246,9 +248,24 @@ export const AddSessionForm = ({
         );
     };
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    const requestFormSubmit = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    useEffect(() => {
+        if (submitForm) {
+            submitForm(requestFormSubmit);
+        }
+    }, [submitForm]);
+
     return (
         <FormProvider {...form}>
             <form
+                ref={formRef}
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="flex max-h-[80vh] flex-col gap-8 p-2 text-neutral-600"
             >

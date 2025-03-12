@@ -3,7 +3,7 @@ import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useRouter } from "@tanstack/react-router";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
@@ -50,12 +50,14 @@ interface AddLevelFormProps {
     }) => void;
     initialValues?: AddLevelData;
     setOpenDialog: Dispatch<SetStateAction<boolean>>;
+    submitForm: (submitFn: () => void) => void;
 }
 
 export const AddLevelForm = ({
     onSubmitSuccess,
     initialValues,
     setOpenDialog,
+    submitForm,
 }: AddLevelFormProps) => {
     const [newSessionName, setNewSessionName] = useState("");
     const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
@@ -108,10 +110,26 @@ export const AddLevelForm = ({
         setOpenDialog(false);
     };
 
+    const requestSubmitFn = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    const formRef = useRef<HTMLFormElement>(null);
+    useEffect(() => {
+        if (submitForm) {
+            submitForm(requestSubmitFn);
+        }
+    }, [submitForm]);
+
     return (
         <Form {...form}>
             <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                ref={formRef}
+                onSubmit={(e) => {
+                    form.handleSubmit(onSubmit)(e);
+                }}
                 className="flex max-h-[80vh] flex-col gap-6 overflow-y-auto p-2 text-neutral-600"
             >
                 <FormField

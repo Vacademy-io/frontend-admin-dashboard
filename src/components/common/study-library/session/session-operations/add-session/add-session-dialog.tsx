@@ -11,6 +11,7 @@ interface AddSessionDialogProps {
     initialValues?: SessionData;
     submitButton: JSX.Element;
     setDisableAddButton: Dispatch<SetStateAction<boolean>>;
+    submitFn: (fn: () => void) => void;
 }
 
 export const AddSessionDialog = ({
@@ -21,6 +22,7 @@ export const AddSessionDialog = ({
     initialValues,
     submitButton,
     setDisableAddButton,
+    submitFn,
 }: AddSessionDialogProps) => {
     return (
         <MyDialog
@@ -35,6 +37,7 @@ export const AddSessionDialog = ({
                 onSubmit={handleSubmit}
                 initialValues={initialValues}
                 setDisableAddButton={setDisableAddButton}
+                submitForm={submitFn}
             />
         </MyDialog>
     );

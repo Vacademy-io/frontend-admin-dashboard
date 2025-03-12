@@ -3,7 +3,7 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { CourseType } from "@/stores/study-library/use-study-library-store";
 import { DotsThree } from "phosphor-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AddCourseData, AddCourseForm } from "../add-course/add-course-form";
 
 interface CourseMenuOptionsProps {
@@ -16,6 +16,7 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const DropdownList = ["Edit Course", "Delete Course"];
     const [disableAddButton, setDisableAddButton] = useState(false);
+    const formSubmitRef = useRef<() => void>(() => {});
 
     const handleMenuOptionsChange = (value: string) => {
         if (value === "Delete Course") {
@@ -32,7 +33,8 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
     const submitButton = (
         <div className="items-center justify-center bg-white">
             <MyButton
-                type="submit"
+                onClick={() => formSubmitRef.current()}
+                type="button"
                 buttonType="primary"
                 layoutVariant="default"
                 scale="large"
@@ -74,6 +76,9 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                     onSubmitCourse={onEdit}
                     setOpenDialog={setOpenEditDialog}
                     setDisableAddButton={setDisableAddButton}
+                    submitForm={(submitFn) => {
+                        formSubmitRef.current = submitFn;
+                    }}
                 />
             </MyDialog>
         </>

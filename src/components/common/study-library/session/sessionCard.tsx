@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { DeleteSessionDialog } from "./deleteSessionDialog";
 import { MyButton } from "@/components/design-system/button";
 import { AddSessionDialog } from "./session-operations/add-session/add-session-dialog";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AddSessionDataType } from "./session-operations/add-session/add-session-form";
 import { useEditSession } from "@/services/study-library/session-management/editSession";
 import { toast } from "sonner";
@@ -72,6 +72,8 @@ export function SessionCard({ data }: SessionCardProps) {
         );
     };
 
+    const formSubmitRef = useRef(() => {});
+
     const submitButton = (
         <div className="flex items-center justify-end">
             <MyButton
@@ -81,11 +83,16 @@ export function SessionCard({ data }: SessionCardProps) {
                 scale="large"
                 className="w-[140px]"
                 disable={disableAddButton}
+                onClick={() => formSubmitRef.current()}
             >
                 Save Changes
             </MyButton>
         </div>
     );
+
+    const submitFn = (fn: () => void) => {
+        formSubmitRef.current = fn;
+    };
 
     return (
         <div className="flex flex-col gap-4 rounded-2xl border p-6">
@@ -113,6 +120,7 @@ export function SessionCard({ data }: SessionCardProps) {
                             initialValues={data}
                             submitButton={submitButton}
                             setDisableAddButton={setDisableAddButton}
+                            submitFn={submitFn}
                         />
                         <DropdownMenuItem
                             className="cursor-pointer hover:bg-white"
