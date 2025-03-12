@@ -429,10 +429,15 @@ export const AddSessionForm = ({
                                                 onSubmit={handleAddCourse}
                                                 courseButton={
                                                     <MyButton
+                                                        type="button" // Set explicit type to button to prevent form submission
                                                         buttonType="text"
                                                         layoutVariant="default"
                                                         scale="small"
                                                         className="w-fit text-primary-500 hover:bg-white active:bg-white"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                        }}
                                                     >
                                                         <Plus /> Add Course
                                                     </MyButton>

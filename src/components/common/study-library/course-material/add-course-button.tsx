@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Plus } from "phosphor-react";
 import { AddCourseData, AddCourseForm } from "./add-course/add-course-form";
 
@@ -21,9 +21,25 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
     const [disableAddButton, setDisableAddButton] = useState(false);
     const formSubmitRef = useRef<() => void>(() => {});
 
-    const handleOpenChange = () => {
-        setOpenDialog(!openDialog);
+    const handleOpenChange = (open: boolean) => {
+        setOpenDialog(open);
     };
+
+    // Don't use the div wrapper approach
+    const triggerWithPreventSubmit = courseButton
+        ? React.cloneElement(courseButton, {
+              onClick: (e: React.MouseEvent) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpenDialog(true);
+
+                  // Call the original onClick if it exists
+                  if (courseButton.props.onClick) {
+                      courseButton.props.onClick(e);
+                  }
+              },
+          })
+        : triggerButton;
 
     const submitButton = (
         <div className="items-center justify-center bg-white">
@@ -43,7 +59,7 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
 
     return (
         <MyDialog
-            trigger={courseButton ? courseButton : triggerButton}
+            trigger={triggerWithPreventSubmit}
             heading="Add Course"
             dialogWidth="w-[700px]"
             open={openDialog}
