@@ -8,11 +8,13 @@ import { RolesDummyDataType, UserRolesDataEntry } from "@/types/dashboard/user-r
 interface InviteUsersTabProps {
     selectedTab: keyof RolesDummyDataType;
     selectedTabData: UserRolesDataEntry[];
+    refetchData: () => void;
 }
 
 const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
     selectedTab,
     selectedTabData,
+    refetchData,
 }) => {
     return (
         <>
@@ -83,7 +85,7 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                         )}
                                         {item.status}
                                     </Badge>
-                                    <InstituteUsersOptions user={item} />
+                                    <InstituteUsersOptions user={item} refetchData={refetchData} />
                                 </div>
                             </div>
                         );

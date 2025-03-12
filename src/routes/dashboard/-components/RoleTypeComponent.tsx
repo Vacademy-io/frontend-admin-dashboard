@@ -16,6 +16,7 @@ import { getInstituteId } from "@/constants/helper";
 import { fetchInstituteDashboardUsers } from "../-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useMutation } from "@tanstack/react-query";
+import { useRefetchUsersStore } from "../-global-states/refetch-store-users";
 
 export interface RoleTypeSelectedFilter {
     roles: { id: string; name: string }[];
@@ -26,6 +27,9 @@ export interface RoleTypeSelectedFilter {
 type TabKey = keyof RolesDummyDataType;
 
 const RoleTypeComponent = () => {
+    const setHandleRefetchUsersData = useRefetchUsersStore(
+        (state) => state.setHandleRefetchUsersData,
+    );
     const [isLoading, setIsLoading] = useState(false);
     const instituteId = getInstituteId();
     const [selectedTab, setSelectedTab] = useState<TabKey>("instituteUsers");
@@ -55,7 +59,11 @@ const RoleTypeComponent = () => {
             selectedFilter: RoleTypeSelectedFilter;
         }) => fetchInstituteDashboardUsers(instituteId, selectedFilter),
         onSuccess: (data) => {
-            setDashboardUsers({ ...dashboardUsers, [selectedTab]: data });
+            if (selectedTab === "instituteUsers") {
+                setDashboardUsers({ ...dashboardUsers, ["instituteUsers"]: data });
+            } else {
+                setDashboardUsers({ ...dashboardUsers, ["invites"]: data });
+            }
         },
         onError: (error: unknown) => {
             throw error;
@@ -118,23 +126,37 @@ const RoleTypeComponent = () => {
         }
     };
 
-    useEffect(() => {
-        setIsLoading(true);
+    const handleRefetchData = () => {
         const timeoutId = setTimeout(() => {
-            fetchInstituteDashboardUsers(instituteId, {
-                roles: [
-                    { id: "1", name: "ADMIN" },
-                    { id: "2", name: "COURSE CREATOR" },
-                    { id: "3", name: "ASSESSMENT CREATOR" },
-                    { id: "4", name: "EVALUATOR" },
-                ],
-                status: [
-                    { id: "1", name: "ACTIVE" },
-                    { id: "2", name: "DISABLED" },
-                ],
-            })
-                .then((data) => {
-                    setDashboardUsers({ ...dashboardUsers, ["instituteUsers"]: data });
+            Promise.all([
+                fetchInstituteDashboardUsers(instituteId, {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status: [
+                        { id: "1", name: "ACTIVE" },
+                        { id: "2", name: "DISABLED" },
+                    ],
+                }),
+                fetchInstituteDashboardUsers(instituteId, {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status: [{ id: "1", name: "INVITED" }],
+                }),
+            ])
+                .then(([instituteUsersData, invitesData]) => {
+                    setDashboardUsers((prev) => ({
+                        ...prev,
+                        instituteUsers: instituteUsersData,
+                        invites: invitesData,
+                    }));
                 })
                 .catch((error) => {
                     console.error(error);
@@ -147,22 +169,46 @@ const RoleTypeComponent = () => {
         return () => {
             clearTimeout(timeoutId);
         };
-    }, []);
+    };
+
+    // Define the handleRefetchData function here
+    useEffect(() => {
+        setHandleRefetchUsersData(handleRefetchData);
+    }, [setHandleRefetchUsersData]);
 
     useEffect(() => {
         setIsLoading(true);
+
         const timeoutId = setTimeout(() => {
-            fetchInstituteDashboardUsers(instituteId, {
-                roles: [
-                    { id: "1", name: "ADMIN" },
-                    { id: "2", name: "COURSE CREATOR" },
-                    { id: "3", name: "ASSESSMENT CREATOR" },
-                    { id: "4", name: "EVALUATOR" },
-                ],
-                status: [{ id: "1", name: "INVITED" }],
-            })
-                .then((data) => {
-                    setDashboardUsers({ ...dashboardUsers, ["invites"]: data });
+            Promise.all([
+                fetchInstituteDashboardUsers(instituteId, {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status: [
+                        { id: "1", name: "ACTIVE" },
+                        { id: "2", name: "DISABLED" },
+                    ],
+                }),
+                fetchInstituteDashboardUsers(instituteId, {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status: [{ id: "1", name: "INVITED" }],
+                }),
+            ])
+                .then(([instituteUsersData, invitesData]) => {
+                    setDashboardUsers((prev) => ({
+                        ...prev,
+                        instituteUsers: instituteUsersData,
+                        invites: invitesData,
+                    }));
                 })
                 .catch((error) => {
                     console.error(error);
@@ -276,14 +322,16 @@ const RoleTypeComponent = () => {
                     <InstituteUsersComponent
                         selectedTab={selectedTab}
                         selectedTabData={dashboardUsers.instituteUsers}
+                        refetchData={handleRefetchData}
                     />
                     <InviteUsersTab
                         selectedTab={selectedTab}
                         selectedTabData={dashboardUsers.invites}
+                        refetchData={handleRefetchData}
                     />
                 </Tabs>
                 <div className="mr-4 text-end">
-                    <InviteUsersComponent />
+                    <InviteUsersComponent refetchData={handleRefetchData} />
                 </div>
             </DialogContent>
         </Dialog>

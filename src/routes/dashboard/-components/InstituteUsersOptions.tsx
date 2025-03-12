@@ -28,9 +28,14 @@ type FormValues = z.infer<typeof inviteUsersSchema>;
 interface ChangeRoleTypeComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({ student, onClose }) => {
+const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({
+    student,
+    onClose,
+    refetchData,
+}) => {
     const instituteId = getInstituteId();
     //need to previous already assigned roles
     const form = useForm<FormValues>({
@@ -56,6 +61,7 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({ stude
         }) => handleAddUserDashboardRoles(roles, userId, instituteId),
         onSuccess: () => {
             onClose();
+            refetchData();
         },
         onError: (error: unknown) => {
             throw error;
@@ -116,9 +122,14 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({ stude
 interface DisableUserComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, onClose }) => {
+const DisableUserComponent: React.FC<DisableUserComponentProps> = ({
+    student,
+    onClose,
+    refetchData,
+}) => {
     const instituteId = getInstituteId();
     const handleDisableUserMutation = useMutation({
         mutationFn: ({
@@ -132,6 +143,7 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, on
         }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
         onSuccess: () => {
             onClose();
+            refetchData();
         },
         onError: (error: unknown) => {
             throw error;
@@ -176,9 +188,14 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, on
 interface EnableUserComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const EnableUserComponent: React.FC<EnableUserComponentProps> = ({ student, onClose }) => {
+const EnableUserComponent: React.FC<EnableUserComponentProps> = ({
+    student,
+    onClose,
+    refetchData,
+}) => {
     const instituteId = getInstituteId();
     const handleEnableUserMutation = useMutation({
         mutationFn: ({
@@ -192,6 +209,7 @@ const EnableUserComponent: React.FC<EnableUserComponentProps> = ({ student, onCl
         }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
         onSuccess: () => {
             onClose();
+            refetchData();
         },
         onError: (error: unknown) => {
             throw error;
@@ -236,9 +254,14 @@ const EnableUserComponent: React.FC<EnableUserComponentProps> = ({ student, onCl
 interface DeleteUserComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({ student, onClose }) => {
+const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({
+    student,
+    onClose,
+    refetchData,
+}) => {
     const instituteId = getInstituteId();
     const handleDeleteUserMutation = useMutation({
         mutationFn: ({
@@ -252,6 +275,7 @@ const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({ student, onCl
         }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
         onSuccess: () => {
             onClose();
+            refetchData();
         },
         onError: (error: unknown) => {
             throw error;
@@ -293,7 +317,13 @@ const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({ student, onCl
     );
 };
 
-const InstituteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
+const InstituteUsersOptions = ({
+    user,
+    refetchData,
+}: {
+    user: UserRolesDataEntry;
+    refetchData: () => void;
+}) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -331,16 +361,32 @@ const InstituteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
             </DropdownMenu>
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 {selectedOption === "Change Role Type" && (
-                    <ChangeRoleTypeComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <ChangeRoleTypeComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
                 {selectedOption === "Disable user" && (
-                    <DisableUserComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <DisableUserComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
                 {selectedOption === "Enable user" && (
-                    <EnableUserComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <EnableUserComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
                 {selectedOption === "Delete user" && (
-                    <DeleteUserComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <DeleteUserComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
             </Dialog>
         </>

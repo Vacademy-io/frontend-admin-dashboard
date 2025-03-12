@@ -19,7 +19,7 @@ export const inviteUsersSchema = z.object({
 });
 export type inviteUsersFormValues = z.infer<typeof inviteUsersSchema>;
 
-const InviteUsersComponent = () => {
+const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
     const [open, setOpen] = useState(false);
     const instituteId = getInstituteId();
     const form = useForm<inviteUsersFormValues>({
@@ -50,6 +50,7 @@ const InviteUsersComponent = () => {
         onSuccess: () => {
             form.reset();
             setOpen(false);
+            refetchData();
         },
         onError: (error: unknown) => {
             throw error;

@@ -34,9 +34,10 @@ type FormValues = z.infer<typeof inviteUsersSchema>;
 interface EditComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
+const EditComponent: React.FC<EditComponentProps> = ({ student, onClose, refetchData }) => {
     const instituteId = getInstituteId();
     const form = useForm<FormValues>({
         resolver: zodResolver(inviteUsersSchema),
@@ -67,6 +68,7 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
         }) => handleUpdateUserInvitation(instituteId, data, student),
         onSuccess: () => {
             onClose();
+            refetchData();
         },
         onError: (error: unknown) => {
             throw error;
@@ -173,13 +175,19 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
 interface ResendInviteComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, onClose }) => {
+const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({
+    student,
+    onClose,
+    refetchData,
+}) => {
     const handleResendUserMutation = useMutation({
         mutationFn: ({ userId }: { userId: string }) => handleResendUserInvitation(userId),
         onSuccess: () => {
             onClose();
+            refetchData();
         },
         onError: (error: unknown) => {
             throw error;
@@ -222,9 +230,14 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, 
 interface CancelInviteComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
+    refetchData: () => void;
 }
 
-const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, onClose }) => {
+const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({
+    student,
+    onClose,
+    refetchData,
+}) => {
     const instituteId = getInstituteId();
     const handleDisableUserMutation = useMutation({
         mutationFn: ({
@@ -238,6 +251,7 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, 
         }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
         onSuccess: () => {
             onClose();
+            refetchData();
         },
         onError: (error: unknown) => {
             throw error;
@@ -279,7 +293,13 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, 
     );
 };
 
-const InviteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
+const InviteUsersOptions = ({
+    user,
+    refetchData,
+}: {
+    user: UserRolesDataEntry;
+    refetchData: () => void;
+}) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -309,13 +329,25 @@ const InviteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
             </DropdownMenu>
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 {selectedOption === "Edit" && (
-                    <EditComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <EditComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
                 {selectedOption === "Resend Invite" && (
-                    <ResendInviteComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <ResendInviteComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
                 {selectedOption === "Cancel Invite" && (
-                    <CancelInviteComponent student={user} onClose={() => setOpenDialog(false)} />
+                    <CancelInviteComponent
+                        student={user}
+                        onClose={() => setOpenDialog(false)}
+                        refetchData={refetchData}
+                    />
                 )}
             </Dialog>
         </>

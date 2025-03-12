@@ -7,9 +7,14 @@ import { RolesDummyDataType, UserRolesDataEntry } from "@/types/dashboard/user-r
 interface InviteUsersTabProps {
     selectedTab: keyof RolesDummyDataType;
     selectedTabData: UserRolesDataEntry[];
+    refetchData: () => void;
 }
 
-const InviteUsersTab: React.FC<InviteUsersTabProps> = ({ selectedTab, selectedTabData }) => {
+const InviteUsersTab: React.FC<InviteUsersTabProps> = ({
+    selectedTab,
+    selectedTabData,
+    refetchData,
+}) => {
     return (
         <>
             {selectedTab === "invites" && selectedTabData.length === 0 ? (
@@ -51,7 +56,7 @@ const InviteUsersTab: React.FC<InviteUsersTabProps> = ({ selectedTab, selectedTa
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <InviteUsersOptions user={item} />
+                                    <InviteUsersOptions user={item} refetchData={refetchData} />
                                 </div>
                             </div>
                         );
