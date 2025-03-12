@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { RoleTypeEmptyScreen, RoleTypeUserIcon } from "@/svgs";
-// import { CheckCircle, XCircle } from "phosphor-react";
+import { CheckCircle, XCircle } from "phosphor-react";
 import InstituteUsersOptions from "./InstituteUsersOptions";
 import { RolesDummyDataType, UserRolesDataEntry } from "@/types/dashboard/user-roles";
 
@@ -60,7 +60,7 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    {/* <Badge
+                                    <Badge
                                         key={idx}
                                         className={`flex items-center gap-1 whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${
                                             item.status === "ACTIVE"
@@ -82,7 +82,7 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                             />
                                         )}
                                         {item.status}
-                                    </Badge> */}
+                                    </Badge>
                                     <InstituteUsersOptions user={item} />
                                 </div>
                             </div>

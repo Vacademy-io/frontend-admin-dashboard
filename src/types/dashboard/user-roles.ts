@@ -20,6 +20,7 @@ export interface UserRolesDataEntry {
     profile_pic_file_id: string | null;
     roles: Role[];
     root_user: boolean;
+    status: string;
 }
 
 // Define the type for the entire data structure

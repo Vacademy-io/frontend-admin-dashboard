@@ -173,6 +173,66 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, on
     );
 };
 
+interface EnableUserComponentProps {
+    student: UserRolesDataEntry;
+    onClose: () => void;
+}
+
+const EnableUserComponent: React.FC<EnableUserComponentProps> = ({ student, onClose }) => {
+    const instituteId = getInstituteId();
+    const handleEnableUserMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            status,
+            userId,
+        }: {
+            instituteId: string | undefined;
+            status: string;
+            userId: string;
+        }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
+        onSuccess: () => {
+            onClose();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handlEnableUser = () => {
+        handleEnableUserMutation.mutate({
+            instituteId,
+            status: "ACTIVE",
+            userId: student.id,
+        });
+    };
+    return (
+        <DialogContent className="flex flex-col p-0">
+            <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Disable User</h1>
+            <div className="flex flex-col gap-2 p-4">
+                <div className="flex items-center text-danger-600">
+                    <p>Attention</p>
+                    <WarningCircle size={18} />
+                </div>
+                <h1>
+                    Are you sure you want to disable{" "}
+                    <span className="text-primary-500">{student.full_name}</span>?
+                </h1>
+                <div className="flex justify-end">
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="primary"
+                        className="mt-4 font-medium"
+                        onClick={handlEnableUser} // Close the dialog when clicked
+                    >
+                        Yes
+                    </MyButton>
+                </div>
+            </div>
+        </DialogContent>
+    );
+};
+
 interface DeleteUserComponentProps {
     student: UserRolesDataEntry;
     onClose: () => void;
@@ -254,9 +314,16 @@ const InstituteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
                     <DropdownMenuItem onClick={() => handleDropdownMenuClick("Change Role Type")}>
                         Change Role Type
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDropdownMenuClick("Disable user")}>
-                        Disable user
-                    </DropdownMenuItem>
+                    {user.status === "ACTIVE" && (
+                        <DropdownMenuItem onClick={() => handleDropdownMenuClick("Disable user")}>
+                            Disable user
+                        </DropdownMenuItem>
+                    )}
+                    {user.status === "DISABLED" && (
+                        <DropdownMenuItem onClick={() => handleDropdownMenuClick("Enable user")}>
+                            Enable user
+                        </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => handleDropdownMenuClick("Delete user")}>
                         Delete user
                     </DropdownMenuItem>
@@ -268,6 +335,9 @@ const InstituteUsersOptions = ({ user }: { user: UserRolesDataEntry }) => {
                 )}
                 {selectedOption === "Disable user" && (
                     <DisableUserComponent student={user} onClose={() => setOpenDialog(false)} />
+                )}
+                {selectedOption === "Enable user" && (
+                    <EnableUserComponent student={user} onClose={() => setOpenDialog(false)} />
                 )}
                 {selectedOption === "Delete user" && (
                     <DeleteUserComponent student={user} onClose={() => setOpenDialog(false)} />
