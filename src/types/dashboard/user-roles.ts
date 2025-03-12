@@ -1,8 +1,25 @@
+interface Role {
+    role_name: string;
+    status: string;
+    role_id: string;
+}
+
 export interface UserRolesDataEntry {
     id: string;
-    name: string;
+    username: string;
     email: string;
-    roleType: string[];
+    full_name: string;
+    address_line: string | null;
+    city: string | null;
+    region: string | null;
+    pin_code: string | null;
+    mobile_number: string | null;
+    date_of_birth: string | null;
+    gender: string | null;
+    password: string | null;
+    profile_pic_file_id: string | null;
+    roles: Role[];
+    root_user: boolean;
     status: string;
 }
 

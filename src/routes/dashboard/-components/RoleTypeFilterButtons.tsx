@@ -13,8 +13,8 @@ const RoleTypeFilterButtons = ({
     handleResetFilters,
 }: RoleTypeFilterButtonsProps) => {
     const isButtonEnabled = () => {
-        const { roleType, status } = selectedQuestionPaperFilters;
-        return roleType?.length > 0 || status?.length > 0;
+        const { roles, status } = selectedQuestionPaperFilters;
+        return roles?.length > 0 || status?.length > 0;
     };
     return (
         <>

@@ -7,9 +7,14 @@ import { RolesDummyDataType, UserRolesDataEntry } from "@/types/dashboard/user-r
 interface InviteUsersTabProps {
     selectedTab: keyof RolesDummyDataType;
     selectedTabData: UserRolesDataEntry[];
+    refetchData: () => void;
 }
 
-const InviteUsersTab: React.FC<InviteUsersTabProps> = ({ selectedTab, selectedTabData }) => {
+const InviteUsersTab: React.FC<InviteUsersTabProps> = ({
+    selectedTab,
+    selectedTabData,
+    refetchData,
+}) => {
     return (
         <>
             {selectedTab === "invites" && selectedTabData.length === 0 ? (
@@ -19,28 +24,30 @@ const InviteUsersTab: React.FC<InviteUsersTabProps> = ({ selectedTab, selectedTa
                 </div>
             ) : (
                 <TabsContent key="invites" value="invites" className="mt-6 flex flex-col gap-6">
-                    {selectedTabData.map((item, idx) => {
+                    {selectedTabData?.map((item, idx) => {
                         return (
                             <div key={idx} className="flex justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col gap-1">
                                         <div className="flex items-center gap-4">
-                                            <p>{item.name}</p>
-                                            {item.roleType.map((role, index) => {
+                                            <p>{item.full_name}</p>
+                                            {item.roles?.map((role, index) => {
                                                 return (
                                                     <Badge
                                                         key={index}
                                                         className={`whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${
-                                                            role === "ADMIN"
+                                                            role.role_name === "ADMIN"
                                                                 ? "bg-[#F4F9FF]"
-                                                                : role === "COURSE CREATOR"
+                                                                : role.role_name ===
+                                                                    "COURSE CREATOR"
                                                                   ? "bg-[#F4FFF9]"
-                                                                  : role === "ASSESSMENT CREATOR"
+                                                                  : role.role_name ===
+                                                                      "ASSESSMENT CREATOR"
                                                                     ? "bg-[#FFF4F5]"
                                                                     : "bg-[#F5F0FF]"
                                                         }`}
                                                     >
-                                                        {role}
+                                                        {role.role_name}
                                                     </Badge>
                                                 );
                                             })}
@@ -49,7 +56,7 @@ const InviteUsersTab: React.FC<InviteUsersTabProps> = ({ selectedTab, selectedTa
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <InviteUsersOptions user={item} />
+                                    <InviteUsersOptions user={item} refetchData={refetchData} />
                                 </div>
                             </div>
                         );
