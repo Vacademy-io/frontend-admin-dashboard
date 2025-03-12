@@ -269,16 +269,22 @@ export const AddCourseForm = ({
         const containsLevelValue = form.getValues("contain_levels");
         const sessionValue = form.getValues("sessions");
         const courseName = form.getValues("course_name");
-        if (courseName == "") {
+
+        if (courseName === "") {
+            // Always disable if course name is empty
             setDisableAddButton(true);
-        } else if (containsLevelValue == true) {
-            if (sessionValue?.length == 0) {
+        } else if (containsLevelValue === true) {
+            // Only check for sessions if "Contains Levels" is true
+            if (!sessionValue || sessionValue.length === 0) {
                 setDisableAddButton(true);
-            } else setDisableAddButton(false);
+            } else {
+                setDisableAddButton(false);
+            }
         } else {
+            // If "Contains Levels" is false, only require course name
             setDisableAddButton(false);
         }
-    }, [form.watch("sessions"), form.watch("course_name")]);
+    }, [form.watch("sessions"), form.watch("course_name"), form.watch("contain_levels")]);
 
     // Add this line to create a form ref
     const formRef = useRef<HTMLFormElement>(null);
