@@ -118,7 +118,9 @@ export const AddSessionForm = ({
             id: initialValues?.session.id || null,
             session_name: initialValues?.session.session_name || "",
             status: initialValues?.session.status || "ACTIVE",
-            start_date: initialValues?.session.start_date || new Date().toISOString(),
+            start_date: initialValues?.session.start_date
+                ? new Date(initialValues.session.start_date).toISOString().split("T")[0]
+                : new Date().toISOString().split("T")[0],
             new_session: initialValues ? false : true,
             levels: [],
         },
@@ -299,7 +301,7 @@ export const AddSessionForm = ({
                                     label="Start Date"
                                     required={true}
                                     inputType="date"
-                                    inputPlaceholder="DD/MM/YYYY"
+                                    inputPlaceholder="YYYY-MM-DD" // Updated placeholder
                                     className="w-full"
                                     input={field.value}
                                     onChangeFunction={(e) => field.onChange(e.target.value)}
