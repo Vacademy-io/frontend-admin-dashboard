@@ -32,6 +32,24 @@ interface PreBatchRegistration {
     updatedAt: string;
 }
 
+interface AssessmentNotification {
+    id: string;
+    participant_when_assessment_created: boolean;
+    participant_show_leaderboard: boolean;
+    participant_before_assessment_goes_live: number;
+    participant_when_assessment_live: boolean;
+    parent_when_assessment_created: boolean;
+    parent_show_leaderboard: boolean;
+    parent_before_assessment_goes_live: number;
+    parent_when_assessment_live: boolean;
+    when_student_appears: boolean;
+    when_student_finishes_test: boolean;
+    participant_when_assessment_report_generated: boolean;
+    parent_when_assessment_report_generated: boolean;
+    created_at: string; // ISO date string
+    updated_at: string; // ISO date string
+}
+
 export interface SavedData {
     instructions: Instructions;
     reattempt_consent: boolean;
@@ -63,6 +81,7 @@ export interface SavedData {
     registration_open_date: string | null;
     pre_batch_registrations: PreBatchRegistration[];
     registration_close_date: string | null;
+    notifications: AssessmentNotification;
 }
 
 export interface Section {

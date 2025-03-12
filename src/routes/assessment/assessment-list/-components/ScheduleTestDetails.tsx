@@ -17,6 +17,10 @@ import {
 } from "../../create-assessment/$assessmentId/$examtype/-utils/helper";
 import { ScheduleTestMainDropdownComponent } from "./ScheduleTestDetailsDropdownMenu";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
+import { getBatchNamesByIds } from "../assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -27,10 +31,32 @@ const ScheduleTestDetails = ({
     selectedTab: string;
     handleRefetchData: () => void;
 }) => {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const navigate = useNavigate();
     const { data: instituteDetails, isLoading } = useSuspenseQuery(useInstituteQuery());
+    const batchIdsList = getBatchNamesByIds(
+        instituteDetails?.batches_for_sessions,
+        scheduleTestContent.batch_ids,
+    );
+    const handleNavigateAssessment = (assessmentId: string) => {
+        if (!isDialogOpen) {
+            navigate({
+                to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+                params: {
+                    assessmentId: assessmentId,
+                    examType: scheduleTestContent.play_mode,
+                    assesssmentType: scheduleTestContent.assessment_visibility,
+                },
+            });
+        }
+    };
+
     if (isLoading) return <DashboardLoader />;
     return (
-        <div className="my-6 flex flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
+        <div
+            className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4"
+            onClick={() => handleNavigateAssessment(scheduleTestContent.assessment_id)}
+        >
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <h1 className="font-semibold">{scheduleTestContent.name}</h1>
@@ -83,10 +109,31 @@ const ScheduleTestDetails = ({
                     </Badge>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Badge className="rounded-md border border-primary-200 bg-primary-50 py-1.5 shadow-none">
-                        10th Premium Pro Group 1
-                    </Badge>
-                    <span className="text-sm text-primary-500">+3 more</span>
+                    {batchIdsList.length > 0 && (
+                        <Badge className="rounded-md border border-primary-200 bg-primary-50 py-1.5 shadow-none">
+                            {batchIdsList[0]}
+                        </Badge>
+                    )}
+                    {batchIdsList.length - 1 > 0 && (
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger onClick={(e) => e.stopPropagation()}>
+                                <span className="text-sm text-primary-500">
+                                    +{batchIdsList.length - 1} more
+                                </span>
+                            </DialogTrigger>
+                            <DialogContent className="p-0">
+                                <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                                    Assessment Batches
+                                </h1>
+                                <ul className="flex list-disc flex-col gap-4 pb-4 pl-8 pr-4">
+                                    {batchIdsList.map((batchId, idx) => {
+                                        if (idx === 0) return null;
+                                        return <li key={idx}>{batchId}</li>;
+                                    })}
+                                </ul>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                     <ScheduleTestMainDropdownComponent
                         scheduleTestContent={scheduleTestContent}
                         selectedTab={selectedTab}

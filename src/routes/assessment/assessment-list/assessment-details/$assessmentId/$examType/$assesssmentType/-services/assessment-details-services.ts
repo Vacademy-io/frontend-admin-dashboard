@@ -1,6 +1,7 @@
 import {
     GET_ADMIN_PARTICIPANTS,
     GET_ASSESSMENT_TOTAL_MARKS_URL,
+    GET_BATCH_DETAILS_URL,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
     GET_PARTICIPANTS_QUESTION_WISE,
@@ -17,6 +18,7 @@ import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSub
 import { StudentReportFilterInterface } from "@/components/common/students/students-list/student-side-view/student-test-records/student-test-record";
 import { SelectedFilterQuestionWise } from "@/types/assessments/student-questionwise-status";
 import { SelectedFilterRevaluateInterface } from "@/types/assessments/assessment-revaluate-question-wise";
+import { AssessmentParticipantsInterface } from "../-components/AssessmentParticipantsList";
 
 export const savePrivateQuestions = async (questions: AssessmentDetailQuestions) => {
     const response = await authenticatedAxiosInstance({
@@ -357,6 +359,23 @@ export const getRevaluateStudentResult = async (
             assessmentId,
             instituteId,
             methodType,
+        },
+        data: selectedFilter,
+    });
+    return response?.data;
+};
+
+export const getBatchDetailsListOfStudents = async (
+    pageNo: number,
+    pageSize: number,
+    selectedFilter: AssessmentParticipantsInterface,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: GET_BATCH_DETAILS_URL,
+        params: {
+            pageNo,
+            pageSize,
         },
         data: selectedFilter,
     });
