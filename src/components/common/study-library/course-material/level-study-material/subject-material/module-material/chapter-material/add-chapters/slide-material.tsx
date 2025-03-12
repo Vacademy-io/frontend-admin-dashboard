@@ -153,12 +153,15 @@ export const SlideMaterial = () => {
             return;
         }
 
-        if (activeItem.published_url != null) {
-            console.log("video url: ", activeItem.published_url);
+        if (activeItem.published_url != null || activeItem.video_url != null) {
             setContent(
                 <div key={`video-${activeItem.slide_id}`} className="size-full">
                     <YouTubePlayer
-                        videoUrl={activeItem.published_url || ""}
+                        videoUrl={
+                            (activeItem.status == "PUBLISHED"
+                                ? activeItem.published_url
+                                : activeItem.video_url) || ""
+                        }
                         videoTitle={activeItem.video_title}
                     />
                 </div>,
@@ -167,7 +170,11 @@ export const SlideMaterial = () => {
         }
 
         if (activeItem?.document_type == "PDF") {
-            const url = await getPublicUrl(activeItem?.published_data);
+            const url = await getPublicUrl(
+                (activeItem.status == "PUBLISHED"
+                    ? activeItem.published_data
+                    : activeItem.document_data) || "",
+            );
             setContent(<PDFViewer pdfUrl={url} />);
             return;
         }
@@ -202,7 +209,7 @@ export const SlideMaterial = () => {
             return activeItem?.document_data;
         }
     }
-    
+
     const handlePublishUnpublishSlide = async (
         setIsOpen: Dispatch<SetStateAction<boolean>>,
         notify: boolean,
