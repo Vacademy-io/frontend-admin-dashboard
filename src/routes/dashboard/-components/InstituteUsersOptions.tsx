@@ -141,7 +141,7 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, on
     const handlDisableUser = () => {
         handleDisableUserMutation.mutate({
             instituteId,
-            status: "DISABLE",
+            status: "DISABLED",
             userId: student.id,
         });
     };
