@@ -16,6 +16,13 @@ import { MyInput } from "@/components/design-system/input";
 import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
 import { RoleType } from "@/constants/dummy-data";
 import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
+import {
+    handleDeleteDisableDashboardUsers,
+    handleResendUserInvitation,
+    handleUpdateUserInvitation,
+} from "../-services/dashboard-services";
+import { useMutation } from "@tanstack/react-query";
+import { getInstituteId } from "@/constants/helper";
 
 export const inviteUsersSchema = z.object({
     name: z.string().min(1, "Full name is required"),
@@ -30,6 +37,7 @@ interface EditComponentProps {
 }
 
 const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
+    const instituteId = getInstituteId();
     const form = useForm<FormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
@@ -47,16 +55,37 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose }) => {
 
     form.watch("roleType");
 
+    const handleUpdateUserMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            data,
+            student,
+        }: {
+            instituteId: string | undefined;
+            data: z.infer<typeof inviteUsersSchema>;
+            student: UserRolesDataEntry;
+        }) => handleUpdateUserInvitation(instituteId, data, student),
+        onSuccess: () => {
+            onClose();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
     function onSubmit(values: FormValues) {
-        console.log(values);
-        onClose();
+        handleUpdateUserMutation.mutate({
+            instituteId,
+            data: values,
+            student,
+        });
     }
 
     useEffect(() => {
         form.reset({
-            name: student.name || "",
+            name: student.full_name || "",
             email: student.email || "",
-            roleType: student.roleType || [],
+            roleType: student.roles.map((role) => role.role_name) || [],
         });
     }, []);
 
@@ -147,6 +176,21 @@ interface ResendInviteComponentProps {
 }
 
 const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, onClose }) => {
+    const handleResendUserMutation = useMutation({
+        mutationFn: ({ userId }: { userId: string }) => handleResendUserInvitation(userId),
+        onSuccess: () => {
+            onClose();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handlResendUser = () => {
+        handleResendUserMutation.mutate({
+            userId: student.id,
+        });
+    };
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Resend Invite</h1>
@@ -157,7 +201,7 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, 
                 </div>
                 <h1>
                     Are you sure you want to resend invite to{" "}
-                    <span className="text-primary-500">{student.name}</span>?
+                    <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
                     <MyButton
@@ -165,7 +209,7 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({ student, 
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={onClose} // Close the dialog when clicked
+                        onClick={handlResendUser} // Close the dialog when clicked
                     >
                         Yes
                     </MyButton>
@@ -181,6 +225,32 @@ interface CancelInviteComponentProps {
 }
 
 const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, onClose }) => {
+    const instituteId = getInstituteId();
+    const handleDisableUserMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            status,
+            userId,
+        }: {
+            instituteId: string | undefined;
+            status: string;
+            userId: string;
+        }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
+        onSuccess: () => {
+            onClose();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handlCancelInviteUser = () => {
+        handleDisableUserMutation.mutate({
+            instituteId,
+            status: "CANCEL",
+            userId: student.id,
+        });
+    };
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Cancel Invite</h1>
@@ -191,7 +261,7 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, 
                 </div>
                 <h1>
                     Are you sure you want to cancel invite for{" "}
-                    <span className="text-primary-500">{student.name}</span>?
+                    <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
                     <MyButton
@@ -199,7 +269,7 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({ student, 
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={onClose} // Close the dialog when clicked
+                        onClick={handlCancelInviteUser} // Close the dialog when clicked
                     >
                         Yes
                     </MyButton>

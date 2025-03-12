@@ -14,6 +14,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
 import { RoleType } from "@/constants/dummy-data";
 import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
+import { getInstituteId } from "@/constants/helper";
+import { useMutation } from "@tanstack/react-query";
+import {
+    handleAddUserDashboardRoles,
+    handleDeleteDisableDashboardUsers,
+} from "../-services/dashboard-services";
 export const inviteUsersSchema = z.object({
     roleType: z.array(z.string()).min(1, "At least one role type is required"),
 });
@@ -25,6 +31,7 @@ interface ChangeRoleTypeComponentProps {
 }
 
 const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({ student, onClose }) => {
+    const instituteId = getInstituteId();
     //need to previous already assigned roles
     const form = useForm<FormValues>({
         resolver: zodResolver(inviteUsersSchema),
@@ -37,14 +44,35 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({ stude
     const isValid = getValues("roleType").length > 0 ? true : false;
     form.watch("roleType");
 
+    const getDashboardUsersData = useMutation({
+        mutationFn: ({
+            roles,
+            userId,
+            instituteId,
+        }: {
+            roles: string[];
+            userId: string;
+            instituteId: string | undefined;
+        }) => handleAddUserDashboardRoles(roles, userId, instituteId),
+        onSuccess: () => {
+            onClose();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
     function onSubmit(values: FormValues) {
-        console.log(values);
-        onClose();
+        getDashboardUsersData.mutate({
+            roles: values.roleType,
+            userId: student.id,
+            instituteId,
+        });
     }
 
     useEffect(() => {
         form.reset({
-            roleType: student.roleType || [],
+            roleType: student.roles.map((role) => role.role_name) || [],
         });
     }, []);
 
@@ -91,6 +119,32 @@ interface DisableUserComponentProps {
 }
 
 const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, onClose }) => {
+    const instituteId = getInstituteId();
+    const handleDisableUserMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            status,
+            userId,
+        }: {
+            instituteId: string | undefined;
+            status: string;
+            userId: string;
+        }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
+        onSuccess: () => {
+            onClose();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handlDisableUser = () => {
+        handleDisableUserMutation.mutate({
+            instituteId,
+            status: "DISABLE",
+            userId: student.id,
+        });
+    };
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Disable User</h1>
@@ -101,7 +155,7 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, on
                 </div>
                 <h1>
                     Are you sure you want to disable{" "}
-                    <span className="text-primary-500">{student.name}</span>?
+                    <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
                     <MyButton
@@ -109,7 +163,7 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({ student, on
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={onClose} // Close the dialog when clicked
+                        onClick={handlDisableUser} // Close the dialog when clicked
                     >
                         Yes
                     </MyButton>
@@ -125,6 +179,32 @@ interface DeleteUserComponentProps {
 }
 
 const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({ student, onClose }) => {
+    const instituteId = getInstituteId();
+    const handleDeleteUserMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            status,
+            userId,
+        }: {
+            instituteId: string | undefined;
+            status: string;
+            userId: string;
+        }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
+        onSuccess: () => {
+            onClose();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handlDeleteUser = () => {
+        handleDeleteUserMutation.mutate({
+            instituteId,
+            status: "DELETE",
+            userId: student.id,
+        });
+    };
     return (
         <DialogContent className="flex flex-col p-0">
             <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">Delete User</h1>
@@ -135,7 +215,7 @@ const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({ student, onCl
                 </div>
                 <h1>
                     Are you sure you want to delete{" "}
-                    <span className="text-primary-500">{student.name}</span>?
+                    <span className="text-primary-500">{student.full_name}</span>?
                 </h1>
                 <div className="flex justify-end">
                     <MyButton
@@ -143,7 +223,7 @@ const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({ student, onCl
                         scale="large"
                         buttonType="primary"
                         className="mt-4 font-medium"
-                        onClick={onClose} // Close the dialog when clicked
+                        onClick={handlDeleteUser} // Close the dialog when clicked
                     >
                         Yes
                     </MyButton>
