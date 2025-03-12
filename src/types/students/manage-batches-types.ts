@@ -1,14 +1,19 @@
-import { LevelType } from "@/schemas/student/student-list/institute-schema";
-import { CourseType } from "@/stores/study-library/use-study-library-store";
-
-export interface levelWithStudents {
-    level: LevelType;
-    students_count: number;
+export interface BatchType {
+    batch_name: string;
+    batch_status: "ACTIVE" | "INACTIVE";
+    count_students: number;
+    start_date: string;
+    package_session_id: string;
+}
+export interface PackageType {
+    id: string;
+    package_name: string;
+    thumbnail_file_id: string;
 }
 
 export interface batchWithStudentDetails {
-    course: CourseType;
-    levelsWithStudents: levelWithStudents[];
+    package_dto: PackageType;
+    batches: BatchType[];
 }
 
 export type batchesWithStudents = batchWithStudentDetails[];

@@ -31,7 +31,6 @@ export const SidebarItemsData: SidebarItemsType[] = [
         icon: BookOpen,
         title: "Learning Center",
         id: "study-library",
-        to: "/study-library",
         subItems: [
             {
                 subItem: "Courses",
