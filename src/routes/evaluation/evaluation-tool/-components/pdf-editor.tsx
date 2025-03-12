@@ -82,7 +82,6 @@ const PDFEvaluator = () => {
         if (validateFile(file)) {
             setPdfFile(file);
             const fileUrl = URL.createObjectURL(file);
-            console.log(fileUrl);
             setPdfUrl(fileUrl);
             setPageNumber(1);
             setAnnotations({});
@@ -124,7 +123,6 @@ const PDFEvaluator = () => {
     }, [pdfFile]);
 
     useEffect(() => {
-        console.log(canvasUtils.isDrawingMode);
         setTimeout(() => {
             loadPDF();
         }, 1000);
@@ -242,7 +240,6 @@ const PDFEvaluator = () => {
 
                     // Add the captured canvas to the PDF
                     const imgData = canvas.toDataURL("image/png", 1);
-                    console.log(outputPdf.internal.pageSize.getWidth());
                     outputPdf.addImage(
                         imgData,
                         "PNG",
@@ -301,20 +298,16 @@ const PDFEvaluator = () => {
     async function loadPDF() {
         const abc = document.querySelector(".react-pdf__Document");
 
-        console.log(abc);
-        console.log(abc?.clientWidth, abc?.clientHeight);
         const width = abc?.clientWidth || 600;
         const height = abc?.clientHeight || 800;
 
         // Set canvas dimensions based on orientation
         if (width > height) {
             // Landscape orientation
-            console.log(width, height);
             fabricCanvas?.setWidth(width);
             fabricCanvas?.setHeight(height); // Adjust height as needed
         } else {
             // Portrait orientation
-            console.log(width, height);
             fabricCanvas?.setWidth(width);
             fabricCanvas?.setHeight(height);
         }
@@ -392,7 +385,7 @@ const PDFEvaluator = () => {
                                             className="w-fit"
                                             disabled={isLoading}
                                         >
-                                            {tool.icon}
+                                            <tool.icon className={tool.color} />
                                         </Button>
                                     );
                                 })}

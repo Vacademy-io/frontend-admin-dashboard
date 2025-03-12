@@ -1,5 +1,6 @@
 import { Canvas, Textbox, IText, Rect, Circle, PencilBrush } from "fabric";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const useFabric = (fabricCanvas: Canvas | null) => {
     const [isDrawingMode, setIsDrawingMode] = useState(false);
@@ -111,6 +112,7 @@ const useFabric = (fabricCanvas: Canvas | null) => {
             fabricCanvas.discardActiveObject();
             fabricCanvas.renderAll();
         } else {
+            toast.error("Please select an item to delete");
             console.log("No shape selected to delete.");
         }
     }

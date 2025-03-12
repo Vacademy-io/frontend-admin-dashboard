@@ -9,34 +9,45 @@ const useCanvasTools = (fabricCanvas: Canvas | null) => {
 
     const tools = [
         {
-            icon: <FaPen className="size-6 text-blue-600" />,
+            icon: FaPen,
             label: "Pen",
+            color: "text-blue-600",
             action: () => canvasUtils.addPenTool("black"),
         },
         {
-            icon: <Check className="size-6 text-green-600" />,
+            icon: Check,
             label: "Tick",
+            color: "text-green-600",
             action: () => canvasUtils.addSymbol("✓", "green"),
         },
         {
-            icon: <X className="size-6 text-red-600" />,
+            icon: X,
             label: "Cross",
+            color: "text-red-600",
             action: () => canvasUtils.addSymbol("✗", "red"),
         },
-        { icon: <Type className="size-6" />, label: "Text", action: canvasUtils.addTextBox },
         {
-            icon: <Rectangle className="size-5 text-red-600" />,
+            icon: Type,
+            label: "Text",
+            color: "text-black",
+            action: canvasUtils.addTextBox,
+        },
+        {
+            icon: Rectangle,
             label: "Box",
+            color: "text-black",
             action: canvasUtils.addRectangle,
         },
         {
-            icon: <Circle className="size-5 text-red-600" />,
+            icon: Circle,
             label: "Circle",
+            color: "text-black",
             action: canvasUtils.addCircle,
         },
         {
-            icon: <Trash2 className="size-6 text-red-600" />,
+            icon: Trash2,
             label: "Delete",
+            color: "text-red-600",
             action: canvasUtils.deleteSelectedShape,
         },
     ];
