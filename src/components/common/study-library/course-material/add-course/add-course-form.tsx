@@ -273,7 +273,7 @@ export const AddCourseForm = ({
         if (courseName === "") {
             // Always disable if course name is empty
             setDisableAddButton(true);
-        } else if (containsLevelValue === true) {
+        } else if (containsLevelValue === true && !initialValues) {
             // Only check for sessions if "Contains Levels" is true
             if (!sessionValue || sessionValue.length === 0) {
                 setDisableAddButton(true);
