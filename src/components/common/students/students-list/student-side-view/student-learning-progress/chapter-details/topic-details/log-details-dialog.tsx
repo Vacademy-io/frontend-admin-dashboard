@@ -138,7 +138,7 @@ export const LogDetailsDialog = ({ isOpen, onClose, logData }: LogDetailsDialogP
     }, [logData, page, pageSize]);
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-[600px]">
+            <DialogContent className="w-[600px] max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle className="text-h3 font-semibold text-primary-500">
                         {isVideo ? "Video Timestamps Logs" : "Document Read Logs"}
