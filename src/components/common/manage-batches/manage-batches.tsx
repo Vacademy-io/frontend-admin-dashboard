@@ -1,13 +1,13 @@
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect, useState } from "react";
 import { SessionDropdown } from "../study-library/study-library-session-dropdown";
-import { MyButton } from "@/components/design-system/button";
 import { BatchSection } from "./batch-section";
 import { useGetBatchesQuery } from "@/services/manage-batches/get-batches";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { SessionType } from "@/schemas/student/student-list/institute-schema";
+import { CreateBatchDialog } from "./create-batch-dialog";
 
 export const ManageBatches = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -61,7 +61,7 @@ export const ManageBatches = () => {
                         className="text-title font-semibold"
                         sessionList={sessionList}
                     />
-                    <MyButton scale="large">Create Batch</MyButton>
+                    <CreateBatchDialog />
                 </div>
             </div>
             <div className="flex flex-col gap-10">
