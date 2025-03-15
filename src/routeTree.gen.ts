@@ -23,6 +23,7 @@ import { Route as StudyLibrarySessionIndexImport } from "./routes/study-library/
 import { Route as StudyLibraryCoursesIndexImport } from "./routes/study-library/courses/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as StudentsManageBatchesIndexImport } from "./routes/students/manage-batches/index";
+import { Route as StudentsInviteIndexImport } from "./routes/students/invite/index";
 import { Route as StudentsEnrollRequestsIndexImport } from "./routes/students/enroll-requests/index";
 import { Route as SignupOnboardingIndexImport } from "./routes/signup/onboarding/index";
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index";
@@ -111,6 +112,12 @@ const StudentsStudentsListIndexRoute = StudentsStudentsListIndexImport.update({
 const StudentsManageBatchesIndexRoute = StudentsManageBatchesIndexImport.update({
     id: "/students/manage-batches/",
     path: "/students/manage-batches/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const StudentsInviteIndexRoute = StudentsInviteIndexImport.update({
+    id: "/students/invite/",
+    path: "/students/invite/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -332,6 +339,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudentsEnrollRequestsIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/students/invite/": {
+            id: "/students/invite/";
+            path: "/students/invite";
+            fullPath: "/students/invite";
+            preLoaderRoute: typeof StudentsInviteIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/students/manage-batches/": {
             id: "/students/manage-batches/";
             path: "/students/manage-batches";
@@ -438,6 +452,7 @@ export interface FileRoutesByFullPath {
     "/login/forgot-password": typeof LoginForgotPasswordIndexRoute;
     "/signup/onboarding": typeof SignupOnboardingIndexRoute;
     "/students/enroll-requests": typeof StudentsEnrollRequestsIndexRoute;
+    "/students/invite": typeof StudentsInviteIndexRoute;
     "/students/manage-batches": typeof StudentsManageBatchesIndexRoute;
     "/students/students-list": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses": typeof StudyLibraryCoursesIndexRoute;
@@ -469,6 +484,7 @@ export interface FileRoutesByTo {
     "/login/forgot-password": typeof LoginForgotPasswordIndexRoute;
     "/signup/onboarding": typeof SignupOnboardingIndexRoute;
     "/students/enroll-requests": typeof StudentsEnrollRequestsIndexRoute;
+    "/students/invite": typeof StudentsInviteIndexRoute;
     "/students/manage-batches": typeof StudentsManageBatchesIndexRoute;
     "/students/students-list": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses": typeof StudyLibraryCoursesIndexRoute;
@@ -501,6 +517,7 @@ export interface FileRoutesById {
     "/login/forgot-password/": typeof LoginForgotPasswordIndexRoute;
     "/signup/onboarding/": typeof SignupOnboardingIndexRoute;
     "/students/enroll-requests/": typeof StudentsEnrollRequestsIndexRoute;
+    "/students/invite/": typeof StudentsInviteIndexRoute;
     "/students/manage-batches/": typeof StudentsManageBatchesIndexRoute;
     "/students/students-list/": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute;
@@ -534,6 +551,7 @@ export interface FileRouteTypes {
         | "/login/forgot-password"
         | "/signup/onboarding"
         | "/students/enroll-requests"
+        | "/students/invite"
         | "/students/manage-batches"
         | "/students/students-list"
         | "/study-library/courses"
@@ -564,6 +582,7 @@ export interface FileRouteTypes {
         | "/login/forgot-password"
         | "/signup/onboarding"
         | "/students/enroll-requests"
+        | "/students/invite"
         | "/students/manage-batches"
         | "/students/students-list"
         | "/study-library/courses"
@@ -594,6 +613,7 @@ export interface FileRouteTypes {
         | "/login/forgot-password/"
         | "/signup/onboarding/"
         | "/students/enroll-requests/"
+        | "/students/invite/"
         | "/students/manage-batches/"
         | "/students/students-list/"
         | "/study-library/courses/"
@@ -626,6 +646,7 @@ export interface RootRouteChildren {
     LoginForgotPasswordIndexRoute: typeof LoginForgotPasswordIndexRoute;
     SignupOnboardingIndexRoute: typeof SignupOnboardingIndexRoute;
     StudentsEnrollRequestsIndexRoute: typeof StudentsEnrollRequestsIndexRoute;
+    StudentsInviteIndexRoute: typeof StudentsInviteIndexRoute;
     StudentsManageBatchesIndexRoute: typeof StudentsManageBatchesIndexRoute;
     StudentsStudentsListIndexRoute: typeof StudentsStudentsListIndexRoute;
     StudyLibraryCoursesIndexRoute: typeof StudyLibraryCoursesIndexRoute;
@@ -657,6 +678,7 @@ const rootRouteChildren: RootRouteChildren = {
     LoginForgotPasswordIndexRoute: LoginForgotPasswordIndexRoute,
     SignupOnboardingIndexRoute: SignupOnboardingIndexRoute,
     StudentsEnrollRequestsIndexRoute: StudentsEnrollRequestsIndexRoute,
+    StudentsInviteIndexRoute: StudentsInviteIndexRoute,
     StudentsManageBatchesIndexRoute: StudentsManageBatchesIndexRoute,
     StudentsStudentsListIndexRoute: StudentsStudentsListIndexRoute,
     StudyLibraryCoursesIndexRoute: StudyLibraryCoursesIndexRoute,
@@ -702,6 +724,7 @@ export const routeTree = rootRoute
         "/login/forgot-password/",
         "/signup/onboarding/",
         "/students/enroll-requests/",
+        "/students/invite/",
         "/students/manage-batches/",
         "/students/students-list/",
         "/study-library/courses/",
@@ -763,6 +786,9 @@ export const routeTree = rootRoute
     },
     "/students/enroll-requests/": {
       "filePath": "students/enroll-requests/index.tsx"
+    },
+    "/students/invite/": {
+      "filePath": "students/invite/index.tsx"
     },
     "/students/manage-batches/": {
       "filePath": "students/manage-batches/index.tsx"

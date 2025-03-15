@@ -25,6 +25,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: "Enroll Requests",
                 subItemLink: "/students/enroll-requests",
             },
+            {
+                subItem: "Invite",
+                subItemLink: "/students/invite",
+            },
         ],
     },
     {

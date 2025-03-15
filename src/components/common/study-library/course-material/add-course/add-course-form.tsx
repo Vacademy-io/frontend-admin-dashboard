@@ -165,11 +165,6 @@ export const AddCourseForm = ({
     useEffect(() => {
         setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
     }, [instituteDetails]);
-
-    useEffect(() => {
-        console.log("sessionList: ", sessionList);
-    }, [sessionList]);
-
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
     const [newSessionStartDate, setNewSessionStartDate] = useState<string>("");
 
