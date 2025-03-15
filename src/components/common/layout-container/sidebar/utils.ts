@@ -21,10 +21,14 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: "Manage Batches",
                 subItemLink: "/students/manage-batches",
             },
-            // {
-            //     subItem: "Enroll Requests",
-            //     subItemLink: "/students/enroll-requests",
-            // },
+            {
+                subItem: "Enroll Requests",
+                subItemLink: "/students/enroll-requests",
+            },
+            {
+                subItem: "Invite",
+                subItemLink: "/students/invite",
+            },
         ],
     },
     {

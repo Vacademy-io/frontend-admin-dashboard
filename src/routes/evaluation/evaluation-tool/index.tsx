@@ -16,7 +16,6 @@ function RouteComponent() {
     }, []);
     return (
         <LayoutContainer>
-            {/* <EmptyDashboard /> */}
             <Helmet>
                 <title>Evaluation</title>
                 <meta
@@ -24,9 +23,7 @@ function RouteComponent() {
                     content="This page let you evaluate your students' responses."
                 />
             </Helmet>
-            {/* <div className="m-2 w-full scroll-mt-10 space-x-2 p-2"> */}
             <PDFEvaluator />
-            {/* </div> */}
         </LayoutContainer>
     );
 }
