@@ -1,4 +1,4 @@
-import { House, Users, BookOpen, Scroll, Globe } from "@phosphor-icons/react";
+import { House, Users, BookOpen, Scroll, Globe, FileMagnifyingGlass } from "@phosphor-icons/react";
 import { SidebarItemsType } from "../../../../types/layout-container/layout-container-types";
 
 export const SidebarItemsData: SidebarItemsType[] = [
@@ -62,6 +62,18 @@ export const SidebarItemsData: SidebarItemsType[] = [
             },
         ],
     },
+    {
+        icon: FileMagnifyingGlass,
+        title: "Evaluation Centre",
+        id: "evaluation-centre",
+        subItems: [
+            {
+                subItem: "Evaluation tool",
+                subItemLink: "/evaluation/evaluation-tool",
+            },
+        ],
+    },
+
     {
         icon: Globe,
         id: "Community Centre",

@@ -2,6 +2,7 @@ export enum IntroKey {
     dashboardFirstTimeVisit = "dashboardFirstTimeVisit",
     studentManagementFirstTimeVisit = "studentManagementFirstTimeVisit",
     assessmentFirstTimeVisit = "assessmentFirstTimeVisit",
+    dashboardWelcomeVideo = "dashboardWelcomeVideo",
 }
 
 export enum StudyLibraryIntroKey {
