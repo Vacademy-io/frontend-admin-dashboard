@@ -26,8 +26,6 @@ export const CSVFormatDialog = ({
     openDialog: boolean;
     setOpenDialog: Dispatch<SetStateAction<boolean>>;
 }) => {
-    // const [openDialog, setOpenDialog] = useState(false);
-
     const defaultValues = {
         autoGenerateUsername: true,
         autoGeneratePassword: true,
@@ -61,15 +59,8 @@ export const CSVFormatDialog = ({
         setCsvFormatFormValues(data);
     };
 
-    // const triggerButton = (
-    //     <MyButton buttonType="primary" layoutVariant="default" scale="large" type="submit">
-    //         Done
-    //     </MyButton>
-    // );
-
     return (
         <MyDialog
-            // trigger={triggerButton}
             heading="Download Template"
             dialogWidth="w-full"
             open={openDialog}
@@ -258,6 +249,7 @@ export const CSVFormatDialog = ({
                             <UploadCSVButton
                                 packageDetails={packageDetails}
                                 csvFormatDetails={csvFormatFormValues}
+                                setOpenDialog={setOpenDialog} // Pass down the setter function
                             />
                         </div>
                     </form>
