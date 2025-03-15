@@ -4,7 +4,7 @@ import "@excalidraw/excalidraw/index.css";
 
 const ExcalidrawWrapper: React.FC = () => {
     return (
-        <div className="m-8 aspect-video w-[70%] border p-4">
+        <div className="aspect-video w-[70%] border p-4 mt-20">
             <Excalidraw />
         </div>
     );
