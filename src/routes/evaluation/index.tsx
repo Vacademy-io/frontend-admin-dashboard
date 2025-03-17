@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import HeroSection from "./evaluation-tool/-components/home";
 
 export const Route = createFileRoute("/evaluation/")({
     component: RouteComponent,
 });
 
 function RouteComponent() {
-    return <HeroSection />;
+    return <div className="m-2 w-full space-x-2 p-2">Hello Evaluation</div>;
 }

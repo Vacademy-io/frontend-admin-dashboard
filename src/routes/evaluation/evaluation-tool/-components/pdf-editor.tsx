@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, ChangeEvent, Fragment } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Canvas } from "fabric";
-import { Upload, Download, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Upload, Download, ChevronLeft, ChevronRight, AlertCircle, RefreshCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogDescription } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -359,14 +359,14 @@ const PDFEvaluator = () => {
     }
 
     return (
-        <div className="flex w-full justify-between">
-            <div className="flex w-full justify-center gap-4">
+        <div className="flex h-full w-full justify-between">
+            <div className="gap- flex w-full justify-center gap-2">
                 {/* Loading overlay */}
                 {isLoading && <LoadingOverlay />}
 
-                <div className="flex gap-4">
+                <div className="flex">
                     {/* Toolbar */}
-                    <Card className="sticky top-0 z-10 max-h-fit max-w-20 overflow-y-scroll">
+                    <Card className="sticky top-[72px] z-10 max-h-fit max-w-20 overflow-y-scroll">
                         <CardHeader>
                             <CardTitle className="text-center">Tools</CardTitle>
                         </CardHeader>
@@ -392,6 +392,28 @@ const PDFEvaluator = () => {
                                 <Button onClick={() => setOpenCalc(true)}>
                                     <FaCalculator className="size-4 text-red-500" />
                                 </Button>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" className="">
+                                            Marks
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-2" side="right">
+                                        <div className="grid grid-cols-5 gap-2">
+                                            {numbers.map(({ value, action }) => (
+                                                <Button
+                                                    key={value}
+                                                    onClick={action}
+                                                    value={value.toString()}
+                                                    disabled={isLoading}
+                                                    className="text-base"
+                                                >
+                                                    {value}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
                                 <Button
                                     onClick={downloadAnnotatedPDF}
                                     className="hover:bg-primary-600 w-fit bg-primary-400 text-white"
@@ -410,38 +432,15 @@ const PDFEvaluator = () => {
                                         }
                                     }}
                                 >
-                                    <Upload className="size-4" />
+                                    <RefreshCcw className="size-4" />
                                 </Button>
                             </div>
-
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" className="">
-                                        Marks
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-64 p-2" side="right">
-                                    <div className="grid grid-cols-5 gap-2">
-                                        {numbers.map(({ value, action }) => (
-                                            <Button
-                                                key={value}
-                                                onClick={action}
-                                                value={value.toString()}
-                                                disabled={isLoading}
-                                                className="text-base"
-                                            >
-                                                {value}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
                         </CardContent>
                     </Card>
                 </div>
                 {/* PDF Viewer */}
                 <Card className="w-full">
-                    <CardHeader className="sticky top-0 z-10 bg-white py-1 shadow-md">
+                    <CardHeader className="sticky top-[72px] z-10 rounded-md bg-white py-1 shadow-md">
                         <div className="flex items-center justify-between">
                             <CardTitle>Answer Sheet Evaluation</CardTitle>
 
