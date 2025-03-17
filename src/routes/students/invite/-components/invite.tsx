@@ -2,8 +2,12 @@ import { MyButton } from "@/components/design-system/button";
 import { Copy, DotsThree, Plus } from "phosphor-react";
 import { InviteLinkType } from "../-types/invite-link-types";
 import { CreateInviteDialog } from "./create-invite-dialog";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const Invite = () => {
+    const [copySuccess, setCopySuccess] = useState<string | null>(null);
+
     const data: InviteLinkType[] = [
         {
             invite_link_name: "10th Premium Pro",
@@ -15,13 +19,13 @@ export const Invite = () => {
             invite_link_name: "10th Premium Pro",
             creation_date: "13/10/24",
             accepted_by: 23,
-            invite_link: "https://forms.gle/example123",
+            invite_link: "https://forms.gle/example124",
         },
         {
             invite_link_name: "10th Premium Pro",
             creation_date: "13/10/24",
             accepted_by: 23,
-            invite_link: "https://forms.gle/example123",
+            invite_link: "https://forms.gle/example125",
         },
     ];
 
@@ -36,6 +40,21 @@ export const Invite = () => {
             <MyButton>Create</MyButton>
         </div>
     );
+
+    const handleCopyClick = (link: string) => {
+        navigator.clipboard
+            .writeText(link)
+            .then(() => {
+                setCopySuccess(link);
+                setTimeout(() => {
+                    setCopySuccess(null);
+                }, 2000);
+            })
+            .catch((err) => {
+                console.log("Failed to copy link: ", err);
+                toast.error("Copy failed");
+            });
+    };
 
     return (
         <div className="flex w-full flex-col gap-10">
@@ -66,9 +85,19 @@ export const Invite = () => {
                         <div className="flex items-center gap-2">
                             <p className="text-body font-semibold">Invite Link: </p>
                             <p className="text-subtitle underline">{obj.invite_link}</p>
-                            <MyButton buttonType="secondary" scale="medium" layoutVariant="icon">
-                                <Copy />
-                            </MyButton>
+                            <div className="flex items-center gap-2">
+                                <MyButton
+                                    buttonType="secondary"
+                                    scale="medium"
+                                    layoutVariant="icon"
+                                    onClick={() => handleCopyClick(obj.invite_link)}
+                                >
+                                    <Copy />
+                                </MyButton>
+                                {copySuccess == obj.invite_link && (
+                                    <span className="text-caption text-primary-500">Copied!</span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 ))}
