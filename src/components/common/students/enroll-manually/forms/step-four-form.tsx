@@ -9,18 +9,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepFourData, stepFourSchema } from "@/types/students/schema-enroll-students-manually";
 import PhoneInputField from "@/components/design-system/phone-input-field";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
-export const StepFourForm = () => {
+export const StepFourForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const { stepFourData, setStepFourData, nextStep } = useFormStore();
 
     const form = useForm<StepFourData>({
         resolver: zodResolver(stepFourSchema),
         defaultValues: stepFourData || {
-            fatherName: "",
-            motherName: "",
+            fatherName: initialValues?.father_name || "",
+            motherName: initialValues?.mother_name || "",
             guardianName: "",
-            guardianEmail: "",
-            guardianMobileNumber: "",
+            guardianEmail: initialValues?.parents_email || "",
+            guardianMobileNumber: initialValues?.parents_mobile_number || "",
         },
         mode: "onChange",
     });

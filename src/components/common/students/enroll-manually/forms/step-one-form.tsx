@@ -15,8 +15,9 @@ import { MyButton } from "@/components/design-system/button";
 import { PencilSimpleLine } from "phosphor-react";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
-export const StepOneForm = () => {
+export const StepOneForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
@@ -37,7 +38,7 @@ export const StepOneForm = () => {
     const form = useForm<StepOneData>({
         resolver: zodResolver(stepOneSchema),
         defaultValues: stepOneData || {
-            profilePicture: null,
+            profilePicture: initialValues?.face_file_id || null,
         },
     });
 

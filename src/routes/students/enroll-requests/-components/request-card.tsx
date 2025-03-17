@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { MyButton } from "@/components/design-system/button";
 import { Copy } from "phosphor-react";
 import { MyDialog } from "@/components/design-system/dialog";
+import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
 
 export const RequestCard = ({ obj }: { obj: LearnerEnrollRequestType }) => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -78,9 +79,14 @@ export const RequestCard = ({ obj }: { obj: LearnerEnrollRequestType }) => {
                         >
                             Delete
                         </MyButton>
-                        <MyButton buttonType="primary" scale="medium">
-                            Accept
-                        </MyButton>
+                        <EnrollManuallyButton
+                            triggerButton={
+                                <MyButton buttonType="primary" scale="medium">
+                                    Accept
+                                </MyButton>
+                            }
+                            initialValues={obj.learner}
+                        />
                     </div>
                 </div>
             </div>
