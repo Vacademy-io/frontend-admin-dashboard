@@ -12,17 +12,16 @@ import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapt
 interface ChapterMenuOptionsProps {
     chapter: ChapterWithSlides;
     onDelete: () => void;
-    onEdit: (updatedChapter: ChapterWithSlides) => void;
     viewChapterDetails: () => void;
 }
 
 export const ChapterMenuOptions = ({
     chapter,
     onDelete,
-    onEdit,
     viewChapterDetails,
 }: ChapterMenuOptionsProps) => {
     const [openDialog, setOpenDialog] = useState<"copy" | "move" | "delete" | "edit" | null>(null);
+    const [openDeleteChapterDialog, setOpenDeleteChapterDialog] = useState(false);
 
     const handleSelect = (value: string) => {
         switch (value) {
@@ -33,7 +32,7 @@ export const ChapterMenuOptions = ({
                 setOpenDialog("edit");
                 break;
             case "delete":
-                onDelete();
+                setOpenDeleteChapterDialog(true);
                 break;
             case "copy":
                 setOpenDialog("copy");
@@ -44,8 +43,7 @@ export const ChapterMenuOptions = ({
         }
     };
 
-    const handleEditSuccess = (updatedChapter: ChapterWithSlides) => {
-        onEdit(updatedChapter);
+    const handleEditSuccess = () => {
         setOpenDialog(null);
     };
 
@@ -81,6 +79,27 @@ export const ChapterMenuOptions = ({
 
             {/* Move Dialog */}
             <MoveToDialog openDialog={openDialog} setOpenDialog={setOpenDialog} chapter={chapter} />
+
+            <MyDialog
+                heading="Delete Chapter"
+                open={openDeleteChapterDialog}
+                onOpenChange={() => setOpenDeleteChapterDialog(!openDeleteChapterDialog)}
+                footer={
+                    <div className="flex w-full items-center justify-between py-2">
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => setOpenDeleteChapterDialog(false)}
+                        >
+                            Cancel
+                        </MyButton>
+                        <MyButton buttonType="primary" onClick={() => onDelete()}>
+                            Yes, I am sure
+                        </MyButton>
+                    </div>
+                }
+            >
+                Are you sure you want to delete chapter {chapter.chapter.chapter_name}?
+            </MyDialog>
         </>
     );
 };

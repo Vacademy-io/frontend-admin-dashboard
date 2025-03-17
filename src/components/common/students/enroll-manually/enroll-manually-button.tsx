@@ -6,38 +6,51 @@ import { StepFourForm } from "./forms/step-four-form";
 import { StepFiveForm } from "./forms/step-five-form";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { MyDialog } from "@/components/design-system/dialog";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
-export const EnrollManuallyButton = () => {
+interface EnrollManuallyButtonProps {
+    triggerButton?: JSX.Element;
+    initialValues?: StudentTable;
+}
+
+export const EnrollManuallyButton = ({
+    triggerButton,
+    initialValues,
+}: EnrollManuallyButtonProps) => {
     const currentStep = useFormStore((state) => state.currentStep);
 
-    const renderCurrentStep = () => {
+    const renderCurrentStep = (initialValues?: StudentTable) => {
         switch (currentStep) {
             case 1:
-                return <StepOneForm />;
+                return <StepOneForm initialValues={initialValues} />;
             case 2:
-                return <StepTwoForm />;
+                return <StepTwoForm initialValues={initialValues} />;
             case 3:
-                return <StepThreeForm />;
+                return <StepThreeForm initialValues={initialValues} />;
             case 4:
-                return <StepFourForm />;
+                return <StepFourForm initialValues={initialValues} />;
             case 5:
-                return <StepFiveForm />;
+                return <StepFiveForm initialValues={initialValues} />;
             default:
-                return <StepOneForm />;
+                return <StepOneForm initialValues={initialValues} />;
         }
     };
 
     return (
         <MyDialog
             trigger={
-                <MyButton buttonType="secondary" scale="large" layoutVariant="default">
-                    Enroll Manually
-                </MyButton>
+                triggerButton ? (
+                    triggerButton
+                ) : (
+                    <MyButton buttonType="secondary" scale="large" layoutVariant="default">
+                        Enroll Manually
+                    </MyButton>
+                )
             }
             heading="Enroll Student"
             dialogWidth="w-[800px]"
         >
-            <>{renderCurrentStep()}</>
+            <>{renderCurrentStep(initialValues)}</>
         </MyDialog>
     );
 };

@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 // Create schema for form validation
 const inviteFormSchema = z.object({
@@ -51,14 +52,23 @@ const inviteFormSchema = z.object({
     generatedInviteLink: z.string(),
 });
 
-type InviteFormType = z.infer<typeof inviteFormSchema>;
+export type InviteFormType = z.infer<typeof inviteFormSchema>;
 
 interface CreateInviteDialogProps {
-    triggerButton: JSX.Element;
+    initialValues?: InviteFormType;
+    triggerButton?: JSX.Element;
     submitButton: JSX.Element;
+    open?: boolean;
+    onOpenChange?: () => void;
 }
 
-export const CreateInviteDialog = ({ triggerButton, submitButton }: CreateInviteDialogProps) => {
+export const CreateInviteDialog = ({
+    initialValues,
+    triggerButton,
+    submitButton,
+    open,
+    onOpenChange,
+}: CreateInviteDialogProps) => {
     const { instituteDetails, getCourseFromPackage, getLevelsFromPackage, getSessionFromPackage } =
         useInstituteDetailsStore();
     const [courseList, setCourseList] = useState(getCourseFromPackage());
@@ -74,6 +84,7 @@ export const CreateInviteDialog = ({ triggerButton, submitButton }: CreateInvite
             disabled: boolean;
         }[]
     >([]);
+    const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
     useEffect(() => {
         setCourseList(getCourseFromPackage());
@@ -85,9 +96,9 @@ export const CreateInviteDialog = ({ triggerButton, submitButton }: CreateInvite
     const form = useForm<InviteFormType>({
         resolver: zodResolver(inviteFormSchema),
         defaultValues: {
-            inviteLink: "",
-            activeStatus: true,
-            custom_fields: [
+            inviteLink: initialValues?.inviteLink || "",
+            activeStatus: initialValues?.activeStatus || true,
+            custom_fields: initialValues?.custom_fields || [
                 {
                     id: 0,
                     type: "textfield",
@@ -110,15 +121,16 @@ export const CreateInviteDialog = ({ triggerButton, submitButton }: CreateInvite
                     isRequired: true,
                 },
             ],
-            courseSelectionMode: "institute",
-            sessionSelectionMode: "institute",
-            levelSelectionMode: "institute",
-            studentExpiryDays: 365,
-            generatedInviteLink: "https://forms.gle/example123",
+            courseSelectionMode: initialValues?.courseSelectionMode || "institute",
+            sessionSelectionMode: initialValues?.sessionSelectionMode || "institute",
+            levelSelectionMode: initialValues?.levelSelectionMode || "institute",
+            studentExpiryDays: initialValues?.studentExpiryDays || 365,
+            generatedInviteLink:
+                initialValues?.generatedInviteLink || "https://forms.gle/example123",
         },
     });
 
-    const { control, watch, setValue, getValues } = form;
+    const { control, watch, setValue, getValues, reset } = form;
     const customFields = getValues("custom_fields");
 
     // Functions to handle custom fields
@@ -202,12 +214,35 @@ export const CreateInviteDialog = ({ triggerButton, submitButton }: CreateInvite
         );
     };
 
+    const handleCopyClick = (link: string) => {
+        navigator.clipboard
+            .writeText(link)
+            .then(() => {
+                setCopySuccess(link);
+                setTimeout(() => {
+                    setCopySuccess(null);
+                }, 2000);
+            })
+            .catch((err) => {
+                console.log("Failed to copy link: ", err);
+                toast.error("Copy failed");
+            });
+    };
+
+    useEffect(() => {
+        if (open && initialValues) {
+            reset(initialValues);
+        }
+    }, [open, initialValues, reset]);
+
     return (
         <MyDialog
             heading="Invite Students"
             footer={submitButton}
             trigger={triggerButton}
             dialogWidth="w-[80vw]"
+            open={open}
+            onOpenChange={onOpenChange}
         >
             <FormProvider {...form}>
                 <form>
@@ -908,34 +943,42 @@ export const CreateInviteDialog = ({ triggerButton, submitButton }: CreateInvite
 
                             <Separator />
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex w-fit items-center gap-4">
                                 <p className="text-subtitle font-semibold">Invite Link</p>
                                 <FormField
                                     control={control}
                                     name="generatedInviteLink"
                                     render={({ field }) => (
-                                        <FormItem>
+                                        <FormItem className="flex-grow">
                                             <FormControl>
-                                                <div className="rounded-lg border border-neutral-300 p-1 text-neutral-600 underline">
-                                                    {field.value}
-                                                </div>
+                                                <MyInput
+                                                    inputType="text"
+                                                    input={field.value}
+                                                    onChangeFunction={field.onChange}
+                                                    className="w-fit text-wrap"
+                                                />
                                             </FormControl>
                                         </FormItem>
                                     )}
                                 />
-                                <MyButton
-                                    buttonType="secondary"
-                                    layoutVariant="icon"
-                                    scale="medium"
-                                    type="button"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(
-                                            getValues("generatedInviteLink"),
-                                        );
-                                    }}
-                                >
-                                    <Copy />
-                                </MyButton>
+                                <div className="flex items-center gap-2">
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="icon"
+                                        onClick={() =>
+                                            handleCopyClick(form.getValues("generatedInviteLink"))
+                                        }
+                                        type="button"
+                                    >
+                                        <Copy />
+                                    </MyButton>
+                                    {copySuccess == form.getValues("generatedInviteLink") && (
+                                        <span className="text-caption text-primary-500">
+                                            Copied!
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

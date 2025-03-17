@@ -12,17 +12,58 @@ import { StepTwoData, stepTwoSchema } from "@/types/students/schema-enroll-stude
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useEffect, useRef, useState } from "react";
 import { DropdownItemType } from "../dropdownTypesForPackageItems";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 
-export const StepTwoForm = () => {
+export const StepTwoForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
     const genderList = useGetGenders();
 
-    const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage } =
-        useInstituteDetailsStore();
+    const {
+        getCourseFromPackage,
+        getSessionFromPackage,
+        getLevelsFromPackage,
+        getDetailsFromPackageSessionId,
+    } = useInstituteDetailsStore();
 
     const [courseList, setCourseList] = useState<DropdownItemType[]>(getCourseFromPackage());
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
     const [levelList, setLevelList] = useState<DropdownItemType[]>(getLevelsFromPackage());
+
+    const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
+
+    useEffect(() => {
+        if (initialValues) {
+            const details = getDetailsFromPackageSessionId({
+                packageSessionId: initialValues.package_session_id,
+            });
+            setInitialBatch(details);
+
+            if (details) {
+                form.reset({
+                    fullName: initialValues?.full_name || "",
+                    course: {
+                        id: initialBatch?.package_dto.id || "",
+                        name: initialBatch?.package_dto.package_name || "",
+                    },
+                    session: {
+                        id: initialBatch?.session.id || "",
+                        name: initialBatch?.session.session_name || "",
+                    },
+                    level: {
+                        id: initialBatch?.level.id || "",
+                        name: initialBatch?.level.level_name || "",
+                    },
+                    accessDays: initialValues?.session_expiry_days.toString() || "",
+                    enrollmentNumber: initialValues?.institute_enrollment_id || "",
+                    gender: initialValues?.gender || "",
+                    collegeName: initialValues?.linked_institute_name || "",
+                });
+            }
+        } else {
+            setInitialBatch(null);
+        }
+    }, [initialValues]);
 
     // Track which field was most recently changed
     const lastChangedField = useRef<string | null>(null);
@@ -30,23 +71,23 @@ export const StepTwoForm = () => {
     const form = useForm<StepTwoData>({
         resolver: zodResolver(stepTwoSchema),
         defaultValues: stepTwoData || {
-            fullName: "",
+            fullName: initialValues?.full_name || "",
             course: {
-                id: "",
-                name: "",
+                id: initialBatch?.package_dto.id || "",
+                name: initialBatch?.package_dto.package_name || "",
             },
             session: {
-                id: "",
-                name: "",
+                id: initialBatch?.session.id || "",
+                name: initialBatch?.session.session_name || "",
             },
             level: {
-                id: "",
-                name: "",
+                id: initialBatch?.level.id || "",
+                name: initialBatch?.level.level_name || "",
             },
-            accessDays: "",
-            enrollmentNumber: "",
-            gender: "",
-            collegeName: "",
+            accessDays: initialValues?.session_expiry_days.toString() || "",
+            enrollmentNumber: initialValues?.institute_enrollment_id || "",
+            gender: initialValues?.gender || "",
+            collegeName: initialValues?.linked_institute_name || "",
         },
         mode: "onChange",
     });

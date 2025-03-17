@@ -10,19 +10,20 @@ import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-
 import { StepThreeData, stepThreeSchema } from "@/types/students/schema-enroll-students-manually";
 import PhoneInputField from "@/components/design-system/phone-input-field";
 import { useEffect } from "react";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
-export const StepThreeForm = () => {
+export const StepThreeForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const { stepThreeData, setStepThreeData, nextStep } = useFormStore();
 
     const form = useForm<StepThreeData>({
         resolver: zodResolver(stepThreeSchema),
         defaultValues: stepThreeData || {
-            mobileNumber: "",
-            email: "",
-            addressLine: "",
-            city: "",
-            state: "",
-            pincode: "",
+            mobileNumber: initialValues?.mobile_number || "",
+            email: initialValues?.email || "",
+            addressLine: initialValues?.address_line || "",
+            city: initialValues?.city || "",
+            state: initialValues?.region || "",
+            pincode: initialValues?.pin_code || "",
         },
         mode: "onChange",
     });
