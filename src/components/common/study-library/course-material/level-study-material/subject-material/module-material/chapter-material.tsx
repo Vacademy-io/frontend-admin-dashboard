@@ -100,7 +100,7 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         setSelectedSession(currentSession);
         // setModulesWithChapters(getModuleById(currentModuleId));
         setExistingChapters(getChaptersByModuleId(currentModuleId) || []);
-    }, [currentSession, modulesWithChaptersData]);
+    }, [currentSession, modulesWithChaptersData, currentModuleId]);
 
     return (
         <div className="flex size-full flex-col gap-8 text-neutral-600">
