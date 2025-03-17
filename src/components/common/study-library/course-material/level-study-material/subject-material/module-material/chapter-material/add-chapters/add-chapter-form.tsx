@@ -126,6 +126,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                         doc_count: 0,
                         unknown_count: 0,
                     },
+                    chapter_in_package_sessions: Object.values(data.visibility).flat(),
                 };
 
                 toast.success("Chapter added successfully");

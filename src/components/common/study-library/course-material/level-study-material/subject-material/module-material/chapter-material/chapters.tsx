@@ -13,7 +13,7 @@ import { orderChapterPayloadType } from "@/types/study-library/order-payload";
 
 interface ChaptersProps {
     chapters?: ChapterWithSlides[];
-    onDeleteChapter?: (index: number) => void;
+    onDeleteChapter?: ({ chapter }: { chapter: ChapterWithSlides }) => void;
     onEditChapter?: (index: number, updatedChapter: ChapterWithSlides) => void;
     onOrderChange?: (updatedOrder: orderChapterPayloadType[]) => void;
     isLoading?: boolean;
@@ -80,7 +80,7 @@ export const Chapters = ({
                             <div className="cursor-grab active:cursor-grabbing">
                                 <ChapterCard
                                     chapter={chapter}
-                                    onDelete={() => onDeleteChapter(index)}
+                                    onDelete={() => onDeleteChapter({ chapter: chapter })}
                                     onEdit={(updatedChapter) =>
                                         onEditChapter(index, updatedChapter)
                                     }
