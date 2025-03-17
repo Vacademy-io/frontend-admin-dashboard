@@ -45,3 +45,6 @@ export { EmptyStudentListImage };
 
 import EmptyInvitePage from "./empty-invite-page.svg";
 export { EmptyInvitePage };
+
+import EmptyRequestPage from "./empty-request-page.svg";
+export { EmptyRequestPage };
