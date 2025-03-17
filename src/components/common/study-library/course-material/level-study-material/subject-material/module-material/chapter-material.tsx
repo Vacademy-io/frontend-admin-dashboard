@@ -66,18 +66,6 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         steps: studyLibrarySteps.addChaptersStep,
     });
 
-    const handleAddChapter = (chapter: ChapterWithSlides) => {
-        const newChapter = {
-            ...chapter,
-            description: "Click to view and access eBooks and video lectures for this chapter.",
-            resourceCount: {
-                ebooks: 0,
-                videos: 0,
-            },
-        };
-        form.setValue("chapters", [...form.getValues("chapters"), newChapter]);
-    };
-
     const handleDeleteChapter = async ({ chapter }: { chapter: ChapterWithSlides }) => {
         const packageSessionId = getPackageSessionId({
             courseId: courseId || "",
@@ -94,14 +82,6 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         } catch {
             toast.error("Failed to delete chapter");
         }
-    };
-
-    const handleEditChapter = (index: number, updatedChapter: ChapterWithSlides) => {
-        const currentChapters = form.getValues("chapters");
-        form.setValue(
-            "chapters",
-            currentChapters.map((chapter, i) => (i === index ? updatedChapter : chapter)),
-        );
     };
 
     const handleChapterOrderChange = (orderPayload: orderChapterPayloadType[]) => {
@@ -134,7 +114,7 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                             enhance your learning experience.
                         </p>
                     </div>
-                    <AddChapterButton onAddChapter={handleAddChapter} />
+                    <AddChapterButton />
                 </div>
             </div>
             <SessionDropdown
@@ -148,7 +128,6 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                 form={form}
                 chapters={form.watch("chapters")}
                 onDeleteChapter={handleDeleteChapter}
-                onEditChapter={handleEditChapter}
                 isLoading={isChapterLoading}
                 onOrderChange={handleChapterOrderChange}
             />

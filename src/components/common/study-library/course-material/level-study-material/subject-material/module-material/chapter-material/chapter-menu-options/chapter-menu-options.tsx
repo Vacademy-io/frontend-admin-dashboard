@@ -12,14 +12,12 @@ import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapt
 interface ChapterMenuOptionsProps {
     chapter: ChapterWithSlides;
     onDelete: () => void;
-    onEdit: (updatedChapter: ChapterWithSlides) => void;
     viewChapterDetails: () => void;
 }
 
 export const ChapterMenuOptions = ({
     chapter,
     onDelete,
-    onEdit,
     viewChapterDetails,
 }: ChapterMenuOptionsProps) => {
     const [openDialog, setOpenDialog] = useState<"copy" | "move" | "delete" | "edit" | null>(null);
@@ -45,8 +43,7 @@ export const ChapterMenuOptions = ({
         }
     };
 
-    const handleEditSuccess = (updatedChapter: ChapterWithSlides) => {
-        onEdit(updatedChapter);
+    const handleEditSuccess = () => {
         setOpenDialog(null);
     };
 

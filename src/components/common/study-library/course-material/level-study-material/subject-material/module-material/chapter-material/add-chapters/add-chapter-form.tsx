@@ -12,10 +12,9 @@ import { useUpdateChapter } from "@/services/study-library/chapter-operations/up
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { levelsWithPackageDetails } from "@/schemas/student/student-list/institute-schema";
-import { useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
-// // Form schema
+
 const formSchema = z.object({
     chapterName: z.string().min(1, "Chapter name is required"),
     visibility: z.record(z.string(), z.array(z.string())),
@@ -25,7 +24,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface AddChapterFormProps {
     initialValues?: ChapterWithSlides;
-    onSubmitSuccess: (chapter: ChapterWithSlides) => void;
+    onSubmitSuccess: () => void;
     mode: "create" | "edit";
 }
 
@@ -44,10 +43,6 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
         sessionId: sessionId,
     });
 
-    useEffect(() => {
-        console.log("initial values: ", initialValues);
-    }, []);
-
     // Create default visibility object
     const defaultVisibility = coursesWithLevels.reduce(
         (acc, course) => {
@@ -61,10 +56,36 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
         resolver: zodResolver(formSchema),
         defaultValues: {
             chapterName: initialValues?.chapter.chapter_name || "",
-            visibility: {
-                ...defaultVisibility,
-                [courseId]: package_session_id ? [package_session_id] : [], // Add the package_session_id to the corresponding course
-            },
+            visibility: initialValues?.chapter_in_package_sessions
+                ? initialValues.chapter_in_package_sessions.reduce(
+                      (acc, psId) => {
+                          // Find which course this packageSessionId belongs to
+                          for (const course of coursesWithLevels) {
+                              for (const level of course.level) {
+                                  const coursePackageSessionId = getPackageSessionId({
+                                      courseId: course.package_dto.id,
+                                      sessionId: sessionId,
+                                      levelId: level.level_dto.id,
+                                  });
+
+                                  if (coursePackageSessionId === psId) {
+                                      // Add to that course's array
+                                      acc[course.package_dto.id] = [
+                                          ...(acc[course.package_dto.id] || []),
+                                          psId,
+                                      ];
+                                      break;
+                                  }
+                              }
+                          }
+                          return acc;
+                      },
+                      { ...defaultVisibility },
+                  )
+                : {
+                      ...defaultVisibility,
+                      [courseId]: package_session_id ? [package_session_id] : [],
+                  },
         },
     });
 
@@ -99,8 +120,6 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                 return;
             }
 
-            let resultChapter: ChapterWithSlides;
-
             if (mode === "create") {
                 const newChapter = {
                     id: crypto.randomUUID(),
@@ -117,17 +136,6 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                     commaSeparatedPackageSessionIds: selectedPackageSessionIds,
                     chapter: newChapter,
                 });
-
-                resultChapter = {
-                    chapter: newChapter,
-                    slides_count: {
-                        video_count: 0,
-                        pdf_count: 0,
-                        doc_count: 0,
-                        unknown_count: 0,
-                    },
-                    chapter_in_package_sessions: Object.values(data.visibility).flat(),
-                };
 
                 toast.success("Chapter added successfully");
             } else {
@@ -147,15 +155,10 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                     chapter: updatedChapter,
                 });
 
-                resultChapter = {
-                    ...initialValues,
-                    chapter: updatedChapter,
-                };
-
                 toast.success("Chapter updated successfully");
             }
 
-            onSubmitSuccess(resultChapter);
+            onSubmitSuccess();
         } catch (error) {
             console.error("Error handling chapter:", error);
             toast.error(`Failed to ${mode} chapter. Please try again.`);
@@ -251,8 +254,6 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                                 sessionId: sessionId,
                                                                 levelId: level.level_dto.id,
                                                             });
-                                                        const isPreChecked =
-                                                            packageSessionId === package_session_id;
 
                                                         return (
                                                             <label
@@ -265,14 +266,13 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
                                                             >
                                                                 <Checkbox
                                                                     checked={
-                                                                        isPreChecked || // Add this condition
-                                                                        (packageSessionId
+                                                                        packageSessionId
                                                                             ? (
                                                                                   field.value || []
                                                                               ).includes(
                                                                                   packageSessionId,
                                                                               )
-                                                                            : false)
+                                                                            : false
                                                                     }
                                                                     onCheckedChange={(
                                                                         checked: boolean,

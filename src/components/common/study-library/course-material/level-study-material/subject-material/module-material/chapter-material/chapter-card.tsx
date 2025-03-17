@@ -9,10 +9,9 @@ import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapt
 interface ChapterCardProps {
     chapter: ChapterWithSlides;
     onDelete: () => void;
-    onEdit: (updatedChapter: ChapterWithSlides) => void;
 }
 
-export const ChapterCard = ({ chapter, onDelete, onEdit }: ChapterCardProps) => {
+export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const router = useRouter();
@@ -55,7 +54,6 @@ export const ChapterCard = ({ chapter, onDelete, onEdit }: ChapterCardProps) => 
                         <ChapterMenuOptions
                             chapter={chapter}
                             onDelete={onDelete}
-                            onEdit={onEdit}
                             viewChapterDetails={navigateToSlidePage}
                         />
                         <SortableDragHandle
