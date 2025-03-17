@@ -42,3 +42,6 @@ export { SSDC_Logo };
 
 import EmptyStudentListImage from "./empty-students-image.svg";
 export { EmptyStudentListImage };
+
+import EmptyInvitePage from "./empty-invite-page.svg";
+export { EmptyInvitePage };
