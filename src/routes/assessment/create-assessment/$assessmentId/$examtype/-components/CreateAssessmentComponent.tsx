@@ -6,9 +6,6 @@ import { Helmet } from "react-helmet";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Route } from "..";
 import { useNavigate } from "@tanstack/react-router";
-import useIntroJsTour from "@/hooks/use-intro";
-import { IntroKey } from "@/constants/storage/introKey";
-import { createAssesmentSteps } from "@/constants/intro/steps";
 import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
@@ -126,14 +123,6 @@ const CreateAssessmentComponent = () => {
             setIsOpen(true);
         }
     }, []);
-
-    useIntroJsTour({
-        key: IntroKey.assessmentFirstTimeVisit,
-        steps: createAssesmentSteps.filter((step) => step.element !== "#create-assessment"),
-        onTourExit: () => {
-            console.log("Tour Completed");
-        },
-    });
 
     const goToStep = (index: number) => {
         if (index <= currentStep || completedSteps[index - 1]) {
