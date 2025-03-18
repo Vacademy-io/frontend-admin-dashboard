@@ -196,7 +196,7 @@ export const AddDocDialog = ({
                                 className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
                             />
                             <p className="mt-2 text-sm text-neutral-600">
-                                Converting... {uploadProgress}%
+                                This may take a few moments...
                             </p>
                         </div>
                     </>
