@@ -151,61 +151,56 @@ export const StepFiveForm = ({ initialValues }: { initialValues?: StudentTable }
                             </FormItemWrapper>
                         )}
 
-                        {showCredentials ||
-                            (initialValues && (
-                                <div className="flex flex-col gap-8">
-                                    <FormField
-                                        control={form.control}
-                                        name="username"
-                                        render={({ field: { value, ...field } }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <MyInput
-                                                        inputType="text"
-                                                        label="Username"
-                                                        inputPlaceholder="username"
-                                                        input={value}
-                                                        onChangeFunction={() => {}}
-                                                        error={
-                                                            form.formState.errors.username?.message
-                                                        }
-                                                        required={true}
-                                                        size="large"
-                                                        className="w-full"
-                                                        disabled={true}
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
+                        {(showCredentials || initialValues) && (
+                            <div className="flex flex-col gap-8">
+                                <FormField
+                                    control={form.control}
+                                    name="username"
+                                    render={({ field: { value, ...field } }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <MyInput
+                                                    inputType="text"
+                                                    label="Username"
+                                                    inputPlaceholder="username"
+                                                    input={value}
+                                                    onChangeFunction={() => {}}
+                                                    error={form.formState.errors.username?.message}
+                                                    required={true}
+                                                    size="large"
+                                                    className="w-full"
+                                                    disabled={true}
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
 
-                                    <FormField
-                                        control={form.control}
-                                        name="password"
-                                        render={({ field: { onChange, value, ...field } }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <MyInput
-                                                        inputType="password"
-                                                        label="Password"
-                                                        inputPlaceholder="....."
-                                                        input={value}
-                                                        onChangeFunction={onChange}
-                                                        error={
-                                                            form.formState.errors.password?.message
-                                                        }
-                                                        required={true}
-                                                        size="large"
-                                                        className="w-full"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            ))}
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field: { onChange, value, ...field } }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <MyInput
+                                                    inputType="password"
+                                                    label="Password"
+                                                    inputPlaceholder="....."
+                                                    input={value}
+                                                    onChangeFunction={onChange}
+                                                    error={form.formState.errors.password?.message}
+                                                    required={true}
+                                                    size="large"
+                                                    className="w-full"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
                     </form>
                 </Form>
             </div>

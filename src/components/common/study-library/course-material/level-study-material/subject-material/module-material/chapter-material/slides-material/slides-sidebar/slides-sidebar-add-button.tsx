@@ -122,7 +122,7 @@ export const ChapterSidebarAddButton = () => {
             <MyDialog
                 trigger={<></>}
                 heading="Upload PDF"
-                dialogWidth="w-[400px]"
+                dialogWidth="min-w-[400px] w-auto"
                 open={isPdfDialogOpen}
                 onOpenChange={closePdfDialog} // Pass the action function directly
             >
@@ -133,7 +133,7 @@ export const ChapterSidebarAddButton = () => {
             <MyDialog
                 trigger={<></>}
                 heading="Upload Document"
-                dialogWidth="w-[400px]"
+                dialogWidth="min-w-[400px] w-auto"
                 open={isDocUploadDialogOpen}
                 onOpenChange={closeDocUploadDialog} // Pass the action function directly
             >
@@ -144,7 +144,7 @@ export const ChapterSidebarAddButton = () => {
             <MyDialog
                 trigger={<></>}
                 heading="Upload Video"
-                dialogWidth="w-[400px]"
+                dialogWidth="min-w-[400px]"
                 open={isVideoDialogOpen}
                 onOpenChange={closeVideoDialog} // Pass the action function directly
             >

@@ -39,7 +39,7 @@ export const formatHTMLString = (htmlString: string) => {
 };
 
 export const SlideMaterial = () => {
-    const { items, activeItem } = useContentStore();
+    const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -116,12 +116,10 @@ export const SlideMaterial = () => {
     };
 
     const setEditorContent = () => {
-        console.log("inside set function");
         const docData =
             activeItem?.status == "PUBLISHED"
                 ? activeItem.published_data
                 : activeItem?.document_data;
-        console.log("docData: ", docData);
         const editorContent = html.deserialize(editor, docData || "");
         editor.setEditorValue(editorContent);
         setContent(
@@ -143,7 +141,7 @@ export const SlideMaterial = () => {
     };
 
     const loadContent = async () => {
-        if (!activeItem) {
+        if (activeItem == null) {
             setContent(
                 <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
                     <EmptySlideMaterial />
@@ -151,9 +149,7 @@ export const SlideMaterial = () => {
                 </div>,
             );
             return;
-        }
-
-        if (activeItem.published_url != null || activeItem.video_url != null) {
+        } else if (activeItem.published_url != null || activeItem.video_url != null) {
             setContent(
                 <div key={`video-${activeItem.slide_id}`} className="size-full">
                     <YouTubePlayer
@@ -167,9 +163,7 @@ export const SlideMaterial = () => {
                 </div>,
             );
             return;
-        }
-
-        if (activeItem?.document_type == "PDF") {
+        } else if (activeItem?.document_type == "PDF" && activeItem != null) {
             const url = await getPublicUrl(
                 (activeItem.status == "PUBLISHED"
                     ? activeItem.published_data
@@ -177,9 +171,7 @@ export const SlideMaterial = () => {
             );
             setContent(<PDFViewer pdfUrl={url} />);
             return;
-        }
-
-        if (activeItem?.document_type === "DOC") {
+        } else if (activeItem?.document_type === "DOC" && activeItem != null) {
             try {
                 setTimeout(() => {
                     setEditorContent();
@@ -284,11 +276,13 @@ export const SlideMaterial = () => {
     };
 
     useEffect(() => {
+        if (items.length == 0) setActiveItem(null);
+    }, [items]);
+
+    useEffect(() => {
         setHeading(activeItem?.document_title || activeItem?.video_title || "");
-        setContent(null);
-        console.log("active item changed: ", activeItem);
         loadContent();
-    }, [activeItem, items]);
+    }, [activeItem]);
 
     // Modified SaveDraft function
     const SaveDraft = () => {

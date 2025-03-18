@@ -24,6 +24,10 @@ export const ChapterSidebarSlides = ({
     const { chapterId, slideId } = router.state.location.search;
     const { slides, isLoading } = useSlides(chapterId || "");
 
+    useEffect(() => {
+        form.setValue("slides", items || []);
+    }, [items]);
+
     const form = useForm<FormValues>({
         defaultValues: {
             slides: items || [],

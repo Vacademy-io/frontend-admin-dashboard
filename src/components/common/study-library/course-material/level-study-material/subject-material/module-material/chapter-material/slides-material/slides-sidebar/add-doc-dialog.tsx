@@ -145,7 +145,7 @@ export const AddDocDialog = ({
                     }
                     isUploading={isUploading}
                     error={error}
-                    className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500 pb-6 focus:outline-none"
+                    className="flex flex-col items-center rounded-lg border-[2px] border-dashed border-primary-500 px-5 pb-6 focus:outline-none"
                 >
                     <div className="pointer-events-none flex flex-col items-center gap-6">
                         <ImportFileImage />
@@ -196,7 +196,7 @@ export const AddDocDialog = ({
                                 className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
                             />
                             <p className="mt-2 text-sm text-neutral-600">
-                                Converting... {uploadProgress}%
+                                This may take a few moments...
                             </p>
                         </div>
                     </>

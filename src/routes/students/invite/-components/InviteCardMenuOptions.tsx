@@ -1,10 +1,11 @@
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { CreateInviteDialog, InviteFormType } from "./create-invite-dialog";
 import { MyButton } from "@/components/design-system/button";
 import { DotsThree } from "phosphor-react";
 import { useState } from "react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { InviteLinkType } from "../-types/invite-link-types";
+import { InviteFormType } from "./create-invite/-schema/InviteFormSchema";
+import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
 
 interface InviteCardMenuOptionsProps {
     invite: InviteLinkType;
@@ -60,6 +61,7 @@ export const InviteCardMenuOptions = ({ invite, onDelete }: InviteCardMenuOption
         studentExpiryDays: 200,
         generatedInviteLink: "https://forms.gle/example123",
         inviteeEmail: "shristi@gmail.com",
+        inviteeEmails: [],
     };
 
     return (

@@ -1,5 +1,4 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
 import { SlideMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/add-chapters/slide-material";
 import { ChapterSidebarAddButton } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
 import { ChapterSidebarSlides } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
@@ -19,7 +18,7 @@ import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-nam
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
-import { CaretLeft, MagnifyingGlass } from "phosphor-react";
+import { CaretLeft } from "phosphor-react";
 import { useEffect, useState } from "react";
 
 interface ChapterSearchParams {
@@ -49,8 +48,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
     const { courseId, subjectId, levelId, moduleId, chapterId } = Route.useSearch();
-    const [inputSearch, setInputSearch] = useState("");
-    const { open, state, toggleSidebar } = useSidebar();
+    const { open } = useSidebar();
     const navigate = useNavigate();
     const { activeItem } = useContentStore();
     const [subjectName, setSubjectName] = useState("");
@@ -88,10 +86,6 @@ function RouteComponent() {
             },
             hash: "",
         });
-    };
-
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInputSearch(e.target.value);
     };
 
     const handleSlideOrderChange = async (slideOrderPayload: slideOrderPayloadType) => {
@@ -135,7 +129,8 @@ function RouteComponent() {
                     </p>
                 </div>
                 <div className="flex w-full flex-col items-center gap-6">
-                    {open ? (
+                    {/* <>
+                   {open ? (
                         <SearchInput
                             searchInput={inputSearch}
                             placeholder="Search chapters"
@@ -149,6 +144,7 @@ function RouteComponent() {
                             }}
                         />
                     )}
+                    </> */}
                     <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
                 </div>
             </div>
