@@ -9,7 +9,7 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyButton } from "@/components/design-system/button";
 import { ImportFileImage } from "@/assets/svgs";
 import { useBulkUploadInit } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadInit";
-import { useState, useCallback } from "react";
+import { useState, useCallback, Dispatch, SetStateAction } from "react";
 import { useDropzone } from "react-dropzone";
 import { validateCsvData, createAndDownloadCsv } from "./utils/csv-utils";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
@@ -25,6 +25,7 @@ import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-stude
 import { PreviewDialog } from "./preview-dialog";
 import { toast } from "sonner";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface FileState {
     file: File | null;
@@ -35,6 +36,7 @@ interface UploadCSVButtonProps {
     disable?: boolean;
     packageDetails: enrollBulkFormType;
     csvFormatDetails: CSVFormatFormType;
+    setOpenDialog?: Dispatch<SetStateAction<boolean>>; // New prop to close CSV Format Dialog
 }
 
 // Define a more specific type for API responses
@@ -49,6 +51,7 @@ export const UploadCSVButton = ({
     disable,
     packageDetails,
     csvFormatDetails,
+    setOpenDialog,
 }: UploadCSVButtonProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
@@ -66,6 +69,17 @@ export const UploadCSVButton = ({
         sessionId: packageDetails.session.id || "",
         levelId: packageDetails.level.id || "",
     });
+    const queryClient = useQueryClient();
+
+    // Function to close all dialogs
+    const closeAllDialogs = () => {
+        setShowPreview(false);
+        setIsOpen(false);
+        // Close the CSV Format Dialog if it's open
+        if (setOpenDialog) {
+            setOpenDialog(false);
+        }
+    };
 
     const requestPayload = {
         auto_generate_config: {
@@ -249,11 +263,13 @@ export const UploadCSVButton = ({
                     className: "success-toast",
                     duration: 3000,
                 });
+                queryClient.invalidateQueries({ queryKey: ["yourQueryKey"] });
             } else if (stats.partialSuccess) {
                 toast.warning(message, {
                     className: "warning-toast",
                     duration: 3000,
                 });
+                queryClient.invalidateQueries({ queryKey: ["yourQueryKey"] });
             } else {
                 toast.error(message, {
                     className: "error-toast",
@@ -410,6 +426,7 @@ export const UploadCSVButton = ({
                     uploadCompleted={uploadCompleted}
                     uploadResponse={uploadResponse}
                     onDownloadResponse={handleDownloadResponse}
+                    closeAllDialogs={closeAllDialogs} // Pass closeAllDialogs function
                 />
             )}
         </>

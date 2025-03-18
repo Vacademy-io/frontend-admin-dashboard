@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
@@ -21,6 +21,8 @@ import { Helmet } from "react-helmet";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
+import RoleTypeComponent from "./-components/RoleTypeComponent";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -33,6 +35,8 @@ export const Route = createFileRoute("/dashboard/")({
 export function DashboardComponent() {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
+    const location = useLocation();
+    const { getValue, setValue } = useLocalStorage<boolean>(IntroKey.dashboardWelcomeVideo, true);
     const { data: instituteDetails, isLoading: isInstituteLoading } =
         useSuspenseQuery(useInstituteQuery());
     const subModules = getModuleFlags(instituteDetails?.sub_modules);
@@ -50,6 +54,13 @@ export function DashboardComponent() {
             console.log("Tour Completed");
         },
     });
+
+    useEffect(() => {
+        console.log(location.pathname);
+        if (location.pathname !== "/dashboard") {
+            setValue(false);
+        }
+    }, [location.pathname, setValue]);
 
     const handleAssessmentTypeRoute = (type: string) => {
         navigate({
@@ -89,18 +100,22 @@ export function DashboardComponent() {
             <h1 className="text-2xl">
                 Hello <span className="text-primary-500">{tokenData?.fullname}!</span>
             </h1>
-            <p className="mt-1 text-sm">
-                Welcome aboard! We&apos;re excited to have you here. Let’s set up your admin
-                dashboard and make learning seamless and engaging.
-            </p>
-            {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
-                <iframe
-                    className="m-auto mt-6 h-[70vh] w-[70%] rounded-xl"
-                    src="https://www.youtube.com/embed/ovEtbkMzcUQ"
-                    title="YouTube video player"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                />
+            {getValue() && (
+                <>
+                    <p className="mt-1 text-sm">
+                        Welcome aboard! We&apos;re excited to have you here. Let&apos;s set up your
+                        admin dashboard and make learning seamless and engaging.
+                    </p>
+                    {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
+                        <iframe
+                            className="m-auto mt-6 h-[70vh] w-[70%] rounded-xl"
+                            src="https://www.youtube.com/embed/s2z1xbCWwRE?si=cgJvdMCJ8xg32lZ7"
+                            title="YouTube video player"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                        />
+                    )}
+                </>
             )}
             <div className="mt-8 flex w-full flex-col gap-6">
                 <Card className="grow bg-neutral-50 shadow-none">
@@ -133,17 +148,8 @@ export function DashboardComponent() {
                         <Card className="flex-1 bg-neutral-50 shadow-none">
                             <CardHeader className="flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
-                                    <CardTitle>Add users to various role types</CardTitle>
-                                    <MyButton
-                                        type="submit"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="text-sm"
-                                    >
-                                        <Plus size={32} />
-                                        Add Users
-                                    </MyButton>
+                                    <CardTitle>Role Type Users</CardTitle>
+                                    <RoleTypeComponent />
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 font-thin shadow-none">
@@ -151,11 +157,11 @@ export function DashboardComponent() {
                                     </Badge>
                                     <span className="font-thin text-primary-500">1</span>
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4FFF9] py-1.5 font-thin shadow-none">
-                                        Educator
+                                        Course Creator
                                     </Badge>
                                     <span className="font-thin text-primary-500">0</span>
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
-                                        Creator
+                                        Assessment Creator
                                     </Badge>
                                     <span className="font-thin text-primary-500">0</span>
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">

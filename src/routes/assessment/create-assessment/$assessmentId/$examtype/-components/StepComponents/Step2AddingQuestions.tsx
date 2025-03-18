@@ -53,7 +53,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         resolver: zodResolver(sectionDetailsSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            testDuration: {
+            testDuration: storeDataStep2.testDuration || {
                 entireTestDuration: {
                     checked: true, // Default to true
                     testDuration: {
@@ -100,7 +100,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         mode: "onChange",
     });
 
-    const { handleSubmit, getValues, control } = form;
+    const { handleSubmit, getValues, control, watch } = form;
     // Store initial data in useRef to ensure it remains constant throughout the form updates
     const oldData = useRef(getValues());
     const allSections = getValues("section");
@@ -170,6 +170,16 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         control,
         name: "section", // Matches the key in defaultValues
     });
+
+    const entireTestDuration = watch("testDuration.entireTestDuration.testDuration");
+    const isAssessWiseCheck = watch("testDuration.entireTestDuration.checked");
+    const isSectionWiseCheck = watch("testDuration.sectionWiseDuration");
+    const isQuestionWiseCheck = watch("testDuration.questionWiseDuration");
+
+    const isAssessmentDurationMissing =
+        isAssessWiseCheck &&
+        (!entireTestDuration?.hrs || entireTestDuration?.hrs === "0") &&
+        (!entireTestDuration?.min || entireTestDuration?.min === "0");
 
     const handleAddSection = () => {
         append({
@@ -356,6 +366,29 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 disable={
                                     assessmentId === "defaultId"
                                         ? allSections.some((section) => {
+                                              // Check if section duration fields are valid based on durationDistribution
+                                              const isSectionDurationMissing =
+                                                  isSectionWiseCheck &&
+                                                  (!section.section_duration?.hrs ||
+                                                      section.section_duration?.hrs === "0") &&
+                                                  (!section.section_duration?.min ||
+                                                      section.section_duration?.min === "0");
+
+                                              // Check if question duration fields are valid based on durationDistribution
+                                              const isQuestionDurationMissing =
+                                                  isQuestionWiseCheck &&
+                                                  (!section.question_duration?.hrs ||
+                                                      section.question_duration?.hrs === "0") &&
+                                                  (!section.question_duration?.min ||
+                                                      section.question_duration?.min === "0");
+
+                                              // Check if marks per question is provided
+                                              const isMarksPerQuestionMissing =
+                                                  section.marks_per_question === "0" ||
+                                                  !section.marks_per_question
+                                                      ? true
+                                                      : false;
+
                                               // Check if the question paper is uploaded
                                               const isQuestionPaperMissing =
                                                   section.adaptive_marking_for_each_question
@@ -363,26 +396,9 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                       ? false
                                                       : true;
 
-                                              // Check if section duration fields are valid based on durationDistribution
-                                              const isSectionDurationMissing =
-                                                  assessmentDetails[currentStep]?.saved_data
-                                                      ?.duration_distribution === "SECTION" &&
-                                                  !section.section_duration?.hrs &&
-                                                  !section.section_duration?.min;
-
-                                              // Check if question duration fields are valid based on durationDistribution
-                                              const isQuestionDurationMissing =
-                                                  assessmentDetails[currentStep]?.saved_data
-                                                      ?.duration_distribution === "QUESTION" &&
-                                                  !section.question_duration?.hrs &&
-                                                  !section.question_duration?.min;
-
-                                              // Check if marks per question is provided
-                                              const isMarksPerQuestionMissing =
-                                                  !section.marks_per_question;
-
                                               // Return true if any of the above conditions are true
                                               return (
+                                                  isAssessmentDurationMissing ||
                                                   isQuestionPaperMissing ||
                                                   isSectionDurationMissing ||
                                                   isQuestionDurationMissing ||

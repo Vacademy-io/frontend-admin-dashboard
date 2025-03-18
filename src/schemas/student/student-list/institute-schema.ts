@@ -10,6 +10,7 @@ const SessionSchema = z.object({
     id: z.string(),
     session_name: z.string(),
     status: z.string(),
+    start_date: z.string(),
 });
 
 export const LevelSchema = z.object({
@@ -75,3 +76,15 @@ export type InstituteDetailsType = z.infer<typeof InstituteSchema> | null;
 export type LevelType = z.infer<typeof LevelSchema>;
 export type SessionType = z.infer<typeof SessionSchema>;
 export type BatchForSessionType = z.infer<typeof BatchForSessionSchema>;
+export type levelWithDetails = {
+    level_dto: {
+        id: string;
+        level_name: string;
+        duration_in_days: number | null;
+        thumbnail_id: string | null;
+    };
+    package_session_id: string;
+    package_session_status: string;
+    start_date: string;
+};
+export type levelsWithPackageDetails = Array<levelWithDetails>;

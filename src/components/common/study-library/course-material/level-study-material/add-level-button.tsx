@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Plus } from "phosphor-react";
 import { AddLevelData, AddLevelForm } from "./add-level-form";
 
@@ -30,6 +30,26 @@ export const AddLevelButton = ({ onSubmit }: AddLevelButtonProps) => {
         setOpenDialog(!openDialog);
     };
 
+    const formSubmitRef = useRef(() => {});
+
+    const levelSubmitButton = (
+        <div className="flex w-full items-center justify-center">
+            <MyButton
+                type="button"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                onClick={() => formSubmitRef.current()}
+            >
+                Add
+            </MyButton>
+        </div>
+    );
+
+    const submitFormFn = (submitFn: () => void) => {
+        formSubmitRef.current = submitFn;
+    };
+
     return (
         <MyDialog
             trigger={triggerButton}
@@ -37,8 +57,13 @@ export const AddLevelButton = ({ onSubmit }: AddLevelButtonProps) => {
             dialogWidth="w-[430px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
+            footer={levelSubmitButton}
         >
-            <AddLevelForm onSubmitSuccess={onSubmit} setOpenDialog={setOpenDialog} />
+            <AddLevelForm
+                onSubmitSuccess={onSubmit}
+                setOpenDialog={setOpenDialog}
+                submitForm={submitFormFn}
+            />
         </MyDialog>
     );
 };

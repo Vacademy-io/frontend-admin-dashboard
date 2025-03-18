@@ -93,24 +93,48 @@ export const TestReportDialog = ({
                             Subject:{" "}
                             {getSubjectNameById(
                                 instituteDetails?.subjects || [],
-                                studentReport.subject_id,
+                                testReport.question_overall_detail_dto.subjectId,
                             ) || ""}
                         </div>
                         <div>
                             Attempt Date:{" "}
-                            {extractDateTime(convertToLocalDateTime(studentReport.start_time)).date}
+                            {
+                                extractDateTime(
+                                    convertToLocalDateTime(
+                                        testReport.question_overall_detail_dto.startTime,
+                                    ),
+                                ).date
+                            }
                         </div>
-                        <div>Marks: {studentReport.total_marks}</div>
                         <div>
-                            Duration: {(studentReport.duration_in_seconds % 60).toFixed(2)} min
+                            Marks: {testReport.question_overall_detail_dto.achievedMarks.toFixed(2)}
+                        </div>
+                        <div>
+                            Completion Time:{" "}
+                            {(
+                                testReport.question_overall_detail_dto.completionTimeInSeconds / 60
+                            ).toFixed(2)}{" "}
+                            min
                         </div>
                         <div>
                             Start Time:{" "}
-                            {extractDateTime(convertToLocalDateTime(studentReport.start_time)).time}
+                            {
+                                extractDateTime(
+                                    convertToLocalDateTime(
+                                        testReport.question_overall_detail_dto.startTime,
+                                    ),
+                                ).time
+                            }
                         </div>
                         <div>
                             End Time:{" "}
-                            {extractDateTime(convertToLocalDateTime(studentReport.end_time)).time}
+                            {
+                                extractDateTime(
+                                    convertToLocalDateTime(
+                                        testReport.question_overall_detail_dto.submitTime,
+                                    ),
+                                ).time
+                            }
                         </div>
                     </div>
                 </div>
@@ -135,12 +159,14 @@ export const TestReportDialog = ({
                         <div>
                             <h1>Percentile</h1>
                             <p className="text-center text-neutral-500">
-                                {testReport.question_overall_detail_dto.percentile}%
+                                {testReport.question_overall_detail_dto.percentile.toFixed(2)}%
                             </p>
                         </div>
                         <div>
                             <h1>Marks</h1>
-                            <p className="text-neutral-500">{studentReport.total_marks}/20</p>
+                            <p className="text-neutral-500">
+                                {studentReport.total_marks.toFixed(2)}/20
+                            </p>
                         </div>
                     </div>
                     <div className="flex w-full flex-col items-center gap-6">
@@ -179,8 +205,12 @@ export const TestReportDialog = ({
                                     <p>
                                         {testReport.question_overall_detail_dto.totalCorrectMarks >
                                         0
-                                            ? `(+${testReport.question_overall_detail_dto.totalCorrectMarks})`
-                                            : `(${testReport.question_overall_detail_dto.totalCorrectMarks})`}
+                                            ? `(+${testReport.question_overall_detail_dto.totalCorrectMarks.toFixed(
+                                                  2,
+                                              )})`
+                                            : `(${testReport.question_overall_detail_dto.totalCorrectMarks.toFixed(
+                                                  2,
+                                              )})`}
                                     </p>
                                 </div>
                             </div>
@@ -198,8 +228,12 @@ export const TestReportDialog = ({
                                     <p>
                                         {testReport.question_overall_detail_dto.totalPartialMarks >
                                         0
-                                            ? `(+${testReport.question_overall_detail_dto.totalPartialMarks})`
-                                            : `(${testReport.question_overall_detail_dto.totalPartialMarks})`}
+                                            ? `(+${testReport.question_overall_detail_dto.totalPartialMarks.toFixed(
+                                                  2,
+                                              )})`
+                                            : `(${testReport.question_overall_detail_dto.totalPartialMarks.toFixed(
+                                                  2,
+                                              )})`}
                                     </p>
                                 </div>
                             </div>
@@ -217,8 +251,12 @@ export const TestReportDialog = ({
                                     <p>
                                         {testReport.question_overall_detail_dto
                                             .totalIncorrectMarks > 0
-                                            ? `(+${testReport.question_overall_detail_dto.totalIncorrectMarks})`
-                                            : `(${testReport.question_overall_detail_dto.totalIncorrectMarks})`}
+                                            ? `(+${testReport.question_overall_detail_dto.totalIncorrectMarks.toFixed(
+                                                  2,
+                                              )})`
+                                            : `(${testReport.question_overall_detail_dto.totalIncorrectMarks.toFixed(
+                                                  2,
+                                              )})`}
                                     </p>
                                 </div>
                             </div>
@@ -332,7 +370,7 @@ export const TestReportDialog = ({
                                                     }
                                                     showIcon={false}
                                                 >
-                                                    {review.mark} Marks
+                                                    {review.mark.toFixed(2)} Marks
                                                 </StatusChips>
                                                 <StatusChips
                                                     status={

@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { DotsThree } from "phosphor-react";
 import { AddLevelData, AddLevelForm } from "./add-level-form";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { LevelWithDetailsType } from "@/stores/study-library/use-study-library-store";
 
@@ -29,6 +29,22 @@ export const LevelMenuOptions = ({ onDelete, onEdit, levelId, level }: LevelMenu
         setOpenEditDialog(!openEditDialog);
     };
 
+    const formSubmitRef = useRef(() => {});
+
+    const levelSubmitButton = (
+        <div className="flex w-full items-center justify-center">
+            <MyButton
+                type="submit"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                onClick={() => formSubmitRef.current()}
+            >
+                Save Changes
+            </MyButton>
+        </div>
+    );
+
     return (
         <>
             <MyDropdown dropdownList={DropdownList} onSelect={handleMenuOptionsChange}>
@@ -46,6 +62,7 @@ export const LevelMenuOptions = ({ onDelete, onEdit, levelId, level }: LevelMenu
                 dialogWidth="w-[430px]"
                 open={openEditDialog}
                 onOpenChange={handleOpenChange}
+                footer={levelSubmitButton}
             >
                 <AddLevelForm
                     initialValues={{
@@ -58,6 +75,9 @@ export const LevelMenuOptions = ({ onDelete, onEdit, levelId, level }: LevelMenu
                     }}
                     onSubmitSuccess={onEdit}
                     setOpenDialog={setOpenEditDialog}
+                    submitForm={(submitFn) => {
+                        formSubmitRef.current = submitFn;
+                    }}
                 />
             </MyDialog>
         </>

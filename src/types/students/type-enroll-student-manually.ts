@@ -1,35 +1,8 @@
-// types/students/enroll-students-manually.ts
-
-export interface StepOneData {
-    profilePicture?: string | null | undefined; // This will now store the file ID instead of URL
-    profilePictureUrl?: string | null | undefined; // For display purposes
-}
-
-export interface StepTwoData {
-    fullName: string;
-    enrollmentNumber: string;
-    gender: string;
-    collegeName: string;
-    dateOfBirth?: string; // Make it optional
-}
-
-export interface StepThreeData {
-    email: string;
-    city: string;
-    mobileNumber: string;
-}
-
-export interface StepFourData {
-    fatherName: string;
-    motherName: string;
-    guardianMobileNumber: string;
-    guardianEmail: string;
-}
-
-export interface StepFiveData {
-    username: string;
-    password: string;
-}
+import { StepOneData } from "./schema-enroll-students-manually";
+import { StepTwoData } from "./schema-enroll-students-manually";
+import { StepThreeData } from "./schema-enroll-students-manually";
+import { StepFourData } from "./schema-enroll-students-manually";
+import { StepFiveData } from "./schema-enroll-students-manually";
 
 export interface FormData {
     stepOneData: StepOneData | null;

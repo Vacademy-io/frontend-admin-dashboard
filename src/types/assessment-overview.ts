@@ -59,7 +59,7 @@ export interface StudentLeaderboard {
     batch_id: string;
     rank: number;
     user_id: string;
-    percentile?: string;
+    percentile: number;
 }
 
 export interface StudentLeaderboardData {

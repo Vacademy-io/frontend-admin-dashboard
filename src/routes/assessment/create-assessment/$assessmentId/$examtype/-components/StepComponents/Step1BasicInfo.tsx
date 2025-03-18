@@ -93,6 +93,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 previewTimeLimit:
                     storeDataStep1.assessmentPreview?.previewTimeLimit || timeLimit[0], // Default preview time
             },
+            reattemptCount: storeDataStep1.reattemptCount || "1",
             submissionType: storeDataStep1.submissionType || "",
             durationDistribution: storeDataStep1.durationDistribution || "",
             evaluationType: storeDataStep1.evaluationType || "",
@@ -109,6 +110,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const assessmentName = watch("testCreation.assessmentName");
     const liveDateRangeStartDate = watch("testCreation.liveDateRange.startDate");
     const liveDateRangeEndDate = watch("testCreation.liveDateRange.endDate");
+    const reattemptCount = watch("reattemptCount");
 
     // Determine if all fields are filled
     const isFormValid1 =
@@ -116,6 +118,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
               !!liveDateRangeEndDate &&
+              !!Number(reattemptCount) &&
               Object.entries(form.formState.errors).length === 0
             : !!assessmentName && Object.entries(form.formState.errors).length === 0;
 
@@ -124,6 +127,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
               !!liveDateRangeEndDate &&
+              !!Number(reattemptCount) &&
               Object.entries(form.formState.errors).length === 0
             : !!assessmentName && Object.entries(form.formState.errors).length === 0;
 
@@ -250,6 +254,8 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                               )
                             : timeLimit[0], // Default preview time
                 },
+                reattemptCount:
+                    String(assessmentDetails[currentStep]?.saved_data?.reattempt_count) || "1",
                 submissionType: assessmentDetails[currentStep]?.saved_data?.submission_type || "",
                 durationDistribution:
                     assessmentDetails[currentStep]?.saved_data?.duration_distribution || "",

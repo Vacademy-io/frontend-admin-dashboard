@@ -127,7 +127,10 @@ export function QuestionsPieChart() {
                     <div className="flex flex-col text-center">
                         <p className="text-neutral-500">Avg. Duration</p>
                         <p className="text-center text-3xl font-semibold text-primary-500">
-                            {(data.assessment_overview_dto.average_duration % 60).toFixed()} min
+                            {(
+                                Math.floor(data.assessment_overview_dto.average_duration) / 60
+                            ).toFixed(2)}{" "}
+                            min
                         </p>
                     </div>
                     <div className="flex flex-col">

@@ -25,4 +25,5 @@ export interface myDropDownProps {
     validation?: z.ZodSchema;
     onValidation?: (isValid: boolean) => void;
     disable?: boolean;
+    required?: boolean;
 }

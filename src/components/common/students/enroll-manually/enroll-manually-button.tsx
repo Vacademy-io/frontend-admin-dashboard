@@ -1,4 +1,3 @@
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { StepOneForm } from "./forms/step-one-form";
 import { StepTwoForm } from "./forms/step-two-form";
@@ -6,42 +5,52 @@ import { StepThreeForm } from "./forms/step-three-form";
 import { StepFourForm } from "./forms/step-four-form";
 import { StepFiveForm } from "./forms/step-five-form";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
+import { MyDialog } from "@/components/design-system/dialog";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
-export const EnrollManuallyButton = () => {
+interface EnrollManuallyButtonProps {
+    triggerButton?: JSX.Element;
+    initialValues?: StudentTable;
+}
+
+export const EnrollManuallyButton = ({
+    triggerButton,
+    initialValues,
+}: EnrollManuallyButtonProps) => {
     const currentStep = useFormStore((state) => state.currentStep);
 
-    const renderCurrentStep = () => {
+    const renderCurrentStep = (initialValues?: StudentTable) => {
         switch (currentStep) {
             case 1:
-                return <StepOneForm />;
+                return <StepOneForm initialValues={initialValues} />;
             case 2:
-                return <StepTwoForm />;
+                return <StepTwoForm initialValues={initialValues} />;
             case 3:
-                return <StepThreeForm />;
+                return <StepThreeForm initialValues={initialValues} />;
             case 4:
-                return <StepFourForm />;
+                return <StepFourForm initialValues={initialValues} />;
             case 5:
-                return <StepFiveForm />;
+                return <StepFiveForm initialValues={initialValues} />;
             default:
-                return <StepOneForm />;
+                return <StepOneForm initialValues={initialValues} />;
         }
     };
 
     return (
-        <Dialog>
-            <DialogTrigger>
-                <MyButton buttonType="secondary" scale="large" layoutVariant="default">
-                    Enroll Manually
-                </MyButton>
-            </DialogTrigger>
-            <DialogContent className="max-h-[80vh] w-[800px] max-w-[800px] overflow-y-auto p-0 font-normal">
-                <DialogHeader>
-                    <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                        Enroll Student
-                    </div>
-                    {renderCurrentStep()}
-                </DialogHeader>
-            </DialogContent>
-        </Dialog>
+        <MyDialog
+            trigger={
+                triggerButton ? (
+                    triggerButton
+                ) : (
+                    <MyButton buttonType="secondary" scale="large" layoutVariant="default">
+                        Enroll Manually
+                    </MyButton>
+                )
+            }
+            heading="Enroll Student"
+            dialogWidth="w-[800px]"
+        >
+            <>{renderCurrentStep(initialValues)}</>
+        </MyDialog>
     );
 };

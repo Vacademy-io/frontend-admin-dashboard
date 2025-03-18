@@ -148,6 +148,7 @@ export const handlePostStep1Data = async (
         assessment_preview_time: data.assessmentPreview.checked
             ? parseInt(data.assessmentPreview.previewTimeLimit)
             : 0,
+        default_reattempt_count: data.reattemptCount,
         switch_sections: data.switchSections,
         evaluation_type: data.evaluationType,
         submission_type: data.submissionType,
@@ -349,32 +350,10 @@ export const handlePostStep4Data = async (
             user_ids: data.evaluation_process.users.map((user) => user.email),
         },
     };
-    const deletedData = {
-        assessment_creation_access: {
-            batch_ids: [],
-            roles: [],
-            user_ids: [],
-        },
-        live_assessment_notification_access: {
-            batch_ids: [],
-            roles: [],
-            user_ids: [],
-        },
-        assessment_submission_and_report_access: {
-            batch_ids: [],
-            roles: [],
-            user_ids: [],
-        },
-        evaluation_process_access: {
-            batch_ids: [],
-            roles: [],
-            user_ids: [],
-        },
-    };
     const response = await authenticatedAxiosInstance({
         method: "POST",
         url: STEP4_ASSESSMENT_URL,
-        data: { added_accesses: addedData, deleted_accesses: deletedData },
+        data: { current_accesses: addedData },
         params: {
             assessmentId,
             instituteId,

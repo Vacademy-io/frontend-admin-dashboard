@@ -5,6 +5,7 @@ interface BasicInfoState {
         checked: boolean;
         previewTimeLimit?: string;
     };
+    reattemptCount?: string;
     durationDistribution?: string;
     evaluationType?: string;
     raiseReattemptRequest?: boolean;
@@ -29,6 +30,7 @@ interface BasicInfoState {
 // ✅ Define the initial empty state
 const initialState: Omit<BasicInfoState, "setBasicInfo" | "getBasicInfo" | "reset"> = {
     assessmentPreview: undefined,
+    reattemptCount: undefined,
     durationDistribution: undefined,
     evaluationType: undefined,
     raiseReattemptRequest: undefined,

@@ -18,7 +18,8 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
 
     const currentRoute = router.state.location.pathname;
     const routeMatches =
-        subItems?.some((item) => item.subItemLink === currentRoute) || currentRoute === to;
+        subItems?.some((item) => item.subItemLink && currentRoute.includes(item.subItemLink)) ||
+        currentRoute === to;
 
     useEffect(() => {
         if (routeMatches) {
@@ -81,7 +82,7 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
                         <Link to={obj.subItemLink} key={key}>
                             <div
                                 className={`cursor-pointer text-body font-regular text-neutral-600 hover:text-primary-500 ${
-                                    currentRoute === obj.subItemLink
+                                    obj.subItemLink && currentRoute.includes(obj.subItemLink)
                                         ? "text-primary-500"
                                         : "text-neutral-600"
                                 }`}

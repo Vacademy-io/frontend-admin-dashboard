@@ -14,7 +14,10 @@ import {
 import { Route } from "..";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { getInstituteId } from "@/constants/helper";
-import { getAdminParticipants } from "../-services/assessment-details-services";
+import {
+    getAdminParticipants,
+    handleGetAssessmentTotalMarksData,
+} from "../-services/assessment-details-services";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
 import { ArrowCounterClockwise, Export, WarningCircle } from "phosphor-react";
@@ -49,6 +52,9 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const { BatchesFilterData } = useFilterDataForAssesment(initData);
     const instituteId = getInstituteId();
     const { assessmentId, examType, assesssmentType } = Route.useParams();
+    const { data: totalMarks } = useSuspenseQuery(
+        handleGetAssessmentTotalMarksData({ assessmentId }),
+    );
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
     const [selectedTab, setSelectedTab] = useState("Attempted");
     const [batchSelectionTab, setBatchSelectionTab] = useState("batch");
@@ -990,6 +996,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                         type,
                                         selectedTab,
                                         initData?.batches_for_sessions,
+                                        totalMarks.total_achievable_marks,
                                     ),
                                     total_pages: participantsData.total_pages,
                                     page_no: page,

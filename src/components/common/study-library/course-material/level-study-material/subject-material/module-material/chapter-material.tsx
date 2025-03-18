@@ -19,6 +19,9 @@ import { useUpdateChapterOrder } from "@/services/study-library/chapter-operatio
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
+import { useDeleteChapter } from "@/services/study-library/chapter-operations/delete-chapter";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { toast } from "sonner";
 
 export interface FormValues {
     chapters: ChapterWithSlides[];
@@ -33,10 +36,12 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
     );
     const { selectedSession, setSelectedSession } = useSelectedSessionStore();
     const updateChapterOrderMutation = useUpdateChapterOrder();
+    const deleteChapterMutation = useDeleteChapter();
+    const { getPackageSessionId } = useInstituteDetailsStore();
 
     const router = useRouter();
 
-    const { subjectId } = router.state.location.search;
+    const { subjectId, courseId, levelId } = router.state.location.search;
     const sessionList = subjectId ? getSubjectSessions(subjectId) : [];
     const initialSession =
         selectedSession && sessionList.includes(selectedSession) ? selectedSession : sessionList[0];
@@ -61,32 +66,22 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         steps: studyLibrarySteps.addChaptersStep,
     });
 
-    const handleAddChapter = (chapter: ChapterWithSlides) => {
-        const newChapter = {
-            ...chapter,
-            description: "Click to view and access eBooks and video lectures for this chapter.",
-            resourceCount: {
-                ebooks: 0,
-                videos: 0,
-            },
-        };
-        form.setValue("chapters", [...form.getValues("chapters"), newChapter]);
-    };
-
-    const handleDeleteChapter = (index: number) => {
-        const currentChapters = form.getValues("chapters");
-        form.setValue(
-            "chapters",
-            currentChapters.filter((_, i) => i !== index),
-        );
-    };
-
-    const handleEditChapter = (index: number, updatedChapter: ChapterWithSlides) => {
-        const currentChapters = form.getValues("chapters");
-        form.setValue(
-            "chapters",
-            currentChapters.map((chapter, i) => (i === index ? updatedChapter : chapter)),
-        );
+    const handleDeleteChapter = async ({ chapter }: { chapter: ChapterWithSlides }) => {
+        const packageSessionId = getPackageSessionId({
+            courseId: courseId || "",
+            levelId: levelId || "",
+            sessionId: currentSession?.id || "",
+        });
+        const chapterIds: string[] = [chapter.chapter.id];
+        try {
+            await deleteChapterMutation.mutateAsync({
+                packageSessionIds: packageSessionId || "",
+                chapterIds: chapterIds,
+            });
+            toast.success("Chapter deleted successfully");
+        } catch {
+            toast.error("Failed to delete chapter");
+        }
     };
 
     const handleChapterOrderChange = (orderPayload: orderChapterPayloadType[]) => {
@@ -105,12 +100,12 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         setSelectedSession(currentSession);
         // setModulesWithChapters(getModuleById(currentModuleId));
         setExistingChapters(getChaptersByModuleId(currentModuleId) || []);
-    }, [currentSession, modulesWithChaptersData]);
+    }, [currentSession, modulesWithChaptersData, currentModuleId]);
 
     return (
         <div className="flex size-full flex-col gap-8 text-neutral-600">
             <div className="flex items-center justify-between gap-80">
-                <div className="flex items-center justify-between gap-8">
+                <div className="flex w-full items-center justify-between gap-8">
                     <div className="flex w-full flex-col gap-2">
                         <p className="text-h3 font-semibold">Manage Chapter</p>
                         <p className="text-subtitle">
@@ -119,7 +114,7 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                             enhance your learning experience.
                         </p>
                     </div>
-                    <AddChapterButton onAddChapter={handleAddChapter} />
+                    <AddChapterButton />
                 </div>
             </div>
             <SessionDropdown
@@ -133,7 +128,6 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
                 form={form}
                 chapters={form.watch("chapters")}
                 onDeleteChapter={handleDeleteChapter}
-                onEditChapter={handleEditChapter}
                 isLoading={isChapterLoading}
                 onOrderChange={handleChapterOrderChange}
             />

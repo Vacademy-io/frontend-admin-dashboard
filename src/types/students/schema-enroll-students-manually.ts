@@ -11,35 +11,38 @@ export const stepTwoSchema = z.object({
     gender: z.string().min(1, "Gender is required"),
     enrollmentNumber: z.string().min(1, "Enrollment number is required"),
     course: z.object({
-        id: z.string(),
-        name: z.string(),
+        id: z.string().min(1, "This field is required"),
+        name: z.string().min(1, "This field is required"),
     }),
     session: z.object({
-        id: z.string(),
-        name: z.string(),
+        id: z.string().min(1, "This field is required"),
+        name: z.string().min(1, "This field is required"),
     }),
     level: z.object({
-        id: z.string(),
-        name: z.string(),
+        id: z.string().min(1, "This field is required"),
+        name: z.string().min(1, "This field is required"),
     }),
-    collegeName: z.string().min(1, "College name is required"),
+    accessDays: z.string().min(1, "Access days are required"),
+    collegeName: z.string().optional(),
 });
 
 // Step Three Schema
 export const stepThreeSchema = z.object({
-    mobileNumber: z.string().regex(/^\d{10}$/, "Mobile number must be 10 digits"),
+    mobileNumber: z.string().min(1, "This field is required"),
     email: z.string().email("Invalid email format"),
-    state: z.string().min(1, "State is required"),
-    city: z.string().min(1, "City is required"),
+    addressLine: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    pincode: z.string().optional(),
 });
 
 // Step Four Schema
 export const stepFourSchema = z.object({
-    fatherName: z.string().min(1, "Father's name is required"),
-    motherName: z.string().min(1, "Mother's name is required"),
+    fatherName: z.string().optional(),
+    motherName: z.string().optional(),
     guardianName: z.string().optional(),
-    guardianEmail: z.string().email("Invalid email format").min(1, "Guardian's email is required"),
-    guardianMobileNumber: z.string().regex(/^\d{10}$/, "Mobile number must be 10 digits"),
+    guardianEmail: z.string().email("Invalid email format").optional().or(z.literal("")),
+    guardianMobileNumber: z.string().optional(),
 });
 
 // Step Five Schema
