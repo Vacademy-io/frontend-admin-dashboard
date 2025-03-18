@@ -3,7 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { DotsSixVertical, Plus, TrashSimple } from "phosphor-react";
 import { AddCustomFieldDialog } from "./AddCustomFieldDialog";
 import { useFormContext } from "react-hook-form";
-import { InviteFormType } from "./InviteFormSchema";
+import { InviteFormType } from "./-schema/InviteFormSchema";
 
 interface CustomFieldsSectionProps {
     toggleIsRequired: (id: number) => void;

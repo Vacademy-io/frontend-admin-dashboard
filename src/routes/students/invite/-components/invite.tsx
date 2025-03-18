@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { InviteLinkType } from "../-types/invite-link-types";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
-import { InviteFormType } from "./create-invite/InviteFormSchema";
+import { InviteFormType } from "./create-invite/-schema/InviteFormSchema";
 import { useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";

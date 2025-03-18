@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+// Define the email entry schema
+const emailEntrySchema = z.object({
+    id: z.string(),
+    value: z.string().email(),
+});
+
 // Create schema for form validation
 export const inviteFormSchema = z.object({
     inviteLink: z.string().min(1, "Invite link is required"),
@@ -32,7 +38,8 @@ export const inviteFormSchema = z.object({
     selectedLevel: z.string().optional(),
     maxLevels: z.number().optional(),
     studentExpiryDays: z.number(),
-    inviteeEmail: z.string().email().optional(),
+    inviteeEmail: z.string().optional(), // For the input field
+    inviteeEmails: z.array(emailEntrySchema).default([]), // For storing the email entries
     generatedInviteLink: z.string(),
 });
 
@@ -68,5 +75,7 @@ export const defaultFormValues: Partial<InviteFormType> = {
     sessionSelectionMode: "institute",
     levelSelectionMode: "institute",
     studentExpiryDays: 365,
+    inviteeEmail: "",
+    inviteeEmails: [],
     generatedInviteLink: "https://forms.gle/example123",
 };

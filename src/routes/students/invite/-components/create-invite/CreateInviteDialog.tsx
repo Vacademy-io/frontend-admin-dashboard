@@ -1,14 +1,14 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
 import { Switch } from "@/components/ui/switch";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
 import { Copy } from "phosphor-react";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { InviteFormType } from "./InviteFormSchema";
-import { useInviteForm } from "./useInviteForm";
+import { InviteFormType } from "./-schema/InviteFormSchema";
+import { useInviteForm } from "./-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
 import { SelectionModeSection } from "./SelectionModeSection";
 
@@ -18,6 +18,12 @@ interface CreateInviteDialogProps {
     submitButton: JSX.Element;
     open?: boolean;
     onOpenChange?: () => void;
+}
+
+// Define a type for email entries
+interface EmailEntry {
+    id: string;
+    value: string;
 }
 
 export const CreateInviteDialog = ({
@@ -39,7 +45,72 @@ export const CreateInviteDialog = ({
         copySuccess,
     } = useInviteForm(initialValues);
 
-    const { control, reset, getValues } = form;
+    const { control, reset, getValues, setValue, watch } = form;
+    const [emailError, setEmailError] = useState<string | null>(null);
+
+    // Watch the email input to validate in real-time
+    const emailInput = watch("inviteeEmail");
+    // Watch the email list to ensure UI updates
+    const emailList = watch("inviteeEmails") || [];
+
+    // Validate email format in real-time
+    useEffect(() => {
+        if (!emailInput) {
+            setEmailError(null);
+            return;
+        }
+
+        const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput);
+        if (!isValidEmail) {
+            setEmailError("Please enter a valid email address");
+        } else {
+            setEmailError(null);
+        }
+    }, [emailInput]);
+
+    // Function to generate a unique ID
+    const generateId = () => {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    };
+
+    // Function to handle adding an email
+    const handleAddEmail = () => {
+        const email = getValues("inviteeEmail");
+
+        // Validate email format
+        if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+            setEmailError("Please enter a valid email address");
+            return;
+        }
+
+        // Check if email already exists
+        const currentEmails = getValues("inviteeEmails") || [];
+        if (currentEmails.some((entry: EmailEntry) => entry.value === email)) {
+            setEmailError("This email has already been added");
+            return;
+        }
+
+        // Add email to the array with a unique ID
+        const newEmail: EmailEntry = {
+            id: generateId(),
+            value: email,
+        };
+
+        setValue("inviteeEmails", [...currentEmails, newEmail]);
+
+        // Clear input and error
+        setValue("inviteeEmail", "");
+        setEmailError(null);
+    };
+
+    // Function to remove an email by ID
+    const handleRemoveEmail = (idToRemove: string) => {
+        const currentEmails = getValues("inviteeEmails") || [];
+        setValue(
+            "inviteeEmails",
+            currentEmails.filter((entry: EmailEntry) => entry.id !== idToRemove),
+        );
+    };
 
     useEffect(() => {
         if (open && initialValues) {
@@ -151,34 +222,59 @@ export const CreateInviteDialog = ({
                         </div>
 
                         {/* Invitee Email */}
-                        <div className="flex items-end justify-between gap-10">
-                            <FormField
-                                control={control}
-                                name="inviteeEmail"
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <MyInput
-                                                label="Enter invitee email"
-                                                required={true}
-                                                placeholder="you@email.com"
-                                                inputType="email"
-                                                input={field.value || ""}
-                                                onChangeFunction={field.onChange}
-                                                className="w-full"
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <MyButton
-                                buttonType="secondary"
-                                scale="large"
-                                layoutVariant="default"
-                                type="button"
-                            >
-                                Add
-                            </MyButton>
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-end justify-between gap-10">
+                                <FormField
+                                    control={control}
+                                    name="inviteeEmail"
+                                    render={({ field }) => (
+                                        <FormItem className="w-full">
+                                            <FormControl>
+                                                <MyInput
+                                                    label="Enter invitee email"
+                                                    required={true}
+                                                    placeholder="you@email.com"
+                                                    inputType="email"
+                                                    input={field.value || ""}
+                                                    onChangeFunction={field.onChange}
+                                                    className="w-full"
+                                                    error={emailError}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                                <MyButton
+                                    buttonType="secondary"
+                                    scale="large"
+                                    layoutVariant="default"
+                                    type="button"
+                                    onClick={handleAddEmail}
+                                    disabled={!!emailError || !emailInput}
+                                    className={`${emailError ? "mb-6" : "mb-0"}`}
+                                >
+                                    Add
+                                </MyButton>
+                            </div>
+
+                            {/* Display added emails */}
+                            <div className="flex flex-wrap gap-2">
+                                {emailList?.map((entry: EmailEntry) => (
+                                    <div
+                                        key={entry.id}
+                                        className="text-primary-700 flex items-center gap-2 rounded-lg border border-primary-300 bg-primary-50 px-3"
+                                    >
+                                        <span>{entry.value}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveEmail(entry.id)}
+                                            className="hover:text-primary-700 text-primary-500"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         <Separator />

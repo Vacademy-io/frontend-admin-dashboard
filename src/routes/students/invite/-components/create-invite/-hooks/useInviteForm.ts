@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { inviteFormSchema, InviteFormType, defaultFormValues } from "./InviteFormSchema";
+import { inviteFormSchema, InviteFormType, defaultFormValues } from "../-schema/InviteFormSchema";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export const useInviteForm = (initialValues?: InviteFormType) => {
