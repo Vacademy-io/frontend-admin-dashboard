@@ -24,8 +24,9 @@ import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/h
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MyInput } from "@/components/design-system/input";
-import useIntroJsTour from "@/hooks/use-intro";
+import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
+import { createAssesmentSteps } from "@/constants/intro/steps";
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
@@ -333,27 +334,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 
     useIntroJsTour({
         key: IntroKey.assessmentStep2Questions,
-        steps: [
-            {
-                element: "#duration-settings",
-                title: "Duration Settings",
-                intro: "Configure the assessment duration for the entire test, individual sections, or specific questions.",
-                position: "right",
-            },
-            {
-                element: "#section-details",
-                title: "Section Details",
-                intro: "Add section details such as the upload question paper and marking scheme.",
-                position: "right",
-            },
-            {
-                element: "#add-section",
-                title: "Add Section",
-                intro: `Add new sections easily by clicking the "Add New Section" button.`,
-                position: "right",
-            },
-        ],
-        partial: true,
+        steps: createAssesmentSteps
+            .filter((step) => step.element === "#add-question")
+            .flatMap((step) => step.subStep || [])
+            .filter((subStep): subStep is Step => subStep !== undefined),
     });
 
     if (isLoading || handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
@@ -601,12 +585,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 )}
                         </div>
                         <Separator className="my-4" />
-                        <Accordion
-                            type="single"
-                            collapsible
-                            id="section-details"
-                            defaultValue={`section-0`}
-                        >
+                        <Accordion type="single" collapsible defaultValue={`section-0`}>
                             {allSections.map((_, index) => (
                                 <Step2SectionInfo
                                     key={index}

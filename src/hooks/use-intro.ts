@@ -92,7 +92,7 @@ const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsT
                     targetElement.addEventListener("click", clickOnTarget, { once: true });
                 }
 
-                document.addEventListener("click", clickListener);
+                // document.addEventListener("click", clickListener);
             });
 
             instance.onbeforeexit(() => {
@@ -108,6 +108,7 @@ const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsT
 
             instance.onexit(() => {
                 // Cleanup state and call exit callback
+                console.log("all completed");
                 setHasDisplayedIntro(false);
                 if (!partial) setValue(true);
                 if (onTourExit) onTourExit();
@@ -116,6 +117,7 @@ const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsT
             // For single step, auto-complete after a delay
             if (isSingleStep) {
                 instance.oncomplete(() => {
+                    console.log("single step completed");
                     if (!partial) setValue(true);
                     if (onTourExit) onTourExit();
                 });
