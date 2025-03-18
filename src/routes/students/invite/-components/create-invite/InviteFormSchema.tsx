@@ -1,0 +1,72 @@
+import { z } from "zod";
+
+// Create schema for form validation
+export const inviteFormSchema = z.object({
+    inviteLink: z.string().min(1, "Invite link is required"),
+    activeStatus: z.boolean(),
+    custom_fields: z.array(
+        z.object({
+            id: z.number(),
+            type: z.string(),
+            name: z.string(),
+            oldKey: z.boolean(),
+            isRequired: z.boolean(),
+            options: z
+                .array(
+                    z.object({
+                        id: z.number(),
+                        value: z.string(),
+                        disabled: z.boolean(),
+                    }),
+                )
+                .optional(),
+        }),
+    ),
+    courseSelectionMode: z.enum(["institute", "student", "both"]),
+    sessionSelectionMode: z.enum(["institute", "student", "both"]),
+    levelSelectionMode: z.enum(["institute", "student", "both"]),
+    selectedCourse: z.string().optional(),
+    maxCourses: z.number().optional(),
+    selectedSession: z.string().optional(),
+    maxSessions: z.number().optional(),
+    selectedLevel: z.string().optional(),
+    maxLevels: z.number().optional(),
+    studentExpiryDays: z.number(),
+    inviteeEmail: z.string().email().optional(),
+    generatedInviteLink: z.string(),
+});
+
+export type InviteFormType = z.infer<typeof inviteFormSchema>;
+
+export const defaultFormValues: Partial<InviteFormType> = {
+    inviteLink: "",
+    activeStatus: true,
+    custom_fields: [
+        {
+            id: 0,
+            type: "textfield",
+            name: "Full Name",
+            oldKey: true,
+            isRequired: true,
+        },
+        {
+            id: 1,
+            type: "textfield",
+            name: "Email",
+            oldKey: true,
+            isRequired: true,
+        },
+        {
+            id: 2,
+            type: "textfield",
+            name: "Phone Number",
+            oldKey: true,
+            isRequired: true,
+        },
+    ],
+    courseSelectionMode: "institute",
+    sessionSelectionMode: "institute",
+    levelSelectionMode: "institute",
+    studentExpiryDays: 365,
+    generatedInviteLink: "https://forms.gle/example123",
+};

@@ -1,11 +1,12 @@
 import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { InviteLinkType } from "../-types/invite-link-types";
-import { CreateInviteDialog, InviteFormType } from "./create-invite-dialog";
+import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
+import { InviteFormType } from "./create-invite/InviteFormSchema";
 import { useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
-import { InviteCardMenuOptions } from "./invite-card-menu-options";
+import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export const Invite = () => {
     );
 
     const inviteSubmitButton = (
-        <div className="flex-end flex w-full items-center">
+        <div className="flex w-full items-center justify-end">
             <MyButton>Create</MyButton>
         </div>
     );
