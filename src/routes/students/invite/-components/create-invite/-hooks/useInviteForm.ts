@@ -85,6 +85,119 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
             .filter((id) => id !== "");
     };
 
+    // Function to filter selections based on available lists
+    // Function to filter selections based on available lists
+    // Function to filter selections based on available lists
+    const filterSelectionsBasedOnAvailableLists = () => {
+        // Filter selectedCourse to only include items that exist in courseList
+        const currentSelectedCourse = getValues("selectedCourse") || [];
+        if (Array.isArray(currentSelectedCourse) && currentSelectedCourse.length > 0) {
+            // Determine if we're dealing with an array of strings or objects
+            const isObjectArray =
+                currentSelectedCourse.length > 0 && typeof currentSelectedCourse[0] !== "string";
+
+            const filteredCourses = (
+                currentSelectedCourse as Array<string | { id: string; name: string }>
+            ).filter((course) => {
+                const courseId = typeof course === "string" ? course : course.id;
+                return courseList.some((availableCourse) => availableCourse.id === courseId);
+            });
+
+            if (filteredCourses.length !== currentSelectedCourse.length) {
+                // Convert to appropriate type before setting
+                if (isObjectArray) {
+                    const typedFilteredCourses = filteredCourses.map(
+                        (course): { id: string; name: string } => {
+                            if (typeof course === "string") {
+                                const foundCourse = courseList.find((c) => c.id === course);
+                                return foundCourse || { id: course, name: course };
+                            }
+                            return course;
+                        },
+                    );
+                    setValue("selectedCourse", typedFilteredCourses);
+                } else {
+                    const typedFilteredCourses = filteredCourses.map((course): string => {
+                        return typeof course === "string" ? course : course.id;
+                    });
+                    setValue("selectedCourse", typedFilteredCourses);
+                }
+            }
+        }
+
+        // Filter selectedSession to only include items that exist in sessionList
+        const currentSelectedSession = getValues("selectedSession") || [];
+        if (Array.isArray(currentSelectedSession) && currentSelectedSession.length > 0) {
+            // Determine if we're dealing with an array of strings or objects
+            const isObjectArray =
+                currentSelectedSession.length > 0 && typeof currentSelectedSession[0] !== "string";
+
+            const filteredSessions = (
+                currentSelectedSession as Array<string | { id: string; name: string }>
+            ).filter((session) => {
+                const sessionId = typeof session === "string" ? session : session.id;
+                return sessionList.some((availableSession) => availableSession.id === sessionId);
+            });
+
+            if (filteredSessions.length !== currentSelectedSession.length) {
+                // Convert to appropriate type before setting
+                if (isObjectArray) {
+                    const typedFilteredSessions = filteredSessions.map(
+                        (session): { id: string; name: string } => {
+                            if (typeof session === "string") {
+                                const foundSession = sessionList.find((s) => s.id === session);
+                                return foundSession || { id: session, name: session };
+                            }
+                            return session;
+                        },
+                    );
+                    setValue("selectedSession", typedFilteredSessions);
+                } else {
+                    const typedFilteredSessions = filteredSessions.map((session): string => {
+                        return typeof session === "string" ? session : session.id;
+                    });
+                    setValue("selectedSession", typedFilteredSessions);
+                }
+            }
+        }
+
+        // Filter selectedLevel to only include items that exist in levelList
+        const currentSelectedLevel = getValues("selectedLevel") || [];
+        if (Array.isArray(currentSelectedLevel) && currentSelectedLevel.length > 0) {
+            // Determine if we're dealing with an array of strings or objects
+            const isObjectArray =
+                currentSelectedLevel.length > 0 && typeof currentSelectedLevel[0] !== "string";
+
+            const filteredLevels = (
+                currentSelectedLevel as Array<string | { id: string; name: string }>
+            ).filter((level) => {
+                const levelId = typeof level === "string" ? level : level.id;
+                return levelList.some((availableLevel) => availableLevel.id === levelId);
+            });
+
+            if (filteredLevels.length !== currentSelectedLevel.length) {
+                // Convert to appropriate type before setting
+                if (isObjectArray) {
+                    const typedFilteredLevels = filteredLevels.map(
+                        (level): { id: string; name: string } => {
+                            if (typeof level === "string") {
+                                const foundLevel = levelList.find((l) => l.id === level);
+                                return foundLevel || { id: level, name: level };
+                            }
+                            return level;
+                        },
+                    );
+                    setValue("selectedLevel", typedFilteredLevels);
+                } else {
+                    const typedFilteredLevels = filteredLevels.map((level): string => {
+                        return typeof level === "string" ? level : level.id;
+                    });
+                    setValue("selectedLevel", typedFilteredLevels);
+                }
+            }
+        }
+    };
+
     // Update sessionList when selectedCourse changes
     useEffect(() => {
         // Store current state for comparison to avoid unnecessary updates
@@ -107,6 +220,9 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
             // If no courses selected, show all sessions
             setSessionList(getSessionFromPackage());
         }
+
+        // After session list is updated, filter the selections
+        setTimeout(() => filterSelectionsBasedOnAvailableLists(), 0);
         // Only depend on the stringified version of selectedCourse and the functions
         // This prevents unnecessary re-runs
     }, [JSON.stringify(selectedCourse)]);
@@ -158,6 +274,9 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
         else {
             setLevelList(getLevelsFromPackage());
         }
+
+        // After level list is updated, filter the selections
+        setTimeout(() => filterSelectionsBasedOnAvailableLists(), 0);
         // Use stringified versions to prevent infinite loops
     }, [JSON.stringify(selectedCourse), JSON.stringify(selectedSession)]);
 
@@ -196,17 +315,27 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
         }
     }, [JSON.stringify(selectedSession)]);
 
+    // Add a specific effect to run filterSelectionsBasedOnAvailableLists when lists change
+    useEffect(() => {
+        filterSelectionsBasedOnAvailableLists();
+    }, [courseList, sessionList, levelList]);
+
     // Initialize data when instituteDetails changes
     useEffect(() => {
         setCourseList(getCourseFromPackage());
         setSessionList(getSessionFromPackage());
         setLevelList(getLevelsFromPackage());
+        // After lists are updated, filter the selections
+        setTimeout(() => filterSelectionsBasedOnAvailableLists(), 0);
     }, [instituteDetails, getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage]);
-    // Initialize data when instituteDetails changes
+
+    // This duplicate effect is in the original code - keeping it but it could be combined with the above
     useEffect(() => {
         setCourseList(getCourseFromPackage());
         setSessionList(getSessionFromPackage());
         setLevelList(getLevelsFromPackage());
+        // After lists are updated, filter the selections
+        setTimeout(() => filterSelectionsBasedOnAvailableLists(), 0);
     }, [instituteDetails]);
 
     return {
