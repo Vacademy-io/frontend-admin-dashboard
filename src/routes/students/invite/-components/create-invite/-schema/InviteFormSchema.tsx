@@ -6,6 +6,12 @@ const emailEntrySchema = z.object({
     value: z.string().email(),
 });
 
+// Define the dropdown item type schema
+const dropdownItemSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+});
+
 // Create schema for form validation
 export const inviteFormSchema = z.object({
     inviteLink: z.string().min(1, "Invite link is required"),
@@ -31,11 +37,11 @@ export const inviteFormSchema = z.object({
     courseSelectionMode: z.enum(["institute", "student", "both"]),
     sessionSelectionMode: z.enum(["institute", "student", "both"]),
     levelSelectionMode: z.enum(["institute", "student", "both"]),
-    selectedCourse: z.string().optional(),
+    selectedCourse: z.union([z.string(), dropdownItemSchema, z.null()]).optional(),
     maxCourses: z.number().optional(),
-    selectedSession: z.string().optional(),
+    selectedSession: z.union([z.string(), dropdownItemSchema, z.null()]).optional(),
     maxSessions: z.number().optional(),
-    selectedLevel: z.string().optional(),
+    selectedLevel: z.union([z.string(), dropdownItemSchema, z.null()]).optional(),
     maxLevels: z.number().optional(),
     studentExpiryDays: z.number(),
     inviteeEmail: z.string().optional(), // For the input field

@@ -19,7 +19,40 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
         defaultValues: initialValues || defaultFormValues,
     });
 
-    const { setValue, getValues } = form;
+    const { setValue, getValues, watch } = form;
+
+    // Watch for selected values to update dependent dropdowns
+    const selectedCourse = watch("selectedCourse");
+    const selectedSession = watch("selectedSession");
+
+    // Helper to get the ID from either a string or a DropdownItemType
+    const getIdFromValue = (value: string | { id: string; name: string }): string | undefined => {
+        if (!value) return undefined;
+        if (typeof value === "string") return value;
+        if (typeof value === "object" && "id" in value) return value.id;
+        return undefined;
+    };
+
+    useEffect(() => {
+        if (selectedCourse) {
+            setSessionList(getSessionFromPackage({ courseId: getIdFromValue(selectedCourse) }));
+        } else {
+            setSessionList([]);
+        }
+    }, [selectedCourse]);
+
+    useEffect(() => {
+        if (selectedCourse && selectedSession) {
+            setLevelList(
+                getLevelsFromPackage({
+                    courseId: getIdFromValue(selectedCourse),
+                    sessionId: getIdFromValue(selectedSession),
+                }),
+            );
+        } else {
+            setLevelList([]);
+        }
+    }, [selectedCourse, selectedSession]);
 
     useEffect(() => {
         setCourseList(getCourseFromPackage());

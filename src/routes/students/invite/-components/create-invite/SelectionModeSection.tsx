@@ -58,8 +58,30 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
 
     const selectionMode = watch(selectionModeField);
 
+    // Get selected values which could be strings or DropdownItemType
+    const selectedCourseValue = watch("selectedCourse");
+    const selectedSessionValue = watch("selectedSession");
+
+    const getIdFromValue = (
+        value?: string | { id: string; name: string } | null,
+    ): string | undefined => {
+        if (!value) return undefined;
+        if (typeof value === "string") return value;
+        if (typeof value === "object" && "id" in value) return value.id;
+        return undefined;
+    };
+
+    // Get IDs for course and session
+    const selectedCourseId = getIdFromValue(selectedCourseValue);
+    const selectedSessionId = getIdFromValue(selectedSessionValue);
+
+    // Determine if this section should be disabled based on dependencies
+    const isDisabled =
+        (type === "session" && !selectedCourseId) ||
+        (type === "level" && (!selectedCourseId || !selectedSessionId));
+
     return (
-        <div className="flex flex-col gap-4">
+        <div className={`flex flex-col gap-4 ${isDisabled ? "opacity-50" : ""}`}>
             <div className="flex items-center gap-6">
                 <p className="text-subtitle font-semibold">{title} Selection Mode</p>
                 <FormField
@@ -72,22 +94,32 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                     className="flex items-center gap-6"
                                     value={field.value}
                                     onValueChange={field.onChange}
+                                    disabled={isDisabled}
                                 >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem
                                             value="institute"
                                             id={`${type}-institute`}
+                                            disabled={isDisabled}
                                         />
                                         <label htmlFor={`${type}-institute`}>
                                             Institute assigns
                                         </label>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="student" id={`${type}-student`} />
+                                        <RadioGroupItem
+                                            value="student"
+                                            id={`${type}-student`}
+                                            disabled={isDisabled}
+                                        />
                                         <label htmlFor={`${type}-student`}>Student chooses</label>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="both" id={`${type}-both`} />
+                                        <RadioGroupItem
+                                            value="both"
+                                            id={`${type}-both`}
+                                            disabled={isDisabled}
+                                        />
                                         <label htmlFor={`${type}-both`}>Both</label>
                                     </div>
                                 </RadioGroup>
@@ -96,11 +128,11 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                     )}
                 />
             </div>
-            <div className="flex gap-12">
+            <div className="flex items-start gap-12">
                 {(selectionMode === "institute" || selectionMode === "both") && (
                     <div className="flex w-fit flex-col gap-2">
                         <p>
-                            {title} <span className="text-primary-500">*</span>
+                            {title} <span className="text-subtitle text-danger-600">*</span>
                         </p>
                         <FormField
                             control={control}
@@ -111,8 +143,11 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                         <MyDropdown
                                             dropdownList={dropdownList}
                                             placeholder={`Select ${title}`}
-                                            currentValue={field.value}
+                                            currentValue={
+                                                field.value === null ? undefined : field.value
+                                            }
                                             handleChange={field.onChange}
+                                            disable={isDisabled}
                                         />
                                     </FormControl>
                                 </FormItem>
@@ -137,6 +172,7 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                             }
                                             className="w-[70px]"
                                             inputPlaceholder="00"
+                                            disabled={isDisabled}
                                         />
                                     </FormControl>
                                 </FormItem>

@@ -188,10 +188,18 @@ export const CreateInviteDialog = ({
                         <SelectionModeSection
                             title="Session"
                             type="session"
-                            dropdownList={sessionList}
+                            dropdownList={sessionList.filter(() =>
+                                watch("selectedCourse") ? true : false,
+                            )}
                         />
 
-                        <SelectionModeSection title="Level" type="level" dropdownList={levelList} />
+                        <SelectionModeSection
+                            title="Level"
+                            type="level"
+                            dropdownList={levelList.filter(() =>
+                                watch("selectedCourse") && watch("selectedSession") ? true : false,
+                            )}
+                        />
 
                         {/* Student Expiry Date */}
                         <div className="flex items-center gap-6">
