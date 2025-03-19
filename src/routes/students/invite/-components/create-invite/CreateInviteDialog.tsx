@@ -145,7 +145,9 @@ export const CreateInviteDialog = ({
                 <form
                     ref={formRef}
                     onSubmit={(e) => {
-                        console.log("create invite values: ", e.target);
+                        e.preventDefault();
+                        const formValues = getValues();
+                        console.log("Form values:", formValues);
                     }}
                 >
                     <div className="flex flex-col gap-10">
@@ -158,7 +160,7 @@ export const CreateInviteDialog = ({
                                     <FormItem className="w-[80%]">
                                         <FormControl>
                                             <MyInput
-                                                label="Invite Link"
+                                                label="Invite Link Name"
                                                 required={true}
                                                 inputType="text"
                                                 inputPlaceholder="Enter invite link name"

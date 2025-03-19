@@ -4,7 +4,7 @@ import { MyInput } from "@/components/design-system/input";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useFormContext } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { InviteFormType } from "./-schema/InviteFormSchema";
 
 // Create a mapping from type to field names
@@ -33,7 +33,7 @@ interface SelectionModeSectionProps {
 }
 
 export const SelectionModeSection = ({ title, type, dropdownList }: SelectionModeSectionProps) => {
-    const { control, watch, setValue } = useFormContext<InviteFormType>();
+    const { control, watch, setValue, getValues } = useFormContext<InviteFormType>();
 
     // Use the mapping to get the correct field names
     const fieldMapping: TypeToFieldMap = {
@@ -54,6 +54,7 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
         },
     };
 
+    const [maxAllowed, setMaxAllowed] = useState(0);
     const selectionModeField = fieldMapping[type].selectionMode;
     const selectedValueField = fieldMapping[type].selectedValue;
     const maxValueField = fieldMapping[type].maxValue;
@@ -61,10 +62,60 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     // Watch all necessary fields
     const courseSelectionMode = watch("courseSelectionMode");
     const sessionSelectionMode = watch("sessionSelectionMode");
+    const levelSelectionMode = watch("levelSelectionMode");
     const selectionMode = watch(selectionModeField);
     const selectedCourse = watch("selectedCourse") || [];
     const selectedSession = watch("selectedSession") || [];
-    const maxValue = watch(maxValueField);
+    const selectedLevel = watch("selectedLevel") || [];
+
+    useEffect(() => {
+        switch (type) {
+            case "course": {
+                courseSelectionMode == "both"
+                    ? setMaxAllowed(selectedCourse.length)
+                    : setMaxAllowed(dropdownList.length);
+                break;
+            }
+            case "session": {
+                sessionSelectionMode == "both"
+                    ? setMaxAllowed(selectedSession.length)
+                    : setMaxAllowed(dropdownList.length);
+                break;
+            }
+            case "level": {
+                levelSelectionMode == "both"
+                    ? setMaxAllowed(selectedLevel.length)
+                    : setMaxAllowed(dropdownList.length);
+                break;
+            }
+        }
+    }, [
+        type,
+        courseSelectionMode,
+        sessionSelectionMode,
+        levelSelectionMode,
+        selectedCourse,
+        selectedLevel,
+        selectedSession,
+    ]);
+
+    useEffect(() => {
+        if (maxAllowed > 0) {
+            const currentValue = getValues(maxValueField);
+
+            // If the current value is greater than the new maxAllowed, update it
+            if (currentValue && currentValue > maxAllowed) {
+                setValue(maxValueField, maxAllowed);
+            }
+
+            // If the field doesn't have a value yet, set it to 1 (or another default)
+            if (!currentValue) {
+                setValue(maxValueField, 1);
+            }
+        } else {
+            setValue(maxValueField, 1);
+        }
+    }, [maxAllowed]);
 
     // Convert the dropdown list to MultiSelect format
     const multiSelectOptions = dropdownList.map((item) => ({
@@ -111,39 +162,6 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
             setValue("levelSelectionMode", "student");
         }
     }, [courseSelectionMode, sessionSelectionMode]);
-
-    // Effect to validate max values
-    useEffect(() => {
-        if ((selectionMode === "student" || selectionMode === "both") && maxValue !== undefined) {
-            let maxAllowed = dropdownList.length;
-
-            // For "both" mode, additional constraints apply
-            if (selectionMode === "both") {
-                // Limit based on what's selected in institute mode
-                const selectedValues = watch(selectedValueField) || [];
-                // If institute has already selected items, limit student's choices
-                maxAllowed = dropdownList.length - selectedValues.length;
-                if (maxAllowed < 1) maxAllowed = 1;
-            }
-
-            // Ensure value is between 1 and maxAllowed
-            if (maxValue < 1) {
-                setValue(maxValueField, 1);
-            } else if (maxValue > maxAllowed) {
-                setValue(maxValueField, maxAllowed);
-            }
-        }
-    }, [maxValue, dropdownList.length, selectionMode]);
-
-    // Handle value change for the MultiSelect component
-    const handleValueChange = (values: string[]) => {
-        // Ensure we don't exceed the max value for both mode
-        if (selectionMode === "both" && values.length > (maxValue || dropdownList.length)) {
-            // Keep only the first maxValue selections
-            values = values.slice(0, maxValue);
-        }
-        setValue(selectedValueField, values);
-    };
 
     // Get the currently selected values in the right format for MultiSelect
     const getSelectedValues = (): string[] => {
@@ -232,19 +250,15 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                         <FormField
                             control={control}
                             name={selectedValueField}
-                            render={() => (
+                            render={(field) => (
                                 <FormItem>
                                     <FormControl>
                                         <MultiSelect
                                             options={multiSelectOptions}
-                                            onValueChange={handleValueChange}
+                                            onValueChange={field.field.onChange}
                                             defaultValue={getSelectedValues()}
                                             placeholder={`Select ${title}`}
                                             disabled={isDisabled}
-                                            // For "both" mode, limit selections
-                                            maxCount={
-                                                selectionMode === "both" ? maxValue : undefined
-                                            }
                                         />
                                     </FormControl>
                                 </FormItem>
@@ -266,20 +280,6 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                             inputType="number"
                                             onChangeFunction={(e) => {
                                                 const value = parseInt(e.target.value) || 0;
-                                                let maxAllowed = dropdownList.length;
-
-                                                // For "both" mode, constrain by remaining options
-                                                if (selectionMode === "both") {
-                                                    const selectedValues =
-                                                        watch(selectedValueField) || [];
-                                                    maxAllowed =
-                                                        dropdownList.length -
-                                                        (Array.isArray(selectedValues)
-                                                            ? selectedValues.length
-                                                            : 0);
-                                                    if (maxAllowed < 1) maxAllowed = 1;
-                                                }
-
                                                 // Ensure the value is between 1 and maxAllowed
                                                 if (value < 1) {
                                                     field.onChange(1);

@@ -83,7 +83,7 @@ export const AddDocDialog = ({
                 title: data.docTitle,
                 image_file_id: "",
                 description: null,
-                slide_order: 0,
+                slide_order: null,
                 document_slide: {
                     id: crypto.randomUUID(),
                     type: "DOC",

@@ -44,7 +44,7 @@ export const Invite = () => {
             className="flex w-full items-center justify-end"
             onClick={() => formSubmitRef.current()}
         >
-            <MyButton type="submit">Create</MyButton>
+            <MyButton>Create</MyButton>
         </div>
     );
 

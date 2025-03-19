@@ -36,7 +36,7 @@ interface VideoSlidePayload {
     title: string;
     description: string | null;
     image_file_id: string | null;
-    slide_order: number;
+    slide_order: number | null;
     video_slide: {
         id: string;
         description: string;
@@ -56,7 +56,7 @@ interface DocumentSlidePayload {
     title: string;
     image_file_id: string;
     description: string | null;
-    slide_order: number;
+    slide_order: number | null;
     document_slide: {
         id: string;
         type: string;
@@ -81,7 +81,7 @@ interface UpdateStatusParams {
 
 export type slideOrderPayloadType = {
     slide_id: string;
-    slide_order: number;
+    slide_order: number | null;
 }[];
 
 interface UpdateSlideOrderParams {

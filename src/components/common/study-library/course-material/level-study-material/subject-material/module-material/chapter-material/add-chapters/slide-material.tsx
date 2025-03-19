@@ -71,7 +71,7 @@ export const SlideMaterial = () => {
                     title: heading,
                     description: activeItem.slide_description,
                     image_file_id: activeItem.document_cover_file_id,
-                    slide_order: 0,
+                    slide_order: null,
                     video_slide: {
                         id: activeItem.video_id || "",
                         description: activeItem.video_description || "",
@@ -92,7 +92,7 @@ export const SlideMaterial = () => {
                     title: heading,
                     image_file_id: activeItem.document_cover_file_id || "",
                     description: activeItem?.slide_title || "",
-                    slide_order: 0,
+                    slide_order: null,
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: activeItem.document_type,
@@ -216,7 +216,7 @@ export const SlideMaterial = () => {
                     title: activeItem?.slide_title || "",
                     image_file_id: activeItem?.document_cover_file_id || "",
                     description: activeItem?.slide_title || "",
-                    slide_order: 0,
+                    slide_order: null,
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: activeItem.document_type,
@@ -243,7 +243,7 @@ export const SlideMaterial = () => {
                     title: activeItem?.slide_title || "",
                     description: activeItem?.slide_description || "",
                     image_file_id: activeItem?.document_cover_file_id || "",
-                    slide_order: 0,
+                    slide_order: null,
                     video_slide: {
                         id: activeItem?.video_id || "",
                         description: activeItem?.video_description || "",
@@ -304,7 +304,7 @@ export const SlideMaterial = () => {
                     title: activeItem?.slide_title || "",
                     image_file_id: "",
                     description: activeItem?.slide_title || "",
-                    slide_order: 0,
+                    slide_order: null,
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: "DOC",
