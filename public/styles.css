@@ -202,3 +202,8 @@
 .modal-window p {
     margin-bottom: 0;
 }
+.App-menu_top{
+    position: fixed  !important;
+    top: 0;
+    left: 0;
+}
