@@ -37,11 +37,15 @@ export const inviteFormSchema = z.object({
     courseSelectionMode: z.enum(["institute", "student", "both"]),
     sessionSelectionMode: z.enum(["institute", "student", "both"]),
     levelSelectionMode: z.enum(["institute", "student", "both"]),
-    selectedCourse: z.union([z.string(), dropdownItemSchema, z.null()]).optional(),
+    selectedCourse: z
+        .union([z.array(z.string()), z.array(dropdownItemSchema), z.null()])
+        .optional(),
     maxCourses: z.number().optional(),
-    selectedSession: z.union([z.string(), dropdownItemSchema, z.null()]).optional(),
+    selectedSession: z
+        .union([z.array(z.string()), z.array(dropdownItemSchema), z.null()])
+        .optional(),
     maxSessions: z.number().optional(),
-    selectedLevel: z.union([z.string(), dropdownItemSchema, z.null()]).optional(),
+    selectedLevel: z.union([z.array(z.string()), z.array(dropdownItemSchema), z.null()]).optional(),
     maxLevels: z.number().optional(),
     studentExpiryDays: z.number(),
     inviteeEmail: z.string().optional(), // For the input field
@@ -84,4 +88,7 @@ export const defaultFormValues: Partial<InviteFormType> = {
     inviteeEmail: "",
     inviteeEmails: [],
     generatedInviteLink: "https://forms.gle/example123",
+    selectedCourse: [],
+    selectedSession: [],
+    selectedLevel: [],
 };

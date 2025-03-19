@@ -1,4 +1,5 @@
-import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
+// Modified SelectionModeSection.tsx
+import { MultiSelect } from "./MultiSelect";
 import { MyInput } from "@/components/design-system/input";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -61,35 +62,27 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     const courseSelectionMode = watch("courseSelectionMode");
     const sessionSelectionMode = watch("sessionSelectionMode");
     const selectionMode = watch(selectionModeField);
-    const selectedCourse = watch("selectedCourse");
-    const selectedSession = watch("selectedSession");
+    const selectedCourse = watch("selectedCourse") || [];
+    const selectedSession = watch("selectedSession") || [];
     const maxValue = watch(maxValueField);
 
-    // Get selected values which could be strings or DropdownItemType
-    const getIdFromValue = (
-        value?: string | { id: string; name: string } | null,
-    ): string | undefined => {
-        if (!value) return undefined;
-        if (typeof value === "string") return value;
-        if (typeof value === "object" && "id" in value) return value.id;
-        return undefined;
-    };
-
-    // Get IDs for course and session
-    const selectedCourseId = getIdFromValue(selectedCourse);
-    const selectedSessionId = getIdFromValue(selectedSession);
+    // Convert the dropdown list to MultiSelect format
+    const multiSelectOptions = dropdownList.map((item) => ({
+        label: item.name,
+        value: item.id,
+    }));
 
     // Determine if this section should be disabled based on dependencies
     const isDisabled =
         (type === "session" &&
             (courseSelectionMode === "institute" || courseSelectionMode === "both"
-                ? !selectedCourseId
+                ? selectedCourse.length === 0
                 : false)) ||
         (type === "level" &&
             (((courseSelectionMode === "institute" || courseSelectionMode === "both") &&
-                !selectedCourseId) ||
+                selectedCourse.length === 0) ||
                 ((sessionSelectionMode === "institute" || sessionSelectionMode === "both") &&
-                    !selectedSessionId)));
+                    selectedSession.length === 0)));
 
     // Determine if radio options should be disabled
     const isRadioDisabled = (optionValue: string): boolean => {
@@ -117,7 +110,7 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
         if (type === "level" && sessionSelectionMode === "student") {
             setValue("levelSelectionMode", "student");
         }
-    }, [courseSelectionMode, sessionSelectionMode, type, setValue]);
+    }, [courseSelectionMode, sessionSelectionMode]);
 
     // Effect to validate max values
     useEffect(() => {
@@ -127,7 +120,10 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
             // For "both" mode, additional constraints apply
             if (selectionMode === "both") {
                 // Limit based on what's selected in institute mode
-                maxAllowed = 1; // Default to 1 if nothing is selected
+                const selectedValues = watch(selectedValueField) || [];
+                // If institute has already selected items, limit student's choices
+                maxAllowed = dropdownList.length - selectedValues.length;
+                if (maxAllowed < 1) maxAllowed = 1;
             }
 
             // Ensure value is between 1 and maxAllowed
@@ -138,6 +134,25 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
             }
         }
     }, [maxValue, dropdownList.length, selectionMode]);
+
+    // Handle value change for the MultiSelect component
+    const handleValueChange = (values: string[]) => {
+        // Ensure we don't exceed the max value for both mode
+        if (selectionMode === "both" && values.length > (maxValue || dropdownList.length)) {
+            // Keep only the first maxValue selections
+            values = values.slice(0, maxValue);
+        }
+        setValue(selectedValueField, values);
+    };
+
+    // Get the currently selected values in the right format for MultiSelect
+    const getSelectedValues = (): string[] => {
+        const selection = watch(selectedValueField) || [];
+        if (Array.isArray(selection)) {
+            return selection.map((item) => (typeof item === "string" ? item : item.id));
+        }
+        return [];
+    };
 
     return (
         <div className={`flex flex-col gap-4 ${isDisabled ? "opacity-50" : ""}`}>
@@ -217,17 +232,19 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                         <FormField
                             control={control}
                             name={selectedValueField}
-                            render={({ field }) => (
+                            render={() => (
                                 <FormItem>
                                     <FormControl>
-                                        <MyDropdown
-                                            dropdownList={dropdownList}
+                                        <MultiSelect
+                                            options={multiSelectOptions}
+                                            onValueChange={handleValueChange}
+                                            defaultValue={getSelectedValues()}
                                             placeholder={`Select ${title}`}
-                                            currentValue={
-                                                field.value === null ? undefined : field.value
+                                            disabled={isDisabled}
+                                            // For "both" mode, limit selections
+                                            maxCount={
+                                                selectionMode === "both" ? maxValue : undefined
                                             }
-                                            handleChange={field.onChange}
-                                            disable={isDisabled}
                                         />
                                     </FormControl>
                                 </FormItem>
@@ -251,9 +268,16 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                                 const value = parseInt(e.target.value) || 0;
                                                 let maxAllowed = dropdownList.length;
 
-                                                // For "both" mode, constrain by selected item
+                                                // For "both" mode, constrain by remaining options
                                                 if (selectionMode === "both") {
-                                                    maxAllowed = 1; // Default
+                                                    const selectedValues =
+                                                        watch(selectedValueField) || [];
+                                                    maxAllowed =
+                                                        dropdownList.length -
+                                                        (Array.isArray(selectedValues)
+                                                            ? selectedValues.length
+                                                            : 0);
+                                                    if (maxAllowed < 1) maxAllowed = 1;
                                                 }
 
                                                 // Ensure the value is between 1 and maxAllowed
