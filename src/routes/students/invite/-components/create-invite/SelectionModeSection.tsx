@@ -3,6 +3,7 @@ import { MyInput } from "@/components/design-system/input";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useFormContext } from "react-hook-form";
+import { useEffect } from "react";
 import { InviteFormType } from "./-schema/InviteFormSchema";
 
 // Create a mapping from type to field names
@@ -31,7 +32,7 @@ interface SelectionModeSectionProps {
 }
 
 export const SelectionModeSection = ({ title, type, dropdownList }: SelectionModeSectionProps) => {
-    const { control, watch } = useFormContext<InviteFormType>();
+    const { control, watch, setValue } = useFormContext<InviteFormType>();
 
     // Use the mapping to get the correct field names
     const fieldMapping: TypeToFieldMap = {
@@ -56,12 +57,15 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     const selectedValueField = fieldMapping[type].selectedValue;
     const maxValueField = fieldMapping[type].maxValue;
 
+    // Watch all necessary fields
+    const courseSelectionMode = watch("courseSelectionMode");
+    const sessionSelectionMode = watch("sessionSelectionMode");
     const selectionMode = watch(selectionModeField);
+    const selectedCourse = watch("selectedCourse");
+    const selectedSession = watch("selectedSession");
+    const maxValue = watch(maxValueField);
 
     // Get selected values which could be strings or DropdownItemType
-    const selectedCourseValue = watch("selectedCourse");
-    const selectedSessionValue = watch("selectedSession");
-
     const getIdFromValue = (
         value?: string | { id: string; name: string } | null,
     ): string | undefined => {
@@ -72,13 +76,68 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     };
 
     // Get IDs for course and session
-    const selectedCourseId = getIdFromValue(selectedCourseValue);
-    const selectedSessionId = getIdFromValue(selectedSessionValue);
+    const selectedCourseId = getIdFromValue(selectedCourse);
+    const selectedSessionId = getIdFromValue(selectedSession);
 
     // Determine if this section should be disabled based on dependencies
     const isDisabled =
-        (type === "session" && !selectedCourseId) ||
-        (type === "level" && (!selectedCourseId || !selectedSessionId));
+        (type === "session" &&
+            (courseSelectionMode === "institute" || courseSelectionMode === "both"
+                ? !selectedCourseId
+                : false)) ||
+        (type === "level" &&
+            (((courseSelectionMode === "institute" || courseSelectionMode === "both") &&
+                !selectedCourseId) ||
+                ((sessionSelectionMode === "institute" || sessionSelectionMode === "both") &&
+                    !selectedSessionId)));
+
+    // Determine if radio options should be disabled
+    const isRadioDisabled = (optionValue: string): boolean => {
+        if (isDisabled) return true;
+
+        // Session-specific rules
+        if (type === "session" && courseSelectionMode === "student") {
+            return optionValue !== "student";
+        }
+
+        // Level-specific rules
+        if (type === "level" && sessionSelectionMode === "student") {
+            return optionValue !== "student";
+        }
+
+        return false;
+    };
+
+    // Effect to enforce proper selection mode based on parent selection
+    useEffect(() => {
+        if (type === "session" && courseSelectionMode === "student") {
+            setValue("sessionSelectionMode", "student");
+        }
+
+        if (type === "level" && sessionSelectionMode === "student") {
+            setValue("levelSelectionMode", "student");
+        }
+    }, [courseSelectionMode, sessionSelectionMode, type, setValue]);
+
+    // Effect to validate max values
+    useEffect(() => {
+        if ((selectionMode === "student" || selectionMode === "both") && maxValue !== undefined) {
+            let maxAllowed = dropdownList.length;
+
+            // For "both" mode, additional constraints apply
+            if (selectionMode === "both") {
+                // Limit based on what's selected in institute mode
+                maxAllowed = 1; // Default to 1 if nothing is selected
+            }
+
+            // Ensure value is between 1 and maxAllowed
+            if (maxValue < 1) {
+                setValue(maxValueField, 1);
+            } else if (maxValue > maxAllowed) {
+                setValue(maxValueField, maxAllowed);
+            }
+        }
+    }, [maxValue, dropdownList.length, selectionMode]);
 
     return (
         <div className={`flex flex-col gap-4 ${isDisabled ? "opacity-50" : ""}`}>
@@ -100,9 +159,16 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                         <RadioGroupItem
                                             value="institute"
                                             id={`${type}-institute`}
-                                            disabled={isDisabled}
+                                            disabled={isRadioDisabled("institute")}
                                         />
-                                        <label htmlFor={`${type}-institute`}>
+                                        <label
+                                            htmlFor={`${type}-institute`}
+                                            className={
+                                                isRadioDisabled("institute")
+                                                    ? "text-neutral-400"
+                                                    : ""
+                                            }
+                                        >
                                             Institute assigns
                                         </label>
                                     </div>
@@ -110,17 +176,31 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                         <RadioGroupItem
                                             value="student"
                                             id={`${type}-student`}
-                                            disabled={isDisabled}
+                                            disabled={isRadioDisabled("student")}
                                         />
-                                        <label htmlFor={`${type}-student`}>Student chooses</label>
+                                        <label
+                                            htmlFor={`${type}-student`}
+                                            className={
+                                                isRadioDisabled("student") ? "text-neutral-400" : ""
+                                            }
+                                        >
+                                            Student chooses
+                                        </label>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem
                                             value="both"
                                             id={`${type}-both`}
-                                            disabled={isDisabled}
+                                            disabled={isRadioDisabled("both")}
                                         />
-                                        <label htmlFor={`${type}-both`}>Both</label>
+                                        <label
+                                            htmlFor={`${type}-both`}
+                                            className={
+                                                isRadioDisabled("both") ? "text-neutral-400" : ""
+                                            }
+                                        >
+                                            Both
+                                        </label>
                                     </div>
                                 </RadioGroup>
                             </FormControl>
@@ -165,13 +245,28 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
-                                            input={field.value?.toString() || ""}
+                                            input={field.value?.toString() || "1"}
                                             inputType="number"
-                                            onChangeFunction={(e) =>
-                                                field.onChange(parseInt(e.target.value) || 0)
-                                            }
+                                            onChangeFunction={(e) => {
+                                                const value = parseInt(e.target.value) || 0;
+                                                let maxAllowed = dropdownList.length;
+
+                                                // For "both" mode, constrain by selected item
+                                                if (selectionMode === "both") {
+                                                    maxAllowed = 1; // Default
+                                                }
+
+                                                // Ensure the value is between 1 and maxAllowed
+                                                if (value < 1) {
+                                                    field.onChange(1);
+                                                } else if (value > maxAllowed) {
+                                                    field.onChange(maxAllowed);
+                                                } else {
+                                                    field.onChange(value);
+                                                }
+                                            }}
                                             className="w-[70px]"
-                                            inputPlaceholder="00"
+                                            inputPlaceholder="1"
                                             disabled={isDisabled}
                                         />
                                     </FormControl>
