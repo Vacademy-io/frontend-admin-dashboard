@@ -20,6 +20,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ColorPicker } from "@/components/ui/color-picker";
 import useCanvasTools from "../-hooks/tools";
 import useFabric from "../-hooks/canvas";
+import Dropzone, { useDropzone } from "react-dropzone";
+import { ImportFileImage } from "@/assets/svgs";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs`;
 
@@ -36,6 +39,7 @@ const PDFEvaluator = () => {
     const [pagesVisited, setPagesVisited] = useState<number[]>([]);
     const [docLoaded, setDocLoaded] = useState(false);
     const [prevPageNumber, setPrevPageNumber] = useState(1);
+    const [loadingDoc, setLoadingDoc] = useState(true);
 
     // Canvas states
     const [fabricCanvas, setFabricCanvas] = useState<Canvas | null>(null);
@@ -60,32 +64,24 @@ const PDFEvaluator = () => {
 
     const [openCalc, setOpenCalc] = useState(false);
 
-    // File handling functions
-    const validateFile = (file: File) => {
-        setError("");
-        if (!file) {
-            setError("No file selected");
-            return false;
-        }
-        if (file.type !== "application/pdf") {
-            setError("Please upload a PDF file");
-            return false;
-        }
-        if (file.size > 20 * 1024 * 1024) {
-            setError("File size should be less than 20MB");
-            return false;
-        }
-        return true;
-    };
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop: (acceptedFiles) => handleFile(acceptedFiles[0]),
+        accept: {
+            "application/pdf": [".pdf"],
+        },
+        maxFiles: 1,
+        onDropRejected: (errors) => {
+            console.log(errors);
+            setError("Invalid file type. Please upload a PDF file.");
+        },
+    });
 
     const handleFile = (file: File) => {
-        if (validateFile(file)) {
-            setPdfFile(file);
-            const fileUrl = URL.createObjectURL(file);
-            setPdfUrl(fileUrl);
-            setPageNumber(1);
-            setAnnotations({});
-        }
+        setPdfFile(file);
+        const fileUrl = URL.createObjectURL(file);
+        setPdfUrl(fileUrl);
+        setPageNumber(1);
+        setAnnotations({});
     };
 
     const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +121,8 @@ const PDFEvaluator = () => {
     useEffect(() => {
         setTimeout(() => {
             loadPDF();
-        }, 1000);
+            setLoadingDoc(false);
+        }, 50);
     }, [fabricCanvas]);
 
     // Save annotations when changing pages
@@ -323,34 +320,31 @@ const PDFEvaluator = () => {
                         <CardTitle>Upload your answer sheet</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div
-                            className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors`}
-                        >
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileInput}
-                                accept=".pdf"
-                                className="hidden"
-                            />
-                            <Upload className={`mx-auto mb-4 size-12`} />
-                            <div className="flex flex-col items-center gap-2">
-                                <Button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="rounded-md bg-primary-500 px-4 py-2 text-white hover:bg-primary-500"
-                                >
-                                    Select PDF File
-                                </Button>
-                                <p className="text-sm text-gray-500">
-                                    Drag & drop a PDF file here or click to select
-                                </p>
-                                {error && (
-                                    <AlertDialog>
-                                        <AlertCircle className="size-4" />
-                                        <AlertDialogDescription>{error}</AlertDialogDescription>
-                                    </AlertDialog>
-                                )}
+                        <div className="flex w-full flex-col items-center gap-2">
+                            <div
+                                {...getRootProps()}
+                                className={`w-full cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${
+                                    isDragActive ? "bg-primary-50" : "bg-white"
+                                } transition-colors duration-200 ease-in-out`}
+                            >
+                                <input {...getInputProps()} />
+                                <div className="flex flex-col items-center justify-center gap-4">
+                                    <ImportFileImage />
+
+                                    <p className="text-center text-base text-neutral-600">
+                                        Drag and drop a PDF file here, or click to select one
+                                    </p>
+                                </div>
                             </div>
+
+                            {error && (
+                                <AlertDialog>
+                                    <AlertCircle className="size-6 text-red-400" />
+                                    <AlertDialogDescription className="text-red-500">
+                                        {error}
+                                    </AlertDialogDescription>
+                                </AlertDialog>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -368,7 +362,7 @@ const PDFEvaluator = () => {
                     {/* Toolbar */}
                     <Card className="sticky top-[72px] z-10 max-h-fit max-w-20 overflow-y-scroll">
                         <CardHeader>
-                            <CardTitle className="text-center">Tools</CardTitle>
+                            <CardTitle className="text-wrap text-center"> Tools</CardTitle>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-2 px-1 py-2">
                             <div className="flex flex-col items-center gap-y-2">
@@ -511,47 +505,51 @@ const PDFEvaluator = () => {
                         </div>
                     </CardHeader>
                     <CardContent className="flex justify-center bg-slate-100 pt-4">
-                        <div ref={pdfViewerRef} className="relative">
-                            <div
-                                style={{
-                                    // overflowY: "auto",
-                                    // overflowX: "auto",
-                                    maxHeight: "fit-content",
-                                    // width: "600px",
-                                }}
-                            >
+                        {loadingDoc ? (
+                            <DashboardLoader />
+                        ) : (
+                            <div ref={pdfViewerRef} className="relative">
                                 <div
-                                    ref={canvasContainerRef}
-                                    className="relative flex justify-center rounded-lg"
                                     style={{
-                                        transform: `scale(${zoomLevel})`,
-                                        transformOrigin: "top left",
+                                        // overflowY: "auto",
+                                        // overflowX: "auto",
+                                        maxHeight: "fit-content",
+                                        // width: "600px",
                                     }}
                                 >
-                                    <Document
-                                        file={pdfUrl}
-                                        onLoadSuccess={({ numPages }) => {
-                                            setNumPages(numPages);
-                                            setDocLoaded(true);
+                                    <div
+                                        ref={canvasContainerRef}
+                                        className="relative flex justify-center rounded-lg"
+                                        style={{
+                                            transform: `scale(${zoomLevel})`,
+                                            transformOrigin: "top left",
                                         }}
-                                        onLoadError={(error) => console.log(error)}
-                                        className="absolute min-w-fit"
                                     >
-                                        <Page
-                                            pageNumber={pageNumber}
-                                            scale={scale}
-                                            renderTextLayer={false}
-                                            renderAnnotationLayer={false}
-                                            className="max-h-fit shadow-lg"
+                                        <Document
+                                            file={pdfUrl}
+                                            onLoadSuccess={({ numPages }) => {
+                                                setNumPages(numPages);
+                                                setDocLoaded(true);
+                                            }}
+                                            onLoadError={(error) => console.log(error)}
+                                            className="absolute min-w-fit"
+                                        >
+                                            <Page
+                                                pageNumber={pageNumber}
+                                                scale={scale}
+                                                renderTextLayer={false}
+                                                renderAnnotationLayer={false}
+                                                className="max-h-fit shadow-lg"
+                                            />
+                                        </Document>
+                                        <canvas
+                                            ref={canvasRef}
+                                            className="absolute left-0 top-0 z-10"
                                         />
-                                    </Document>
-                                    <canvas
-                                        ref={canvasRef}
-                                        className="absolute left-0 top-0 z-10"
-                                    />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
