@@ -1,7 +1,7 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
 import { Copy } from "phosphor-react";
@@ -18,6 +18,7 @@ interface CreateInviteDialogProps {
     submitButton: JSX.Element;
     open?: boolean;
     onOpenChange?: () => void;
+    submitForm?: (fn: () => void) => void;
 }
 
 // Define a type for email entries
@@ -32,6 +33,7 @@ export const CreateInviteDialog = ({
     submitButton,
     open,
     onOpenChange,
+    submitForm,
 }: CreateInviteDialogProps) => {
     const {
         form,
@@ -118,6 +120,18 @@ export const CreateInviteDialog = ({
         }
     }, [open, initialValues, reset]);
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    useEffect(() => {
+        if (submitForm) {
+            submitForm(() => {
+                if (formRef.current) {
+                    formRef.current.requestSubmit();
+                }
+            });
+        }
+    }, [submitForm]);
+
     return (
         <MyDialog
             heading="Invite Students"
@@ -128,7 +142,12 @@ export const CreateInviteDialog = ({
             onOpenChange={onOpenChange}
         >
             <FormProvider {...form}>
-                <form>
+                <form
+                    ref={formRef}
+                    onSubmit={(e) => {
+                        console.log("create invite values: ", e.target);
+                    }}
+                >
                     <div className="flex flex-col gap-10">
                         {/* Invite Link & Active Status */}
                         <div className="flex justify-between gap-4">

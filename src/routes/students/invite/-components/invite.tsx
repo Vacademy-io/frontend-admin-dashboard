@@ -3,13 +3,14 @@ import { Copy, Plus } from "phosphor-react";
 import { InviteLinkType } from "../-types/invite-link-types";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
 import { InviteFormType } from "./create-invite/-schema/InviteFormSchema";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
 import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
+    const formSubmitRef = useRef<() => void>(() => {});
 
     const data: InviteLinkType[] = [
         {
@@ -39,8 +40,11 @@ export const Invite = () => {
     );
 
     const inviteSubmitButton = (
-        <div className="flex w-full items-center justify-end">
-            <MyButton>Create</MyButton>
+        <div
+            className="flex w-full items-center justify-end"
+            onClick={() => formSubmitRef.current()}
+        >
+            <MyButton type="submit">Create</MyButton>
         </div>
     );
 
@@ -73,6 +77,9 @@ export const Invite = () => {
                 <CreateInviteDialog
                     triggerButton={CreateInviteButton}
                     submitButton={inviteSubmitButton}
+                    submitForm={(fn: () => void) => {
+                        formSubmitRef.current = fn;
+                    }}
                 />
             </div>
             <div className="flex w-full flex-col gap-10">
