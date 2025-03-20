@@ -7,10 +7,18 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
 import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
+import formDataToRequestData from "./create-invite/-utils/formDataToRequestData";
+import { useCreateInvite } from "../-services/create-invite";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const formSubmitRef = useRef<() => void>(() => {});
+    const createInviteMutation = useCreateInvite();
+    const [openCreateInviteDialog, setOpenCreateInviteDialog] = useState(false);
+
+    const onOpenChangeCreateInviteDialog = () => {
+        setOpenCreateInviteDialog(!openCreateInviteDialog);
+    };
 
     const data: InviteLinkType[] = [
         {
@@ -70,6 +78,17 @@ export const Invite = () => {
         console.log(updatedInvite);
     };
 
+    const onCreateInvite = async (invite: InviteFormType) => {
+        const requestData = formDataToRequestData(invite);
+        try {
+            await createInviteMutation.mutateAsync({ requestBody: requestData });
+            toast.success("invitation created");
+            setOpenCreateInviteDialog(false);
+        } catch {
+            toast.error("failed to create invitation");
+        }
+    };
+
     return (
         <div className="flex w-full flex-col gap-10">
             <div className="flex items-center justify-between">
@@ -80,6 +99,9 @@ export const Invite = () => {
                     submitForm={(fn: () => void) => {
                         formSubmitRef.current = fn;
                     }}
+                    onCreateInvite={onCreateInvite}
+                    open={openCreateInviteDialog}
+                    onOpenChange={onOpenChangeCreateInviteDialog}
                 />
             </div>
             <div className="flex w-full flex-col gap-10">

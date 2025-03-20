@@ -19,6 +19,7 @@ interface CreateInviteDialogProps {
     open?: boolean;
     onOpenChange?: () => void;
     submitForm?: (fn: () => void) => void;
+    onCreateInvite?: (invite: InviteFormType) => void;
 }
 
 // Define a type for email entries
@@ -34,6 +35,7 @@ export const CreateInviteDialog = ({
     open,
     onOpenChange,
     submitForm,
+    onCreateInvite,
 }: CreateInviteDialogProps) => {
     const {
         form,
@@ -155,6 +157,7 @@ export const CreateInviteDialog = ({
                     onSubmit={form.handleSubmit((data) => {
                         console.log("Form values:", data);
                         // Continue with valid form data
+                        onCreateInvite && onCreateInvite(data);
                     })}
                 >
                     <div className="flex flex-col gap-10">

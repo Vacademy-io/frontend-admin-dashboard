@@ -1,4 +1,4 @@
-// Modified SelectionModeSection.tsx
+// SelectionModeSection.tsx
 import { MultiSelect } from "./MultiSelect";
 import { MyInput } from "@/components/design-system/input";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
@@ -71,19 +71,19 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     useEffect(() => {
         switch (type) {
             case "course": {
-                courseSelectionMode == "both"
+                courseSelectionMode === "both"
                     ? setMaxAllowed(selectedCourse.length)
                     : setMaxAllowed(dropdownList.length);
                 break;
             }
             case "session": {
-                sessionSelectionMode == "both"
+                sessionSelectionMode === "both"
                     ? setMaxAllowed(selectedSession.length)
                     : setMaxAllowed(dropdownList.length);
                 break;
             }
             case "level": {
-                levelSelectionMode == "both"
+                levelSelectionMode === "both"
                     ? setMaxAllowed(selectedLevel.length)
                     : setMaxAllowed(dropdownList.length);
                 break;
@@ -97,6 +97,7 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
         selectedCourse,
         selectedLevel,
         selectedSession,
+        dropdownList.length,
     ]);
 
     useEffect(() => {
@@ -115,7 +116,7 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
         } else {
             setValue(maxValueField, 1);
         }
-    }, [maxAllowed]);
+    }, [maxAllowed, getValues, setValue, maxValueField]);
 
     // Convert the dropdown list to MultiSelect format
     const multiSelectOptions = dropdownList.map((item) => ({
@@ -124,29 +125,68 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     }));
 
     // Determine if this section should be disabled based on dependencies
-    const isDisabled =
-        (type === "session" &&
-            (courseSelectionMode === "institute" || courseSelectionMode === "both"
-                ? selectedCourse.length === 0
-                : false)) ||
-        (type === "level" &&
-            (((courseSelectionMode === "institute" || courseSelectionMode === "both") &&
-                selectedCourse.length === 0) ||
-                ((sessionSelectionMode === "institute" || sessionSelectionMode === "both") &&
-                    selectedSession.length === 0)));
+    const isSectionDisabled = (): boolean => {
+        if (type === "course") {
+            return false; // Course selection is always enabled
+        }
 
-    // Determine if radio options should be disabled
+        if (type === "session") {
+            // If course selection mode is institute or both, session gets enabled only when courses are selected
+            return (
+                (courseSelectionMode === "institute" || courseSelectionMode === "both") &&
+                selectedCourse.length === 0
+            );
+        }
+
+        if (type === "level") {
+            const courseCondition =
+                (courseSelectionMode === "institute" || courseSelectionMode === "both") &&
+                selectedCourse.length === 0;
+            const sessionCondition =
+                (sessionSelectionMode === "institute" || sessionSelectionMode === "both") &&
+                selectedSession.length === 0;
+
+            return courseCondition || sessionCondition;
+        }
+
+        return false;
+    };
+
+    const isDisabled = isSectionDisabled();
+
+    // Determine if radio options should be disabled based on parent selection mode
     const isRadioDisabled = (optionValue: string): boolean => {
         if (isDisabled) return true;
 
-        // Session-specific rules
-        if (type === "session" && courseSelectionMode === "student") {
-            return optionValue !== "student";
+        // Session's selectionMode options based on courseSelectionMode
+        if (type === "session") {
+            if (courseSelectionMode === "student") {
+                // If course is set to student-only, session can only be student
+                return optionValue !== "student";
+            } else if (courseSelectionMode === "both") {
+                // If course is set to both, session can be student or both, but not institute
+                return optionValue === "institute";
+            }
         }
 
-        // Level-specific rules
-        if (type === "level" && sessionSelectionMode === "student") {
-            return optionValue !== "student";
+        // Level's selectionMode options based on both course and session selectionModes
+        if (type === "level") {
+            if (sessionSelectionMode === "student") {
+                // If session is set to student-only, level can only be student
+                return optionValue !== "student";
+            } else if (sessionSelectionMode === "both") {
+                // If session is set to both, level can be student or both, but not institute
+                return optionValue === "institute";
+            }
+
+            // If we get here, sessionSelectionMode is "institute", so we check courseSelectionMode
+            if (courseSelectionMode === "student") {
+                // If course is student-only, all child selections must also be student-only
+                return optionValue !== "student";
+            } else if (courseSelectionMode === "both") {
+                // If course is both, no child selection can be institute-only
+                return optionValue === "institute";
+            }
         }
 
         return false;
@@ -156,20 +196,35 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     useEffect(() => {
         if (type === "session" && courseSelectionMode === "student") {
             setValue("sessionSelectionMode", "student");
+        } else if (
+            type === "session" &&
+            courseSelectionMode === "both" &&
+            sessionSelectionMode === "institute"
+        ) {
+            setValue("sessionSelectionMode", "both");
         }
 
-        if (type === "level" && sessionSelectionMode === "student") {
-            setValue("levelSelectionMode", "student");
+        if (type === "level") {
+            if (sessionSelectionMode === "student") {
+                setValue("levelSelectionMode", "student");
+            } else if (sessionSelectionMode === "both" && levelSelectionMode === "institute") {
+                setValue("levelSelectionMode", "both");
+            } else if (courseSelectionMode === "student" && sessionSelectionMode === "institute") {
+                setValue("levelSelectionMode", "student");
+            } else if (
+                courseSelectionMode === "both" &&
+                sessionSelectionMode === "institute" &&
+                levelSelectionMode === "institute"
+            ) {
+                setValue("levelSelectionMode", "both");
+            }
         }
-    }, [courseSelectionMode, sessionSelectionMode]);
+    }, [courseSelectionMode, sessionSelectionMode, type, setValue, levelSelectionMode]);
 
     // Get the currently selected values in the right format for MultiSelect
     const getSelectedValues = (): string[] => {
         const selection = watch(selectedValueField) || [];
-        if (Array.isArray(selection)) {
-            return selection.map((item) => (typeof item === "string" ? item : item.id));
-        }
-        return [];
+        return selection.map((item) => item.id);
     };
 
     return (
@@ -255,7 +310,18 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                     <FormControl>
                                         <MultiSelect
                                             options={multiSelectOptions}
-                                            onValueChange={field.field.onChange}
+                                            onValueChange={(values) => {
+                                                // Convert selected values to the correct format
+                                                const newSelectedValues = values.map((value) => {
+                                                    const matchingItem = dropdownList.find(
+                                                        (item) => item.id === value,
+                                                    );
+                                                    return (
+                                                        matchingItem || { id: value, name: value }
+                                                    );
+                                                });
+                                                field.field.onChange(newSelectedValues);
+                                            }}
                                             defaultValue={getSelectedValues()}
                                             placeholder={`Select ${title}`}
                                             disabled={isDisabled}
