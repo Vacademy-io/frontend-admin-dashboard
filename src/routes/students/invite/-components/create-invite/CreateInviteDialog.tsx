@@ -220,7 +220,7 @@ export const CreateInviteDialog = ({
                             title="Session"
                             type="session"
                             dropdownList={sessionList.filter(() =>
-                                watch("selectedCourse") ? true : false,
+                                watch("preSelectedCourses") ? true : false,
                             )}
                         />
 
@@ -228,7 +228,9 @@ export const CreateInviteDialog = ({
                             title="Level"
                             type="level"
                             dropdownList={levelList.filter(() =>
-                                watch("selectedCourse") && watch("selectedSession") ? true : false,
+                                watch("preSelectedCourses") && watch("preSelectedSessions")
+                                    ? true
+                                    : false,
                             )}
                         />
 

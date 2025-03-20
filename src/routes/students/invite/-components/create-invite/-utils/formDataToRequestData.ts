@@ -15,7 +15,7 @@ import { TokenKey } from "@/constants/auth/tokens";
 export const fetchPreSelectedLevels = (data: InviteFormType): InviteLevelType[] => {
     if (data.levelSelectionMode == "institute") {
         const preSelectedLevels: InviteLevelType[] =
-            data.selectedLevel?.map((level) => ({
+            data.preSelectedLevels?.map((level) => ({
                 id: level.id,
                 name: level.name,
                 package_session_id: null,
@@ -28,7 +28,7 @@ export const fetchPreSelectedLevels = (data: InviteFormType): InviteLevelType[] 
 export const fetchLearnerChoiceLevels = (data: InviteFormType): InviteLevelType[] => {
     if (data.levelSelectionMode == "both") {
         const preSelectedLevels: InviteLevelType[] =
-            data.selectedLevel?.map((level) => ({
+            data.learnerChoiceLevels?.map((level) => ({
                 id: level.id,
                 name: level.name,
                 package_session_id: null,
@@ -43,7 +43,7 @@ export const fetchPreSelectedSessions = (data: InviteFormType): PreSelectedSessi
         const preSelectedLevels = fetchPreSelectedLevels(data);
         const learnerChoiceLevels = fetchLearnerChoiceLevels(data);
         const preSelectedSessions: PreSelectedSessionType[] =
-            data.selectedSession?.map((session) => ({
+            data.preSelectedSessions?.map((session) => ({
                 id: session.id,
                 name: session.name,
                 institute_assigned: data.levelSelectionMode != "student" ? true : false,
@@ -61,7 +61,7 @@ export const fetchLearnerChoiceSessions = (data: InviteFormType): LearnerChoiceS
     if (data.sessionSelectionMode == "both") {
         const learnerChoiceLevels = fetchLearnerChoiceLevels(data);
         const learnerChoiceSessions: LearnerChoiceSessionType[] =
-            data.selectedSession?.map((session) => ({
+            data.learnerChoiceSessions?.map((session) => ({
                 id: session.id,
                 name: session.name,
                 max_selectable_levels:
@@ -78,7 +78,7 @@ export const fetchPreSelectedCourses = (data: InviteFormType): PreSelectedPackag
         const preSelectedSessions = fetchPreSelectedSessions(data);
         const learnerChoiceSessions = fetchLearnerChoiceSessions(data);
         const preSelectedCourses: PreSelectedPackagesType[] =
-            data.selectedCourse?.map((course) => ({
+            data.preSelectedCourses?.map((course) => ({
                 id: course.id,
                 name: course.name,
                 institute_assigned: data.sessionSelectionMode != "student" ? true : false,
@@ -96,7 +96,7 @@ export const fetchLearnerChoiceCourses = (data: InviteFormType): LearnerChoicePa
     if (data.courseSelectionMode == "both") {
         const learnerChoiceSessions = fetchLearnerChoiceSessions(data);
         const learnerChoiceCourses: LearnerChoicePackagesType[] =
-            data.selectedCourse?.map((course) => ({
+            data.learnerChoiceCourses?.map((course) => ({
                 id: course.id,
                 name: course.name,
                 max_selectable_sessions:

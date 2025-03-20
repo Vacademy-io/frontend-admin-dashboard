@@ -69,8 +69,8 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
     };
 
     // Watch for selected values to update dependent dropdowns
-    const selectedCourse = watch("selectedCourse") || [];
-    const selectedSession = watch("selectedSession") || [];
+    const preSelectedCourses = watch("preSelectedCourses") || [];
+    const preSelectedSessions = watch("preSelectedSessions") || [];
 
     // Helper to get IDs from an array of values
     const getIdsFromValues = (values: { id: string; name: string }[]): string[] => {
@@ -81,38 +81,38 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
 
     const filterSelectionsBasedOnAvailableLists = () => {
         // Filter selectedCourse to only include items that exist in courseList
-        const currentSelectedCourse = getValues("selectedCourse") || [];
+        const currentSelectedCourse = getValues("preSelectedCourses") || [];
         if (Array.isArray(currentSelectedCourse) && currentSelectedCourse.length > 0) {
             const filteredCourses = currentSelectedCourse.filter((course) => {
                 return courseList.some((availableCourse) => availableCourse.id === course.id);
             });
 
             if (filteredCourses.length !== currentSelectedCourse.length) {
-                setValue("selectedCourse", filteredCourses);
+                setValue("preSelectedCourses", filteredCourses);
             }
         }
 
         // Filter selectedSession to only include items that exist in sessionList
-        const currentSelectedSession = getValues("selectedSession") || [];
+        const currentSelectedSession = getValues("preSelectedSessions") || [];
         if (Array.isArray(currentSelectedSession) && currentSelectedSession.length > 0) {
             const filteredSessions = currentSelectedSession.filter((session) => {
                 return sessionList.some((availableSession) => availableSession.id === session.id);
             });
 
             if (filteredSessions.length !== currentSelectedSession.length) {
-                setValue("selectedSession", filteredSessions);
+                setValue("preSelectedSessions", filteredSessions);
             }
         }
 
         // Filter selectedLevel to only include items that exist in levelList
-        const currentSelectedLevel = getValues("selectedLevel") || [];
+        const currentSelectedLevel = getValues("preSelectedLevels") || [];
         if (Array.isArray(currentSelectedLevel) && currentSelectedLevel.length > 0) {
             const filteredLevels = currentSelectedLevel.filter((level) => {
                 return levelList.some((availableLevel) => availableLevel.id === level.id);
             });
 
             if (filteredLevels.length !== currentSelectedLevel.length) {
-                setValue("selectedLevel", filteredLevels);
+                setValue("preSelectedLevels", filteredLevels);
             }
         }
     };
@@ -120,7 +120,7 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
     // Update sessionList when selectedCourse changes
     useEffect(() => {
         // Store current state for comparison to avoid unnecessary updates
-        const currentCourseIds = getIdsFromValues(selectedCourse);
+        const currentCourseIds = getIdsFromValues(preSelectedCourses);
 
         if (currentCourseIds.length > 0) {
             // Get sessions for all selected courses
@@ -144,12 +144,12 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
         setTimeout(() => filterSelectionsBasedOnAvailableLists(), 0);
         // Only depend on the stringified version of selectedCourse and the functions
         // This prevents unnecessary re-runs
-    }, [JSON.stringify(selectedCourse)]);
+    }, [JSON.stringify(preSelectedCourses)]);
 
     // Update levelList when selectedCourse or selectedSession changes
     useEffect(() => {
-        const currentCourseIds = getIdsFromValues(selectedCourse);
-        const currentSessionIds = getIdsFromValues(selectedSession);
+        const currentCourseIds = getIdsFromValues(preSelectedCourses);
+        const currentSessionIds = getIdsFromValues(preSelectedSessions);
 
         // Both course and session are selected
         if (currentCourseIds.length > 0 && currentSessionIds.length > 0) {
@@ -197,42 +197,42 @@ export const useInviteForm = (initialValues?: InviteFormType) => {
         // After level list is updated, filter the selections
         setTimeout(() => filterSelectionsBasedOnAvailableLists(), 0);
         // Use stringified versions to prevent infinite loops
-    }, [JSON.stringify(selectedCourse), JSON.stringify(selectedSession)]);
+    }, [JSON.stringify(preSelectedCourses), JSON.stringify(preSelectedSessions)]);
 
     // Reset dependencies when parent selections change
     useEffect(() => {
         const courseSelectionMode = watch("courseSelectionMode");
-        const previousSelectedCourse = getValues("selectedCourse") || [];
+        const previousSelectedCourse = getValues("preSelectedCourses") || [];
 
         // Only run this logic if the selection mode is institute or both
         // AND we're detecting a change in the course selection
         if (
             (courseSelectionMode === "institute" || courseSelectionMode === "both") &&
             previousSelectedCourse.length > 0 &&
-            selectedCourse.length === 0
+            preSelectedCourses.length === 0
         ) {
             // Clear session and level selections
-            setValue("selectedSession", []);
-            setValue("selectedLevel", []);
+            setValue("preSelectedSessions", []);
+            setValue("preSelectedLevels", []);
         }
-    }, [JSON.stringify(selectedCourse)]);
+    }, [JSON.stringify(preSelectedCourses)]);
 
     // Reset level when session changes
     useEffect(() => {
         const sessionSelectionMode = watch("sessionSelectionMode");
-        const previousSelectedSession = getValues("selectedSession") || [];
+        const previousSelectedSession = getValues("preSelectedSessions") || [];
 
         // Only run this logic if the selection mode is institute or both
         // AND we're detecting a change in the session selection
         if (
             (sessionSelectionMode === "institute" || sessionSelectionMode === "both") &&
             previousSelectedSession.length > 0 &&
-            selectedSession.length === 0
+            preSelectedSessions.length === 0
         ) {
             // Clear level selections
-            setValue("selectedLevel", []);
+            setValue("preSelectedLevels", []);
         }
-    }, [JSON.stringify(selectedSession)]);
+    }, [JSON.stringify(preSelectedSessions)]);
 
     // Add a specific effect to run filterSelectionsBasedOnAvailableLists when lists change
     useEffect(() => {

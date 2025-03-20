@@ -11,17 +11,20 @@ import { InviteFormType } from "./-schema/InviteFormSchema";
 type TypeToFieldMap = {
     course: {
         selectionMode: "courseSelectionMode";
-        selectedValue: "selectedCourse";
+        preSelectedValues: "preSelectedCourses";
+        learnerChoiceValues: "learnerChoiceCourses";
         maxValue: "maxCourses";
     };
     session: {
         selectionMode: "sessionSelectionMode";
-        selectedValue: "selectedSession";
+        preSelectedValues: "preSelectedSessions";
+        learnerChoiceValues: "learnerChoiceSessions";
         maxValue: "maxSessions";
     };
     level: {
         selectionMode: "levelSelectionMode";
-        selectedValue: "selectedLevel";
+        preSelectedValues: "preSelectedLevels";
+        learnerChoiceValues: "learnerChoiceLevels";
         maxValue: "maxLevels";
     };
 };
@@ -39,24 +42,28 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     const fieldMapping: TypeToFieldMap = {
         course: {
             selectionMode: "courseSelectionMode",
-            selectedValue: "selectedCourse",
+            preSelectedValues: "preSelectedCourses",
+            learnerChoiceValues: "learnerChoiceCourses",
             maxValue: "maxCourses",
         },
         session: {
             selectionMode: "sessionSelectionMode",
-            selectedValue: "selectedSession",
+            preSelectedValues: "preSelectedSessions",
+            learnerChoiceValues: "learnerChoiceSessions",
             maxValue: "maxSessions",
         },
         level: {
             selectionMode: "levelSelectionMode",
-            selectedValue: "selectedLevel",
+            preSelectedValues: "preSelectedLevels",
+            learnerChoiceValues: "learnerChoiceLevels",
             maxValue: "maxLevels",
         },
     };
 
     const [maxAllowed, setMaxAllowed] = useState(0);
     const selectionModeField = fieldMapping[type].selectionMode;
-    const selectedValueField = fieldMapping[type].selectedValue;
+    const preSelectedValueField = fieldMapping[type].preSelectedValues;
+    const learnerChoiceValueField = fieldMapping[type].learnerChoiceValues;
     const maxValueField = fieldMapping[type].maxValue;
 
     // Watch all necessary fields
@@ -64,28 +71,30 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     const sessionSelectionMode = watch("sessionSelectionMode");
     const levelSelectionMode = watch("levelSelectionMode");
     const selectionMode = watch(selectionModeField);
-    const selectedCourse = watch("selectedCourse") || [];
-    const selectedSession = watch("selectedSession") || [];
-    const selectedLevel = watch("selectedLevel") || [];
+    const preSelectedCourses = watch("preSelectedCourses");
+    const preSelectedSessions = watch("preSelectedSessions");
+    const learnerChoiceCourses = watch("learnerChoiceCourses");
+    const learnerChoiceSessions = watch("learnerChoiceSessions");
+    const learnerChoiceLevels = watch("learnerChoiceLevels");
 
     useEffect(() => {
         switch (type) {
             case "course": {
-                courseSelectionMode === "both"
-                    ? setMaxAllowed(selectedCourse.length)
-                    : setMaxAllowed(dropdownList.length);
+                courseSelectionMode != "institute"
+                    ? setMaxAllowed(learnerChoiceCourses?.length || 1)
+                    : setMaxAllowed(0);
                 break;
             }
             case "session": {
-                sessionSelectionMode === "both"
-                    ? setMaxAllowed(selectedSession.length)
-                    : setMaxAllowed(dropdownList.length);
+                sessionSelectionMode != "institute"
+                    ? setMaxAllowed(learnerChoiceSessions?.length || 1)
+                    : setMaxAllowed(0);
                 break;
             }
             case "level": {
-                levelSelectionMode === "both"
-                    ? setMaxAllowed(selectedLevel.length)
-                    : setMaxAllowed(dropdownList.length);
+                levelSelectionMode != "institute"
+                    ? setMaxAllowed(learnerChoiceLevels?.length || 1)
+                    : setMaxAllowed(0);
                 break;
             }
         }
@@ -94,9 +103,9 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
         courseSelectionMode,
         sessionSelectionMode,
         levelSelectionMode,
-        selectedCourse,
-        selectedLevel,
-        selectedSession,
+        preSelectedCourses,
+        preSelectedSessions,
+
         dropdownList.length,
     ]);
 
@@ -126,27 +135,33 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
 
     // Determine if this section should be disabled based on dependencies
     const isSectionDisabled = (): boolean => {
+        function courseCondition() {
+            if (courseSelectionMode == "institute") {
+                return preSelectedCourses?.length == 0;
+            } else if (courseSelectionMode == "student") {
+                return learnerChoiceCourses?.length == 0;
+            } else return learnerChoiceCourses?.length == 0 || preSelectedCourses?.length == 0;
+        }
+
+        function sessionCondition() {
+            if (sessionSelectionMode == "institute") {
+                return preSelectedSessions?.length == 0;
+            } else if (sessionSelectionMode == "student") {
+                return learnerChoiceSessions?.length == 0;
+            } else return learnerChoiceSessions?.length == 0 || preSelectedSessions?.length == 0;
+        }
+
         if (type === "course") {
             return false; // Course selection is always enabled
         }
 
         if (type === "session") {
             // If course selection mode is institute or both, session gets enabled only when courses are selected
-            return (
-                (courseSelectionMode === "institute" || courseSelectionMode === "both") &&
-                selectedCourse.length === 0
-            );
+            return courseCondition();
         }
 
         if (type === "level") {
-            const courseCondition =
-                (courseSelectionMode === "institute" || courseSelectionMode === "both") &&
-                selectedCourse.length === 0;
-            const sessionCondition =
-                (sessionSelectionMode === "institute" || sessionSelectionMode === "both") &&
-                selectedSession.length === 0;
-
-            return courseCondition || sessionCondition;
+            return courseCondition() && sessionCondition();
         }
 
         return false;
@@ -222,8 +237,13 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     }, [courseSelectionMode, sessionSelectionMode, type, setValue, levelSelectionMode]);
 
     // Get the currently selected values in the right format for MultiSelect
-    const getSelectedValues = (): string[] => {
-        const selection = watch(selectedValueField) || [];
+    const getPreSelectedValues = (): string[] => {
+        const selection = watch(preSelectedValueField) || [];
+        return selection.map((item) => item.id);
+    };
+
+    const getLearnerChoiceValues = (): string[] => {
+        const selection = watch(learnerChoiceValueField) || [];
         return selection.map((item) => item.id);
     };
 
@@ -296,15 +316,16 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                     )}
                 />
             </div>
-            <div className="flex items-start gap-12">
+            <div className="flex flex-col items-start gap-2">
                 {(selectionMode === "institute" || selectionMode === "both") && (
                     <div className="flex w-fit flex-col gap-2">
                         <p>
-                            {title} <span className="text-subtitle text-danger-600">*</span>
+                            Compulsory {title}s{" "}
+                            <span className="text-subtitle text-danger-600">*</span>
                         </p>
                         <FormField
                             control={control}
-                            name={selectedValueField}
+                            name={preSelectedValueField}
                             render={(field) => (
                                 <FormItem>
                                     <FormControl>
@@ -322,7 +343,7 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                                 });
                                                 field.field.onChange(newSelectedValues);
                                             }}
-                                            defaultValue={getSelectedValues()}
+                                            defaultValue={getPreSelectedValues()}
                                             placeholder={`Select ${title}`}
                                             disabled={isDisabled}
                                         />
@@ -333,36 +354,77 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                     </div>
                 )}
                 {(selectionMode === "student" || selectionMode === "both") && (
-                    <div className="flex items-center gap-6">
-                        <p>Number of {type}s student can enroll into</p>
-                        <FormField
-                            control={control}
-                            name={maxValueField}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            input={field.value?.toString() || "1"}
-                                            inputType="number"
-                                            onChangeFunction={(e) => {
-                                                const value = parseInt(e.target.value) || 0;
-                                                // Ensure the value is between 1 and maxAllowed
-                                                if (value < 1) {
-                                                    field.onChange(1);
-                                                } else if (value > maxAllowed) {
-                                                    field.onChange(maxAllowed);
-                                                } else {
-                                                    field.onChange(value);
-                                                }
-                                            }}
-                                            className="w-[70px]"
-                                            inputPlaceholder="1"
-                                            disabled={isDisabled}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
+                    <div className="flex gap-12">
+                        <div className="flex w-fit flex-col gap-2">
+                            <p>
+                                Student Preference {title}s{" "}
+                                <span className="text-subtitle text-danger-600">*</span>
+                            </p>
+                            <FormField
+                                control={control}
+                                name={learnerChoiceValueField}
+                                render={(field) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MultiSelect
+                                                options={multiSelectOptions}
+                                                onValueChange={(values) => {
+                                                    // Convert selected values to the correct format
+                                                    const newSelectedValues = values.map(
+                                                        (value) => {
+                                                            const matchingItem = dropdownList.find(
+                                                                (item) => item.id === value,
+                                                            );
+                                                            return (
+                                                                matchingItem || {
+                                                                    id: value,
+                                                                    name: value,
+                                                                }
+                                                            );
+                                                        },
+                                                    );
+                                                    field.field.onChange(newSelectedValues);
+                                                }}
+                                                defaultValue={getLearnerChoiceValues()}
+                                                placeholder={`Select ${title}`}
+                                                disabled={isDisabled}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="flex items-center gap-6">
+                            <p>Allowed limit for {type} preference</p>
+                            <FormField
+                                control={control}
+                                name={maxValueField}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                input={field.value?.toString() || "1"}
+                                                inputType="number"
+                                                onChangeFunction={(e) => {
+                                                    const value = parseInt(e.target.value) || 0;
+                                                    // Ensure the value is between 1 and maxAllowed
+                                                    if (value < 1) {
+                                                        field.onChange(1);
+                                                    } else if (value > maxAllowed) {
+                                                        field.onChange(maxAllowed);
+                                                    } else {
+                                                        field.onChange(value);
+                                                    }
+                                                }}
+                                                className="w-[70px]"
+                                                inputPlaceholder="1"
+                                                disabled={isDisabled}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     </div>
                 )}
             </div>
