@@ -1,4 +1,4 @@
-// SelectionModeSection.tsx
+// SelectionModeSection.tsx - updated version
 import { MultiSelect } from "./MultiSelect";
 import { MyInput } from "@/components/design-system/input";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
@@ -77,6 +77,29 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
     const learnerChoiceSessions = watch("learnerChoiceSessions");
     const learnerChoiceLevels = watch("learnerChoiceLevels");
 
+    // Watch pre-selected values for current type
+    const preSelectedValues = watch(preSelectedValueField) || [];
+
+    // Filter learner choice options based on pre-selected values
+    const getLearnerChoiceOptions = () => {
+        // If selectionMode is "student", return all options
+        if (selectionMode === "student") {
+            return dropdownList;
+        }
+
+        // Otherwise filter out items already selected in preSelectedValues
+        return dropdownList.filter(
+            (item) => !preSelectedValues.some((selected) => selected.id === item.id),
+        );
+    };
+
+    // Clear pre-selected values when selection mode changes to "student"
+    useEffect(() => {
+        if (selectionMode === "student") {
+            setValue(preSelectedValueField, []);
+        }
+    }, [selectionMode, preSelectedValueField, setValue]);
+
     useEffect(() => {
         switch (type) {
             case "course": {
@@ -105,7 +128,9 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
         levelSelectionMode,
         preSelectedCourses,
         preSelectedSessions,
-
+        learnerChoiceCourses,
+        learnerChoiceSessions,
+        learnerChoiceLevels,
         dropdownList.length,
     ]);
 
@@ -129,6 +154,12 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
 
     // Convert the dropdown list to MultiSelect format
     const multiSelectOptions = dropdownList.map((item) => ({
+        label: item.name,
+        value: item.id,
+    }));
+
+    // Convert filtered options for learner choice to MultiSelect format
+    const learnerChoiceMultiSelectOptions = getLearnerChoiceOptions().map((item) => ({
         label: item.name,
         value: item.id,
     }));
@@ -342,6 +373,28 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                                     );
                                                 });
                                                 field.field.onChange(newSelectedValues);
+
+                                                // If there are any items in both preSelected and learnerChoice,
+                                                // remove them from learnerChoice
+                                                const learnerChoiceValues =
+                                                    getValues(learnerChoiceValueField) || [];
+                                                const filteredLearnerChoice =
+                                                    learnerChoiceValues.filter(
+                                                        (lcItem) =>
+                                                            !newSelectedValues.some(
+                                                                (psItem) => psItem.id === lcItem.id,
+                                                            ),
+                                                    );
+
+                                                if (
+                                                    filteredLearnerChoice.length !==
+                                                    learnerChoiceValues.length
+                                                ) {
+                                                    setValue(
+                                                        learnerChoiceValueField,
+                                                        filteredLearnerChoice,
+                                                    );
+                                                }
                                             }}
                                             defaultValue={getPreSelectedValues()}
                                             placeholder={`Select ${title}`}
@@ -367,7 +420,7 @@ export const SelectionModeSection = ({ title, type, dropdownList }: SelectionMod
                                     <FormItem>
                                         <FormControl>
                                             <MultiSelect
-                                                options={multiSelectOptions}
+                                                options={learnerChoiceMultiSelectOptions}
                                                 onValueChange={(values) => {
                                                     // Convert selected values to the correct format
                                                     const newSelectedValues = values.map(
