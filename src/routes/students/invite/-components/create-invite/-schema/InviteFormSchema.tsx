@@ -51,7 +51,7 @@ export const inviteFormSchema = z.object({
     inviteeEmail: z.string().optional(), // For the input field
     inviteeEmails: z
         .array(emailEntrySchema)
-        .min(1, "Please enter at least one email address")
+        .min(1, "Please add at least one email address")
         .default([]),
     generatedInviteLink: z.string(),
 });

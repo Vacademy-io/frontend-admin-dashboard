@@ -152,11 +152,10 @@ export const CreateInviteDialog = ({
             <FormProvider {...form}>
                 <form
                     ref={formRef}
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        const formValues = getValues();
-                        console.log("Form values:", formValues);
-                    }}
+                    onSubmit={form.handleSubmit((data) => {
+                        console.log("Form values:", data);
+                        // Continue with valid form data
+                    })}
                 >
                     <div className="flex flex-col gap-10">
                         {/* Invite Link & Active Status */}
