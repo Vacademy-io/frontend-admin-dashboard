@@ -2,12 +2,12 @@ import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { InviteLinkType } from "../-types/invite-link-types";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
-import { InviteFormType } from "./create-invite/-schema/InviteFormSchema";
+import { InviteFormType } from "../-schema/InviteFormSchema";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
 import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
-import formDataToRequestData from "./create-invite/-utils/formDataToRequestData";
+import formDataToRequestData from "../-utils/formDataToRequestData";
 import { useCreateInvite } from "../-services/create-invite";
 
 export const Invite = () => {

@@ -4,7 +4,7 @@ import { DotsThree } from "phosphor-react";
 import { useState } from "react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { InviteLinkType } from "../-types/invite-link-types";
-import { InviteFormType } from "./create-invite/-schema/InviteFormSchema";
+import { InviteFormType } from "../-schema/InviteFormSchema";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
 
 interface InviteCardMenuOptionsProps {

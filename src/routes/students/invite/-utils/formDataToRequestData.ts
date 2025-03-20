@@ -9,7 +9,7 @@ import {
     LearnerChoiceSessionType,
     PreSelectedPackagesType,
     PreSelectedSessionType,
-} from "../../../-types/create-invitation-types";
+} from "../-types/create-invitation-types";
 import { TokenKey } from "@/constants/auth/tokens";
 
 export const fetchPreSelectedLevels = (data: InviteFormType): InviteLevelType[] => {

@@ -7,8 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Copy } from "phosphor-react";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { InviteFormType } from "./-schema/InviteFormSchema";
-import { useInviteForm } from "./-hooks/useInviteForm";
+import { InviteFormType } from "../../-schema/InviteFormSchema";
+import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
 import { SelectionModeSection } from "./SelectionModeSection";
 
@@ -154,7 +154,7 @@ export const CreateInviteDialog = ({
             <FormProvider {...form}>
                 <form
                     ref={formRef}
-                    onSubmit={form.handleSubmit((data) => {
+                    onSubmit={form.handleSubmit((data: InviteFormType) => {
                         console.log("Form values:", data);
                         // Continue with valid form data
                         onCreateInvite && onCreateInvite(data);
