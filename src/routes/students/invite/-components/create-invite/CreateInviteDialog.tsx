@@ -47,8 +47,16 @@ export const CreateInviteDialog = ({
         copySuccess,
     } = useInviteForm(initialValues);
 
-    const { control, reset, getValues, setValue, watch } = form;
+    const {
+        control,
+        reset,
+        getValues,
+        setValue,
+        watch,
+        formState: { errors },
+    } = form;
     const [emailError, setEmailError] = useState<string | null>(null);
+    const emptyEmailsError = errors.inviteeEmails?.message;
 
     // Watch the email input to validate in real-time
     const emailInput = watch("inviteeEmail");
@@ -258,16 +266,24 @@ export const CreateInviteDialog = ({
                                     name="inviteeEmail"
                                     render={({ field }) => (
                                         <FormItem className="w-full">
+                                            <p>
+                                                Enter invitee email
+                                                <span className="text-primary-500">*</span>
+                                            </p>
                                             <FormControl>
                                                 <MyInput
-                                                    label="Enter invitee email"
-                                                    required={true}
                                                     placeholder="you@email.com"
                                                     inputType="email"
                                                     input={field.value || ""}
                                                     onChangeFunction={field.onChange}
                                                     className="w-full"
-                                                    error={emailError}
+                                                    // required={true}
+                                                    error={
+                                                        emailError ||
+                                                        (emailList.length === 0
+                                                            ? emptyEmailsError
+                                                            : undefined)
+                                                    }
                                                 />
                                             </FormControl>
                                         </FormItem>

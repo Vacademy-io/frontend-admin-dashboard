@@ -49,7 +49,10 @@ export const inviteFormSchema = z.object({
     maxLevels: z.number().optional(),
     studentExpiryDays: z.number(),
     inviteeEmail: z.string().optional(), // For the input field
-    inviteeEmails: z.array(emailEntrySchema).default([]), // For storing the email entries
+    inviteeEmails: z
+        .array(emailEntrySchema)
+        .min(1, "Please enter at least one email address")
+        .default([]),
     generatedInviteLink: z.string(),
 });
 
