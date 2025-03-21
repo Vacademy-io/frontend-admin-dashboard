@@ -8,21 +8,6 @@ export interface CustomFieldType {
     comma_separated_options: string;
 }
 
-export interface CreateInvitationRequestType {
-    emails_to_send_invitation: string[];
-    learner_invitation: {
-        id: string | null;
-        name: string;
-        status: "ACTIVE" | "INACTIVE";
-        date_generated: string | null;
-        expiry_date: string;
-        institute_id: string;
-        invite_code: string | null;
-        batch_options_json: string;
-        custom_fields: CustomFieldType[];
-    };
-}
-
 export interface InviteLevelType {
     id: string;
     name: string;
@@ -66,4 +51,20 @@ export interface BatchOptionJsonType {
     max_selectable_packages: number;
     pre_selected_packages: PreSelectedPackagesType[];
     learner_choice_packages: LearnerChoicePackagesType[];
+}
+
+export interface LearnerInvitationType {
+    id: string | null;
+    name: string;
+    status: "ACTIVE" | "INACTIVE";
+    date_generated: string | null;
+    expiry_date: string;
+    institute_id: string;
+    invite_code: string | null;
+    batch_options_json: string;
+    custom_fields: CustomFieldType[];
+}
+export interface CreateInvitationRequestType {
+    emails_to_send_invitation: string[];
+    learner_invitation: LearnerInvitationType;
 }

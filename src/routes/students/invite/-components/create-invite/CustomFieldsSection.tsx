@@ -109,6 +109,68 @@ export const CustomFieldsSection = ({
                         <Plus size={32} /> Add School/College
                     </MyButton>
                 )}
+                {!customFields?.some((field) => field.name === "Address") && (
+                    <MyButton
+                        type="button"
+                        scale="medium"
+                        buttonType="secondary"
+                        onClick={() => handleAddOpenFieldValues("textfield", "Address", false)}
+                    >
+                        <Plus size={32} /> Add Address
+                    </MyButton>
+                )}
+                {!customFields?.some((field) => field.name === "Pincode") && (
+                    <MyButton
+                        type="button"
+                        scale="medium"
+                        buttonType="secondary"
+                        onClick={() => handleAddOpenFieldValues("textfield", "Pincode", false)}
+                    >
+                        <Plus size={32} /> Pincode
+                    </MyButton>
+                )}
+                {!customFields?.some((field) => field.name === "Father Name") && (
+                    <MyButton
+                        type="button"
+                        scale="medium"
+                        buttonType="secondary"
+                        onClick={() => handleAddOpenFieldValues("textfield", "Father Name", false)}
+                    >
+                        <Plus size={32} /> Father Name
+                    </MyButton>
+                )}
+                {!customFields?.some((field) => field.name === "Mother Name") && (
+                    <MyButton
+                        type="button"
+                        scale="medium"
+                        buttonType="secondary"
+                        onClick={() => handleAddOpenFieldValues("textfield", "Mother Name", false)}
+                    >
+                        <Plus size={32} /> Mother Name
+                    </MyButton>
+                )}
+                {!customFields?.some((field) => field.name === "Parent Phone Number") && (
+                    <MyButton
+                        type="button"
+                        scale="medium"
+                        buttonType="secondary"
+                        onClick={() =>
+                            handleAddOpenFieldValues("textfield", "Parent Phone Number", false)
+                        }
+                    >
+                        <Plus size={32} /> Parent Phone Number
+                    </MyButton>
+                )}
+                {!customFields?.some((field) => field.name === "Parent Email") && (
+                    <MyButton
+                        type="button"
+                        scale="medium"
+                        buttonType="secondary"
+                        onClick={() => handleAddOpenFieldValues("textfield", "Parent Email", false)}
+                    >
+                        <Plus size={32} /> Parent Email
+                    </MyButton>
+                )}
 
                 <AddCustomFieldDialog
                     trigger={

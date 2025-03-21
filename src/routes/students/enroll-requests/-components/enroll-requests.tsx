@@ -1,4 +1,4 @@
-import { LearnerEnrollRequestType } from "../-types/request-data";
+import { LearnerEnrollRequestType } from "../-types/enroll-request-types";
 import { EmptyRequestPage } from "@/assets/svgs";
 import { RequestCard } from "./request-card";
 
