@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { CaretLeft } from "phosphor-react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 
 interface ModulesSearchParams {
     courseId: string;

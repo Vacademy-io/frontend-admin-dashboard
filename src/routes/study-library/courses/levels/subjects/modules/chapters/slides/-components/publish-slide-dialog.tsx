@@ -1,7 +1,7 @@
 // publish-dialog.tsx
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { Dispatch, SetStateAction, useState } from "react";
 
 interface PublishUnpublishDialogProps {

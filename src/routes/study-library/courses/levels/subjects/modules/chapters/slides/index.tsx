@@ -1,17 +1,20 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { SlideMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/add-chapters/slide-material";
-import { ChapterSidebarAddButton } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
-import { ChapterSidebarSlides } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
+import { SlideMaterial } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/slide-material";
+import { ChapterSidebarAddButton } from "./-components/slides-sidebar/slides-sidebar-add-button";
+import { ChapterSidebarSlides } from "./-components/slides-sidebar/slides-sidebar-slides";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { studyLibrarySteps } from "@/constants/intro/steps";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
-import { slideOrderPayloadType, useSlides } from "@/hooks/study-library/use-slides";
+import {
+    slideOrderPayloadType,
+    useSlides,
+} from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import useIntroJsTour from "@/hooks/use-intro";
 import { truncateString } from "@/lib/reusable/truncateString";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { useChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";

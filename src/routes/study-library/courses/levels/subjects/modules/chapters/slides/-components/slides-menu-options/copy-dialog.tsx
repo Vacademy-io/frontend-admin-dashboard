@@ -1,4 +1,4 @@
-import { StudyMaterialDetailsForm } from "@/components/common/study-library/upload-study-material/study-material-details-form";
+import { StudyMaterialDetailsForm } from "@/routes/study-library/courses/-components/upload-study-material/study-material-details-form";
 import { MyDialog } from "@/components/design-system/dialog";
 import { Dispatch, SetStateAction } from "react";
 

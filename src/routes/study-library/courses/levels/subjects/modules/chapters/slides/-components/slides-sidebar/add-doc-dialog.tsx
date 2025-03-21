@@ -10,9 +10,9 @@ import { toast } from "sonner";
 import { FileType } from "@/types/common/file-upload";
 import { convertDocToHtml } from "./utils/doc-to-html";
 import { useRouter } from "@tanstack/react-router";
-import { useSlides } from "@/hooks/study-library/use-slides";
+import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import { useReplaceBase64ImagesWithNetworkUrls } from "@/utils/helpers/study-library-helpers.ts/slides/replaceBase64ToNetworkUrl";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { MyInput } from "@/components/design-system/input";
 
 interface FormData {

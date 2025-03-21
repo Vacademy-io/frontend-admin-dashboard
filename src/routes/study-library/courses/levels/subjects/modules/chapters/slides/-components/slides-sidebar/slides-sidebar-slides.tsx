@@ -1,10 +1,14 @@
 import { useSidebar } from "@/components/ui/sidebar";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { truncateString } from "@/lib/reusable/truncateString";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from "@phosphor-icons/react";
 import { ReactNode, useEffect } from "react";
-import { Slide, slideOrderPayloadType, useSlides } from "@/hooks/study-library/use-slides";
+import {
+    Slide,
+    slideOrderPayloadType,
+    useSlides,
+} from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
 import { useFieldArray, useForm } from "react-hook-form";

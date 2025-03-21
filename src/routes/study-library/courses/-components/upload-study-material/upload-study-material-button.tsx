@@ -4,7 +4,7 @@ import { BookOpenText } from "@phosphor-icons/react";
 import { useState } from "react";
 import { StudyMaterialDetailsForm } from "./study-material-details-form";
 import { useNavigate } from "@tanstack/react-router";
-import { useDialogStore } from "@/stores/study-library/slide-add-dialogs-store";
+import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
 
 export const UploadStudyMaterialButton = () => {
     const [openDialog, setOpenDialog] = useState(false);

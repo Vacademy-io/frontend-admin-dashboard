@@ -1,6 +1,6 @@
 // stores/content-store.ts
 import { create } from "zustand";
-import { Slide } from "@/hooks/study-library/use-slides";
+import { Slide } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 
 interface ContentStore {
     items: Slide[];

@@ -2,19 +2,19 @@
 import YooptaEditor, { createYooptaEditor } from "@yoopta/editor";
 import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react";
 import { MyButton } from "@/components/design-system/button";
-import PDFViewer from "../slides-material/pdf-viewer";
-import { ActivityStatsSidebar } from "../slides-material/stats-dialog/activity-sidebar";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import PDFViewer from "./pdf-viewer";
+import { ActivityStatsSidebar } from "./stats-dialog/activity-sidebar";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { EmptySlideMaterial } from "@/assets/svgs";
 import { useState } from "react";
-import YouTubePlayer from "../slides-material/youtube-player";
+import YouTubePlayer from "./youtube-player";
 import { html } from "@yoopta/exports";
-import { SlidesMenuOption } from "../slides-material/slides-menu-options/slides-menu-option";
+import { SlidesMenuOption } from "./slides-menu-options/slides-menu-option";
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
 import { useRouter } from "@tanstack/react-router";
 import { getPublicUrl } from "@/services/upload_file";
-import { PublishUnpublishDialog } from "../slides-material/publish-slide-dialog";
-import { useSlides } from "@/hooks/study-library/use-slides";
+import { PublishUnpublishDialog } from "./publish-slide-dialog";
+import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import { toast } from "sonner";
 import { Check, PencilSimpleLine } from "phosphor-react";
 

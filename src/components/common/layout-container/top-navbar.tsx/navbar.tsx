@@ -16,9 +16,9 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import useInstituteLogoStore from "../sidebar/institutelogo-global-zustand";
 import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
 import { useModulesWithChaptersStore } from "@/stores/study-library/use-modules-with-chapters-store";
-import { usePDFStore } from "@/stores/study-library/temp-pdf-store";
+import { usePDFStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/temp-pdf-store";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { SidebarSimple } from "@phosphor-icons/react";
 
 export function Navbar() {

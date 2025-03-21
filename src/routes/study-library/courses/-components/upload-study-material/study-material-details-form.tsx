@@ -1,5 +1,5 @@
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { MyDropdown } from "../../students/enroll-manually/dropdownForPackageItems";
+import { MyDropdown } from "../../../../../components/common/students/enroll-manually/dropdownForPackageItems";
 import { MyButton } from "@/components/design-system/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +10,7 @@ import { ModulesWithChapters } from "@/stores/study-library/use-modules-with-cha
 import { useEffect, useMemo, useState } from "react";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
 import { useQuery } from "@tanstack/react-query";
-import { useModulesWithChaptersQuery } from "@/services/study-library/getModulesWithChapters";
+import { useModulesWithChaptersQuery } from "@/routes/study-library/courses/-services/getModulesWithChapters";
 
 export type AvailableFields =
     | "course"

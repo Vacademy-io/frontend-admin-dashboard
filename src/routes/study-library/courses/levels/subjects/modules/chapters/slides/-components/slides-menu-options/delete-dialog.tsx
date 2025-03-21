@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { TokenKey } from "@/constants/auth/tokens";
-import { useSlides } from "@/hooks/study-library/use-slides";
+import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { useRouter } from "@tanstack/react-router";
 import { Dispatch, SetStateAction } from "react";

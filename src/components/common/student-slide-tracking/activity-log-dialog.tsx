@@ -6,8 +6,8 @@ import { ACTIVITY_LOG_COLUMN_WIDTHS } from "@/components/design-system/utils/con
 import { usePaginationState } from "@/hooks/pagination";
 import { useMemo } from "react";
 import { activityLogColumns } from "@/components/design-system/utils/constants/table-column-data";
-import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useActivityStatsStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { useQuery } from "@tanstack/react-query";
 import {
     getUserVideoSlideActivityLogs,

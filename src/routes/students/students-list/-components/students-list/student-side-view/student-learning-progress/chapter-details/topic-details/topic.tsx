@@ -1,7 +1,7 @@
 // components/topic.tsx
 import { MyButton } from "@/components/design-system/button";
 import { StatusIcon } from "../../status-icon";
-import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
+import { useActivityStatsStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store";
 import { SlideWithStatusType } from "@/routes/students/students-list/-types/student-slides-progress-type";
 import { useEffect, useState } from "react";
 import { ActivityLogDialog } from "../../../../../../../../../components/common/student-slide-tracking/activity-log-dialog";

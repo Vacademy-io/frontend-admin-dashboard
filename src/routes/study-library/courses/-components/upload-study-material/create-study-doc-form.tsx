@@ -1,5 +1,5 @@
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { MyDropdown } from "../../students/enroll-manually/dropdownForPackageItems";
+import { MyDropdown } from "../../../../../components/common/students/enroll-manually/dropdownForPackageItems";
 import { MyButton } from "@/components/design-system/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,7 @@ import {
 } from "@/stores/study-library/use-modules-with-chapters-store";
 import { useEffect, useState } from "react";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
-import { useDialogStore } from "@/stores/study-library/slide-add-dialogs-store";
+import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
 import { useNavigate } from "@tanstack/react-router";
 
 // Form validation schema

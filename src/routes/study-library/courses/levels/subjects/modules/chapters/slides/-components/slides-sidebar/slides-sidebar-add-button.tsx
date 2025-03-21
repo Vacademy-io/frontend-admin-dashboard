@@ -7,10 +7,10 @@ import { AddVideoDialog } from "./add-video-dialog";
 import { AddDocDialog } from "./add-doc-dialog";
 import { AddPdfDialog } from "./add-pdf-dialog";
 import { useRouter } from "@tanstack/react-router";
-import { useSlides } from "@/hooks/study-library/use-slides";
-import { formatHTMLString } from "../../add-chapters/slide-material";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { useDialogStore } from "@/stores/study-library/slide-add-dialogs-store";
+import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
+import { formatHTMLString } from "../slide-material";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
+import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();

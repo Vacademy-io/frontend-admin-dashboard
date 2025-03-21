@@ -4,7 +4,7 @@ import { MyPagination } from "@/components/design-system/pagination";
 import { usePaginationState } from "@/hooks/pagination";
 import { useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { ColumnWidthConfig } from "@/components/design-system/utils/constants/table-layout";
 
 interface VideoLogType {
