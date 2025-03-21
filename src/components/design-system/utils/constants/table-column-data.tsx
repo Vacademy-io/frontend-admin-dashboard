@@ -243,7 +243,13 @@ export interface ActivityLogDialogProps {
 
 const LastPageReadHeader = () => {
     const { activeItem } = useContentStore();
-    return <>{activeItem?.video_url != null ? "Percentage Watched" : "Total Pages Read"}</>;
+    return (
+        <>
+            {activeItem?.video_url != null || activeItem?.published_url != null
+                ? "Percentage Watched"
+                : "Total Pages Read"}
+        </>
+    );
 };
 
 export const activityLogColumns: ColumnDef<ActivityLogType>[] = [

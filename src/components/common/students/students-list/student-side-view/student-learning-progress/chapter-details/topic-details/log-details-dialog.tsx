@@ -62,7 +62,7 @@ interface LogDetailsDialogProps {
 
 export const LogDetailsDialog = ({ isOpen, onClose, logData }: LogDetailsDialogProps) => {
     const { activeItem } = useContentStore();
-    const isVideo = activeItem?.video_url != null;
+    const isVideo = activeItem?.video_url != null || activeItem?.published_url != null;
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
