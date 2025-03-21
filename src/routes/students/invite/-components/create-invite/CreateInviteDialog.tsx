@@ -1,14 +1,14 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
 import { Copy } from "phosphor-react";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { InviteFormType } from "./-schema/InviteFormSchema";
-import { useInviteForm } from "./-hooks/useInviteForm";
+import { InviteFormType } from "../../-schema/InviteFormSchema";
+import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
 import { SelectionModeSection } from "./SelectionModeSection";
 
@@ -18,6 +18,9 @@ interface CreateInviteDialogProps {
     submitButton: JSX.Element;
     open?: boolean;
     onOpenChange?: () => void;
+    submitForm?: (fn: () => void) => void;
+    onCreateInvite?: (invite: InviteFormType) => void;
+    inviteLink?: string | null;
 }
 
 // Define a type for email entries
@@ -32,6 +35,9 @@ export const CreateInviteDialog = ({
     submitButton,
     open,
     onOpenChange,
+    submitForm,
+    onCreateInvite,
+    inviteLink,
 }: CreateInviteDialogProps) => {
     const {
         form,
@@ -45,8 +51,16 @@ export const CreateInviteDialog = ({
         copySuccess,
     } = useInviteForm(initialValues);
 
-    const { control, reset, getValues, setValue, watch } = form;
+    const {
+        control,
+        reset,
+        getValues,
+        setValue,
+        watch,
+        formState: { errors },
+    } = form;
     const [emailError, setEmailError] = useState<string | null>(null);
+    const emptyEmailsError = errors.inviteeEmails?.message;
 
     // Watch the email input to validate in real-time
     const emailInput = watch("inviteeEmail");
@@ -118,6 +132,18 @@ export const CreateInviteDialog = ({
         }
     }, [open, initialValues, reset]);
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    useEffect(() => {
+        if (submitForm) {
+            submitForm(() => {
+                if (formRef.current) {
+                    formRef.current.requestSubmit();
+                }
+            });
+        }
+    }, [submitForm]);
+
     return (
         <MyDialog
             heading="Invite Students"
@@ -128,7 +154,14 @@ export const CreateInviteDialog = ({
             onOpenChange={onOpenChange}
         >
             <FormProvider {...form}>
-                <form>
+                <form
+                    ref={formRef}
+                    onSubmit={form.handleSubmit((data: InviteFormType) => {
+                        console.log("Form values:", data);
+                        // Continue with valid form data
+                        onCreateInvite && onCreateInvite(data);
+                    })}
+                >
                     <div className="flex flex-col gap-10">
                         {/* Invite Link & Active Status */}
                         <div className="flex justify-between gap-4">
@@ -139,7 +172,7 @@ export const CreateInviteDialog = ({
                                     <FormItem className="w-[80%]">
                                         <FormControl>
                                             <MyInput
-                                                label="Invite Link"
+                                                label="Invite Link Name"
                                                 required={true}
                                                 inputType="text"
                                                 inputPlaceholder="Enter invite link name"
@@ -188,10 +221,20 @@ export const CreateInviteDialog = ({
                         <SelectionModeSection
                             title="Session"
                             type="session"
-                            dropdownList={sessionList}
+                            dropdownList={sessionList.filter(() =>
+                                watch("preSelectedCourses") ? true : false,
+                            )}
                         />
 
-                        <SelectionModeSection title="Level" type="level" dropdownList={levelList} />
+                        <SelectionModeSection
+                            title="Level"
+                            type="level"
+                            dropdownList={levelList.filter(() =>
+                                watch("preSelectedCourses") && watch("preSelectedSessions")
+                                    ? true
+                                    : false,
+                            )}
+                        />
 
                         {/* Student Expiry Date */}
                         <div className="flex items-center gap-6">
@@ -229,16 +272,24 @@ export const CreateInviteDialog = ({
                                     name="inviteeEmail"
                                     render={({ field }) => (
                                         <FormItem className="w-full">
+                                            <p>
+                                                Enter invitee email
+                                                <span className="text-primary-500">*</span>
+                                            </p>
                                             <FormControl>
                                                 <MyInput
-                                                    label="Enter invitee email"
-                                                    required={true}
                                                     placeholder="you@email.com"
                                                     inputType="email"
                                                     input={field.value || ""}
                                                     onChangeFunction={field.onChange}
                                                     className="w-full"
-                                                    error={emailError}
+                                                    // required={true}
+                                                    error={
+                                                        emailError ||
+                                                        (emailList.length === 0
+                                                            ? emptyEmailsError
+                                                            : undefined)
+                                                    }
                                                 />
                                             </FormControl>
                                         </FormItem>
@@ -251,7 +302,9 @@ export const CreateInviteDialog = ({
                                     type="button"
                                     onClick={handleAddEmail}
                                     disabled={!!emailError || !emailInput}
-                                    className={`${emailError ? "mb-6" : "mb-0"}`}
+                                    className={`${
+                                        emailError || emptyEmailsError ? "mb-7" : "mb-0"
+                                    }`}
                                 >
                                     Add
                                 </MyButton>
@@ -280,8 +333,8 @@ export const CreateInviteDialog = ({
                         <Separator />
 
                         {/* Generated Invite Link */}
-                        <div className="flex w-fit items-center gap-4">
-                            <p className="text-subtitle font-semibold">Invite Link</p>
+
+                        {/*<p className="text-subtitle font-semibold">Invite Link</p>
                             <FormField
                                 control={control}
                                 name="generatedInviteLink"
@@ -297,24 +350,30 @@ export const CreateInviteDialog = ({
                                         </FormControl>
                                     </FormItem>
                                 )}
-                            />
-                            <div className="flex items-center gap-2">
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="medium"
-                                    layoutVariant="icon"
-                                    onClick={() =>
-                                        handleCopyClick(getValues("generatedInviteLink"))
-                                    }
-                                    type="button"
-                                >
-                                    <Copy />
-                                </MyButton>
-                                {copySuccess === getValues("generatedInviteLink") && (
-                                    <span className="text-caption text-primary-500">Copied!</span>
-                                )}
+                            /> */}
+                        {inviteLink && inviteLink != null && (
+                            <div className="flex w-fit items-center gap-4">
+                                <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
+                                    {inviteLink}
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="icon"
+                                        onClick={() => handleCopyClick(inviteLink)}
+                                        type="button"
+                                    >
+                                        <Copy />
+                                    </MyButton>
+                                    {copySuccess === inviteLink && (
+                                        <span className="text-caption text-primary-500">
+                                            Copied!
+                                        </span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </form>
             </FormProvider>

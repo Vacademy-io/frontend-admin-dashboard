@@ -1,7 +1,7 @@
 // StudentSidebarProvider.tsx
 import { ReactNode, useState } from "react";
-import { StudentSidebarContext } from "@/context/selected-student-sidebar-context";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentSidebarContext } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
+import { StudentTable } from "@/types/student-table-types";
 
 interface StudentSidebarProviderProps {
     children: ReactNode;

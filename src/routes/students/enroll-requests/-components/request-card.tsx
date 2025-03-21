@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LearnerEnrollRequestType } from "../-types/request-data";
+import { LearnerEnrollRequestType } from "../-types/enroll-request-types";
 import { toast } from "sonner";
 import { MyButton } from "@/components/design-system/button";
 import { Copy } from "phosphor-react";

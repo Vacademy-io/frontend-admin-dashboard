@@ -5,14 +5,17 @@ import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "../dropdownForPackageItems";
-import { useGetGenders } from "@/hooks/student-list-section/useFilters";
+import { useGetGenders } from "@/routes/students/students-list/-hooks/useFilters";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepTwoData, stepTwoSchema } from "@/types/students/schema-enroll-students-manually";
+import {
+    StepTwoData,
+    stepTwoSchema,
+} from "@/schemas/student/student-list/schema-enroll-students-manually";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useEffect, useRef, useState } from "react";
 import { DropdownItemType } from "../dropdownTypesForPackageItems";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 
 export const StepTwoForm = ({ initialValues }: { initialValues?: StudentTable }) => {

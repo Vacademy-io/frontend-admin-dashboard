@@ -2,7 +2,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
-import { SubjectMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material";
+import { SubjectMaterial } from "@/routes/study-library/courses/levels/subjects/-components/subject-material";
 import { useEffect } from "react";
 import { CaretLeft } from "phosphor-react";
 import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useGetSessions } from "@/hooks/student-list-section/useFilters";
-import { GetFilterData } from "@/constants/student-list/all-filters";
+import { useGetSessions } from "@/routes/students/students-list/-hooks/useFilters";
+import { GetFilterData } from "@/routes/students/students-list/-constants/all-filters";
 import { MyTable, TableData } from "@/components/design-system/table";
 import { MyPagination } from "@/components/design-system/pagination";
-import { useStudentFilters } from "@/hooks/student-list-section/useStudentFilters";
-import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { useStudentFilters } from "@/routes/students/students-list/-hooks/useStudentFilters";
+import { useStudentTable } from "@/routes/students/students-list/-hooks/useStudentTable";
+import { StudentTable } from "@/types/student-table-types";
 import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
 import {
     STUDENT_LIST_ASSESSMENT_COLUMN_WIDTHS,
@@ -16,9 +16,9 @@ import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
-import { StudentListHeader } from "@/components/common/students/students-list/student-list-section/student-list-header";
-import { StudentFilters } from "@/components/common/students/students-list/student-list-section/student-filters";
-import { BulkActions } from "@/components/common/students/students-list/bulk-actions";
+import { StudentListHeader } from "@/routes/students/students-list/-components/students-list/student-list-section/student-list-header";
+import { StudentFilters } from "@/routes/students/students-list/-components/students-list/student-list-section/student-filters";
+import { BulkActions } from "@/routes/students/students-list/-components/students-list/bulk-actions";
 import { myAssessmentColumns } from "./assessment-columns";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";

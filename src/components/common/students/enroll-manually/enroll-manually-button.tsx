@@ -6,7 +6,7 @@ import { StepFourForm } from "./forms/step-four-form";
 import { StepFiveForm } from "./forms/step-five-form";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { MyDialog } from "@/components/design-system/dialog";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 
 interface EnrollManuallyButtonProps {
     triggerButton?: JSX.Element;

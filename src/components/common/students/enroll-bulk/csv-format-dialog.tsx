@@ -13,9 +13,9 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { UploadCSVButton } from "./upload-csv-button";
-import { enrollBulkFormType } from "@/types/students/bulk-upload-types";
-import { CSVFormatFormType } from "@/types/students/bulk-upload-types";
-import { csvFormatSchema } from "@/types/students/bulk-upload-types";
+import { enrollBulkFormType } from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
+import { CSVFormatFormType } from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
+import { csvFormatSchema } from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
 
 export const CSVFormatDialog = ({
     packageDetails,

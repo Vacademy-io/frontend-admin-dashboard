@@ -18,7 +18,7 @@ import { ChangeBatchDialog } from "./table-components/student-menu-options/chang
 import { ExtendSessionDialog } from "./table-components/student-menu-options/extend-session-dialog";
 import { ReRegisterDialog } from "./table-components/student-menu-options/re-register-dialog";
 import { TerminateRegistrationDialog } from "./table-components/student-menu-options/terminate-registration-dialog";
-import { useDialogStore } from "./utils/useDialogStore";
+import { useDialogStore } from "../../routes/students/students-list/-hooks/useDialogStore";
 import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 import { ColumnWidthConfig } from "./utils/constants/table-layout";
 import { DashboardLoader } from "../core/dashboard-loader";
