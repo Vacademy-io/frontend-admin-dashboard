@@ -217,6 +217,7 @@ export const syncStep1DataWithStore = (form: UseFormReturn<BasicSectionFormType>
         testCreation: getValues("testCreation"),
         assessmentPreview: getValues("assessmentPreview"),
         submissionType: getValues("submissionType"),
+        reattemptCount: getValues("reattemptCount"),
         durationDistribution: getValues("durationDistribution"),
         evaluationType: getValues("evaluationType"),
         switchSections: getValues("switchSections"),

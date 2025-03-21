@@ -4,25 +4,26 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
-import { MyDropdown } from "@/components/design-system/dropdown";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepThreeData, stepThreeSchema } from "@/types/students/schema-enroll-students-manually";
+import PhoneInputField from "@/components/design-system/phone-input-field";
+import { useEffect } from "react";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
-export const StepThreeForm = () => {
+export const StepThreeForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const { stepThreeData, setStepThreeData, nextStep } = useFormStore();
-    const stateList = ["Madhya Pradesh", "Himachal Pradesh", "Rajasthan"];
-    const cityList = ["Bhopal", "Indore", "Delhi"];
 
     const form = useForm<StepThreeData>({
         resolver: zodResolver(stepThreeSchema),
         defaultValues: stepThreeData || {
-            mobileNumber: "",
-            email: "",
-            state: "Madhya Pradesh",
-            city: "Bhopal",
+            mobileNumber: initialValues?.mobile_number || "",
+            email: initialValues?.email || "",
+            addressLine: initialValues?.address_line || "",
+            city: initialValues?.city || "",
+            state: initialValues?.region || "",
+            pincode: initialValues?.pin_code || "",
         },
         mode: "onChange",
     });
@@ -32,9 +33,13 @@ export const StepThreeForm = () => {
         nextStep();
     };
 
+    useEffect(() => {
+        console.log("mobile field: ", form.getValues("mobileNumber"));
+    }, [form.watch("mobileNumber")]);
+
     return (
         <div>
-            <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
                         <FormItemWrapper<StepThreeData> control={form.control} name="mobileNumber">
@@ -48,20 +53,15 @@ export const StepThreeForm = () => {
                             <FormField
                                 control={form.control}
                                 name="mobileNumber"
-                                render={({ field: { onChange, value, ...field } }) => (
+                                render={() => (
                                     <FormItem>
                                         <FormControl>
-                                            <MyInput
-                                                inputType="tel"
+                                            <PhoneInputField
                                                 label="Mobile Number"
-                                                inputPlaceholder="123 456 7890"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={form.formState.errors.mobileNumber?.message}
-                                                required={true}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
+                                                placeholder="123 456 7890"
+                                                name="mobileNumber"
+                                                control={form.control}
+                                                country="in"
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -93,24 +93,20 @@ export const StepThreeForm = () => {
 
                             <FormField
                                 control={form.control}
-                                name="state"
-                                render={({ field: { onChange, value } }) => (
+                                name="addressLine"
+                                render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
                                         <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    State{" "}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
-                                                </div>
-                                                <MyDropdown
-                                                    currentValue={value}
-                                                    dropdownList={stateList}
-                                                    handleChange={onChange}
-                                                    placeholder="Select State"
-                                                />
-                                            </div>
+                                            <MyInput
+                                                inputType="text"
+                                                label="Address Line"
+                                                inputPlaceholder="Eg. 38, South Avenue, Central Perk"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
                                         </FormControl>
                                     </FormItem>
                                 )}
@@ -119,23 +115,60 @@ export const StepThreeForm = () => {
                             <FormField
                                 control={form.control}
                                 name="city"
-                                render={({ field: { onChange, value } }) => (
+                                render={({ field: { onChange, value, ...field } }) => (
                                     <FormItem>
                                         <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    City{" "}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
-                                                </div>
-                                                <MyDropdown
-                                                    currentValue={value}
-                                                    dropdownList={cityList}
-                                                    handleChange={onChange}
-                                                    placeholder="Select City"
-                                                />
-                                            </div>
+                                            <MyInput
+                                                inputType="text"
+                                                label="City/Village"
+                                                inputPlaceholder="Eg. Mumbai"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="state"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                label="State"
+                                                inputPlaceholder="Eg. Maharashtra"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="pincode"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="number"
+                                                label="Pincode"
+                                                inputPlaceholder="Eg.425562"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
                                         </FormControl>
                                     </FormItem>
                                 )}
@@ -143,7 +176,7 @@ export const StepThreeForm = () => {
                         </div>
                     </form>
                 </Form>
-            </DialogDescription>
+            </div>
             <FormSubmitButtons stepNumber={3} onNext={form.handleSubmit(onSubmit)} />
         </div>
     );

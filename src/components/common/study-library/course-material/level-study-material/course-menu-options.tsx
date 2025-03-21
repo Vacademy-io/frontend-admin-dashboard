@@ -3,8 +3,8 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { CourseType } from "@/stores/study-library/use-study-library-store";
 import { DotsThree } from "phosphor-react";
-import { useState } from "react";
-import { AddCourseData, AddCourseForm } from "../add-course-form";
+import { useRef, useState } from "react";
+import { AddCourseData, AddCourseForm } from "../add-course/add-course-form";
 
 interface CourseMenuOptionsProps {
     onDelete: (courseId: string) => void;
@@ -15,6 +15,8 @@ interface CourseMenuOptionsProps {
 export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOptionsProps) => {
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const DropdownList = ["Edit Course", "Delete Course"];
+    const [disableAddButton, setDisableAddButton] = useState(false);
+    const formSubmitRef = useRef<() => void>(() => {});
 
     const handleMenuOptionsChange = (value: string) => {
         if (value === "Delete Course") {
@@ -27,6 +29,22 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
     const handleOpenChange = () => {
         setOpenEditDialog(!openEditDialog);
     };
+
+    const submitButton = (
+        <div className="items-center justify-center bg-white">
+            <MyButton
+                onClick={() => formSubmitRef.current()}
+                type="button"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                className="w-[140px]"
+                disable={disableAddButton}
+            >
+                Save Changes
+            </MyButton>
+        </div>
+    );
 
     return (
         <>
@@ -42,9 +60,10 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
             </MyDropdown>
             <MyDialog
                 heading="Edit Course"
-                dialogWidth="w-[430px]"
+                dialogWidth="w-[700px]"
                 open={openEditDialog}
                 onOpenChange={handleOpenChange}
+                footer={submitButton}
             >
                 <AddCourseForm
                     initialValues={{
@@ -52,10 +71,14 @@ export const CourseMenuOptions = ({ onDelete, onEdit, course }: CourseMenuOption
                         course_name: course.package_name,
                         thumbnail_file_id: course.thumbnail_file_id,
                         contain_levels: false,
-                        levels: [],
+                        sessions: [],
                     }}
                     onSubmitCourse={onEdit}
                     setOpenDialog={setOpenEditDialog}
+                    setDisableAddButton={setDisableAddButton}
+                    submitForm={(submitFn) => {
+                        formSubmitRef.current = submitFn;
+                    }}
                 />
             </MyDialog>
         </>

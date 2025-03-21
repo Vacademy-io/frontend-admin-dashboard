@@ -25,7 +25,13 @@ const AssessmentAccessControlTab = () => {
                         {assessmentDetails[3]?.saved_data.creation_access.roles?.map((role) => (
                             <Badge
                                 key={role}
-                                className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 shadow-none"
+                                className={`cursor-pointer rounded-lg border border-neutral-300 ${
+                                    role === "EVALUATOR"
+                                        ? "bg-[#F5F0FF]"
+                                        : role === "CREATOR"
+                                          ? "bg-[#FFF4F5]"
+                                          : "bg-[#F4F9FF]"
+                                } py-1.5 shadow-none`}
                             >
                                 Role: {role}
                             </Badge>
@@ -49,7 +55,13 @@ const AssessmentAccessControlTab = () => {
                             (role) => (
                                 <Badge
                                     key={role}
-                                    className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 shadow-none"
+                                    className={`cursor-pointer rounded-lg border border-neutral-300 ${
+                                        role === "EVALUATOR"
+                                            ? "bg-[#F5F0FF]"
+                                            : role === "CREATOR"
+                                              ? "bg-[#FFF4F5]"
+                                              : "bg-[#F4F9FF]"
+                                    } py-1.5 shadow-none`}
                                 >
                                     Role: {role}
                                 </Badge>
@@ -76,7 +88,13 @@ const AssessmentAccessControlTab = () => {
                             (role) => (
                                 <Badge
                                     key={role}
-                                    className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 shadow-none"
+                                    className={`cursor-pointer rounded-lg border border-neutral-300 ${
+                                        role === "EVALUATOR"
+                                            ? "bg-[#F5F0FF]"
+                                            : role === "CREATOR"
+                                              ? "bg-[#FFF4F5]"
+                                              : "bg-[#F4F9FF]"
+                                    } py-1.5 shadow-none`}
                                 >
                                     Role: {role}
                                 </Badge>
@@ -102,7 +120,13 @@ const AssessmentAccessControlTab = () => {
                         {assessmentDetails[3]?.saved_data.evaluation_access.roles?.map((role) => (
                             <Badge
                                 key={role}
-                                className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 shadow-none"
+                                className={`cursor-pointer rounded-lg border border-neutral-300 ${
+                                    role === "EVALUATOR"
+                                        ? "bg-[#F5F0FF]"
+                                        : role === "CREATOR"
+                                          ? "bg-[#FFF4F5]"
+                                          : "bg-[#F4F9FF]"
+                                } py-1.5 shadow-none`}
                             >
                                 Role: {role}
                             </Badge>

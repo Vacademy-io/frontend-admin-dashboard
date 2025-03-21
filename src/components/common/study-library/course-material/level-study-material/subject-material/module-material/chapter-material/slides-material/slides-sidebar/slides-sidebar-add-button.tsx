@@ -78,6 +78,9 @@ export const ChapterSidebarAddButton = () => {
                             data: documentData,
                             title: "New Document",
                             cover_file_id: "",
+                            total_pages: 1,
+                            published_data: null,
+                            published_document_total_pages: 0,
                         },
                         status: "DRAFT",
                         new_slide: true,
@@ -119,7 +122,7 @@ export const ChapterSidebarAddButton = () => {
             <MyDialog
                 trigger={<></>}
                 heading="Upload PDF"
-                dialogWidth="w-[400px]"
+                dialogWidth="min-w-[400px] w-auto"
                 open={isPdfDialogOpen}
                 onOpenChange={closePdfDialog} // Pass the action function directly
             >
@@ -130,7 +133,7 @@ export const ChapterSidebarAddButton = () => {
             <MyDialog
                 trigger={<></>}
                 heading="Upload Document"
-                dialogWidth="w-[400px]"
+                dialogWidth="min-w-[400px] w-auto"
                 open={isDocUploadDialogOpen}
                 onOpenChange={closeDocUploadDialog} // Pass the action function directly
             >
@@ -141,7 +144,7 @@ export const ChapterSidebarAddButton = () => {
             <MyDialog
                 trigger={<></>}
                 heading="Upload Video"
-                dialogWidth="w-[400px]"
+                dialogWidth="min-w-[400px]"
                 open={isVideoDialogOpen}
                 onOpenChange={closeVideoDialog} // Pass the action function directly
             >

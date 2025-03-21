@@ -9,15 +9,12 @@ import { Route } from "..";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import {
     getStudentLeaderboardDetails,
+    handleGetAssessmentTotalMarksData,
     handleGetLeaderboardData,
 } from "../-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import {
-    calculateIndividualPercentile,
-    calculatePercentiles,
-    getBatchNameById,
-} from "../-utils/helper";
+import { getBatchNameById } from "../-utils/helper";
 import { StudentLeaderboard } from "@/types/assessment-overview";
 export interface AssessmentStudentLeaderboardInterface {
     name: string;
@@ -30,6 +27,9 @@ const AssessmentStudentLeaderboard = () => {
     const { batches_for_sessions } = instituteDetails || {};
     const instituteId = getInstituteId();
     const { assessmentId } = Route.useParams();
+    const { data: totalMarks } = useSuspenseQuery(
+        handleGetAssessmentTotalMarksData({ assessmentId }),
+    );
     const [selectedFilter] = useState<AssessmentStudentLeaderboardInterface>({
         name: "",
         status: [],
@@ -46,7 +46,6 @@ const AssessmentStudentLeaderboard = () => {
             selectedFilter,
         }),
     );
-    const studentDataWithPercentile = calculatePercentiles(data.content);
 
     const [studentLeaderboardData, setStudentLeaderboardData] = useState(data);
 
@@ -205,16 +204,14 @@ const AssessmentStudentLeaderboard = () => {
                                         <div className="flex items-center gap-4">
                                             <div className="flex flex-col text-neutral-500">
                                                 <span className="text-[12px]">Percentile</span>
-                                                <span>
-                                                    {calculateIndividualPercentile(
-                                                        studentDataWithPercentile,
-                                                        student.user_id,
-                                                    )}
-                                                </span>
+                                                <span>{student.percentile.toFixed(2)}</span>
                                             </div>
                                             <div className="flex flex-col text-center text-neutral-500">
                                                 <span className="text-[12px]">Marks</span>
-                                                <span>{student.achieved_marks}/20</span>
+                                                <span>
+                                                    {student.achieved_marks.toFixed(2)}/
+                                                    {totalMarks.total_achievable_marks}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

@@ -181,6 +181,9 @@ html {
     .sidebar-open {
         overflow: hidden;
     }
+    img {
+        @apply inline-block;
+    }
 }
 
 @layer utilities {

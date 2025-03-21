@@ -22,7 +22,7 @@ export const LayoutContainer = ({
             <div>
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
-            <div className="flex w-full flex-1 flex-col">
+            <div className="flex w-full flex-1 flex-col text-neutral-600">
                 <Navbar />
                 <StudentSidebarProvider>
                     <div

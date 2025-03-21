@@ -16,7 +16,7 @@ export interface TestContent {
     bound_start_time: string;
     bound_end_time: string;
     user_registrations: number;
-    batch_registrations: number;
+    batch_ids: string[];
     admin_accesses: string | null;
     subject_id: string | null;
     created_at: string;
@@ -41,4 +41,5 @@ export interface ScheduleTestListsProps {
     pageNo: number;
     handlePageChange: (page: number) => void;
     selectedTab: string;
+    handleRefetchData: () => void;
 }

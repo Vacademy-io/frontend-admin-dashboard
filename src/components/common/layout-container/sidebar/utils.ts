@@ -1,4 +1,4 @@
-import { House, Users, BookOpen, Scroll, Globe } from "@phosphor-icons/react";
+import { House, Users, BookOpen, Scroll, Globe, FileMagnifyingGlass } from "@phosphor-icons/react";
 import { SidebarItemsType } from "../../../../types/layout-container/layout-container-types";
 
 export const SidebarItemsData: SidebarItemsType[] = [
@@ -17,21 +17,34 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: "Students list",
                 subItemLink: "/students/students-list",
             },
-            // {
-            //     subItem: "Manage Batches and Sessions",
-            //     subItemLink: "/students/manage-batches",
-            // },
-            // {
-            //     subItem: "Enroll Requests",
-            //     subItemLink: "/students/enroll-requests",
-            // },
+            {
+                subItem: "Manage Batches",
+                subItemLink: "/students/manage-batches",
+            },
+            {
+                subItem: "Enroll Requests",
+                subItemLink: "/students/enroll-requests",
+            },
+            {
+                subItem: "Invite",
+                subItemLink: "/students/invite",
+            },
         ],
     },
     {
         icon: BookOpen,
         title: "Learning Center",
         id: "study-library",
-        to: "/study-library",
+        subItems: [
+            {
+                subItem: "Courses",
+                subItemLink: "/study-library/courses",
+            },
+            {
+                subItem: "Session",
+                subItemLink: "/study-library/session",
+            },
+        ],
     },
     {
         icon: Scroll,
@@ -49,6 +62,18 @@ export const SidebarItemsData: SidebarItemsType[] = [
             },
         ],
     },
+    {
+        icon: FileMagnifyingGlass,
+        title: "Evaluation Centre",
+        id: "evaluation-centre",
+        subItems: [
+            {
+                subItem: "Evaluation tool",
+                subItemLink: "/evaluation/evaluation-tool",
+            },
+        ],
+    },
+
     {
         icon: Globe,
         id: "Community Centre",

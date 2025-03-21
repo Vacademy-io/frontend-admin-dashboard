@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { CaretLeft } from "phosphor-react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
+import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 
 interface ModulesSearchParams {
     courseId: string;
@@ -31,12 +32,15 @@ export const Route = createFileRoute("/study-library/courses/levels/subjects/mod
 
 function RouteComponent() {
     const navigate = useNavigate();
-
     const { courseId, levelId, subjectId, moduleId } = Route.useSearch();
-
     const [currentModuleId, setCurrentModuleId] = useState(moduleId);
-
     const { setNavHeading } = useNavHeadingStore();
+    const { setActiveItem, setItems } = useContentStore();
+
+    useEffect(() => {
+        setActiveItem(null);
+        setItems([]);
+    }, []);
 
     useEffect(() => {
         navigate({

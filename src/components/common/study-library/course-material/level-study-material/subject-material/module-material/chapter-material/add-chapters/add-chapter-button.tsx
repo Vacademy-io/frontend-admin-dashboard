@@ -2,7 +2,6 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { Plus } from "@phosphor-icons/react";
 import { useState } from "react";
-import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
 import { AddChapterForm } from "./add-chapter-form";
 
 const triggerButton = (
@@ -11,19 +10,14 @@ const triggerButton = (
     </MyButton>
 );
 
-interface AddChapterButtonProps {
-    onAddChapter: (chapter: ChapterWithSlides) => void;
-}
-
-export const AddChapterButton = ({ onAddChapter }: AddChapterButtonProps) => {
+export const AddChapterButton = () => {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
     };
 
-    const handleSubmitSuccess = (chapter: ChapterWithSlides) => {
-        onAddChapter(chapter);
+    const handleSubmitSuccess = () => {
         handleOpenChange();
     };
 

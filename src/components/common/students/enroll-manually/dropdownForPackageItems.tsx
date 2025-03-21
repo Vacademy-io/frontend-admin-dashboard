@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CaretDown, CaretUp, CaretRight } from "@phosphor-icons/react";
 import {
     DropdownMenu,
@@ -31,8 +31,22 @@ export const MyDropdown = ({
     placeholder = "Select an option",
     error,
     disable,
+    required = false,
 }: myDropDownProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        // Auto-select the only item if dropdownList has exactly one item and no current value is set
+        if (dropdownList.length === 1) {
+            const singleItem = dropdownList[0];
+            if (handleChange) {
+                singleItem && handleChange(singleItem);
+            }
+            if (onSelect) {
+                singleItem && onSelect(singleItem);
+            }
+        }
+    }, [dropdownList]);
 
     const handleValueChange = (value: string | DropdownItem | DropdownItemType) => {
         if (handleChange) {
@@ -161,12 +175,16 @@ export const MyDropdown = ({
                         align="start"
                     >
                         {/* Add "Clear All Fields" option */}
-                        <DropdownMenuItem
-                            className="cursor-pointer truncate px-3 py-2 text-center text-subtitle text-neutral-400 hover:bg-primary-50 hover:outline-none"
-                            onClick={handleClearAll}
-                        >
-                            Clear All Fields
-                        </DropdownMenuItem>
+                        {dropdownList.length == 1 && required == true ? (
+                            <></>
+                        ) : (
+                            <DropdownMenuItem
+                                className="cursor-pointer truncate px-3 py-2 text-center text-subtitle text-neutral-400 hover:bg-primary-50 hover:outline-none"
+                                onClick={handleClearAll}
+                            >
+                                Clear All Fields
+                            </DropdownMenuItem>
+                        )}
                         {dropdownList.map((item) => renderMenuItem(item))}
                     </DropdownMenuContent>
                 </DropdownMenuPortal>

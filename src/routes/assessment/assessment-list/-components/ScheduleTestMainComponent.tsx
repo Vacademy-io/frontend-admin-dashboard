@@ -23,6 +23,9 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { ScheduleTestTab } from "@/types/assessments/assessment-list";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
+import { useRefetchStoreAssessment } from "../-global-store/refetch-store";
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -40,6 +43,7 @@ export interface SelectedQuestionPaperFilters {
 
 export const ScheduleTestMainComponent = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const [isOpen, setIsOpen] = useState(false);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { setNavHeading } = useNavHeadingStore();
@@ -47,8 +51,11 @@ export const ScheduleTestMainComponent = () => {
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
-    const { AssessmentTypeData, AssessmentStatusData, ModeData } =
-        useFilterDataForAssesmentInitData(initAssessmentData);
+    const { AssessmentTypeData, ModeData } = useFilterDataForAssesmentInitData(initAssessmentData);
+    const { getCourseFromPackage } = useInstituteDetailsStore();
+    const setHandleRefetchDataAssessment = useRefetchStoreAssessment(
+        (state) => state.setHandleRefetchDataAssessment,
+    );
 
     const [selectedQuestionPaperFilters, setSelectedQuestionPaperFilters] =
         useState<SelectedQuestionPaperFilters>({
@@ -134,7 +141,19 @@ export const ScheduleTestMainComponent = () => {
             pageNo: pageNo,
             pageSize: 10,
             instituteId: INSTITUTE_ID,
-            data: selectedQuestionPaperFilters,
+            data: {
+                ...selectedQuestionPaperFilters,
+                get_live_assessments: selectedTab === "liveTests" ? true : false,
+                get_passed_assessments: selectedTab === "previousTests" ? true : false,
+                get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
+                name: "",
+            },
         });
     };
 
@@ -146,6 +165,15 @@ export const ScheduleTestMainComponent = () => {
             instituteId: INSTITUTE_ID,
             data: {
                 ...selectedQuestionPaperFilters,
+                get_live_assessments: selectedTab === "liveTests" ? true : false,
+                get_passed_assessments: selectedTab === "previousTests" ? true : false,
+                get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
                 name: [{ id: searchValue, name: searchValue }],
             },
         });
@@ -179,7 +207,12 @@ export const ScheduleTestMainComponent = () => {
                 get_passed_assessments: selectedTab === "previousTests" ? true : false,
                 get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
                 institute_ids: [initData?.id || ""],
-                assessment_statuses: [],
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
                 assessment_modes: [],
                 access_statuses: [],
             },
@@ -199,9 +232,31 @@ export const ScheduleTestMainComponent = () => {
             data: SelectedQuestionPaperFilters;
         }) => getAssessmentListWithFilters(pageNo, pageSize, instituteId, data),
         onSuccess: (data) => {
-            setScheduleTestTabsData((prevTabs) =>
-                prevTabs.map((tab) => (tab.value === selectedTab ? { ...tab, data: data } : tab)),
-            );
+            if (selectedTab === "liveTests") {
+                setScheduleTestTabsData((prevTabs) =>
+                    prevTabs.map((tab) =>
+                        tab.value === "liveTests" ? { ...tab, data: data } : tab,
+                    ),
+                );
+            } else if (selectedTab === "upcomingTests") {
+                setScheduleTestTabsData((prevTabs) =>
+                    prevTabs.map((tab) =>
+                        tab.value === "upcomingTests" ? { ...tab, data: data } : tab,
+                    ),
+                );
+            } else if (selectedTab === "previousTests") {
+                setScheduleTestTabsData((prevTabs) =>
+                    prevTabs.map((tab) =>
+                        tab.value === "previousTests" ? { ...tab, data: data } : tab,
+                    ),
+                );
+            } else {
+                setScheduleTestTabsData((prevTabs) =>
+                    prevTabs.map((tab) =>
+                        tab.value === "draftTests" ? { ...tab, data: data } : tab,
+                    ),
+                );
+            }
         },
         onError: (error: unknown) => {
             throw error;
@@ -218,6 +273,32 @@ export const ScheduleTestMainComponent = () => {
                 get_live_assessments: selectedTab === "liveTests" ? true : false,
                 get_passed_assessments: selectedTab === "previousTests" ? true : false,
                 get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
+            },
+        });
+    };
+
+    const handleRefetchData = () => {
+        getFilteredData.mutate({
+            pageNo: pageNo,
+            pageSize: 10,
+            instituteId: INSTITUTE_ID,
+            data: {
+                ...selectedQuestionPaperFilters,
+                get_live_assessments: selectedTab === "liveTests" ? true : false,
+                get_passed_assessments: selectedTab === "previousTests" ? true : false,
+                get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                    },
+                ],
             },
         });
     };
@@ -229,6 +310,12 @@ export const ScheduleTestMainComponent = () => {
             get_live_assessments: selectedTab === "liveTests" ? true : false,
             get_passed_assessments: selectedTab === "previousTests" ? true : false,
             get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
+            assessment_statuses: [
+                {
+                    id: "0",
+                    name: selectedTab === "draftTests" ? "DRAFT" : "PUBLISHED",
+                },
+            ],
         })
             .then((data) => {
                 setScheduleTestTabsData((prevTabs) =>
@@ -246,119 +333,102 @@ export const ScheduleTestMainComponent = () => {
 
     useEffect(() => {
         setIsLoading(true);
+
         const timeoutId = setTimeout(() => {
-            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            const fetchLiveTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: "PUBLISHED",
+                    },
+                ],
                 get_live_assessments: true,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
-            })
-                .then((data) => {
-                    setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) =>
-                            tab.value === "liveTests" ? { ...tab, data: data } : tab,
-                        ),
-                    );
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    setIsLoading(false);
-                });
-        }, 0);
+            });
 
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timeoutId = setTimeout(() => {
-            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            const fetchUpcomingTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
-                get_live_assessments: false,
-                get_passed_assessments: true,
-                get_upcoming_assessments: false,
-            })
-                .then((data) => {
-                    setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) =>
-                            tab.value === "upcomingTests" ? { ...tab, data: data } : tab,
-                        ),
-                    );
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    setIsLoading(false);
-                });
-        }, 0);
-
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timeoutId = setTimeout(() => {
-            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
-                ...selectedQuestionPaperFilters,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: "PUBLISHED",
+                    },
+                ],
                 get_live_assessments: false,
                 get_passed_assessments: false,
                 get_upcoming_assessments: true,
-            })
-                .then((data) => {
-                    setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) =>
-                            tab.value === "previousTests" ? { ...tab, data: data } : tab,
-                        ),
-                    );
-                    setIsLoading(false);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    setIsLoading(false);
-                });
-        }, 0);
+            });
 
-        return () => {
-            clearTimeout(timeoutId);
-        };
-    }, []);
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timeoutId = setTimeout(() => {
-            getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+            const fetchPreviousTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
                 ...selectedQuestionPaperFilters,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: "PUBLISHED",
+                    },
+                ],
+                get_live_assessments: false,
+                get_passed_assessments: true,
+                get_upcoming_assessments: false,
+            });
+
+            const fetchDraftTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
+                ...selectedQuestionPaperFilters,
+                assessment_statuses: [
+                    {
+                        id: "0",
+                        name: "DRAFT",
+                    },
+                ],
                 get_live_assessments: false,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
-            })
-                .then((data) => {
+            });
+
+            Promise.all([fetchLiveTests, fetchUpcomingTests, fetchPreviousTests, fetchDraftTests])
+                .then(([liveData, upcomingData, previousData, draftData]) => {
                     setScheduleTestTabsData((prevTabs) =>
-                        prevTabs.map((tab) =>
-                            tab.value === "draftTests" ? { ...tab, data: data } : tab,
-                        ),
+                        prevTabs.map((tab) => {
+                            if (tab.value === "liveTests") return { ...tab, data: liveData };
+                            if (tab.value === "upcomingTests")
+                                return { ...tab, data: upcomingData };
+                            if (tab.value === "previousTests")
+                                return { ...tab, data: previousData };
+                            if (tab.value === "draftTests") return { ...tab, data: draftData };
+                            return tab;
+                        }),
                     );
-                    setIsLoading(false);
                 })
                 .catch((error) => {
                     console.error(error);
+                })
+                .finally(() => {
                     setIsLoading(false);
                 });
-        }, 0);
+        }, 500); // Delay execution by 500ms
 
         return () => {
-            clearTimeout(timeoutId);
+            clearTimeout(timeoutId); // Cleanup to prevent duplicate calls
         };
     }, []);
 
     useEffect(() => {
         setNavHeading(<h1 className="text-lg">Assessments List</h1>);
     }, []);
+
+    useEffect(() => {
+        const courseList = getCourseFromPackage();
+        if (courseList.length === 0) {
+            setIsOpen(true);
+        }
+    }, []);
+
+    // Define the handleRefetchData function here
+    useEffect(() => {
+        setHandleRefetchDataAssessment(handleRefetchData);
+    }, [setHandleRefetchDataAssessment]);
 
     if (isLoading) return <DashboardLoader />;
     return (
@@ -393,16 +463,6 @@ export const ScheduleTestMainComponent = () => {
                                 selectedItems={selectedQuestionPaperFilters["subjects_ids"] || []}
                                 onSelectionChange={(items) =>
                                     handleFilterChange("subjects_ids", items)
-                                }
-                            />
-                            <ScheduleTestFilters
-                                label="Status"
-                                data={AssessmentStatusData}
-                                selectedItems={
-                                    selectedQuestionPaperFilters["assessment_statuses"] || []
-                                }
-                                onSelectionChange={(items) =>
-                                    handleFilterChange("assessment_statuses", items)
                                 }
                             />
                             <ScheduleTestFilters
@@ -445,10 +505,12 @@ export const ScheduleTestMainComponent = () => {
                             pageNo={pageNo}
                             handlePageChange={handlePageChange}
                             selectedTab={selectedTab}
+                            handleRefetchData={handleRefetchData}
                         />
                     ))}
                 </Tabs>
             </div>
+            <NoCourseDialog type={"Creating assessment"} isOpen={isOpen} setIsOpen={setIsOpen} />
         </>
     );
 };

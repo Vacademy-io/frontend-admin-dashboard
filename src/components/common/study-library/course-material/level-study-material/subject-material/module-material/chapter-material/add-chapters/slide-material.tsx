@@ -39,7 +39,7 @@ export const formatHTMLString = (htmlString: string) => {
 };
 
 export const SlideMaterial = () => {
-    const { items, activeItem } = useContentStore();
+    const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -59,8 +59,13 @@ export const SlideMaterial = () => {
     };
 
     const updateHeading = async () => {
+        const status = activeItem?.status == "DRAFT" ? "DRAFT" : "UNSYNC";
         if (activeItem) {
-            if (activeItem.video_url != null) {
+            if (activeItem.published_url != null) {
+                const url =
+                    activeItem?.status == "PUBLISHED"
+                        ? activeItem.published_url
+                        : activeItem.video_url;
                 await addUpdateVideoSlide({
                     id: activeItem.slide_id,
                     title: heading,
@@ -70,10 +75,13 @@ export const SlideMaterial = () => {
                     video_slide: {
                         id: activeItem.video_id || "",
                         description: activeItem.video_description || "",
-                        url: activeItem.video_url,
+                        url: url,
                         title: heading,
+                        video_length_in_millis: 0,
+                        published_url: null,
+                        published_video_length_in_millis: 0,
                     },
-                    status: activeItem.status,
+                    status: status,
                     new_slide: false,
                     notify: false,
                 });
@@ -88,11 +96,17 @@ export const SlideMaterial = () => {
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: activeItem.document_type,
-                        data: activeItem.document_data || "", // Use the formatted HTML string
+                        data:
+                            activeItem.status == "PUBLISHED"
+                                ? activeItem.document_data
+                                : activeItem.published_data,
                         title: heading,
                         cover_file_id: activeItem.document_cover_file_id || "",
+                        total_pages: 0,
+                        published_data: null,
+                        published_document_total_pages: 0,
                     },
-                    status: activeItem.status,
+                    status: status,
                     new_slide: false,
                     notify: false,
                 });
@@ -102,8 +116,11 @@ export const SlideMaterial = () => {
     };
 
     const setEditorContent = () => {
-        console.log("inside set function");
-        const editorContent = html.deserialize(editor, activeItem?.document_data || "");
+        const docData =
+            activeItem?.status == "PUBLISHED"
+                ? activeItem.published_data
+                : activeItem?.document_data;
+        const editorContent = html.deserialize(editor, docData || "");
         editor.setEditorValue(editorContent);
         setContent(
             <div className="w-full">
@@ -124,7 +141,7 @@ export const SlideMaterial = () => {
     };
 
     const loadContent = async () => {
-        if (!activeItem) {
+        if (activeItem == null) {
             setContent(
                 <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
                     <EmptySlideMaterial />
@@ -132,28 +149,29 @@ export const SlideMaterial = () => {
                 </div>,
             );
             return;
-        }
-
-        if (activeItem.video_url != null) {
-            console.log("video url: ", activeItem.video_url);
+        } else if (activeItem.published_url != null || activeItem.video_url != null) {
             setContent(
                 <div key={`video-${activeItem.slide_id}`} className="size-full">
                     <YouTubePlayer
-                        videoUrl={activeItem.video_url || ""}
+                        videoUrl={
+                            (activeItem.status == "PUBLISHED"
+                                ? activeItem.published_url
+                                : activeItem.video_url) || ""
+                        }
                         videoTitle={activeItem.video_title}
                     />
                 </div>,
             );
             return;
-        }
-
-        if (activeItem?.document_type == "PDF") {
-            const url = await getPublicUrl(activeItem?.document_data);
+        } else if (activeItem?.document_type == "PDF" && activeItem != null) {
+            const url = await getPublicUrl(
+                (activeItem.status == "PUBLISHED"
+                    ? activeItem.published_data
+                    : activeItem.document_data) || "",
+            );
             setContent(<PDFViewer pdfUrl={url} />);
             return;
-        }
-
-        if (activeItem?.document_type === "DOC" && activeItem.document_data) {
+        } else if (activeItem?.document_type === "DOC" && activeItem != null) {
             try {
                 setTimeout(() => {
                     setEditorContent();
@@ -169,6 +187,21 @@ export const SlideMaterial = () => {
         return;
     };
 
+    function calculateValue() {
+        const data = editor.getEditorValue();
+        const htmlString = html.serialize(editor, data);
+        const formattedHtmlString = formatHTMLString(htmlString);
+        if (activeItem?.status == "UNSYNC") {
+            return activeItem?.document_type == "PDF"
+                ? activeItem.document_data
+                : formattedHtmlString;
+        } else if (activeItem?.status == "PUBLISHED") {
+            return activeItem.published_data;
+        } else {
+            return activeItem?.document_data;
+        }
+    }
+
     const handlePublishUnpublishSlide = async (
         setIsOpen: Dispatch<SetStateAction<boolean>>,
         notify: boolean,
@@ -176,11 +209,7 @@ export const SlideMaterial = () => {
         const status = activeItem?.status == "PUBLISHED" ? "DRAFT" : "PUBLISHED";
         const operation = status == "DRAFT" ? "unpublish" : "publish";
         if (activeItem?.document_type == "DOC" || activeItem?.document_type == "PDF") {
-            const data = editor.getEditorValue();
-            const htmlString = html.serialize(editor, data);
-            const formattedHtmlString = formatHTMLString(htmlString);
-            const documentData =
-                activeItem?.document_type == "PDF" ? activeItem.document_data : formattedHtmlString;
+            const documentData = calculateValue() || null;
             try {
                 await addUpdateDocumentSlide({
                     id: activeItem?.slide_id || "",
@@ -191,9 +220,12 @@ export const SlideMaterial = () => {
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: activeItem.document_type,
-                        data: documentData || "",
+                        data: operation == "unpublish" ? documentData : null,
                         title: activeItem?.document_title || "",
                         cover_file_id: activeItem.document_cover_file_id || "",
+                        total_pages: 0,
+                        published_data: operation == "publish" ? documentData : null,
+                        published_document_total_pages: 0,
                     },
                     status: status,
                     new_slide: false,
@@ -215,8 +247,21 @@ export const SlideMaterial = () => {
                     video_slide: {
                         id: activeItem?.video_id || "",
                         description: activeItem?.video_description || "",
-                        url: activeItem?.video_url || "",
+                        url:
+                            operation == "unpublish"
+                                ? activeItem
+                                    ? activeItem.published_url
+                                    : null
+                                : null,
                         title: activeItem?.video_title || "",
+                        video_length_in_millis: 0,
+                        published_url:
+                            operation == "publish"
+                                ? activeItem
+                                    ? activeItem.video_url
+                                    : null
+                                : null,
+                        published_video_length_in_millis: 0,
                     },
                     status: status,
                     new_slide: false,
@@ -231,17 +276,26 @@ export const SlideMaterial = () => {
     };
 
     useEffect(() => {
+        if (items.length == 0) setActiveItem(null);
+    }, [items]);
+
+    useEffect(() => {
         setHeading(activeItem?.document_title || activeItem?.video_title || "");
-        setContent(null);
-        console.log("active item changed: ", activeItem);
         loadContent();
-    }, [activeItem, items]);
+    }, [activeItem]);
 
     // Modified SaveDraft function
     const SaveDraft = () => {
         const data = editor.getEditorValue();
         const htmlString = html.serialize(editor, data);
         const formattedHtmlString = formatHTMLString(htmlString);
+
+        const status =
+            activeItem?.status == "PUBLISHED"
+                ? "UNSYNC"
+                : activeItem?.status == "UNSYNC"
+                  ? "UNSYNC"
+                  : "DRAFT";
 
         try {
             const saveDocDraft = async () => {
@@ -257,8 +311,11 @@ export const SlideMaterial = () => {
                         data: formattedHtmlString, // Use the formatted HTML string
                         title: activeItem?.slide_title || "",
                         cover_file_id: "",
+                        total_pages: 0,
+                        published_data: null,
+                        published_document_total_pages: 0,
                     },
-                    status: "DRAFT",
+                    status: status,
                     new_slide: false,
                     notify: false,
                 });

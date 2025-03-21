@@ -29,6 +29,9 @@ import { AxiosError } from "axios";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "phosphor-react";
 import { useParams } from "@tanstack/react-router";
+import useIntroJsTour, { Step } from "@/hooks/use-intro";
+import { IntroKey } from "@/constants/storage/introKey";
+import { createAssesmentSteps } from "@/constants/intro/steps";
 
 export function convertDateFormat(dateStr: string) {
     const date = new Date(dateStr);
@@ -90,6 +93,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 previewTimeLimit:
                     storeDataStep1.assessmentPreview?.previewTimeLimit || timeLimit[0], // Default preview time
             },
+            reattemptCount: storeDataStep1.reattemptCount || "1",
             submissionType: storeDataStep1.submissionType || "",
             durationDistribution: storeDataStep1.durationDistribution || "",
             evaluationType: storeDataStep1.evaluationType || "",
@@ -106,6 +110,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const assessmentName = watch("testCreation.assessmentName");
     const liveDateRangeStartDate = watch("testCreation.liveDateRange.startDate");
     const liveDateRangeEndDate = watch("testCreation.liveDateRange.endDate");
+    const reattemptCount = watch("reattemptCount");
 
     // Determine if all fields are filled
     const isFormValid1 =
@@ -113,6 +118,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
               !!liveDateRangeEndDate &&
+              !!Number(reattemptCount) &&
               Object.entries(form.formState.errors).length === 0
             : !!assessmentName && Object.entries(form.formState.errors).length === 0;
 
@@ -121,6 +127,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
               !!liveDateRangeEndDate &&
+              !!Number(reattemptCount) &&
               Object.entries(form.formState.errors).length === 0
             : !!assessmentName && Object.entries(form.formState.errors).length === 0;
 
@@ -191,6 +198,14 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         console.log(err);
     };
 
+    useIntroJsTour({
+        key: IntroKey.assessmentStep1BasicInfo,
+        steps: createAssesmentSteps
+            .filter((step) => step.element === "#basic-info")
+            .flatMap((step) => step.subStep || [])
+            .filter((subStep): subStep is Step => subStep !== undefined),
+    });
+
     useEffect(() => {
         if (assessmentId !== "defaultId") {
             setNavHeading(headingUpdate);
@@ -239,6 +254,8 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                               )
                             : timeLimit[0], // Default preview time
                 },
+                reattemptCount:
+                    String(assessmentDetails[currentStep]?.saved_data?.reattempt_count) || "1",
                 submissionType: assessmentDetails[currentStep]?.saved_data?.submission_type || "",
                 durationDistribution:
                     assessmentDetails[currentStep]?.saved_data?.duration_distribution || "",
@@ -275,31 +292,34 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 <Separator className="my-4" />
                 <div className="flex flex-col gap-6">
                     <div className="flex w-full items-start justify-start gap-4">
-                        <FormField
-                            control={control}
-                            name="testCreation.assessmentName"
-                            render={({ field: { ...field } }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            inputType="text"
-                                            inputPlaceholder="Add Title"
-                                            input={field.value}
-                                            labelStyle="font-thin"
-                                            onChangeFunction={field.onChange}
-                                            error={
-                                                form.formState.errors.testCreation?.assessmentName
-                                                    ?.message
-                                            }
-                                            required={true}
-                                            size="large"
-                                            label="Assessment Name"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
+                        <div className="" id={"assessment-details"}>
+                            <FormField
+                                control={control}
+                                name="testCreation.assessmentName"
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="Add Title"
+                                                input={field.value}
+                                                labelStyle="font-thin"
+                                                onChangeFunction={field.onChange}
+                                                error={
+                                                    form.formState.errors.testCreation
+                                                        ?.assessmentName?.message
+                                                }
+                                                required={true}
+                                                size="large"
+                                                label="Assessment Name"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -326,21 +346,24 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             />
                         )}
                     </div>
-                    <h1 className="-mb-5 font-thin">Assessment Instructions</h1>
-                    <FormField
-                        control={control}
-                        name="testCreation.assessmentInstructions"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MainViewQuillEditor
-                                        onChange={field.onChange}
-                                        value={field.value}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                    <div className="flex flex-col gap-6" id="assessment-instructions">
+                        <h1 className="-mb-5 font-thin">Assessment Instructions</h1>
+                        <FormField
+                            control={control}
+                            name="testCreation.assessmentInstructions"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MainViewQuillEditor
+                                            onChange={field.onChange}
+                                            value={field.value}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
                     {getStepKey({
                         assessmentDetails,
                         currentStep,
@@ -351,7 +374,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             currentStep,
                             key: "boundation_end_date",
                         }) && <h1>Live Date Range</h1>}
-                    <div className="-mt-2 flex items-start gap-4">
+                    <div className="-mt-2 flex items-start gap-4" id="date-range">
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -428,48 +451,21 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         )}
                     </div>
                     <Separator />
+
                     <h1>Attempt Settings</h1>
-                    {getStepKey({
-                        assessmentDetails,
-                        currentStep,
-                        key: "evaluation_type",
-                    }) && (
-                        <SelectField
-                            label="Evaluation Type"
-                            name="evaluationType"
-                            options={
-                                assessmentDetails[currentStep]?.field_options?.evaluation_type?.map(
-                                    (distribution, index) => ({
-                                        value: distribution.value,
-                                        label: distribution.value,
-                                        _id: index,
-                                    }),
-                                ) || [] // Fallback to an empty array if undefined
-                            }
-                            control={form.control}
-                            className="w-56 font-thin"
-                            required={
-                                getStepKey({
-                                    assessmentDetails,
-                                    currentStep,
-                                    key: "evaluation_type",
-                                }) === "REQUIRED"
-                            }
-                        />
-                    )}
-                    {watch("evaluationType") === "MANUAL" &&
-                        getStepKey({
+                    <div className="flex flex-col gap-6" id="evaluation-type">
+                        {getStepKey({
                             assessmentDetails,
                             currentStep,
-                            key: "submission_type",
+                            key: "evaluation_type",
                         }) && (
                             <SelectField
-                                label="Submission Type"
-                                name="submissionType"
+                                label="Evaluation Type"
+                                name="evaluationType"
                                 options={
                                     assessmentDetails[
                                         currentStep
-                                    ]?.field_options?.submission_type?.map(
+                                    ]?.field_options?.evaluation_type?.map(
                                         (distribution, index) => ({
                                             value: distribution.value,
                                             label: distribution.value,
@@ -483,146 +479,189 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     getStepKey({
                                         assessmentDetails,
                                         currentStep,
-                                        key: "submission_type",
+                                        key: "evaluation_type",
                                     }) === "REQUIRED"
                                 }
                             />
                         )}
-                    {getStepKey({
-                        assessmentDetails,
-                        currentStep,
-                        key: "assessment_preview",
-                    }) && (
-                        <FormField
-                            control={form.control}
-                            name="assessmentPreview.checked"
-                            render={({ field }) => (
-                                <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>
-                                        Allow Assessment Preview
-                                        {getStepKey({
+                        {watch("evaluationType") === "MANUAL" &&
+                            getStepKey({
+                                assessmentDetails,
+                                currentStep,
+                                key: "submission_type",
+                            }) && (
+                                <SelectField
+                                    label="Submission Type"
+                                    name="submissionType"
+                                    options={
+                                        assessmentDetails[
+                                            currentStep
+                                        ]?.field_options?.submission_type?.map(
+                                            (distribution, index) => ({
+                                                value: distribution.value,
+                                                label: distribution.value,
+                                                _id: index,
+                                            }),
+                                        ) || [] // Fallback to an empty array if undefined
+                                    }
+                                    control={form.control}
+                                    className="w-56 font-thin"
+                                    required={
+                                        getStepKey({
                                             assessmentDetails,
                                             currentStep,
-                                            key: "assessment_preview",
-                                        }) === "REQUIRED" && (
-                                            <span className="text-subtitle text-danger-600">*</span>
-                                        )}
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                </FormItem>
+                                            key: "submission_type",
+                                        }) === "REQUIRED"
+                                    }
+                                />
                             )}
-                        />
-                    )}
-                    {watch("assessmentPreview.checked") && (
-                        <SelectField
-                            label="Preview Time Limit"
-                            labelStyle="font-thin"
-                            name="assessmentPreview.previewTimeLimit"
-                            options={timeLimit.map((option, index) => ({
-                                value: option,
-                                label: option,
-                                _id: index,
-                            }))}
-                            control={form.control}
-                            required
-                            className="w-56 font-thin"
-                        />
-                    )}
-                    {getStepKey({
-                        assessmentDetails,
-                        currentStep,
-                        key: "can_switch_section",
-                    }) && (
-                        <FormField
-                            control={form.control}
-                            name="switchSections"
-                            render={({ field }) => (
-                                <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>
-                                        Allow students to switch between sections
-                                        {getStepKey({
-                                            assessmentDetails,
-                                            currentStep,
-                                            key: "can_switch_section",
-                                        }) === "REQUIRED" && (
-                                            <span className="text-subtitle text-danger-600">*</span>
-                                        )}
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-                    {getStepKey({
-                        assessmentDetails,
-                        currentStep,
-                        key: "reattempt_consent",
-                    }) && (
-                        <FormField
-                            control={form.control}
-                            name="raiseReattemptRequest"
-                            render={({ field }) => (
-                                <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>
-                                        Allow students to raise reattempt request
-                                        {getStepKey({
-                                            assessmentDetails,
-                                            currentStep,
-                                            key: "reattempt_consent",
-                                        }) === "REQUIRED" && (
-                                            <span className="text-subtitle text-danger-600">*</span>
-                                        )}
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    )}
-                    {getStepKey({
-                        assessmentDetails,
-                        currentStep,
-                        key: "add_time_consent",
-                    }) && (
-                        <FormField
-                            control={form.control}
-                            name="raiseTimeIncreaseRequest"
-                            render={({ field }) => (
-                                <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>
-                                        Allow students to raise time increase request
-                                        {getStepKey({
-                                            assessmentDetails,
-                                            currentStep,
-                                            key: "add_time_consent",
-                                        }) === "REQUIRED" && (
-                                            <span className="text-subtitle text-danger-600">*</span>
-                                        )}
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    )}
+                    </div>
+
+                    <div className="flex flex-col gap-6" id="attempt-settings">
+                        {getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "assessment_preview",
+                        }) && (
+                            <FormField
+                                control={form.control}
+                                name="assessmentPreview.checked"
+                                render={({ field }) => (
+                                    <FormItem className="flex w-1/2 items-center justify-between">
+                                        <FormLabel>
+                                            Allow Assessment Preview
+                                            {getStepKey({
+                                                assessmentDetails,
+                                                currentStep,
+                                                key: "assessment_preview",
+                                            }) === "REQUIRED" && (
+                                                <span className="text-subtitle text-danger-600">
+                                                    *
+                                                </span>
+                                            )}
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+                        {watch("assessmentPreview.checked") && (
+                            <SelectField
+                                label="Preview Time Limit"
+                                labelStyle="font-thin"
+                                name="assessmentPreview.previewTimeLimit"
+                                options={timeLimit.map((option, index) => ({
+                                    value: option,
+                                    label: option,
+                                    _id: index,
+                                }))}
+                                control={form.control}
+                                required
+                                className="w-56 font-thin"
+                            />
+                        )}
+                        {getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "can_switch_section",
+                        }) && (
+                            <FormField
+                                control={form.control}
+                                name="switchSections"
+                                render={({ field }) => (
+                                    <FormItem className="flex w-1/2 items-center justify-between">
+                                        <FormLabel>
+                                            Allow students to switch between sections
+                                            {getStepKey({
+                                                assessmentDetails,
+                                                currentStep,
+                                                key: "can_switch_section",
+                                            }) === "REQUIRED" && (
+                                                <span className="text-subtitle text-danger-600">
+                                                    *
+                                                </span>
+                                            )}
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+                        {getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "reattempt_consent",
+                        }) && (
+                            <FormField
+                                control={form.control}
+                                name="raiseReattemptRequest"
+                                render={({ field }) => (
+                                    <FormItem className="flex w-1/2 items-center justify-between">
+                                        <FormLabel>
+                                            Allow students to raise reattempt request
+                                            {getStepKey({
+                                                assessmentDetails,
+                                                currentStep,
+                                                key: "reattempt_consent",
+                                            }) === "REQUIRED" && (
+                                                <span className="text-subtitle text-danger-600">
+                                                    *
+                                                </span>
+                                            )}
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+                        {getStepKey({
+                            assessmentDetails,
+                            currentStep,
+                            key: "add_time_consent",
+                        }) && (
+                            <FormField
+                                control={form.control}
+                                name="raiseTimeIncreaseRequest"
+                                render={({ field }) => (
+                                    <FormItem className="flex w-1/2 items-center justify-between">
+                                        <FormLabel>
+                                            Allow students to raise time increase request
+                                            {getStepKey({
+                                                assessmentDetails,
+                                                currentStep,
+                                                key: "add_time_consent",
+                                            }) === "REQUIRED" && (
+                                                <span className="text-subtitle text-danger-600">
+                                                    *
+                                                </span>
+                                            )}
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+                    </div>
                 </div>
             </form>
         </FormProvider>

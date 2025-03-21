@@ -20,3 +20,5 @@ export { default as DashboardCreateCourse } from "./dashboard-create-course.svg"
 export { default as CreateAssessmentDashboardLogo } from "./create-assessment-dashboard.svg";
 export { default as EmptyLevelPage } from "./empty-level-page.svg";
 export { default as EmptyCoursePage } from "./empty-course-image.svg";
+export { default as RoleTypeUserIcon } from "./role-type-user-icon.svg";
+export { default as RoleTypeEmptyScreen } from "./role-type-empty-screen.svg";

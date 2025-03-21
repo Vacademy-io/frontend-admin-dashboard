@@ -1,16 +1,15 @@
 // add-subject-form.tsx
-import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useRouter } from "@tanstack/react-router";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, X } from "phosphor-react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { AddSessionInput } from "@/components/design-system/add-session-input";
 
 const formSchema = z.object({
     id: z.string().optional(),
@@ -51,14 +50,15 @@ interface AddLevelFormProps {
     }) => void;
     initialValues?: AddLevelData;
     setOpenDialog: Dispatch<SetStateAction<boolean>>;
+    submitForm: (submitFn: () => void) => void;
 }
 
 export const AddLevelForm = ({
     onSubmitSuccess,
     initialValues,
     setOpenDialog,
+    submitForm,
 }: AddLevelFormProps) => {
-    const [showNewSessionInput, setShowNewSessionInput] = useState(false);
     const [newSessionName, setNewSessionName] = useState("");
     const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [sessionList, setSessionList] = useState<Session[]>(getAllSessions);
@@ -110,10 +110,26 @@ export const AddLevelForm = ({
         setOpenDialog(false);
     };
 
+    const requestSubmitFn = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    const formRef = useRef<HTMLFormElement>(null);
+    useEffect(() => {
+        if (submitForm) {
+            submitForm(requestSubmitFn);
+        }
+    }, [submitForm]);
+
     return (
         <Form {...form}>
             <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                ref={formRef}
+                onSubmit={(e) => {
+                    form.handleSubmit(onSubmit)(e);
+                }}
                 className="flex max-h-[80vh] flex-col gap-6 overflow-y-auto p-2 text-neutral-600"
             >
                 <FormField
@@ -149,7 +165,9 @@ export const AddLevelForm = ({
                                     inputPlaceholder="Enter duration in days"
                                     className="w-[352px]"
                                     input={field.value?.toString() || ""}
-                                    onChangeFunction={(e) => field.onChange(Number(e.target.value))}
+                                    onChangeFunction={(e) =>
+                                        field.onChange(Math.floor(Number(e.target.value)))
+                                    }
                                 />
                             </FormControl>
                             <FormMessage />
@@ -213,79 +231,13 @@ export const AddLevelForm = ({
                                                         </div>
                                                     </div>
                                                 ))}
-                                                {showNewSessionInput ? (
-                                                    <div className="flex items-end gap-4">
-                                                        <div className="flex flex-col gap-4">
-                                                            <MyInput
-                                                                inputType="text"
-                                                                inputPlaceholder="Enter session name"
-                                                                className="w-[230px]"
-                                                                input={newSessionName}
-                                                                onChangeFunction={(e) =>
-                                                                    setNewSessionName(
-                                                                        e.target.value,
-                                                                    )
-                                                                }
-                                                            />
-                                                            <MyInput
-                                                                inputType="date"
-                                                                inputPlaceholder="Start Date"
-                                                                className="w-[200px] text-neutral-500"
-                                                                input={newSessionStartDate}
-                                                                onChangeFunction={(e) =>
-                                                                    setNewSessionStartDate(
-                                                                        e.target.value,
-                                                                    )
-                                                                }
-                                                            />
-                                                        </div>
-                                                        <div className="flex items-center gap-4">
-                                                            <MyButton
-                                                                onClick={() => {
-                                                                    if (
-                                                                        newSessionName &&
-                                                                        newSessionStartDate
-                                                                    ) {
-                                                                        handleAddSession(
-                                                                            newSessionName,
-                                                                            newSessionStartDate,
-                                                                        );
-                                                                        setNewSessionName("");
-                                                                        setNewSessionStartDate("");
-                                                                        setShowNewSessionInput(
-                                                                            false,
-                                                                        );
-                                                                    }
-                                                                }}
-                                                                buttonType="primary"
-                                                                layoutVariant="icon"
-                                                                scale="small"
-                                                            >
-                                                                <Plus />
-                                                            </MyButton>
-                                                            <MyButton
-                                                                onClick={() => {
-                                                                    setShowNewSessionInput(false);
-                                                                }}
-                                                                buttonType="secondary"
-                                                                layoutVariant="icon"
-                                                                scale="small"
-                                                            >
-                                                                <X />
-                                                            </MyButton>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <MyButton
-                                                        onClick={() => setShowNewSessionInput(true)}
-                                                        buttonType="text"
-                                                        layoutVariant="default"
-                                                        scale="small"
-                                                        className="text-primary-500 hover:bg-white active:bg-white"
-                                                    >
-                                                        <Plus /> Add Session
-                                                    </MyButton>
-                                                )}
+                                                <AddSessionInput
+                                                    newSessionName={newSessionName}
+                                                    setNewSessionName={setNewSessionName}
+                                                    newSessionStartDate={newSessionStartDate}
+                                                    setNewSessionStartDate={setNewSessionStartDate}
+                                                    handleAddSession={handleAddSession}
+                                                />
                                             </div>
                                         </FormControl>
                                         <FormMessage />
@@ -294,15 +246,6 @@ export const AddLevelForm = ({
                             />
                         </>
                     )}
-
-                    <MyButton
-                        type="submit"
-                        buttonType="primary"
-                        layoutVariant="default"
-                        scale="large"
-                    >
-                        {initialValues ? "Save Changes" : "Add"}
-                    </MyButton>
                 </div>
             </form>
         </Form>

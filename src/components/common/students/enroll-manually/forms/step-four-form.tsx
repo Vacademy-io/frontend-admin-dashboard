@@ -4,23 +4,24 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
 import { FormSubmitButtons } from "../form-components/form-submit-buttons";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { StepFourData, stepFourSchema } from "@/types/students/schema-enroll-students-manually";
+import PhoneInputField from "@/components/design-system/phone-input-field";
+import { StudentTable } from "@/schemas/student/student-list/table-schema";
 
-export const StepFourForm = () => {
+export const StepFourForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const { stepFourData, setStepFourData, nextStep } = useFormStore();
 
     const form = useForm<StepFourData>({
         resolver: zodResolver(stepFourSchema),
         defaultValues: stepFourData || {
-            fatherName: "",
-            motherName: "",
+            fatherName: initialValues?.father_name || "",
+            motherName: initialValues?.mother_name || "",
             guardianName: "",
-            guardianEmail: "",
-            guardianMobileNumber: "",
+            guardianEmail: initialValues?.parents_email || "",
+            guardianMobileNumber: initialValues?.parents_mobile_number || "",
         },
         mode: "onChange",
     });
@@ -32,7 +33,7 @@ export const StepFourForm = () => {
 
     return (
         <div>
-            <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center p-6 text-neutral-600">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
                         <FormItemWrapper<StepFourData> control={form.control} name="fatherName">
@@ -53,7 +54,7 @@ export const StepFourForm = () => {
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.fatherName?.message}
-                                                required={true}
+                                                required={false}
                                                 size="large"
                                                 className="w-full"
                                                 {...field}
@@ -76,7 +77,7 @@ export const StepFourForm = () => {
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.motherName?.message}
-                                                required={true}
+                                                required={false}
                                                 size="large"
                                                 className="w-full"
                                                 {...field}
@@ -122,7 +123,7 @@ export const StepFourForm = () => {
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.guardianEmail?.message}
-                                                required={true}
+                                                required={false}
                                                 size="large"
                                                 className="w-full"
                                                 {...field}
@@ -135,23 +136,15 @@ export const StepFourForm = () => {
                             <FormField
                                 control={form.control}
                                 name="guardianMobileNumber"
-                                render={({ field: { onChange, value, ...field } }) => (
+                                render={() => (
                                     <FormItem>
                                         <FormControl>
-                                            <MyInput
-                                                inputType="tel"
+                                            <PhoneInputField
                                                 label="Parent/Guardian's Mobile Number"
-                                                inputPlaceholder="123 456 7890"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={
-                                                    form.formState.errors.guardianMobileNumber
-                                                        ?.message
-                                                }
-                                                required={true}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
+                                                placeholder="123 456 7890"
+                                                name="guardianMobileNumber"
+                                                control={form.control}
+                                                country="in"
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -160,7 +153,7 @@ export const StepFourForm = () => {
                         </div>
                     </form>
                 </Form>
-            </DialogDescription>
+            </div>
             <FormSubmitButtons stepNumber={4} onNext={form.handleSubmit(onSubmit)} />
         </div>
     );

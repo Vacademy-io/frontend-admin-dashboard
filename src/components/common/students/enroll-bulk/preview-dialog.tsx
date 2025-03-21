@@ -26,6 +26,7 @@ interface PreviewDialogProps {
     uploadCompleted?: boolean;
     uploadResponse?: SchemaFields[] | null;
     onDownloadResponse?: () => void;
+    closeAllDialogs?: () => void; // New prop to close all dialogs
 }
 
 export const PreviewDialog: React.FC<PreviewDialogProps> = ({
@@ -36,6 +37,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     uploadCompleted = false,
     uploadResponse = null,
     onDownloadResponse,
+    closeAllDialogs,
 }) => {
     const { csvData, csvErrors, setIsEditing } = useBulkUploadStore();
     const [selectedErrorRow, setSelectedErrorRow] = useState<number | null>(null);
@@ -47,6 +49,14 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             setIsEditing(false);
         }
     }, [isOpen, setIsEditing]);
+
+    // Handle close with option to close all dialogs
+    const handleClose = () => {
+        onClose();
+        if (uploadCompleted && closeAllDialogs) {
+            closeAllDialogs();
+        }
+    };
 
     // Create a wrapped status column renderer with proper type safety
     const CustomStatusColumnRenderer = React.useCallback(
@@ -77,7 +87,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     }, [csvErrors]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="no-scrollbar h-[80vh] w-[80vw] max-w-[1200px] overflow-hidden p-0 font-normal">
                 {uploadCompleted && uploadResponse ? (
                     // Show upload results using the new component
@@ -85,7 +95,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                         <UploadResultsTable
                             data={uploadResponse}
                             onViewError={handleViewError}
-                            onClose={onClose}
+                            onClose={handleClose}
                             onDownloadResponse={onDownloadResponse}
                         />
                     </DialogDescription>
@@ -134,7 +144,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                                     buttonType="primary"
                                     scale="large"
                                     layoutVariant="default"
-                                    onClick={onClose}
+                                    onClick={handleClose}
                                 >
                                     Close
                                 </MyButton>

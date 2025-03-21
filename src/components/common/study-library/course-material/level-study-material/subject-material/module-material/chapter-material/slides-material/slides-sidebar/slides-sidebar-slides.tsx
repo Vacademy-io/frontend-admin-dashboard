@@ -24,6 +24,10 @@ export const ChapterSidebarSlides = ({
     const { chapterId, slideId } = router.state.location.search;
     const { slides, isLoading } = useSlides(chapterId || "");
 
+    useEffect(() => {
+        form.setValue("slides", items || []);
+    }, [items]);
+
     const form = useForm<FormValues>({
         defaultValues: {
             slides: items || [],
@@ -57,7 +61,8 @@ export const ChapterSidebarSlides = ({
     }, [slides, slideId]);
 
     const getIcon = (slide: Slide): ReactNode => {
-        const type = slide.video_url != null ? "VIDEO" : slide.document_type;
+        const type =
+            slide.published_url != null || slide.video_url != null ? "VIDEO" : slide.document_type;
         switch (type) {
             case "PDF":
                 return <FilePdf className="size-6" />;

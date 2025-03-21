@@ -20,6 +20,7 @@ export interface Chapter {
 export interface ChapterWithSlides {
     chapter: Chapter;
     slides_count: SlidesCount;
+    chapter_in_package_sessions: string[];
 }
 
 export interface Module {

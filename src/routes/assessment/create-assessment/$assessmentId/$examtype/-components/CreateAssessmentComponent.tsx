@@ -1,14 +1,15 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MainStepComponent } from "./StepComponents/MainStepComponent";
 import { CheckCircle } from "phosphor-react";
 import { Helmet } from "react-helmet";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Route } from "..";
 import { useNavigate } from "@tanstack/react-router";
-import useIntroJsTour from "@/hooks/use-intro";
-import { IntroKey } from "@/constants/storage/introKey";
-import { createAssesmentSteps } from "@/constants/intro/steps";
+import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 // Define interfaces for props
 interface CreateAssessmentSidebarProps {
     steps: {
@@ -69,8 +70,12 @@ const CreateAssessmentSidebar: React.FC<CreateAssessmentSidebarProps> = ({
 
 const CreateAssessmentComponent = () => {
     const navigate = useNavigate();
+    const [isOpen, setIsOpen] = useState(false);
     const { assessmentId, examtype } = Route.useParams();
     const { currentStep: presentStep } = Route.useSearch();
+    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
+    const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
+
     const steps = [
         {
             label: "Basic Info",
@@ -91,7 +96,6 @@ const CreateAssessmentComponent = () => {
     ];
     const [currentStep, setCurrentStep] = useState(presentStep);
     const [completedSteps, setCompletedSteps] = useState([false, false, false, false]);
-
     const completeCurrentStep = () => {
         setCompletedSteps((prev) => {
             const updated = [...prev];
@@ -114,13 +118,11 @@ const CreateAssessmentComponent = () => {
         }
     };
 
-    useIntroJsTour({
-        key: IntroKey.assessmentFirstTimeVisit,
-        steps: createAssesmentSteps.filter((step) => step.element !== "#create-assessment"),
-        onTourExit: () => {
-            console.log("Tour Completed");
-        },
-    });
+    useEffect(() => {
+        if (SubjectFilterData.length === 0) {
+            setIsOpen(true);
+        }
+    }, []);
 
     const goToStep = (index: number) => {
         if (index <= currentStep || completedSteps[index - 1]) {
@@ -150,6 +152,7 @@ const CreateAssessmentComponent = () => {
                 handleCompleteCurrentStep={completeCurrentStep}
                 completedSteps={completedSteps}
             />
+            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Create Assessment" />
         </LayoutContainer>
     );
 };

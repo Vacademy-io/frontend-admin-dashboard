@@ -1,9 +1,9 @@
 import { ImportFileImage } from "@/assets/svgs";
 import { MyButton } from "@/components/design-system/button";
-import { DialogFooter, DialogContent } from "@/components/ui/dialog";
+import { DialogFooter } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
@@ -103,6 +103,9 @@ export const AddPdfDialog = ({
                         data: fileId,
                         title: data.pdfTitle,
                         cover_file_id: "",
+                        total_pages: 0,
+                        published_data: null,
+                        published_document_total_pages: 0,
                     },
                     status: "DRAFT",
                     new_slide: true,
@@ -130,101 +133,100 @@ export const AddPdfDialog = ({
         }
     };
 
-    const handleClose = () => {
+    useEffect(() => {
         setFile(null);
         setError(null);
         setUploadProgress(0);
         setFileUrl(null);
         form.reset();
-    };
+    }, []);
 
     return (
-        <DialogContent onCloseAutoFocus={handleClose}>
-            <Form {...form}>
-                <form
-                    onSubmit={form.handleSubmit(handleUpload)}
-                    className="flex flex-col gap-6 p-6"
+        // <DialogContent onCloseAutoFocus={handleClose}>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleUpload)} className="flex flex-col gap-6 p-6">
+                <FileUploadComponent
+                    fileInputRef={fileInputRef}
+                    onFileSubmit={handleFileSubmit}
+                    control={form.control}
+                    name="pdfFile"
+                    acceptedFileTypes={["application/pdf"]}
+                    isUploading={isUploading}
+                    error={error}
+                    className="flex flex-col items-center rounded-lg border-2 border-dashed border-primary-500 px-5 pb-6 focus:outline-none"
                 >
-                    <FileUploadComponent
-                        fileInputRef={fileInputRef}
-                        onFileSubmit={handleFileSubmit}
-                        control={form.control}
-                        name="pdfFile"
-                        acceptedFileTypes={["application/pdf"]}
-                        isUploading={isUploading}
-                        error={error}
-                        className="flex flex-col items-center rounded-lg border-2 border-dashed border-primary-500 pb-6 focus:outline-none"
-                    >
-                        <div className="pointer-events-none flex flex-col items-center gap-6">
-                            <ImportFileImage />
-                            <div className="text-center">
-                                {file ? (
-                                    <>
-                                        <p className="text-primary-600 font-medium">{file.name}</p>
-                                        <p className="text-sm text-gray-500">
-                                            {(file.size / (1024 * 1024)).toFixed(2)} MB
-                                        </p>
-                                    </>
-                                ) : (
-                                    <div className="flex flex-col gap-2">
-                                        <p className="text-neutral-600">
-                                            Drag and drop a PDF file here, or click to select
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
+                    <div className="pointer-events-none flex flex-col items-center gap-6">
+                        <ImportFileImage />
+                        <div className="text-center">
+                            {file ? (
+                                <>
+                                    <p className="text-primary-600 text-wrap font-medium">
+                                        {file.name}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                    </p>
+                                </>
+                            ) : (
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-neutral-600">
+                                        Drag and drop a PDF file here, or click to select
+                                    </p>
+                                </div>
+                            )}
                         </div>
-                    </FileUploadComponent>
+                    </div>
+                </FileUploadComponent>
 
-                    {fileUrl && !isUploading && (
-                        <>
-                            <div>
-                                <Progress
-                                    value={uploadProgress}
-                                    className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
+                {fileUrl && !isUploading && (
+                    <>
+                        <div>
+                            <Progress
+                                value={uploadProgress}
+                                className="h-2 bg-neutral-200 [&>div]:bg-primary-500"
+                            />
+                            <p className="mt-2 text-sm text-neutral-600">
+                                Uploading... {uploadProgress}%
+                            </p>
+                        </div>
+                    </>
+                )}
+
+                <FormField
+                    control={form.control}
+                    name="pdfTitle"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormControl>
+                                <MyInput
+                                    {...field}
+                                    label="Title"
+                                    required={true}
+                                    input={field.value}
+                                    inputType="text"
+                                    inputPlaceholder="File name"
+                                    onChangeFunction={field.onChange}
+                                    className="w-full"
                                 />
-                                <p className="mt-2 text-sm text-neutral-600">
-                                    Uploading... {uploadProgress}%
-                                </p>
-                            </div>
-                        </>
+                            </FormControl>
+                        </FormItem>
                     )}
+                />
 
-                    <FormField
-                        control={form.control}
-                        name="pdfTitle"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyInput
-                                        {...field}
-                                        label="Title"
-                                        required={true}
-                                        input={field.value}
-                                        inputType="text"
-                                        inputPlaceholder="File name"
-                                        onChangeFunction={field.onChange}
-                                        className="w-full"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
-
-                    <DialogFooter className="flex w-full items-center justify-center">
-                        <MyButton
-                            buttonType="primary"
-                            scale="large"
-                            layoutVariant="default"
-                            type="submit"
-                            disabled={!file || isUploading}
-                            className="mx-auto"
-                        >
-                            {isUploading ? "Uploading..." : "Upload PDF"}
-                        </MyButton>
-                    </DialogFooter>
-                </form>
-            </Form>
-        </DialogContent>
+                <DialogFooter className="flex w-full items-center justify-center">
+                    <MyButton
+                        buttonType="primary"
+                        scale="large"
+                        layoutVariant="default"
+                        type="submit"
+                        disabled={!file || isUploading}
+                        className="mx-auto"
+                    >
+                        {isUploading ? "Uploading..." : "Upload PDF"}
+                    </MyButton>
+                </DialogFooter>
+            </form>
+        </Form>
+        // </DialogContent>
     );
 };

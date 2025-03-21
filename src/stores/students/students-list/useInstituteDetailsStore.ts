@@ -3,8 +3,6 @@ import {
     InstituteDetailsType,
     LevelType,
     SessionType,
-    PackageSchema,
-    LevelSchema,
     BatchForSessionType,
 } from "@/schemas/student/student-list/institute-schema";
 
@@ -18,6 +16,7 @@ interface InstituteDetailsStore {
         courseId?: string;
         sessionId?: string;
     }) => Array<{ id: string; name: string }>;
+    getLevelsFromPackage2: (params?: { courseId?: string; sessionId?: string }) => Array<LevelType>;
     getCourseFromPackage: (params?: {
         levelId?: string;
         sessionId?: string;
@@ -32,9 +31,22 @@ interface InstituteDetailsStore {
         levelId: string;
     }) => string | null;
     getPackageWiseLevels: (params?: { sessionId?: string }) => Array<{
-        id: string;
-        package_dto: typeof PackageSchema._type;
-        levels: (typeof LevelSchema._type)[];
+        package_dto: {
+            id: string;
+            package_name: string;
+            thumbnail_file_id: string | null;
+        };
+        level: Array<{
+            level_dto: {
+                id: string;
+                level_name: string;
+                duration_in_days: number | null;
+                thumbnail_id: string | null;
+            };
+            package_session_id: string;
+            package_session_status: string;
+            start_date: string;
+        }>;
     }>;
     getDetailsFromPackageSessionId: (params: {
         packageSessionId: string;
@@ -81,6 +93,40 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                 id: batch.level.id,
                 name: batch.level.level_name,
             }));
+
+        // Create a map to track unique items by ID
+        const uniqueMap = new Map();
+
+        // Add each item to the map, using id as the key
+        levels.forEach((item) => {
+            uniqueMap.set(item.id, item);
+        });
+
+        // Convert the map values back to an array
+        return Array.from(uniqueMap.values());
+    },
+
+    getLevelsFromPackage2: (params) => {
+        const { instituteDetails } = get();
+        if (!instituteDetails) return [];
+
+        const levels = instituteDetails.batches_for_sessions
+            .filter((batch) => {
+                if (params?.courseId && params?.sessionId) {
+                    return (
+                        batch.package_dto.id === params.courseId &&
+                        batch.session.id === params.sessionId
+                    );
+                }
+                if (params?.courseId) {
+                    return batch.package_dto.id === params.courseId;
+                }
+                if (params?.sessionId) {
+                    return batch.session.id === params.sessionId;
+                }
+                return true;
+            })
+            .map((batch) => batch.level);
 
         // Create a map to track unique items by ID
         const uniqueMap = new Map();
@@ -193,41 +239,74 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
             return true;
         });
 
-        // Group batches by package_dto.id
-        const packageGroups = filteredBatches.reduce(
-            (acc, batch) => {
-                const packageId = batch.package_dto.id;
-
-                if (!acc[packageId]) {
-                    acc[packageId] = {
-                        id: batch.id,
-                        package_dto: batch.package_dto,
-                        levels: [batch.level],
-                    };
-                } else {
-                    // Only add the level if it's not already in the array
-                    const levelExists = acc[packageId]?.levels.some(
-                        (level) => level.id === batch.level.id,
-                    );
-                    if (!levelExists) {
-                        acc[packageId]?.levels.push(batch.level);
-                    }
-                }
-
-                return acc;
-            },
-            {} as Record<
-                string,
-                {
+        // Define the result type to match our interface
+        type PackageGroupType = {
+            package_dto: {
+                id: string;
+                package_name: string;
+                thumbnail_file_id: string | null;
+            };
+            level: Array<{
+                level_dto: {
                     id: string;
-                    package_dto: typeof PackageSchema._type;
-                    levels: (typeof LevelSchema._type)[];
-                }
-            >,
-        );
+                    level_name: string;
+                    duration_in_days: number | null;
+                    thumbnail_id: string | null;
+                };
+                package_session_id: string;
+                package_session_status: string;
+                start_date: string;
+            }>;
+        };
+
+        // Group batches by package_dto.id
+        const packageGroups: Record<string, PackageGroupType> = {};
+
+        // Process each batch and build the structure
+        filteredBatches.forEach((batch) => {
+            const packageId = batch.package_dto.id;
+
+            // Initialize the package group if it doesn't exist
+            if (!packageGroups[packageId]) {
+                packageGroups[packageId] = {
+                    package_dto: {
+                        id: batch.package_dto.id,
+                        package_name: batch.package_dto.package_name,
+                        thumbnail_file_id: batch.package_dto.thumbnail_id,
+                    },
+                    level: [],
+                };
+            }
+
+            // Use a non-null assertion to tell TypeScript that we know packageGroups[packageId] exists
+            const packageGroup = packageGroups[packageId]!;
+
+            // Create level object with the required format
+            const levelEntry = {
+                level_dto: {
+                    id: batch.level.id,
+                    level_name: batch.level.level_name,
+                    duration_in_days: batch.level.duration_in_days,
+                    thumbnail_id: batch.level.thumbnail_id,
+                },
+                package_session_id: batch.id,
+                package_session_status: batch.status,
+                start_date: batch.session.start_date,
+            };
+
+            // Only add the level if it's not already in the array
+            const levelExists = packageGroup.level.some(
+                (item) => item.level_dto.id === batch.level.id,
+            );
+
+            if (!levelExists) {
+                packageGroup.level.push(levelEntry);
+            }
+        });
 
         return Object.values(packageGroups);
     },
+
     getDetailsFromPackageSessionId: (params: { packageSessionId: string }) => {
         const { instituteDetails } = get();
 

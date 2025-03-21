@@ -13,8 +13,7 @@ import { orderChapterPayloadType } from "@/types/study-library/order-payload";
 
 interface ChaptersProps {
     chapters?: ChapterWithSlides[];
-    onDeleteChapter?: (index: number) => void;
-    onEditChapter?: (index: number, updatedChapter: ChapterWithSlides) => void;
+    onDeleteChapter?: ({ chapter }: { chapter: ChapterWithSlides }) => void;
     onOrderChange?: (updatedOrder: orderChapterPayloadType[]) => void;
     isLoading?: boolean;
     form: UseFormReturn<FormValues>;
@@ -22,7 +21,6 @@ interface ChaptersProps {
 
 export const Chapters = ({
     onDeleteChapter = () => {},
-    onEditChapter = () => {},
     onOrderChange,
     isLoading = false,
     form, // Add form prop
@@ -77,13 +75,10 @@ export const Chapters = ({
                 <div className="flex flex-col gap-6">
                     {fields.map((chapter, index) => (
                         <SortableItem key={chapter.id} value={chapter.id} asChild>
-                            <div className="cursor-grab active:cursor-grabbing">
+                            <div className="cursor-grab active:cursor-grabbing" key={index}>
                                 <ChapterCard
                                     chapter={chapter}
-                                    onDelete={() => onDeleteChapter(index)}
-                                    onEdit={(updatedChapter) =>
-                                        onEditChapter(index, updatedChapter)
-                                    }
+                                    onDelete={() => onDeleteChapter({ chapter: chapter })}
                                 />
                             </div>
                         </SortableItem>

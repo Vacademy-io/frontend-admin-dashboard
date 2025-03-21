@@ -7,7 +7,7 @@ import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-fr
 import { CourseCard } from "./course-card";
 import { AddCourseButton } from "./add-course-button";
 import { useAddCourse } from "@/services/study-library/course-operations/add-course";
-import { AddCourseData } from "./add-course-form";
+import { AddCourseData } from "./add-course/add-course-form";
 import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
 import { useUpdateCourse } from "@/services/study-library/course-operations/update-course";
 import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
