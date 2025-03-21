@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { LoginForm } from "@/components/common/LoginPages/sections/login-form";
+import { LoginForm } from "@/routes/login/-components/LoginPages/sections/login-form";
 import { getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { isNullOrEmptyOrUndefined } from "@/lib/utils";

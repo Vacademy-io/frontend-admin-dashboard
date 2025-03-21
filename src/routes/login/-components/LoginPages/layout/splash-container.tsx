@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { LanguageDropdown } from "../../localization/language-dropdown";
-import { SplashScreenProps } from "../../../../types/login/loginTypes";
+import { LanguageDropdown } from "../../../../../components/common/localization/language-dropdown";
+import { SplashScreenProps } from "@/routes/login/-types/loginTypes";
 import { LoginImage } from "@/assets/svgs";
 import { Vacademy } from "@/svgs";
 
@@ -44,10 +44,7 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                     >
                         <Vacademy className="size-full" />
                     </motion.div>
-                    ;
                 </motion.div>
-                ;
-                {/* <img src="/svgs/login/login-image.svg" alt="login image" width={400} height={400} /> */}
                 <LoginImage />
             </div>
             <div className="relative flex w-full items-center justify-center text-neutral-600">

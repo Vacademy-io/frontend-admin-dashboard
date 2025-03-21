@@ -1,10 +1,10 @@
-import { Heading } from "@/components/common/LoginPages/ui/heading";
+import { Heading } from "@/routes/login/-components/LoginPages/ui/heading";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { Link } from "@tanstack/react-router";
 import { loginSchema } from "@/schemas/login/login";
 import { useEffect } from "react";
-import { SplashScreen } from "@/components/common/LoginPages/layout/splash-container";
+import { SplashScreen } from "@/routes/login/-components/LoginPages/layout/splash-container";
 import { loginUser } from "@/hooks/login/login-button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAnimationStore } from "@/stores/login/animationStore";
