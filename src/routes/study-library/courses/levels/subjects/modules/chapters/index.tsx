@@ -1,10 +1,10 @@
 // routes/study-library/$class/$subject/$module/$chapter/index.tsx
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChapterMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material";
+import { ChapterMaterial } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-components/chapter-material";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
-import { ChapterSidebarComponent } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/chapter-sidebar-component";
+import { ChapterSidebarComponent } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-components/chapter-material/chapter-sidebar-component";
 import { useEffect, useState } from "react";
 import { CaretLeft } from "phosphor-react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";

@@ -14,12 +14,12 @@ import { useRouter } from "@tanstack/react-router";
 import { getSubjectSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForModules";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
-import { orderChapterPayloadType } from "@/types/study-library/order-payload";
-import { useUpdateChapterOrder } from "@/services/study-library/chapter-operations/update-chapter-order";
+import { orderChapterPayloadType } from "@/routes/study-library/courses/-types/order-payload";
+import { useUpdateChapterOrder } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-services/update-chapter-order";
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
-import { useDeleteChapter } from "@/services/study-library/chapter-operations/delete-chapter";
+import { useDeleteChapter } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-services/delete-chapter";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { toast } from "sonner";
 

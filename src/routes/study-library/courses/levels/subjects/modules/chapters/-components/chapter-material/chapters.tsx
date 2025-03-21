@@ -9,7 +9,7 @@ import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapt
 import { useRouter } from "@tanstack/react-router";
 import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
-import { orderChapterPayloadType } from "@/types/study-library/order-payload";
+import { orderChapterPayloadType } from "@/routes/study-library/courses/-types/order-payload";
 
 interface ChaptersProps {
     chapters?: ChapterWithSlides[];

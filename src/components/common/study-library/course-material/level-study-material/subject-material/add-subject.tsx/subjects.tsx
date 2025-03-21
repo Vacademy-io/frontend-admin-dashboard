@@ -6,7 +6,7 @@ import { closestCorners } from "@dnd-kit/core";
 import { useEffect, useState } from "react";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
-import { orderSubjectPayloadType } from "@/types/study-library/order-payload";
+import { orderSubjectPayloadType } from "@/routes/study-library/courses/-types/order-payload";
 import { useSidebar } from "@/components/ui/sidebar";
 
 interface SubjectsProps {

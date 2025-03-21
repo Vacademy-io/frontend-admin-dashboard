@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { UPDATE_MODULE_ORDER } from "@/constants/urls";
-import { orderModulePayloadType } from "@/types/study-library/order-payload";
+import { orderModulePayloadType } from "@/routes/study-library/courses/-types/order-payload";
 
 export const useUpdateModuleOrder = () => {
     const queryClient = useQueryClient();

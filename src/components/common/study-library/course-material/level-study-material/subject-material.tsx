@@ -17,7 +17,7 @@ import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-
 // import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 import { useUpdateSubjectOrder } from "@/services/study-library/subject-operations/updateSubjectOrder";
-import { orderSubjectPayloadType } from "@/types/study-library/order-payload";
+import { orderSubjectPayloadType } from "@/routes/study-library/courses/-types/order-payload";
 import { getLevelSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForSubjects";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import useIntroJsTour from "@/hooks/use-intro";

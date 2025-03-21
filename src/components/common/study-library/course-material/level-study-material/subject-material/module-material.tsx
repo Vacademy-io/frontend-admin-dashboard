@@ -11,7 +11,7 @@ import { useDeleteModule } from "@/services/study-library/module-operations/dele
 import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { useUpdateModuleOrder } from "@/services/study-library/module-operations/update-modules-order";
-import { orderModulePayloadType } from "@/types/study-library/order-payload";
+import { orderModulePayloadType } from "@/routes/study-library/courses/-types/order-payload";
 import { SessionDropdown } from "../../../study-library-session-dropdown";
 import { getSubjectSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForModules";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";

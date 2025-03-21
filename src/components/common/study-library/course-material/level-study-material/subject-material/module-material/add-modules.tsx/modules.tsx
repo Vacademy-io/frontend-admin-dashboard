@@ -9,7 +9,7 @@ import {
     Module,
     ModulesWithChapters,
 } from "@/stores/study-library/use-modules-with-chapters-store";
-import { orderModulePayloadType } from "@/types/study-library/order-payload";
+import { orderModulePayloadType } from "@/routes/study-library/courses/-types/order-payload";
 
 interface ModulesProps {
     modules: ModulesWithChapters[] | null;

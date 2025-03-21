@@ -1,6 +1,6 @@
 import { StudyMaterialDetailsForm } from "@/routes/study-library/courses/-components/upload-study-material/study-material-details-form";
 import { MyDialog } from "@/components/design-system/dialog";
-import { useMoveChapter } from "@/services/study-library/chapter-operations/copy-move-chapter";
+import { useMoveChapter } from "@/routes/study-library/courses/levels/subjects/modules/chapters/-services/copy-move-chapter";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { ChapterWithSlides } from "@/stores/study-library/use-modules-with-chapters-store";
