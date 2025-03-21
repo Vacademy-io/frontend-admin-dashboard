@@ -6,21 +6,38 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { InviteLinkType } from "../-types/invite-link-types";
 import { InviteFormType } from "../-schema/InviteFormSchema";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
+import { useUpdateInviteLinkStatus } from "../-services/update-invite-link-status";
+import { toast } from "sonner";
 
 interface InviteCardMenuOptionsProps {
     invite: InviteLinkType;
-    onDelete: (invite: InviteLinkType) => void;
     onEdit: (updatedInvite: InviteFormType) => void;
 }
 
-export const InviteCardMenuOptions = ({ invite, onDelete }: InviteCardMenuOptionsProps) => {
+export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) => {
     const dropdownList = ["edit", "delete"];
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const updateInviteStatusMutation = useUpdateInviteLinkStatus();
 
     const handleSelect = (value: string) => {
         if (value == "delete") setOpenDeleteDialog(true);
         else setOpenEditDialog(true);
+    };
+
+    const onDeleteInvite = async (invite: InviteLinkType) => {
+        try {
+            await updateInviteStatusMutation.mutateAsync({
+                requestBody: {
+                    learner_invitation_ids: [invite.id],
+                    status: "DELETED",
+                },
+            });
+            toast.success("Invite deleted!");
+            setOpenDeleteDialog(false);
+        } catch {
+            toast.error("failed to delete the invite link!");
+        }
     };
 
     const submitButton = (
@@ -85,13 +102,13 @@ export const InviteCardMenuOptions = ({ invite, onDelete }: InviteCardMenuOption
                         <MyButton buttonType="secondary" onClick={() => setOpenDeleteDialog(false)}>
                             Cancel
                         </MyButton>
-                        <MyButton buttonType="primary" onClick={() => onDelete(invite)}>
+                        <MyButton buttonType="primary" onClick={() => onDeleteInvite(invite)}>
                             Yes, I am sure
                         </MyButton>
                     </div>
                 }
             >
-                Are you sure you want to delete the {invite.invite_link_name} invite?
+                Are you sure you want to delete the {invite.name} invite?
             </MyDialog>
         </>
     );
