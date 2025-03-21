@@ -59,7 +59,6 @@ export const InviteCardMenuOptions = ({ invite, onDelete }: InviteCardMenuOption
         sessionSelectionMode: "institute",
         levelSelectionMode: "institute",
         studentExpiryDays: 200,
-        generatedInviteLink: "https://forms.gle/example123",
         inviteeEmail: "shristi@gmail.com",
         inviteeEmails: [],
     };

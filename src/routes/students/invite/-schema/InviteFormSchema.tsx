@@ -52,7 +52,6 @@ export const inviteFormSchema = z.object({
         .array(emailEntrySchema)
         .min(1, "Please add at least one email address")
         .default([]),
-    generatedInviteLink: z.string(),
 });
 
 export type InviteFormType = z.infer<typeof inviteFormSchema>;
@@ -89,7 +88,6 @@ export const defaultFormValues: Partial<InviteFormType> = {
     studentExpiryDays: 365,
     inviteeEmail: "",
     inviteeEmails: [],
-    generatedInviteLink: "https://forms.gle/example123",
     preSelectedCourses: [],
     learnerChoiceCourses: [],
     preSelectedSessions: [],

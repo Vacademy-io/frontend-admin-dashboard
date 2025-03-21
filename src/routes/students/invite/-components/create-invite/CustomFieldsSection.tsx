@@ -66,7 +66,7 @@ export const CustomFieldsSection = ({
                     </div>
                 ))}
             </div>
-            <div className="mt-2 flex items-center gap-6">
+            <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
                 {!customFields?.some((field) => field.name === "Gender") && (
                     <MyButton
                         type="button"

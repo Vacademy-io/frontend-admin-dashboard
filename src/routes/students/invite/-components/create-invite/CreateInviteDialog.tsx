@@ -20,6 +20,7 @@ interface CreateInviteDialogProps {
     onOpenChange?: () => void;
     submitForm?: (fn: () => void) => void;
     onCreateInvite?: (invite: InviteFormType) => void;
+    inviteLink?: string | null;
 }
 
 // Define a type for email entries
@@ -36,6 +37,7 @@ export const CreateInviteDialog = ({
     onOpenChange,
     submitForm,
     onCreateInvite,
+    inviteLink,
 }: CreateInviteDialogProps) => {
     const {
         form,
@@ -300,7 +302,9 @@ export const CreateInviteDialog = ({
                                     type="button"
                                     onClick={handleAddEmail}
                                     disabled={!!emailError || !emailInput}
-                                    className={`${emailError ? "mb-6" : "mb-0"}`}
+                                    className={`${
+                                        emailError || emptyEmailsError ? "mb-7" : "mb-0"
+                                    }`}
                                 >
                                     Add
                                 </MyButton>
@@ -329,8 +333,8 @@ export const CreateInviteDialog = ({
                         <Separator />
 
                         {/* Generated Invite Link */}
-                        <div className="flex w-fit items-center gap-4">
-                            <p className="text-subtitle font-semibold">Invite Link</p>
+
+                        {/*<p className="text-subtitle font-semibold">Invite Link</p>
                             <FormField
                                 control={control}
                                 name="generatedInviteLink"
@@ -346,24 +350,30 @@ export const CreateInviteDialog = ({
                                         </FormControl>
                                     </FormItem>
                                 )}
-                            />
-                            <div className="flex items-center gap-2">
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="medium"
-                                    layoutVariant="icon"
-                                    onClick={() =>
-                                        handleCopyClick(getValues("generatedInviteLink"))
-                                    }
-                                    type="button"
-                                >
-                                    <Copy />
-                                </MyButton>
-                                {copySuccess === getValues("generatedInviteLink") && (
-                                    <span className="text-caption text-primary-500">Copied!</span>
-                                )}
+                            /> */}
+                        {inviteLink && inviteLink != null && (
+                            <div className="flex w-fit items-center gap-4">
+                                <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
+                                    {inviteLink}
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="icon"
+                                        onClick={() => handleCopyClick(inviteLink)}
+                                        type="button"
+                                    >
+                                        <Copy />
+                                    </MyButton>
+                                    {copySuccess === inviteLink && (
+                                        <span className="text-caption text-primary-500">
+                                            Copied!
+                                        </span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </form>
             </FormProvider>

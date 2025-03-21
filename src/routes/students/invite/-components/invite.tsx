@@ -9,12 +9,21 @@ import { EmptyInvitePage } from "@/assets/svgs";
 import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
 import formDataToRequestData from "../-utils/formDataToRequestData";
 import { useCreateInvite } from "../-services/create-invite";
+import { CreateInvitationRequestType } from "../-types/create-invitation-types";
+import { TokenKey } from "@/constants/auth/tokens";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const formSubmitRef = useRef<() => void>(() => {});
     const createInviteMutation = useCreateInvite();
     const [openCreateInviteDialog, setOpenCreateInviteDialog] = useState(false);
+    const [inviteLink, setInviteLink] = useState<string | null>(null);
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+
+    const baseUrl = window.location.origin;
 
     const onOpenChangeCreateInviteDialog = () => {
         setOpenCreateInviteDialog(!openCreateInviteDialog);
@@ -81,9 +90,14 @@ export const Invite = () => {
     const onCreateInvite = async (invite: InviteFormType) => {
         const requestData = formDataToRequestData(invite);
         try {
-            await createInviteMutation.mutateAsync({ requestBody: requestData });
+            const { data: responseData }: { data: CreateInvitationRequestType } =
+                await createInviteMutation.mutateAsync({ requestBody: requestData });
             toast.success("invitation created");
-            setOpenCreateInviteDialog(false);
+            const url = `${baseUrl}/learner-invitation-response?instituteId=${INSTITUTE_ID}&inviteCode=${
+                responseData?.learner_invitation?.invite_code || ""
+            }`;
+            setInviteLink(url);
+            // setOpenCreateInviteDialog(false);
         } catch {
             toast.error("failed to create invitation");
         }
@@ -102,6 +116,7 @@ export const Invite = () => {
                     onCreateInvite={onCreateInvite}
                     open={openCreateInviteDialog}
                     onOpenChange={onOpenChangeCreateInviteDialog}
+                    inviteLink={inviteLink}
                 />
             </div>
             <div className="flex w-full flex-col gap-10">
