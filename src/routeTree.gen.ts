@@ -40,6 +40,7 @@ import { Route as StudyLibraryCoursesLevelsSubjectsModulesIndexImport } from "./
 import { Route as StudyLibraryCoursesLevelsSubjectsModulesChaptersIndexImport } from "./routes/study-library/courses/levels/subjects/modules/chapters/index";
 import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexImport } from "./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/index";
 import { Route as StudyLibraryCoursesLevelsSubjectsModulesChaptersSlidesIndexImport } from "./routes/study-library/courses/levels/subjects/modules/chapters/slides/index";
+
 // Create/Update Routes
 
 const StudyLibraryIndexRoute = StudyLibraryIndexImport.update({

@@ -1,8 +1,8 @@
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect, useState } from "react";
-import { SessionDropdown } from "../study-library/study-library-session-dropdown";
+import { SessionDropdown } from "@/components/common/study-library/study-library-session-dropdown";
 import { BatchSection } from "./batch-section";
-import { useGetBatchesQuery } from "@/services/manage-batches/get-batches";
+import { useGetBatchesQuery } from "@/routes/students/manage-batches/-services/get-batches";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";

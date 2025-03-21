@@ -1,13 +1,13 @@
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect, useState } from "react";
-import { UploadStudyMaterialButton } from "../../../../routes/study-library/courses/-components/upload-study-material/upload-study-material-button";
-import { CreateStudyDocButton } from "../../../../routes/study-library/courses/-components/upload-study-material/create-study-doc-button";
+import { UploadStudyMaterialButton } from "./upload-study-material/upload-study-material-button";
+import { CreateStudyDocButton } from "./upload-study-material/create-study-doc-button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getCourses } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses";
 import { CourseCard } from "./course-card";
-import { AddCourseButton } from "./add-course-button";
+import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
 import { useAddCourse } from "@/services/study-library/course-operations/add-course";
-import { AddCourseData } from "./add-course/add-course-form";
+import { AddCourseData } from "../../../../components/common/study-library/add-course/add-course-form";
 import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
 import { useUpdateCourse } from "@/services/study-library/course-operations/update-course";
 import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";

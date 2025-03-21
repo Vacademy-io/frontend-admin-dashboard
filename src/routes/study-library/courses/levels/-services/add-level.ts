@@ -1,4 +1,4 @@
-import { AddLevelData } from "@/components/common/study-library/course-material/level-study-material/add-level-form";
+import { AddLevelData } from "@/routes/study-library/courses/levels/-components/add-level-form";
 import { ADD_LEVEL } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import React, { useRef, useState } from "react";
 import { Plus } from "phosphor-react";
-import { AddCourseData, AddCourseForm } from "./add-course/add-course-form";
+import { AddCourseData, AddCourseForm } from "./add-course-form";
 
 const triggerButton = (
     <MyButton buttonType="primary" layoutVariant="default" scale="large" id="create-new-course">

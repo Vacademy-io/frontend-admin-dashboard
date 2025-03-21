@@ -1,22 +1,22 @@
 // class-study-material.tsx
 import { useRouter } from "@tanstack/react-router";
-import { AddSubjectButton } from "./subject-material/add-subject.tsx/add-subject-button";
-import { Subjects } from "./subject-material/add-subject.tsx/subjects";
+import { AddSubjectButton } from "./add-subject.tsx/add-subject-button";
+import { Subjects } from "./add-subject.tsx/subjects";
 import { useEffect, useState } from "react";
 import {
     StudyLibrarySessionType,
     SubjectType,
     useStudyLibraryStore,
 } from "@/stores/study-library/use-study-library-store";
-import { useAddSubject } from "@/services/study-library/subject-operations/addSubject";
-import { useUpdateSubject } from "@/services/study-library/subject-operations/updateSubject";
-import { useDeleteSubject } from "@/services/study-library/subject-operations/deleteSubject";
+import { useAddSubject } from "@/routes/study-library/courses/levels/subjects/-services/addSubject";
+import { useUpdateSubject } from "@/routes/study-library/courses/levels/subjects/-services/updateSubject";
+import { useDeleteSubject } from "@/routes/study-library/courses/levels/subjects/-services/deleteSubject";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { SessionDropdown } from "../../study-library-session-dropdown";
+import { SessionDropdown } from "../../../../../../components/common/study-library/study-library-session-dropdown";
 import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
 // import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
-import { useUpdateSubjectOrder } from "@/services/study-library/subject-operations/updateSubjectOrder";
+import { useUpdateSubjectOrder } from "@/routes/study-library/courses/levels/subjects/-services/updateSubjectOrder";
 import { orderSubjectPayloadType } from "@/routes/study-library/courses/-types/order-payload";
 import { getLevelSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForSubjects";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";

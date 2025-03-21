@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { UPDATE_LEVEL } from "@/constants/urls";
-import { AddLevelData } from "@/components/common/study-library/course-material/level-study-material/add-level-form";
+import { AddLevelData } from "@/routes/study-library/courses/levels/-components/add-level-form";
 
 export const useUpdateLevel = () => {
     const queryClient = useQueryClient();

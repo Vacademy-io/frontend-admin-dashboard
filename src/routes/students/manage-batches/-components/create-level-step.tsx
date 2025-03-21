@@ -1,34 +1,42 @@
-// CreateSessionStep.tsx
-import { AddSessionInput } from "@/components/design-system/add-session-input";
-import { MyDropdown } from "../students/enroll-manually/dropdownForPackageItems";
-import { RadioGroupItem, RadioGroup } from "@/components/ui/radio-group";
+// CreateLevelStep.tsx
+import { AddLevelInput } from "@/components/design-system/add-level-input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useEffect, useState } from "react";
+import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
 import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 
-export const CreateSessionStep = () => {
-    const { instituteDetails, getSessionFromPackage } = useInstituteDetailsStore();
-    const [sessionList, setSessionList] = useState(getSessionFromPackage());
-    const [newSessionName, setNewSessionName] = useState("");
-    const [newSessionStartDate, setNewSessionStartDate] = useState("");
+export const CreateLevelStep = () => {
+    const { getLevelsFromPackage, instituteDetails } = useInstituteDetailsStore();
+    const [newLevelName, setNewLevelName] = useState("");
+    const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
+    const [levelList, setLevelList] =
+        useState<Array<{ id: string; name: string }>>(getLevelsFromPackage());
     const form = useFormContext();
 
     useEffect(() => {
-        setSessionList(getSessionFromPackage());
-    }, [instituteDetails]);
+        const allLevels = getLevelsFromPackage();
+        //pass the selected courseId and sessionId
+        const levelToRemove = getLevelsFromPackage({
+            courseId: form.watch("selectedCourse")?.id || "",
+            sessionId: form.watch("selectedSession")?.id || "",
+        });
+        const requiredLevelList = allLevels.filter((level) => level.id != levelToRemove[0]?.id);
+        setLevelList(requiredLevelList);
+    }, [instituteDetails, form.watch("selectedCourse"), form.watch("selectedSession")]);
 
-    const handleAddSession = () => {};
+    const handleAddLevel = () => {};
 
     return (
         <div className="flex flex-col gap-6">
             <div className="text-regular">
-                Step 2 <span className="font-semibold">Select Session</span>
+                Step 3 <span className="font-semibold">Select Level</span>
             </div>
 
             <FormField
                 control={form.control}
-                name="sessionCreationType"
+                name="levelCreationType"
                 render={({ field }) => (
                     <FormItem>
                         <FormControl>
@@ -39,11 +47,11 @@ export const CreateSessionStep = () => {
                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="existing" id="existing" />
-                                    <label htmlFor="existing">Pre-existing session</label>
+                                    <label htmlFor="existing">Pre-existing level</label>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="new" id="new" />
-                                    <label htmlFor="new">Create new session</label>
+                                    <label htmlFor="new">Create new level</label>
                                 </div>
                             </RadioGroup>
                         </FormControl>
@@ -53,22 +61,22 @@ export const CreateSessionStep = () => {
 
             <div className="flex flex-col gap-1">
                 <div>
-                    Session
+                    Level
                     <span className="text-subtitle text-danger-600">*</span>
                 </div>
 
-                {sessionList.length > 0 && form.watch("sessionCreationType") === "existing" && (
+                {levelList.length > 0 && form.watch("levelCreationType") === "existing" && (
                     <FormField
                         control={form.control}
-                        name="selectedSession"
+                        name="selectedLevel"
                         render={({ field }) => (
                             <FormItem>
                                 <FormControl>
                                     <MyDropdown
                                         currentValue={field.value}
-                                        dropdownList={sessionList}
+                                        dropdownList={levelList}
                                         handleChange={field.onChange}
-                                        placeholder="Select session"
+                                        placeholder="Select level"
                                         required={true}
                                     />
                                 </FormControl>
@@ -77,13 +85,13 @@ export const CreateSessionStep = () => {
                     />
                 )}
 
-                {form.watch("sessionCreationType") === "new" && (
-                    <AddSessionInput
-                        newSessionName={newSessionName}
-                        setNewSessionName={setNewSessionName}
-                        newSessionStartDate={newSessionStartDate}
-                        setNewSessionStartDate={setNewSessionStartDate}
-                        handleAddSession={handleAddSession}
+                {form.watch("levelCreationType") === "new" && (
+                    <AddLevelInput
+                        newLevelName={newLevelName}
+                        setNewLevelName={setNewLevelName}
+                        newLevelDuration={newLevelDuration}
+                        setNewLevelDuration={setNewLevelDuration}
+                        handleAddLevel={handleAddLevel}
                     />
                 )}
             </div>

@@ -4,7 +4,10 @@ import { MyDropdown } from "@/components/design-system/dropdown";
 import { CourseType } from "@/stores/study-library/use-study-library-store";
 import { DotsThree } from "phosphor-react";
 import { useRef, useState } from "react";
-import { AddCourseData, AddCourseForm } from "../add-course/add-course-form";
+import {
+    AddCourseData,
+    AddCourseForm,
+} from "../../../../components/common/study-library/add-course/add-course-form";
 
 interface CourseMenuOptionsProps {
     onDelete: (courseId: string) => void;

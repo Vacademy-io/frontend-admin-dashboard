@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { LevelCard } from "./level-card";
 import { useRouter } from "@tanstack/react-router";
-import { SessionDropdown } from "../../study-library-session-dropdown";
+import { SessionDropdown } from "../../../../../components/common/study-library/study-library-session-dropdown";
 import { useSidebar } from "@/components/ui/sidebar";
 import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels";
 import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails";
@@ -14,12 +14,12 @@ import { useSelectedSessionStore } from "@/stores/study-library/selected-session
 import { AddLevelButton } from "./add-level-button";
 import { AddLevelData } from "./add-level-form";
 import { toast } from "sonner";
-import { useAddLevel } from "@/services/study-library/level-operations/add-level";
-import { useDeleteLevel } from "@/services/study-library/level-operations/delete-level";
+import { useAddLevel } from "@/routes/study-library/courses/levels/-services/add-level";
+import { useDeleteLevel } from "@/routes/study-library/courses/levels/-services/delete-level";
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
-import { useUpdateLevel } from "@/services/study-library/level-operations/update-level";
+import { useUpdateLevel } from "@/routes/study-library/courses/levels/-services/update-level";
 import { EmptyLevelPage } from "@/svgs";
 
 export const LevelPage = () => {

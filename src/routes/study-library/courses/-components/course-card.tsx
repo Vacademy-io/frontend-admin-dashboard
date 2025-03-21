@@ -1,8 +1,8 @@
 import { SubjectDefaultImage } from "@/assets/svgs";
 import { CourseType } from "@/stores/study-library/use-study-library-store";
-import { CourseMenuOptions } from "./level-study-material/course-menu-options";
+import { CourseMenuOptions } from "./course-menu-options";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { AddCourseData } from "./add-course/add-course-form";
+import { AddCourseData } from "../../../../components/common/study-library/add-course/add-course-form";
 import { useEffect, useState } from "react";
 import { getPublicUrl } from "@/services/upload_file";
 
