@@ -1,9 +1,9 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 import { ArrowSquareOut, CaretUpDown, Info } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyDropdown } from "../../dropdown";
-import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
+import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
 import { ActivityStatus } from "../types/chips-types";
 import { StatusChips } from "../../chips";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
@@ -11,8 +11,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
 import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
 import { useState } from "react";
-import { LogDetailsDialog } from "@/components/common/students/students-list/student-side-view/student-learning-progress/chapter-details/topic-details/log-details-dialog";
-import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
+import { LogDetailsDialog } from "@/components/common/student-slide-tracking/log-details-dialog";
+import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;

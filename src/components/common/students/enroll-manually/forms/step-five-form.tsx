@@ -8,13 +8,15 @@ import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { stepFiveSchema, StepFiveData } from "@/types/students/schema-enroll-students-manually";
+import {
+    stepFiveSchema,
+    StepFiveData,
+} from "@/schemas/student/student-list/schema-enroll-students-manually";
 import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/useEnrollStudent";
 import { useEffect, useState } from "react";
-import { getCurrentSession } from "../../students-list/utills/getCurrentSession";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { toast } from "sonner";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 
 export const StepFiveForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const [showCredentials, setShowCredentials] = useState(false);
@@ -57,8 +59,7 @@ export const StepFiveForm = ({ initialValues }: { initialValues?: StudentTable }
     });
 
     const generateUsername = () => {
-        const sessionYear =
-            stepTwoData?.session?.name.split("-")[1] || getCurrentSession().split("-")[1];
+        const sessionYear = stepTwoData?.session?.name.split("-")[1] || "";
         const classNumber = stepTwoData?.level.name;
         const enrollmentLast3 = (stepTwoData?.enrollmentNumber || "001").slice(-3);
 

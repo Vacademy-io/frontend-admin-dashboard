@@ -5,11 +5,11 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { CaretUp, CaretDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 import { AssessmentStatusOptions } from "../-components/AssessmentStatusOptions";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowSquareOut } from "phosphor-react";
-import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
+import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;

@@ -1,4 +1,4 @@
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 import { LearnerInvitationType } from "../../invite/-types/create-invitation-types";
 
 export interface LearnerEnrollRequestType {

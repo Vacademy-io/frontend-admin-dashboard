@@ -7,9 +7,12 @@ import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepFourData, stepFourSchema } from "@/types/students/schema-enroll-students-manually";
+import {
+    StepFourData,
+    stepFourSchema,
+} from "@/schemas/student/student-list/schema-enroll-students-manually";
 import PhoneInputField from "@/components/design-system/phone-input-field";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 
 export const StepFourForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const { stepFourData, setStepFourData, nextStep } = useFormStore();

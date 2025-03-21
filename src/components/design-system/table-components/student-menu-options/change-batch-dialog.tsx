@@ -1,11 +1,11 @@
 // components/change-batch-dialog.tsx
 import { MyDialog } from "../../dialog";
 import { ReactNode, useState } from "react";
-import { useDialogStore } from "../../utils/useDialogStore";
+import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
 import { BatchDropdown } from "@/components/common/batch-dropdown";
 import { MyButton } from "../../button";
-import { useUpdateBatchMutation } from "@/services/student-list-section/useStudentOperations";
-import { useBulkUpdateBatchMutation } from "@/services/student-list-section/useBulkOperations";
+import { useUpdateBatchMutation } from "@/routes/students/students-list/-services/useStudentOperations";
+import { useBulkUpdateBatchMutation } from "@/routes/students/students-list/-services/useBulkOperations";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface ChangeBatchDialogProps {

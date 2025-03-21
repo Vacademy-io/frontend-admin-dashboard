@@ -7,10 +7,13 @@ import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepThreeData, stepThreeSchema } from "@/types/students/schema-enroll-students-manually";
+import {
+    StepThreeData,
+    stepThreeSchema,
+} from "@/schemas/student/student-list/schema-enroll-students-manually";
 import PhoneInputField from "@/components/design-system/phone-input-field";
 import { useEffect } from "react";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 
 export const StepThreeForm = ({ initialValues }: { initialValues?: StudentTable }) => {
     const { stepThreeData, setStepThreeData, nextStep } = useFormStore();

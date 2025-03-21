@@ -7,7 +7,7 @@ import HeadingSvg6 from "../-svgs/headerDisplay-6.svg";
 import { FilterLevelDropdown } from "../-components/FilterDropdown";
 import { useFilterStore } from "../-store/useFilterOptions";
 import { useSelectedFilterStore } from "../-store/useSlectedFilterOption";
-import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
+import { SearchInput } from "@/routes/students/students-list/-components/students-list/student-list-section/search-input";
 import { useState } from "react";
 import { debounce } from "lodash";
 import { useCallback } from "react";

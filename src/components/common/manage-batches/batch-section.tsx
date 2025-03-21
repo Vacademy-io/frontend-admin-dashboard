@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { BatchType, batchWithStudentDetails } from "@/types/students/manage-batches-types";
+import { BatchType, batchWithStudentDetails } from "@/types/manage-batches/manage-batches-types";
 import { Plus, TrashSimple } from "phosphor-react";
 import { useState } from "react";
 

@@ -2,7 +2,7 @@ import { TokenKey } from "@/constants/auth/tokens";
 import { GET_BATCH_LIST } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { batchesWithStudents } from "@/types/students/manage-batches-types";
+import { batchesWithStudents } from "@/types/manage-batches/manage-batches-types";
 import { useQuery } from "@tanstack/react-query";
 
 export const fetchBatches = async ({ sessionId }: { sessionId: string }) => {

@@ -10,7 +10,7 @@ import { MyTable } from "@/components/design-system/table";
 import { MyButton } from "@/components/design-system/button";
 import { StudentSearchBox } from "@/components/common/student-search-box";
 import { MyInput } from "@/components/design-system/input";
-import { ActivityLogDialog } from "@/components/common/students/students-list/student-side-view/student-learning-progress/chapter-details/topic-details/activity-log-dialog";
+import { ActivityLogDialog } from "@/components/common/student-slide-tracking/activity-log-dialog";
 import { Dialog, DialogHeader, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";

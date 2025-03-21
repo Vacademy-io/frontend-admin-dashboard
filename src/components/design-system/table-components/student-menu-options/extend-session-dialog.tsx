@@ -1,12 +1,12 @@
 // extend-session-dialog.tsx
 import { MyDialog } from "../../dialog";
 import React, { ReactNode } from "react";
-import { useDialogStore } from "../../utils/useDialogStore";
+import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
 import { useState } from "react";
 import { MyButton } from "../../button";
 import { MyInput } from "../../input";
-import { useExtendSessionMutation } from "@/services/student-list-section/useStudentOperations";
-import { useBulkExtendSessionMutation } from "@/services/student-list-section/useBulkOperations";
+import { useExtendSessionMutation } from "@/routes/students/students-list/-services/useStudentOperations";
+import { useBulkExtendSessionMutation } from "@/routes/students/students-list/-services/useBulkOperations";
 
 interface ExtendSessionDialogProps {
     trigger: ReactNode;
