@@ -29,7 +29,7 @@ export const LayoutContainer = ({
             <div>
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
-            <div className="flex flex-row">
+            <div className="flex flex-1 flex-row">
                 {internalSideBar && (
                     <InternalSideBar sideBarList={sideBarList} sideBarData={sideBarData} />
                 )}
