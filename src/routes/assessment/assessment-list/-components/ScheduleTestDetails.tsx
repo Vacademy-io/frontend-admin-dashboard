@@ -216,8 +216,7 @@ const ScheduleTestDetails = ({
                         value={`${BASE_URL_LEARNER_DASHBOARD}/register?code=
                             ${scheduleTestContent.join_link}`}
                         className="size-16"
-                        id={`qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=
-                            ${scheduleTestContent.join_link}`}
+                        id={`qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=${scheduleTestContent.join_link}`}
                     />
                     <MyButton
                         type="button"
@@ -226,8 +225,7 @@ const ScheduleTestDetails = ({
                         className="h-8 min-w-8"
                         onClick={(e) => {
                             handleDownloadQRCode(
-                                `qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=
-                                ${scheduleTestContent.join_link}`,
+                                `qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=${scheduleTestContent.join_link}`,
                             );
                             e.stopPropagation();
                         }}
