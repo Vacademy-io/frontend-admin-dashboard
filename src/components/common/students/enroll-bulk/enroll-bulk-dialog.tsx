@@ -8,8 +8,11 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { MyDropdown } from "../enroll-manually/dropdownForPackageItems";
 import { DropdownItemType } from "../enroll-manually/dropdownTypesForPackageItems";
 import { CSVFormatDialog } from "./csv-format-dialog";
-import { enrollBulkFormSchema } from "@/types/students/bulk-upload-types";
-import { enrollBulkFormType } from "@/types/students/bulk-upload-types";
+import {
+    enrollBulkFormSchema,
+    enrollBulkFormType,
+} from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
+
 import { MyButton } from "@/components/design-system/button";
 
 export const EnrollBulkDialog = () => {

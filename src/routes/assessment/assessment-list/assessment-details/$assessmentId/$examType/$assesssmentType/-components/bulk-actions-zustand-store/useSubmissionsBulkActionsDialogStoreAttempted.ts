@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { AssessmentSubmissionsBulkActionInfo } from "@/types/students/bulk-actions-types";
+import { AssessmentSubmissionsBulkActionInfo } from "@/routes/students/students-list/-types/bulk-actions-types";
 import { SubmissionStudentData } from "@/types/assessments/assessment-overview";
 
 interface AssessmentSubmissionsDialogStore {

@@ -1,9 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { CaretUp, CaretDown } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
+import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
 import { MyDropdown } from "@/components/design-system/dropdown";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;

@@ -1,7 +1,7 @@
 // components/StudentSearchBox.tsx
 import { MyInput } from "@/components/design-system/input";
 import { MagnifyingGlass, KeyReturn, XCircle } from "@phosphor-icons/react";
-import { StudentSearchBoxProps } from "@/types/students/students-list-types";
+import { StudentSearchBoxProps } from "@/routes/students/students-list/-types/students-list-types";
 
 export const StudentSearchBox = ({
     searchInput,

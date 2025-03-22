@@ -8,7 +8,7 @@ import {
     StepThreeData,
     StepFourData,
     StepFiveData,
-} from "@/types/students/schema-enroll-students-manually";
+} from "@/schemas/student/student-list/schema-enroll-students-manually";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 

@@ -15,7 +15,7 @@ import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
 import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSubmissionsTab";
-import { StudentReportFilterInterface } from "@/components/common/students/students-list/student-side-view/student-test-records/student-test-record";
+import { StudentReportFilterInterface } from "@/routes/students/students-list/-components/students-list/student-side-view/student-test-records/student-test-record";
 import { SelectedFilterQuestionWise } from "@/types/assessments/student-questionwise-status";
 import { SelectedFilterRevaluateInterface } from "@/types/assessments/assessment-revaluate-question-wise";
 import { AssessmentParticipantsInterface } from "../-components/AssessmentParticipantsList";

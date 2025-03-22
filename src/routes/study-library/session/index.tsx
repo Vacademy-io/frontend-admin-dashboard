@@ -1,5 +1,5 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { SessionsPage } from "@/components/common/study-library/session/sessionsPage";
+import { SessionsPage } from "./-components/sessionsPage";
 import { createFileRoute } from "@tanstack/react-router";
 import { Helmet } from "react-helmet";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";

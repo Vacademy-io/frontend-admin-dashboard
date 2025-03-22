@@ -1,18 +1,18 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 import { ArrowSquareOut, CaretUpDown, Info } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyDropdown } from "../../dropdown";
-import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
+import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
 import { ActivityStatus } from "../types/chips-types";
 import { StatusChips } from "../../chips";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useActivityStatsStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { useState } from "react";
-import { LogDetailsDialog } from "@/components/common/students/students-list/student-side-view/student-learning-progress/chapter-details/topic-details/log-details-dialog";
-import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
+import { LogDetailsDialog } from "@/components/common/student-slide-tracking/log-details-dialog";
+import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -186,14 +186,19 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         accessorKey: "expiry_date",
         header: "Session Expiry",
         cell: ({ row }) => {
-            if (row.original.expiry_date == null) return <></>;
-
+            if (row.original.expiry_date == null) {
+                return <></>;
+            }
             const expiryDate = new Date(row.original.expiry_date);
+            console.log("expiryDate: ", expiryDate);
             const today = new Date();
+            console.log("today: ", today);
 
             // Use getTime() to get timestamps in milliseconds
             const diffTime = expiryDate.getTime() - today.getTime();
+            console.log("time diff: ", diffTime);
             const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            console.log("daysLeft: ", daysLeft);
 
             return (
                 <div
@@ -205,7 +210,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                               : "text-success-500"
                     }`}
                 >
-                    {daysLeft > 0 && daysLeft}
+                    {daysLeft > 0 ? daysLeft : 0}
                 </div>
             );
         },
@@ -243,7 +248,13 @@ export interface ActivityLogDialogProps {
 
 const LastPageReadHeader = () => {
     const { activeItem } = useContentStore();
-    return <>{activeItem?.video_url != null ? "Percentage Watched" : "Total Pages Read"}</>;
+    return (
+        <>
+            {activeItem?.video_url != null || activeItem?.published_url != null
+                ? "Percentage Watched"
+                : "Total Pages Read"}
+        </>
+    );
 };
 
 export const activityLogColumns: ColumnDef<ActivityLogType>[] = [

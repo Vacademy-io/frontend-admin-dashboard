@@ -1,7 +1,7 @@
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { dropdownSchema } from "@/components/design-system/utils/schema/dropdown-schema";
 import { useState, useMemo } from "react";
-import { useGetBatchNames } from "@/hooks/student-list-section/useFilters";
+import { useGetBatchNames } from "@/routes/students/students-list/-hooks/useFilters";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 // components/common/students/batch-dropdown.tsx
