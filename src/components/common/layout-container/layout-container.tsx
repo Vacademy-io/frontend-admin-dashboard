@@ -4,17 +4,24 @@ import { Navbar } from "./top-navbar.tsx/navbar";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { StudentSidebarProvider } from "@/providers/student-list/student-sidebar-provider";
+import { InternalSideBar } from "./internal-sidebar/internalSideBar";
 
 export const LayoutContainer = ({
     children,
     className,
     sidebarComponent,
     intrnalMargin = true,
+    internalSideBar = false,
+    sideBarList,
+    sideBarData,
 }: {
     children?: React.ReactNode;
     className?: string;
     sidebarComponent?: React.ReactNode;
     intrnalMargin?: boolean;
+    internalSideBar?: boolean;
+    sideBarList?: { value: string; id: string }[];
+    sideBarData?: { title: string; listIconText: string; searchParam: string };
 }) => {
     const { open } = useSidebar();
     return (
@@ -22,25 +29,30 @@ export const LayoutContainer = ({
             <div>
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
-            <div className="flex w-full flex-1 flex-col text-neutral-600">
-                <Navbar />
-                <StudentSidebarProvider>
-                    <div
-                        className={cn(
-                            intrnalMargin ? `m-7 flex flex-1 flex-col` : `m-0`,
-                            open
-                                ? intrnalMargin
-                                    ? `max-w-[calc(100vw-322px-56px)]`
-                                    : `max-w-[calc(100vw-320px)]`
-                                : intrnalMargin
-                                  ? `max-w-[calc(100vw-132px-56px)]`
-                                  : `max-w-[calc(100vw-132px)]`,
-                            className,
-                        )}
-                    >
-                        {children}
-                    </div>
-                </StudentSidebarProvider>
+            <div className="flex flex-row">
+                {internalSideBar && (
+                    <InternalSideBar sideBarList={sideBarList} sideBarData={sideBarData} />
+                )}
+                <div className="flex w-full flex-1 flex-col text-neutral-600">
+                    <Navbar />
+                    <StudentSidebarProvider>
+                        <div
+                            className={cn(
+                                intrnalMargin ? `m-7 flex flex-1 flex-col` : `m-0`,
+                                open
+                                    ? intrnalMargin
+                                        ? `max-w-[calc(100vw-322px-56px)]`
+                                        : `max-w-[calc(100vw-320px)]`
+                                    : intrnalMargin
+                                      ? `max-w-[calc(100vw-132px-56px)]`
+                                      : `max-w-[calc(100vw-132px)]`,
+                                className,
+                            )}
+                        >
+                            {children}
+                        </div>
+                    </StudentSidebarProvider>
+                </div>
             </div>
         </div>
     );

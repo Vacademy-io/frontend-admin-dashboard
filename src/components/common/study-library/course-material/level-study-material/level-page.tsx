@@ -26,19 +26,25 @@ export const LevelPage = () => {
     const { open } = useSidebar();
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const courseId = searchParams.courseId;
+    const [courseId, setCourseId] = useState(searchParams.courseId);
     const { setSelectedSession } = useSelectedSessionStore();
     const addLevelMutation = useAddLevel();
     const deleteLevelMutation = useDeleteLevel();
     const updateLevelMutation = useUpdateLevel();
     const { studyLibraryData } = useStudyLibraryStore();
     // Ensure hooks always run
-    const sessionList = courseId ? getCourseSessions(courseId) : [];
+    const [sessionList, setSessionList] = useState(courseId ? getCourseSessions(courseId) : []);
     const initialSession: StudyLibrarySessionType | undefined = sessionList[0] ?? undefined;
 
     const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
         () => initialSession,
     );
+
+    useEffect(() => {
+        setCourseId(searchParams.courseId);
+        setSessionList(courseId ? getCourseSessions(courseId) : []);
+        setCurrentSession(sessionList[0] ?? undefined);
+    }, [searchParams.courseId]);
 
     // Get levels only if session is selected
     const initialLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
@@ -71,12 +77,12 @@ export const LevelPage = () => {
         setSelectedSession(currentSession);
         const newLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
         setLevelList(newLevelList);
-    }, [currentSession]);
+    }, [currentSession, courseId]);
 
     useEffect(() => {
         const newLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
         setLevelList(newLevelList);
-    }, [studyLibraryData]);
+    }, [studyLibraryData, courseId]);
 
     const handleAddLevel = ({
         requestData,
