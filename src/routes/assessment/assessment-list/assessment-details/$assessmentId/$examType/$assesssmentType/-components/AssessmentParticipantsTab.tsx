@@ -14,7 +14,7 @@ import {
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
 import { getBatchDetails } from "../-utils/helper";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
-import AssessmentParticipantsList from "./AssessmentParticipantsList";
+import { AssessmentParticipantsList } from "./AssessmentParticipantsList";
 
 const AssessmentParticipantsTab = () => {
     const { assessmentId, examType } = Route.useParams();

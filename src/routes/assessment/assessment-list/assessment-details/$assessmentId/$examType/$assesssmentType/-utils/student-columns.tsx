@@ -564,3 +564,58 @@ export const studentExternalQuestionWise: ColumnDef<StudentTable>[] = [
         header: "Response Time",
     },
 ];
+
+export const step3ParticipantsListColumn: ColumnDef<StudentTable>[] = [
+    {
+        accessorKey: "full_name",
+        header: (props) => {
+            const meta = props.table.options.meta as CustomTableMeta;
+            return (
+                <div className="relative">
+                    <MyDropdown
+                        dropdownList={["ASC", "DESC"]}
+                        onSelect={(value) => {
+                            meta.onSort?.("full_name", value);
+                        }}
+                    >
+                        <button className="flex w-full cursor-pointer items-center justify-between">
+                            <div>Student Name</div>
+                            <div>
+                                <CaretUp />
+                                <CaretDown />
+                            </div>
+                        </button>
+                    </MyDropdown>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "package_session_id",
+        header: "Batch",
+    },
+    {
+        accessorKey: "institute_enrollment_id",
+        header: "Enrollment Number",
+    },
+    {
+        accessorKey: "gender",
+        header: "Gender",
+    },
+    {
+        accessorKey: "mobile_number",
+        header: "Phone Number",
+    },
+    {
+        accessorKey: "email",
+        header: "Email ID",
+    },
+    {
+        accessorKey: "city",
+        header: "City",
+    },
+    {
+        accessorKey: "region",
+        header: "State",
+    },
+];

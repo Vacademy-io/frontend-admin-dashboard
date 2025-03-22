@@ -377,7 +377,10 @@ export const getBatchDetailsListOfStudents = async (
             pageNo,
             pageSize,
         },
-        data: selectedFilter,
+        data: {
+            ...selectedFilter,
+            gender: selectedFilter.gender.map((type: { id: string; name: string }) => type.name),
+        },
     });
     return response?.data;
 };

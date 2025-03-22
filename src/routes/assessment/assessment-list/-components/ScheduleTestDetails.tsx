@@ -202,10 +202,11 @@ const ScheduleTestDetails = ({
                         scale="small"
                         buttonType="secondary"
                         className="h-8 min-w-8"
-                        onClick={() =>
+                        onClick={(e) => {
+                            e.stopPropagation();
                             copyToClipboard(`${BASE_URL_LEARNER_DASHBOARD}/register?code=
-                            ${scheduleTestContent.join_link}`)
-                        }
+                            ${scheduleTestContent.join_link}`);
+                        }}
                     >
                         <Copy size={32} />
                     </MyButton>
@@ -223,12 +224,13 @@ const ScheduleTestDetails = ({
                         scale="small"
                         buttonType="secondary"
                         className="h-8 min-w-8"
-                        onClick={() =>
+                        onClick={(e) => {
                             handleDownloadQRCode(
                                 `qr-code-svg-assessment-list-${BASE_URL_LEARNER_DASHBOARD}/register?code=
-                            ${scheduleTestContent.join_link}`,
-                            )
-                        }
+                                ${scheduleTestContent.join_link}`,
+                            );
+                            e.stopPropagation();
+                        }}
                     >
                         <DownloadSimple size={32} />
                     </MyButton>
