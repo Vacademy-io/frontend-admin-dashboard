@@ -83,6 +83,7 @@ export const AddLevelInput = ({
                     buttonType="text"
                     layoutVariant="default"
                     scale="small"
+                    id="add-level-button"
                     className="w-fit text-primary-500 hover:bg-white active:bg-white"
                 >
                     <Plus /> Add Level

@@ -306,7 +306,7 @@ export const AddCourseForm = ({
                 className="flex max-h-[80vh] flex-col gap-8 p-2 text-neutral-600"
             >
                 <div className="flex justify-between">
-                    <div className="w-full">
+                    <div className="w-full" id="course-name">
                         <FormField
                             control={form.control}
                             name="course_name"
@@ -331,16 +331,19 @@ export const AddCourseForm = ({
                     <CourseInfoDialog />
                 </div>
 
-                <div className={`relative flex w-full flex-col items-center justify-center gap-3`}>
+                <div
+                    className={`relative flex w-full flex-col items-center justify-center gap-3`}
+                    id="course-thumbnail"
+                >
                     {isUploading ? (
-                        <div className="inset-0 flex h-[200px] w-[200px] items-center justify-center bg-white">
+                        <div className="inset-0 flex size-[200px] items-center justify-center bg-white">
                             <DashboardLoader />
                         </div>
                     ) : previewUrl || fileId ? (
                         <img
                             src={previewUrl ? previewUrl : fileId}
                             alt="Subject"
-                            className="h-[200px] w-[200px] rounded-lg object-cover"
+                            className="size-[200px] rounded-lg object-cover"
                         />
                     ) : (
                         <SubjectDefaultImage />
@@ -417,7 +420,7 @@ export const AddCourseForm = ({
                 )}
 
                 {containLevels && !initialValues && (
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2" id="course-levels">
                         <p className="text-body text-neutral-500">
                             Choose sessions to select a level
                         </p>
