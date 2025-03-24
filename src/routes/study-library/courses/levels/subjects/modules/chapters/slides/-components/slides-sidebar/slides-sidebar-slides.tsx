@@ -104,8 +104,8 @@ export const ChapterSidebarSlides = ({
     return (
         <Sortable value={fields} onMove={handleMove} fast={false}>
             <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
-                {fields.map((slide) => (
-                    <SortableItem key={slide.id} value={slide.id} asChild>
+                {fields.map((slide, index) => (
+                    <SortableItem key={index} value={slide.id} asChild>
                         <div className="w-full" onClick={() => setActiveItem(slide)}>
                             <div
                                 className={`flex w-full items-center gap-3 rounded-xl ${
@@ -117,6 +117,9 @@ export const ChapterSidebarSlides = ({
                                 }`}
                             >
                                 <div className="flex flex-1 items-center gap-3">
+                                    <p className={`${open ? "visible" : "hidden"} font-semibold`}>
+                                        S{index}
+                                    </p>
                                     {getIcon(slide)}
                                     <p
                                         className={`flex-1 text-subtitle ${

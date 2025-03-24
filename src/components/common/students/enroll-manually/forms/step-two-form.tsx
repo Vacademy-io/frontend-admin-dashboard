@@ -2,7 +2,6 @@ import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "../dropdownForPackageItems";
 import { useGetGenders } from "@/routes/students/students-list/-hooks/useFilters";
@@ -18,7 +17,13 @@ import { DropdownItemType } from "../dropdownTypesForPackageItems";
 import { StudentTable } from "@/types/student-table-types";
 import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 
-export const StepTwoForm = ({ initialValues }: { initialValues?: StudentTable }) => {
+export const StepTwoForm = ({
+    initialValues,
+    submitFn,
+}: {
+    initialValues?: StudentTable;
+    submitFn: (fn: () => void) => void;
+}) => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
     const genderList = useGetGenders();
 
@@ -261,11 +266,29 @@ export const StepTwoForm = ({ initialValues }: { initialValues?: StudentTable })
         }
     }, [sessionList, courseList, levelList]);
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    const requestFormSubmit = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    useEffect(() => {
+        if (submitFn) {
+            submitFn(requestFormSubmit);
+        }
+    }, [submitFn]);
+
     return (
         <div>
-            <div className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center px-6 text-neutral-600">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+                    <form
+                        ref={formRef}
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex flex-col gap-6"
+                    >
                         <FormItemWrapper<StepTwoData> control={form.control} name="fullName">
                             <FormStepHeading stepNumber={2} heading="General Details" />
                         </FormItemWrapper>
@@ -495,7 +518,6 @@ export const StepTwoForm = ({ initialValues }: { initialValues?: StudentTable })
                     </form>
                 </Form>
             </div>
-            <FormSubmitButtons stepNumber={2} onNext={form.handleSubmit(onSubmit)} />
         </div>
     );
 };

@@ -3,7 +3,6 @@ import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { MyInput } from "@/components/design-system/input";
 import { MyButton } from "@/components/design-system/button";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,12 +12,20 @@ import {
     StepFiveData,
 } from "@/schemas/student/student-list/schema-enroll-students-manually";
 import { useEnrollStudent } from "@/hooks/student-list-section/enroll-student-manually/useEnrollStudent";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { toast } from "sonner";
 import { StudentTable } from "@/types/student-table-types";
 
-export const StepFiveForm = ({ initialValues }: { initialValues?: StudentTable }) => {
+export const StepFiveForm = ({
+    initialValues,
+    handleNextButtonDisable,
+    submitFn,
+}: {
+    initialValues?: StudentTable;
+    handleNextButtonDisable: (value: boolean) => void;
+    submitFn: (fn: () => void) => void;
+}) => {
     const [showCredentials, setShowCredentials] = useState(false);
     const {
         stepOneData,
@@ -29,6 +36,10 @@ export const StepFiveForm = ({ initialValues }: { initialValues?: StudentTable }
         setStepFiveData,
         resetForm,
     } = useFormStore();
+
+    useEffect(() => {
+        handleNextButtonDisable(!showCredentials);
+    }, [showCredentials]);
 
     const { getPackageSessionId } = useInstituteDetailsStore();
     const [packageSessionId, setPackageSessionId] = useState(
@@ -124,11 +135,29 @@ export const StepFiveForm = ({ initialValues }: { initialValues?: StudentTable }
         }
     };
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    const requestFormSubmit = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    useEffect(() => {
+        if (submitFn) {
+            submitFn(requestFormSubmit);
+        }
+    }, [submitFn]);
+
     return (
         <div>
-            <div className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center px-6 text-neutral-600">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-20">
+                    <form
+                        ref={formRef}
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex flex-col gap-20"
+                    >
                         <FormItemWrapper<StepFiveData> control={form.control} name="username">
                             <FormStepHeading stepNumber={5} heading="Generate Login Credentials" />
                         </FormItemWrapper>
@@ -205,11 +234,6 @@ export const StepFiveForm = ({ initialValues }: { initialValues?: StudentTable }
                     </form>
                 </Form>
             </div>
-            <FormSubmitButtons
-                stepNumber={5}
-                finishButtonDisable={!showCredentials}
-                onNext={form.handleSubmit(onSubmit)}
-            />
         </div>
     );
 };

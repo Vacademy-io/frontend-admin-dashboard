@@ -3,7 +3,6 @@ import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import {
     StepOneData,
@@ -20,7 +19,15 @@ import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtili
 import { TokenKey } from "@/constants/auth/tokens";
 import { StudentTable } from "@/types/student-table-types";
 
-export const StepOneForm = ({ initialValues }: { initialValues?: StudentTable }) => {
+export const StepOneForm = ({
+    initialValues,
+    handleNextButtonDisable,
+    submitFn,
+}: {
+    initialValues?: StudentTable;
+    handleNextButtonDisable: (value: boolean) => void;
+    submitFn: (fn: () => void) => void;
+}) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
@@ -28,13 +35,12 @@ export const StepOneForm = ({ initialValues }: { initialValues?: StudentTable })
     const { uploadFile, getPublicUrl, isUploading: isUploadingFile } = useFileUpload();
     const { stepOneData, setStepOneData, nextStep } = useFormStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [nextButtonDisable, setNextButtonDisable] = useState(true);
 
     useEffect(() => {
         if (stepOneData?.profilePictureUrl != undefined) {
-            setNextButtonDisable(false);
+            handleNextButtonDisable(false);
         } else {
-            setNextButtonDisable(true);
+            handleNextButtonDisable(true);
         }
     }, [stepOneData?.profilePictureUrl]);
 
@@ -70,17 +76,32 @@ export const StepOneForm = ({ initialValues }: { initialValues?: StudentTable })
         }
     };
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    const requestFormSubmit = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    useEffect(() => {
+        if (submitFn) {
+            submitFn(requestFormSubmit);
+        }
+    }, [submitFn]);
+
     const onSubmit = () => {
         nextStep();
     };
 
     return (
-        <div>
-            <div className="flex flex-col justify-center p-6 text-neutral-600">
+        <div className="">
+            <div className="flex flex-col justify-center px-6 text-neutral-600">
                 <Form {...form}>
                     <form
+                        ref={formRef}
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="flex flex-col items-center gap-20"
+                        className="flex flex-col items-center gap-10"
                     >
                         <FormItemWrapper<StepOneData> control={form.control} name="profilePicture">
                             <FormStepHeading stepNumber={1} heading="Add Student Profile Picture" />
@@ -127,13 +148,6 @@ export const StepOneForm = ({ initialValues }: { initialValues?: StudentTable })
                         </FormItemWrapper>
                     </form>
                 </Form>
-            </div>
-            <div className="">
-                <FormSubmitButtons
-                    stepNumber={1}
-                    finishButtonDisable={nextButtonDisable}
-                    onNext={form.handleSubmit(onSubmit)}
-                />
             </div>
         </div>
     );
