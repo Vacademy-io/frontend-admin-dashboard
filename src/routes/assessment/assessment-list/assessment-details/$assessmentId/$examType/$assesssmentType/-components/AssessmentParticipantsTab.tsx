@@ -15,6 +15,7 @@ import {
 import { getBatchDetails } from "../-utils/helper";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 import { AssessmentParticipantsList } from "./AssessmentParticipantsList";
+import { AssessmentParticipantsIndividualList } from "./AssessmentParticipantsIndividualList";
 
 const AssessmentParticipantsTab = () => {
     const { assessmentId, examType } = Route.useParams();
@@ -41,6 +42,20 @@ const AssessmentParticipantsTab = () => {
                 <div className="flex flex-col gap-2">
                     <h1 className="font-semibold">Assessment Participants</h1>
                     <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between rounded-md border border-primary-200 bg-primary-50 px-4 py-2">
+                            <h1 className="text-sm">
+                                {assessmentDetails[2]?.saved_data?.pre_user_registrations}{" "}
+                                participants (Internal)
+                            </h1>
+                            <AssessmentParticipantsIndividualList type="internal" />
+                        </div>
+                        {/* <div className="flex items-center justify-between rounded-md border border-primary-200 bg-primary-50 px-4 py-2">
+                            <h1 className="text-sm">
+                                {assessmentDetails[2]?.saved_data?.open_user_registrations}{" "}
+                                participants (External)
+                            </h1>
+                            <AssessmentParticipantsIndividualList type="external" />
+                        </div> */}
                         {assignedBatchDetails.map((batch, index) => (
                             <div
                                 key={index}

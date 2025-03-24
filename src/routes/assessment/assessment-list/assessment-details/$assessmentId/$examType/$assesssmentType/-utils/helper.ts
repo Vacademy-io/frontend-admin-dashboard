@@ -37,6 +37,7 @@ import {
 } from "@/components/design-system/utils/constants/table-layout";
 import { convertToLocalDateTime, extractDateTime } from "@/constants/helper";
 import {
+    Step3ParticipantsListIndiviudalStudentInterface,
     Step3ParticipantsListInterface,
     StudentResponseQuestionwiseInterface,
 } from "@/types/assessments/student-questionwise-status";
@@ -207,6 +208,19 @@ export const getAssessmentStep3ParticipantsListWithBatchName = (
             email: student.email,
             city: student.city,
             state: student.region,
+        };
+    });
+};
+
+export const getAssessmentStep3ParticipantsListIndividualStudents = (
+    studentsListData: Step3ParticipantsListIndiviudalStudentInterface[],
+) => {
+    return studentsListData.map((student) => {
+        return {
+            id: student.userId,
+            full_name: student.participantName,
+            mobile_number: student.phoneNumber,
+            email: student.userEmail,
         };
     });
 };
