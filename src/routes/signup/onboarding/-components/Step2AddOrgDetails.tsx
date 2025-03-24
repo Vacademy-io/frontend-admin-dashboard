@@ -26,7 +26,12 @@ export interface FormValuesStep1Signup {
 export const organizationDetailsSignupStep1 = z
     .object({
         name: z.string().min(1, "Name is required"),
-        username: z.string().min(1, "Username is required"),
+        username: z
+            .string()
+            .min(1, "Username is required")
+            .refine((value) => value === value.toLowerCase(), {
+                message: "Username should not contain uppercase letters",
+            }),
         email: z.string().min(1, "Email is required").email("Invalid email format"),
         password: z.string().min(6, "Password must be at least 6 characters"),
         confirmPassword: z.string().min(1, "Confirm password is required"),
@@ -152,7 +157,7 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
                                         input={value}
                                         onChangeFunction={onChange}
                                         required={true}
-                                        error={form.formState.errors.name?.message}
+                                        error={form.formState.errors.username?.message}
                                         size="large"
                                         label="Username"
                                         {...field}
