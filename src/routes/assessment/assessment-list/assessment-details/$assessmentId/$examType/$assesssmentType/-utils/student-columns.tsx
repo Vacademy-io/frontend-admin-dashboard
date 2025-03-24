@@ -10,6 +10,7 @@ import { AssessmentStatusOptions } from "../-components/AssessmentStatusOptions"
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowSquareOut } from "phosphor-react";
 import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
+import { StatusChips } from "@/components/design-system/chips";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -103,6 +104,16 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
     {
         accessorKey: "evaluation_status",
         header: "Evaluation Status",
+        cell: ({ row }) => {
+            const status = row.original.status || "evaluated";
+            const statusMapping: Record<string, ActivityStatus> = {
+                EVALUATED: "evaluated",
+                PENDING: "pending",
+            };
+
+            const mappedStatus = statusMapping[status] || "evaluated";
+            return <StatusChips status={mappedStatus} />;
+        },
     },
     {
         id: "options",
@@ -295,6 +306,16 @@ export const assessmentStatusStudentAttemptedColumnsExternal: ColumnDef<StudentT
     {
         accessorKey: "evaluation_status",
         header: "Evaluation Status",
+        cell: ({ row }) => {
+            const status = row.original.status || "evaluated";
+            const statusMapping: Record<string, ActivityStatus> = {
+                EVALUATED: "evaluated",
+                PENDING: "pending",
+            };
+
+            const mappedStatus = statusMapping[status] || "evaluated";
+            return <StatusChips status={mappedStatus} />;
+        },
     },
     {
         id: "options",
