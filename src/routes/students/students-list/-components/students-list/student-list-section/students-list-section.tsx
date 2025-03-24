@@ -24,7 +24,7 @@ import { IntroKey } from "@/constants/storage/introKey";
 import { studentManagementSteps } from "@/constants/intro/steps";
 import { EmptyStudentListImage } from "@/assets/svgs";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { NoCourseDialog } from "../../no-course-dialog";
+import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
