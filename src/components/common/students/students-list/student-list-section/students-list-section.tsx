@@ -23,10 +23,20 @@ import useIntroJsTour from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { studentManagementSteps } from "@/constants/intro/steps";
 import { EmptyStudentListImage } from "@/assets/svgs";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { NoCourseDialog } from "../../no-course-dialog";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
+    const [isOpen, setIsOpen] = useState(false);
+    const { getCourseFromPackage } = useInstituteDetailsStore();
+    useEffect(() => {
+        const courseList = getCourseFromPackage();
+        if (courseList.length === 0) {
+            setIsOpen(true);
+        }
+    }, [getCourseFromPackage]);
 
     useIntroJsTour({
         key: IntroKey.studentManagementFirstTimeVisit,
@@ -182,6 +192,7 @@ export const StudentsListSection = () => {
                     </div>
                 )}
             </div>
+            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" />
         </section>
     );
 };
