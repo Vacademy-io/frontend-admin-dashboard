@@ -1,6 +1,6 @@
 // components/session-dropdown.tsx
 import { MyDropdown } from "../design-system/dropdown";
-import { useSessionDropdown } from "@/hooks/student-list-section/useSessionDropdown";
+import { useSessionDropdown } from "@/routes/students/students-list/-hooks/useSessionDropdown";
 
 interface SessionDropdownProps {
     sessionDirection?: string;

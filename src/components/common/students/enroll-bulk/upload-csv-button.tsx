@@ -13,11 +13,11 @@ import { useState, useCallback, Dispatch, SetStateAction } from "react";
 import { useDropzone } from "react-dropzone";
 import { validateCsvData, createAndDownloadCsv } from "./utils/csv-utils";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
+import { SchemaFields } from "@/types/students/bulk-upload-types";
 import {
     CSVFormatFormType,
     enrollBulkFormType,
-    SchemaFields,
-} from "@/types/students/bulk-upload-types";
+} from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
 import { parseApiResponse, getUploadStats } from "./utils/parse-api-response-string";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";

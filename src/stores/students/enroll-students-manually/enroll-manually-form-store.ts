@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { StepTwoData } from "@/types/students/schema-enroll-students-manually";
-import { StepThreeData } from "@/types/students/schema-enroll-students-manually";
-import { StepFourData } from "@/types/students/schema-enroll-students-manually";
-import { StepFiveData } from "@/types/students/schema-enroll-students-manually";
+import { StepTwoData } from "@/schemas/student/student-list/schema-enroll-students-manually";
+import { StepThreeData } from "@/schemas/student/student-list/schema-enroll-students-manually";
+import { StepFourData } from "@/schemas/student/student-list/schema-enroll-students-manually";
+import { StepFiveData } from "@/schemas/student/student-list/schema-enroll-students-manually";
 
 // For step one, since it's just a file upload
 export interface StepOneDataType {

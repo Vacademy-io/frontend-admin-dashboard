@@ -1,5 +1,5 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { ManageBatches } from "@/components/common/manage-batches/manage-batches";
+import { ManageBatches } from "./-components/manage-batches";
 import { createFileRoute } from "@tanstack/react-router";
 import { Helmet } from "react-helmet";
 

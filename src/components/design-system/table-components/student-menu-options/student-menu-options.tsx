@@ -2,8 +2,8 @@
 import { MyDropdown } from "../../dropdown";
 import { MyButton } from "../../button";
 import { DotsThree } from "@phosphor-icons/react";
-import { useDialogStore } from "../../utils/useDialogStore";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
+import { StudentTable } from "@/types/student-table-types";
 
 const getMenuOptions = (status?: string) => {
     if (status === "INACTIVE") {

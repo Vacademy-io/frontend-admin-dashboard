@@ -1,6 +1,6 @@
 // CallInitStudyLibraryIfNull.tsx
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useModulesWithChaptersQuery } from "@/services/study-library/getModulesWithChapters";
+import { useModulesWithChaptersQuery } from "@/routes/study-library/courses/-services/getModulesWithChapters";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 import { useQuery } from "@tanstack/react-query";

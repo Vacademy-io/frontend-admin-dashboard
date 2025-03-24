@@ -36,7 +36,10 @@ import {
     QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH,
 } from "@/components/design-system/utils/constants/table-layout";
 import { convertToLocalDateTime, extractDateTime } from "@/constants/helper";
-import { StudentResponseQuestionwiseInterface } from "@/types/assessments/student-questionwise-status";
+import {
+    Step3ParticipantsListInterface,
+    StudentResponseQuestionwiseInterface,
+} from "@/types/assessments/student-questionwise-status";
 
 export const convertMarksRankData = (leaderboard: StudentLeaderboardEntry[]) => {
     const rankMap = new Map();
@@ -187,6 +190,25 @@ export const getQuestionWiseFilteredDataStudentData = (
         default:
             return [];
     }
+};
+
+export const getAssessmentStep3ParticipantsListWithBatchName = (
+    studentsListData: Step3ParticipantsListInterface[],
+    batches_for_sessions: BatchDetailsInterface[],
+) => {
+    return studentsListData.map((student) => {
+        return {
+            id: student.user_id,
+            full_name: student.full_name,
+            package_session_id: getBatchNameById(batches_for_sessions, student.package_session_id),
+            institute_enrollment_id: student.institute_enrollment_id,
+            gender: student.gender,
+            mobile_number: student.mobile_number,
+            email: student.email,
+            city: student.city,
+            state: student.region,
+        };
+    });
 };
 
 export const getAllColumnsForTable = (type: string, selectedParticipantsTab: string) => {
