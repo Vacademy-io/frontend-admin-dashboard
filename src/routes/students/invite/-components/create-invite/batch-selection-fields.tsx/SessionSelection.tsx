@@ -139,20 +139,27 @@ export const SessionSelection = ({
                 onChangeMode={onChangeSessionSelectionMode}
             />
 
-            <div className="flex flex-col items-start gap-2">
+            <div className="flex items-center gap-2">
                 <div className="flex w-fit items-center gap-4">
                     <p>
                         {sessionSelectionMode === "institute" ? "Compulsory" : "Student Preference"}{" "}
                         Sessions
                         <span className="text-subtitle text-danger-600">*</span>
                     </p>
+                    {sessionSaved && selectedSessionName}
                     <Select
                         onValueChange={handleSessionSelection}
                         value={selectedSessionId || undefined}
                         disabled={sessionSaved}
                     >
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select a Session" />
+                        <SelectTrigger
+                            className={`w-[180px] ${sessionSaved ? "hidden" : "visible"}`}
+                        >
+                            <SelectValue
+                                placeholder={
+                                    sessionSaved ? selectedSessionName : "Select a Session"
+                                }
+                            />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>

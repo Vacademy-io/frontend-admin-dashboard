@@ -11,7 +11,6 @@ import { InviteFormType } from "../../-schema/InviteFormSchema";
 import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
 import { CourseSelection } from "./batch-selection-fields.tsx/CourseSelection";
-// import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { MaxLimitField } from "./batch-selection-fields.tsx/MaxLimitField";
 import { ShowSelectedBatchDetails } from "./ShowSelectedBatchDetails";
 

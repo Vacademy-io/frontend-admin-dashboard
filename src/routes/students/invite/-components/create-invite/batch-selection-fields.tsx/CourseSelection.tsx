@@ -111,7 +111,7 @@ export const CourseSelection = ({
                         mode={courseSelectionMode}
                         onChangeMode={onChangeCourseSelectionMode}
                     />
-                    <div className="flex flex-col items-start gap-2">
+                    <div className="flex items-center gap-2">
                         <div className="flex w-fit items-center gap-4">
                             <p>
                                 {courseSelectionMode == "institute"
@@ -120,13 +120,20 @@ export const CourseSelection = ({
                                 Courses
                                 <span className="text-subtitle text-danger-600">*</span>
                             </p>
+                            {courseSelected && selectedCourseName}
                             <Select
                                 onValueChange={handleCourseSelection}
                                 value={selectedCourseId || undefined}
                                 disabled={courseSelected}
                             >
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Select a Course" />
+                                <SelectTrigger
+                                    className={`w-[180px] ${courseSelected ? "hidden" : "visible"}`}
+                                >
+                                    <SelectValue
+                                        placeholder={
+                                            courseSelected ? selectedCourseName : "Select a Course"
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>

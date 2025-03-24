@@ -7,14 +7,20 @@ import {
     PreSelectedSessionType,
 } from "../../-schema/InviteFormSchema";
 
-const ShowLevelDetails = ({ level }: { level: LevelFieldType }) => {
+export const ShowLevelDetails = ({ level }: { level: LevelFieldType }) => {
     return <p>{level.name}</p>;
 };
 
-const ShowPreSelectedSessionDetails = ({ session }: { session: PreSelectedSessionType }) => {
+export const ShowPreSelectedSessionDetails = ({
+    session,
+    showSessionName = true,
+}: {
+    session: PreSelectedSessionType;
+    showSessionName?: boolean;
+}) => {
     return (
         <div className="flex flex-col gap-2">
-            <p>{session.name}</p>
+            {showSessionName && <p>{session.name}</p>}
             <div className="flex justify-between gap-2">
                 {session.preSelectedLevels.length > 0 && (
                     <div className="flex flex-col gap-1">
@@ -39,10 +45,16 @@ const ShowPreSelectedSessionDetails = ({ session }: { session: PreSelectedSessio
     );
 };
 
-const ShowLearnerChoiceSessionDetails = ({ session }: { session: LearnerChoiceSessionType }) => {
+export const ShowLearnerChoiceSessionDetails = ({
+    session,
+    showSessionName = true,
+}: {
+    session: LearnerChoiceSessionType;
+    showSessionName?: boolean;
+}) => {
     return (
         <div className="flex flex-col gap-2">
-            <p>{session.name}</p>
+            {showSessionName && <p>{session.name}</p>}
             {session.learnerChoiceLevels.length > 0 && (
                 <div className="flex flex-col gap-1">
                     <p className="font-semibold">
@@ -57,7 +69,7 @@ const ShowLearnerChoiceSessionDetails = ({ session }: { session: LearnerChoiceSe
     );
 };
 
-const ShowPreSelectedCoursesDetails = ({ course }: { course: PreSelectedCourseType }) => {
+export const ShowPreSelectedCoursesDetails = ({ course }: { course: PreSelectedCourseType }) => {
     return (
         <div className="flex flex-col gap-2">
             <p>{course.name}</p>
@@ -87,7 +99,7 @@ const ShowPreSelectedCoursesDetails = ({ course }: { course: PreSelectedCourseTy
         </div>
     );
 };
-const ShowLearnerChoiceCourseDetails = ({ course }: { course: LearnerChoiceCourseType }) => {
+export const ShowLearnerChoiceCourseDetails = ({ course }: { course: LearnerChoiceCourseType }) => {
     return (
         <div className="flex flex-col gap-2">
             <p>{course.name}</p>
