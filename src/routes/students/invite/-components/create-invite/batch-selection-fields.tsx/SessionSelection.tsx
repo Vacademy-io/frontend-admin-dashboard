@@ -1,5 +1,5 @@
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { BatchSelectionField } from "./BatchSelectionField";
 import { LevelSelection } from "./LevelSelection";
 import {
@@ -14,6 +14,7 @@ import {
 import { SelectionModeType } from "../../../-schema/InviteFormSchema";
 import { MyButton } from "@/components/design-system/button";
 import { PencilSimple } from "phosphor-react";
+import { useSessionsUtility } from "../../../-hooks/useAvailableSessions";
 
 interface SessionSelectionProps {
     course: string | null;
@@ -26,26 +27,49 @@ export const SessionSelection = ({
     courseSelectionMode,
     handleSessionLevelsSelected,
 }: SessionSelectionProps) => {
-    const { getSessionFromPackage } = useInstituteDetailsStore();
-    // const [sessionList, setSessionList] = useState(getSessionFromPackage({courseId: course || ""}))
-    const sessionList = getSessionFromPackage({ courseId: course || "" });
+    const { watch } = useFormContext(); // Access the form context to get current form values
+    const { getAvailableSessions } = useSessionsUtility();
+
     const [sessionSelectionMode, setSessionSelectionMode] = useState<SelectionModeType>(
         getSessionSelectionMode(courseSelectionMode),
     );
     const [maxLevelsSaved, setMaxLevelsSaved] = useState(false);
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+    const [availableSessions, setAvailableSessions] = useState<Array<{ id: string; name: string }>>(
+        [],
+    );
+
+    // Get the current batches from the form
+    const formBatches = watch("batches");
+
+    // Update available sessions when course changes or when form batches change
+    useEffect(() => {
+        if (course) {
+            const sessions = getAvailableSessions(course, formBatches);
+            setAvailableSessions(sessions);
+        } else {
+            setAvailableSessions([]);
+        }
+    }, [course, formBatches]);
 
     useEffect(() => {
-        if (selectedSessionId != null && maxLevelsSaved) handleSessionLevelsSelected(true);
-        else handleSessionLevelsSelected(false);
-    }, [selectedSessionId, maxLevelsSaved]);
+        if (selectedSessionId != null && maxLevelsSaved) {
+            handleSessionLevelsSelected(true);
+        } else {
+            handleSessionLevelsSelected(false);
+        }
+    }, [selectedSessionId, maxLevelsSaved, handleSessionLevelsSelected]);
 
-    //add a useEffect that if a session is changed, then maxLevelsSaved will be false, all the selected levels will be null and the level list will be changed
+    // Reset selected session and maxLevelsSaved when course changes
+    useEffect(() => {
+        setSelectedSessionId(null);
+        setMaxLevelsSaved(false);
+    }, [course]);
 
     const handleMaxLevelsSaved = (maxLevels: boolean) => setMaxLevelsSaved(maxLevels);
 
     function getSessionSelectionMode(courseSelectionMode: SelectionModeType) {
-        return courseSelectionMode == "student" ? "student" : "institute";
+        return courseSelectionMode === "student" ? "student" : "institute";
     }
 
     useEffect(() => {
@@ -59,7 +83,7 @@ export const SessionSelection = ({
             <div className="flex flex-col gap-8">
                 <BatchSelectionField
                     title={"Session"}
-                    isPreSelectionDisabled={courseSelectionMode == "student"}
+                    isPreSelectionDisabled={courseSelectionMode === "student"}
                     mode={sessionSelectionMode}
                     onChangeMode={onChangeSessionSelectionMode}
                 />
@@ -67,21 +91,33 @@ export const SessionSelection = ({
                     <div className="flex flex-col items-start gap-2">
                         <div className="flex w-fit items-center gap-4">
                             <p>
-                                Compulsory Sessions
+                                {sessionSelectionMode === "institute"
+                                    ? "Compulsory"
+                                    : "Student Preference"}{" "}
+                                Sessions
                                 <span className="text-subtitle text-danger-600">*</span>
                             </p>
-                            <Select onValueChange={(value) => setSelectedSessionId(value)}>
+                            <Select
+                                onValueChange={(value) => setSelectedSessionId(value)}
+                                value={selectedSessionId || undefined}
+                            >
                                 <SelectTrigger className="w-[180px]">
                                     <SelectValue placeholder="Select a Session" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectLabel>Available Sessions</SelectLabel>
-                                        {sessionList.map((session) => (
-                                            <SelectItem key={session.id} value={session.id}>
-                                                {session.name}
+                                        {availableSessions.length > 0 ? (
+                                            availableSessions.map((session) => (
+                                                <SelectItem key={session.id} value={session.id}>
+                                                    {session.name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="no-sessions" disabled>
+                                                No available sessions
                                             </SelectItem>
-                                        ))}
+                                        )}
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
