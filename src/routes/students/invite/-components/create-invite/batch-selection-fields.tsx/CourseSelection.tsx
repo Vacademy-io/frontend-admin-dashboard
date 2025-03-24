@@ -1,5 +1,5 @@
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { BatchSelectionField } from "./BatchSelectionField";
 import { SessionSelection } from "./SessionSelection";
 import {
@@ -15,6 +15,7 @@ import { SelectionModeType } from "../../../-schema/InviteFormSchema";
 import { MyButton } from "@/components/design-system/button";
 import { MaxLimitField } from "./MaxLimitField";
 import { Check } from "phosphor-react";
+import { useCoursesUtility } from "../../../-hooks/useAvailableCourses";
 
 interface CourseSelectionProps {
     areMaxSessionsSaved: boolean;
@@ -25,13 +26,26 @@ export const CourseSelection = ({
     areMaxSessionsSaved,
     handleAreMaxSessionsSaved,
 }: CourseSelectionProps) => {
-    const { getCourseFromPackage } = useInstituteDetailsStore();
-    // const [courseList, setCourseList] = useState(getCourseFromPackage());
-    const courseList = getCourseFromPackage();
+    const { getAvailableCourses } = useCoursesUtility();
+    const { watch } = useFormContext(); // Access the form context to get current form values
+
     const [courseSelectionMode, setCourseSelectionMode] = useState<SelectionModeType>("institute");
     const [sessionLevelsSelected, setSessionLevelSelected] = useState(false);
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [sessionsSaved, setSessionsSaved] = useState(false);
+    const [availableCourses, setAvailableCourses] = useState<Array<{ id: string; name: string }>>(
+        [],
+    );
+
+    // Get the current batches from the form
+    const formBatches = watch("batches");
+
+    // Fetch available courses when component mounts or when form batches change
+    useEffect(() => {
+        // Get available courses that haven't been selected yet
+        const courses = getAvailableCourses(formBatches);
+        setAvailableCourses(courses);
+    }, [formBatches]);
 
     const handleSessionLevelsSelected = (selected: boolean) => setSessionLevelSelected(selected);
 
@@ -69,7 +83,7 @@ export const CourseSelection = ({
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectLabel>Available Courses</SelectLabel>
-                                        {courseList.map((course) => (
+                                        {availableCourses.map((course) => (
                                             <SelectItem key={course.id} value={course.id}>
                                                 {course.name}
                                             </SelectItem>
@@ -80,10 +94,8 @@ export const CourseSelection = ({
                         </div>
                     </div>
                 </div>
-                {/* {showAddSessionButton && !saveMaxAllowedSession && */}
-
-                {/* } */}
             </div>
+            {/* Rest of your component remains the same */}
             {selectedCourseId != null && !areMaxSessionsSaved && (
                 <div className="flex w-full flex-col gap-2">
                     {!sessionsSaved ? (
