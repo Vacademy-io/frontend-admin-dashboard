@@ -150,18 +150,48 @@ export const SlideMaterial = () => {
             );
             return;
         } else if (activeItem.published_url != null || activeItem.video_url != null) {
-            setContent(
-                <div key={`video-${activeItem.slide_id}`} className="size-full">
-                    <YouTubePlayer
-                        videoUrl={
-                            (activeItem.status == "PUBLISHED"
-                                ? activeItem.published_url
-                                : activeItem.video_url) || ""
-                        }
-                        videoTitle={activeItem.video_title}
-                    />
-                </div>,
-            );
+            console.log(activeItem);
+            const videoURL =
+                (activeItem.status == "PUBLISHED"
+                    ? activeItem.published_url
+                    : activeItem.video_url) || "";
+            if (videoURL.includes("drive")) {
+                if (videoURL.includes("drive")) {
+                    const videoId = videoURL.match(/\/d\/(.+?)\//)?.[1];
+                    const embedUrl = videoId
+                        ? `https://drive.google.com/file/d/${videoId}/preview`
+                        : null;
+
+                    console.log(embedUrl);
+
+                    setContent(
+                        embedUrl ? (
+                            <div
+                                key={`video-${activeItem.slide_id}`}
+                                className="relative max-h-[80vh] w-full"
+                            >
+                                <div className="relative aspect-[16/9] max-h-[80vh] w-full">
+                                    <iframe
+                                        key={`drive-video-${activeItem.slide_id}`}
+                                        src={embedUrl}
+                                        className="absolute inset-0 h-full w-full"
+                                        allow="autoplay"
+                                        allowFullScreen
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div>Unable to load the video. Ensure it is publicly accessible.</div>
+                        ),
+                    );
+                }
+            } else if (videoURL.includes("youtube")) {
+                setContent(
+                    <div key={`video-${activeItem.slide_id}`} className="size-full">
+                        <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
+                    </div>,
+                );
+            }
             return;
         } else if (activeItem?.document_type == "PDF" && activeItem != null) {
             const url = await getPublicUrl(
@@ -361,7 +391,7 @@ export const SlideMaterial = () => {
     }, [activeItem?.document_type, editor]);
 
     return (
-        <div className="flex w-full flex-col" ref={selectionRef}>
+        <div className="flex w-full flex-1 flex-col" ref={selectionRef}>
             {activeItem && (
                 <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
                     {isEditing ? (
