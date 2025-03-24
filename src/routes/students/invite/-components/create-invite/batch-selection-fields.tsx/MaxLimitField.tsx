@@ -1,14 +1,47 @@
 import { MyInput } from "@/components/design-system/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface MaxLimitFieldProp {
     title: string;
     maxAllowed: number;
     isDisabled?: boolean;
+    onMaxChange?: (value: number) => void;
 }
 
-export const MaxLimitField = ({ title, maxAllowed, isDisabled = false }: MaxLimitFieldProp) => {
-    const [input, setInput] = useState("1");
+export const MaxLimitField = ({
+    title,
+    maxAllowed,
+    isDisabled = false,
+    onMaxChange,
+}: MaxLimitFieldProp) => {
+    const [input, setInput] = useState(maxAllowed.toString() || "1");
+
+    // Update input when maxAllowed changes externally
+    useEffect(() => {
+        setInput(maxAllowed.toString());
+    }, [maxAllowed]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = parseInt(e.target.value) || 0;
+        let newValue: number;
+
+        // Ensure the value is between 1 and maxAllowed
+        if (value < 1) {
+            newValue = 1;
+            setInput("1");
+        } else if (value > maxAllowed) {
+            newValue = maxAllowed;
+            setInput(maxAllowed.toString());
+        } else {
+            newValue = value;
+            setInput(value.toString());
+        }
+
+        // Call the callback if provided
+        if (onMaxChange) {
+            onMaxChange(newValue);
+        }
+    };
 
     return (
         <div className="flex items-center gap-6">
@@ -16,20 +49,7 @@ export const MaxLimitField = ({ title, maxAllowed, isDisabled = false }: MaxLimi
             <MyInput
                 input={input}
                 inputType="number"
-                onChangeFunction={(e) => {
-                    const value = parseInt(e.target.value) || 0;
-                    // Ensure the value is between 1 and maxAllowed
-                    if (value < 1) {
-                        const num = String(1);
-                        setInput(num);
-                    } else if (value > maxAllowed) {
-                        const num = String(maxAllowed);
-                        setInput(num);
-                    } else {
-                        const num = String(value);
-                        setInput(num);
-                    }
-                }}
+                onChangeFunction={handleInputChange}
                 className="w-[70px]"
                 inputPlaceholder="1"
                 disabled={isDisabled}

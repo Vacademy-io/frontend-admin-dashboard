@@ -13,26 +13,43 @@ import {
 } from "@/components/ui/select";
 import { SelectionModeType } from "../../../-schema/InviteFormSchema";
 import { MyButton } from "@/components/design-system/button";
-import { MaxLimitField } from "./MaxLimitField";
 import { Check } from "phosphor-react";
 import { useCoursesUtility } from "../../../-hooks/useAvailableCourses";
+import { useBatchSelection } from "../../../-hooks/useBatchSelection";
 
 interface CourseSelectionProps {
     areMaxSessionsSaved: boolean;
     handleAreMaxSessionsSaved: (saved: boolean) => void;
 }
 
+/**
+ * This component handles the course selection flow:
+ * 1. Select course & mode (institute/student)
+ * 2. Select session & mode
+ * 3. Select levels & mode
+ * 4. Set limits for learner choices
+ * 5. Add more sessions or save all sessions
+ * 6. Add more courses or finalize
+ */
 export const CourseSelection = ({
     areMaxSessionsSaved,
     handleAreMaxSessionsSaved,
 }: CourseSelectionProps) => {
     const { getAvailableCourses } = useCoursesUtility();
-    const { watch } = useFormContext(); // Access the form context to get current form values
+    const { watch } = useFormContext();
+    const { addCourse } = useBatchSelection();
 
+    // Course selection state
     const [courseSelectionMode, setCourseSelectionMode] = useState<SelectionModeType>("institute");
-    const [sessionLevelsSelected, setSessionLevelSelected] = useState(false);
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-    const [sessionsSaved, setSessionsSaved] = useState(false);
+    const [selectedCourseName, setSelectedCourseName] = useState<string>("");
+    const [courseSelected, setCourseSelected] = useState(false);
+
+    // Session state tracking
+    const [sessionLevelsSelected, setSessionLevelSelected] = useState(false);
+    const [canAddMoreSessions, setCanAddMoreSessions] = useState(false);
+
+    // Available courses from API
     const [availableCourses, setAvailableCourses] = useState<Array<{ id: string; name: string }>>(
         [],
     );
@@ -42,19 +59,46 @@ export const CourseSelection = ({
 
     // Fetch available courses when component mounts or when form batches change
     useEffect(() => {
-        // Get available courses that haven't been selected yet
         const courses = getAvailableCourses(formBatches);
         setAvailableCourses(courses);
-    }, [formBatches]);
+    }, [formBatches, getAvailableCourses]);
 
-    const handleSessionLevelsSelected = (selected: boolean) => setSessionLevelSelected(selected);
+    // Handle when session+levels are selected
+    const handleSessionLevelsSelected = (selected: boolean) => {
+        setSessionLevelSelected(selected);
+        if (selected) {
+            // When levels are selected, user can add more sessions
+            setCanAddMoreSessions(true);
+        }
+    };
 
     const onChangeCourseSelectionMode = (mode: SelectionModeType) => setCourseSelectionMode(mode);
 
+    const handleCourseSelection = (courseId: string) => {
+        const course = availableCourses.find((c) => c.id === courseId);
+        if (course) {
+            setSelectedCourseId(courseId);
+            setSelectedCourseName(course.name);
+        }
+    };
+
+    const handleSaveCourse = () => {
+        if (selectedCourseId && selectedCourseName) {
+            // Add course to form with default max sessions (will be updated later if needed)
+            addCourse(selectedCourseId, selectedCourseName, courseSelectionMode, 1);
+            setCourseSelected(true);
+        }
+    };
+
     const handleAddSession = () => {
-        //add selected session here
+        // Reset session selection state to allow adding another session
         setSessionLevelSelected(false);
-        setSessionsSaved(false);
+    };
+
+    const handleSaveAllSessions = () => {
+        // This would be called when the user has completed selecting sessions and levels
+        // and wants to save everything and move to the next step
+        handleAreMaxSessionsSaved(true);
     };
 
     return (
@@ -76,74 +120,97 @@ export const CourseSelection = ({
                                 Courses
                                 <span className="text-subtitle text-danger-600">*</span>
                             </p>
-                            <Select onValueChange={(value) => setSelectedCourseId(value)}>
+                            <Select
+                                onValueChange={handleCourseSelection}
+                                value={selectedCourseId || undefined}
+                                disabled={courseSelected}
+                            >
                                 <SelectTrigger className="w-[180px]">
                                     <SelectValue placeholder="Select a Course" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectLabel>Available Courses</SelectLabel>
-                                        {availableCourses.map((course) => (
-                                            <SelectItem key={course.id} value={course.id}>
-                                                {course.name}
+                                        {availableCourses.length > 0 ? (
+                                            availableCourses.map((course) => (
+                                                <SelectItem key={course.id} value={course.id}>
+                                                    {course.name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="no-courses" disabled>
+                                                No available courses
                                             </SelectItem>
-                                        ))}
+                                        )}
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
                         </div>
-                    </div>
-                </div>
-            </div>
-            {/* Rest of your component remains the same */}
-            {selectedCourseId != null && !areMaxSessionsSaved && (
-                <div className="flex w-full flex-col gap-2">
-                    {!sessionsSaved ? (
-                        <div className="flex items-center gap-2">
-                            <SessionSelection
-                                course={selectedCourseId}
-                                courseSelectionMode={courseSelectionMode}
-                                handleSessionLevelsSelected={handleSessionLevelsSelected}
-                            />
-                            {sessionLevelsSelected && (
+
+                        {/* Save Course Button */}
+                        {selectedCourseId && !courseSelected && (
+                            <div className="mt-2">
                                 <MyButton
                                     buttonType="primary"
                                     scale="small"
-                                    layoutVariant="default"
-                                    onClick={() => setSessionsSaved(true)}
+                                    onClick={handleSaveCourse}
                                 >
-                                    Save all sessions
-                                </MyButton>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="flex w-full items-center justify-between gap-2">
-                            <p>Session and level list from course</p>
-                            <div className="flex items-center gap-2">
-                                <MaxLimitField title="Session" maxAllowed={1} />
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="medium"
-                                    layoutVariant="icon"
-                                    type="button"
-                                    onClick={() => handleAreMaxSessionsSaved(true)}
-                                >
-                                    <Check />
+                                    Save Course
                                 </MyButton>
                             </div>
-                        </div>
-                    )}
-                    {sessionLevelsSelected && !areMaxSessionsSaved && !sessionsSaved && (
-                        <div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Session Selection Section */}
+            {courseSelected && !areMaxSessionsSaved && (
+                <div className="flex w-full flex-col gap-2">
+                    {/* Show session selection component */}
+                    <SessionSelection
+                        course={selectedCourseId}
+                        courseSelectionMode={courseSelectionMode}
+                        handleSessionLevelsSelected={handleSessionLevelsSelected}
+                    />
+
+                    {/* Session Management Buttons - appear after levels are selected */}
+                    {sessionLevelsSelected && canAddMoreSessions && (
+                        <div className="mt-4 flex items-center gap-4">
                             <MyButton
-                                buttonType="text"
-                                className="text-primary-500"
-                                onClick={() => handleAddSession()}
+                                buttonType="secondary"
+                                scale="small"
+                                onClick={handleAddSession}
                             >
-                                Add Session
+                                Add Another Session
+                            </MyButton>
+
+                            <MyButton
+                                buttonType="primary"
+                                scale="small"
+                                onClick={handleSaveAllSessions}
+                            >
+                                Save All Sessions
                             </MyButton>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Session Summary Section - appears after sessions are saved */}
+            {areMaxSessionsSaved && (
+                <div className="flex w-full items-center justify-between gap-2 rounded-md border p-4">
+                    <p>All sessions have been configured for this course</p>
+                    <div className="flex items-center gap-2">
+                        <MyButton
+                            buttonType="secondary"
+                            scale="medium"
+                            layoutVariant="icon"
+                            type="button"
+                            onClick={() => handleAreMaxSessionsSaved(false)} // Allow editing
+                        >
+                            <Check />
+                        </MyButton>
+                    </div>
                 </div>
             )}
         </div>

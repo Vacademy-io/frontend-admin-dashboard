@@ -72,6 +72,11 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                 isRequired: true,
             },
         ],
+        batches: {
+            maxCourses: 0,
+            preSelectedCourses: [],
+            learnerChoiceCourses: [],
+        },
         studentExpiryDays: 200,
         inviteeEmail: "shristi@gmail.com",
         inviteeEmails: [],

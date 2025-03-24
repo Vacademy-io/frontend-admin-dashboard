@@ -72,13 +72,11 @@ export const inviteFormSchema = z.object({
                 .optional(),
         }),
     ),
-    batches: z
-        .object({
-            maxCourses: z.number(),
-            preSelectedCourses: z.array(preSelectedCoursesSchema),
-            learnerChoiceCourses: z.array(learnerChoiceCoursesSchema),
-        })
-        .optional(),
+    batches: z.object({
+        maxCourses: z.number(),
+        preSelectedCourses: z.array(preSelectedCoursesSchema),
+        learnerChoiceCourses: z.array(learnerChoiceCoursesSchema),
+    }),
     studentExpiryDays: z.number(),
     inviteeEmail: z.string().optional(), // For the input field
     inviteeEmails: z
