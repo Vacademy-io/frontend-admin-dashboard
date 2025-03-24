@@ -12,6 +12,44 @@ const dropdownItemSchema = z.object({
     name: z.string(),
 });
 
+const selectionModeSchema = z.enum(["institute", "student", "both"]);
+
+const levelSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    packageSessionId: z.string(),
+});
+
+const learnerChoiceSessionSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxLevels: z.number(),
+    learnerChoiceLevels: z.array(levelSchema),
+});
+
+const preSelectedSessionSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxLevels: z.number(),
+    learnerChoiceLevels: z.array(levelSchema),
+    preSelectedLevels: z.array(levelSchema),
+});
+
+const learnerChoiceCoursesSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxSessions: z.number(),
+    learnerChoiceSessions: z.array(learnerChoiceSessionSchema),
+});
+
+const preSelectedCoursesSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxSessions: z.number(),
+    learnerChoiceSessions: z.array(learnerChoiceSessionSchema),
+    preSelectedSessions: z.array(preSelectedSessionSchema),
+});
+
 // Create schema for form validation
 export const inviteFormSchema = z.object({
     inviteLink: z.string().min(1, "Invite link is required"),
@@ -34,18 +72,13 @@ export const inviteFormSchema = z.object({
                 .optional(),
         }),
     ),
-    courseSelectionMode: z.enum(["institute", "student", "both"]),
-    sessionSelectionMode: z.enum(["institute", "student", "both"]),
-    levelSelectionMode: z.enum(["institute", "student", "both"]),
-    preSelectedCourses: z.array(dropdownItemSchema).optional(),
-    learnerChoiceCourses: z.array(dropdownItemSchema).optional(),
-    maxCourses: z.number().optional(),
-    preSelectedSessions: z.array(dropdownItemSchema).optional(),
-    learnerChoiceSessions: z.array(dropdownItemSchema).optional(),
-    maxSessions: z.number().optional(),
-    preSelectedLevels: z.array(dropdownItemSchema).optional(),
-    learnerChoiceLevels: z.array(dropdownItemSchema).optional(),
-    maxLevels: z.number().optional(),
+    batches: z
+        .object({
+            maxCourses: z.number(),
+            preSelectedCourses: z.array(preSelectedCoursesSchema),
+            learnerChoiceCourses: z.array(learnerChoiceCoursesSchema),
+        })
+        .optional(),
     studentExpiryDays: z.number(),
     inviteeEmail: z.string().optional(), // For the input field
     inviteeEmails: z
@@ -55,6 +88,8 @@ export const inviteFormSchema = z.object({
 });
 
 export type InviteFormType = z.infer<typeof inviteFormSchema>;
+export type SelectionModeType = z.infer<typeof selectionModeSchema>;
+export type BatchFieldType = z.infer<typeof dropdownItemSchema>;
 
 export const defaultFormValues: Partial<InviteFormType> = {
     inviteLink: "",
@@ -82,16 +117,7 @@ export const defaultFormValues: Partial<InviteFormType> = {
             isRequired: true,
         },
     ],
-    courseSelectionMode: "institute",
-    sessionSelectionMode: "institute",
-    levelSelectionMode: "institute",
     studentExpiryDays: 365,
     inviteeEmail: "",
     inviteeEmails: [],
-    preSelectedCourses: [],
-    learnerChoiceCourses: [],
-    preSelectedSessions: [],
-    learnerChoiceSessions: [],
-    preSelectedLevels: [],
-    learnerChoiceLevels: [],
 };

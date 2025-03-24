@@ -4,13 +4,15 @@ import { Switch } from "@/components/ui/switch";
 import { useEffect, useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
-import { Copy } from "phosphor-react";
+import { Check, Copy } from "phosphor-react";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { InviteFormType } from "../../-schema/InviteFormSchema";
 import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
-import { SelectionModeSection } from "./SelectionModeSection";
+import { CourseSelection } from "./batch-selection-fields.tsx/CourseSelection";
+// import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { MaxLimitField } from "./batch-selection-fields.tsx/MaxLimitField";
 
 interface CreateInviteDialogProps {
     initialValues?: InviteFormType;
@@ -41,9 +43,6 @@ export const CreateInviteDialog = ({
 }: CreateInviteDialogProps) => {
     const {
         form,
-        courseList,
-        sessionList,
-        levelList,
         toggleIsRequired,
         handleAddOpenFieldValues,
         handleDeleteOpenField,
@@ -61,6 +60,17 @@ export const CreateInviteDialog = ({
     } = form;
     const [emailError, setEmailError] = useState<string | null>(null);
     const emptyEmailsError = errors.inviteeEmails?.message;
+    // const {getCourseFromPackage, instituteDetails} = useInstituteDetailsStore();
+    const [areMaxSessionsSaved, setAreMaxSessionsSaved] = useState(false);
+    const [areMaxCourseSaved, setAreMaxCourseSaved] = useState(false);
+    const [courseSaved, setCourseSaved] = useState(false);
+
+    const handleAreMaxSessionsSaved = (saved: boolean) => setAreMaxSessionsSaved(saved);
+
+    const handleAddCourse = () => {
+        // add selected course here
+        handleAreMaxSessionsSaved(false);
+    };
 
     // Watch the email input to validate in real-time
     const emailInput = watch("inviteeEmail");
@@ -212,7 +222,7 @@ export const CreateInviteDialog = ({
                         />
 
                         {/* Course, Session, Level Selection Sections */}
-                        <SelectionModeSection
+                        {/* <SelectionModeSection
                             title="Course"
                             type="course"
                             dropdownList={courseList}
@@ -234,7 +244,64 @@ export const CreateInviteDialog = ({
                                     ? true
                                     : false,
                             )}
-                        />
+                        /> */}
+                        {areMaxCourseSaved ? (
+                            <div>
+                                {/* keep adding saved courses here */}
+                                <p>Course, session and level list from main</p>
+                            </div>
+                        ) : (
+                            <div>
+                                {courseSaved ? (
+                                    <div className="flex items-center justify-between gap-2">
+                                        <p>Course, session and level list from main</p>
+                                        <div className="flex items-center gap-2">
+                                            <MaxLimitField title="Course" maxAllowed={1} />
+                                            <MyButton
+                                                buttonType="secondary"
+                                                scale="medium"
+                                                layoutVariant="icon"
+                                                type="button"
+                                                onClick={() => setAreMaxCourseSaved(true)}
+                                            >
+                                                <Check />
+                                            </MyButton>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <CourseSelection
+                                                handleAreMaxSessionsSaved={
+                                                    handleAreMaxSessionsSaved
+                                                }
+                                                areMaxSessionsSaved={areMaxSessionsSaved}
+                                            />
+                                            {areMaxSessionsSaved && (
+                                                <MyButton
+                                                    buttonType="primary"
+                                                    scale="small"
+                                                    onClick={() => setCourseSaved(true)}
+                                                >
+                                                    Save all courses
+                                                </MyButton>
+                                            )}
+                                        </div>
+                                        <div>
+                                            {areMaxSessionsSaved && !courseSaved && (
+                                                <MyButton
+                                                    buttonType="text"
+                                                    className="text-primary-500"
+                                                    onClick={() => handleAddCourse()}
+                                                >
+                                                    Add course
+                                                </MyButton>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Student Expiry Date */}
                         <div className="flex items-center gap-6">
@@ -330,8 +397,6 @@ export const CreateInviteDialog = ({
                             </div>
                         </div>
 
-                        <Separator />
-
                         {/* Generated Invite Link */}
 
                         {/*<p className="text-subtitle font-semibold">Invite Link</p>
@@ -352,25 +417,28 @@ export const CreateInviteDialog = ({
                                 )}
                             /> */}
                         {inviteLink && inviteLink != null && (
-                            <div className="flex w-fit items-center gap-4">
-                                <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
-                                    {inviteLink}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <MyButton
-                                        buttonType="secondary"
-                                        scale="medium"
-                                        layoutVariant="icon"
-                                        onClick={() => handleCopyClick(inviteLink)}
-                                        type="button"
-                                    >
-                                        <Copy />
-                                    </MyButton>
-                                    {copySuccess === inviteLink && (
-                                        <span className="text-caption text-primary-500">
-                                            Copied!
-                                        </span>
-                                    )}
+                            <div className="flex flex-col gap-10">
+                                <Separator />
+                                <div className="flex w-fit items-center gap-4">
+                                    <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
+                                        {inviteLink}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <MyButton
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="icon"
+                                            onClick={() => handleCopyClick(inviteLink)}
+                                            type="button"
+                                        >
+                                            <Copy />
+                                        </MyButton>
+                                        {copySuccess === inviteLink && (
+                                            <span className="text-caption text-primary-500">
+                                                Copied!
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
