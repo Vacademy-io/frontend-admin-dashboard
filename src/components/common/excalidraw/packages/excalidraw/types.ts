@@ -244,6 +244,7 @@ export interface AppState {
   } | null;
   showWelcomeScreen: boolean;
   isLoading: boolean;
+  
   errorMessage: React.ReactNode;
   activeEmbeddable: {
     element: NonDeletedExcalidrawElement;
@@ -619,6 +620,7 @@ export type CanvasActions = Partial<{
   clearCanvas: boolean;
   export: false | ExportOpts;
   loadScene: boolean;
+  toggleScrollBehavior: boolean | null;
   saveToActiveFile: boolean;
   toggleTheme: boolean | null;
   saveAsImage: boolean;

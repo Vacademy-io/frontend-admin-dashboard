@@ -1,5 +1,4 @@
 import { Excalidraw } from "../excalidraw/packages/excalidraw";
-// import "../excalidraw/";
 import { useEffect, useRef } from "react";
 
 interface ExcalidrawWrapperProps {
@@ -15,65 +14,20 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
 }) => {
     const excalidrawRef = useRef<any>(null);
 
-    useEffect(() => {
-        const disableAllGestures = (event: Event) => {
-            event.preventDefault();
-            event.stopPropagation();
-        };
 
-        // Get the Excalidraw container
-        const container = excalidrawRef.current?.getApp()?.canvas?.parentElement;
 
-        if (container) {
-            // Disable all possible events that could cause zooming or scrolling
-            const events = [
-                "wheel",
-                "touchmove",
-                "gesturestart",
-                "gesturechange",
-                "gestureend",
-                "pointerdown",
-                "pointermove",
-                "pointerup",
-            ];
-
-            events.forEach((eventType) => {
-                container.addEventListener(eventType, disableAllGestures, { passive: false });
-            });
-
-            // Override Excalidraw's internal event handlers
-            const originalWheelHandler = container.onwheel;
-            const originalTouchHandler = container.ontouchmove;
-
-            container.onwheel = (event: WheelEvent) => {
-                event.preventDefault();
-                event.stopPropagation();
-            };
-
-            container.ontouchmove = (event: TouchEvent) => {
-                event.preventDefault();
-                event.stopPropagation();
-            };
-
-            // Cleanup
-            return () => {
-                events.forEach((eventType) => {
-                    container.removeEventListener(eventType, disableAllGestures);
-                });
-                container.onwheel = originalWheelHandler;
-                container.ontouchmove = originalTouchHandler;
-            };
-        }
-    }, []);
-
+    const handleWheelCapture = (e: React.WheelEvent<HTMLDivElement>) => {
+          e.stopPropagation();
+    };
+  
     return (
-        <div className="aspect-video h-[84vh] w-full border">
+        <div className="aspect-video h-[84vh] w-full border"  onWheelCapture={handleWheelCapture}>
             <Excalidraw
                 ref={excalidrawRef}
                 initialData={{
                     elements: initialElements,
                     appState: {
-                        zoom: 1.2,
+                       
                         scrollX: 0,
                         scrollY: 0,
                     },
@@ -88,8 +42,7 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
                         clearCanvas: false,
                         export: false,
                         loadScene: false,
-                        toggleGridMode: false,
-                        zoom: false, // Disables zoom controls
+                      
                     },
                 }}
             />

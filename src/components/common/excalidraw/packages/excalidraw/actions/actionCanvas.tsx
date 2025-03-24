@@ -23,6 +23,7 @@ import {
   CURSOR_TYPE,
   MAX_ZOOM,
   MIN_ZOOM,
+  SCROLL_BEHAVIOR,
   THEME,
   ZOOM_STEP,
 } from "../constants";
