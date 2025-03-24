@@ -99,7 +99,7 @@ const Step2AddOrgDetails: React.FC<OrganizationOnboardingProps> = ({
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
-                toast.error(error.message, {
+                toast.error(error?.response?.data?.ex, {
                     className: "error-toast",
                     duration: 2000,
                 });
