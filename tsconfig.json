@@ -1,9 +1,11 @@
 {
     "compilerOptions": {
         "baseUrl": ".",
-        "paths": {
-            "@/*": ["./src/*"]
-        },
+       "paths": {
+        "@excalidraw/*": ["src/components/common/excalidraw/packages/*"],
+      "@/*": ["src/*"],
+     
+    },
         "target": "esnext",
         "lib": ["dom", "dom.iterable", "esnext"],
         "allowJs": true,

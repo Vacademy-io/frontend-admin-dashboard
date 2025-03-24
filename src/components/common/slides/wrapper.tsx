@@ -1,24 +1,69 @@
-import { Excalidraw } from "@excalidraw/excalidraw";
-import "@excalidraw/excalidraw/index.css";
+import { Excalidraw } from "../excalidraw/packages/excalidraw";
+// import "../excalidraw/";
 import { useEffect, useRef } from "react";
 
-const ExcalidrawWrapper: React.FC = () => {
+interface ExcalidrawWrapperProps {
+    initialElements: any[];
+    onChange: (elements: any[]) => void;
+    editMode: boolean;
+}
+
+const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
+    initialElements,
+    onChange,
+   
+}) => {
     const excalidrawRef = useRef<any>(null);
 
     useEffect(() => {
-        const disableScrollAndZoom = (event: WheelEvent | TouchEvent) => {
+        const disableAllGestures = (event: Event) => {
             event.preventDefault();
             event.stopPropagation();
         };
 
-        // Prevent zooming via scroll, pinch, or touch
-        document.addEventListener("wheel", disableScrollAndZoom, { passive: false });
-        document.addEventListener("touchmove", disableScrollAndZoom, { passive: false });
+        // Get the Excalidraw container
+        const container = excalidrawRef.current?.getApp()?.canvas?.parentElement;
 
-        return () => {
-            document.removeEventListener("wheel", disableScrollAndZoom);
-            document.removeEventListener("touchmove", disableScrollAndZoom);
-        };
+        if (container) {
+            // Disable all possible events that could cause zooming or scrolling
+            const events = [
+                "wheel",
+                "touchmove",
+                "gesturestart",
+                "gesturechange",
+                "gestureend",
+                "pointerdown",
+                "pointermove",
+                "pointerup",
+            ];
+
+            events.forEach((eventType) => {
+                container.addEventListener(eventType, disableAllGestures, { passive: false });
+            });
+
+            // Override Excalidraw's internal event handlers
+            const originalWheelHandler = container.onwheel;
+            const originalTouchHandler = container.ontouchmove;
+
+            container.onwheel = (event: WheelEvent) => {
+                event.preventDefault();
+                event.stopPropagation();
+            };
+
+            container.ontouchmove = (event: TouchEvent) => {
+                event.preventDefault();
+                event.stopPropagation();
+            };
+
+            // Cleanup
+            return () => {
+                events.forEach((eventType) => {
+                    container.removeEventListener(eventType, disableAllGestures);
+                });
+                container.onwheel = originalWheelHandler;
+                container.ontouchmove = originalTouchHandler;
+            };
+        }
     }, []);
 
     return (
@@ -26,15 +71,18 @@ const ExcalidrawWrapper: React.FC = () => {
             <Excalidraw
                 ref={excalidrawRef}
                 initialData={{
+                    elements: initialElements,
                     appState: {
                         zoom: 1.2,
                         scrollX: 0,
                         scrollY: 0,
                     },
                 }}
+                onChange={(elements) => onChange(elements)}
                 UIOptions={{
                     canvasActions: {
                         changeViewBackgroundColor: false,
+                        toggleScrollBehavior: true,
                         toggleTheme: false,
                         saveToActiveFile: false,
                         clearCanvas: false,
