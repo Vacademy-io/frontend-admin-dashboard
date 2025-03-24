@@ -65,3 +65,23 @@ export interface Step3ParticipantsListInterface {
     created_at: string; // Using ISO date string format
     updated_at: string;
 }
+
+export interface Step3ParticipantsListIndiviudalStudentInterface {
+    id: string;
+    userId: string;
+    instituteId: string;
+    userEmail: string;
+    username: string;
+    participantName: string;
+    faceFileId: string;
+    reattemptCount: number;
+    source: string;
+    sourceId: string;
+    phoneNumber: string;
+    registrationTime: string; // Consider using Date type if you plan to parse it
+    status: "ACTIVE" | "INACTIVE" | "PENDING"; // Add other possible statuses if applicable
+    assessmentRegistrationCustomFieldResponseList: string[]; // Define a proper type if available
+    studentAttempts: string[]; // Define a proper type if available
+    createdAt: string; // Consider using Date type
+    updatedAt: string; // Consider using Date type
+}
