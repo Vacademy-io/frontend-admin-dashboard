@@ -9,7 +9,7 @@ const useFabric = (fabricCanvas: Canvas | null) => {
         if (!fabricCanvas) return;
         const text = new IText(symbol, {
             left: 100,
-            top: 100,
+            top: window.scrollY ?? 100,
             fontSize: 60,
             fill: color,
             selectable: true,
@@ -23,7 +23,7 @@ const useFabric = (fabricCanvas: Canvas | null) => {
         if (!fabricCanvas) return;
         const textbox = new Textbox("Add Comment", {
             left: 100,
-            top: 100,
+            top: window.scrollY ?? 100,
             width: 100,
             fontSize: 20,
             fill: "red",
@@ -63,7 +63,7 @@ const useFabric = (fabricCanvas: Canvas | null) => {
         if (!fabricCanvas) return;
         const text = new IText(num, {
             left: 100,
-            top: 100,
+            top: window.scrollY ?? 100,
             fontSize: 50,
             fill: "blue",
             selectable: true,
@@ -76,7 +76,7 @@ const useFabric = (fabricCanvas: Canvas | null) => {
     const addRectangle = async (): Promise<void> => {
         const rect = new Rect({
             left: 100,
-            top: 100,
+            top: window.scrollY ?? 100,
             width: 100,
             height: 50,
             angle: 0,
@@ -93,7 +93,7 @@ const useFabric = (fabricCanvas: Canvas | null) => {
     const addCircle = async (): Promise<void> => {
         const circle = new Circle({
             left: 100,
-            top: 100,
+            top: window.scrollY ?? 100,
             radius: 50,
             fill: "transparent",
             stroke: "red",

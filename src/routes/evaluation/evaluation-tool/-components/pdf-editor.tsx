@@ -312,6 +312,21 @@ const PDFEvaluator = () => {
         // Continue with loading the PDF content onto the canvas...
     }
 
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if ((event.key === "Delete" || event.key === "Backspace") && fabricCanvas) {
+                event.preventDefault();
+                canvasUtils.deleteSelectedShape();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [fabricCanvas, canvasUtils]);
+
     if (!pdfFile) {
         return (
             <div className="flex h-full flex-col items-center justify-center gap-y-4">

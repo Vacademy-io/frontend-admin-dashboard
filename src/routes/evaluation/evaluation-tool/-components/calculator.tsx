@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogClose, DialogFooter, DialogContent } from "@/components/ui/dialog";
+import { MyDialog } from "@/components/design-system/dialog";
 
 export default function Calculator({
     open,
@@ -16,6 +15,13 @@ export default function Calculator({
     const [firstOperand, setFirstOperand] = useState<number | null>(null);
     const [operator, setOperator] = useState<string | null>(null);
     const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false);
+
+    const clearDisplay = () => {
+        setDisplay("0");
+        setFirstOperand(null);
+        setOperator(null);
+        setWaitingForSecondOperand(false);
+    };
 
     const inputDigit = (digit: string) => {
         if (waitingForSecondOperand) {
@@ -38,15 +44,8 @@ export default function Calculator({
         }
     };
 
-    const clearDisplay = () => {
-        setDisplay("0");
-        setFirstOperand(null);
-        setOperator(null);
-        setWaitingForSecondOperand(false);
-    };
-
     const handleOperator = (nextOperator: string) => {
-        const inputValue = Number.parseFloat(display);
+        const inputValue = parseFloat(display);
 
         if (firstOperand === null) {
             setFirstOperand(inputValue);
@@ -61,9 +60,9 @@ export default function Calculator({
     };
 
     const performCalculation = () => {
-        if (firstOperand === null || operator === null) return Number.parseFloat(display);
+        if (firstOperand === null || operator === null) return parseFloat(display);
 
-        const inputValue = Number.parseFloat(display);
+        const inputValue = parseFloat(display);
         let result = 0;
 
         switch (operator) {
@@ -73,125 +72,192 @@ export default function Calculator({
             case "-":
                 result = firstOperand - inputValue;
                 break;
-            case "*":
+            case "×":
                 result = firstOperand * inputValue;
                 break;
-            case "/":
+            case "÷":
                 result = firstOperand / inputValue;
                 break;
-            default:
-                return inputValue;
+            case "=":
+                result = inputValue;
+                break;
         }
 
         return result;
     };
 
-    const handleEquals = () => {
+    const calculate = () => {
         if (firstOperand === null || operator === null) return;
 
         const result = performCalculation();
         setDisplay(String(result));
-        setFirstOperand(null);
+        setFirstOperand(result);
         setOperator(null);
         setWaitingForSecondOperand(false);
     };
 
+    const toggleSign = () => {
+        const newValue = parseFloat(display) * -1;
+        setDisplay(String(newValue));
+    };
+
+    const calculatePercentage = () => {
+        const currentValue = parseFloat(display);
+        const newValue = currentValue / 100;
+        setDisplay(String(newValue));
+    };
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <Card className="mx-auto w-full max-w-sm">
-                    <CardHeader>
-                        <CardTitle className="text-center">Calculator</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid gap-4">
-                            <div className="rounded-md bg-muted p-4 text-right">
-                                <div className="text-2xl font-bold tracking-tighter">{display}</div>
-                            </div>
-                            <div className="grid grid-cols-4 gap-2">
-                                <Button
-                                    variant="outline"
-                                    onClick={clearDisplay}
-                                    className="col-span-2"
-                                >
-                                    Clear
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => handleOperator("/")}
-                                    className="col-span-1"
-                                >
-                                    ÷
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => handleOperator("*")}
-                                    className="col-span-1"
-                                >
-                                    X
-                                </Button>
+        <MyDialog heading="Calculator" open={open} onOpenChange={onOpenChange}>
+            <div className="mx-auto flex size-3/4 flex-col overflow-hidden rounded-2xl bg-slate-50">
+                {/* Display */}
+                <div className="flex h-1/4 items-end justify-end bg-slate-100 p-6 text-black">
+                    <div className="truncate text-5xl font-light">{display}</div>
+                </div>
 
-                                <Button variant="outline" onClick={() => inputDigit("7")}>
-                                    7
-                                </Button>
-                                <Button variant="outline" onClick={() => inputDigit("8")}>
-                                    8
-                                </Button>
-                                <Button variant="outline" onClick={() => inputDigit("9")}>
-                                    9
-                                </Button>
-                                <Button variant="outline" onClick={() => handleOperator("-")}>
-                                    -
-                                </Button>
+                {/* Keypad */}
+                <div className="grid h-3/4 grid-cols-4 gap-2 p-3">
+                    {/* Row 1 */}
+                    <Button
+                        onClick={clearDisplay}
+                        className="bg-gray-500 text-black hover:bg-gray-400"
+                    >
+                        {firstOperand !== null && display !== "0" ? "C" : "AC"}
+                    </Button>
+                    <Button
+                        onClick={toggleSign}
+                        className="bg-gray-500 text-black hover:bg-gray-400"
+                    >
+                        +/−
+                    </Button>
+                    <Button
+                        onClick={calculatePercentage}
+                        className="bg-gray-500 text-black hover:bg-gray-400"
+                    >
+                        %
+                    </Button>
+                    <Button
+                        onClick={() => handleOperator("÷")}
+                        className={`bg-orange-500 text-white hover:bg-orange-400 ${
+                            operator === "÷" && waitingForSecondOperand
+                                ? "bg-white text-orange-500"
+                                : ""
+                        }`}
+                    >
+                        ÷
+                    </Button>
 
-                                <Button variant="outline" onClick={() => inputDigit("4")}>
-                                    4
-                                </Button>
-                                <Button variant="outline" onClick={() => inputDigit("5")}>
-                                    5
-                                </Button>
-                                <Button variant="outline" onClick={() => inputDigit("6")}>
-                                    6
-                                </Button>
-                                <Button variant="outline" onClick={() => handleOperator("+")}>
-                                    +
-                                </Button>
+                    {/* Row 2 */}
+                    <Button
+                        onClick={() => inputDigit("7")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        7
+                    </Button>
+                    <Button
+                        onClick={() => inputDigit("8")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        8
+                    </Button>
+                    <Button
+                        onClick={() => inputDigit("9")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        9
+                    </Button>
+                    <Button
+                        onClick={() => handleOperator("×")}
+                        className={`bg-orange-500 text-white hover:bg-orange-400 ${
+                            operator === "×" && waitingForSecondOperand
+                                ? "bg-white text-orange-500"
+                                : ""
+                        }`}
+                    >
+                        ×
+                    </Button>
 
-                                <Button variant="outline" onClick={() => inputDigit("1")}>
-                                    1
-                                </Button>
-                                <Button variant="outline" onClick={() => inputDigit("2")}>
-                                    2
-                                </Button>
-                                <Button variant="outline" onClick={() => inputDigit("3")}>
-                                    3
-                                </Button>
-                                <Button
-                                    variant="default"
-                                    onClick={handleEquals}
-                                    className="row-span-2"
-                                >
-                                    =
-                                </Button>
+                    {/* Row 3 */}
+                    <Button
+                        onClick={() => inputDigit("4")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        4
+                    </Button>
+                    <Button
+                        onClick={() => inputDigit("5")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        5
+                    </Button>
+                    <Button
+                        onClick={() => inputDigit("6")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        6
+                    </Button>
+                    <Button
+                        onClick={() => handleOperator("-")}
+                        className={`bg-orange-500 text-white hover:bg-orange-400 ${
+                            operator === "-" && waitingForSecondOperand
+                                ? "bg-white text-orange-500"
+                                : ""
+                        }`}
+                    >
+                        −
+                    </Button>
 
-                                <Button
-                                    variant="outline"
-                                    onClick={() => inputDigit("0")}
-                                    className="col-span-2"
-                                >
-                                    0
-                                </Button>
-                                <Button variant="outline" onClick={inputDecimal}>
-                                    .
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </DialogContent>
-            <DialogFooter>
-                <DialogClose>Close</DialogClose>
-            </DialogFooter>
-        </Dialog>
+                    {/* Row 4 */}
+                    <Button
+                        onClick={() => inputDigit("1")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        1
+                    </Button>
+                    <Button
+                        onClick={() => inputDigit("2")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        2
+                    </Button>
+                    <Button
+                        onClick={() => inputDigit("3")}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        3
+                    </Button>
+                    <Button
+                        onClick={() => handleOperator("+")}
+                        className={`bg-orange-500 text-white hover:bg-orange-400 ${
+                            operator === "+" && waitingForSecondOperand
+                                ? "bg-white text-orange-500"
+                                : ""
+                        }`}
+                    >
+                        +
+                    </Button>
+
+                    {/* Row 5 */}
+                    <Button
+                        onClick={() => inputDigit("0")}
+                        className="col-span-2 bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        0
+                    </Button>
+                    <Button
+                        onClick={inputDecimal}
+                        className="bg-gray-700 text-white hover:bg-gray-600"
+                    >
+                        .
+                    </Button>
+                    <Button
+                        onClick={calculate}
+                        className="bg-orange-500 text-white hover:bg-orange-400"
+                    >
+                        =
+                    </Button>
+                </div>
+            </div>
+        </MyDialog>
     );
 }
