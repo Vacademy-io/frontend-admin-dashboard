@@ -13,6 +13,7 @@ import { CustomFieldsSection } from "./CustomFieldsSection";
 import { CourseSelection } from "./batch-selection-fields.tsx/CourseSelection";
 // import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { MaxLimitField } from "./batch-selection-fields.tsx/MaxLimitField";
+import { ShowSelectedBatchDetails } from "./ShowSelectedBatchDetails";
 
 interface CreateInviteDialogProps {
     initialValues?: InviteFormType;
@@ -154,6 +155,8 @@ export const CreateInviteDialog = ({
         }
     }, [submitForm]);
 
+    const value = getValues("batches");
+
     return (
         <MyDialog
             heading="Invite Students"
@@ -246,15 +249,12 @@ export const CreateInviteDialog = ({
                             )}
                         /> */}
                         {areMaxCourseSaved ? (
-                            <div>
-                                {/* keep adding saved courses here */}
-                                <p>Course, session and level list from main</p>
-                            </div>
+                            <ShowSelectedBatchDetails batch={value} />
                         ) : (
                             <div>
                                 {courseSaved ? (
                                     <div className="flex items-center justify-between gap-2">
-                                        <p>Course, session and level list from main</p>
+                                        <ShowSelectedBatchDetails batch={value} />
                                         <div className="flex items-center gap-2">
                                             <MaxLimitField title="Course" maxAllowed={1} />
                                             <MyButton

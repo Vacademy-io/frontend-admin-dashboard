@@ -50,6 +50,12 @@ const preSelectedCoursesSchema = z.object({
     preSelectedSessions: z.array(preSelectedSessionSchema),
 });
 
+const batchSchema = z.object({
+    maxCourses: z.number(),
+    preSelectedCourses: z.array(preSelectedCoursesSchema),
+    learnerChoiceCourses: z.array(learnerChoiceCoursesSchema),
+});
+
 // Create schema for form validation
 export const inviteFormSchema = z.object({
     inviteLink: z.string().min(1, "Invite link is required"),
@@ -72,11 +78,7 @@ export const inviteFormSchema = z.object({
                 .optional(),
         }),
     ),
-    batches: z.object({
-        maxCourses: z.number(),
-        preSelectedCourses: z.array(preSelectedCoursesSchema),
-        learnerChoiceCourses: z.array(learnerChoiceCoursesSchema),
-    }),
+    batches: batchSchema,
     studentExpiryDays: z.number(),
     inviteeEmail: z.string().optional(), // For the input field
     inviteeEmails: z
@@ -88,6 +90,12 @@ export const inviteFormSchema = z.object({
 export type InviteFormType = z.infer<typeof inviteFormSchema>;
 export type SelectionModeType = z.infer<typeof selectionModeSchema>;
 export type BatchFieldType = z.infer<typeof dropdownItemSchema>;
+export type LevelFieldType = z.infer<typeof levelSchema>;
+export type PreSelectedSessionType = z.infer<typeof preSelectedSessionSchema>;
+export type LearnerChoiceSessionType = z.infer<typeof learnerChoiceSessionSchema>;
+export type PreSelectedCourseType = z.infer<typeof preSelectedCoursesSchema>;
+export type LearnerChoiceCourseType = z.infer<typeof learnerChoiceCoursesSchema>;
+export type BatchDetailsType = z.infer<typeof batchSchema>;
 
 export const defaultFormValues: Partial<InviteFormType> = {
     inviteLink: "",
