@@ -136,6 +136,7 @@ interface StepData {
 }
 
 export interface ConvertedCustomField {
+    id: string;
     name: string;
     type: string;
     default_value: string;
