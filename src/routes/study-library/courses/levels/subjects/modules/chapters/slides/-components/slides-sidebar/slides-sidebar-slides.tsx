@@ -12,6 +12,7 @@ import {
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
 import { useFieldArray, useForm } from "react-hook-form";
+import { CheckCircle } from "phosphor-react";
 
 interface FormValues {
     slides: Slide[];
@@ -105,7 +106,7 @@ export const ChapterSidebarSlides = ({
         <Sortable value={fields} onMove={handleMove} fast={false}>
             <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
                 {fields.map((slide, index) => (
-                    <SortableItem key={index} value={slide.id} asChild>
+                    <SortableItem key={index} value={slide.id} asChild className="cursor-pointer">
                         <div className="w-full" onClick={() => setActiveItem(slide)}>
                             <div
                                 className={`flex w-full items-center gap-3 rounded-xl ${
@@ -116,21 +117,34 @@ export const ChapterSidebarSlides = ({
                                         : "hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500"
                                 }`}
                             >
-                                <div className="flex flex-1 items-center gap-3">
-                                    <p className={`${open ? "visible" : "hidden"} font-semibold`}>
-                                        S{index}
-                                    </p>
-                                    {getIcon(slide)}
-                                    <p
-                                        className={`flex-1 text-subtitle ${
-                                            open ? "visible" : "hidden"
-                                        } text-body`}
-                                    >
-                                        {truncateString(
-                                            slide.document_title || slide.video_title || "",
-                                            18,
-                                        )}
-                                    </p>
+                                <div className="flex flex-1 items-center justify-between gap-2">
+                                    <div className="flex flex-1 items-center gap-3">
+                                        <p
+                                            className={`${
+                                                open ? "visible" : "hidden"
+                                            } font-semibold`}
+                                        >
+                                            S{index + 1}
+                                        </p>
+                                        {getIcon(slide)}
+                                        <p
+                                            className={`flex-1 text-subtitle ${
+                                                open ? "visible" : "hidden"
+                                            } text-body`}
+                                        >
+                                            {truncateString(
+                                                slide.document_title || slide.video_title || "",
+                                                18,
+                                            )}
+                                        </p>
+                                    </div>
+                                    {slide.status != "DRAFT" && (
+                                        <CheckCircle
+                                            weight="fill"
+                                            className="text-success-600"
+                                            size={20}
+                                        />
+                                    )}
                                 </div>
                                 {open && (
                                     <div className="drag-handle-container">

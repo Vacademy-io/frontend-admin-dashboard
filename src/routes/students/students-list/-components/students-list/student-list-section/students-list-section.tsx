@@ -150,7 +150,10 @@ export const StudentsListSection = () => {
                     <div className="flex flex-col gap-5">
                         <div className="h-auto max-w-full">
                             <div className="max-w-full">
-                                <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                                <SidebarProvider
+                                    style={{ ["--sidebar-width" as string]: "565px" }}
+                                    defaultOpen={false}
+                                >
                                     <MyTable<StudentTable>
                                         data={studentTableData}
                                         columns={myColumns}

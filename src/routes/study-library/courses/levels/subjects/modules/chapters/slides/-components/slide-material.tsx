@@ -206,6 +206,7 @@ export const SlideMaterial = () => {
         setIsOpen: Dispatch<SetStateAction<boolean>>,
         notify: boolean,
     ) => {
+        SaveDraft();
         const status = activeItem?.status == "PUBLISHED" ? "DRAFT" : "PUBLISHED";
         const operation = status == "DRAFT" ? "unpublish" : "publish";
         if (activeItem?.document_type == "DOC" || activeItem?.document_type == "PDF") {
@@ -284,12 +285,16 @@ export const SlideMaterial = () => {
         loadContent();
     }, [activeItem]);
 
-    // Modified SaveDraft function
-    const SaveDraft = () => {
+    const getCurrentEditorHTMLContent = () => {
         const data = editor.getEditorValue();
         const htmlString = html.serialize(editor, data);
         const formattedHtmlString = formatHTMLString(htmlString);
+        return formattedHtmlString;
+    };
 
+    // Modified SaveDraft function
+    const SaveDraft = () => {
+        const currentHtml = getCurrentEditorHTMLContent();
         const status =
             activeItem?.status == "PUBLISHED"
                 ? "UNSYNC"
@@ -308,7 +313,7 @@ export const SlideMaterial = () => {
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: "DOC",
-                        data: formattedHtmlString, // Use the formatted HTML string
+                        data: currentHtml, // Use the formatted HTML string
                         title: activeItem?.slide_title || "",
                         cover_file_id: "",
                         total_pages: 0,
