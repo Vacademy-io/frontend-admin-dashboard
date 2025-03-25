@@ -414,8 +414,8 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     when_assessment_live:
                         assessmentDetails[currentStep]?.saved_data?.notifications
                             ?.parent_when_assessment_live || false,
-                    when_student_appears: false,
-                    when_student_finishes_test: false,
+                    when_student_appears: true,
+                    when_student_finishes_test: true,
                     when_assessment_report_generated:
                         assessmentDetails[currentStep]?.saved_data?.notifications
                             ?.parent_when_assessment_report_generated || false,
