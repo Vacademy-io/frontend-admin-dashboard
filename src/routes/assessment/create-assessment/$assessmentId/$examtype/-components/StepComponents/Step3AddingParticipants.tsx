@@ -1,5 +1,5 @@
 import { StepContentProps } from "@/types/assessments/step-content-props";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { MyButton } from "@/components/design-system/button";
 import { z } from "zod";
@@ -29,7 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import SelectField from "@/components/design-system/select-field";
 import { timeLimit } from "@/constants/dummy-data";
 import { AddingParticipantsTab } from "../AddingParticipantsTab";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -54,9 +54,10 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const queryClient = useQueryClient();
     const params = useParams({ strict: false });
-    const examType = params.examtype;
-    const assessmentId = params.assessmentId;
+    const examType = params.examtype ?? "";
+    const assessmentId = params.assessmentId ?? "";
     const storeDataStep3 = useTestAccessStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
@@ -80,7 +81,21 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     );
 
     const { batches_for_sessions } = instituteDetails || {};
-    const transformedBatches = transformBatchData(batches_for_sessions || []);
+
+    // Extract batch IDs from preBatchData
+    const batchIds = new Set(
+        assessmentDetails[currentStep]?.saved_data.pre_batch_registrations.map(
+            (batch) => batch.batchId,
+        ),
+    );
+
+    // Filter matching batches
+    const matchedBatches = batches_for_sessions?.filter((batch) => batchIds.has(batch.id));
+
+    const transformedBatches =
+        assessmentId !== "defaultId"
+            ? transformBatchData(matchedBatches || [])
+            : transformBatchData(batches_for_sessions || []);
 
     const form = useForm<TestAccessFormType>({
         resolver: zodResolver(testAccessSchema),
@@ -169,12 +184,22 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => handlePostStep3Data(data, assessmentId, instituteId, type),
         onSuccess: () => {
-            syncStep3DataWithStore(form);
-            toast.success("Step 3 data has been saved successfully!", {
-                className: "success-toast",
-                duration: 2000,
-            });
-            handleCompleteCurrentStep();
+            if (assessmentId !== "defaultId") {
+                useTestAccessStore.getState().reset();
+                window.history.back();
+                toast.success("Step 3 data has been updated successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+            } else {
+                syncStep3DataWithStore(form);
+                toast.success("Step 3 data has been saved successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                handleCompleteCurrentStep();
+            }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -192,7 +217,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const onSubmit = (data: z.infer<typeof testAccessSchema>) => {
         handleSubmitStep3Form.mutate({
             data: data,
-            assessmentId: savedAssessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         });
@@ -288,6 +313,111 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             .flatMap((step) => step.subStep || [])
             .filter((subStep): subStep is Step => subStep !== undefined),
     });
+
+    useEffect(() => {
+        if (assessmentId !== "defaultId") {
+            form.reset({
+                status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
+                closed_test: storeDataStep3?.open_test?.checked ? false : true,
+                open_test: storeDataStep3?.open_test || {
+                    checked: false,
+                    start_date: "",
+                    end_date: "",
+                    instructions: "",
+                    custom_fields: [
+                        {
+                            id: 0,
+                            type: "textfield",
+                            name: "Full Name",
+                            oldKey: true,
+                            isRequired: true,
+                        },
+                        {
+                            id: 1,
+                            type: "textfield",
+                            name: "Email",
+                            oldKey: true,
+                            isRequired: true,
+                        },
+                        {
+                            id: 2,
+                            type: "textfield",
+                            name: "Phone Number",
+                            oldKey: true,
+                            isRequired: true,
+                        },
+                    ],
+                },
+                select_batch: {
+                    checked: true,
+                    batch_details: Object.fromEntries(
+                        Object.entries(transformedBatches).map(([key, value]) => [
+                            key,
+                            value.map((item) => item.id),
+                        ]),
+                    ),
+                },
+                select_individually: {
+                    checked: false,
+                    student_details: [],
+                },
+                join_link:
+                    `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
+                    "",
+                show_leaderboard:
+                    assessmentDetails[currentStep]?.saved_data?.notifications
+                        ?.participant_show_leaderboard || false,
+                notify_student: {
+                    when_assessment_created:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.participant_when_assessment_created || false,
+                    before_assessment_goes_live: {
+                        checked:
+                            assessmentDetails[currentStep]?.saved_data?.notifications
+                                ?.participant_before_assessment_goes_live === 0
+                                ? false
+                                : true,
+                        value:
+                            String(
+                                assessmentDetails[currentStep]?.saved_data?.notifications
+                                    ?.participant_before_assessment_goes_live,
+                            ) || "",
+                    },
+                    when_assessment_live:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.participant_when_assessment_live || false,
+                    when_assessment_report_generated:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.participant_when_assessment_report_generated || false,
+                },
+                notify_parent: {
+                    when_assessment_created:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.parent_when_assessment_created || false,
+                    before_assessment_goes_live: {
+                        checked:
+                            assessmentDetails[currentStep]?.saved_data?.notifications
+                                ?.parent_before_assessment_goes_live === 0
+                                ? false
+                                : true,
+                        value:
+                            String(
+                                assessmentDetails[currentStep]?.saved_data?.notifications
+                                    ?.parent_before_assessment_goes_live,
+                            ) || "",
+                    },
+                    when_assessment_live:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.parent_when_assessment_live || false,
+                    when_student_appears: false,
+                    when_student_finishes_test: false,
+                    when_assessment_report_generated:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.parent_when_assessment_report_generated || false,
+                },
+            });
+        }
+    }, []);
 
     if (isLoading) return <DashboardLoader />;
 
@@ -880,7 +1010,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                             )}
                         </>
                     )}
-                    <AddingParticipantsTab batches={transformedBatches} form={form} />
+                    <AddingParticipantsTab
+                        batches={transformedBatches}
+                        form={form}
+                        totalBatches={transformBatchData(batches_for_sessions || [])}
+                    />
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between" id="join-link-qr-code">
                         <div className="flex flex-col gap-2">
