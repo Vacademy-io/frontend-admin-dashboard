@@ -13,6 +13,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
 import { useFieldArray, useForm } from "react-hook-form";
 import { CheckCircle } from "phosphor-react";
+import { useSaveDraft } from "../../-context/saveDraftContext";
 
 interface FormValues {
     slides: Slide[];
@@ -28,6 +29,35 @@ export const ChapterSidebarSlides = ({
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
     const { slides, isLoading } = useSlides(chapterId || "");
+    const { getCurrentEditorHTMLContent, saveDraft } = useSaveDraft();
+
+    const handleSlideClick = async (slide: Slide) => {
+        // Check if we need to save the current slide before switching
+        if (
+            activeItem &&
+            activeItem.source_type === "DOCUMENT" &&
+            activeItem.document_type === "DOC"
+        ) {
+            const currentContent = getCurrentEditorHTMLContent();
+            console.log("currentContent: ", currentContent);
+            if (currentContent) {
+                if (
+                    (activeItem.status === "UNSYNC" || activeItem.status === "DRAFT") &&
+                    activeItem.document_data !== currentContent
+                ) {
+                    await saveDraft(activeItem);
+                } else if (
+                    activeItem.status === "PUBLISHED" &&
+                    activeItem.published_data !== currentContent
+                ) {
+                    await saveDraft(activeItem);
+                }
+            }
+        }
+
+        // Now set the new active item
+        setActiveItem(slide);
+    };
 
     useEffect(() => {
         form.setValue("slides", items || []);
@@ -107,7 +137,7 @@ export const ChapterSidebarSlides = ({
             <div className="flex w-full flex-col items-center gap-6 text-neutral-600">
                 {fields.map((slide, index) => (
                     <SortableItem key={index} value={slide.id} asChild className="cursor-pointer">
-                        <div className="w-full" onClick={() => setActiveItem(slide)}>
+                        <div className="w-full" onClick={() => handleSlideClick(slide)}>
                             <div
                                 className={`flex w-full items-center gap-3 rounded-xl ${
                                     open ? "px-4 py-2" : "px-4 py-4"
@@ -134,7 +164,7 @@ export const ChapterSidebarSlides = ({
                                         >
                                             {truncateString(
                                                 slide.document_title || slide.video_title || "",
-                                                18,
+                                                12,
                                             )}
                                         </p>
                                     </div>
