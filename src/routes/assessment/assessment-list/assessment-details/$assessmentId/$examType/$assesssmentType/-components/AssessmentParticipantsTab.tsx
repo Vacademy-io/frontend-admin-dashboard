@@ -137,7 +137,7 @@ const AssessmentParticipantsTab = () => {
                             </div>
                         )}
                         {assessmentDetails[2]?.saved_data?.notifications
-                            ?.participant_before_assessment_goes_live && (
+                            ?.participant_before_assessment_goes_live ? (
                             <div className="flex items-center justify-between">
                                 <p className="flex items-center gap-6">
                                     <p className="text-sm">Before Assessment goes live:</p>
@@ -151,7 +151,7 @@ const AssessmentParticipantsTab = () => {
                                 </p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
-                        )}
+                        ) : null}
                         {assessmentDetails[2]?.saved_data?.notifications
                             ?.participant_when_assessment_live && (
                             <div className="flex items-center justify-between">
@@ -178,7 +178,7 @@ const AssessmentParticipantsTab = () => {
                             </div>
                         )}
                         {assessmentDetails[2]?.saved_data?.notifications
-                            ?.parent_before_assessment_goes_live && (
+                            ?.parent_before_assessment_goes_live ? (
                             <div className="flex items-center justify-between">
                                 <p className="flex items-center gap-6">
                                     <p className="text-sm">Before Assessment goes live:</p>
@@ -192,7 +192,7 @@ const AssessmentParticipantsTab = () => {
                                 </p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
-                        )}
+                        ) : null}
                         {assessmentDetails[2]?.saved_data?.notifications
                             ?.parent_when_assessment_live && (
                             <div className="flex items-center justify-between">

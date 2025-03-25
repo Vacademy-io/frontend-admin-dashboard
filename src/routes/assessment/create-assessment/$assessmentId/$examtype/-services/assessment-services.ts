@@ -238,6 +238,7 @@ export const handlePostAssessmentPreview = async (
 const convertCustomFields = (customFields: CustomFields): ConvertedCustomField[] => {
     const convertedFields = customFields.map((field) => {
         return {
+            id: field.id,
             name: field.name,
             type: field.type,
             default_value: "", // Provide a default value, if necessary
@@ -283,16 +284,18 @@ export const handlePostStep3Data = async (
         notify_student: {
             when_assessment_created: data.notify_student.when_assessment_created || false,
             show_leaderboard: data.show_leaderboard || false,
-            before_assessment_goes_live:
-                parseInt(data.notify_student.before_assessment_goes_live.value) || 0,
+            before_assessment_goes_live: data.notify_student.before_assessment_goes_live.checked
+                ? parseInt(data.notify_student.before_assessment_goes_live.value)
+                : 0,
             when_assessment_live: data.notify_student.when_assessment_live || false,
             when_assessment_report_generated:
                 data.notify_student.when_assessment_report_generated || false,
         },
         notify_parent: {
             when_assessment_created: data.notify_parent.when_assessment_created || false,
-            before_assessment_goes_live:
-                parseInt(data.notify_parent.before_assessment_goes_live.value) || 0,
+            before_assessment_goes_live: data.notify_parent.before_assessment_goes_live.checked
+                ? parseInt(data.notify_parent.before_assessment_goes_live.value)
+                : 0,
             show_leaderboard: data.show_leaderboard || false,
             when_assessment_live: data.notify_parent.when_assessment_live || false,
             when_student_appears: data.notify_parent.when_student_appears || false,
