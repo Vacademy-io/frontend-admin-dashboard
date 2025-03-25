@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ExportIcon, ImportIcon } from "./Icons"
 import type { Slide } from "./types"
-import { SlideTypeSheet ,type SlideType} from "./slideTypeSheet"
+import { SlideTypeSheet } from "./slideTypeSheet"
+import { SlideType } from "./constant/slideType"
 
 
 interface SlideListProps {

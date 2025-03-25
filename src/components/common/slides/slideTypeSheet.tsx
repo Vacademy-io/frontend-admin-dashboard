@@ -6,14 +6,15 @@ import { Input } from "@/components/ui/input"
 import { Search, ArrowLeft, Youtube, Link2, QrCode } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { FileQuestion, GraduationCap, MessageSquare, Presentation } from "lucide-react";
-export type SlideType =
-  | "blank"
-  | "title"
-  | "text"
-  | "text-media"
-  | "fullscreen-media"
-  | "web-link"
-  | "interactive-video"
+import { SlideType } from "./constant/slideType"
+// export type SlideType =
+//   | "blank"
+//   | "title"
+//   | "text"
+//   | "text-media"
+//   | "fullscreen-media"
+//   | "web-link"
+//   | "interactive-video"
 
 interface SlideTypeSheetProps {
   open: boolean
@@ -25,19 +26,19 @@ export function SlideTypeSheet({ open, onOpenChange, onSelectType }: SlideTypeSh
   const [searchQuery, setSearchQuery] = useState("")
 
   const slideTypes = [
-    { id: "blank", name: "Blank slide", icon: null },
-    { id: "title", name: "Title Slide", icon: null },
-    { id: "text", name: "Text Slide", icon: null },
-    { id: "text-media", name: "Text and media", icon: <QrCode className="h-6 w-6 text-gray-500" /> },
-    { id: "fullscreen-media", name: "Fullscreen media", icon: <Youtube className="h-6 w-6 text-gray-500" /> },
-    { id: "web-link", name: "Web page link", icon: <Link2 className="h-6 w-6 text-gray-500" /> },
+    { id: SlideType.Blank, name: "Blank slide", icon: null },
+    { id: SlideType.Title, name: "Title Slide", icon: null },
+    { id: SlideType.Text, name: "Text Slide", icon: null },
+    { id: SlideType.TextMedia, name: "Text and media", icon: <QrCode className="h-6 w-6 text-gray-500" /> },
+    { id: SlideType.FullscreenMedia, name: "Fullscreen media", icon: <Youtube className="h-6 w-6 text-gray-500" /> },
+    { id: SlideType.WebLink, name: "Web page link", icon: <Link2 className="h-6 w-6 text-gray-500" /> },
    
-    { id: "presentation", name: "Presentation", icon: <Presentation className="mr-2 h-4 w-4" /> },
-    { id: "quiz", name: "Quiz", icon: <FileQuestion className="mr-2 h-4 w-4" /> },
-    { id: "lms", name: "LMS", icon: <GraduationCap className="mr-2 h-4 w-4" /> },
-    { id: "feedback", name: "Feedback", icon: <MessageSquare className="mr-2 h-4 w-4" /> , isNew: true, },
+    { id: SlideType.Presentation, name: "Presentation", icon: <Presentation className="mr-2 h-4 w-4" /> },
+    { id: SlideType.Quiz, name: "Quiz", icon: <FileQuestion className="mr-2 h-4 w-4" /> },
+    { id: SlideType.LMS, name: "LMS", icon: <GraduationCap className="mr-2 h-4 w-4" /> },
+    { id: SlideType.Feedback, name: "Feedback", icon: <MessageSquare className="mr-2 h-4 w-4" /> , isNew: true, },
     {
-      id: "interactive-video",
+      id: SlideType.InteractiveVideo,
       name: "Interactive Video",
       icon: <Youtube className="h-6 w-6 text-gray-500" />,
       isNew: true,
@@ -50,7 +51,7 @@ export function SlideTypeSheet({ open, onOpenChange, onSelectType }: SlideTypeSh
     <Sheet open={open} onOpenChange={onOpenChange} >
       <SheetContent className="w-[350px] sm:w-[400px] overflow-y-auto bg-primary-200" side="left">
         <SheetHeader>
-          <SheetTitle className="text-xl">Slect Slide</SheetTitle>
+          <SheetTitle className="text-xl">Select Slide</SheetTitle>
         </SheetHeader>
 
         <div className="mt-4">
