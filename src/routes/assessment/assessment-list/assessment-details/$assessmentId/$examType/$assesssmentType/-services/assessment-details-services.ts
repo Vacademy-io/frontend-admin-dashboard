@@ -400,3 +400,17 @@ export const getBatchDetailsListOfIndividualStudents = async (
     });
     return response?.data;
 };
+
+export const handleGetIndividualStudentList = ({
+    instituteId,
+    assessmentId,
+}: {
+    instituteId: string | undefined;
+    assessmentId: string;
+}) => {
+    return {
+        queryKey: ["GET_INDIVIDUAL_STUDENT_DETAILS", instituteId, assessmentId],
+        queryFn: () => getBatchDetailsListOfIndividualStudents(instituteId, assessmentId),
+        staleTime: 60 * 60 * 1000,
+    };
+};

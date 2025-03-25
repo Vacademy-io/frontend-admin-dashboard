@@ -192,6 +192,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     duration: 2000,
                 });
                 queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_STUDENT_DETAILS"] });
             } else {
                 syncStep3DataWithStore(form);
                 toast.success("Step 3 data has been saved successfully!", {
