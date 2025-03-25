@@ -1,4 +1,4 @@
-import { Steps } from "@/types/assessments/assessment-data-type";
+import { RegistrationFormField, Steps } from "@/types/assessments/assessment-data-type";
 import { BatchData } from "@/types/assessments/batch-details";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
 import { AdaptiveMarkingQuestion } from "@/types/assessments/basic-details-type";
@@ -508,4 +508,22 @@ export function calculateTotalTime(testData: z.infer<typeof sectionDetailsSchema
         Number(testData?.testDuration?.entireTestDuration?.testDuration?.hrs) * 60 +
         Number(testData?.testDuration?.entireTestDuration?.testDuration?.min)
     );
+}
+
+export function convertToCustomFieldsData(data: RegistrationFormField[] | undefined) {
+    if (!data) return [];
+    return data?.map((field) => ({
+        id: field.id,
+        type: field.field_type,
+        name: field.field_name,
+        oldKey: false,
+        isRequired: field.is_mandatory,
+        ...(field.field_type === "dropdown" && {
+            options: field.comma_separated_options.split(",").map((value, index) => ({
+                id: String(index),
+                value: value.trim(),
+                disabled: false,
+            })),
+        }),
+    }));
 }

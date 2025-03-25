@@ -18,6 +18,7 @@ import {
 } from "phosphor-react";
 import QRCode from "react-qr-code";
 import {
+    convertToCustomFieldsData,
     copyToClipboard,
     getStepKey,
     handleDownloadQRCode,
@@ -46,6 +47,7 @@ import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
+import { convertDateFormat } from "./Step1BasicInfo";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -65,7 +67,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const [textFieldValue, setTextFieldValue] = useState("");
     const [dropdownOptions, setDropdownOptions] = useState<
         {
-            id: number;
+            id: string;
             value: string;
             disabled: boolean;
         }[]
@@ -109,21 +111,21 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 instructions: "",
                 custom_fields: [
                     {
-                        id: 0,
+                        id: "0",
                         type: "textfield",
                         name: "Full Name",
                         oldKey: true,
                         isRequired: true,
                     },
                     {
-                        id: 1,
+                        id: "1",
                         type: "textfield",
                         name: "Email",
                         oldKey: true,
                         isRequired: true,
                     },
                     {
-                        id: 2,
+                        id: "2",
                         type: "textfield",
                         name: "Phone Number",
                         oldKey: true,
@@ -166,8 +168,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         },
         mode: "onChange",
     });
-
-    console.log(form.getValues());
 
     const { handleSubmit, getValues, control, watch, setValue } = form;
     const customFields = getValues("open_test.custom_fields");
@@ -230,7 +230,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         console.log(err);
     };
 
-    const toggleIsRequired = (id: number) => {
+    const toggleIsRequired = (id: string) => {
         const updatedFields = customFields?.map((field) =>
             field.id === id ? { ...field, isRequired: !field.isRequired } : field,
         );
@@ -240,7 +240,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const handleAddDropdownOptions = () => {
         setDropdownOptions((prevOptions) => [
             ...prevOptions,
-            { id: prevOptions.length, value: `option ${prevOptions.length + 1}`, disabled: true },
+            {
+                id: String(prevOptions.length),
+                value: `option ${prevOptions.length + 1}`,
+                disabled: true,
+            },
         ]);
     };
 
@@ -249,7 +253,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         const updatedFields = [
             ...customFields,
             {
-                id: customFields.length, // Use the current array length as the new ID
+                id: String(customFields.length), // Use the current array length as the new ID
                 type,
                 name,
                 oldKey,
@@ -261,11 +265,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         setValue("open_test.custom_fields", updatedFields);
     };
 
-    const handleDeleteOpenField = (id: number) => {
+    const handleDeleteOpenField = (id: string) => {
         const updatedFields = customFields?.filter((field) => field.id !== id);
         setValue("open_test.custom_fields", updatedFields);
     };
-    const handleDeleteOptionField = (id: number) => {
+    const handleDeleteOptionField = (id: string) => {
         setDropdownOptions((prevFields) => prevFields.filter((field) => field.id !== id));
     };
 
@@ -273,7 +277,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const handleCloseDialog = (type: string, name: string, oldKey: boolean) => {
         // Create the new field
         const newField = {
-            id: customFields.length, // Use the current array length as the new ID
+            id: String(customFields.length), // Use the current array length as the new ID
             type,
             name,
             oldKey,
@@ -293,7 +297,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         setDropdownOptions([]);
     };
 
-    const handleValueChange = (id: number, newValue: string) => {
+    const handleValueChange = (id: string, newValue: string) => {
         setDropdownOptions((prevOptions) =>
             prevOptions.map((option) =>
                 option.id === id ? { ...option, value: newValue } : option,
@@ -301,7 +305,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         );
     };
 
-    const handleEditClick = (id: number) => {
+    const handleEditClick = (id: string) => {
         setDropdownOptions((prevOptions) =>
             prevOptions.map((option) =>
                 option.id === id ? { ...option, disabled: !option.disabled } : option,
@@ -321,35 +325,29 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         if (assessmentId !== "defaultId") {
             form.reset({
                 status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-                closed_test: storeDataStep3?.open_test?.checked ? false : true,
-                open_test: storeDataStep3?.open_test || {
-                    checked: false,
-                    start_date: "",
-                    end_date: "",
+                closed_test:
+                    assessmentDetails[0]?.saved_data?.assessment_visibility === "PRIVATE"
+                        ? true
+                        : false,
+                open_test: {
+                    checked:
+                        assessmentDetails[0]?.saved_data?.assessment_visibility === "PUBLIC"
+                            ? true
+                            : false,
+                    start_date:
+                        convertDateFormat(
+                            assessmentDetails[currentStep]?.saved_data?.registration_open_date ||
+                                "",
+                        ) || "",
+                    end_date:
+                        convertDateFormat(
+                            assessmentDetails[currentStep]?.saved_data?.registration_close_date ||
+                                "",
+                        ) || "",
                     instructions: "",
-                    custom_fields: [
-                        {
-                            id: 0,
-                            type: "textfield",
-                            name: "Full Name",
-                            oldKey: true,
-                            isRequired: true,
-                        },
-                        {
-                            id: 1,
-                            type: "textfield",
-                            name: "Email",
-                            oldKey: true,
-                            isRequired: true,
-                        },
-                        {
-                            id: 2,
-                            type: "textfield",
-                            name: "Phone Number",
-                            oldKey: true,
-                            isRequired: true,
-                        },
-                    ],
+                    custom_fields: convertToCustomFieldsData(
+                        assessmentDetails[currentStep]?.saved_data?.registration_form_fields,
+                    ),
                 },
                 select_batch: {
                     checked: true,
@@ -734,7 +732,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 <Plus size={32} /> Add School/College
                                             </MyButton>
                                         )}
-
                                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                                             <DialogTrigger>
                                                 <MyButton
@@ -745,7 +742,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                     <Plus size={32} /> Add Custom Field
                                                 </MyButton>
                                             </DialogTrigger>
-                                            <DialogContent className="p-0">
+                                            <DialogContent className="!w-[500px] p-0">
                                                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
                                                     Add Custom Field
                                                 </h1>

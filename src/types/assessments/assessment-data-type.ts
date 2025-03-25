@@ -9,17 +9,16 @@ interface AccessControl {
     roles: string[] | null;
     user_ids: string[];
 }
-
-interface RegistrationFormField {
+export interface RegistrationFormField {
     id: string;
-    fieldName: string;
-    fieldKey: string;
-    commaSeparatedOptions: string;
+    field_name: string;
+    field_key: string;
+    comma_separated_options: string;
     status: string;
-    isMandatory: boolean;
-    fieldType: string;
-    createdAt: string;
-    updatedAt: string;
+    is_mandatory: boolean;
+    field_type: string;
+    created_at: string;
+    updated_at: string;
 }
 
 interface PreBatchRegistration {
@@ -152,7 +151,7 @@ export type CustomFields = {
     name: string;
     oldKey: boolean;
     isRequired: boolean;
-    options?: { id: number; value: string }[];
+    options?: { id: string; value: string }[];
     default_value?: string;
     description?: string;
     key?: string;
