@@ -517,7 +517,7 @@ export function convertToCustomFieldsData(data: RegistrationFormField[] | undefi
         type: field.field_type,
         name: field.field_name,
         oldKey:
-            field.field_key === "name" ||
+            field.field_key === "full_name" ||
             field.field_key === "phone_number" ||
             field.field_key === "email"
                 ? true
