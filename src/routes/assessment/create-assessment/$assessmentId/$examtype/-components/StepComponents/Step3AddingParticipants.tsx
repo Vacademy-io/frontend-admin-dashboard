@@ -147,7 +147,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 when_assessment_created: true,
                 before_assessment_goes_live: {
                     checked: true,
-                    value: "",
+                    value: "1 min",
                 },
                 when_assessment_live: true,
                 when_assessment_report_generated: true,
@@ -156,7 +156,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 when_assessment_created: true,
                 before_assessment_goes_live: {
                     checked: true,
-                    value: "",
+                    value: "1 min",
                 },
                 when_assessment_live: true,
                 when_student_appears: true,
@@ -166,6 +166,8 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         },
         mode: "onChange",
     });
+
+    console.log(form.getValues());
 
     const { handleSubmit, getValues, control, watch, setValue } = form;
     const customFields = getValues("open_test.custom_fields");
@@ -378,11 +380,13 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 ?.participant_before_assessment_goes_live === 0
                                 ? false
                                 : true,
-                        value:
-                            String(
-                                assessmentDetails[currentStep]?.saved_data?.notifications
-                                    ?.participant_before_assessment_goes_live,
-                            ) || "",
+                        value: assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.participant_before_assessment_goes_live
+                            ? String(
+                                  assessmentDetails[currentStep]?.saved_data?.notifications
+                                      ?.participant_before_assessment_goes_live,
+                              ) + " min"
+                            : "1 min",
                     },
                     when_assessment_live:
                         assessmentDetails[currentStep]?.saved_data?.notifications
@@ -401,11 +405,13 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 ?.parent_before_assessment_goes_live === 0
                                 ? false
                                 : true,
-                        value:
-                            String(
-                                assessmentDetails[currentStep]?.saved_data?.notifications
-                                    ?.parent_before_assessment_goes_live,
-                            ) || "",
+                        value: assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.parent_before_assessment_goes_live
+                            ? String(
+                                  assessmentDetails[currentStep]?.saved_data?.notifications
+                                      ?.parent_before_assessment_goes_live,
+                              ) + " min"
+                            : "1 min",
                     },
                     when_assessment_live:
                         assessmentDetails[currentStep]?.saved_data?.notifications
