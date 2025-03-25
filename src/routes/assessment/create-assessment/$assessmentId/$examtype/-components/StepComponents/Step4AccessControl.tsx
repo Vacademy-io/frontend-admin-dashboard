@@ -5,10 +5,8 @@ import { z } from "zod";
 import { AccessControlFormSchema } from "../../-utils/access-control-form-schema";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
-import { Check, Plus, X } from "phosphor-react";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { MyInput } from "@/components/design-system/input";
+import { Plus } from "phosphor-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
     getAssessmentDetails,
@@ -17,12 +15,7 @@ import {
 } from "../../-services/assessment-services";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import {
-    getSelectedRoles,
-    getStepKey,
-    getUsersStep4,
-    syncStep4DataWithStore,
-} from "../../-utils/helper";
+import { getStepKey, syncStep4DataWithStore } from "../../-utils/helper";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { toast } from "sonner";
@@ -32,6 +25,21 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
 import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
 import { useBasicInfoStore } from "../../-utils/zustand-global-states/step1-basic-info";
+import { getInstituteId } from "@/constants/helper";
+import {
+    fetchInstituteDashboardUsers,
+    handleDeleteDisableDashboardUsers,
+} from "@/routes/dashboard/-services/dashboard-services";
+import { RoleTypeUserIcon } from "@/svgs";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import RoleTypeFilterButtons from "@/routes/dashboard/-components/RoleTypeFilterButtons";
+import { ScheduleTestFilters } from "@/routes/assessment/assessment-list/-components/ScheduleTestFilters";
+import { RoleType } from "@/constants/dummy-data";
+import { MyFilterOption } from "@/types/assessments/my-filter";
+import { RoleTypeSelectedFilter } from "@/routes/dashboard/-components/RoleTypeComponent";
+import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
+import Step4InviteUsers from "./-components/Step4InviteUsers";
 
 // Define the type from the schema for better TypeScript inference
 type AccessControlFormValues = z.infer<typeof AccessControlFormSchema>;
@@ -40,12 +48,12 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const instituteId = getInstituteId();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const params = useParams({ strict: false });
     const examType = params.examtype ?? ""; // Ensure it's a string
     const assessmentId = params.assessmentId ?? null; // Ensure it's string | null
-    const storeDataStep4 = useAccessControlStore((state) => state);
     const { savedAssessmentId, setSavedAssessmentId } = useSavedAssessmentStore();
     const { instituteDetails } = useInstituteDetailsStore();
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
@@ -55,33 +63,15 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
             type: examType,
         }),
     );
-    const roles =
-        assessmentDetails[currentStep]?.field_options?.roles?.map((role, index) => ({
-            roleId: (index + 1).toString(),
-            roleName: role.value,
-            isSelected: false,
-        })) || [];
+    const [isAdminLoading, setIsAdminLoading] = useState(false);
     const form = useForm<AccessControlFormValues>({
         resolver: zodResolver(AccessControlFormSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            assessment_creation_access: storeDataStep4.assessment_creation_access || {
-                roles: [...roles],
-                users: [],
-            },
-            live_assessment_notification: storeDataStep4.live_assessment_notification || {
-                roles: [...roles],
-                users: [],
-            },
-            assessment_submission_and_report_access:
-                storeDataStep4.assessment_submission_and_report_access || {
-                    roles: [...roles],
-                    users: [],
-                },
-            evaluation_process: storeDataStep4.evaluation_process || {
-                roles: [...roles],
-                users: [],
-            },
+            assessment_creation_access: [],
+            live_assessment_notification: [],
+            assessment_submission_and_report_access: [],
+            evaluation_process: [],
         },
         mode: "onChange",
     });
@@ -228,71 +218,70 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
         if (assessmentId !== "defaultId") {
             form.reset({
                 status: assessmentDetails[currentStep]?.status,
-                assessment_creation_access: {
-                    roles: [
-                        ...getSelectedRoles(
-                            roles,
-                            assessmentDetails[currentStep]?.saved_data?.creation_access?.roles ??
-                                [],
-                        ),
-                    ],
-                    users: [
-                        ...getUsersStep4(
-                            assessmentDetails[currentStep]?.saved_data?.creation_access?.user_ids ??
-                                [],
-                        ),
-                    ],
-                },
-                live_assessment_notification: {
-                    roles: [
-                        ...getSelectedRoles(
-                            roles,
-                            assessmentDetails[currentStep]?.saved_data?.live_assessment_access
-                                ?.roles ?? [],
-                        ),
-                    ],
-                    users: [
-                        ...getUsersStep4(
-                            assessmentDetails[currentStep]?.saved_data?.live_assessment_access
-                                ?.user_ids ?? [],
-                        ),
-                    ],
-                },
-                assessment_submission_and_report_access: {
-                    roles: [
-                        ...getSelectedRoles(
-                            roles,
-                            assessmentDetails[currentStep]?.saved_data?.report_and_submission_access
-                                ?.roles ?? [],
-                        ),
-                    ],
-                    users: [
-                        ...getUsersStep4(
-                            assessmentDetails[currentStep]?.saved_data?.report_and_submission_access
-                                ?.user_ids ?? [],
-                        ),
-                    ],
-                },
-                evaluation_process: {
-                    roles: [
-                        ...getSelectedRoles(
-                            roles,
-                            assessmentDetails[currentStep]?.saved_data?.evaluation_access?.roles ??
-                                [],
-                        ),
-                    ],
-                    users: [
-                        ...getUsersStep4(
-                            assessmentDetails[currentStep]?.saved_data?.evaluation_access
-                                ?.user_ids ?? [],
-                        ),
-                    ],
-                },
+                assessment_creation_access: [],
+                live_assessment_notification: [],
+                assessment_submission_and_report_access: [],
+                evaluation_process: [],
             });
         }
     }, []);
 
-    if (isLoading || handleSubmitStep4Form.status === "pending") return <DashboardLoader />;
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setIsAdminLoading(true);
+            fetchInstituteDashboardUsers(instituteId, {
+                roles: [
+                    { id: "1", name: "ADMIN" },
+                    { id: "2", name: "COURSE CREATOR" },
+                    { id: "3", name: "ASSESSMENT CREATOR" },
+                    { id: "4", name: "EVALUATOR" },
+                ],
+                status: [
+                    { id: "1", name: "ACTIVE" },
+                    { id: "2", name: "DISABLED" },
+                    { id: "3", name: "INVITED" },
+                ],
+            })
+                .then((data) => {
+                    const filteredData = data.map((user: UserRolesDataEntry) => ({
+                        userId: user.id,
+                        email: user.email,
+                        name: user.full_name,
+                        roles: Array.from(
+                            new Map(
+                                user.roles.map((role) => [
+                                    role.role_id,
+                                    {
+                                        roleId: role.role_id,
+                                        roleName: role.role_name,
+                                    },
+                                ]),
+                            ).values(),
+                        ),
+                        status: user.status,
+                    }));
+                    form.reset({
+                        assessment_creation_access: filteredData,
+                        live_assessment_notification: filteredData,
+                        assessment_submission_and_report_access: filteredData,
+                        evaluation_process: filteredData,
+                    });
+                })
+                .catch((error) => {
+                    console.error(error);
+                })
+                .finally(() => {
+                    setIsAdminLoading(false);
+                });
+        }, 0);
+
+        return () => clearTimeout(timeoutId);
+    }, []);
+
+    if (isLoading) return <DashboardLoader />;
+
+    if (isLoading || handleSubmitStep4Form.status === "pending" || isAdminLoading)
+        return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>
@@ -383,45 +372,140 @@ const AccessControlCards = ({
         | "evaluation_process";
     form: UseFormReturn<AccessControlFormValues>;
 }) => {
-    const [inviteUserEmailInput, setInviteUserEmailInput] = useState("");
-    const { getValues, setValue, watch } = form;
+    const instituteId = getInstituteId();
+    const getDashboardUsersData = useMutation({
+        mutationFn: ({
+            instituteId,
+            selectedFilter,
+        }: {
+            instituteId: string | undefined;
+            selectedFilter: RoleTypeSelectedFilter;
+        }) => fetchInstituteDashboardUsers(instituteId, selectedFilter),
+        onSuccess: (data) => {
+            const filteredData = data.map((user: UserRolesDataEntry) => ({
+                userId: user.id,
+                email: user.email,
+                name: user.full_name,
+                roles: Array.from(
+                    new Map(
+                        user.roles.map((role) => [
+                            role.role_id,
+                            {
+                                roleId: role.role_id,
+                                roleName: role.role_name,
+                            },
+                        ]),
+                    ).values(),
+                ),
+                status: user.status,
+            }));
+            form.reset({
+                assessment_creation_access: filteredData,
+                live_assessment_notification: filteredData,
+                assessment_submission_and_report_access: filteredData,
+                evaluation_process: filteredData,
+            });
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const [selectedFilter, setSelectedFilter] = useState({
+        roles: [],
+        status: [],
+    });
+
+    const { watch, getValues } = form;
     const getKeyVal = getValues(keyVal);
     watch(keyVal);
 
-    const handleRemoveRole = (roleId: string) => {
-        setValue(keyVal, {
-            ...getValues(keyVal),
-            roles: getKeyVal.roles.map((role) =>
-                role.roleId === roleId ? { ...role, isSelected: !role.isSelected } : role,
-            ),
+    const handleFilterChange = (filterKey: string, selectedItems: MyFilterOption[]) => {
+        setSelectedFilter((prev) => {
+            const updatedFilters = { ...prev, [filterKey]: selectedItems };
+            return updatedFilters;
         });
     };
 
-    const handleRemoveUsers = (userId: string) => {
-        setValue(keyVal, {
-            ...getValues(keyVal),
-            users: getValues(keyVal).users.filter((user) => user.userId !== userId),
+    const handleSubmitFilters = () => {
+        getDashboardUsersData.mutate({
+            instituteId,
+            selectedFilter: {
+                roles: selectedFilter.roles,
+                status: [
+                    { id: "1", name: "ACTIVE" },
+                    { id: "2", name: "DISABLED" },
+                    { id: "3", name: "INVITED" },
+                ],
+            },
         });
     };
 
-    const handleInviteUsers = () => {
-        const currentUsers = getValues(keyVal).users || [];
-        setValue(keyVal, {
-            ...getValues(keyVal),
-            users: [
-                ...currentUsers,
-                { userId: currentUsers.length.toString(), email: inviteUserEmailInput },
-            ],
+    const handleResetFilters = () => {
+        setSelectedFilter({
+            roles: [],
+            status: [],
         });
-        setInviteUserEmailInput("");
+        getDashboardUsersData.mutate({
+            instituteId,
+            selectedFilter: {
+                roles: [
+                    { id: "1", name: "ADMIN" },
+                    { id: "2", name: "COURSE CREATOR" },
+                    { id: "3", name: "ASSESSMENT CREATOR" },
+                    { id: "4", name: "EVALUATOR" },
+                ],
+                status: [
+                    { id: "1", name: "ACTIVE" },
+                    { id: "2", name: "DISABLED" },
+                    { id: "3", name: "INVITED" },
+                ],
+            },
+        });
     };
 
-    const handleSelectRole = (roleId: string) => {
-        setValue(keyVal, {
-            ...getValues(keyVal),
-            roles: getKeyVal.roles.map((role) =>
-                role.roleId === roleId ? { ...role, isSelected: !role.isSelected } : role,
-            ),
+    const handleRefetchData = () => {
+        getDashboardUsersData.mutate({
+            instituteId,
+            selectedFilter: {
+                roles: [
+                    { id: "1", name: "ADMIN" },
+                    { id: "2", name: "COURSE CREATOR" },
+                    { id: "3", name: "ASSESSMENT CREATOR" },
+                    { id: "4", name: "EVALUATOR" },
+                ],
+                status: [
+                    { id: "1", name: "ACTIVE" },
+                    { id: "2", name: "DISABLED" },
+                    { id: "3", name: "INVITED" },
+                ],
+            },
+        });
+    };
+
+    const handleDisableUserMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            status,
+            userId,
+        }: {
+            instituteId: string | undefined;
+            status: string;
+            userId: string;
+        }) => handleDeleteDisableDashboardUsers(instituteId, status, userId),
+        onSuccess: () => {
+            handleRefetchData();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handlCancelInviteUser = (userId: string) => {
+        handleDisableUserMutation.mutate({
+            instituteId,
+            status: "CANCEL",
+            userId: userId,
         });
     };
 
@@ -436,126 +520,94 @@ const AccessControlCards = ({
                             Add
                         </MyButton>
                     </DialogTrigger>
-                    <DialogContent className="w-[520px] !p-0">
-                        <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
-                            Add Role/User
-                        </h1>
-                        <div className="flex max-h-[50vh] flex-col gap-4 overflow-y-auto px-4">
-                            <h1>Roles</h1>
-                            <div className="flex flex-wrap gap-4">
-                                {getKeyVal.roles.map((role, idx) => {
-                                    return (
-                                        <Badge
-                                            key={idx}
-                                            className={`cursor-pointer rounded-lg border border-neutral-300 ${
-                                                role.roleName === "EVALUATOR"
-                                                    ? "bg-[#F5F0FF]"
-                                                    : role.roleName === "CREATOR"
-                                                      ? "bg-[#FFF4F5]"
-                                                      : "bg-[#F4F9FF]"
-                                            } py-1.5 shadow-none`}
-                                            onClick={() => handleSelectRole(role.roleId)}
-                                        >
-                                            Role: {role.roleName}
-                                            {role.isSelected && <Check className="ml-2 !size-4" />}
-                                        </Badge>
-                                    );
-                                })}
+                    <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
+                        <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">Add User</h1>
+                        <div className="flex items-center justify-between p-6 !pb-0">
+                            <div className="flex items-center gap-6">
+                                <ScheduleTestFilters
+                                    label="Role Type"
+                                    data={RoleType}
+                                    selectedItems={selectedFilter["roles"] || []}
+                                    onSelectionChange={(items) =>
+                                        handleFilterChange("roles", items)
+                                    }
+                                />
+                                <RoleTypeFilterButtons
+                                    selectedQuestionPaperFilters={selectedFilter}
+                                    handleSubmitFilters={handleSubmitFilters}
+                                    handleResetFilters={handleResetFilters}
+                                />
                             </div>
-                            <h1>Invite Users</h1>
-                            <div className="flex flex-col">
-                                <h1 className="text-sm font-thin">
-                                    Invite Users Via Email
-                                    <span className="text-subtitle text-danger-600">*</span>
-                                </h1>
-                                <div className="flex w-full items-center justify-between gap-4">
-                                    <MyInput
-                                        inputType="email"
-                                        inputPlaceholder="you@email.com"
-                                        input={inviteUserEmailInput}
-                                        onChangeFunction={(e) =>
-                                            setInviteUserEmailInput(e.target.value)
-                                        }
-                                        size="large"
-                                        className="!w-80 min-w-60"
-                                    />
-                                    <MyButton
-                                        type="button"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        onClick={handleInviteUsers}
-                                        disable={!inviteUserEmailInput}
+                            <div className="flex items-center gap-2">
+                                <Checkbox />
+                                <span className="font-thin">Select All</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-6 p-6">
+                            {getKeyVal.map((user) => {
+                                return (
+                                    <div
+                                        key={user.userId}
+                                        className="flex items-center justify-between"
                                     >
-                                        Invite
-                                    </MyButton>
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4">
-                                {getKeyVal?.users?.map((user, idx) => {
-                                    return (
-                                        <Badge
-                                            key={idx}
-                                            className="rounded-lg border border-neutral-300 bg-[#FFFDF5] py-1.5 shadow-none"
-                                        >
-                                            User: {user.email}
-                                            <X
-                                                className="ml-2 !size-3 cursor-pointer font-bold"
-                                                onClick={() => handleRemoveUsers(user.userId)}
-                                            />
-                                        </Badge>
-                                    );
-                                })}
-                            </div>
-                            <div className="my-4 flex justify-end">
-                                <DialogClose>
-                                    <MyButton type="button" scale="large" buttonType="primary">
-                                        Done
-                                    </MyButton>
-                                </DialogClose>
-                            </div>
+                                        <div className="flex items-center gap-4">
+                                            <Checkbox />
+                                            {user.status !== "INVITED" && <RoleTypeUserIcon />}
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center gap-4">
+                                                    <p>{user.name}</p>
+                                                    <div className="flex items-center gap-4">
+                                                        {user.roles.map((role) => {
+                                                            return (
+                                                                <Badge
+                                                                    key={role.roleId}
+                                                                    className={`whitespace-nowrap rounded-lg border border-neutral-300 ${
+                                                                        role.roleName === "ADMIN"
+                                                                            ? "bg-[#F4F9FF]"
+                                                                            : role.roleName ===
+                                                                                "COURSE CREATOR"
+                                                                              ? "bg-[#F4FFF9]"
+                                                                              : role.roleName ===
+                                                                                  "ASSESSMENT CREATOR"
+                                                                                ? "bg-[#FFF4F5]"
+                                                                                : "bg-[#F5F0FF]"
+                                                                    } py-1.5 font-thin shadow-none`}
+                                                                >
+                                                                    {role.roleName}
+                                                                </Badge>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs">{user.email}</p>
+                                            </div>
+                                        </div>
+                                        {user.status === "INVITED" && (
+                                            <p
+                                                onClick={() => handlCancelInviteUser(user.userId)}
+                                                className="cursor-pointer text-sm text-primary-500"
+                                            >
+                                                Cancel Invitation
+                                            </p>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="flex items-center justify-between p-6">
+                            <Step4InviteUsers refetchData={handleRefetchData} />
+                            <MyButton
+                                type="button"
+                                scale="large"
+                                buttonType="primary"
+                                layoutVariant="default"
+                                className="mb-6"
+                            >
+                                Done
+                            </MyButton>
                         </div>
                     </DialogContent>
                 </Dialog>
-            </div>
-            <div className="flex flex-wrap gap-4">
-                {getKeyVal?.roles?.map((role, idx) => {
-                    if (role.isSelected) {
-                        return (
-                            <Badge
-                                key={idx}
-                                className={`cursor-pointer rounded-lg border border-neutral-300 ${
-                                    role.roleName === "EVALUATOR"
-                                        ? "bg-[#F5F0FF]"
-                                        : role.roleName === "CREATOR"
-                                          ? "bg-[#FFF4F5]"
-                                          : "bg-[#F4F9FF]"
-                                } py-1.5 shadow-none`}
-                            >
-                                Role: {role.roleName}
-                                <X
-                                    className="ml-2 !size-3 cursor-pointer font-bold"
-                                    onClick={() => handleRemoveRole(role.roleId)}
-                                />
-                            </Badge>
-                        );
-                    }
-                    return null;
-                })}
-                {getKeyVal?.roles?.some((role) => role.isSelected) &&
-                    getKeyVal?.users?.map((user, idx) => {
-                        return (
-                            <Badge
-                                key={idx}
-                                className="rounded-lg border border-neutral-300 bg-[#FFFDF5] py-1.5 shadow-none"
-                            >
-                                User: {user.email}
-                                <X
-                                    className="ml-2 !size-3 cursor-pointer font-bold"
-                                    onClick={() => handleRemoveUsers(user.userId)}
-                                />
-                            </Badge>
-                        );
-                    })}
             </div>
         </div>
     );
