@@ -516,7 +516,12 @@ export function convertToCustomFieldsData(data: RegistrationFormField[] | undefi
         id: field.id,
         type: field.field_type,
         name: field.field_name,
-        oldKey: false,
+        oldKey:
+            field.field_key === "name" ||
+            field.field_key === "phone_number" ||
+            field.field_key === "email"
+                ? true
+                : false,
         isRequired: field.is_mandatory,
         ...(field.field_type === "dropdown" && {
             options: field.comma_separated_options.split(",").map((value, index) => ({

@@ -238,6 +238,7 @@ export const handlePostAssessmentPreview = async (
 const convertCustomFields = (customFields: CustomFields): ConvertedCustomField[] => {
     const convertedFields = customFields.map((field) => {
         return {
+            id: field.id,
             name: field.name,
             type: field.type,
             default_value: "", // Provide a default value, if necessary

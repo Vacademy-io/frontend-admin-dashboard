@@ -147,6 +147,7 @@ export interface ConvertedCustomField {
 
 // Assuming customFields is an object where keys are strings and values are the custom field details
 export type CustomFields = {
+    id: string;
     type: string;
     name: string;
     oldKey: boolean;
