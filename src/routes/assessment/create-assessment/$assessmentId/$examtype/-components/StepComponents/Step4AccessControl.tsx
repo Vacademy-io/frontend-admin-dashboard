@@ -423,7 +423,10 @@ const AccessControlCards = ({
     const [selectedUsers, setSelectedUsers] = useState<string[]>(
         form.getValues(keyVal).map((user) => user.userId),
     );
-    const [isSelectAllChecked, setIsSelectAllChecked] = useState(false);
+    const [isSelectAllChecked, setIsSelectAllChecked] = useState(
+        existingInstituteUsersData.length > 0 &&
+            existingInstituteUsersData.every((user) => selectedUsers.includes(user.userId)),
+    );
     const [open, setOpen] = useState(false);
     const instituteId = getInstituteId();
     const getDashboardUsersData = useMutation({
@@ -583,9 +586,11 @@ const AccessControlCards = ({
     };
 
     const handleUserSelect = (userId: string) => {
-        setSelectedUsers((prev) =>
-            prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId],
-        );
+        const newSelectedUsers = selectedUsers.includes(userId)
+            ? selectedUsers.filter((id) => id !== userId)
+            : [...selectedUsers, userId];
+
+        setSelectedUsers(newSelectedUsers);
     };
 
     const handleSelectAll = () => {
@@ -624,6 +629,14 @@ const AccessControlCards = ({
             form.getValues(keyVal).filter((user) => user.userId !== userId),
         );
     };
+
+    useEffect(() => {
+        // Update isSelectAllChecked whenever selectedUsers or existingInstituteUsersData changes
+        setIsSelectAllChecked(
+            existingInstituteUsersData.length > 0 &&
+                existingInstituteUsersData.every((user) => selectedUsers.includes(user.userId)),
+        );
+    }, [selectedUsers, existingInstituteUsersData]);
 
     return (
         <div className="flex flex-col gap-4 rounded-xl border p-4">
