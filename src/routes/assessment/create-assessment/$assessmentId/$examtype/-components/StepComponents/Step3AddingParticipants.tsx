@@ -334,16 +334,18 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         assessmentDetails[0]?.saved_data?.assessment_visibility === "PUBLIC"
                             ? true
                             : false,
-                    start_date:
-                        convertDateFormat(
-                            assessmentDetails[currentStep]?.saved_data?.registration_open_date ||
-                                "",
-                        ) || "",
-                    end_date:
-                        convertDateFormat(
-                            assessmentDetails[currentStep]?.saved_data?.registration_close_date ||
-                                "",
-                        ) || "",
+                    start_date: assessmentDetails[currentStep]?.saved_data?.registration_open_date
+                        ? convertDateFormat(
+                              assessmentDetails[currentStep]?.saved_data?.registration_open_date ||
+                                  "",
+                          )
+                        : "",
+                    end_date: assessmentDetails[currentStep]?.saved_data?.registration_close_date
+                        ? convertDateFormat(
+                              assessmentDetails[currentStep]?.saved_data?.registration_close_date ||
+                                  "",
+                          )
+                        : "",
                     instructions: "",
                     custom_fields: convertToCustomFieldsData(
                         assessmentDetails[currentStep]?.saved_data?.registration_form_fields,
