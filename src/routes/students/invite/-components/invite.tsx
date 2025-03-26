@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
-import { InviteFormType } from "../-schema/InviteFormSchema";
+import { InviteForm } from "../-schema/InviteFormSchema";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
@@ -86,11 +86,11 @@ export const Invite = () => {
             });
     };
 
-    const onEditInvite = (updatedInvite: InviteFormType) => {
+    const onEditInvite = (updatedInvite: InviteForm) => {
         console.log(updatedInvite);
     };
 
-    const onCreateInvite = async (invite: InviteFormType) => {
+    const onCreateInvite = async (invite: InviteForm) => {
         const requestData = formDataToRequestData(invite);
         try {
             const { data: responseData }: { data: CreateInvitationRequestType } =

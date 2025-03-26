@@ -11,6 +11,7 @@ interface PhoneInputFieldProps {
     control: any;
     disabled?: boolean;
     country?: string;
+    required?: boolean;
 }
 
 const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
@@ -20,6 +21,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
     control,
     disabled = false,
     country = "us",
+    required = false,
 }) => {
     return (
         <FormField
@@ -29,7 +31,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
                 <FormItem className="w-96">
                     <FormLabel>
                         {label}
-                        <span className="text-danger-600">*</span>
+                        {required && <span className="text-danger-600">*</span>}
                     </FormLabel>
                     <FormControl>
                         <PhoneInput

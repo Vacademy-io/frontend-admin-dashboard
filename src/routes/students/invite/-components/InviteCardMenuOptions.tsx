@@ -4,14 +4,14 @@ import { DotsThree } from "phosphor-react";
 import { useState } from "react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { InviteLinkType } from "../-types/invite-link-types";
-import { InviteFormType } from "../-schema/InviteFormSchema";
+import { InviteForm } from "../-schema/InviteFormSchema";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
 import { useUpdateInviteLinkStatus } from "../-services/update-invite-link-status";
 import { toast } from "sonner";
 
 interface InviteCardMenuOptionsProps {
     invite: InviteLinkType;
-    onEdit: (updatedInvite: InviteFormType) => void;
+    onEdit: (updatedInvite: InviteForm) => void;
 }
 
 export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) => {
@@ -46,7 +46,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
         </div>
     );
 
-    const dummyInviteData: InviteFormType = {
+    const dummyInviteData: InviteForm = {
         inviteLink: "Test link",
         activeStatus: true,
         custom_fields: [
@@ -72,9 +72,11 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                 isRequired: true,
             },
         ],
-        courseSelectionMode: "institute",
-        sessionSelectionMode: "institute",
-        levelSelectionMode: "institute",
+        batches: {
+            maxCourses: 0,
+            preSelectedCourses: [],
+            learnerChoiceCourses: [],
+        },
         studentExpiryDays: 200,
         inviteeEmail: "shristi@gmail.com",
         inviteeEmails: [],

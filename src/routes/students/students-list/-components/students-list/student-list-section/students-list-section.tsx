@@ -150,6 +150,7 @@ export const StudentsListSection = () => {
                     appliedFilters={appliedFilters}
                     page={page}
                     pageSize={10}
+                    totalElements={studentTableData?.total_elements || 0}
                 />
                 {!studentTableData || studentTableData.content.length == 0 ? (
                     <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
@@ -160,7 +161,10 @@ export const StudentsListSection = () => {
                     <div className="flex flex-col gap-5">
                         <div className="h-auto max-w-full">
                             <div className="max-w-full">
-                                <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                                <SidebarProvider
+                                    style={{ ["--sidebar-width" as string]: "565px" }}
+                                    defaultOpen={false}
+                                >
                                     <MyTable<StudentTable>
                                         data={studentTableData}
                                         columns={myColumns}
