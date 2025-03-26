@@ -23,10 +23,20 @@ import useIntroJsTour from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { studentManagementSteps } from "@/constants/intro/steps";
 import { EmptyStudentListImage } from "@/assets/svgs";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
+    const [isOpen, setIsOpen] = useState(false);
+    const { getCourseFromPackage } = useInstituteDetailsStore();
+    useEffect(() => {
+        const courseList = getCourseFromPackage();
+        if (courseList.length === 0) {
+            setIsOpen(true);
+        }
+    }, [getCourseFromPackage]);
 
     useIntroJsTour({
         key: IntroKey.studentManagementFirstTimeVisit,
@@ -140,6 +150,7 @@ export const StudentsListSection = () => {
                     appliedFilters={appliedFilters}
                     page={page}
                     pageSize={10}
+                    totalElements={studentTableData?.total_elements || 0}
                 />
                 {!studentTableData || studentTableData.content.length == 0 ? (
                     <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
@@ -150,7 +161,10 @@ export const StudentsListSection = () => {
                     <div className="flex flex-col gap-5">
                         <div className="h-auto max-w-full">
                             <div className="max-w-full">
-                                <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                                <SidebarProvider
+                                    style={{ ["--sidebar-width" as string]: "565px" }}
+                                    defaultOpen={false}
+                                >
                                     <MyTable<StudentTable>
                                         data={studentTableData}
                                         columns={myColumns}
@@ -182,6 +196,7 @@ export const StudentsListSection = () => {
                     </div>
                 )}
             </div>
+            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" />
         </section>
     );
 };

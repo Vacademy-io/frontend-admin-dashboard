@@ -1,5 +1,5 @@
 import { StepContentProps } from "@/types/assessments/step-content-props";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { MyButton } from "@/components/design-system/button";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import {
 } from "phosphor-react";
 import QRCode from "react-qr-code";
 import {
+    convertToCustomFieldsData,
     copyToClipboard,
     getStepKey,
     handleDownloadQRCode,
@@ -29,7 +30,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import SelectField from "@/components/design-system/select-field";
 import { timeLimit } from "@/constants/dummy-data";
 import { AddingParticipantsTab } from "../AddingParticipantsTab";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -46,6 +47,7 @@ import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
+import { convertDateFormat } from "./Step1BasicInfo";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -54,9 +56,10 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
+    const queryClient = useQueryClient();
     const params = useParams({ strict: false });
-    const examType = params.examtype;
-    const assessmentId = params.assessmentId;
+    const examType = params.examtype ?? "";
+    const assessmentId = params.assessmentId ?? "";
     const storeDataStep3 = useTestAccessStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
@@ -64,7 +67,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const [textFieldValue, setTextFieldValue] = useState("");
     const [dropdownOptions, setDropdownOptions] = useState<
         {
-            id: number;
+            id: string;
             value: string;
             disabled: boolean;
         }[]
@@ -80,7 +83,21 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     );
 
     const { batches_for_sessions } = instituteDetails || {};
-    const transformedBatches = transformBatchData(batches_for_sessions || []);
+
+    // Extract batch IDs from preBatchData
+    const batchIds = new Set(
+        assessmentDetails[currentStep]?.saved_data.pre_batch_registrations.map(
+            (batch) => batch.batchId,
+        ),
+    );
+
+    // Filter matching batches
+    const matchedBatches = batches_for_sessions?.filter((batch) => batchIds.has(batch.id));
+
+    const transformedBatches =
+        assessmentId !== "defaultId"
+            ? transformBatchData(matchedBatches || [])
+            : transformBatchData(batches_for_sessions || []);
 
     const form = useForm<TestAccessFormType>({
         resolver: zodResolver(testAccessSchema),
@@ -94,21 +111,21 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 instructions: "",
                 custom_fields: [
                     {
-                        id: 0,
+                        id: "0",
                         type: "textfield",
                         name: "Full Name",
                         oldKey: true,
                         isRequired: true,
                     },
                     {
-                        id: 1,
+                        id: "1",
                         type: "textfield",
                         name: "Email",
                         oldKey: true,
                         isRequired: true,
                     },
                     {
-                        id: 2,
+                        id: "2",
                         type: "textfield",
                         name: "Phone Number",
                         oldKey: true,
@@ -132,7 +149,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 when_assessment_created: true,
                 before_assessment_goes_live: {
                     checked: true,
-                    value: "",
+                    value: "1 min",
                 },
                 when_assessment_live: true,
                 when_assessment_report_generated: true,
@@ -141,7 +158,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 when_assessment_created: true,
                 before_assessment_goes_live: {
                     checked: true,
-                    value: "",
+                    value: "1 min",
                 },
                 when_assessment_live: true,
                 when_student_appears: true,
@@ -169,12 +186,23 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             type: string | undefined;
         }) => handlePostStep3Data(data, assessmentId, instituteId, type),
         onSuccess: () => {
-            syncStep3DataWithStore(form);
-            toast.success("Step 3 data has been saved successfully!", {
-                className: "success-toast",
-                duration: 2000,
-            });
-            handleCompleteCurrentStep();
+            if (assessmentId !== "defaultId") {
+                useTestAccessStore.getState().reset();
+                window.history.back();
+                toast.success("Step 3 data has been updated successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_STUDENT_DETAILS"] });
+            } else {
+                syncStep3DataWithStore(form);
+                toast.success("Step 3 data has been saved successfully!", {
+                    className: "success-toast",
+                    duration: 2000,
+                });
+                handleCompleteCurrentStep();
+            }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -192,7 +220,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const onSubmit = (data: z.infer<typeof testAccessSchema>) => {
         handleSubmitStep3Form.mutate({
             data: data,
-            assessmentId: savedAssessmentId,
+            assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
         });
@@ -202,7 +230,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         console.log(err);
     };
 
-    const toggleIsRequired = (id: number) => {
+    const toggleIsRequired = (id: string) => {
         const updatedFields = customFields?.map((field) =>
             field.id === id ? { ...field, isRequired: !field.isRequired } : field,
         );
@@ -212,7 +240,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const handleAddDropdownOptions = () => {
         setDropdownOptions((prevOptions) => [
             ...prevOptions,
-            { id: prevOptions.length, value: `option ${prevOptions.length + 1}`, disabled: true },
+            {
+                id: String(prevOptions.length),
+                value: `option ${prevOptions.length + 1}`,
+                disabled: true,
+            },
         ]);
     };
 
@@ -221,7 +253,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         const updatedFields = [
             ...customFields,
             {
-                id: customFields.length, // Use the current array length as the new ID
+                id: String(customFields.length), // Use the current array length as the new ID
                 type,
                 name,
                 oldKey,
@@ -233,11 +265,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         setValue("open_test.custom_fields", updatedFields);
     };
 
-    const handleDeleteOpenField = (id: number) => {
+    const handleDeleteOpenField = (id: string) => {
         const updatedFields = customFields?.filter((field) => field.id !== id);
         setValue("open_test.custom_fields", updatedFields);
     };
-    const handleDeleteOptionField = (id: number) => {
+    const handleDeleteOptionField = (id: string) => {
         setDropdownOptions((prevFields) => prevFields.filter((field) => field.id !== id));
     };
 
@@ -245,7 +277,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const handleCloseDialog = (type: string, name: string, oldKey: boolean) => {
         // Create the new field
         const newField = {
-            id: customFields.length, // Use the current array length as the new ID
+            id: String(customFields.length), // Use the current array length as the new ID
             type,
             name,
             oldKey,
@@ -265,7 +297,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         setDropdownOptions([]);
     };
 
-    const handleValueChange = (id: number, newValue: string) => {
+    const handleValueChange = (id: string, newValue: string) => {
         setDropdownOptions((prevOptions) =>
             prevOptions.map((option) =>
                 option.id === id ? { ...option, value: newValue } : option,
@@ -273,7 +305,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         );
     };
 
-    const handleEditClick = (id: number) => {
+    const handleEditClick = (id: string) => {
         setDropdownOptions((prevOptions) =>
             prevOptions.map((option) =>
                 option.id === id ? { ...option, disabled: !option.disabled } : option,
@@ -288,6 +320,111 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             .flatMap((step) => step.subStep || [])
             .filter((subStep): subStep is Step => subStep !== undefined),
     });
+
+    useEffect(() => {
+        if (assessmentId !== "defaultId") {
+            form.reset({
+                status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
+                closed_test:
+                    assessmentDetails[0]?.saved_data?.assessment_visibility === "PRIVATE"
+                        ? true
+                        : false,
+                open_test: {
+                    checked:
+                        assessmentDetails[0]?.saved_data?.assessment_visibility === "PUBLIC"
+                            ? true
+                            : false,
+                    start_date: assessmentDetails[currentStep]?.saved_data?.registration_open_date
+                        ? convertDateFormat(
+                              assessmentDetails[currentStep]?.saved_data?.registration_open_date ||
+                                  "",
+                          )
+                        : "",
+                    end_date: assessmentDetails[currentStep]?.saved_data?.registration_close_date
+                        ? convertDateFormat(
+                              assessmentDetails[currentStep]?.saved_data?.registration_close_date ||
+                                  "",
+                          )
+                        : "",
+                    instructions: "",
+                    custom_fields: convertToCustomFieldsData(
+                        assessmentDetails[currentStep]?.saved_data?.registration_form_fields,
+                    ),
+                },
+                select_batch: {
+                    checked: true,
+                    batch_details: Object.fromEntries(
+                        Object.entries(transformedBatches).map(([key, value]) => [
+                            key,
+                            value.map((item) => item.id),
+                        ]),
+                    ),
+                },
+                select_individually: {
+                    checked: false,
+                    student_details: [],
+                },
+                join_link:
+                    `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
+                    "",
+                show_leaderboard:
+                    assessmentDetails[currentStep]?.saved_data?.notifications
+                        ?.participant_show_leaderboard || false,
+                notify_student: {
+                    when_assessment_created:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.participant_when_assessment_created || false,
+                    before_assessment_goes_live: {
+                        checked:
+                            assessmentDetails[currentStep]?.saved_data?.notifications
+                                ?.participant_before_assessment_goes_live === 0
+                                ? false
+                                : true,
+                        value: assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.participant_before_assessment_goes_live
+                            ? String(
+                                  assessmentDetails[currentStep]?.saved_data?.notifications
+                                      ?.participant_before_assessment_goes_live,
+                              ) + " min"
+                            : "1 min",
+                    },
+                    when_assessment_live:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.participant_when_assessment_live || false,
+                    when_assessment_report_generated:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.participant_when_assessment_report_generated || false,
+                },
+                notify_parent: {
+                    when_assessment_created:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.parent_when_assessment_created || false,
+                    before_assessment_goes_live: {
+                        checked:
+                            assessmentDetails[currentStep]?.saved_data?.notifications
+                                ?.parent_before_assessment_goes_live === 0
+                                ? false
+                                : true,
+                        value: assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.parent_before_assessment_goes_live
+                            ? String(
+                                  assessmentDetails[currentStep]?.saved_data?.notifications
+                                      ?.parent_before_assessment_goes_live,
+                              ) + " min"
+                            : "1 min",
+                    },
+                    when_assessment_live:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.parent_when_assessment_live || false,
+                    when_student_appears: true,
+                    when_student_finishes_test: true,
+                    when_assessment_report_generated:
+                        assessmentDetails[currentStep]?.saved_data?.notifications
+                            ?.parent_when_assessment_report_generated || false,
+                },
+            });
+        }
+    }, []);
 
     if (isLoading) return <DashboardLoader />;
 
@@ -597,7 +734,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 <Plus size={32} /> Add School/College
                                             </MyButton>
                                         )}
-
                                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                                             <DialogTrigger>
                                                 <MyButton
@@ -608,7 +744,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                     <Plus size={32} /> Add Custom Field
                                                 </MyButton>
                                             </DialogTrigger>
-                                            <DialogContent className="p-0">
+                                            <DialogContent className="!w-[500px] p-0">
                                                 <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
                                                     Add Custom Field
                                                 </h1>
@@ -880,7 +1016,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                             )}
                         </>
                     )}
-                    <AddingParticipantsTab batches={transformedBatches} form={form} />
+                    <AddingParticipantsTab
+                        batches={transformedBatches}
+                        form={form}
+                        totalBatches={transformBatchData(batches_for_sessions || [])}
+                    />
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between" id="join-link-qr-code">
                         <div className="flex flex-col gap-2">

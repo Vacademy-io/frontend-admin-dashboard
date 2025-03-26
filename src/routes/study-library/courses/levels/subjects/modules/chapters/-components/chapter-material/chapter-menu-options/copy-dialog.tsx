@@ -37,6 +37,7 @@ export const CopyToDialog = ({ openDialog, setOpenDialog, chapter }: CopyTo) => 
                 chapterId: chapter.chapter.id,
             });
             toast.success("Chapter copied successfully");
+            setOpenDialog(null);
         } catch (err) {
             toast.error("Failed to copy chapter");
         }

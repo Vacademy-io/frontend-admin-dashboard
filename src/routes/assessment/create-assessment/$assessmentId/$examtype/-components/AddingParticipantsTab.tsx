@@ -8,6 +8,7 @@ import testAccessSchema from "../-utils/add-participants-schema";
 import { z } from "zod";
 import { UseFormReturn } from "react-hook-form";
 import { CheckCircle } from "@phosphor-icons/react";
+import { Route } from "..";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -21,9 +22,11 @@ type BatchData = Record<string, BatchItem[]>;
 export function AddingParticipantsTab({
     batches,
     form,
+    totalBatches,
 }: {
     batches: BatchData;
     form: UseFormReturn<TestAccessFormType>;
+    totalBatches: BatchData;
 }) {
     const [selectedTab, setSelectedTab] = useState(
         form.getValues("select_individually.checked") === true ? "Individually" : "Batch",
@@ -83,7 +86,7 @@ export function AddingParticipantsTab({
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="Batch" className="mt-6 flex justify-between">
-                    <Step3BatchList batchData={batches} form={form} />
+                    <Step3BatchList batchData={batches} form={form} totalBatches={totalBatches} />
                 </TabsContent>
                 <TabsContent value="Individually">
                     <StudentListTab form={form} />
@@ -96,59 +99,67 @@ export function AddingParticipantsTab({
 const Step3BatchList = ({
     batchData,
     form,
+    totalBatches,
 }: {
     batchData: BatchData;
     form: UseFormReturn<TestAccessFormType>;
+    totalBatches: BatchData;
 }) => {
-    const { setValue } = form;
-    const batchDetails = form.getValues("select_batch.batch_details");
+    const params = Route.useParams();
+    const assessmentId = params.assessmentId ?? "";
+    const { setValue, watch } = form;
 
-    // State to manage checked items using arrays
-    const [checkedState, setCheckedState] = useState(batchDetails);
+    // Ensure batchDetails is initialized before using it
+    const transformedBatches: Record<string, string[]> = Object.fromEntries(
+        Object.entries(batchData).map(([key, value]) => [key, value.map((item) => item.id)]),
+    );
+
+    // Ensure checkedState only contains string IDs
+    const [checkedState, setCheckedState] = useState<Record<string, string[]>>(
+        assessmentId === "defaultId" ? {} : transformedBatches,
+    );
+
+    // Watch for changes in form state
+    watch("select_batch.batch_details");
 
     // Handle parent checkbox toggle
     const handleParentToggle = (parentId: string, isChecked: boolean) => {
-        setCheckedState((prev) => {
-            const newState = { ...prev };
-            newState[parentId] = isChecked ? batchData[parentId]?.map((item) => item.id) || [] : [];
-            return newState;
-        });
+        setCheckedState((prev) => ({
+            ...prev,
+            [parentId]: isChecked ? totalBatches[parentId]?.map((item) => item.id) || [] : [],
+        }));
     };
 
     // Handle child checkbox toggle
     const handleChildToggle = (parentId: string, childId: string, isChecked: boolean) => {
         setCheckedState((prev) => {
-            const newState = { ...prev };
-            const currentChildren = newState[parentId] || [];
-
-            if (isChecked) {
-                newState[parentId] = [...currentChildren, childId];
-            } else {
-                newState[parentId] = currentChildren.filter((id) => id !== childId);
-            }
-
-            return newState;
+            const currentChildren = prev[parentId] || [];
+            return {
+                ...prev,
+                [parentId]: isChecked
+                    ? [...currentChildren, childId]
+                    : currentChildren.filter((id) => id !== childId),
+            };
         });
     };
 
     // Check if all children are selected
     const isAllChildrenSelected = (parentId: string) => {
-        const currentChildren = batchData[parentId]?.map((item) => item.id) || [];
-        const checkedChildren = checkedState[parentId] || [];
+        const currentChildren = totalBatches[parentId]?.map((item) => item.id) || [];
         return (
             currentChildren.length > 0 &&
-            currentChildren.every((childId) => checkedChildren.includes(childId))
+            currentChildren.every((id) => checkedState[parentId]?.includes(id))
         );
     };
 
+    // Ensure form value updates immediately
     useEffect(() => {
-        // Update form with only IDs
         setValue("select_batch.batch_details", checkedState);
-    }, [checkedState]);
+    }, [checkedState, setValue]);
 
     return (
         <div className="flex w-full justify-between">
-            {Object.entries(batchData).map(([batchName, packages]) => (
+            {Object.entries(totalBatches).map(([batchName, packages]) => (
                 <div key={batchName}>
                     {/* Parent Checkbox */}
                     <label>

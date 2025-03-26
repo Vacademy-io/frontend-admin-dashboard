@@ -6,6 +6,7 @@ import { StudentSearchBox } from "../../../../../../components/common/student-se
 import { StudentFiltersProps } from "@/routes/students/students-list/-types/students-list-types";
 import { useMemo } from "react";
 import { SessionDropdown } from "../../../../../../components/common/session-dropdown";
+import { exportStudentsCsv } from "../../../-services/exportStudentsCsv";
 
 export const StudentFilters = ({
     currentSession,
@@ -22,10 +23,17 @@ export const StudentFilters = ({
     onFilterChange,
     onFilterClick,
     onClearFilters,
+    totalElements,
+    appliedFilters,
 }: StudentFiltersProps) => {
     const isFilterActive = useMemo(() => {
         return getActiveFiltersState();
     }, [columnFilters, searchFilter]);
+
+    const handleExportClick = () => {
+        exportStudentsCsv({ pageNo: 0, pageSize: totalElements || 0, filters: appliedFilters });
+    };
+
     return (
         <div className="flex items-start justify-between">
             <div className="flex flex-wrap items-center gap-6 gap-y-4" id="organize">
@@ -78,7 +86,13 @@ export const StudentFilters = ({
                     </div>
                 )}
             </div>
-            <MyButton scale="large" buttonType="secondary" layoutVariant="default" id="export-data">
+            <MyButton
+                scale="large"
+                buttonType="secondary"
+                layoutVariant="default"
+                id="export-data"
+                onClick={handleExportClick}
+            >
                 <Export />
                 <div>Export</div>
             </MyButton>
