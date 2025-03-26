@@ -47,9 +47,12 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
     const storeDataStep3 = useTestAccessStore((state) => state);
     const preExistingStudentIds = useMemo(() => {
         if (assessmentId !== "defaultId")
-            return studentList.map(
-                (user: Step3ParticipantsListIndiviudalStudentInterface) => user.userId,
-            );
+            return studentList
+                .filter(
+                    (user: Step3ParticipantsListIndiviudalStudentInterface) =>
+                        user.source === "ADMIN_PRE_REGISTRATION",
+                )
+                .map((user: Step3ParticipantsListIndiviudalStudentInterface) => user.userId);
         return (storeDataStep3.select_individually?.student_details || []).map(
             (student) => student.user_id,
         );
