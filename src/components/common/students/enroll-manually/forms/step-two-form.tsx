@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { DropdownItemType } from "../dropdownTypesForPackageItems";
 import { StudentTable } from "@/types/student-table-types";
 import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
+import { MyButton } from "@/components/design-system/button";
 
 export const StepTwoForm = ({
     initialValues,
@@ -128,6 +129,7 @@ export const StepTwoForm = ({
     const courseValue = form.watch("course");
     const sessionValue = form.watch("session");
     const levelValue = form.watch("level");
+    const { setValue } = form;
 
     // When course changes, update session and level lists
     useEffect(() => {
@@ -272,6 +274,11 @@ export const StepTwoForm = ({
         if (formRef.current) {
             formRef.current.requestSubmit();
         }
+    };
+
+    const handleGenerateEnrollNum = () => {
+        const enrollNum = Math.floor(100000 + Math.random() * 900000).toString();
+        setValue("enrollmentNumber", enrollNum);
     };
 
     useEffect(() => {
@@ -441,30 +448,43 @@ export const StepTwoForm = ({
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="enrollmentNumber"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                label="Enrollment Number"
-                                                inputPlaceholder="VACAD090"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={
-                                                    form.formState.errors.enrollmentNumber?.message
-                                                }
-                                                required={true}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="flex items-end justify-between gap-4">
+                                <div className="w-full">
+                                    <FormField
+                                        control={form.control}
+                                        name="enrollmentNumber"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text"
+                                                        label="Enrollment Number"
+                                                        inputPlaceholder="123456"
+                                                        input={value}
+                                                        onChangeFunction={onChange}
+                                                        error={
+                                                            form.formState.errors.enrollmentNumber
+                                                                ?.message
+                                                        }
+                                                        required={true}
+                                                        size="large"
+                                                        className="w-full"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <MyButton
+                                    type="button"
+                                    buttonType="secondary"
+                                    scale="large"
+                                    onClick={handleGenerateEnrollNum}
+                                >
+                                    Auto Generate
+                                </MyButton>
+                            </div>
 
                             <FormField
                                 control={form.control}

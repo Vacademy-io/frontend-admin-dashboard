@@ -19,6 +19,7 @@ export const EnrollManuallyButton = ({
     triggerButton,
     initialValues,
 }: EnrollManuallyButtonProps) => {
+    const [openDialog, setOpenDialog] = useState(false);
     const currentStep = useFormStore((state) => state.currentStep);
     const [nextButtonDisable, setNextButtonDisable] = useState(true);
     const handleNextButtonDisable = (value: boolean) => setNextButtonDisable(value);
@@ -34,6 +35,8 @@ export const EnrollManuallyButton = ({
     const submitFn3 = (fn: () => void) => (step3FormSubmitRef.current = fn);
     const submitFn4 = (fn: () => void) => (step4FormSubmitRef.current = fn);
     const submitFn5 = (fn: () => void) => (step5FormSubmitRef.current = fn);
+
+    const handleOpenDialog = (open: boolean) => setOpenDialog(open);
 
     const renderFooter = () => {
         switch (currentStep) {
@@ -98,6 +101,7 @@ export const EnrollManuallyButton = ({
                         initialValues={initialValues}
                         handleNextButtonDisable={handleNextButtonDisable}
                         submitFn={submitFn5}
+                        handleOpenDialog={handleOpenDialog}
                     />
                 );
             default:
@@ -125,6 +129,8 @@ export const EnrollManuallyButton = ({
             heading="Enroll Student"
             dialogWidth="w-[800px]"
             footer={renderFooter()}
+            open={openDialog}
+            onOpenChange={handleOpenDialog}
         >
             <>{renderCurrentStep(initialValues)}</>
         </MyDialog>

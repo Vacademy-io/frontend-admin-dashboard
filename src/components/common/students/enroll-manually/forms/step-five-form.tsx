@@ -21,10 +21,12 @@ export const StepFiveForm = ({
     initialValues,
     handleNextButtonDisable,
     submitFn,
+    handleOpenDialog,
 }: {
     initialValues?: StudentTable;
     handleNextButtonDisable: (value: boolean) => void;
     submitFn: (fn: () => void) => void;
+    handleOpenDialog: (open: boolean) => void;
 }) => {
     const [showCredentials, setShowCredentials] = useState(false);
     const {
@@ -70,34 +72,23 @@ export const StepFiveForm = ({
     });
 
     const generateUsername = () => {
-        const sessionYear = stepTwoData?.session?.name.split("-")[1] || "";
-        const classNumber = stepTwoData?.level.name;
-        const enrollmentLast3 = (stepTwoData?.enrollmentNumber || "001").slice(-3);
+        let namePart =
+            stepTwoData?.fullName.replace(/\s+/g, "").substring(0, 4).toLowerCase() || "";
+        while (namePart.length < 4) {
+            namePart += "X";
+        }
+        const randomDigits = Math.floor(1000 + Math.random() * 9000).toString();
 
-        const username = `${sessionYear}-${classNumber}-${enrollmentLast3}`;
-        return username.replace(/\s+/g, "");
+        return namePart + randomDigits;
     };
 
     const generatePassword = () => {
-        const length = 8;
-        const lowercase = "abcdefghijklmnopqrstuvwxyz";
-        const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const numbers = "0123456789";
-
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         let password = "";
-        password += uppercase[Math.floor(Math.random() * uppercase.length)];
-        password += lowercase[Math.floor(Math.random() * lowercase.length)];
-        password += numbers[Math.floor(Math.random() * numbers.length)];
-
-        const allChars = lowercase + uppercase + numbers;
-        for (let i = password.length; i < length; i++) {
-            password += allChars[Math.floor(Math.random() * allChars.length)];
+        for (let i = 0; i < 8; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-
-        return password
-            .split("")
-            .sort(() => Math.random() - 0.5)
-            .join("");
+        return password;
     };
 
     const generateCredentials = () => {
@@ -127,6 +118,7 @@ export const StepFiveForm = ({
             toast.success("Student enrolled successfully");
             console.log(result);
             resetForm();
+            handleOpenDialog(false);
             // Handle success
         } catch (error) {
             // Handle error
@@ -156,7 +148,7 @@ export const StepFiveForm = ({
                     <form
                         ref={formRef}
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="flex flex-col gap-20"
+                        className="flex flex-col gap-8"
                     >
                         <FormItemWrapper<StepFiveData> control={form.control} name="username">
                             <FormStepHeading stepNumber={5} heading="Generate Login Credentials" />
@@ -164,7 +156,7 @@ export const StepFiveForm = ({
 
                         {!initialValues && (
                             <FormItemWrapper<StepFiveData> control={form.control} name="username">
-                                <div className="flex flex-col items-center justify-center gap-10">
+                                <div className="flex flex-col items-center justify-center gap-5">
                                     <div className="text-subtitle">
                                         Auto-generate student&apos;s username and password
                                     </div>

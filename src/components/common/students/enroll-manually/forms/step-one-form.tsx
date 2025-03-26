@@ -14,7 +14,6 @@ import { useState, useRef, useEffect } from "react";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { MyButton } from "@/components/design-system/button";
-import { PencilSimpleLine } from "phosphor-react";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { StudentTable } from "@/types/student-table-types";
@@ -101,7 +100,7 @@ export const StepOneForm = ({
                     <form
                         ref={formRef}
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="flex flex-col items-center gap-10"
+                        className="flex flex-col items-center gap-5"
                     >
                         <FormItemWrapper<StepOneData> control={form.control} name="profilePicture">
                             <FormStepHeading stepNumber={1} heading="Add Student Profile Picture" />
@@ -110,20 +109,22 @@ export const StepOneForm = ({
                         <FormItemWrapper<StepOneData>
                             control={form.control}
                             name="profilePicture"
-                            className="flex flex-col items-center justify-between"
+                            className="flex flex-col items-center justify-between gap-2"
                         >
-                            <div className="relative items-center justify-center rounded-full">
-                                {stepOneData?.profilePictureUrl ? (
-                                    <img
-                                        src={stepOneData.profilePictureUrl}
-                                        alt="Profile"
-                                        className="h-[300px] w-[300px] rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="rounded-full object-cover">
-                                        <EnrollFormUploadImage />
-                                    </div>
-                                )}
+                            <div className="flex flex-col">
+                                <div className="relative items-center justify-center rounded-full">
+                                    {stepOneData?.profilePictureUrl ? (
+                                        <img
+                                            src={stepOneData.profilePictureUrl}
+                                            alt="Profile"
+                                            className="h-[300px] w-[300px] rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex h-[320px] w-[320px] items-center justify-center rounded-full bg-neutral-100 object-cover">
+                                            <EnrollFormUploadImage />
+                                        </div>
+                                    )}
+                                </div>
                                 <FileUploadComponent
                                     fileInputRef={fileInputRef}
                                     onFileSubmit={handleFileSubmit}
@@ -131,17 +132,17 @@ export const StepOneForm = ({
                                     name="profilePicture"
                                     acceptedFileTypes="image/*" // Optional - remove this line to accept all files
                                 />
-                                <div className="absolute bottom-2 right-20">
+                                <div className="">
                                     <MyButton
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isUploading || isUploadingFile}
                                         buttonType="secondary"
-                                        layoutVariant="icon"
-                                        scale="small"
-                                        className="bg-white"
+                                        layoutVariant="default"
+                                        scale="large"
+                                        className=""
                                         type="button"
                                     >
-                                        <PencilSimpleLine />
+                                        Upload Image
                                     </MyButton>
                                 </div>
                             </div>

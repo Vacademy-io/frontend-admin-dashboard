@@ -88,6 +88,7 @@ export const StepThreeForm = ({
                                                 name="mobileNumber"
                                                 control={form.control}
                                                 country="in"
+                                                required={true}
                                             />
                                         </FormControl>
                                     </FormItem>

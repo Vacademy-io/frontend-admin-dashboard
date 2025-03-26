@@ -172,6 +172,7 @@ export const StepFourForm = ({
                                                 name="guardianMobileNumber"
                                                 control={form.control}
                                                 country="in"
+                                                required={false}
                                             />
                                         </FormControl>
                                     </FormItem>
