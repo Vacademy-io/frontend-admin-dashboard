@@ -420,7 +420,9 @@ const AccessControlCards = ({
     existingInstituteUsersData: InvitedUsersInterface[];
     setExistingInstituteUsersData: Dispatch<SetStateAction<InvitedUsersInterface[]>>;
 }) => {
-    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+    const [selectedUsers, setSelectedUsers] = useState<string[]>(
+        form.getValues(keyVal).map((user) => user.userId),
+    );
     const [isSelectAllChecked, setIsSelectAllChecked] = useState(false);
     const [open, setOpen] = useState(false);
     const instituteId = getInstituteId();
