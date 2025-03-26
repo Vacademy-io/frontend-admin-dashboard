@@ -232,18 +232,6 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     };
 
     useEffect(() => {
-        if (assessmentId !== "defaultId") {
-            form.reset({
-                status: assessmentDetails[currentStep]?.status,
-                assessment_creation_access: [],
-                live_assessment_notification: [],
-                assessment_submission_and_report_access: [],
-                evaluation_process: [],
-            });
-        }
-    }, []);
-
-    useEffect(() => {
         const timeoutId = setTimeout(() => {
             setIsAdminLoading(true);
             fetchInstituteDashboardUsers(instituteId, {
@@ -278,6 +266,40 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                         status: user.status,
                     }));
                     setExistingInstituteUsersData(filteredData);
+                    if (assessmentId !== "defaultId") {
+                        console.log(filteredData);
+                        form.reset({
+                            status: assessmentDetails[currentStep]?.status,
+                            assessment_creation_access: filteredData.filter(
+                                (user: InvitedUsersInterface) =>
+                                    assessmentDetails[
+                                        currentStep
+                                    ]?.saved_data.creation_access.user_ids.includes(user.userId),
+                            ),
+                            live_assessment_notification: filteredData.filter(
+                                (user: InvitedUsersInterface) =>
+                                    assessmentDetails[
+                                        currentStep
+                                    ]?.saved_data.live_assessment_access.user_ids.includes(
+                                        user.userId,
+                                    ),
+                            ),
+                            assessment_submission_and_report_access: filteredData.filter(
+                                (user: InvitedUsersInterface) =>
+                                    assessmentDetails[
+                                        currentStep
+                                    ]?.saved_data.report_and_submission_access.user_ids.includes(
+                                        user.userId,
+                                    ),
+                            ),
+                            evaluation_process: filteredData.filter(
+                                (user: InvitedUsersInterface) =>
+                                    assessmentDetails[
+                                        currentStep
+                                    ]?.saved_data.evaluation_access.user_ids.includes(user.userId),
+                            ),
+                        });
+                    }
                 })
                 .catch((error) => {
                     console.error(error);
@@ -289,6 +311,8 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
 
         return () => clearTimeout(timeoutId);
     }, []);
+
+    console.log(form.getValues());
 
     if (isLoading) return <DashboardLoader />;
 
