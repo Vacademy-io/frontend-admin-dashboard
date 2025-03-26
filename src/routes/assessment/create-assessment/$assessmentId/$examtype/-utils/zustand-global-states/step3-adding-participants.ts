@@ -1,13 +1,13 @@
 import { create } from "zustand";
 
 interface TestInputField {
-    id: number;
+    id: string;
     type: string;
     name: string;
     oldKey: boolean;
     isRequired: boolean;
     options?: {
-        id: number;
+        id: string;
         value: string;
     }[];
 }

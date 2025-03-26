@@ -42,4 +42,5 @@ export type ActivityStatus =
     | "LIVE"
     | "ENDED"
     | "Attempted"
-    | "Not Attempted";
+    | "Not Attempted"
+    | "evaluated";

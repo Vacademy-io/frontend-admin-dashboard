@@ -165,9 +165,10 @@ export function ScheduleTestDetailsDropdownLive({
                     </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() =>
-                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id)
-                        }
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
+                        }}
                     >
                         Delete Assessment
                     </DropdownMenuItem>
@@ -262,9 +263,10 @@ export function ScheduleTestDetailsDropdownUpcoming({
                     </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() =>
-                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id)
-                        }
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
+                        }}
                     >
                         Delete Assessment
                     </DropdownMenuItem>
@@ -362,9 +364,10 @@ export function ScheduleTestDetailsDropdownPrevious({
                     </DropdownMenuItem> */}
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() =>
-                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id)
-                        }
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
+                        }}
                     >
                         Delete Assessment
                     </DropdownMenuItem>
@@ -429,9 +432,10 @@ export function ScheduleTestDetailsDropdowDrafts({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         className="cursor-pointer"
-                        onClick={() =>
-                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id)
-                        }
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteAssessmentClick(scheduleTestContent.assessment_id);
+                        }}
                     >
                         Delete Assessment
                     </DropdownMenuItem>
@@ -557,7 +561,8 @@ const ScheduleTestDeleteDialog = ({
         },
     });
 
-    const deleteAssessment = () => {
+    const deleteAssessment = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
         handleDeleteAssessmentMutation.mutate({
             assessmentId: scheduleTestContent.assessment_id,
             instituteId,
