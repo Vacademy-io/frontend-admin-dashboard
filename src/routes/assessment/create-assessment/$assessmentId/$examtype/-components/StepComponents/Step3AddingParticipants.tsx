@@ -103,7 +103,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         resolver: zodResolver(testAccessSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            closed_test: storeDataStep3?.open_test?.checked ? false : true,
+            closed_test:
+                storeDataStep3?.open_test?.checked ||
+                assessmentDetails[0]?.saved_data?.assessment_visibility === "PUBLIC"
+                    ? false
+                    : true,
             open_test: storeDataStep3?.open_test || {
                 checked: false,
                 start_date: "",
