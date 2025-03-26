@@ -2,6 +2,7 @@
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { GET_STUDENTS_CSV } from "@/constants/urls";
 import { StudentFilterRequest } from "@/types/student-table-types";
+import { toast } from "sonner";
 
 interface ExportParams {
     filters: StudentFilterRequest;
@@ -30,8 +31,7 @@ export const exportStudentsCsv = async ({ filters, pageNo = 0, pageSize = 10 }: 
 
         link.parentNode?.removeChild(link);
         window.URL.revokeObjectURL(url);
-    } catch (error) {
-        console.error("Error exporting CSV:", error);
-        throw error;
+    } catch {
+        toast.error("Error exporting CSV");
     }
 };

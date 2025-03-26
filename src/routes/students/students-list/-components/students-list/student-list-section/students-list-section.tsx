@@ -140,6 +140,7 @@ export const StudentsListSection = () => {
                     appliedFilters={appliedFilters}
                     page={page}
                     pageSize={10}
+                    totalElements={studentTableData?.total_elements || 0}
                 />
                 {!studentTableData || studentTableData.content.length == 0 ? (
                     <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
