@@ -72,7 +72,7 @@ export const SlideMaterial = ({
     const updateHeading = async () => {
         const status = activeItem?.status == "DRAFT" ? "DRAFT" : "UNSYNC";
         if (activeItem) {
-            if (activeItem.published_url != null) {
+            if (activeItem.source_type == "VIDEO") {
                 const url =
                     activeItem?.status == "PUBLISHED"
                         ? activeItem.published_url
@@ -142,13 +142,15 @@ export const SlideMaterial = ({
                     marks={MARKS}
                     value={editorContent}
                     selectionBoxRoot={selectionRef}
-                    autoFocus
+                    autoFocus={true}
                     onChange={() => {}}
                     className="size-full"
                     style={{ width: "100%", height: "100%" }}
                 />
             </div>,
         );
+        // editor.insertBlock('Paragraph',{ at: 1, focus: true });
+        editor.focus();
     };
 
     const loadContent = async () => {
@@ -340,29 +342,30 @@ export const SlideMaterial = ({
     };
 
     // Modified SaveDraft function
-    const SaveDraft = async (slideToSave = activeItem) => {
-        if (!slideToSave) return;
+    const SaveDraft = async (slideToSave?: Slide | null) => {
+        const slide = slideToSave ? slideToSave : activeItem;
 
         const currentHtml = getCurrentEditorHTMLContent();
-        const status =
-            slideToSave.status == "PUBLISHED"
+        const status = slide
+            ? slide.status == "PUBLISHED"
                 ? "UNSYNC"
-                : slideToSave.status == "UNSYNC"
+                : slide.status == "UNSYNC"
                   ? "UNSYNC"
-                  : "DRAFT";
+                  : "DRAFT"
+            : "DRAFT";
 
         try {
             await addUpdateDocumentSlide({
-                id: slideToSave.slide_id || "",
-                title: slideToSave.slide_title || "",
+                id: slide?.slide_id || "",
+                title: slide?.slide_title || "",
                 image_file_id: "",
-                description: slideToSave.slide_title || "",
+                description: slide?.slide_title || "",
                 slide_order: null,
                 document_slide: {
-                    id: slideToSave.document_id || "",
+                    id: slide?.document_id || "",
                     type: "DOC",
                     data: currentHtml,
-                    title: slideToSave.slide_title || "",
+                    title: slide?.slide_title || "",
                     cover_file_id: "",
                     total_pages: 0,
                     published_data: null,

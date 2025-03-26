@@ -34,7 +34,7 @@ export const AddVideoDialog = ({
     const handleSubmit = async (data: FormValues) => {
         try {
             const slideId = crypto.randomUUID();
-            await addUpdateVideoSlide({
+            const response: string = await addUpdateVideoSlide({
                 id: slideId,
                 title: data.videoName,
                 description: null,
@@ -58,7 +58,7 @@ export const AddVideoDialog = ({
             form.reset();
             openState?.(false);
             setTimeout(() => {
-                setActiveItem(getSlideById(slideId));
+                setActiveItem(getSlideById(response));
             }, 500);
         } catch (error) {
             toast.error("Failed to add video");
