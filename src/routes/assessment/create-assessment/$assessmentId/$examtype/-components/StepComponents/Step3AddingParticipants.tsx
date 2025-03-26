@@ -18,8 +18,8 @@ import {
 } from "phosphor-react";
 import QRCode from "react-qr-code";
 import {
-    convertToCustomFieldsData,
     copyToClipboard,
+    getCustomFieldsWhileEditStep3,
     getStepKey,
     handleDownloadQRCode,
     syncStep3DataWithStore,
@@ -347,9 +347,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                           )
                         : "",
                     instructions: "",
-                    custom_fields: convertToCustomFieldsData(
-                        assessmentDetails[currentStep]?.saved_data?.registration_form_fields,
-                    ),
+                    custom_fields: getCustomFieldsWhileEditStep3(assessmentDetails),
                 },
                 select_batch: {
                     checked: true,

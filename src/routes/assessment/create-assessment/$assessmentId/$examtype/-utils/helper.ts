@@ -532,3 +532,43 @@ export function convertToCustomFieldsData(data: RegistrationFormField[] | undefi
         }),
     }));
 }
+
+export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
+    const defaultFields = [
+        {
+            id: "0",
+            type: "textfield",
+            name: "Full Name",
+            oldKey: true,
+            isRequired: true,
+        },
+        {
+            id: "1",
+            type: "textfield",
+            name: "Email",
+            oldKey: true,
+            isRequired: true,
+        },
+        {
+            id: "2",
+            type: "textfield",
+            name: "Phone Number",
+            oldKey: true,
+            isRequired: true,
+        },
+    ];
+
+    const registrationFields = assessmentDetails[2]?.saved_data?.registration_form_fields ?? [];
+
+    // Extract field names from registrationFields
+    const existingFieldNames = new Set(registrationFields.map((field) => field.field_name));
+
+    // Check if all three fields exist
+    const hasAllDefaults = ["Full Name", "Email", "Phone Number"].every((field) =>
+        existingFieldNames.has(field),
+    );
+
+    return hasAllDefaults
+        ? convertToCustomFieldsData(registrationFields)
+        : [...defaultFields, ...convertToCustomFieldsData(registrationFields)];
+}
