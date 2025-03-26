@@ -142,7 +142,7 @@ export const SlideMaterial = ({
                     marks={MARKS}
                     value={editorContent}
                     selectionBoxRoot={selectionRef}
-                    autoFocus={true}
+                    autoFocus
                     onChange={() => {}}
                     className="size-full"
                     style={{ width: "100%", height: "100%" }}
@@ -160,7 +160,7 @@ export const SlideMaterial = ({
                 </div>,
             );
             return;
-        } else if (activeItem.published_url != null || activeItem.video_url != null) {
+        } else if (activeItem.source_type == "VIDEO") {
             setContent(
                 <div key={`video-${activeItem.slide_id}`} className="size-full">
                     <YouTubePlayer
@@ -174,7 +174,7 @@ export const SlideMaterial = ({
                 </div>,
             );
             return;
-        } else if (activeItem?.document_type == "PDF" && activeItem != null) {
+        } else if (activeItem.source_type == "DOCUMENT" && activeItem.document_type == "PDF") {
             const url = await getPublicUrl(
                 (activeItem.status == "PUBLISHED"
                     ? activeItem.published_data
@@ -182,7 +182,7 @@ export const SlideMaterial = ({
             );
             setContent(<PDFViewer pdfUrl={url} />);
             return;
-        } else if (activeItem?.document_type === "DOC" && activeItem != null) {
+        } else if (activeItem.source_type == "DOCUMENT" && activeItem.document_type == "DOC") {
             try {
                 setTimeout(() => {
                     setEditorContent();
@@ -197,21 +197,6 @@ export const SlideMaterial = ({
 
         return;
     };
-
-    // function calculateValue() {
-    //     const data = editor.getEditorValue();
-    //     const htmlString = html.serialize(editor, data);
-    //     const formattedHtmlString = formatHTMLString(htmlString);
-    //     if (activeItem?.status == "UNSYNC") {
-    //         return activeItem?.document_type == "PDF"
-    //             ? activeItem.document_data
-    //             : formattedHtmlString;
-    //     } else if (activeItem?.status == "PUBLISHED") {
-    //         return activeItem.published_data;
-    //     } else {
-    //         return activeItem?.document_data;
-    //     }
-    // }
 
     const handlePublishSlide = async (
         setIsOpen: Dispatch<SetStateAction<boolean>>,
@@ -387,8 +372,8 @@ export const SlideMaterial = ({
                 new_slide: false,
                 notify: false,
             });
-        } catch (err) {
-            console.log("error updating slide: ", err);
+        } catch {
+            toast.error("error updating slide");
         }
     };
 
@@ -396,8 +381,8 @@ export const SlideMaterial = ({
         try {
             await SaveDraft();
             toast.success("Slide saved successfully");
-        } catch (err) {
-            console.log("error saving document: ", err);
+        } catch {
+            toast.error("error saving document");
         }
     };
 
