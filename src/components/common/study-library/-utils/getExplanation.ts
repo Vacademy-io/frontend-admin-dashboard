@@ -54,7 +54,7 @@ export default function getExplanation(type?: InstituteType): ExplanationType {
         course: "A Course is the main learning program that covers a subject or skill. It may consist of different Levels to structure learning progressively.",
         courseExamples,
         session:
-            "A Session refers to a specific time frame during which a level is conduction within the course. It defines the duration and schedule of learning, ensuring students progress systematically.",
+            "A Session refers to a specific time frame during which a level is conducted within the course. It defines the duration and schedule of learning, ensuring students progress systematically.",
         sessionExamples,
         level: "Levels organize a course into structured learning stages. These stages may represent increasing difficulty, different modules, or key milestones within the course.",
         levelExamples,
