@@ -326,31 +326,23 @@ export const handlePostStep4Data = async (
     const addedData = {
         assessment_creation_access: {
             batch_ids: [],
-            roles: data.assessment_creation_access.roles
-                .filter((role) => role.isSelected)
-                .map((role) => role.roleName),
-            user_ids: data.assessment_creation_access.users.map((user) => user.email),
+            roles: [],
+            user_ids: data.assessment_creation_access.map((user) => user.userId),
         },
         live_assessment_notification_access: {
             batch_ids: [],
-            roles: data.live_assessment_notification.roles
-                .filter((role) => role.isSelected)
-                .map((role) => role.roleName),
-            user_ids: data.live_assessment_notification.users.map((user) => user.email),
+            roles: [],
+            user_ids: data.live_assessment_notification.map((user) => user.userId),
         },
         assessment_submission_and_report_access: {
             batch_ids: [],
-            roles: data.assessment_submission_and_report_access.roles
-                .filter((role) => role.isSelected)
-                .map((role) => role.roleName),
-            user_ids: data.assessment_submission_and_report_access.users.map((user) => user.email),
+            roles: [],
+            user_ids: data.assessment_submission_and_report_access.map((user) => user.userId),
         },
         evaluation_process_access: {
             batch_ids: [],
-            roles: data.evaluation_process.roles
-                .filter((role) => role.isSelected)
-                .map((role) => role.roleName),
-            user_ids: data.evaluation_process.users.map((user) => user.email),
+            roles: [],
+            user_ids: data.evaluation_process.map((user) => user.userId),
         },
     };
     const response = await authenticatedAxiosInstance({
