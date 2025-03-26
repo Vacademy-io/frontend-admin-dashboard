@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Check, Copy } from "phosphor-react";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { InviteFormType } from "../../-schema/InviteFormSchema";
+import { InviteForm } from "../../-schema/InviteFormSchema";
 import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
 import { CourseSelection } from "./batch-selection-fields.tsx/CourseSelection";
@@ -15,13 +15,13 @@ import { MaxLimitField } from "./batch-selection-fields.tsx/MaxLimitField";
 import { ShowSelectedBatchDetails } from "./ShowSelectedBatchDetails";
 
 interface CreateInviteDialogProps {
-    initialValues?: InviteFormType;
+    initialValues?: InviteForm;
     triggerButton?: JSX.Element;
     submitButton: JSX.Element;
     open?: boolean;
     onOpenChange?: () => void;
     submitForm?: (fn: () => void) => void;
-    onCreateInvite?: (invite: InviteFormType) => void;
+    onCreateInvite?: (invite: InviteForm) => void;
     inviteLink?: string | null;
 }
 
@@ -168,7 +168,7 @@ export const CreateInviteDialog = ({
             <FormProvider {...form}>
                 <form
                     ref={formRef}
-                    onSubmit={form.handleSubmit((data: InviteFormType) => {
+                    onSubmit={form.handleSubmit((data: InviteForm) => {
                         console.log("Form values:", data);
                         // Continue with valid form data
                         onCreateInvite && onCreateInvite(data);

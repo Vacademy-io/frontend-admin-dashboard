@@ -11,7 +11,7 @@ import {
     SelectItem,
     SelectLabel,
 } from "@/components/ui/select";
-import { SelectionModeType } from "../../../-schema/InviteFormSchema";
+import { SelectionMode } from "../../../-schema/InviteFormSchema";
 import { MyButton } from "@/components/design-system/button";
 import { PencilSimple } from "phosphor-react";
 import { useSessionsUtility } from "../../../-hooks/useAvailableSessions";
@@ -19,7 +19,7 @@ import { useBatchSelection } from "../../../-hooks/useBatchSelection";
 
 interface SessionSelectionProps {
     course: string | null;
-    courseSelectionMode: SelectionModeType;
+    courseSelectionMode: SelectionMode;
     handleSessionLevelsSelected: (selected: boolean) => void;
 }
 
@@ -41,7 +41,7 @@ export const SessionSelection = ({
     const { addSession } = useBatchSelection();
 
     // Session selection state
-    const [sessionSelectionMode, setSessionSelectionMode] = useState<SelectionModeType>(
+    const [sessionSelectionMode, setSessionSelectionMode] = useState<SelectionMode>(
         getSessionSelectionMode(courseSelectionMode),
     );
     const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -91,7 +91,7 @@ export const SessionSelection = ({
         setMaxLevelsSaved(levelsSaved);
     };
 
-    function getSessionSelectionMode(courseSelectionMode: SelectionModeType) {
+    function getSessionSelectionMode(courseSelectionMode: SelectionMode) {
         return courseSelectionMode === "student" ? "student" : "institute";
     }
 
@@ -100,7 +100,7 @@ export const SessionSelection = ({
         setSessionSelectionMode(getSessionSelectionMode(courseSelectionMode));
     }, [courseSelectionMode]);
 
-    const onChangeSessionSelectionMode = (mode: SelectionModeType) => setSessionSelectionMode(mode);
+    const onChangeSessionSelectionMode = (mode: SelectionMode) => setSessionSelectionMode(mode);
 
     const handleSessionSelection = (sessionId: string) => {
         const session = availableSessions.find((s) => s.id === sessionId);

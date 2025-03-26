@@ -1,14 +1,14 @@
 import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
-import { InviteFormType } from "../-schema/InviteFormSchema";
+import { InviteForm } from "../-schema/InviteFormSchema";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
 import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
-// import formDataToRequestData from "../-utils/formDataToRequestData";
-// import { useCreateInvite } from "../-services/create-invite";
-// import { CreateInvitationRequestType } from "../-types/create-invitation-types";
+import formDataToRequestData from "../-utils/formDataToRequestData";
+import { useCreateInvite } from "../-services/create-invite";
+import { CreateInvitationRequestType } from "../-types/create-invitation-types";
 import { TokenKey } from "@/constants/auth/tokens";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { MyPagination } from "@/components/design-system/pagination";
@@ -20,10 +20,9 @@ import createInviteLink from "../-utils/createInviteLink";
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const formSubmitRef = useRef<() => void>(() => {});
-    // const createInviteMutation = useCreateInvite();
+    const createInviteMutation = useCreateInvite();
     const [openCreateInviteDialog, setOpenCreateInviteDialog] = useState(false);
-    // const [inviteLink, setInviteLink] = useState<string | null>(null);
-    const inviteLink = null;
+    const [inviteLink, setInviteLink] = useState<string | null>(null);
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
@@ -87,23 +86,22 @@ export const Invite = () => {
             });
     };
 
-    const onEditInvite = (updatedInvite: InviteFormType) => {
+    const onEditInvite = (updatedInvite: InviteForm) => {
         console.log(updatedInvite);
     };
 
-    const onCreateInvite = async (invite: InviteFormType) => {
-        // const requestData = formDataToRequestData(invite);
-        // try {
-        //     const { data: responseData }: { data: CreateInvitationRequestType } =
-        //         await createInviteMutation.mutateAsync({ requestBody: requestData });
-        //     toast.success("invitation created");
-        //     const link = createInviteLink(responseData?.learner_invitation?.invite_code || "");
-        //     setInviteLink(link);
-        //     // setOpenCreateInviteDialog(false);
-        // } catch {
-        //     toast.error("failed to create invitation");
-        // }
-        console.log(invite);
+    const onCreateInvite = async (invite: InviteForm) => {
+        const requestData = formDataToRequestData(invite);
+        try {
+            const { data: responseData }: { data: CreateInvitationRequestType } =
+                await createInviteMutation.mutateAsync({ requestBody: requestData });
+            toast.success("invitation created");
+            const link = createInviteLink(responseData?.learner_invitation?.invite_code || "");
+            setInviteLink(link);
+            // setOpenCreateInviteDialog(false);
+        } catch {
+            toast.error("failed to create invitation");
+        }
     };
 
     return (

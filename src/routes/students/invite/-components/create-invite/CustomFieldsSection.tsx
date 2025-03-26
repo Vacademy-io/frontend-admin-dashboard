@@ -3,7 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { DotsSixVertical, Plus, TrashSimple } from "phosphor-react";
 import { AddCustomFieldDialog } from "./AddCustomFieldDialog";
 import { useFormContext } from "react-hook-form";
-import { InviteFormType } from "../../-schema/InviteFormSchema";
+import { InviteForm } from "../../-schema/InviteFormSchema";
 
 interface CustomFieldsSectionProps {
     toggleIsRequired: (id: number) => void;
@@ -16,7 +16,7 @@ export const CustomFieldsSection = ({
     handleAddOpenFieldValues,
     handleDeleteOpenField,
 }: CustomFieldsSectionProps) => {
-    const { watch } = useFormContext<InviteFormType>();
+    const { watch } = useFormContext<InviteForm>();
     const customFields = watch("custom_fields");
 
     const handleAddCustomField = (type: string, name: string, oldKey: boolean) => {

@@ -1,4 +1,4 @@
-import { InviteFormType } from "../-schema/InviteFormSchema";
+import { InviteForm } from "../-schema/InviteFormSchema";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 /**
@@ -22,7 +22,7 @@ export const useLevelsUtility = () => {
     const getAvailableLevels = (
         courseId: string,
         sessionId: string,
-        formBatches: InviteFormType["batches"] | undefined,
+        formBatches: InviteForm["batches"] | undefined,
         excludedLevelIds: string[] = [],
     ) => {
         // If courseId or sessionId is not provided, return empty array
@@ -111,7 +111,7 @@ export const useLevelsUtility = () => {
     const getAvailableLevelsByType = (
         courseId: string,
         sessionId: string,
-        formBatches: InviteFormType["batches"] | undefined,
+        formBatches: InviteForm["batches"] | undefined,
         compulsoryLevelIds: string[] = [],
         studentPreferenceLevelIds: string[] = [],
     ) => {

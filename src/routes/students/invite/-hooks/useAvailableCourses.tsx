@@ -1,4 +1,4 @@
-import { InviteFormType } from "../-schema/InviteFormSchema";
+import { InviteForm } from "../-schema/InviteFormSchema";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 /**
@@ -18,7 +18,7 @@ export const useCoursesUtility = () => {
      * @returns Array of available courses that haven't been selected yet
      */
     const getAvailableCourses = (
-        formBatches: InviteFormType["batches"] | undefined,
+        formBatches: InviteForm["batches"] | undefined,
         params?: {
             levelId?: string;
             sessionId?: string;

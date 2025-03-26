@@ -1,12 +1,12 @@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SelectionModeType } from "../../../-schema/InviteFormSchema";
+import { SelectionMode } from "../../../-schema/InviteFormSchema";
 
 interface BatchSelectionFieldProps {
     title: string;
     isPreSelectionDisabled: boolean;
     bothEnabled?: boolean;
-    mode: SelectionModeType;
-    onChangeMode: (mode: SelectionModeType) => void;
+    mode: SelectionMode;
+    onChangeMode: (mode: SelectionMode) => void;
 }
 
 export const BatchSelectionField = ({
@@ -23,7 +23,7 @@ export const BatchSelectionField = ({
                 <RadioGroup
                     className="flex items-center gap-6"
                     value={mode}
-                    onValueChange={(value: SelectionModeType) => {
+                    onValueChange={(value: SelectionMode) => {
                         onChangeMode(value);
                     }}
                     // disabled={isDisabled}

@@ -1,4 +1,4 @@
-import { InviteFormType } from "../-schema/InviteFormSchema";
+import { InviteForm } from "../-schema/InviteFormSchema";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 /**
@@ -19,7 +19,7 @@ export const useSessionsUtility = () => {
      */
     const getAvailableSessions = (
         courseId: string,
-        formBatches: InviteFormType["batches"] | undefined,
+        formBatches: InviteForm["batches"] | undefined,
     ) => {
         // If courseId is not provided, return empty array
         if (!courseId) {

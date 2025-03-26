@@ -1,5 +1,5 @@
 import { useFormContext } from "react-hook-form";
-import { SelectionModeType, InviteFormType } from "../-schema/InviteFormSchema";
+import { SelectionMode, InviteForm } from "../-schema/InviteFormSchema";
 import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 
 /**
@@ -7,7 +7,7 @@ import { DropdownItemType } from "@/components/common/students/enroll-manually/d
  * Handles adding selections to the appropriate places in the batches structure
  */
 export const useBatchSelection = () => {
-    const { setValue, getValues } = useFormContext<InviteFormType>();
+    const { setValue, getValues } = useFormContext<InviteForm>();
 
     /**
      * Initialize the batches structure if it doesn't exist
@@ -29,7 +29,7 @@ export const useBatchSelection = () => {
     const addCourse = (
         courseId: string,
         courseName: string,
-        selectionMode: SelectionModeType,
+        selectionMode: SelectionMode,
         maxSessions: number = 1,
     ) => {
         initializeBatchesIfNeeded();
@@ -107,8 +107,8 @@ export const useBatchSelection = () => {
         courseId: string,
         sessionId: string,
         sessionName: string,
-        selectionMode: SelectionModeType,
-        courseSelectionMode: SelectionModeType,
+        selectionMode: SelectionMode,
+        courseSelectionMode: SelectionMode,
         maxLevels: number = 1,
     ) => {
         const batches = getValues("batches");
@@ -218,9 +218,9 @@ export const useBatchSelection = () => {
         sessionId: string,
         levelIds: string[],
         levelNames: Record<string, string>,
-        selectionMode: SelectionModeType,
-        courseSelectionMode: SelectionModeType,
-        sessionSelectionMode: SelectionModeType,
+        selectionMode: SelectionMode,
+        courseSelectionMode: SelectionMode,
+        sessionSelectionMode: SelectionMode,
         packageSessionIds: Record<string, string>,
     ) => {
         if (levelIds.length === 0) return false;

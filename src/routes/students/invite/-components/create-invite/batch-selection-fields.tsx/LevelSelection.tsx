@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { BatchSelectionField } from "./BatchSelectionField";
 import { MultiSelect } from "../MultiSelect";
-import { SelectionModeType } from "../../../-schema/InviteFormSchema";
+import { SelectionMode } from "../../../-schema/InviteFormSchema";
 import { MaxLimitField } from "./MaxLimitField";
 import { MyButton } from "@/components/design-system/button";
 import { Check } from "phosphor-react";
@@ -13,8 +13,8 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 interface LevelSelectionProps {
     course: string | null;
     session: string | null;
-    sessionSelectionMode: SelectionModeType;
-    courseSelectionMode: SelectionModeType;
+    sessionSelectionMode: SelectionMode;
+    courseSelectionMode: SelectionMode;
     handleMaxLevelsSaved: (maxLevels: boolean) => void;
 }
 
@@ -43,7 +43,7 @@ export const LevelSelection = ({
     const { getPackageSessionId } = useInstituteDetailsStore();
 
     // Level selection mode state
-    const [levelSelectionMode, setLevelSelectionMode] = useState<SelectionModeType>(
+    const [levelSelectionMode, setLevelSelectionMode] = useState<SelectionMode>(
         getLevelSelectionMode(sessionSelectionMode),
     );
 
@@ -143,7 +143,7 @@ export const LevelSelection = ({
     }, [course, session]);
 
     // Determine level selection mode based on session mode
-    function getLevelSelectionMode(sessionSelectionMode: SelectionModeType): SelectionModeType {
+    function getLevelSelectionMode(sessionSelectionMode: SelectionMode): SelectionMode {
         return sessionSelectionMode === "student" ? "student" : "institute";
     }
 
@@ -152,7 +152,7 @@ export const LevelSelection = ({
         setLevelSelectionMode(getLevelSelectionMode(sessionSelectionMode));
     }, [sessionSelectionMode]);
 
-    const onChangeLevelSelectionMode = (mode: SelectionModeType) => setLevelSelectionMode(mode);
+    const onChangeLevelSelectionMode = (mode: SelectionMode) => setLevelSelectionMode(mode);
 
     // Convert available levels to options for MultiSelect
     const levelOptions: LevelOption[] = availableLevels.map((level) => ({

@@ -87,17 +87,17 @@ export const inviteFormSchema = z.object({
         .default([]),
 });
 
-export type InviteFormType = z.infer<typeof inviteFormSchema>;
-export type SelectionModeType = z.infer<typeof selectionModeSchema>;
-export type BatchFieldType = z.infer<typeof dropdownItemSchema>;
-export type LevelFieldType = z.infer<typeof levelSchema>;
-export type PreSelectedSessionType = z.infer<typeof preSelectedSessionSchema>;
-export type LearnerChoiceSessionType = z.infer<typeof learnerChoiceSessionSchema>;
-export type PreSelectedCourseType = z.infer<typeof preSelectedCoursesSchema>;
-export type LearnerChoiceCourseType = z.infer<typeof learnerChoiceCoursesSchema>;
-export type BatchDetailsType = z.infer<typeof batchSchema>;
+export type InviteForm = z.infer<typeof inviteFormSchema>;
+export type SelectionMode = z.infer<typeof selectionModeSchema>;
+export type BatchField = z.infer<typeof dropdownItemSchema>;
+export type LevelField = z.infer<typeof levelSchema>;
+export type PreSelectedSession = z.infer<typeof preSelectedSessionSchema>;
+export type LearnerChoiceSession = z.infer<typeof learnerChoiceSessionSchema>;
+export type PreSelectedCourse = z.infer<typeof preSelectedCoursesSchema>;
+export type LearnerChoiceCourse = z.infer<typeof learnerChoiceCoursesSchema>;
+export type BatchDetails = z.infer<typeof batchSchema>;
 
-export const defaultFormValues: Partial<InviteFormType> = {
+export const defaultFormValues: Partial<InviteForm> = {
     inviteLink: "",
     activeStatus: true,
     custom_fields: [

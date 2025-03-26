@@ -1,13 +1,13 @@
 import {
-    BatchDetailsType,
-    LearnerChoiceCourseType,
-    LearnerChoiceSessionType,
-    LevelFieldType,
-    PreSelectedCourseType,
-    PreSelectedSessionType,
+    BatchDetails,
+    LearnerChoiceCourse,
+    LearnerChoiceSession,
+    LevelField,
+    PreSelectedCourse,
+    PreSelectedSession,
 } from "../../-schema/InviteFormSchema";
 
-export const ShowLevelDetails = ({ level }: { level: LevelFieldType }) => {
+export const ShowLevelDetails = ({ level }: { level: LevelField }) => {
     return <p>{level.name}</p>;
 };
 
@@ -15,7 +15,7 @@ export const ShowPreSelectedSessionDetails = ({
     session,
     showSessionName = true,
 }: {
-    session: PreSelectedSessionType;
+    session: PreSelectedSession;
     showSessionName?: boolean;
 }) => {
     return (
@@ -49,7 +49,7 @@ export const ShowLearnerChoiceSessionDetails = ({
     session,
     showSessionName = true,
 }: {
-    session: LearnerChoiceSessionType;
+    session: LearnerChoiceSession;
     showSessionName?: boolean;
 }) => {
     return (
@@ -69,7 +69,7 @@ export const ShowLearnerChoiceSessionDetails = ({
     );
 };
 
-export const ShowPreSelectedCoursesDetails = ({ course }: { course: PreSelectedCourseType }) => {
+export const ShowPreSelectedCoursesDetails = ({ course }: { course: PreSelectedCourse }) => {
     return (
         <div className="flex flex-col gap-2">
             <p>{course.name}</p>
@@ -99,7 +99,7 @@ export const ShowPreSelectedCoursesDetails = ({ course }: { course: PreSelectedC
         </div>
     );
 };
-export const ShowLearnerChoiceCourseDetails = ({ course }: { course: LearnerChoiceCourseType }) => {
+export const ShowLearnerChoiceCourseDetails = ({ course }: { course: LearnerChoiceCourse }) => {
     return (
         <div className="flex flex-col gap-2">
             <p>{course.name}</p>
@@ -122,7 +122,7 @@ export const ShowLearnerChoiceCourseDetails = ({ course }: { course: LearnerChoi
     );
 };
 
-export const ShowSelectedBatchDetails = ({ batch }: { batch: BatchDetailsType }) => {
+export const ShowSelectedBatchDetails = ({ batch }: { batch: BatchDetails }) => {
     return (
         <div className="flex justify-between gap-2">
             {batch.preSelectedCourses.length > 0 && (

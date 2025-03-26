@@ -11,7 +11,7 @@ import {
     SelectItem,
     SelectLabel,
 } from "@/components/ui/select";
-import { SelectionModeType } from "../../../-schema/InviteFormSchema";
+import { SelectionMode } from "../../../-schema/InviteFormSchema";
 import { MyButton } from "@/components/design-system/button";
 import { Check } from "phosphor-react";
 import { useCoursesUtility } from "../../../-hooks/useAvailableCourses";
@@ -40,7 +40,7 @@ export const CourseSelection = ({
     const { addCourse } = useBatchSelection();
 
     // Course selection state
-    const [courseSelectionMode, setCourseSelectionMode] = useState<SelectionModeType>("institute");
+    const [courseSelectionMode, setCourseSelectionMode] = useState<SelectionMode>("institute");
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [selectedCourseName, setSelectedCourseName] = useState<string>("");
     const [courseSelected, setCourseSelected] = useState(false);
@@ -72,7 +72,7 @@ export const CourseSelection = ({
         }
     };
 
-    const onChangeCourseSelectionMode = (mode: SelectionModeType) => setCourseSelectionMode(mode);
+    const onChangeCourseSelectionMode = (mode: SelectionMode) => setCourseSelectionMode(mode);
 
     const handleCourseSelection = (courseId: string) => {
         const course = availableCourses.find((c) => c.id === courseId);

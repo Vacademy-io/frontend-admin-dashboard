@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { inviteFormSchema, InviteFormType, defaultFormValues } from "../-schema/InviteFormSchema";
+import { inviteFormSchema, InviteForm, defaultFormValues } from "../-schema/InviteFormSchema";
 
-export const useInviteForm = (initialValues?: InviteFormType) => {
+export const useInviteForm = (initialValues?: InviteForm) => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
     // Initialize form
-    const form = useForm<InviteFormType>({
+    const form = useForm<InviteForm>({
         resolver: zodResolver(inviteFormSchema),
         defaultValues: initialValues || defaultFormValues,
     });
