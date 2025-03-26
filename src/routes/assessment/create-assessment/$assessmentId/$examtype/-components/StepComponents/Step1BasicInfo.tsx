@@ -35,8 +35,12 @@ import { createAssesmentSteps } from "@/constants/intro/steps";
 
 export function convertDateFormat(dateStr: string) {
     const date = new Date(dateStr);
-    const isoString = date.toISOString();
-    return isoString.slice(0, 16); // Extracts the "YYYY-MM-DDTHH:mm" part
+
+    // Convert to local time
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+
+    // Format it properly for datetime-local input
+    return localDate.toISOString().slice(0, 16);
 }
 
 const heading = (
