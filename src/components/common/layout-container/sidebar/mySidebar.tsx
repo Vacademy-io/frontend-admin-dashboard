@@ -52,7 +52,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
     if (isLoading) return <DashboardLoader />;
     return (
-        <Sidebar collapsible="icon">
+        <Sidebar collapsible="icon" className="z-20">
             <SidebarContent
                 className={`sidebar-content flex flex-col gap-14 border-r border-r-neutral-300 bg-primary-50 py-10 ${
                     state == "expanded" ? "w-[307px]" : "w-28"
