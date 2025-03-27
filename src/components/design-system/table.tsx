@@ -45,6 +45,8 @@ interface MyTableProps<T> {
     onRowSelectionChange?: OnChangeFn<RowSelectionState>;
     currentPage: number;
     columnWidths?: ColumnWidthConfig;
+    scrollable?: boolean;
+    className?: string;
 }
 
 export function MyTable<T>({
@@ -56,6 +58,8 @@ export function MyTable<T>({
     columnWidths,
     rowSelection,
     onRowSelectionChange,
+    scrollable = false,
+    className = "",
 }: MyTableProps<T>) {
     const table = useReactTable({
         data: data?.content || [],
@@ -98,7 +102,11 @@ export function MyTable<T>({
     if (!table) return <DashboardLoader />;
 
     return (
-        <div className="h-auto w-full overflow-visible rounded-lg border">
+        <div
+            className={`h-auto w-full ${
+                scrollable ? "overflow-auto" : "overflow-visible"
+            } rounded-lg border ${className}`}
+        >
             <div className="max-w-full overflow-visible rounded-lg">
                 <Table className="rounded-lg">
                     <TableHeader className="relative bg-primary-200">
