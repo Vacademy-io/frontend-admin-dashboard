@@ -190,13 +190,15 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             assessmentId,
             instituteId,
             type,
+            actionType,
         }: {
             oldFormData: TestAccessFormType | null;
             data: z.infer<typeof testAccessSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
             type: string | undefined;
-        }) => handlePostStep3Data(oldFormData, data, assessmentId, instituteId, type),
+            actionType: string;
+        }) => handlePostStep3Data(oldFormData, data, assessmentId, instituteId, type, actionType),
         onSuccess: () => {
             if (assessmentId !== "defaultId") {
                 useTestAccessStore.getState().reset();
@@ -236,6 +238,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
+            actionType: assessmentId !== "defaultId" ? "update" : "create",
         });
     };
 

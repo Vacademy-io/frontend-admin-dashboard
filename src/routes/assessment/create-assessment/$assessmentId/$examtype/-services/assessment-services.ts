@@ -261,12 +261,60 @@ export const handlePostStep3Data = async (
     assessmentId: string | null,
     instituteId: string | undefined,
     type: string | undefined,
+    actionType: string,
 ) => {
-    const convertedData = convertDataToStep3(oldFormData, newData);
+    const convertedData1 = {
+        closed_test: newData.closed_test,
+        open_test_details: newData.open_test.checked
+            ? {
+                  registration_start_date: convertToUTC(newData.open_test.start_date) || "",
+                  registration_end_date: convertToUTC(newData.open_test.end_date) || "",
+                  instructions_html: newData.open_test.instructions || "",
+                  registration_form_details: {
+                      added_custom_added_fields: convertCustomFields(
+                          newData.open_test.custom_fields,
+                      ),
+                      removed_custom_added_fields: [], // Default to an empty array as per example
+                  },
+              }
+            : {},
+        added_pre_register_batches_details: newData.select_batch.batch_details
+            ? Object.values(newData.select_batch.batch_details).flat()
+            : [],
+        deleted_pre_register_batches_details: [],
+        added_pre_register_students_details: newData.select_individually.student_details
+            ? newData.select_individually.student_details
+            : [],
+        deleted_pre_register_students_details: [],
+        updated_join_link: newData.join_link || "",
+        notify_student: {
+            when_assessment_created: newData.notify_student.when_assessment_created || false,
+            show_leaderboard: newData.show_leaderboard || false,
+            before_assessment_goes_live: newData.notify_student.before_assessment_goes_live.checked
+                ? parseInt(newData.notify_student.before_assessment_goes_live.value)
+                : 0,
+            when_assessment_live: newData.notify_student.when_assessment_live || false,
+            when_assessment_report_generated:
+                newData.notify_student.when_assessment_report_generated || false,
+        },
+        notify_parent: {
+            when_assessment_created: newData.notify_parent.when_assessment_created || false,
+            before_assessment_goes_live: newData.notify_parent.before_assessment_goes_live.checked
+                ? parseInt(newData.notify_parent.before_assessment_goes_live.value)
+                : 0,
+            show_leaderboard: newData.show_leaderboard || false,
+            when_assessment_live: newData.notify_parent.when_assessment_live || false,
+            when_student_appears: newData.notify_parent.when_student_appears || false,
+            when_student_finishes_test: newData.notify_parent.when_student_finishes_test || false,
+            when_assessment_report_generated:
+                newData.notify_parent.when_assessment_report_generated || false,
+        },
+    };
+    const convertedData2 = convertDataToStep3(oldFormData, newData);
     const response = await authenticatedAxiosInstance({
         method: "POST",
         url: STEP3_ASSESSMENT_URL,
-        data: convertedData,
+        data: actionType === "create" ? convertedData1 : convertedData2,
         params: {
             assessmentId,
             instituteId,
