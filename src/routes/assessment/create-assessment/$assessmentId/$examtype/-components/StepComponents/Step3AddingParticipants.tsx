@@ -464,9 +464,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         }
     }, [assessmentId, assessmentDetails, storeDataStep3]);
 
-    console.log("old data", oldFormData.current);
-    console.log("new data", form.getValues());
-
     if (isLoading) return <DashboardLoader />;
 
     return (

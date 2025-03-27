@@ -1,6 +1,7 @@
 import {
     ConvertedCustomField,
     CustomFieldStep3,
+    NotificationStep3,
     RegistrationFormField,
     Step3StudentDetailInterface,
     Steps,
@@ -748,68 +749,23 @@ export const convertDataToStep3 = (
     }
 
     // Compare notification settings
-    const compareNotification = (newNotif: Notification | undefined, oldNotif: Notification) => {
-        if (!newNotif)
-            return {
-                when_assessment_created: oldNotif.when_assessment_created,
-                show_leaderboard: oldData.show_leaderboard,
-                before_assessment_goes_live: oldNotif.before_assessment_goes_live.checked
-                    ? parseInt(oldNotif.before_assessment_goes_live.value)
-                    : 0,
-                when_assessment_live: oldNotif.when_assessment_live,
-                when_assessment_report_generated: oldNotif.when_assessment_report_generated,
-            };
+    const compareNotification = (newNotif: NotificationStep3) => {
         return {
-            when_assessment_created:
-                newNotif.when_assessment_created !== oldNotif.when_assessment_created
-                    ? newNotif.when_assessment_created
-                    : false,
-            show_leaderboard:
-                newData?.show_leaderboard !== oldData.show_leaderboard
-                    ? newData?.show_leaderboard
-                    : false,
-            before_assessment_goes_live:
-                newNotif.before_assessment_goes_live.checked !==
-                    oldNotif.before_assessment_goes_live.checked ||
-                newNotif.before_assessment_goes_live.value !==
-                    oldNotif.before_assessment_goes_live.value
-                    ? parseInt(newNotif.before_assessment_goes_live.value)
-                    : 0,
-            when_assessment_live:
-                newNotif.when_assessment_live !== oldNotif.when_assessment_live
-                    ? newNotif.when_assessment_live
-                    : false,
-            when_assessment_report_generated:
-                newNotif.when_assessment_report_generated !==
-                oldNotif.when_assessment_report_generated
-                    ? newNotif.when_assessment_report_generated
-                    : false,
+            when_assessment_created: newNotif.when_assessment_created,
+            show_leaderboard: newData?.show_leaderboard,
+            before_assessment_goes_live: newNotif.before_assessment_goes_live.value
+                ? parseInt(newNotif.before_assessment_goes_live.value)
+                : 0,
+            when_assessment_live: newNotif.when_assessment_live,
+            when_assessment_report_generated: newNotif.when_assessment_report_generated,
         };
     };
 
-    const studentNotifications = compareNotification(
-        newData?.notify_student,
-        oldData.notify_student,
-    );
-    const parentNotifications = compareNotification(newData?.notify_parent, oldData.notify_parent);
+    const studentNotifications = compareNotification(newData?.notify_student);
+    const parentNotifications = compareNotification(newData?.notify_parent);
 
-    if (Object.values(studentNotifications).some((value) => value !== undefined)) {
-        convertedData.notify_student = studentNotifications;
-    }
-    if (Object.values(parentNotifications).some((value) => value !== undefined)) {
-        convertedData.notify_parent = parentNotifications;
-    }
+    convertedData.notify_student = studentNotifications;
 
+    convertedData.notify_parent = parentNotifications;
     return convertedData;
 };
-
-interface Notification {
-    when_assessment_created: boolean;
-    show_leaderboard?: boolean;
-    before_assessment_goes_live: {
-        checked: boolean;
-        value: string; // Assuming value is a string that needs to be converted to a number
-    };
-    when_assessment_live: boolean;
-    when_assessment_report_generated: boolean;
-}

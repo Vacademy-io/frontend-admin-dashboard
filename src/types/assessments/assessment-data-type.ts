@@ -185,4 +185,15 @@ export interface Step3StudentDetailInterface {
     reattempt_count: number;
 }
 
+export interface NotificationStep3 {
+    when_assessment_created: boolean;
+    show_leaderboard?: boolean;
+    before_assessment_goes_live: {
+        checked: boolean;
+        value: string; // Assuming value is a string that needs to be converted to a number
+    };
+    when_assessment_live: boolean;
+    when_assessment_report_generated: boolean;
+}
+
 export type Steps = StepData[];
