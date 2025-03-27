@@ -1,4 +1,10 @@
-import { RegistrationFormField, Steps } from "@/types/assessments/assessment-data-type";
+import {
+    ConvertedCustomField,
+    CustomFieldStep3,
+    RegistrationFormField,
+    Step3StudentDetailInterface,
+    Steps,
+} from "@/types/assessments/assessment-data-type";
 import { BatchData } from "@/types/assessments/batch-details";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
 import { AdaptiveMarkingQuestion } from "@/types/assessments/basic-details-type";
@@ -14,6 +20,8 @@ import {
 } from "@/types/assessments/assessment-steps";
 import { z } from "zod";
 import sectionDetailsSchema from "./section-details-schema";
+import { convertCustomFields } from "../-services/assessment-services";
+import testAccessSchema from "./add-participants-schema";
 
 interface Role {
     roleId: string;
@@ -571,4 +579,237 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
     return hasAllDefaults
         ? convertToCustomFieldsData(registrationFields)
         : [...defaultFields, ...convertToCustomFieldsData(registrationFields)];
+}
+
+export const convertToCustomFieldSchema = (field: CustomFieldStep3): ConvertedCustomField => {
+    return {
+        id: field.id,
+        name: field.name,
+        type: field.type,
+        default_value: "", // Provide a default value, if necessary
+        description: "", // Provide a description, if necessary
+        is_mandatory: field.isRequired,
+        key: "", // Use the ID as the key
+        comma_separated_options: field.options
+            ? field.options.map((opt) => opt.value).join(",")
+            : "", // Join options for dropdowns
+    };
+};
+
+export const convertDataToStep3 = (
+    oldData: TestAccessFormType | null,
+    newData: z.infer<typeof testAccessSchema>,
+) => {
+    const convertedData: {
+        closed_test: boolean;
+        open_test_details: {
+            registration_start_date: string;
+            registration_end_date: string;
+            instructions_html: string;
+            registration_form_details: {
+                added_custom_added_fields: ConvertedCustomField[];
+                updated_custom_added_fields: ConvertedCustomField[];
+                removed_custom_added_fields: ConvertedCustomField[];
+            };
+        };
+        added_pre_register_batches_details: string[];
+        deleted_pre_register_batches_details: string[];
+        added_pre_register_students_details: Step3StudentDetailInterface[];
+        deleted_pre_register_students_details: Step3StudentDetailInterface[];
+        updated_join_link: string;
+        notify_student: Record<string, boolean | number>;
+        notify_parent: Record<string, boolean | number>;
+    } = {
+        closed_test: false,
+        open_test_details: {
+            registration_start_date: "",
+            registration_end_date: "",
+            instructions_html: "",
+            registration_form_details: {
+                added_custom_added_fields: [],
+                updated_custom_added_fields: [],
+                removed_custom_added_fields: [],
+            },
+        },
+        added_pre_register_batches_details: [],
+        deleted_pre_register_batches_details: [],
+        added_pre_register_students_details: [],
+        deleted_pre_register_students_details: [],
+        updated_join_link: "",
+        notify_student: {},
+        notify_parent: {},
+    };
+
+    if (oldData === null) return convertedData;
+
+    // Compare closed_test
+    if (newData?.closed_test !== oldData.closed_test) {
+        convertedData.closed_test = newData?.closed_test ?? false;
+    }
+
+    // Compare open_test
+    if (
+        newData?.open_test.checked !== oldData.open_test.checked ||
+        newData?.open_test.start_date !== oldData.open_test.start_date ||
+        newData?.open_test.end_date !== oldData.open_test.end_date ||
+        newData?.open_test.instructions !== oldData.open_test.instructions
+    ) {
+        convertedData.open_test_details = {
+            registration_start_date: newData?.open_test.start_date + ":00.000Z" || "",
+            registration_end_date: newData?.open_test.end_date + ":00.000Z" || "",
+            instructions_html: newData?.open_test.instructions || "",
+            registration_form_details: {
+                added_custom_added_fields: [],
+                removed_custom_added_fields: [],
+                updated_custom_added_fields: [],
+            },
+        };
+    }
+
+    //Adding disabled false if type of field is dropdown
+    newData.open_test.custom_fields =
+        newData?.open_test.custom_fields.map((field) => {
+            if (field.type === "dropdown" && Array.isArray(field.options)) {
+                return {
+                    ...field,
+                    options: field.options.map((option) => ({
+                        ...option,
+                        disabled: false,
+                    })),
+                };
+            }
+            return field;
+        }) || [];
+
+    // Compare custom_fields
+    const oldCustomFields = oldData.open_test.custom_fields.reduce<
+        Record<string, (typeof oldData.open_test.custom_fields)[number]>
+    >((acc, field) => {
+        acc[field.id] = field;
+        return acc;
+    }, {});
+
+    newData.open_test.custom_fields.forEach((field: CustomFieldStep3) => {
+        if (!oldCustomFields[field.id]) {
+            convertedData.open_test_details.registration_form_details.added_custom_added_fields.push(
+                convertToCustomFieldSchema(field),
+            );
+        } else {
+            const oldField = oldCustomFields[field.id];
+            if (JSON.stringify(field) !== JSON.stringify(oldField)) {
+                convertedData.open_test_details.registration_form_details.updated_custom_added_fields.push(
+                    convertToCustomFieldSchema(field),
+                );
+            }
+            delete oldCustomFields[field.id];
+        }
+    });
+
+    convertedData.open_test_details.registration_form_details.removed_custom_added_fields =
+        Object.values(oldCustomFields).length > 0
+            ? convertCustomFields(Object.values(oldCustomFields))
+            : [];
+
+    // Compare batch details
+    const oldBatches = Object.values(oldData.select_batch.batch_details).flat();
+    const newBatches = Object.values(newData.select_batch.batch_details).flat();
+
+    convertedData.deleted_pre_register_batches_details = oldBatches.filter(
+        (id) => !newBatches.includes(id),
+    );
+
+    convertedData.added_pre_register_batches_details = newBatches.filter(
+        (id) => !oldBatches.includes(id),
+    );
+
+    // Compare student details
+    const oldUserIds = new Set(
+        oldData.select_individually.student_details.map((student) => student.user_id),
+    );
+    const newUserIds = new Set(
+        newData?.select_individually.student_details.map((student) => student.user_id),
+    );
+
+    // Students present in newData but not in oldData (Added)
+    convertedData.added_pre_register_students_details =
+        newData?.select_individually.student_details.filter(
+            (student) => !oldUserIds.has(student.user_id),
+        );
+
+    // Students present in oldData but not in newData (Deleted)
+    convertedData.deleted_pre_register_students_details =
+        oldData.select_individually.student_details.filter(
+            (student) => !newUserIds.has(student.user_id),
+        );
+
+    // Compare join_link
+    if (newData?.join_link !== oldData.join_link) {
+        convertedData.updated_join_link = newData?.join_link ?? "";
+    }
+
+    // Compare notification settings
+    const compareNotification = (newNotif: Notification | undefined, oldNotif: Notification) => {
+        if (!newNotif)
+            return {
+                when_assessment_created: oldNotif.when_assessment_created,
+                show_leaderboard: oldData.show_leaderboard,
+                before_assessment_goes_live: oldNotif.before_assessment_goes_live.checked
+                    ? parseInt(oldNotif.before_assessment_goes_live.value)
+                    : 0,
+                when_assessment_live: oldNotif.when_assessment_live,
+                when_assessment_report_generated: oldNotif.when_assessment_report_generated,
+            };
+        return {
+            when_assessment_created:
+                newNotif.when_assessment_created !== oldNotif.when_assessment_created
+                    ? newNotif.when_assessment_created
+                    : false,
+            show_leaderboard:
+                newData?.show_leaderboard !== oldData.show_leaderboard
+                    ? newData?.show_leaderboard
+                    : false,
+            before_assessment_goes_live:
+                newNotif.before_assessment_goes_live.checked !==
+                    oldNotif.before_assessment_goes_live.checked ||
+                newNotif.before_assessment_goes_live.value !==
+                    oldNotif.before_assessment_goes_live.value
+                    ? parseInt(newNotif.before_assessment_goes_live.value)
+                    : 0,
+            when_assessment_live:
+                newNotif.when_assessment_live !== oldNotif.when_assessment_live
+                    ? newNotif.when_assessment_live
+                    : false,
+            when_assessment_report_generated:
+                newNotif.when_assessment_report_generated !==
+                oldNotif.when_assessment_report_generated
+                    ? newNotif.when_assessment_report_generated
+                    : false,
+        };
+    };
+
+    const studentNotifications = compareNotification(
+        newData?.notify_student,
+        oldData.notify_student,
+    );
+    const parentNotifications = compareNotification(newData?.notify_parent, oldData.notify_parent);
+
+    if (Object.values(studentNotifications).some((value) => value !== undefined)) {
+        convertedData.notify_student = studentNotifications;
+    }
+    if (Object.values(parentNotifications).some((value) => value !== undefined)) {
+        convertedData.notify_parent = parentNotifications;
+    }
+
+    return convertedData;
+};
+
+interface Notification {
+    when_assessment_created: boolean;
+    show_leaderboard?: boolean;
+    before_assessment_goes_live: {
+        checked: boolean;
+        value: string; // Assuming value is a string that needs to be converted to a number
+    };
+    when_assessment_live: boolean;
+    when_assessment_report_generated: boolean;
 }

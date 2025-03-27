@@ -25,9 +25,9 @@ import { z } from "zod";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { useTestAccessStore } from "../-utils/zustand-global-states/step3-adding-participants";
 import { Route } from "..";
+import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
 import { getInstituteId } from "@/constants/helper";
 import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
-import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -39,12 +39,11 @@ export const getCurrentSession = (): string => {
 
 export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormType> }) => {
     const { assessmentId } = Route.useParams();
+    const storeDataStep3 = useTestAccessStore((state) => state);
     const instituteId = getInstituteId();
     const { data: studentList } = useSuspenseQuery(
         handleGetIndividualStudentList({ instituteId, assessmentId }),
     );
-
-    const storeDataStep3 = useTestAccessStore((state) => state);
     const preExistingStudentIds = useMemo(() => {
         if (assessmentId !== "defaultId")
             return studentList

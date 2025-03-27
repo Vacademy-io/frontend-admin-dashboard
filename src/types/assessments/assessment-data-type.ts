@@ -146,6 +146,19 @@ export interface ConvertedCustomField {
     comma_separated_options: string;
 }
 
+export interface CustomFieldStep3 {
+    id: string;
+    type: string;
+    name: string;
+    oldKey: boolean;
+    isRequired: boolean;
+    options?: { id: string; value: string }[];
+    default_value?: string;
+    description?: string;
+    key?: string;
+    is_mandatory?: boolean;
+}
+
 // Assuming customFields is an object where keys are strings and values are the custom field details
 export type CustomFields = {
     id: string;
@@ -159,5 +172,17 @@ export type CustomFields = {
     key?: string;
     is_mandatory?: boolean;
 }[];
+
+export interface Step3StudentDetailInterface {
+    username: string;
+    user_id: string;
+    email: string;
+    full_name: string;
+    mobile_number: string;
+    guardian_email: string;
+    guardian_mobile_number: string;
+    file_id: string;
+    reattempt_count: number;
+}
 
 export type Steps = StepData[];
