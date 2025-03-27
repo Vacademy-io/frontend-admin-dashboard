@@ -1,5 +1,5 @@
 import { StepContentProps } from "@/types/assessments/step-content-props";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { MyButton } from "@/components/design-system/button";
 import { z } from "zod";
@@ -18,8 +18,8 @@ import {
 } from "phosphor-react";
 import QRCode from "react-qr-code";
 import {
-    convertToCustomFieldsData,
     copyToClipboard,
+    getCustomFieldsWhileEditStep3,
     getStepKey,
     handleDownloadQRCode,
     syncStep3DataWithStore,
@@ -48,6 +48,9 @@ import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
 import { convertDateFormat } from "./Step1BasicInfo";
+import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+import { getInstituteId } from "@/constants/helper";
+import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -60,6 +63,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     const params = useParams({ strict: false });
     const examType = params.examtype ?? "";
     const assessmentId = params.assessmentId ?? "";
+    const instituteId = getInstituteId();
     const storeDataStep3 = useTestAccessStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [selectedOptionValue, setSelectedOptionValue] = useState("textfield");
@@ -99,11 +103,17 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             ? transformBatchData(matchedBatches || [])
             : transformBatchData(batches_for_sessions || []);
 
+    const oldFormData = useRef<TestAccessFormType | null>(null);
+
     const form = useForm<TestAccessFormType>({
         resolver: zodResolver(testAccessSchema),
         defaultValues: {
             status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
-            closed_test: storeDataStep3?.open_test?.checked ? false : true,
+            closed_test:
+                storeDataStep3?.open_test?.checked ||
+                assessmentDetails[0]?.saved_data?.assessment_visibility === "PUBLIC"
+                    ? false
+                    : true,
             open_test: storeDataStep3?.open_test || {
                 checked: false,
                 start_date: "",
@@ -175,16 +185,20 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
 
     const handleSubmitStep3Form = useMutation({
         mutationFn: ({
+            oldFormData,
             data,
             assessmentId,
             instituteId,
             type,
+            actionType,
         }: {
+            oldFormData: TestAccessFormType | null;
             data: z.infer<typeof testAccessSchema>;
             assessmentId: string | null;
             instituteId: string | undefined;
             type: string | undefined;
-        }) => handlePostStep3Data(data, assessmentId, instituteId, type),
+            actionType: string;
+        }) => handlePostStep3Data(oldFormData, data, assessmentId, instituteId, type, actionType),
         onSuccess: () => {
             if (assessmentId !== "defaultId") {
                 useTestAccessStore.getState().reset();
@@ -219,10 +233,12 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
 
     const onSubmit = (data: z.infer<typeof testAccessSchema>) => {
         handleSubmitStep3Form.mutate({
+            oldFormData: oldFormData.current,
             data: data,
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
             type: examType,
+            actionType: assessmentId !== "defaultId" ? "update" : "create",
         });
     };
 
@@ -321,9 +337,31 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             .filter((subStep): subStep is Step => subStep !== undefined),
     });
 
+    const { data: studentList } = useSuspenseQuery(
+        handleGetIndividualStudentList({ instituteId, assessmentId }),
+    );
+
     useEffect(() => {
         if (assessmentId !== "defaultId") {
-            form.reset({
+            const checkedStudentList = studentList
+                .filter(
+                    (user: Step3ParticipantsListIndiviudalStudentInterface) =>
+                        user.source === "ADMIN_PRE_REGISTRATION",
+                )
+                .map((user: Step3ParticipantsListIndiviudalStudentInterface) => {
+                    return {
+                        username: user.username,
+                        user_id: user.userId,
+                        email: user.userEmail,
+                        full_name: user.participantName,
+                        mobile_number: user.phoneNumber,
+                        guardian_email: "",
+                        guardian_mobile_number: "",
+                        file_id: user.faceFileId,
+                        reattempt_count: user.reattemptCount,
+                    };
+                });
+            const initialValues = {
                 status: completedSteps[currentStep] ? "COMPLETE" : "INCOMPLETE",
                 closed_test:
                     assessmentDetails[0]?.saved_data?.assessment_visibility === "PRIVATE"
@@ -347,9 +385,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                           )
                         : "",
                     instructions: "",
-                    custom_fields: convertToCustomFieldsData(
-                        assessmentDetails[currentStep]?.saved_data?.registration_form_fields,
-                    ),
+                    custom_fields: getCustomFieldsWhileEditStep3(assessmentDetails),
                 },
                 select_batch: {
                     checked: true,
@@ -362,7 +398,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 },
                 select_individually: {
                     checked: false,
-                    student_details: [],
+                    student_details: checkedStudentList,
                 },
                 join_link:
                     `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
@@ -422,9 +458,14 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         assessmentDetails[currentStep]?.saved_data?.notifications
                             ?.parent_when_assessment_report_generated || false,
                 },
-            });
+            };
+            // Store the initial values in the ref
+            oldFormData.current = JSON.parse(JSON.stringify(initialValues));
+
+            // Reset form with these values
+            form.reset(initialValues);
         }
-    }, []);
+    }, [assessmentId, assessmentDetails, storeDataStep3]);
 
     if (isLoading) return <DashboardLoader />;
 
