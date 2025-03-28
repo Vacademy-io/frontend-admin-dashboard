@@ -7,19 +7,24 @@ import { StepFiveForm } from "./forms/step-five-form";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
 import { MyDialog } from "@/components/design-system/dialog";
 import { StudentTable } from "@/types/student-table-types";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FormSubmitButtons } from "./form-components/form-submit-buttons";
 
 interface EnrollManuallyButtonProps {
     triggerButton?: JSX.Element;
     initialValues?: StudentTable;
+    forceOpen?: boolean;
+    onClose?: () => void;
 }
 
 export const EnrollManuallyButton = ({
     triggerButton,
     initialValues,
+    forceOpen,
+    onClose,
 }: EnrollManuallyButtonProps) => {
-    const [openDialog, setOpenDialog] = useState(false);
+    const [openDialog, setOpenDialog] = useState(!!forceOpen);
+    const { resetForm } = useFormStore();
     const currentStep = useFormStore((state) => state.currentStep);
     const [nextButtonDisable, setNextButtonDisable] = useState(true);
     const handleNextButtonDisable = (value: boolean) => setNextButtonDisable(value);
@@ -36,7 +41,24 @@ export const EnrollManuallyButton = ({
     const submitFn4 = (fn: () => void) => (step4FormSubmitRef.current = fn);
     const submitFn5 = (fn: () => void) => (step5FormSubmitRef.current = fn);
 
-    const handleOpenDialog = (open: boolean) => setOpenDialog(open);
+    const handleOpenDialog = (open: boolean) => {
+        setOpenDialog(open);
+        if (!open) {
+            // Reset form when dialog is closed
+            resetForm();
+            // Call onClose callback if provided
+            if (!open && onClose) {
+                onClose();
+            }
+        }
+    };
+
+    // Update openDialog when forceOpen changes
+    useEffect(() => {
+        if (forceOpen !== undefined) {
+            setOpenDialog(forceOpen);
+        }
+    }, [forceOpen]);
 
     const renderFooter = () => {
         switch (currentStep) {
@@ -115,6 +137,9 @@ export const EnrollManuallyButton = ({
         }
     };
 
+    // Determine the dialog title based on whether it's a re-enrollment
+    const dialogTitle = initialValues ? "Re-enroll Student" : "Enroll Student";
+
     return (
         <MyDialog
             trigger={
@@ -126,7 +151,7 @@ export const EnrollManuallyButton = ({
                     </MyButton>
                 )
             }
-            heading="Enroll Student"
+            heading={dialogTitle}
             dialogWidth="w-[800px]"
             footer={renderFooter()}
             open={openDialog}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 interface MaxLimitFieldProp {
     title: string;
     maxAllowed: number;
+    maxValue: number;
     isDisabled?: boolean;
     onMaxChange?: (value: number) => void;
 }
@@ -11,15 +12,16 @@ interface MaxLimitFieldProp {
 export const MaxLimitField = ({
     title,
     maxAllowed,
+    maxValue,
     isDisabled = false,
     onMaxChange,
 }: MaxLimitFieldProp) => {
-    const [input, setInput] = useState(maxAllowed.toString() || "1");
+    const [input, setInput] = useState(maxValue.toString() || "1");
 
-    // Update input when maxAllowed changes externally
+    // Update input when maxValue changes externally
     useEffect(() => {
-        setInput(maxAllowed.toString());
-    }, [maxAllowed]);
+        setInput(maxValue.toString());
+    }, [maxValue]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value) || 0;
@@ -45,7 +47,9 @@ export const MaxLimitField = ({
 
     return (
         <div className="flex items-center gap-6">
-            <p>Allowed limit for {title} preference</p>
+            <p>
+                Allowed limit for {title} preference (Max: {maxAllowed})
+            </p>
             <MyInput
                 input={input}
                 inputType="number"
