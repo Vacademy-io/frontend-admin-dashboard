@@ -16,7 +16,7 @@ import { usePaginationState } from "@/hooks/pagination";
 import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import createInviteLink from "../-utils/createInviteLink";
-import { InviteFormProvider } from "../-context/useInviteFormContext";
+import { useInviteFormContext } from "../-context/useInviteFormContext";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -91,7 +91,11 @@ export const Invite = () => {
         console.log(updatedInvite);
     };
 
+    const { form } = useInviteFormContext();
+    const { getValues } = form;
+
     const onCreateInvite = async (invite: InviteForm) => {
+        invite.batches = getValues("batches");
         const requestData = formDataToRequestData(invite);
         try {
             const { data: responseData }: { data: CreateInvitationRequestType } =
@@ -109,19 +113,17 @@ export const Invite = () => {
         <div className="flex w-full flex-col gap-10">
             <div className="flex items-center justify-between">
                 <p className="text-h3 font-semibold">Invite Link List</p>
-                <InviteFormProvider>
-                    <CreateInviteDialog
-                        triggerButton={CreateInviteButton}
-                        submitButton={inviteSubmitButton}
-                        submitForm={(fn: () => void) => {
-                            formSubmitRef.current = fn;
-                        }}
-                        onCreateInvite={onCreateInvite}
-                        open={openCreateInviteDialog}
-                        onOpenChange={onOpenChangeCreateInviteDialog}
-                        inviteLink={inviteLink}
-                    />
-                </InviteFormProvider>
+                <CreateInviteDialog
+                    triggerButton={CreateInviteButton}
+                    submitButton={inviteSubmitButton}
+                    submitForm={(fn: () => void) => {
+                        formSubmitRef.current = fn;
+                    }}
+                    onCreateInvite={onCreateInvite}
+                    open={openCreateInviteDialog}
+                    onOpenChange={onOpenChangeCreateInviteDialog}
+                    inviteLink={inviteLink}
+                />
             </div>
             <div className="flex w-full flex-col gap-10">
                 {isError ? (
