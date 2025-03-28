@@ -132,8 +132,8 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 label="Question Type"
                                 name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`}
                                 options={QUESTION_TYPES.map((option, index) => ({
-                                    value: option,
-                                    label: option,
+                                    value: option.code,
+                                    label: option.display,
                                     _id: index,
                                 }))}
                                 control={form.control}

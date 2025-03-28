@@ -14,10 +14,7 @@ import { useMutation } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
 import { addQuestionPaper, getQuestionPaperById } from "../-utils/question-paper-services";
-import {
-    MyQuestion,
-    MyQuestionPaperFormInterface,
-} from "../../../../types/assessments/question-paper-form";
+import { MyQuestion, MyQuestionPaperFormInterface } from "@/types/assessments/question-paper-form";
 import { getIdByLevelName, getIdBySubjectName, processQuestions } from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import {
@@ -25,6 +22,7 @@ import {
     EXPLANATION_LABELS,
     OPTIONS_LABELS,
     QUESTION_LABELS,
+    QuestionType,
 } from "@/constants/dummy-data";
 import { useFilterDataForAssesment } from "../../assessment-list/-utils.ts/useFiltersData";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
@@ -43,6 +41,7 @@ interface QuestionPaperUploadProps {
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
     currentQuestionImageIndex: number;
     setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
+    firstQuestionType?: QuestionType;
 }
 
 export const QuestionPaperUpload = ({
@@ -53,6 +52,7 @@ export const QuestionPaperUpload = ({
     setCurrentQuestionIndex,
     currentQuestionImageIndex,
     setCurrentQuestionImageIndex,
+    firstQuestionType = QuestionType.MCQS,
 }: QuestionPaperUploadProps) => {
     const { instituteDetails } = useInstituteDetailsStore();
 
@@ -79,7 +79,7 @@ export const QuestionPaperUpload = ({
                     questionId: "1",
                     questionName: "",
                     explanation: "",
-                    questionType: "MCQS",
+                    questionType: firstQuestionType,
                     questionPenalty: "",
                     questionDuration: {
                         hrs: "",
@@ -207,7 +207,6 @@ export const QuestionPaperUpload = ({
         setIsManualQuestionPaperDialogOpen,
         setIsUploadFromDeviceDialogOpen,
     } = useDialogStore();
-
     // Your mutation setup
     const handleSubmitFormData = useMutation({
         mutationFn: ({ data }: { data: MyQuestionPaperFormInterface }) => addQuestionPaper(data),
@@ -229,6 +228,7 @@ export const QuestionPaperUpload = ({
             });
             if (index !== undefined) {
                 // Check if index is defined
+
                 sectionsForm?.setValue(
                     `section.${index}.adaptive_marking_for_each_question`,
                     transformQuestionsData.map((question) => ({
@@ -246,6 +246,7 @@ export const QuestionPaperUpload = ({
                             hrs: question.questionDuration.hrs,
                             min: question.questionDuration.min,
                         },
+                        parentRichText: question.parentRichTextContent,
                     })),
                 );
                 sectionsForm?.trigger(`section.${index}.adaptive_marking_for_each_question`);
@@ -255,12 +256,13 @@ export const QuestionPaperUpload = ({
             setIsUploadFromDeviceDialogOpen(false);
         },
         onError: (error: unknown) => {
-            console.log("Error:", error);
             toast.error(error as string);
         },
     });
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
+        console.log("get questions ", getValues("questions"));
+        console.log("values ", values);
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
@@ -320,6 +322,7 @@ export const QuestionPaperUpload = ({
         onSuccess: async (data) => {
             const transformQuestionsData = await processQuestions(data);
             setValue("questions", transformQuestionsData);
+            console.log("question ", getValues("questions"));
             if (index !== undefined) {
                 sectionsForm?.setValue(`section.${index}`, {
                     ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
@@ -333,6 +336,11 @@ export const QuestionPaperUpload = ({
                             hrs: question.questionDuration.hrs,
                             min: question.questionDuration.min,
                         },
+                        decimals: question.decimals,
+                        numericType: question.numericType,
+                        validAnswers: question.validAnswers,
+                        parentRichText: question.parentRichTextContent,
+                        subjectiveAnswerText: question.subjectiveAnswerText,
                     })),
                 });
             }
@@ -581,7 +589,7 @@ export const QuestionPaperUpload = ({
                                         questionPaperId={questionPaperId}
                                         isViewMode={false}
                                         isManualCreated={isManualCreated}
-                                        buttonText="Add Questions"
+                                        buttonText="Create"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
                                         currentQuestionImageIndex={currentQuestionImageIndex}
