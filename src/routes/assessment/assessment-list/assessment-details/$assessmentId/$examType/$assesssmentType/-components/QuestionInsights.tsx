@@ -43,7 +43,7 @@ export function QuestionInsightsComponent() {
     );
 
     const [selectedSectionData, setSelectedSectionData] = useState(
-        transformQuestionInsightsQuestionsData(data.question_insight_dto),
+        transformQuestionInsightsQuestionsData(data?.question_insight_dto),
     );
 
     const getQuestionInsightsData = useMutation({
@@ -58,7 +58,7 @@ export function QuestionInsightsComponent() {
         }) => getQuestionsInsightsData(assessmentId, instituteId, sectionId),
         onSuccess: (data) => {
             setSelectedSectionData(
-                transformQuestionInsightsQuestionsData(data.question_insight_dto),
+                transformQuestionInsightsQuestionsData(data?.question_insight_dto),
             );
         },
         onError: (error: unknown) => {
@@ -75,7 +75,7 @@ export function QuestionInsightsComponent() {
     };
 
     useEffect(() => {
-        setSelectedSectionData(transformQuestionInsightsQuestionsData(data.question_insight_dto));
+        setSelectedSectionData(transformQuestionInsightsQuestionsData(data?.question_insight_dto));
     }, [selectedSection]);
 
     return (
