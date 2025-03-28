@@ -22,10 +22,11 @@ import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
 import { Question } from "phosphor-react";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
-import { useRouter } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import useInstituteLogoStore from "./institutelogo-global-zustand";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
+    const navigate = useNavigate();
     const { state }: SidebarStateType = useSidebar();
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
     const router = useRouter();
@@ -60,9 +61,10 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
             >
                 <SidebarHeader className="">
                     <div
-                        className={`flex items-center justify-center gap-2 ${
+                        className={`flex cursor-pointer items-center justify-center gap-2 ${
                             state == "expanded" ? "pl-4" : "pl-0"
                         }`}
+                        onClick={() => navigate({ to: "/dashboard" })}
                     >
                         {instituteLogo !== "" && (
                             <img src={instituteLogo} alt="logo" className="size-12 rounded-full" />

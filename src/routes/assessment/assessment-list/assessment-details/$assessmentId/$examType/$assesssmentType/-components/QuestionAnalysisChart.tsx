@@ -60,7 +60,7 @@ export function AssessmentDetailsQuestionAnalysisChart({
     };
 
     // Format data for the chart based on the selected section's questions
-    const chartData = selectedSectionData.question_insight_dto.map((question, index) => {
+    const chartData = selectedSectionData?.question_insight_dto?.map((question, index) => {
         let correctAttempt = 0,
             partialCorrectAttempt = 0,
             incorrectAttempt = 0;
@@ -233,7 +233,7 @@ export function QuestionAnalysisChart() {
 
     const handleRefreshLeaderboard = () => {
         getQuestionInsightsData.mutate({
-            assessmentId,
+            assessmentId: assessmentId ? assessmentId : "",
             instituteId,
             sectionId: selectedSection,
         });

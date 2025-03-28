@@ -36,17 +36,17 @@ export function QuestionInsightsAnalysisChartComponent({
     const chartData = [
         {
             responseType: "correct",
-            value: questionStatus.correctAttempt,
+            value: questionStatus?.correctAttempt,
             fill: "#97D4B4",
         },
         {
             responseType: "partiallyCorrect",
-            value: questionStatus.partialCorrectAttempt,
+            value: questionStatus?.partialCorrectAttempt,
             fill: "#FFDD82",
         },
         {
             responseType: "wrongResponse",
-            value: questionStatus.incorrectAttempt,
+            value: questionStatus?.incorrectAttempt,
             fill: "#F49898",
         },
         {
