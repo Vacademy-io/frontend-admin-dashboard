@@ -256,7 +256,6 @@ export const SessionSelection = ({
     return (
         <div className="flex flex-col gap-4">
             {isEditing ? (
-                // Editing mode - show selection options
                 <>
                     <BatchSelectionMode
                         title="Session"

@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { useInviteFormContext } from "@/routes/students/invite/-context/useInviteFormContext";
-import { X, Check, PencilSimple } from "phosphor-react";
+import { Check, PencilSimple } from "phosphor-react";
 import { useState } from "react";
 import { useCourseManager } from "../../../../-hooks/useCourseManager";
 import { CourseSelection } from "./CourseSelection";
@@ -146,8 +146,23 @@ export const CourseList = () => {
                 </div>
             )}
 
-            {/* Add Session button or Session form */}
-            {!isSavingAll && availableCourses.length > 0 && !isAddingCourse && (
+            {/* Session Selection form when adding a session */}
+            {!isSavingAll && isAddingCourse && (
+                <div className="flex items-center gap-1">
+                    <CourseSelection />
+                    {/* <MyButton
+                        buttonType="secondary"
+                        layoutVariant="icon"
+                        onClick={() => setIsAddingCourse(false)}
+                        type="button"
+                        >
+                        <Check />
+                    </MyButton> */}
+                </div>
+            )}
+
+            <Separator />
+            {!isSavingAll && availableCourses.length > 0 && (
                 <div>
                     <div
                         onClick={() => setIsAddingCourse(true)}
@@ -157,23 +172,6 @@ export const CourseList = () => {
                     </div>
                 </div>
             )}
-
-            {/* Session Selection form when adding a session */}
-            {!isSavingAll && isAddingCourse && (
-                <div className="flex items-center gap-1">
-                    <CourseSelection />
-                    <MyButton
-                        buttonType="secondary"
-                        layoutVariant="icon"
-                        onClick={() => setIsAddingCourse(false)}
-                        type="button"
-                    >
-                        <X />
-                    </MyButton>
-                </div>
-            )}
-
-            <Separator />
         </div>
     );
 };
