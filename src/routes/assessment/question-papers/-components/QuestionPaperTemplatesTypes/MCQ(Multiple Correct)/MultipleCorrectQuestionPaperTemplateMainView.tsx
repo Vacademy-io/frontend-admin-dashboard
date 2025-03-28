@@ -90,8 +90,8 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 label="Question Type"
                                 name={`questions.${currentQuestionIndex}.questionType`}
                                 options={QUESTION_TYPES.map((option, index) => ({
-                                    value: option,
-                                    label: option,
+                                    value: option.code,
+                                    label: option.display,
                                     _id: index,
                                 }))}
                                 control={form.control}
