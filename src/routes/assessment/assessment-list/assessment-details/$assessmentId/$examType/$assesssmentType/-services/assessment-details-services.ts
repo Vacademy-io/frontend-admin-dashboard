@@ -62,7 +62,7 @@ export const getQuestionsInsightsData = async (
 export const handleGetQuestionInsightsData = ({
     assessmentId,
     instituteId,
-    sectionId,
+    sectionId = "",
 }: {
     assessmentId: string;
     instituteId: string | undefined;
