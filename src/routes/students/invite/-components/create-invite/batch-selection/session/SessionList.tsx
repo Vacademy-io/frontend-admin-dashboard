@@ -65,9 +65,9 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
     };
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
-                <p className="text-title font-semibold">Sessions</p>
+                <p className="text-title font-semibold underline">Sessions</p>
 
                 {/* Show Save All button when not adding a session */}
                 {!isAddingSession &&
@@ -76,93 +76,49 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
                             Save All
                         </MyButton>
                     )}
-            </div>
 
-            {/* Sessions List */}
-            <div className="flex flex-col gap-4">
-                {/* Display Compulsory (PreSelected) Sessions if present */}
-                {preSelectedSessions.length > 0 && (
-                    <div className="flex flex-col gap-2">
-                        <p className="text-subtitle font-medium">Compulsory Sessions</p>
-                        <ul className="list-disc pl-5">
-                            {preSelectedSessions.map((session) => (
-                                <SessionSelection
-                                    key={session.id}
-                                    courseId={courseId}
-                                    isCourseCompulsory={isCourseCompulsory}
-                                    sessionId={session.id}
-                                    isSessionCompulsory={true}
-                                />
-                            ))}
-                        </ul>
+                {isSavingAll && !isMaxValueSaved && (
+                    <div className="flex items-center gap-2">
+                        <MaxLimitField
+                            title="Session"
+                            maxAllowed={10}
+                            maxValue={currentMaxSessions}
+                            onMaxChange={handleMaxSessionsChange}
+                        />
+                        <MyButton
+                            buttonType="secondary"
+                            scale="medium"
+                            layoutVariant="icon"
+                            onClick={handleSaveMaxValue}
+                            type="button"
+                        >
+                            <Check />
+                        </MyButton>
                     </div>
                 )}
 
-                {/* Display Learner Choice Sessions if present */}
-                {learnerChoiceSessions.length > 0 && (
-                    <div className="flex flex-col gap-2 border border-neutral-300">
-                        <p className="text-subtitle font-medium">Learner Choice Sessions</p>
-                        <ul className="list-disc pl-5">
-                            {learnerChoiceSessions.map((session) => (
-                                <SessionSelection
-                                    key={session.id}
-                                    courseId={courseId}
-                                    isCourseCompulsory={isCourseCompulsory}
-                                    sessionId={session.id}
-                                    isSessionCompulsory={false}
-                                />
-                            ))}
-                        </ul>
+                {isSavingAll && isMaxValueSaved && (
+                    <div className="flex items-center justify-between rounded-md p-3">
+                        <div className="flex flex-col">
+                            <p className="text-subtitle font-semibold">Maximum Sessions</p>
+                            <p className="text-body">{currentMaxSessions}</p>
+                        </div>
+                        <MyButton
+                            buttonType="secondary"
+                            scale="small"
+                            layoutVariant="icon"
+                            onClick={handleEditMaxValue}
+                            type="button"
+                        >
+                            <PencilSimple />
+                        </MyButton>
                     </div>
                 )}
-
-                {/* Show a message if no sessions are present */}
-                {preSelectedSessions.length === 0 &&
-                    learnerChoiceSessions.length === 0 &&
-                    !isAddingSession && <p>No sessions added yet</p>}
             </div>
 
-            {/* <Separator /> */}
-
-            {/* Max Limit Field Section - visible when Save All clicked */}
-            {isSavingAll && !isMaxValueSaved && (
-                <div className="flex items-center gap-2">
-                    <MaxLimitField
-                        title="Session"
-                        maxAllowed={10}
-                        maxValue={currentMaxSessions}
-                        onMaxChange={handleMaxSessionsChange}
-                    />
-                    <MyButton
-                        buttonType="secondary"
-                        scale="medium"
-                        layoutVariant="icon"
-                        onClick={handleSaveMaxValue}
-                        type="button"
-                    >
-                        <Check />
-                    </MyButton>
-                </div>
-            )}
-
-            {/* Max Value Display with Edit Button - visible after saving max value */}
-            {isSavingAll && isMaxValueSaved && (
-                <div className="flex items-center justify-between rounded-md border border-neutral-200 p-3">
-                    <div className="flex flex-col">
-                        <p className="text-subtitle font-semibold">Maximum Sessions</p>
-                        <p className="text-body">{currentMaxSessions}</p>
-                    </div>
-                    <MyButton
-                        buttonType="secondary"
-                        scale="small"
-                        layoutVariant="icon"
-                        onClick={handleEditMaxValue}
-                        type="button"
-                    >
-                        <PencilSimple />
-                    </MyButton>
-                </div>
-            )}
+            {preSelectedSessions.length === 0 &&
+                learnerChoiceSessions.length === 0 &&
+                !isAddingSession && <p>No sessions added yet</p>}
 
             {/* Add Session button or Session form */}
             {!isSavingAll && availableSessions.length > 0 && !isAddingSession && (
@@ -175,14 +131,6 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
             {!isSavingAll && isAddingSession && (
                 <div className="flex items-center gap-1">
                     <SessionSelection courseId={courseId} isCourseCompulsory={isCourseCompulsory} />
-                    {/* <MyButton
-                        buttonType="primary"
-                        layoutVariant="icon"
-                        onClick={() => setIsAddingSession(false)}
-                        type="button"
-                    >
-                        <Check />
-                    </MyButton> */}
                 </div>
             )}
         </div>

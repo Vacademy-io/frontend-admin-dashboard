@@ -194,7 +194,7 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
     };
 
     return (
-        <div>
+        <div className="border border-neutral-300">
             {isEditing ? (
                 courseOptions.length > 0 && (
                     <div className="flex flex-col gap-2">
@@ -204,7 +204,7 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
                             onChangeMode={handleSelectionMode}
                             parentSelectionMode="institute"
                         />
-                        <div className="mt-2 flex items-center gap-4">
+                        <div className="mt-2 flex items-center gap-3">
                             <SelectField
                                 label={`${selectFieldLabel} Course`}
                                 name="courseSelect"
@@ -229,14 +229,14 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
                     </div>
                 )
             ) : (
-                <div className="flex gap-6">
-                    <div className="flex items-center justify-between rounded-md border border-neutral-200 p-3">
-                        <div className="flex flex-col">
-                            <p className="text-subtitle font-semibold">
-                                {selectionMode === "institute" ? "Compulsory" : "Learner Choice"}{" "}
-                                Courses
+                <div className="flex flex-col gap-6">
+                    <div className="flex items-center justify-between rounded-md p-3">
+                        <div className="flex gap-3">
+                            <p className="text-subtitle font-semibold underline">Course</p>
+                            <p className="text-body">
+                                {savedCourse?.name}
+                                {` (${selectionMode == "institute" ? "Compulsory" : "Optional"})`}
                             </p>
-                            <p className="text-body">{savedCourse?.name}</p>
                         </div>
                         <MyButton
                             buttonType="secondary"

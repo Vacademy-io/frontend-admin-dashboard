@@ -283,7 +283,7 @@ export const SessionSelection = ({
                                     disabled={!selectedSessionId}
                                     type="button"
                                 >
-                                    Save Session
+                                    Save
                                 </MyButton>
                             )}
                         </div>
@@ -291,10 +291,13 @@ export const SessionSelection = ({
                 </>
             ) : (
                 // Display mode - show session name with edit button and LevelSelection component
-                <div className="flex flex-col gap-6">
+                <div className="flex gap-3">
                     <div className="flex items-center justify-between rounded-md p-3">
                         <div className="flex flex-col">
-                            <p className="text-body">{savedSession?.name}</p>
+                            <p className="text-body">
+                                {savedSession?.name}
+                                {` (${selectionMode == "institute" ? "Compulsory" : "Optional"})`}
+                            </p>
                         </div>
                         <MyButton
                             buttonType="secondary"

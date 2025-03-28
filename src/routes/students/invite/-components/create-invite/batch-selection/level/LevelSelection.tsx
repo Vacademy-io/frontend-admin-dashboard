@@ -276,7 +276,64 @@ export const LevelSelection = ({
     ]);
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+                <h3 className="text-title font-semibold underline">Levels</h3>
+                {isSaved ? (
+                    <div className="flex gap-3">
+                        <MyButton
+                            onClick={handleEdit}
+                            buttonType="secondary"
+                            type="button"
+                            layoutVariant="icon"
+                        >
+                            <PencilSimple size={16} />
+                        </MyButton>
+                        {isSaved && !isMaxSaved && learnerChoiceSelected.length > 0 && (
+                            <div className="flex gap-2">
+                                <MaxLimitField
+                                    title="Level"
+                                    maxAllowed={learnerChoiceLength}
+                                    maxValue={localMaxLevels}
+                                    isDisabled={true}
+                                />
+                                <MyButton
+                                    onClick={handleSaveMaxLevels}
+                                    className="flex w-fit items-center gap-1"
+                                    buttonType="secondary"
+                                    type="button"
+                                >
+                                    <Check size={16} />
+                                </MyButton>
+                            </div>
+                        )}
+                    </div>
+                ) : localSelectionMode == "student" ? (
+                    learnerChoiceSelected.length > 0 && (
+                        <div className="flex items-center gap-3">
+                            <MyButton onClick={handleSaveLevels} className="w-fit" type="button">
+                                Save
+                            </MyButton>
+                        </div>
+                    )
+                ) : localSelectionMode == "institute" ? (
+                    compulsorySelected.length > 0 && (
+                        <div className="flex items-center gap-3">
+                            <MyButton onClick={handleSaveLevels} className="w-fit" type="button">
+                                Save
+                            </MyButton>
+                        </div>
+                    )
+                ) : (
+                    (compulsorySelected.length > 0 || learnerChoiceLevels.length > 0) && (
+                        <div className="flex items-center gap-3">
+                            <MyButton onClick={handleSaveLevels} className="w-fit" type="button">
+                                Save
+                            </MyButton>
+                        </div>
+                    )
+                )}
+            </div>
             {!isSaved ? (
                 <>
                     <BatchSelectionMode
@@ -326,95 +383,25 @@ export const LevelSelection = ({
                             )}
                         </div>
                     </FormProvider>
-
-                    {localSelectionMode == "student"
-                        ? learnerChoiceSelected.length > 0 && (
-                              <div className="flex items-center gap-3">
-                                  <MyButton
-                                      onClick={handleSaveLevels}
-                                      className="w-fit"
-                                      type="button"
-                                  >
-                                      Save
-                                  </MyButton>
-                              </div>
-                          )
-                        : localSelectionMode == "institute"
-                          ? compulsorySelected.length > 0 && (
-                                <div className="flex items-center gap-3">
-                                    <MyButton
-                                        onClick={handleSaveLevels}
-                                        className="w-fit"
-                                        type="button"
-                                    >
-                                        Save
-                                    </MyButton>
-                                </div>
-                            )
-                          : (compulsorySelected.length > 0 || learnerChoiceLevels.length > 0) && (
-                                <div className="flex items-center gap-3">
-                                    <MyButton
-                                        onClick={handleSaveLevels}
-                                        className="w-fit"
-                                        type="button"
-                                    >
-                                        Save
-                                    </MyButton>
-                                </div>
-                            )}
                 </>
             ) : (
-                <div className="flex flex-col gap-4">
-                    {/* Saved view showing the level list */}
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">Levels</h3>
-                        <MyButton
-                            onClick={handleEdit}
-                            buttonType="secondary"
-                            type="button"
-                            layoutVariant="icon"
+                <div className="flex flex-col gap-2">
+                    {selectedLevels.map((level) => (
+                        <Badge
+                            key={level.id}
+                            className={`px-2 py-1 ${
+                                level.type === "compulsory"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-green-100 text-green-800"
+                            }`}
                         >
-                            <PencilSimple size={16} />
-                        </MyButton>
-                    </div>
+                            {level.name}{" "}
+                            {level.type === "compulsory" ? "(Compulsory)" : "(Optional)"}
+                        </Badge>
+                    ))}
 
-                    <div className="flex flex-wrap gap-2">
-                        {selectedLevels.map((level) => (
-                            <Badge
-                                key={level.id}
-                                className={`px-2 py-1 ${
-                                    level.type === "compulsory"
-                                        ? "bg-blue-100 text-blue-800"
-                                        : "bg-green-100 text-green-800"
-                                }`}
-                            >
-                                {level.name}{" "}
-                                {level.type === "compulsory" ? "(Compulsory)" : "(Learner Choice)"}
-                            </Badge>
-                        ))}
-
-                        {selectedLevels.length === 0 && (
-                            <p className="text-gray-500">No levels selected</p>
-                        )}
-                    </div>
-
-                    {isSaved && !isMaxSaved && learnerChoiceSelected.length > 0 && (
-                        <div className="flex gap-2">
-                            <MaxLimitField
-                                title="Level"
-                                maxAllowed={learnerChoiceLength}
-                                maxValue={localMaxLevels}
-                                isDisabled={true}
-                            />
-                            <MyButton
-                                onClick={handleSaveMaxLevels}
-                                className="flex w-fit items-center gap-1"
-                                buttonType="secondary"
-                                type="button"
-                            >
-                                <Check size={16} />
-                            </MyButton>
-                        </div>
+                    {selectedLevels.length === 0 && (
+                        <p className="text-gray-500">No levels selected</p>
                     )}
                 </div>
             )}
