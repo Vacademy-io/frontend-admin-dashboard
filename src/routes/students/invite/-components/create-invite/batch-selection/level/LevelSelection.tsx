@@ -21,6 +21,13 @@ interface LevelSelectionProps {
     maxLevels: number;
 }
 
+// Define form values type
+interface LevelFormValues {
+    compulsoryLevels: string[];
+    learnerChoiceLevels: string[];
+    roleType: string[];
+}
+
 export const LevelSelection = ({
     courseId,
     isCourseCompulsory,
@@ -41,8 +48,19 @@ export const LevelSelection = ({
 
     // Local state for selection mode that doesn't affect the form until save
     const [localSelectionMode, setLocalSelectionMode] = useState<SelectionMode>(levelSelectionMode);
-    const [localMaxLevels, setLocalMaxLevels] = useState<number>(maxLevels);
+    // const [localMaxLevels, setLocalMaxLevels] = useState<number>(maxLevels);
+    const localMaxLevels = maxLevels;
     const [isSaved, setIsSaved] = useState<boolean>(false);
+    const [isMaxSaved, setIsMaxSaved] = useState<boolean>(false);
+    const [activeDropdown, setActiveDropdown] = useState<
+        "compulsoryLevels" | "learnerChoiceLevels" | null
+    >(null);
+
+    useEffect(() => {
+        if (!isSaved) {
+            setIsMaxSaved(false);
+        }
+    }, [isSaved]);
 
     const { getLevelsFromPackage, getPackageSessionId } = useInstituteDetailsStore();
 
@@ -55,7 +73,7 @@ export const LevelSelection = ({
     }));
 
     // Create a form for the multi-select fields with the roleType field that MultiSelectDropdown expects
-    const localForm = useForm({
+    const localForm = useForm<LevelFormValues>({
         defaultValues: {
             compulsoryLevels: preSelectedLevels.map((level) => level.id),
             learnerChoiceLevels: learnerChoiceLevels.map((level) => level.id),
@@ -63,16 +81,51 @@ export const LevelSelection = ({
         },
     });
 
+    // Bridge between roleType and actual fields
+    useEffect(() => {
+        const roleTypeValues = localForm.watch("roleType");
+        if (Array.isArray(roleTypeValues) && activeDropdown) {
+            localForm.setValue(activeDropdown, roleTypeValues as string[]);
+        }
+    }, [localForm.watch("roleType"), activeDropdown]);
+
+    // Initialize roleType with appropriate values based on active dropdown
+    useEffect(() => {
+        if (activeDropdown) {
+            const currentValues = localForm.getValues(activeDropdown) as string[];
+            localForm.setValue("roleType", currentValues);
+        } else if (localSelectionMode === "institute" || localSelectionMode === "both") {
+            setActiveDropdown("compulsoryLevels");
+        } else if (localSelectionMode === "student") {
+            setActiveDropdown("learnerChoiceLevels");
+        }
+    }, [activeDropdown, localSelectionMode]);
+
     // Handle local selection mode changes (doesn't affect form yet)
     const handleLocalSelectionModeChange = (mode: SelectionMode) => {
         setLocalSelectionMode(mode);
 
-        // Reset appropriate dropdowns based on new mode
+        // Reset values for both dropdowns when changing mode
+        localForm.setValue("compulsoryLevels", []);
+        localForm.setValue("learnerChoiceLevels", []);
+        localForm.setValue("roleType", []);
+
+        // Set appropriate active dropdown based on mode
         if (mode === "institute") {
-            localForm.setValue("learnerChoiceLevels", []);
+            setActiveDropdown("compulsoryLevels");
         } else if (mode === "student") {
+            setActiveDropdown("learnerChoiceLevels");
+        } else if (mode === "both") {
             localForm.setValue("compulsoryLevels", []);
+            localForm.setValue("learnerChoiceLevels", []);
+            setActiveDropdown(null);
         }
+    };
+
+    // Handle dropdown focus to set active dropdown
+    const handleDropdownFocus = (fieldName: "compulsoryLevels" | "learnerChoiceLevels") => {
+        setActiveDropdown(fieldName);
+        localForm.setValue("roleType", localForm.getValues(fieldName) as string[]);
     };
 
     // Keep track of selected values in both dropdowns to filter options
@@ -86,14 +139,16 @@ export const LevelSelection = ({
 
     // Update state when selections change for filtering purposes only
     useEffect(() => {
-        const values = localForm.getValues("compulsoryLevels");
+        const values = localForm.getValues("compulsoryLevels") as string[];
+        console.log("compulsory values: ", values);
         if (Array.isArray(values)) {
             setCompulsorySelected(values);
         }
     }, [localForm.watch("compulsoryLevels")]);
 
     useEffect(() => {
-        const values = localForm.getValues("learnerChoiceLevels");
+        const values = localForm.getValues("learnerChoiceLevels") as string[];
+        console.log("learner choice values: ", values);
         if (Array.isArray(values)) {
             setLearnerChoiceSelected(values);
         }
@@ -109,16 +164,14 @@ export const LevelSelection = ({
     );
 
     // Handle save button click
-    const handleSave = () => {
+    // Handle save button click
+    const handleSaveLevels = () => {
         // Update the selection mode in the form
         changeLevelSelectionMode(localSelectionMode);
 
-        // Update max levels in the form
-        setMaxLevels(localMaxLevels);
-
         // Get the current values from the form
-        const compulsoryLevelIds = localForm.getValues("compulsoryLevels") || [];
-        const learnerChoiceLevelIds = localForm.getValues("learnerChoiceLevels") || [];
+        const compulsoryLevelIds = localForm.getValues("compulsoryLevels") as string[];
+        const learnerChoiceLevelIds = localForm.getValues("learnerChoiceLevels") as string[];
 
         // Clear existing levels to avoid duplicates
         preSelectedLevels.forEach((level) => {
@@ -128,6 +181,10 @@ export const LevelSelection = ({
         learnerChoiceLevels.forEach((level) => {
             deleteLevel(level.id, false);
         });
+
+        // Prepare arrays to hold the new levels
+        const newCompulsoryLevels: LevelField[] = [];
+        const newLearnerChoiceLevels: LevelField[] = [];
 
         // Add new compulsory levels
         if (Array.isArray(compulsoryLevelIds)) {
@@ -140,7 +197,15 @@ export const LevelSelection = ({
                             sessionId: sessionId,
                             levelId: level.id,
                         }) || "";
+
                     addLevel(level.id, level.name, packageSessionId, true);
+
+                    // Also add to our local array
+                    newCompulsoryLevels.push({
+                        id: level.id,
+                        name: level.name,
+                        packageSessionId,
+                    });
                 }
             });
         }
@@ -156,33 +221,59 @@ export const LevelSelection = ({
                             sessionId: sessionId,
                             levelId: level.id,
                         }) || "";
+
                     addLevel(level.id, level.name, packageSessionId, false);
+
+                    // Also add to our local array
+                    newLearnerChoiceLevels.push({
+                        id: level.id,
+                        name: level.name,
+                        packageSessionId,
+                    });
                 }
             });
         }
+
+        // Create an updated selectedLevels array
+        const updatedSelectedLevels = [
+            ...newCompulsoryLevels.map((level) => ({ ...level, type: "compulsory" as const })),
+            ...newLearnerChoiceLevels.map((level) => ({
+                ...level,
+                type: "learnerChoice" as const,
+            })),
+        ];
+
+        // We need to add state to track these updated values
+        setSelectedLevels(updatedSelectedLevels);
 
         // Set state to show saved view
         setIsSaved(true);
     };
 
     // Handle max level change
-    const handleMaxLevelChange = (value: number) => {
-        setLocalMaxLevels(value);
-    };
+    // const handleMaxLevelChange = (value: number) => {
+    //     setLocalMaxLevels(value);
+    // };
 
     // Handle edit button click
     const handleEdit = () => {
         setIsSaved(false);
     };
 
+    const handleSaveMaxLevels = () => {
+        // Update max levels in the form
+        setMaxLevels(localMaxLevels);
+        setIsMaxSaved(true);
+    };
+
     // Get the current learner choice levels length
     const learnerChoiceLength = getLearnerChoiceLevelsLength();
 
     // Prepare data for the saved view
-    const selectedLevels = [
+    const [selectedLevels, setSelectedLevels] = useState([
         ...preSelectedLevels.map((level) => ({ ...level, type: "compulsory" as const })),
         ...learnerChoiceLevels.map((level) => ({ ...level, type: "learnerChoice" as const })),
-    ];
+    ]);
 
     return (
         <div className="flex flex-col gap-6">
@@ -196,56 +287,81 @@ export const LevelSelection = ({
                         onChangeMode={handleLocalSelectionModeChange}
                     />
 
-                    <MaxLimitField
-                        title="Level"
-                        maxAllowed={learnerChoiceLength}
-                        maxValue={localMaxLevels}
-                        onMaxChange={handleMaxLevelChange}
-                    />
-
                     <FormProvider {...localForm}>
                         <div className="flex flex-col gap-5">
                             {/* Compulsory Levels Dropdown - Show only if mode is institute or both */}
                             {(localSelectionMode === "institute" ||
                                 localSelectionMode === "both") && (
-                                <MultiSelectDropdown
-                                    form={localForm}
-                                    control={localForm.control}
-                                    name="compulsoryLevels"
-                                    label="Compulsory"
-                                    options={compulsoryOptions}
-                                    className="w-full"
-                                />
+                                <div
+                                    onClick={() => handleDropdownFocus("compulsoryLevels")}
+                                    onFocus={() => handleDropdownFocus("compulsoryLevels")}
+                                >
+                                    <MultiSelectDropdown
+                                        form={localForm}
+                                        control={localForm.control}
+                                        name="compulsoryLevels"
+                                        label="Compulsory"
+                                        options={compulsoryOptions}
+                                        className="w-full"
+                                    />
+                                </div>
                             )}
 
                             {/* Learner Choice Levels Dropdown - Show only if mode is student or both */}
                             {(localSelectionMode === "student" ||
                                 localSelectionMode === "both") && (
-                                <MultiSelectDropdown
-                                    form={localForm}
-                                    control={localForm.control}
-                                    name="learnerChoiceLevels"
-                                    label="Learner Choice"
-                                    options={learnerChoiceOptions}
-                                    className="w-full"
-                                />
+                                <div
+                                    onClick={() => handleDropdownFocus("learnerChoiceLevels")}
+                                    onFocus={() => handleDropdownFocus("learnerChoiceLevels")}
+                                >
+                                    <MultiSelectDropdown
+                                        form={localForm}
+                                        control={localForm.control}
+                                        name="learnerChoiceLevels"
+                                        label="Learner Choice"
+                                        options={learnerChoiceOptions}
+                                        className="w-full"
+                                    />
+                                </div>
                             )}
                         </div>
                     </FormProvider>
 
-                    <div className="flex items-center gap-3">
-                        <MyButton onClick={handleSave} className="w-fit" type="button">
-                            Save
-                        </MyButton>
-                        <MyButton
-                            onClick={handleSave}
-                            className="flex w-fit items-center gap-1"
-                            buttonType="secondary"
-                            type="button"
-                        >
-                            <Check size={16} />
-                        </MyButton>
-                    </div>
+                    {localSelectionMode == "student"
+                        ? learnerChoiceSelected.length > 0 && (
+                              <div className="flex items-center gap-3">
+                                  <MyButton
+                                      onClick={handleSaveLevels}
+                                      className="w-fit"
+                                      type="button"
+                                  >
+                                      Save
+                                  </MyButton>
+                              </div>
+                          )
+                        : localSelectionMode == "institute"
+                          ? compulsorySelected.length > 0 && (
+                                <div className="flex items-center gap-3">
+                                    <MyButton
+                                        onClick={handleSaveLevels}
+                                        className="w-fit"
+                                        type="button"
+                                    >
+                                        Save
+                                    </MyButton>
+                                </div>
+                            )
+                          : (compulsorySelected.length > 0 || learnerChoiceLevels.length > 0) && (
+                                <div className="flex items-center gap-3">
+                                    <MyButton
+                                        onClick={handleSaveLevels}
+                                        className="w-fit"
+                                        type="button"
+                                    >
+                                        Save
+                                    </MyButton>
+                                </div>
+                            )}
                 </>
             ) : (
                 <div className="flex flex-col gap-4">
@@ -254,9 +370,9 @@ export const LevelSelection = ({
                         <h3 className="text-lg font-semibold">Levels</h3>
                         <MyButton
                             onClick={handleEdit}
-                            className="flex w-fit items-center gap-1"
                             buttonType="secondary"
                             type="button"
+                            layoutVariant="icon"
                         >
                             <PencilSimple size={16} />
                         </MyButton>
@@ -282,12 +398,24 @@ export const LevelSelection = ({
                         )}
                     </div>
 
-                    <MaxLimitField
-                        title="Level"
-                        maxAllowed={learnerChoiceLength}
-                        maxValue={localMaxLevels}
-                        isDisabled={true}
-                    />
+                    {isSaved && !isMaxSaved && learnerChoiceSelected.length > 0 && (
+                        <div className="flex gap-2">
+                            <MaxLimitField
+                                title="Level"
+                                maxAllowed={learnerChoiceLength}
+                                maxValue={localMaxLevels}
+                                isDisabled={true}
+                            />
+                            <MyButton
+                                onClick={handleSaveMaxLevels}
+                                className="flex w-fit items-center gap-1"
+                                buttonType="secondary"
+                                type="button"
+                            >
+                                <Check size={16} />
+                            </MyButton>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

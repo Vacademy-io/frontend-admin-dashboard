@@ -34,7 +34,6 @@ export function useLevelManager(
 
         // Get courses array based on type
         const courses = isCourseCompulsory ? batch.preSelectedCourses : batch.learnerChoiceCourses;
-
         // Find course
         const courseIndex = courses.findIndex((c) => c.id === courseId);
         if (courseIndex === -1) return { session: null, path: null };
@@ -64,7 +63,9 @@ export function useLevelManager(
                 return { session: null, path: null };
 
             session = course?.learnerChoiceSessions[sessionIndex];
+            console.log("session: ", session);
             sessionPath = `${coursePath}.learnerChoiceSessions.${sessionIndex}`;
+            console.log("session path: ", sessionPath);
         }
 
         return { session, path: sessionPath };
@@ -113,6 +114,8 @@ export function useLevelManager(
             setValue(`${path}.learnerChoiceLevels` as any, currentLevels);
         }
 
+        const batch = getValues("batches");
+        console.log("batch: ", batch);
         return true;
     };
 
@@ -149,6 +152,7 @@ export function useLevelManager(
     // Change level selection mode
     const changeLevelSelectionMode = (newMode: SelectionMode) => {
         const { path } = getSession();
+        console.log("path in change level selection mode: ", path);
         if (!path) return false;
 
         // Use as any to bypass strict typing

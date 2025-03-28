@@ -2,7 +2,6 @@ import { useSessionManager } from "../../../../-hooks/useSessionManager";
 import { PreSelectedCourse } from "@/routes/students/invite/-schema/InviteFormSchema";
 import { SessionSelection } from "./SessionSelection";
 import { MyButton } from "@/components/design-system/button";
-import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import { Check, PencilSimple } from "phosphor-react";
 import { MaxLimitField } from "../MaxLimitField";
@@ -71,11 +70,12 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
                 <p className="text-title font-semibold">Sessions</p>
 
                 {/* Show Save All button when not adding a session */}
-                {!isAddingSession && (
-                    <MyButton onClick={handleSaveAll} type="button" scale="small">
-                        Save All
-                    </MyButton>
-                )}
+                {!isAddingSession &&
+                    (learnerChoiceSessions.length > 0 || preSelectedSessions.length > 0) && (
+                        <MyButton onClick={handleSaveAll} type="button" scale="small">
+                            Save All
+                        </MyButton>
+                    )}
             </div>
 
             {/* Sessions List */}
@@ -122,7 +122,7 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
                     !isAddingSession && <p>No sessions added yet</p>}
             </div>
 
-            <Separator />
+            {/* <Separator /> */}
 
             {/* Max Limit Field Section - visible when Save All clicked */}
             {isSavingAll && !isMaxValueSaved && (
@@ -166,7 +166,7 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
 
             {/* Add Session button or Session form */}
             {!isSavingAll && availableSessions.length > 0 && !isAddingSession && (
-                <MyButton onClick={() => setIsAddingSession(true)} type="button">
+                <MyButton onClick={() => setIsAddingSession(true)} type="button" scale="small">
                     Add session
                 </MyButton>
             )}
@@ -175,14 +175,14 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
             {!isSavingAll && isAddingSession && (
                 <div className="flex items-center gap-1">
                     <SessionSelection courseId={courseId} isCourseCompulsory={isCourseCompulsory} />
-                    <MyButton
+                    {/* <MyButton
                         buttonType="primary"
                         layoutVariant="icon"
                         onClick={() => setIsAddingSession(false)}
                         type="button"
                     >
                         <Check />
-                    </MyButton>
+                    </MyButton> */}
                 </div>
             )}
         </div>
