@@ -141,6 +141,10 @@ export const StepFiveForm = ({
         }
     }, [submitFn]);
 
+    useEffect(() => {
+        setShowCredentials(true);
+    }, [initialValues]);
+
     return (
         <div>
             <div className="flex flex-col justify-center px-6 text-neutral-600">
