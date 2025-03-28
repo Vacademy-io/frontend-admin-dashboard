@@ -68,7 +68,7 @@ export function QuestionInsightsComponent() {
 
     const handleRefreshLeaderboard = () => {
         getQuestionInsightsData.mutate({
-            assessmentId,
+            assessmentId: assessmentId ? assessmentId : "",
             instituteId,
             sectionId: selectedSection,
         });
@@ -182,31 +182,33 @@ export function QuestionInsightsComponent() {
                                         </span>
                                     </p>
                                 )}
-                                {question.top3_correct_response_dto.length > 0 && (
-                                    <div className="flex flex-col gap-2">
-                                        <h3 className="text-primary-500">
-                                            Top 3 quick correct responses
-                                        </h3>
-                                        <div className="flex flex-wrap items-center gap-4">
-                                            {question.top3_correct_response_dto?.map(
-                                                (response, index) => {
-                                                    return (
-                                                        <div
-                                                            key={index}
-                                                            className="flex items-center whitespace-nowrap rounded-md border p-2 text-sm"
-                                                        >
-                                                            <h1>{response.name}</h1>
-                                                            &nbsp;:&nbsp;
-                                                            <h1>
-                                                                {response.timeTakenInSeconds} sec
-                                                            </h1>
-                                                        </div>
-                                                    );
-                                                },
-                                            )}
+                                {question.top3_correct_response_dto &&
+                                    question.top3_correct_response_dto.length > 0 && (
+                                        <div className="flex flex-col gap-2">
+                                            <h3 className="text-primary-500">
+                                                Top 3 quick correct responses
+                                            </h3>
+                                            <div className="flex flex-wrap items-center gap-4">
+                                                {question.top3_correct_response_dto?.map(
+                                                    (response, index) => {
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className="flex items-center whitespace-nowrap rounded-md border p-2 text-sm"
+                                                            >
+                                                                <h1>{response.name}</h1>
+                                                                &nbsp;:&nbsp;
+                                                                <h1>
+                                                                    {response.timeTakenInSeconds}{" "}
+                                                                    sec
+                                                                </h1>
+                                                            </div>
+                                                        );
+                                                    },
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
                             </div>
                             <div className="-mt-2 flex w-1/2 flex-col">
                                 <QuestionInsightsAnalysisChartComponent
@@ -228,20 +230,20 @@ export function QuestionInsightsComponent() {
                                                 <p>Correct Respondents: </p>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <p>{question.question_status.correctAttempt}</p>
+                                                <p>{question.question_status?.correctAttempt}</p>
                                                 <p>
                                                     (
-                                                    {question.total_attempts
+                                                    {question?.total_attempts
                                                         ? (
                                                               (question.question_status
-                                                                  .correctAttempt /
+                                                                  ?.correctAttempt /
                                                                   (question.question_status
-                                                                      .correctAttempt +
+                                                                      ?.correctAttempt +
                                                                       question.question_status
-                                                                          .partialCorrectAttempt +
+                                                                          ?.partialCorrectAttempt +
                                                                       question.question_status
-                                                                          .incorrectAttempt +
-                                                                      question.skipped)) *
+                                                                          ?.incorrectAttempt +
+                                                                      question?.skipped)) *
                                                               100
                                                           ).toFixed(2) + "%"
                                                         : "N/A"}
@@ -283,21 +285,24 @@ export function QuestionInsightsComponent() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <p>
-                                                    {question.question_status.partialCorrectAttempt}
+                                                    {
+                                                        question.question_status
+                                                            ?.partialCorrectAttempt
+                                                    }
                                                 </p>
                                                 <p>
                                                     (
-                                                    {question.total_attempts
+                                                    {question?.total_attempts
                                                         ? (
                                                               (question.question_status
-                                                                  .partialCorrectAttempt /
+                                                                  ?.partialCorrectAttempt /
                                                                   (question.question_status
-                                                                      .correctAttempt +
+                                                                      ?.correctAttempt +
                                                                       question.question_status
-                                                                          .partialCorrectAttempt +
+                                                                          ?.partialCorrectAttempt +
                                                                       question.question_status
-                                                                          .incorrectAttempt +
-                                                                      question.skipped)) *
+                                                                          ?.incorrectAttempt +
+                                                                      question?.skipped)) *
                                                               100
                                                           ).toFixed(2) + "%"
                                                         : "N/A"}
@@ -338,20 +343,20 @@ export function QuestionInsightsComponent() {
                                                 <p>Wrong Respondents: </p>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <p>{question.question_status.incorrectAttempt}</p>
+                                                <p>{question.question_status?.incorrectAttempt}</p>
                                                 <p>
                                                     (
-                                                    {question.total_attempts
+                                                    {question?.total_attempts
                                                         ? (
                                                               (question.question_status
-                                                                  .incorrectAttempt /
+                                                                  ?.incorrectAttempt /
                                                                   (question.question_status
-                                                                      .correctAttempt +
+                                                                      ?.correctAttempt +
                                                                       question.question_status
-                                                                          .partialCorrectAttempt +
+                                                                          ?.partialCorrectAttempt +
                                                                       question.question_status
-                                                                          .incorrectAttempt +
-                                                                      question.skipped)) *
+                                                                          ?.incorrectAttempt +
+                                                                      question?.skipped)) *
                                                               100
                                                           ).toFixed(2) + "%"
                                                         : "N/A"}
@@ -395,16 +400,16 @@ export function QuestionInsightsComponent() {
                                                 <p>{question.skipped}</p>
                                                 <p>
                                                     (
-                                                    {question.total_attempts
+                                                    {question?.total_attempts
                                                         ? (
-                                                              (question.skipped /
+                                                              (question?.skipped /
                                                                   (question.question_status
-                                                                      .correctAttempt +
+                                                                      ?.correctAttempt +
                                                                       question.question_status
-                                                                          .partialCorrectAttempt +
+                                                                          ?.partialCorrectAttempt +
                                                                       question.question_status
-                                                                          .incorrectAttempt +
-                                                                      question.skipped)) *
+                                                                          ?.incorrectAttempt +
+                                                                      question?.skipped)) *
                                                               100
                                                           ).toFixed(2) + "%"
                                                         : "N/A"}

@@ -233,7 +233,7 @@ export function QuestionAnalysisChart() {
 
     const handleRefreshLeaderboard = () => {
         getQuestionInsightsData.mutate({
-            assessmentId,
+            assessmentId: assessmentId ? assessmentId : "",
             instituteId,
             sectionId: selectedSection,
         });
