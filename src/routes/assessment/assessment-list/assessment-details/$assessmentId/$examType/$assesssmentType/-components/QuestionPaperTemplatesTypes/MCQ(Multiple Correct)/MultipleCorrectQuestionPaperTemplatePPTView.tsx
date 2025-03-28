@@ -29,6 +29,9 @@ interface ChoiceOption {
 
 export const MultipleCorrectQuestionPaperTemplatePPTView = ({
     form,
+    selectedSection,
+    currentQuestionIndexes,
+    setCurrentQuestionIndexes,
     currentQuestionIndex,
     className,
     selectedSectionIndex,
@@ -57,6 +60,22 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
     ) as ChoiceOption;
 
     const handleDeleteSlide = () => {
+        const currentIndex = currentQuestionIndexes[selectedSection] ?? 0; // Default to 0
+
+        if (
+            currentIndex !== undefined && // This check is now redundant but kept for clarity
+            currentIndex === allQuestions.length - 1 &&
+            currentIndex > 0
+        ) {
+            setCurrentQuestionIndexes((prev) => {
+                const updatedIndexes = {
+                    ...prev,
+                    [selectedSection]: Math.max(0, currentIndex - 1),
+                };
+                return updatedIndexes;
+            });
+        }
+
         allQuestions.splice(currentQuestionIndex, 1);
         setValue(`sections.${selectedSectionIndex}.questions`, allQuestions);
     };
