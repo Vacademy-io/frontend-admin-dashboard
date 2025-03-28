@@ -92,7 +92,7 @@ export const Invite = () => {
     };
 
     const { form } = useInviteFormContext();
-    const { getValues } = form;
+    const { getValues, setValue } = form;
 
     const onCreateInvite = async (invite: InviteForm) => {
         invite.batches = getValues("batches");
@@ -103,6 +103,12 @@ export const Invite = () => {
             toast.success("invitation created");
             const link = createInviteLink(responseData?.learner_invitation?.invite_code || "");
             setInviteLink(link);
+            setValue("batches", {
+                maxCourses: 0,
+                courseSelectionMode: "institute",
+                preSelectedCourses: [],
+                learnerChoiceCourses: [],
+            });
             // setOpenCreateInviteDialog(false);
         } catch {
             toast.error("failed to create invitation");
@@ -123,6 +129,7 @@ export const Invite = () => {
                     open={openCreateInviteDialog}
                     onOpenChange={onOpenChangeCreateInviteDialog}
                     inviteLink={inviteLink}
+                    setInviteLink={setInviteLink}
                 />
             </div>
             <div className="flex w-full flex-col gap-10">
