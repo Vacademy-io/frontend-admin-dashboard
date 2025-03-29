@@ -988,7 +988,10 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
                     <TabsContent value={selectedTab}>
-                        <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                        <SidebarProvider
+                            style={{ ["--sidebar-width" as string]: "565px" }}
+                            defaultOpen={false}
+                        >
                             <AssessmentSubmissionsStudentTable
                                 data={{
                                     content: getAssessmentSubmissionsFilteredDataStudentData(
