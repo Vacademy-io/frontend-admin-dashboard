@@ -1,6 +1,7 @@
 import {
     GET_ADMIN_PARTICIPANTS,
     GET_ASSESSMENT_TOTAL_MARKS_URL,
+    GET_ATTEMPT_DATA,
     GET_BATCH_DETAILS_URL,
     GET_INDIVIDUAL_STUDENT_DETAILS_URL,
     GET_LEADERBOARD_URL,
@@ -11,6 +12,7 @@ import {
     PRIVATE_ADD_QUESTIONS,
     STUDENT_REPORT_DETAIL_URL,
     STUDENT_REPORT_URL,
+    UPDATE_ATTEMPT,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
@@ -413,4 +415,37 @@ export const handleGetIndividualStudentList = ({
         queryFn: () => getBatchDetailsListOfIndividualStudents(instituteId, assessmentId),
         staleTime: 60 * 60 * 1000,
     };
+};
+
+export const getAttemptData = async (attemptId:string) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: `${GET_ATTEMPT_DATA}`,
+        params: {
+            attemptId,
+        },
+    });
+    return response?.data;
+};
+
+export const getAttemptDetails = (attemptId:string) => {
+    return {
+        queryKey: ["GET_ASSESSMENT_DETAILS", attemptId],
+        queryFn: () => getAttemptData(attemptId),
+        staleTime: 60 * 60 * 1000,
+        enabled: !!attemptId,
+    };
+}
+
+export const handleUpdateAttempt = async (attemptId:string,fileId:string) => {
+    const response = await authenticatedAxiosInstance({
+        method:"POST",
+        url:UPDATE_ATTEMPT,
+        params:{
+            attemptId,
+            fileId
+        }
+    })
+    return response?.data;
+
 };
