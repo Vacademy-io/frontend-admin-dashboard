@@ -20,6 +20,7 @@ import { Route as DashboardIndexImport } from "./routes/dashboard/index";
 import { Route as CommunityIndexImport } from "./routes/community/index";
 import { Route as AssessmentIndexImport } from "./routes/assessment/index";
 import { Route as StudyLibrarySessionIndexImport } from "./routes/study-library/session/index";
+import { Route as StudyLibraryReportsIndexImport } from "./routes/study-library/reports/index";
 import { Route as StudyLibraryCoursesIndexImport } from "./routes/study-library/courses/index";
 import { Route as StudentsStudentsListIndexImport } from "./routes/students/students-list/index";
 import { Route as StudentsManageBatchesIndexImport } from "./routes/students/manage-batches/index";
@@ -94,6 +95,12 @@ const AssessmentIndexRoute = AssessmentIndexImport.update({
 const StudyLibrarySessionIndexRoute = StudyLibrarySessionIndexImport.update({
     id: "/study-library/session/",
     path: "/study-library/session/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const StudyLibraryReportsIndexRoute = StudyLibraryReportsIndexImport.update({
+    id: "/study-library/reports/",
+    path: "/study-library/reports/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -367,6 +374,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibraryCoursesIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/study-library/reports/": {
+            id: "/study-library/reports/";
+            path: "/study-library/reports";
+            fullPath: "/study-library/reports";
+            preLoaderRoute: typeof StudyLibraryReportsIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/study-library/session/": {
             id: "/study-library/session/";
             path: "/study-library/session";
@@ -456,6 +470,7 @@ export interface FileRoutesByFullPath {
     "/students/manage-batches": typeof StudentsManageBatchesIndexRoute;
     "/students/students-list": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses": typeof StudyLibraryCoursesIndexRoute;
+    "/study-library/reports": typeof StudyLibraryReportsIndexRoute;
     "/study-library/session": typeof StudyLibrarySessionIndexRoute;
     "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute;
@@ -488,6 +503,7 @@ export interface FileRoutesByTo {
     "/students/manage-batches": typeof StudentsManageBatchesIndexRoute;
     "/students/students-list": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses": typeof StudyLibraryCoursesIndexRoute;
+    "/study-library/reports": typeof StudyLibraryReportsIndexRoute;
     "/study-library/session": typeof StudyLibrarySessionIndexRoute;
     "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute;
@@ -521,6 +537,7 @@ export interface FileRoutesById {
     "/students/manage-batches/": typeof StudentsManageBatchesIndexRoute;
     "/students/students-list/": typeof StudentsStudentsListIndexRoute;
     "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute;
+    "/study-library/reports/": typeof StudyLibraryReportsIndexRoute;
     "/study-library/session/": typeof StudyLibrarySessionIndexRoute;
     "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute;
@@ -555,6 +572,7 @@ export interface FileRouteTypes {
         | "/students/manage-batches"
         | "/students/students-list"
         | "/study-library/courses"
+        | "/study-library/reports"
         | "/study-library/session"
         | "/assessment/export/$assessmentId"
         | "/study-library/courses/levels"
@@ -586,6 +604,7 @@ export interface FileRouteTypes {
         | "/students/manage-batches"
         | "/students/students-list"
         | "/study-library/courses"
+        | "/study-library/reports"
         | "/study-library/session"
         | "/assessment/export/$assessmentId"
         | "/study-library/courses/levels"
@@ -617,6 +636,7 @@ export interface FileRouteTypes {
         | "/students/manage-batches/"
         | "/students/students-list/"
         | "/study-library/courses/"
+        | "/study-library/reports/"
         | "/study-library/session/"
         | "/assessment/export/$assessmentId/"
         | "/study-library/courses/levels/"
@@ -650,6 +670,7 @@ export interface RootRouteChildren {
     StudentsManageBatchesIndexRoute: typeof StudentsManageBatchesIndexRoute;
     StudentsStudentsListIndexRoute: typeof StudentsStudentsListIndexRoute;
     StudyLibraryCoursesIndexRoute: typeof StudyLibraryCoursesIndexRoute;
+    StudyLibraryReportsIndexRoute: typeof StudyLibraryReportsIndexRoute;
     StudyLibrarySessionIndexRoute: typeof StudyLibrarySessionIndexRoute;
     AssessmentExportAssessmentIdIndexRoute: typeof AssessmentExportAssessmentIdIndexRoute;
     StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute;
@@ -682,6 +703,7 @@ const rootRouteChildren: RootRouteChildren = {
     StudentsManageBatchesIndexRoute: StudentsManageBatchesIndexRoute,
     StudentsStudentsListIndexRoute: StudentsStudentsListIndexRoute,
     StudyLibraryCoursesIndexRoute: StudyLibraryCoursesIndexRoute,
+    StudyLibraryReportsIndexRoute: StudyLibraryReportsIndexRoute,
     StudyLibrarySessionIndexRoute: StudyLibrarySessionIndexRoute,
     AssessmentExportAssessmentIdIndexRoute: AssessmentExportAssessmentIdIndexRoute,
     StudyLibraryCoursesLevelsIndexRoute: StudyLibraryCoursesLevelsIndexRoute,
@@ -728,6 +750,7 @@ export const routeTree = rootRoute
         "/students/manage-batches/",
         "/students/students-list/",
         "/study-library/courses/",
+        "/study-library/reports/",
         "/study-library/session/",
         "/assessment/export/$assessmentId/",
         "/study-library/courses/levels/",
@@ -798,6 +821,9 @@ export const routeTree = rootRoute
     },
     "/study-library/courses/": {
       "filePath": "study-library/courses/index.tsx"
+    },
+    "/study-library/reports/": {
+      "filePath": "study-library/reports/index.tsx"
     },
     "/study-library/session/": {
       "filePath": "study-library/session/index.tsx"
