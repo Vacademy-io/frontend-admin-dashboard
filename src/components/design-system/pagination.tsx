@@ -81,7 +81,6 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                         <></>
                     ) : totalPages > 1 && (currentPage === 0 || currentPage === totalPages - 1) ? (
                         <>
-                            here
                             <PaginationItem>
                                 <PaginationEllipsis />
                             </PaginationItem>

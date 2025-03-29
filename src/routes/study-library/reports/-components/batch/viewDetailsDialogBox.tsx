@@ -14,6 +14,7 @@ import { MyTable } from "@/components/design-system/table";
 import { fetchChapterWiseProgress } from "../../-services/utils";
 import { usePacageDetails } from "../../-store/usePacageDetails";
 import dayjs from "dayjs";
+
 export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
     const [chapterReportData, setChapterReportData] = useState<ChapterReport>();
@@ -89,7 +90,9 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                                 study_slide: slide.slide_title,
                                                 batch_concentration_score:
                                                     slide.avg_concentration_score.toFixed(2), // Formatting as string
-                                                average_time_spent: `${slide.avg_time_spent} mins`,
+                                                average_time_spent: `${slide.avg_time_spent.toFixed(
+                                                    2,
+                                                )} mins`,
                                             })) || [],
                                         total_pages: 0,
                                         page_no: 0,

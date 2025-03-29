@@ -72,7 +72,7 @@ export default function ProgressReports() {
                 module: module.module_name,
                 module_id: module.module_id,
                 module_completed: `${module.module_completion_percentage}%`,
-                average_time_spent: `${module.avg_time_spent_minutes} min`,
+                average_time_spent: `${module.avg_time_spent_minutes.toFixed(2)} min`,
             })),
         );
     };

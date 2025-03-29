@@ -63,6 +63,11 @@ interface LeaderBoardData {
     full_name: string;
 }
 
+export const formatToTwoDecimalPlaces = (value: string): string => {
+    const num = parseFloat(value);
+    return isNaN(num) ? "0.00" : num.toFixed(2);
+};
+
 export default function TimelineReports() {
     const {
         getCourseFromPackage,
@@ -191,11 +196,6 @@ export default function TimelineReports() {
         // api call
     };
 
-    const formatToTwoDecimalPlaces = (value: string): string => {
-        const num = parseFloat(value);
-        return isNaN(num) ? "0.00" : num.toFixed(2);
-    };
-
     const convertFormat = (data: DailyLearnerTimeSpent[] | undefined) => {
         if (!data) return []; // Return an empty array if data is undefined
 
@@ -209,9 +209,9 @@ export default function TimelineReports() {
         return data.map((item) => ({
             rank: item.rank.toString(),
             name: item.full_name,
-            score: item.avg_concentration.toString(),
-            average: item.daily_avg_time.toString(),
-            totalTime: item.total_time.toString(),
+            score: formatToTwoDecimalPlaces(item.avg_concentration.toString()),
+            average: formatToTwoDecimalPlaces(item.daily_avg_time.toString()),
+            totalTime: formatToTwoDecimalPlaces(item.total_time.toString()),
         }));
     };
 
