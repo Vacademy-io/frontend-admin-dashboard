@@ -1,24 +1,24 @@
 import React from "react";
-import { ComptetiveExam, Grade1to5, Grade5to12, NoTag, PostGrad, UnderGrad } from "@/svgs";
+// import { ComptetiveExam, Grade1to5, Grade5to12, NoTag, PostGrad, UnderGrad } from "@/svgs";
 
 const RandomImage: React.FC = () => {
-    const randomIndex = Math.floor(Math.random() * 5);
-    console.log(randomIndex);
-    switch (randomIndex) {
-        case 0:
-            return <ComptetiveExam className="h-full w-full"></ComptetiveExam>;
-        case 1:
-            return <Grade1to5 className="h-full w-full"></Grade1to5>;
-        case 2:
-            return <UnderGrad className="h-full w-full"></UnderGrad>;
-        case 3:
-            return <Grade5to12 className="h-full w-full"></Grade5to12>;
-        case 4:
-            return <NoTag className="h-full w-full"></NoTag>;
-        case 5:
-            return <PostGrad className="h-full w-full"> </PostGrad>;
-    }
-    return <NoTag className="size-full" />;
+    // const randomIndex = Math.floor(Math.random() * 5);
+    // switch (randomIndex) {
+    //     case 0:
+    //         return <ComptetiveExam className="h-full w-full"></ComptetiveExam>;
+    //     case 1:
+    //         return <Grade1to5 className="h-full w-full"></Grade1to5>;
+    //     case 2:
+    //         return <UnderGrad className="h-full w-full"></UnderGrad>;
+    //     case 3:
+    //         return <Grade5to12 className="h-full w-full"></Grade5to12>;
+    //     case 4:
+    //         return <NoTag className="h-full w-full"></NoTag>;
+    //     case 5:
+    //         return <PostGrad className="h-full w-full"> </PostGrad>;
+    // }
+    // return <NoTag className="size-full" />;
+    return <div></div>;
 };
 
 export default RandomImage;
