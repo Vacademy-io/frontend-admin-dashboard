@@ -209,9 +209,9 @@ export default function TimelineReports() {
         return data.map((item) => ({
             rank: item.rank.toString(),
             name: item.full_name,
-            score: item.avg_concentration.toString(),
-            average: item.daily_avg_time.toString(),
-            totalTime: item.total_time.toString(),
+            score: formatToTwoDecimalPlaces(item.avg_concentration.toString()),
+            average: formatToTwoDecimalPlaces(item.daily_avg_time.toString()),
+            totalTime: formatToTwoDecimalPlaces(item.total_time.toString()),
         }));
     };
 
