@@ -6,3 +6,5 @@ node_modules
 **/build/**
 **/coverage/**
 **/__tmp__/**
+src/components/common/excalidraw/
+src/utils/helpers
