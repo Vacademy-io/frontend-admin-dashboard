@@ -5,10 +5,10 @@ import { Document, Page, pdfjs } from "react-pdf";
 import { Canvas } from "fabric";
 import { Upload, Download, ChevronLeft, ChevronRight, AlertCircle, RefreshCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialog, AlertDialogDescription } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogDescription, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MagnifyingGlassMinus, MagnifyingGlassPlus } from "phosphor-react";
+import { MagnifyingGlassMinus, MagnifyingGlassPlus, X } from "phosphor-react";
 import { PDFDocument } from "pdf-lib";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -23,13 +23,19 @@ import useFabric from "../-hooks/canvas";
 import Dropzone, { useDropzone } from "react-dropzone";
 import { ImportFileImage } from "@/assets/svgs";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { toast } from "sonner";
+import { ProgressBar } from "@/components/design-system/progress-bar";
+import { SlNote } from "react-icons/sl";
+import Evaluation from "./evaluation";
+import { useRouter } from "@tanstack/react-router";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs`;
 
-const PDFEvaluator = () => {
+const PDFEvaluator = ({publicUrl}:{publicUrl?:string}) => {
     // File states
+    console.log(publicUrl)
     const [pdfFile, setPdfFile] = useState<File | null>(null);
-    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+    const [pdfUrl, setPdfUrl] = useState<string | null>(publicUrl || null);
     const [error, setError] = useState("");
 
     // PDF states
@@ -40,6 +46,12 @@ const PDFEvaluator = () => {
     const [docLoaded, setDocLoaded] = useState(false);
     const [prevPageNumber, setPrevPageNumber] = useState(1);
     const [loadingDoc, setLoadingDoc] = useState(true);
+    const [progress,setProgress] = useState<number>(0)
+    const [dimensions,setDimensions] = useState({
+        width:600,
+        height:800
+    })
+    const router = useRouter();
 
     // Canvas states
     const [fabricCanvas, setFabricCanvas] = useState<Canvas | null>(null);
@@ -56,6 +68,9 @@ const PDFEvaluator = () => {
     // Zoom state
     const [zoomLevel, setZoomLevel] = useState(1);
 
+    // Evaluation panel state
+    const [showEvaluationPanel, setShowEvaluationPanel] = useState(false);
+
     // Refs
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const canvasRef = useRef(null);
@@ -63,6 +78,8 @@ const PDFEvaluator = () => {
     const pdfViewerRef = useRef<HTMLDivElement | null>(null);
 
     const [openCalc, setOpenCalc] = useState(false);
+
+    const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop: (acceptedFiles) => handleFile(acceptedFiles[0]),
@@ -92,7 +109,8 @@ const PDFEvaluator = () => {
 
     // Canvas setup
     useEffect(() => {
-        if (pdfFile && canvasRef.current && !fabricCanvas) {
+        console.log(publicUrl, canvasRef.current, !fabricCanvas)
+        if (publicUrl && canvasRef.current && !fabricCanvas) {
             const canvas = new Canvas(canvasRef.current, {
                 width: 600,
                 height: 800,
@@ -110,13 +128,15 @@ const PDFEvaluator = () => {
 
             window.addEventListener("resize", handleResize);
             setFabricCanvas(canvas);
+        console.log(canvas)
+
             return () => {
                 window.removeEventListener("resize", handleResize);
                 canvas.dispose();
             };
         }
         return;
-    }, [pdfFile]);
+    }, [pdfFile,publicUrl,loadingDoc]);
 
     useEffect(() => {
         setTimeout(() => {
@@ -293,23 +313,16 @@ const PDFEvaluator = () => {
     };
 
     async function loadPDF() {
+        if(!loadingDoc || !pdfUrl) return
         const abc = document.querySelector(".react-pdf__Document");
 
         const width = abc?.clientWidth || 600;
         const height = abc?.clientHeight || 800;
 
-        // Set canvas dimensions based on orientation
-        if (width > height) {
-            // Landscape orientation
-            fabricCanvas?.setWidth(width);
-            fabricCanvas?.setHeight(height); // Adjust height as needed
-        } else {
-            // Portrait orientation
             fabricCanvas?.setWidth(width);
             fabricCanvas?.setHeight(height);
-        }
 
-        // Continue with loading the PDF content onto the canvas...
+            setDimensions({width,height})
     }
 
     useEffect(() => {
@@ -327,7 +340,25 @@ const PDFEvaluator = () => {
         };
     }, [fabricCanvas, canvasUtils]);
 
-    if (!pdfFile) {
+    const handleSubmit = () => {
+        // Close the dialog
+        setIsSubmitDialogOpen(false);
+        
+        // Show success toast
+        toast.success("Evaluation Submitted", {
+            description: "The answer sheet evaluation has been completed and submitted.",
+            duration: 3000,
+        });
+        router.navigate({ to: '/evaluation/evaluations' });
+        // Go back to last route
+        ;
+
+
+        // TODO: Add actual submission logic here
+        // For example, sending evaluation data to backend
+    };
+
+    if (!pdfFile && !pdfUrl) {
         return (
             <div className="flex h-full flex-col items-center justify-center gap-y-4">
                 <Card className="w-1/2 text-3xl font-semibold">
@@ -369,7 +400,7 @@ const PDFEvaluator = () => {
 
     return (
         <div className="flex h-full w-full justify-between">
-            <div className="gap- flex w-full justify-center gap-2">
+            <div className="gap- flex w-full justify-center gap-2 relative">
                 {/* Loading overlay */}
                 {isLoading && <LoadingOverlay />}
 
@@ -443,6 +474,32 @@ const PDFEvaluator = () => {
                                 >
                                     <RefreshCcw className="size-4" />
                                 </Button>
+                                <AlertDialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
+                                    <AlertDialogTrigger asChild>
+                                        <Button 
+                                            onClick={() => setIsSubmitDialogOpen(true)}
+                                            className="w-fit"
+                                            disabled={isLoading}
+                                        >
+                                            Submit
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Are you sure you want to submit this evaluation? 
+                                                This action cannot be undone.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleSubmit}>
+                                                Continue
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                         </CardContent>
                     </Card>
@@ -516,6 +573,12 @@ const PDFEvaluator = () => {
                                 <Button onClick={handleResetZoom} className="" disabled={isLoading}>
                                     <TbZoomReset size={25} />
                                 </Button>
+                                <Button 
+                                    onClick={() => setShowEvaluationPanel(!showEvaluationPanel)}
+                                    className={`w-fit ${showEvaluationPanel ? 'bg-primary-500 text-white' : ''}`}
+                                >
+                                    <SlNote className="size-4" />
+                                </Button>
                             </div>
                         </div>
                     </CardHeader>
@@ -523,7 +586,11 @@ const PDFEvaluator = () => {
                         {loadingDoc ? (
                             <DashboardLoader />
                         ) : (
-                            <div ref={pdfViewerRef} className="relative">
+                            <div ref={pdfViewerRef} className="relative"
+                            style={{
+                                width:dimensions.width,
+                                height:dimensions.height
+                            }} >
                                 <div
                                     style={{
                                         // overflowY: "auto",
@@ -540,11 +607,16 @@ const PDFEvaluator = () => {
                                             transformOrigin: "top left",
                                         }}
                                     >
+                                            <ProgressBar progress={progress} />
                                         <Document
                                             file={pdfUrl}
                                             onLoadSuccess={({ numPages }) => {
                                                 setNumPages(numPages);
                                                 setDocLoaded(true);
+
+                                            }}
+                                            onLoadProgress={({loaded,total})=>{
+                                                setProgress((loaded / total) * 100)
                                             }}
                                             onLoadError={(error) => console.log(error)}
                                             className="absolute min-w-fit"
@@ -557,6 +629,8 @@ const PDFEvaluator = () => {
                                                 className="max-h-fit shadow-lg"
                                             />
                                         </Document>
+                                     
+
                                         <canvas
                                             ref={canvasRef}
                                             className="absolute left-0 top-0 z-10"
@@ -567,8 +641,30 @@ const PDFEvaluator = () => {
                         )}
                     </CardContent>
                 </Card>
+
+                {/* Evaluation Panel */}
+                {showEvaluationPanel && (
+                    <div className="fixed right-0 top-[72px] h-[calc(100%-72px)] w-1/4 bg-white shadow-lg z-50 overflow-y-auto">
+                        <div className="p-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-bold">Evaluation Panel</h2>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={() => setShowEvaluationPanel(false)}
+                                    className="hover:bg-gray-100"
+                                >
+                                    <X className="size-5" />
+                                </Button>
+                            </div>
+                            <Evaluation 
+                                totalPages={numPages} 
+                                pagesVisited={pagesVisited} 
+                                currentPage={pageNumber}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
-            {/* {docLoaded && <Evaluation totalPages={numPages} pagesVisited={pagesVisited} />} */}
             {openCalc && <Calculator open={openCalc} onOpenChange={setOpenCalc} />}
         </div>
     );

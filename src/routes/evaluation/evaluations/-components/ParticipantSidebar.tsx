@@ -22,14 +22,14 @@ import { Form } from "@/components/ui/form";
 import {  handleUpdateAttempt } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 
 
 interface FormData {
     file: FileList | null;
     fileId: string;
 }
-export const ParticipantSidebar = () => {
+export const ParticipantSidebar = ({assessmentId,examType}:{assessmentId:string,examType:string}) => {
     const [isUploading, setIsUploading] = useState(false);
     const { state } = useSidebar();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -50,7 +50,7 @@ export const ParticipantSidebar = () => {
         },
     });
     
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [imageUrl, setImageUrl] = useState<string>("https://vacademy-media-storage.s3.ap-south-1.amazonaws.com/c71fe692-681a-4604-8c06-28f795cf7fdd/SUBJECTS/d0de7001-bef5-41be-bf1d-f0df7eaeb501-screenshot_2025-03-29_at_5.34.29_pm.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20250329T120455Z&X-Amz-SignedHeaders=host&X-Amz-Expires=86399&X-Amz-Credential=AKIA3ISBV4TNEO3NCERX%2F20250329%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Signature=f7bd604cf93f4d3161db36fc60cf7eddcd2402a89ff6a9b516a39be3017e2883");
     useEffect(() => {
         if (state == "expanded") {
             document.body.classList.add("sidebar-open");
@@ -160,18 +160,16 @@ export const ParticipantSidebar = () => {
 
                 <SidebarMenu className="no-scrollbar flex w-full flex-col gap-10 overflow-y-scroll  h-full">
                     <SidebarMenuItem className="flex w-full flex-col gap-6">
-                        <div className="size-[240px] w-full items-center justify-center">
-                            <div className="size-full rounded-full object-cover">
-                                {imageUrl == null ? (
-                                    <DummyProfile className="size-full" />
-                                ) : (
+                        <div className="w-full flex items-center justify-center rounded-full">
+                            
                                     <img
                                         src={imageUrl}
                                         alt="face profile"
-                                        className={`object-cover`}
+                                        
+                                        className={` rounded-full size-60 mx-auto`}
                                     />
-                                )}
-                            </div>
+
+                          
                         </div>
                         <div className="flex w-full items-center justify-center gap-4">
                             <div className="text-h3 font-semibold text-neutral-600">
@@ -230,8 +228,10 @@ export const ParticipantSidebar = () => {
                         disabled={isUploading}
                         onClick={()=>{
                             if(selectedStudent?.attempt_id)
-navigate({to:"/evaluation/evaluate/$attemptId",params:{
-    attemptId: selectedStudent?.attempt_id
+navigate({to:"/evaluation/evaluate/$assessmentId/$attemptId/$examType",params:{
+    attemptId: selectedStudent?.attempt_id,
+    assessmentId:assessmentId,
+    examType:examType
 }})
                         }}
                                        >
