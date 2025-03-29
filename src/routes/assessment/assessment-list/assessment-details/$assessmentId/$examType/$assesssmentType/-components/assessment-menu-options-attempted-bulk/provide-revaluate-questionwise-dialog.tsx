@@ -70,7 +70,7 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
     );
 
     const [selectedSectionData, setSelectedSectionData] = useState(
-        transformQuestionInsightsQuestionsData(data.question_insight_dto),
+        transformQuestionInsightsQuestionsData(data?.question_insight_dto),
     );
 
     // Maintain selected questions state
@@ -153,7 +153,7 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
     };
 
     useEffect(() => {
-        setSelectedSectionData(transformQuestionInsightsQuestionsData(data.question_insight_dto));
+        setSelectedSectionData(transformQuestionInsightsQuestionsData(data?.question_insight_dto));
     }, [selectedSection]);
 
     return (

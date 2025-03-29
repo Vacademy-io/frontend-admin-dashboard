@@ -35,8 +35,9 @@ import { createAssesmentSteps } from "@/constants/intro/steps";
 
 export function convertDateFormat(dateStr: string) {
     const date = new Date(dateStr);
-    const isoString = date.toISOString();
-    return isoString.slice(0, 16); // Extracts the "YYYY-MM-DDTHH:mm" part
+
+    // Format it properly for datetime-local input
+    return date.toISOString().slice(0, 16);
 }
 
 const heading = (

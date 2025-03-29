@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
-import { InviteFormType } from "../-schema/InviteFormSchema";
+import { InviteForm } from "../-schema/InviteFormSchema";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
@@ -16,6 +16,7 @@ import { usePaginationState } from "@/hooks/pagination";
 import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import createInviteLink from "../-utils/createInviteLink";
+import { InviteFormProvider } from "../-context/useInviteFormContext";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -86,11 +87,11 @@ export const Invite = () => {
             });
     };
 
-    const onEditInvite = (updatedInvite: InviteFormType) => {
+    const onEditInvite = (updatedInvite: InviteForm) => {
         console.log(updatedInvite);
     };
 
-    const onCreateInvite = async (invite: InviteFormType) => {
+    const onCreateInvite = async (invite: InviteForm) => {
         const requestData = formDataToRequestData(invite);
         try {
             const { data: responseData }: { data: CreateInvitationRequestType } =
@@ -108,17 +109,19 @@ export const Invite = () => {
         <div className="flex w-full flex-col gap-10">
             <div className="flex items-center justify-between">
                 <p className="text-h3 font-semibold">Invite Link List</p>
-                <CreateInviteDialog
-                    triggerButton={CreateInviteButton}
-                    submitButton={inviteSubmitButton}
-                    submitForm={(fn: () => void) => {
-                        formSubmitRef.current = fn;
-                    }}
-                    onCreateInvite={onCreateInvite}
-                    open={openCreateInviteDialog}
-                    onOpenChange={onOpenChangeCreateInviteDialog}
-                    inviteLink={inviteLink}
-                />
+                <InviteFormProvider>
+                    <CreateInviteDialog
+                        triggerButton={CreateInviteButton}
+                        submitButton={inviteSubmitButton}
+                        submitForm={(fn: () => void) => {
+                            formSubmitRef.current = fn;
+                        }}
+                        onCreateInvite={onCreateInvite}
+                        open={openCreateInviteDialog}
+                        onOpenChange={onOpenChangeCreateInviteDialog}
+                        inviteLink={inviteLink}
+                    />
+                </InviteFormProvider>
             </div>
             <div className="flex w-full flex-col gap-10">
                 {isError ? (

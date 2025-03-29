@@ -53,6 +53,20 @@ export const fetchInstituteDashboardUsers = async (
     return response.data;
 };
 
+export const handleGetInstituteUsersForAccessControl = (
+    instituteId: string | undefined,
+    selectedFilter: RoleTypeSelectedFilter,
+) => {
+    return {
+        queryKey: ["GET_INSTITUTE_USERS_FOR_ACCESS_CONTROL", instituteId, selectedFilter],
+        queryFn: async () => {
+            const data = await fetchInstituteDashboardUsers(instituteId, selectedFilter);
+            return data;
+        },
+        staleTime: 3600000,
+    };
+};
+
 export const handleInviteUsers = async (
     instituteId: string | undefined,
     data: z.infer<typeof inviteUsersSchema>,

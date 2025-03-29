@@ -20,7 +20,8 @@ import { AddLevelInput } from "../../../design-system/add-level-input";
 import { AddSessionInput } from "../../../design-system/add-session-input";
 import { LevelInSessionField } from "./level-field";
 import { SessionType } from "@/schemas/student/student-list/institute-schema";
-import { CourseInfoDialog } from "./course-info-dialog";
+// import { CourseInfoDialog } from "./course-info-dialog";
+import getExplanation from "../-utils/getExplanation";
 
 // Updated Session interface with levels array
 export interface Session {
@@ -296,6 +297,8 @@ export const AddCourseForm = ({
         }
     }, [submitForm]);
 
+    const explanation = getExplanation(instituteDetails?.type);
+
     return (
         <Form {...form}>
             <form
@@ -306,7 +309,20 @@ export const AddCourseForm = ({
                 className="flex max-h-[80vh] flex-col gap-8 p-2 text-neutral-600"
             >
                 <div className="flex justify-between">
-                    <div className="w-full">
+                    <div className="flex w-full flex-col gap-3">
+                        <div className="flex flex-col gap-1">
+                            <p className="text-subtitle">
+                                Course<span className="text-primary-500">*</span>
+                            </p>
+                            <div className="flex flex-col gap-1">
+                                <p className="text-caption text-neutral-500">
+                                    {explanation.course}
+                                </p>
+                                <p className="text-caption text-neutral-400">
+                                    {explanation.courseExamples}
+                                </p>
+                            </div>
+                        </div>
                         <FormField
                             control={form.control}
                             name="course_name"
@@ -314,7 +330,6 @@ export const AddCourseForm = ({
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
-                                            label="Course"
                                             required={true}
                                             inputType="text"
                                             inputPlaceholder="Enter course name"
@@ -328,7 +343,7 @@ export const AddCourseForm = ({
                             )}
                         />
                     </div>
-                    <CourseInfoDialog />
+                    {/* <CourseInfoDialog /> */}
                 </div>
 
                 <div className={`relative flex w-full flex-col items-center justify-center gap-3`}>
@@ -377,9 +392,17 @@ export const AddCourseForm = ({
                         control={form.control}
                         name="contain_levels"
                         render={({ field }) => (
-                            <FormItem className={`space-y-2`}>
-                                <label className="text-subtitle font-semibold">
-                                    Contains Levels?
+                            <FormItem className={`flex flex-col gap-2 space-y-2`}>
+                                <label className="flex flex-col gap-1 text-subtitle font-semibold">
+                                    <p>Contain Levels?</p>
+                                    <div className="flex flex-col gap-1">
+                                        <p className="text-caption text-neutral-500">
+                                            {explanation.level}
+                                        </p>
+                                        <p className="text-caption text-neutral-400">
+                                            {explanation.levelExamples}
+                                        </p>
+                                    </div>
                                 </label>
                                 <FormControl>
                                     <RadioGroup
@@ -418,9 +441,17 @@ export const AddCourseForm = ({
 
                 {containLevels && !initialValues && (
                     <div className="flex flex-col gap-2">
-                        <p className="text-body text-neutral-500">
-                            Choose sessions to select a level
-                        </p>
+                        <div className="flex flex-col gap-1">
+                            <p className="text-subtitle">Select levels within Sessions</p>
+                            <div className="flex flex-col gap-1">
+                                <p className="text-caption text-neutral-500">
+                                    Session: {explanation.session}
+                                </p>
+                                <p className="text-caption text-neutral-400">
+                                    {explanation.sessionExamples}
+                                </p>
+                            </div>
+                        </div>
                         <FormField
                             control={form.control}
                             name="sessions"

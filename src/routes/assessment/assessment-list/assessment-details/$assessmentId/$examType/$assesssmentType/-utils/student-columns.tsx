@@ -10,6 +10,7 @@ import { AssessmentStatusOptions } from "../-components/AssessmentStatusOptions"
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowSquareOut } from "phosphor-react";
 import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
+import { StatusChips } from "@/components/design-system/chips";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -103,6 +104,16 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
     {
         accessorKey: "evaluation_status",
         header: "Evaluation Status",
+        cell: ({ row }) => {
+            const status = row.original.status || "evaluated";
+            const statusMapping: Record<string, ActivityStatus> = {
+                EVALUATED: "evaluated",
+                PENDING: "pending",
+            };
+
+            const mappedStatus = statusMapping[status] || "evaluated";
+            return <StatusChips status={mappedStatus} />;
+        },
     },
     {
         id: "options",
@@ -295,6 +306,16 @@ export const assessmentStatusStudentAttemptedColumnsExternal: ColumnDef<StudentT
     {
         accessorKey: "evaluation_status",
         header: "Evaluation Status",
+        cell: ({ row }) => {
+            const status = row.original.status || "evaluated";
+            const statusMapping: Record<string, ActivityStatus> = {
+                EVALUATED: "evaluated",
+                PENDING: "pending",
+            };
+
+            const mappedStatus = statusMapping[status] || "evaluated";
+            return <StatusChips status={mappedStatus} />;
+        },
     },
     {
         id: "options",
@@ -617,5 +638,40 @@ export const step3ParticipantsListColumn: ColumnDef<StudentTable>[] = [
     {
         accessorKey: "region",
         header: "State",
+    },
+];
+
+export const step3ParticipantsListIndividualStudentColumn: ColumnDef<StudentTable>[] = [
+    {
+        accessorKey: "full_name",
+        header: (props) => {
+            const meta = props.table.options.meta as CustomTableMeta;
+            return (
+                <div className="relative">
+                    <MyDropdown
+                        dropdownList={["ASC", "DESC"]}
+                        onSelect={(value) => {
+                            meta.onSort?.("full_name", value);
+                        }}
+                    >
+                        <button className="flex w-full cursor-pointer items-center justify-between">
+                            <div>Student Name</div>
+                            <div>
+                                <CaretUp />
+                                <CaretDown />
+                            </div>
+                        </button>
+                    </MyDropdown>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "mobile_number",
+        header: "Phone Number",
+    },
+    {
+        accessorKey: "email",
+        header: "Email ID",
     },
 ];

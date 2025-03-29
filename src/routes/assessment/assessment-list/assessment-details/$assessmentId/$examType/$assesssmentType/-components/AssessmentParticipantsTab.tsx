@@ -15,6 +15,7 @@ import {
 import { getBatchDetails } from "../-utils/helper";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 import { AssessmentParticipantsList } from "./AssessmentParticipantsList";
+import { AssessmentParticipantsIndividualList } from "./AssessmentParticipantsIndividualList";
 
 const AssessmentParticipantsTab = () => {
     const { assessmentId, examType } = Route.useParams();
@@ -41,6 +42,20 @@ const AssessmentParticipantsTab = () => {
                 <div className="flex flex-col gap-2">
                     <h1 className="font-semibold">Assessment Participants</h1>
                     <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between rounded-md border border-primary-200 bg-primary-50 px-4 py-2">
+                            <h1 className="text-sm">
+                                {assessmentDetails[2]?.saved_data?.pre_user_registrations}{" "}
+                                participants (Internal)
+                            </h1>
+                            <AssessmentParticipantsIndividualList type="internal" />
+                        </div>
+                        {/* <div className="flex items-center justify-between rounded-md border border-primary-200 bg-primary-50 px-4 py-2">
+                            <h1 className="text-sm">
+                                {assessmentDetails[2]?.saved_data?.open_user_registrations}{" "}
+                                participants (External)
+                            </h1>
+                            <AssessmentParticipantsIndividualList type="external" />
+                        </div> */}
                         {assignedBatchDetails.map((batch, index) => (
                             <div
                                 key={index}
@@ -104,7 +119,7 @@ const AssessmentParticipantsTab = () => {
                     </div>
                 </div>
                 <Separator />
-                {assessmentDetails[2]?.saved_data?.notifications.participant_show_leaderboard && (
+                {assessmentDetails[2]?.saved_data?.notifications?.participant_show_leaderboard && (
                     <div className="flex w-1/2 items-center justify-between">
                         <p className="text-sm font-semibold">Show Leaderboard to Participants</p>
                         <CheckCircle size={22} weight="fill" className="text-success-600" />
@@ -115,37 +130,37 @@ const AssessmentParticipantsTab = () => {
                     <div className="flex w-1/2 flex-col gap-6">
                         <p className="font-semibold">Notify Participants via Email:</p>
                         {assessmentDetails[2]?.saved_data?.notifications
-                            .participant_when_assessment_created && (
+                            ?.participant_when_assessment_created && (
                             <div className="flex items-center justify-between">
                                 <p className="text-sm">When Assessment is created:</p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
                         )}
                         {assessmentDetails[2]?.saved_data?.notifications
-                            .participant_before_assessment_goes_live && (
+                            ?.participant_before_assessment_goes_live ? (
                             <div className="flex items-center justify-between">
                                 <p className="flex items-center gap-6">
                                     <p className="text-sm">Before Assessment goes live:</p>
                                     <p className="text-sm">
                                         {
                                             assessmentDetails[2]?.saved_data?.notifications
-                                                .participant_before_assessment_goes_live
+                                                ?.participant_before_assessment_goes_live
                                         }{" "}
                                         Min
                                     </p>
                                 </p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
-                        )}
+                        ) : null}
                         {assessmentDetails[2]?.saved_data?.notifications
-                            .participant_when_assessment_live && (
+                            ?.participant_when_assessment_live && (
                             <div className="flex items-center justify-between">
                                 <p className="text-sm">When Assessment goes live:</p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
                         )}
                         {assessmentDetails[2]?.saved_data?.notifications
-                            .participant_when_assessment_report_generated && (
+                            ?.participant_when_assessment_report_generated && (
                             <div className="flex items-center justify-between">
                                 <p className="text-sm">When assessment reports are generated:</p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
@@ -156,30 +171,30 @@ const AssessmentParticipantsTab = () => {
                     <div className="flex w-1/2 flex-col gap-6">
                         <p className="font-semibold">Notify Parents via Email:</p>
                         {assessmentDetails[2]?.saved_data?.notifications
-                            .parent_when_assessment_created && (
+                            ?.parent_when_assessment_created && (
                             <div className="flex items-center justify-between">
                                 <p className="text-sm">When Assessment is created:</p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
                         )}
                         {assessmentDetails[2]?.saved_data?.notifications
-                            .parent_before_assessment_goes_live && (
+                            ?.parent_before_assessment_goes_live ? (
                             <div className="flex items-center justify-between">
                                 <p className="flex items-center gap-6">
                                     <p className="text-sm">Before Assessment goes live:</p>
                                     <p className="text-sm">
                                         {
                                             assessmentDetails[2]?.saved_data?.notifications
-                                                .parent_before_assessment_goes_live
+                                                ?.parent_before_assessment_goes_live
                                         }{" "}
                                         Min
                                     </p>
                                 </p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
-                        )}
+                        ) : null}
                         {assessmentDetails[2]?.saved_data?.notifications
-                            .parent_when_assessment_live && (
+                            ?.parent_when_assessment_live && (
                             <div className="flex items-center justify-between">
                                 <p className="text-sm">When Assessment goes live:</p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
@@ -194,7 +209,7 @@ const AssessmentParticipantsTab = () => {
                             <CheckCircle size={22} weight="fill" className="text-success-600" />
                         </div> */}
                         {assessmentDetails[2]?.saved_data?.notifications
-                            .parent_when_assessment_report_generated && (
+                            ?.parent_when_assessment_report_generated && (
                             <div className="flex items-center justify-between">
                                 <p className="text-sm">When assessment reports are generated:</p>
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />

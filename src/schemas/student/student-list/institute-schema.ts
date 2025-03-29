@@ -44,6 +44,8 @@ const SubjectSchema = z.object({
     updated_at: z.string(),
 });
 
+const InstituteTypeSchema = z.enum(["Coaching Institute", "School", "University", "Corporate"]);
+
 const InstituteSchema = z.object({
     institute_name: z.string(),
     id: z.string(),
@@ -59,7 +61,7 @@ const InstituteSchema = z.object({
     institute_theme_code: z.string(),
     language: z.string().nullable(),
     description: z.string().nullable(),
-    type: z.string().nullable(),
+    type: InstituteTypeSchema,
     held_by: z.string().nullable(),
     founded_date: z.string().nullable(),
     sub_modules: z.array(SubModuleSchema),
@@ -88,3 +90,4 @@ export type levelWithDetails = {
     start_date: string;
 };
 export type levelsWithPackageDetails = Array<levelWithDetails>;
+export type InstituteType = z.infer<typeof InstituteTypeSchema>;
