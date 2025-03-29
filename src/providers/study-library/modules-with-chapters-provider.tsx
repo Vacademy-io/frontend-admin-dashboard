@@ -30,7 +30,6 @@ export const ModulesWithChaptersProvider = ({
     // Always call the query hook, but control its execution with enabled
     const { isLoading } = useQuery({
         ...useModulesWithChaptersQuery(subjectId, myPackageSessionId || ""),
-        staleTime: 3600000,
     });
 
     return <div>{isLoading ? <DashboardLoader /> : children}</div>;

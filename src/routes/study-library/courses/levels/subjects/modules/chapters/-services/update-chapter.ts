@@ -11,7 +11,9 @@ export const useUpdateChapter = () => {
             chapterId,
             commaSeparatedPackageSessionIds,
             chapter,
+            moduleId,
         }: {
+            moduleId: string;
             chapterId: string;
             commaSeparatedPackageSessionIds: string;
             chapter: Chapter;
@@ -26,7 +28,7 @@ export const useUpdateChapter = () => {
             };
 
             return authenticatedAxiosInstance.put(
-                `${UPDATE_CHAPTER}?chapterId=${chapterId}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
+                `${UPDATE_CHAPTER}?chapterId=${chapterId}&moduleId=${moduleId}&commaSeparatedPackageSessionIds=${commaSeparatedPackageSessionIds}`,
                 payload,
             );
         },
