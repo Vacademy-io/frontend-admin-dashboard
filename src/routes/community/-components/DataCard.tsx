@@ -1,5 +1,6 @@
 import { QuestionEntityData, QuestionPaperEntityData } from "@/types/community/filters/types";
 import { useNavigate } from "@tanstack/react-router";
+import RandomImage from "./RandomImage";
 
 interface DataCardProps {
     data: QuestionEntityData | QuestionPaperEntityData;
@@ -25,12 +26,12 @@ export function DataCard({ title, data }: DataCardProps) {
             onClick={navigateToDisplayQuestionPaper}
         >
             <div className="h-[214px] w-full rounded-md border">
-                <img className="size-full" src="" alt="" />
+                <RandomImage />
             </div>
             <div className="flex flex-col gap-8">
                 <div className="text-title font-bold">{title}</div>
-                <div className="text-subtitle"></div>
-                <div></div>
+                {/* <div className="text-subtitle"></div>
+                <div></div> */}
             </div>
         </div>
     );
