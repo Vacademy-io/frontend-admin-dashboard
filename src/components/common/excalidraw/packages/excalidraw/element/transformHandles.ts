@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import { pointFrom, pointRotateRads } from "@excalidraw/math";
 
 import type { Radians } from "@excalidraw/math";

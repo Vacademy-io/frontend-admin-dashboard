@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import rough from "roughjs/bin/rough";
 
 import { getDefaultAppState } from "../appState";

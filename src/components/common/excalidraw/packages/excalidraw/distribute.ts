@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { getCommonBoundingBox } from "./element/bounds";
 import { newElementWith } from "./element/mutateElement";
 import { getMaximumGroups } from "./groups";

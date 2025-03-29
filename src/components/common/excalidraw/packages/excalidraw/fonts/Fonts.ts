@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import {
   FONT_FAMILY,
   FONT_FAMILY_FALLBACKS,

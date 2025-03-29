@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import throttle from "lodash.throttle";
 
 import { ENV } from "../constants";

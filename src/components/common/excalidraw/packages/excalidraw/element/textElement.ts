@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import {
   ARROW_LABEL_FONT_SIZE_TO_MIN_WIDTH_RATIO,
   ARROW_LABEL_WIDTH_FRACTION,

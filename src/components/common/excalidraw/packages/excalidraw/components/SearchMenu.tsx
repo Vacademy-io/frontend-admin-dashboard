@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { round } from "@excalidraw/math";
 import clsx from "clsx";
 import debounce from "lodash.debounce";

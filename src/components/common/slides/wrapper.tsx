@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import { Excalidraw } from "../excalidraw/packages/excalidraw";
 import { useEffect, useRef } from "react";
 

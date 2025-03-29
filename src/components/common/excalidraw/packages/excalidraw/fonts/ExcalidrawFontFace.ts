@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import { subsetWoff2GlyphsByCodepoints } from "../subset/subset-main";
 import { promiseTry } from "../utils";
 

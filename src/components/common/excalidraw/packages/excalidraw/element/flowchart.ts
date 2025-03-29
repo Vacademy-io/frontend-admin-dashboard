@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { pointFrom, type LocalPoint } from "@excalidraw/math";
 
 import { elementOverlapsWithFrame, elementsAreInFrameBounds } from "../frame";

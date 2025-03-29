@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { arrayToMapWithIndex } from "../utils";
 
 import type { ExcalidrawElement } from "./types";

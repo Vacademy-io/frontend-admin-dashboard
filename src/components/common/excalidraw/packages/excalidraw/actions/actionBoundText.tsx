@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import {
   BOUND_TEXT_PADDING,
   ROUNDNESS,

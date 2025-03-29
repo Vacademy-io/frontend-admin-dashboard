@@ -4,7 +4,6 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "start": "yarn --cwd ./components/common/excalidraw/excalidraw-app start",
         "dev": "vite --host",
         "build": "tsc && vite build",
         "serve": "vite preview",
@@ -249,7 +248,7 @@
         "prettier-plugin-tailwindcss": "^0.6.6",
         "rewire": "6.0.0",
         "tailwindcss": "^3.4.10",
-        "typescript": "4.9.4",
+        "typescript": "5.8.2",
         "vite": "^5.4.1",
         "vite-plugin-checker": "0.7.2",
         "vite-plugin-ejs": "1.7.0",

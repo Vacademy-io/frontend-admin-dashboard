@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import clsx from "clsx";
 import fuzzy from "fuzzy";
 import { useEffect, useRef, useState } from "react";

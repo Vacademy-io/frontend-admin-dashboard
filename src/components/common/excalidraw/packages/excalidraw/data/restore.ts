@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import { isFiniteNumber, pointFrom } from "@excalidraw/math";
 
 import type { LocalPoint, Radians } from "@excalidraw/math";

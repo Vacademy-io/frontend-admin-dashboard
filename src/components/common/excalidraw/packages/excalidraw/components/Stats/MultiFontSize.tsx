@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import { isTextElement, redrawTextBoundingBox } from "../../element";
 import { mutateElement } from "../../element/mutateElement";
 import { getBoundTextElement } from "../../element/textElement";

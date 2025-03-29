@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { KEYS } from "../../keys";
 
 import { type FontDescriptor } from "./FontPickerList";

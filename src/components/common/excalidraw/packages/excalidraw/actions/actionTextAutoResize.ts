@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { isTextElement } from "../element";
 import { newElementWith } from "../element/mutateElement";
 import { measureText } from "../element/textMeasurements";

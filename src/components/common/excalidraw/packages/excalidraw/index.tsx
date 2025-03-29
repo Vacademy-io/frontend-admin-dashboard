@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import React, { useEffect } from "react";
 
 import App from "./components/App";

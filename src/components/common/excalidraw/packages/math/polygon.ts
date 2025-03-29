@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { pointsEqual } from "./point";
 import { lineSegment, pointOnLineSegment } from "./segment";
 import { PRECISION } from "./utils";

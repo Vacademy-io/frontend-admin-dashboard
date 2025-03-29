@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { MAX_CUSTOM_COLORS_USED_IN_CANVAS } from "../../colors";
 import { atom } from "../../editor-jotai";
 

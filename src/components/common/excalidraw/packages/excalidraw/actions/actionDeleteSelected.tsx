@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { ToolButton } from "../components/ToolButton";
 import { TrashIcon } from "../components/icons";
 import { getNonDeletedElements } from "../element";

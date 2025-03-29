@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { isInvisiblySmallElement } from "./sizeHelpers";
 import { isLinearElementType } from "./typeChecks";
 

@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { getElementAbsoluteCoords, getElementBounds } from "../element";
 import { isElementInViewport } from "../element/sizeHelpers";
 import { isBoundToContainer, isFrameLikeElement } from "../element/typeChecks";

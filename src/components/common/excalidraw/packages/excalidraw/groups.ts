@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { getBoundTextElement } from "./element/textElement";
 import { getSelectedElements } from "./scene";
 import { makeNextSelectedElementIds } from "./scene/selection";

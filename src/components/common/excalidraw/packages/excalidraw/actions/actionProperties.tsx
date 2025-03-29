@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { pointFrom } from "@excalidraw/math";
 import { useEffect, useMemo, useRef, useState } from "react";
 

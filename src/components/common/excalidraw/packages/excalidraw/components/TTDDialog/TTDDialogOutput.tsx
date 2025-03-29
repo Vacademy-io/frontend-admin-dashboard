@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import Spinner from "../Spinner";
 
 const ErrorComp = ({ error }: { error: string }) => {

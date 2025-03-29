@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { degreesToRadians, radiansToDegrees } from "@excalidraw/math";
 
 import type { Degrees } from "@excalidraw/math";

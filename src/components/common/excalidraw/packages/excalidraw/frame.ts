@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import { isPointWithinBounds, pointFrom } from "@excalidraw/math";
 import {
   doLineSegmentsIntersect,

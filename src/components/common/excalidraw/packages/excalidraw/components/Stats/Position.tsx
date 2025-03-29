@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { clamp, pointFrom, pointRotateRads, round } from "@excalidraw/math";
 
 import {

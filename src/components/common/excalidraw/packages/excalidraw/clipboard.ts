@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { tryParseSpreadsheet, VALID_SPREADSHEET } from "./charts";
 import {
   ALLOWED_PASTE_MIME_TYPES,

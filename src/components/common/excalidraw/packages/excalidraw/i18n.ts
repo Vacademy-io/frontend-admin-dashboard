@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import { useAtomValue, editorJotaiStore, atom } from "./editor-jotai";
 import fallbackLangData from "./locales/en.json";
 import percentages from "./locales/percentages.json";

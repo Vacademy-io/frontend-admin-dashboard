@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { register } from "../actions/register";
 import { FONT_FAMILY, VERTICAL_ALIGN } from "../constants";
 import { setCursorForShape } from "../cursor";

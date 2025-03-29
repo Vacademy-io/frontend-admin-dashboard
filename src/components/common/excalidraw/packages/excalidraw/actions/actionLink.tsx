@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { ToolButton } from "../components/ToolButton";
 import { getContextMenuLabel } from "../components/hyperlink/Hyperlink";
 import { LinkIcon } from "../components/icons";

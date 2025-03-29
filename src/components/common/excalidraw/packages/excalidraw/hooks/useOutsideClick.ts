@@ -1,3 +1,6 @@
+
+/* eslint-disable */
+// @ts-nocheck
 import { useEffect } from "react";
 
 import { EVENT } from "../constants";

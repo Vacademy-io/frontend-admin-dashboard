@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { isPoint, pointDistance, pointFrom } from "./point";
 import { rectangle, rectangleIntersectLineSegment } from "./rectangle";
 

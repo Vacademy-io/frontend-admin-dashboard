@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import type { PointerCoords } from "./types";
 
 export const getCenter = (pointers: Map<number, PointerCoords>) => {

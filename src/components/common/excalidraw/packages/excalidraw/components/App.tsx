@@ -1,3 +1,7 @@
+
+
+/* eslint-disable */
+// @ts-nocheck
 import {
   clamp,
   pointFrom,

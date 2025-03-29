@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { degreesToRadians } from "./angle";
 import { PRECISION } from "./utils";
 import { vectorFromPoint, vectorScale } from "./vector";

@@ -14,7 +14,7 @@
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "module": "esnext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,
@@ -27,5 +27,6 @@
         "strictNullChecks": true
     },
     "include": ["src"],
-    "exclude": ["node_modules" , "src/components/common/excalidraw/" , "src/utils/helpers"]
+    "exclude": ["node_modules", "src/components/common/excalidraw/**/*"]
+
 }

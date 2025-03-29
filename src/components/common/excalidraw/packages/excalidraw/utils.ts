@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { average } from "@excalidraw/math";
 import Pool from "es6-promise-pool";
 

@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { pointFrom, type GlobalPoint, type LocalPoint } from "@excalidraw/math";
 
 import { THEME } from "../constants";

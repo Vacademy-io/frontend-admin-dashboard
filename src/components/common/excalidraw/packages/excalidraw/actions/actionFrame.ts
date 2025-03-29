@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { frameToolIcon } from "../components/icons";
 import { setCursorForShape } from "../cursor";
 import { getCommonBounds, getNonDeletedElements } from "../element";

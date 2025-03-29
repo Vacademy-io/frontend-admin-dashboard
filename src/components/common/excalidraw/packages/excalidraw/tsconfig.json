@@ -20,5 +20,5 @@
       "@excalidraw/math/*": ["../math/*"]
     }
   },
-  "exclude": ["**/*.test.*", "tests", "types", "examples", "dist"]
+  "exclude": ["**/*.test.*", "tests", "types", "examples", "dist"  , "analytics"]
 }

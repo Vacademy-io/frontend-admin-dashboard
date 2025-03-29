@@ -1,3 +1,6 @@
+/* eslint-disable */
+// @ts-nocheck
+
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
 

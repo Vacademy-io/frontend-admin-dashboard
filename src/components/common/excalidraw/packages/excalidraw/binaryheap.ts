@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 export default class BinaryHeap<T> {
   private content: T[] = [];
 

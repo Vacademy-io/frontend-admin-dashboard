@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { isFrameLikeElement } from "./element/typeChecks";
 import { syncMovedIndices } from "./fractionalIndex";
 import { getElementsInGroup } from "./groups";

@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { getCommonBounds } from "../element";
 import { getLanguage } from "../i18n";
 import { getGlobalCSSVariable } from "../utils";

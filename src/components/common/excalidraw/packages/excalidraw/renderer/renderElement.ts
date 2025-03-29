@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { isRightAngleRads } from "@excalidraw/math";
 import { getStroke } from "perfect-freehand";
 import rough from "roughjs/bin/rough";

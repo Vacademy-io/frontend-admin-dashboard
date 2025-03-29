@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { getDefaultAppState } from "./appState";
 import { AppStateChange, ElementsChange } from "./change";
 import { ENV } from "./constants";

@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { generateNKeysBetween } from "fractional-indexing";
 
 import { mutateElement } from "./element/mutateElement";

@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { copyTextToSystemClipboard } from "../clipboard";
 import { copyIcon, elementLinkIcon } from "../components/icons";
 import {

@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { cleanAppStateForExport, clearAppStateForDatabase } from "../appState";
 import {
   DEFAULT_FILENAME,

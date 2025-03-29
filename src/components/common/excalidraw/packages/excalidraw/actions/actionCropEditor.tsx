@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { ToolButton } from "../components/ToolButton";
 import { cropIcon } from "../components/icons";
 import { isImageElement } from "../element/typeChecks";

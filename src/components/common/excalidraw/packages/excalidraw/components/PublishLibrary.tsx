@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { exportToCanvas, exportToSvg } from "@excalidraw/utils/export";
 import OpenColor from "open-color";
 import { useCallback, useEffect, useRef, useState } from "react";

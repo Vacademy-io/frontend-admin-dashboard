@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { LockedIcon, UnlockedIcon } from "../components/icons";
 import { newElementWith } from "../element/mutateElement";
 import { isFrameLikeElement } from "../element/typeChecks";

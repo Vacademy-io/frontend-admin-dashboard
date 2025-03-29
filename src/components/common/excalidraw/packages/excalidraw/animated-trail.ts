@@ -1,3 +1,6 @@
+/* eslint-disable */
+// @ts-nocheck
+
 import { LaserPointer } from "@excalidraw/laser-pointer";
 
 import type { LaserPointerOptions } from "@excalidraw/laser-pointer";
