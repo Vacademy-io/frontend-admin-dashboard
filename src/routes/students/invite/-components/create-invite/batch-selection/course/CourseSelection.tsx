@@ -194,7 +194,7 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
     };
 
     return (
-        <div className="border border-neutral-300">
+        <div className="border border-neutral-300 p-3">
             {isEditing ? (
                 courseOptions.length > 0 && (
                     <div className="flex flex-col gap-2">

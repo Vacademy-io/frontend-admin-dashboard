@@ -109,6 +109,15 @@ export const CourseList = () => {
                     <p className="text-body text-neutral-500">No courses added yet</p>
                 )}
 
+            {preSelectedCourses.length > 0 &&
+                preSelectedCourses.map((course, key) => (
+                    <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
+                ))}
+            {learnerChoiceCourses.length > 0 &&
+                learnerChoiceCourses.map((course, key) => (
+                    <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
+                ))}
+
             {/* Session Selection form when adding a session */}
             {!isSavingAll && isAddingCourse && (
                 <div className="flex items-center gap-1">

@@ -67,7 +67,7 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
     return (
         <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
-                <p className="text-title font-semibold underline">Sessions</p>
+                <p className="text-subtitle font-semibold underline">Sessions</p>
 
                 {/* Show Save All button when not adding a session */}
                 {!isAddingSession &&

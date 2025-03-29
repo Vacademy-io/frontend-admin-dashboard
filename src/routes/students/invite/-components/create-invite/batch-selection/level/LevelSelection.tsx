@@ -3,12 +3,12 @@ import { useLevelManager } from "../../../../-hooks/useLevelManager";
 import { BatchSelectionMode } from "../BatchSelectionMode";
 import { useEffect, useState } from "react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
 import { useForm, FormProvider } from "react-hook-form";
 import { MaxLimitField } from "../MaxLimitField";
 import { Badge } from "@/components/ui/badge";
 import { MyButton } from "@/components/design-system/button";
 import { Check, PencilSimple } from "phosphor-react";
+import EnhancedMultiSelect from "../MultiSelectDropdown";
 
 interface LevelSelectionProps {
     courseId: string;
@@ -48,8 +48,7 @@ export const LevelSelection = ({
 
     // Local state for selection mode that doesn't affect the form until save
     const [localSelectionMode, setLocalSelectionMode] = useState<SelectionMode>(levelSelectionMode);
-    // const [localMaxLevels, setLocalMaxLevels] = useState<number>(maxLevels);
-    const localMaxLevels = maxLevels;
+    const [localMaxLevels, setLocalMaxLevels] = useState<number>(maxLevels);
     const [isSaved, setIsSaved] = useState<boolean>(false);
     const [isMaxSaved, setIsMaxSaved] = useState<boolean>(false);
     const [activeDropdown, setActiveDropdown] = useState<
@@ -64,12 +63,14 @@ export const LevelSelection = ({
 
     const { getLevelsFromPackage, getPackageSessionId } = useInstituteDetailsStore();
 
-    // Transform levelList to match the MultiSelectDropdown component's options format
+    // Get the raw level list
     const rawLevelList = getLevelsFromPackage({ courseId, sessionId });
-    const levelOptions = rawLevelList.map((level) => ({
-        _id: level.id,
-        value: level.id,
-        label: level.name,
+
+    // Create options in both formats
+    // Enhanced options for the EnhancedMultiSelect component
+    const enhancedOptions = rawLevelList.map((level) => ({
+        id: level.id,
+        name: level.name,
     }));
 
     // Create a form for the multi-select fields with the roleType field that MultiSelectDropdown expects
@@ -140,7 +141,6 @@ export const LevelSelection = ({
     // Update state when selections change for filtering purposes only
     useEffect(() => {
         const values = localForm.getValues("compulsoryLevels") as string[];
-        console.log("compulsory values: ", values);
         if (Array.isArray(values)) {
             setCompulsorySelected(values);
         }
@@ -148,22 +148,20 @@ export const LevelSelection = ({
 
     useEffect(() => {
         const values = localForm.getValues("learnerChoiceLevels") as string[];
-        console.log("learner choice values: ", values);
         if (Array.isArray(values)) {
             setLearnerChoiceSelected(values);
         }
     }, [localForm.watch("learnerChoiceLevels")]);
 
     // Filter options for each dropdown to exclude levels selected in the other
-    const compulsoryOptions = levelOptions.filter(
-        (option) => !learnerChoiceSelected.includes(option.value.toString()),
+    const compulsoryEnhancedOptions = enhancedOptions.filter(
+        (option) => !learnerChoiceSelected.includes(option.id),
     );
 
-    const learnerChoiceOptions = levelOptions.filter(
-        (option) => !compulsorySelected.includes(option.value.toString()),
+    const learnerChoiceOptions = enhancedOptions.filter(
+        (option) => !compulsorySelected.includes(option.id),
     );
 
-    // Handle save button click
     // Handle save button click
     const handleSaveLevels = () => {
         // Update the selection mode in the form
@@ -251,9 +249,9 @@ export const LevelSelection = ({
     };
 
     // Handle max level change
-    // const handleMaxLevelChange = (value: number) => {
-    //     setLocalMaxLevels(value);
-    // };
+    const handleMaxLevelChange = (value: number) => {
+        setLocalMaxLevels(value);
+    };
 
     // Handle edit button click
     const handleEdit = () => {
@@ -278,7 +276,7 @@ export const LevelSelection = ({
     return (
         <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-                <h3 className="text-title font-semibold underline">Levels</h3>
+                <h3 className="text-subtitle font-semibold underline">Levels</h3>
                 {isSaved ? (
                     <div className="flex gap-3">
                         <MyButton
@@ -295,7 +293,7 @@ export const LevelSelection = ({
                                     title="Level"
                                     maxAllowed={learnerChoiceLength}
                                     maxValue={localMaxLevels}
-                                    isDisabled={true}
+                                    onMaxChange={handleMaxLevelChange}
                                 />
                                 <MyButton
                                     onClick={handleSaveMaxLevels}
@@ -338,7 +336,7 @@ export const LevelSelection = ({
                 <>
                     <BatchSelectionMode
                         title="Level"
-                        parentSelectionMode={isSessionCompulsory ? "student" : "institute"}
+                        parentSelectionMode={isSessionCompulsory ? "institute" : "student"}
                         bothEnabled={true}
                         mode={localSelectionMode}
                         onChangeMode={handleLocalSelectionModeChange}
@@ -353,12 +351,12 @@ export const LevelSelection = ({
                                     onClick={() => handleDropdownFocus("compulsoryLevels")}
                                     onFocus={() => handleDropdownFocus("compulsoryLevels")}
                                 >
-                                    <MultiSelectDropdown
+                                    <EnhancedMultiSelect
                                         form={localForm}
                                         control={localForm.control}
                                         name="compulsoryLevels"
                                         label="Compulsory"
-                                        options={compulsoryOptions}
+                                        options={compulsoryEnhancedOptions}
                                         className="w-full"
                                     />
                                 </div>
@@ -371,7 +369,7 @@ export const LevelSelection = ({
                                     onClick={() => handleDropdownFocus("learnerChoiceLevels")}
                                     onFocus={() => handleDropdownFocus("learnerChoiceLevels")}
                                 >
-                                    <MultiSelectDropdown
+                                    <EnhancedMultiSelect
                                         form={localForm}
                                         control={localForm.control}
                                         name="learnerChoiceLevels"
@@ -389,7 +387,7 @@ export const LevelSelection = ({
                     {selectedLevels.map((level) => (
                         <Badge
                             key={level.id}
-                            className={`px-2 py-1 ${
+                            className={`w-fit px-2 py-1 ${
                                 level.type === "compulsory"
                                     ? "bg-blue-100 text-blue-800"
                                     : "bg-green-100 text-green-800"
