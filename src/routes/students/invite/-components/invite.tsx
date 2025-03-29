@@ -137,7 +137,7 @@ export const Invite = () => {
                     <p>Error fetching invitation links</p>
                 ) : isLoading ? (
                     <DashboardLoader />
-                ) : !inviteList || !inviteList.content ? (
+                ) : !inviteList || !inviteList.content || inviteList?.content.length == 0 ? (
                     <div className="flex h-[70vh] w-full flex-col items-center justify-center gap-2">
                         <EmptyInvitePage />
                         <p>No invite link has been created yet!</p>

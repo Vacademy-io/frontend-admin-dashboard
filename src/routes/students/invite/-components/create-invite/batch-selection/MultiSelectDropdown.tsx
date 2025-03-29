@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CaretDown, CaretUp, Check } from "phosphor-react";
-import { Badge } from "@/components/ui/badge";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { type Control } from "react-hook-form";
 import { cn } from "@/lib/utils";
@@ -30,7 +29,6 @@ export default function EnhancedMultiSelect({
     options,
     required = false,
     control,
-    className,
 }: EnhancedMultiSelectProps) {
     // Track selected options as objects instead of just values
     const [selectedOptions, setSelectedOptions] = useState<LevelOption[]>([]);
@@ -74,7 +72,7 @@ export default function EnhancedMultiSelect({
                 render={() => {
                     return (
                         <div>
-                            <FormItem className={cn("w-44", className)}>
+                            <FormItem className={cn("flex items-center gap-3")}>
                                 <FormLabel className={labelStyle}>
                                     {label}
                                     {required && <span className="text-red-500">*</span>}
@@ -82,7 +80,7 @@ export default function EnhancedMultiSelect({
                                 <FormControl>
                                     <Popover open={isOpen} onOpenChange={setIsOpen}>
                                         <PopoverTrigger>
-                                            <div className="flex w-96 items-center justify-between rounded-lg border px-3 py-2">
+                                            <div className="flex items-center justify-between rounded-lg border bg-white px-3 py-2">
                                                 <h1 className="text-sm">Select options</h1>
                                                 {isOpen ? <CaretUp /> : <CaretDown />}
                                             </div>
@@ -91,7 +89,7 @@ export default function EnhancedMultiSelect({
                                             {options.map((option) => (
                                                 <div
                                                     key={option.id}
-                                                    className="flex w-80 cursor-pointer justify-between rounded-lg p-2 hover:bg-neutral-100"
+                                                    className="flex cursor-pointer justify-between rounded-lg bg-white p-2 hover:bg-neutral-100"
                                                     onClick={() => toggleSelection(option)}
                                                 >
                                                     <label className="text-sm">{option.name}</label>
@@ -104,11 +102,14 @@ export default function EnhancedMultiSelect({
                                     </Popover>
                                 </FormControl>
                             </FormItem>
-                            <div className="mt-4 flex flex-wrap justify-start gap-4">
+                            <div className="flex flex-wrap justify-start gap-4">
                                 {selectedOptions.map((option, index) => (
-                                    <Badge key={index} className="bg-[#F4F9FF] px-2 py-1">
+                                    <div
+                                        key={index}
+                                        className="rounded-lg border border-neutral-300 bg-neutral-50 px-2 py-1 text-body text-neutral-600"
+                                    >
                                         {option.name}
-                                    </Badge>
+                                    </div>
                                 ))}
                             </div>
                         </div>

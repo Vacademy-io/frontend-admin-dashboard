@@ -194,17 +194,17 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
     };
 
     return (
-        <div className="border border-neutral-300 p-3">
+        <div className="w-full rounded-lg border border-neutral-300 p-3 py-5">
             {isEditing ? (
                 courseOptions.length > 0 && (
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-1">
                         <BatchSelectionMode
                             title="Course"
                             mode={selectionMode}
                             onChangeMode={handleSelectionMode}
                             parentSelectionMode="institute"
                         />
-                        <div className="mt-2 flex items-center gap-3">
+                        <div className="flex items-center gap-3">
                             <SelectField
                                 label={`${selectFieldLabel} Course`}
                                 name="courseSelect"
@@ -212,7 +212,7 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
                                 control={form.control}
                                 onSelect={handleCourseSelect}
                                 required={true}
-                                className="w-64"
+                                selectFieldForInvite={true}
                             />
                             {showSaveButton && (
                                 <MyButton
@@ -229,9 +229,9 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
                     </div>
                 )
             ) : (
-                <div className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between rounded-md p-3">
-                        <div className="flex gap-3">
+                <div className="flex flex-col gap-2">
+                    <div className="flex w-fit items-center justify-between gap-2 rounded-md">
+                        <div className="flex items-center gap-3">
                             <p className="text-subtitle font-semibold underline">Course</p>
                             <p className="text-body">
                                 {savedCourse?.name}

@@ -65,7 +65,7 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
     };
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
                 <p className="text-subtitle font-semibold underline">Sessions</p>
 
@@ -118,11 +118,19 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
 
             {preSelectedSessions.length === 0 &&
                 learnerChoiceSessions.length === 0 &&
-                !isAddingSession && <p>No sessions added yet</p>}
+                !isAddingSession && (
+                    <p className="text-body text-neutral-500">No sessions added yet</p>
+                )}
 
             {/* Add Session button or Session form */}
             {!isSavingAll && availableSessions.length > 0 && !isAddingSession && (
-                <MyButton onClick={() => setIsAddingSession(true)} type="button" scale="small">
+                <MyButton
+                    onClick={() => setIsAddingSession(true)}
+                    type="button"
+                    scale="small"
+                    buttonType="text"
+                    className="w-fit px-0 text-primary-500"
+                >
                     Add session
                 </MyButton>
             )}

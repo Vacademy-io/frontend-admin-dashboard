@@ -52,13 +52,34 @@ export const CourseList = () => {
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3">
                 <p className="text-title font-semibold">Batches</p>
+
+                {/* Show a message if no sessions are present */}
+                {/* {preSelectedCourses.length === 0 &&
+                learnerChoiceCourses.length === 0 &&
+                !isAddingCourse && (
+                    <p className="text-body text-neutral-500">No courses added yet</p>
+                )} */}
+
+                {preSelectedCourses.length > 0 &&
+                    preSelectedCourses.map((course, key) => (
+                        <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
+                    ))}
+                {learnerChoiceCourses.length > 0 &&
+                    learnerChoiceCourses.map((course, key) => (
+                        <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
+                    ))}
 
                 {/* Show Save All button when not adding a session */}
                 {!isAddingCourse &&
                     (preSelectedCourses.length > 0 || learnerChoiceCourses.length > 0) && (
-                        <MyButton onClick={handleSaveAll} type="button" scale="small">
+                        <MyButton
+                            onClick={handleSaveAll}
+                            type="button"
+                            scale="small"
+                            className="w-fit"
+                        >
                             Save All
                         </MyButton>
                     )}
@@ -102,24 +123,8 @@ export const CourseList = () => {
                 )}
             </div>
 
-            {/* Show a message if no sessions are present */}
-            {preSelectedCourses.length === 0 &&
-                learnerChoiceCourses.length === 0 &&
-                !isAddingCourse && (
-                    <p className="text-body text-neutral-500">No courses added yet</p>
-                )}
-
-            {preSelectedCourses.length > 0 &&
-                preSelectedCourses.map((course, key) => (
-                    <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
-                ))}
-            {learnerChoiceCourses.length > 0 &&
-                learnerChoiceCourses.map((course, key) => (
-                    <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
-                ))}
-
             {/* Session Selection form when adding a session */}
-            {!isSavingAll && isAddingCourse && (
+            {!isSavingAll && (
                 <div className="flex items-center gap-1">
                     <CourseSelection />
                 </div>

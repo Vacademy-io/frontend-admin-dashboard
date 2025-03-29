@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useForm, FormProvider } from "react-hook-form";
 import { MaxLimitField } from "../MaxLimitField";
-import { Badge } from "@/components/ui/badge";
 import { MyButton } from "@/components/design-system/button";
 import { Check, PencilSimple } from "phosphor-react";
 import EnhancedMultiSelect from "../MultiSelectDropdown";
@@ -275,7 +274,7 @@ export const LevelSelection = ({
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
                 <h3 className="text-subtitle font-semibold underline">Levels</h3>
                 {isSaved ? (
                     <div className="flex gap-3">
@@ -284,6 +283,7 @@ export const LevelSelection = ({
                             buttonType="secondary"
                             type="button"
                             layoutVariant="icon"
+                            scale="small"
                         >
                             <PencilSimple size={16} />
                         </MyButton>
@@ -297,9 +297,10 @@ export const LevelSelection = ({
                                 />
                                 <MyButton
                                     onClick={handleSaveMaxLevels}
-                                    className="flex w-fit items-center gap-1"
+                                    className="flex items-center gap-1"
                                     buttonType="secondary"
                                     type="button"
+                                    layoutVariant="icon"
                                 >
                                     <Check size={16} />
                                 </MyButton>
@@ -308,11 +309,14 @@ export const LevelSelection = ({
                     </div>
                 ) : localSelectionMode == "student" ? (
                     learnerChoiceSelected.length > 0 && (
-                        <div className="flex items-center gap-3">
-                            <MyButton onClick={handleSaveLevels} className="w-fit" type="button">
-                                Save
-                            </MyButton>
-                        </div>
+                        <MyButton
+                            onClick={handleSaveLevels}
+                            className="w-fit"
+                            type="button"
+                            scale="small"
+                        >
+                            Save Levels
+                        </MyButton>
                     )
                 ) : localSelectionMode == "institute" ? (
                     compulsorySelected.length > 0 && (
@@ -385,17 +389,10 @@ export const LevelSelection = ({
             ) : (
                 <div className="flex flex-col gap-2">
                     {selectedLevels.map((level) => (
-                        <Badge
-                            key={level.id}
-                            className={`w-fit px-2 py-1 ${
-                                level.type === "compulsory"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-green-100 text-green-800"
-                            }`}
-                        >
+                        <div key={level.id} className={`w-fit text-body text-neutral-600`}>
                             {level.name}{" "}
                             {level.type === "compulsory" ? "(Compulsory)" : "(Optional)"}
-                        </Badge>
+                        </div>
                     ))}
 
                     {selectedLevels.length === 0 && (
