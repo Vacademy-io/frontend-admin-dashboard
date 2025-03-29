@@ -27,5 +27,5 @@
         "strictNullChecks": true
     },
     "include": ["src"],
-    "exclude": ["node_modules" , "src/components/common/excalidraw/"]
+    "exclude": ["node_modules" , "src/components/common/excalidraw/" , "src/utils/helpers"]
 }

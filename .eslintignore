@@ -7,3 +7,4 @@ node_modules
 **/coverage/**
 **/__tmp__/**
 src/components/common/excalidraw/
+src/utils/helpers
