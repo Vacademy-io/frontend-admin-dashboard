@@ -2,6 +2,7 @@ export const BASE_URL = "https://backend-stage.vacademy.io";
 export const BASE_URL_LEARNER_DASHBOARD = "https://frontend-learner-dashboard-app.pages.dev";
 
 export const SSDC_INSTITUTE_ID = "69ca11c6-54e1-4e99-9498-50c9a4272ce6";
+export const SHUBHAM_INSTITUTE_ID = "d0de8707-f36c-43a0-953c-019ca507c81d";
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
