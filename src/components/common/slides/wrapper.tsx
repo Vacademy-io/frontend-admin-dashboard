@@ -22,6 +22,7 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
   
     return (
         <div className="aspect-video h-[84vh] w-full border"  onWheelCapture={handleWheelCapture}>
+            
             <Excalidraw
                 ref={excalidrawRef}
                 initialData={{
