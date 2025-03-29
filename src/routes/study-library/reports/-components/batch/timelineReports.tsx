@@ -63,6 +63,11 @@ interface LeaderBoardData {
     full_name: string;
 }
 
+export const formatToTwoDecimalPlaces = (value: string): string => {
+    const num = parseFloat(value);
+    return isNaN(num) ? "0.00" : num.toFixed(2);
+};
+
 export default function TimelineReports() {
     const {
         getCourseFromPackage,
@@ -189,11 +194,6 @@ export default function TimelineReports() {
             },
         );
         // api call
-    };
-
-    const formatToTwoDecimalPlaces = (value: string): string => {
-        const num = parseFloat(value);
-        return isNaN(num) ? "0.00" : num.toFixed(2);
     };
 
     const convertFormat = (data: DailyLearnerTimeSpent[] | undefined) => {
