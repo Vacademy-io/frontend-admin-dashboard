@@ -2,28 +2,77 @@ import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { FormSubmitButtons } from "../form-components/form-submit-buttons";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { MyDropdown } from "../dropdownForPackageItems";
-import { useGetGenders } from "@/hooks/student-list-section/useFilters";
+import { useGetGenders } from "@/routes/students/students-list/-hooks/useFilters";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepTwoData, stepTwoSchema } from "@/types/students/schema-enroll-students-manually";
+import {
+    StepTwoData,
+    stepTwoSchema,
+} from "@/schemas/student/student-list/schema-enroll-students-manually";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useEffect, useRef, useState } from "react";
 import { DropdownItemType } from "../dropdownTypesForPackageItems";
+import { StudentTable } from "@/types/student-table-types";
+import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
+import { MyButton } from "@/components/design-system/button";
 
-export const StepTwoForm = () => {
+export const StepTwoForm = ({
+    initialValues,
+    submitFn,
+}: {
+    initialValues?: StudentTable;
+    submitFn: (fn: () => void) => void;
+}) => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
     const genderList = useGetGenders();
 
-    const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage } =
-        useInstituteDetailsStore();
+    const {
+        getCourseFromPackage,
+        getSessionFromPackage,
+        getLevelsFromPackage,
+        getDetailsFromPackageSessionId,
+    } = useInstituteDetailsStore();
 
     const [courseList, setCourseList] = useState<DropdownItemType[]>(getCourseFromPackage());
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
     const [levelList, setLevelList] = useState<DropdownItemType[]>(getLevelsFromPackage());
+
+    const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
+
+    useEffect(() => {
+        if (initialValues) {
+            const details = getDetailsFromPackageSessionId({
+                packageSessionId: initialValues.package_session_id,
+            });
+            setInitialBatch(details);
+
+            if (details) {
+                form.reset({
+                    fullName: initialValues?.full_name || "",
+                    course: {
+                        id: initialBatch?.package_dto.id || "",
+                        name: initialBatch?.package_dto.package_name || "",
+                    },
+                    session: {
+                        id: initialBatch?.session.id || "",
+                        name: initialBatch?.session.session_name || "",
+                    },
+                    level: {
+                        id: initialBatch?.level.id || "",
+                        name: initialBatch?.level.level_name || "",
+                    },
+                    accessDays: initialValues?.session_expiry_days?.toString() || "",
+                    enrollmentNumber: initialValues?.institute_enrollment_id || "",
+                    gender: initialValues?.gender || "",
+                    collegeName: initialValues?.linked_institute_name || "",
+                });
+            }
+        } else {
+            setInitialBatch(null);
+        }
+    }, [initialValues]);
 
     // Track which field was most recently changed
     const lastChangedField = useRef<string | null>(null);
@@ -31,23 +80,23 @@ export const StepTwoForm = () => {
     const form = useForm<StepTwoData>({
         resolver: zodResolver(stepTwoSchema),
         defaultValues: stepTwoData || {
-            fullName: "",
+            fullName: initialValues?.full_name || "",
             course: {
-                id: "",
-                name: "",
+                id: initialBatch?.package_dto.id || "",
+                name: initialBatch?.package_dto.package_name || "",
             },
             session: {
-                id: "",
-                name: "",
+                id: initialBatch?.session.id || "",
+                name: initialBatch?.session.session_name || "",
             },
             level: {
-                id: "",
-                name: "",
+                id: initialBatch?.level.id || "",
+                name: initialBatch?.level.level_name || "",
             },
-            accessDays: "",
-            enrollmentNumber: "",
-            gender: "",
-            collegeName: "",
+            accessDays: initialValues?.session_expiry_days?.toString() || "",
+            enrollmentNumber: initialValues?.institute_enrollment_id || "",
+            gender: initialValues?.gender || "",
+            collegeName: initialValues?.linked_institute_name || "",
         },
         mode: "onChange",
     });
@@ -80,6 +129,7 @@ export const StepTwoForm = () => {
     const courseValue = form.watch("course");
     const sessionValue = form.watch("session");
     const levelValue = form.watch("level");
+    const { setValue } = form;
 
     // When course changes, update session and level lists
     useEffect(() => {
@@ -218,11 +268,34 @@ export const StepTwoForm = () => {
         }
     }, [sessionList, courseList, levelList]);
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    const requestFormSubmit = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    const handleGenerateEnrollNum = () => {
+        const enrollNum = Math.floor(100000 + Math.random() * 900000).toString();
+        setValue("enrollmentNumber", enrollNum);
+    };
+
+    useEffect(() => {
+        if (submitFn) {
+            submitFn(requestFormSubmit);
+        }
+    }, [submitFn]);
+
     return (
         <div>
-            <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center px-6 text-neutral-600">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+                    <form
+                        ref={formRef}
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex flex-col gap-6"
+                    >
                         <FormItemWrapper<StepTwoData> control={form.control} name="fullName">
                             <FormStepHeading stepNumber={2} heading="General Details" />
                         </FormItemWrapper>
@@ -375,30 +448,43 @@ export const StepTwoForm = () => {
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="enrollmentNumber"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                label="Enrollment Number"
-                                                inputPlaceholder="VACAD090"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={
-                                                    form.formState.errors.enrollmentNumber?.message
-                                                }
-                                                required={true}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="flex items-end justify-between gap-4">
+                                <div className="w-full">
+                                    <FormField
+                                        control={form.control}
+                                        name="enrollmentNumber"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text"
+                                                        label="Enrollment Number"
+                                                        inputPlaceholder="123456"
+                                                        input={value}
+                                                        onChangeFunction={onChange}
+                                                        error={
+                                                            form.formState.errors.enrollmentNumber
+                                                                ?.message
+                                                        }
+                                                        required={true}
+                                                        size="large"
+                                                        className="w-full"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <MyButton
+                                    type="button"
+                                    buttonType="secondary"
+                                    scale="large"
+                                    onClick={handleGenerateEnrollNum}
+                                >
+                                    Auto Generate
+                                </MyButton>
+                            </div>
 
                             <FormField
                                 control={form.control}
@@ -451,8 +537,7 @@ export const StepTwoForm = () => {
                         </div>
                     </form>
                 </Form>
-            </DialogDescription>
-            <FormSubmitButtons stepNumber={2} onNext={form.handleSubmit(onSubmit)} />
+            </div>
         </div>
     );
 };

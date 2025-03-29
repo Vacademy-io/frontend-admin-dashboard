@@ -7,16 +7,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { MyInput } from "@/components/design-system/input";
 import MultiSelectDropdown from "@/components/design-system/multiple-select-field";
 import { RoleType } from "@/constants/dummy-data";
+import { getInstituteId } from "@/constants/helper";
+import { useMutation } from "@tanstack/react-query";
+import { handleInviteUsers } from "../-services/dashboard-services";
+import { useState } from "react";
 
 export const inviteUsersSchema = z.object({
     name: z.string().min(1, "Full name is required"),
     email: z.string().min(1, "Email is required").email("Invalid email format"),
     roleType: z.array(z.string()).min(1, "At least one role type is required"),
 });
-type FormValues = z.infer<typeof inviteUsersSchema>;
+export type inviteUsersFormValues = z.infer<typeof inviteUsersSchema>;
 
-const InviteUsersComponent = () => {
-    const form = useForm<FormValues>({
+const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
+    const [open, setOpen] = useState(false);
+    const instituteId = getInstituteId();
+    const form = useForm<inviteUsersFormValues>({
         resolver: zodResolver(inviteUsersSchema),
         defaultValues: {
             name: "",
@@ -33,12 +39,33 @@ const InviteUsersComponent = () => {
 
     form.watch("roleType");
 
-    function onSubmit(values: FormValues) {
-        console.log(values);
+    const handleInviteUsersMutation = useMutation({
+        mutationFn: ({
+            instituteId,
+            data,
+        }: {
+            instituteId: string | undefined;
+            data: z.infer<typeof inviteUsersSchema>;
+        }) => handleInviteUsers(instituteId, data),
+        onSuccess: () => {
+            form.reset();
+            setOpen(false);
+            refetchData();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    function onSubmit(values: inviteUsersFormValues) {
+        handleInviteUsersMutation.mutate({
+            instituteId,
+            data: values,
+        });
     }
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger>
                 <MyButton buttonType="primary" scale="large" layoutVariant="default">
                     Invite Users

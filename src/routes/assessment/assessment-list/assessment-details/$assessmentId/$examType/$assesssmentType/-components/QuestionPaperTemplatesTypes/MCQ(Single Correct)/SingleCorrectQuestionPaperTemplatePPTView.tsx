@@ -29,6 +29,9 @@ interface ChoiceOption {
 
 export const SingleCorrectQuestionPaperTemplatePPTView = ({
     form,
+    selectedSection,
+    currentQuestionIndexes,
+    setCurrentQuestionIndexes,
     currentQuestionIndex,
     className,
     selectedSectionIndex,
@@ -56,8 +59,23 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
     ) as ChoiceOption;
 
     const handleDeleteSlide = () => {
-        allQuestions.splice(currentQuestionIndex, 1);
-        setValue(`sections.${selectedSectionIndex}.questions`, allQuestions);
+        const currentIndex = currentQuestionIndexes[selectedSection] ?? 0; // Default to 0
+        if (
+            currentIndex !== undefined && // This check is now redundant but kept for clarity
+            currentIndex === allQuestions.length - 1 &&
+            currentIndex > 0
+        ) {
+            setCurrentQuestionIndexes((prev) => {
+                const updatedIndexes = {
+                    ...prev,
+                    [selectedSection]: Math.max(0, currentIndex - 1),
+                };
+                return updatedIndexes;
+            });
+        }
+
+        allQuestions.splice(currentIndex, 1);
+        setValue(`sections.${selectedSectionIndex}.questions`, allQuestions); // Ensure new reference
     };
 
     const handleDuplicateSlide = () => {
@@ -141,7 +159,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                 <div className="flex gap-2">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option1.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -174,7 +192,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option2.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -209,7 +227,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                 <div className="flex gap-2">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option3.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option3?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -242,7 +260,7 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option4.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option4?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">

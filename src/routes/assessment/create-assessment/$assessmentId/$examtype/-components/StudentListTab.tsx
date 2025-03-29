@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { useGetSessions } from "@/hooks/student-list-section/useFilters";
-import { GetFilterData } from "@/constants/student-list/all-filters";
+import { useGetSessions } from "@/routes/students/students-list/-hooks/useFilters";
+import { GetFilterData } from "@/routes/students/students-list/-constants/all-filters";
 import { MyTable, TableData } from "@/components/design-system/table";
 import { MyPagination } from "@/components/design-system/pagination";
-import { useStudentFilters } from "@/hooks/student-list-section/useStudentFilters";
-import { useStudentTable } from "@/hooks/student-list-section/useStudentTable";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { useStudentFilters } from "@/routes/students/students-list/-hooks/useStudentFilters";
+import { useStudentTable } from "@/routes/students/students-list/-hooks/useStudentTable";
+import { StudentTable } from "@/types/student-table-types";
 import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
 import {
     STUDENT_LIST_ASSESSMENT_COLUMN_WIDTHS,
@@ -16,14 +16,18 @@ import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
-import { StudentListHeader } from "@/components/common/students/students-list/student-list-section/student-list-header";
-import { StudentFilters } from "@/components/common/students/students-list/student-list-section/student-filters";
-import { BulkActions } from "@/components/common/students/students-list/bulk-actions";
+import { StudentListHeader } from "@/routes/students/students-list/-components/students-list/student-list-section/student-list-header";
+import { StudentFilters } from "@/routes/students/students-list/-components/students-list/student-list-section/student-filters";
+import { BulkActions } from "@/routes/students/students-list/-components/students-list/bulk-actions";
 import { myAssessmentColumns } from "./assessment-columns";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { useTestAccessStore } from "../-utils/zustand-global-states/step3-adding-participants";
+import { Route } from "..";
+import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
+import { getInstituteId } from "@/constants/helper";
+import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -34,8 +38,20 @@ export const getCurrentSession = (): string => {
 };
 
 export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormType> }) => {
+    const { assessmentId } = Route.useParams();
     const storeDataStep3 = useTestAccessStore((state) => state);
+    const instituteId = getInstituteId();
+    const { data: studentList } = useSuspenseQuery(
+        handleGetIndividualStudentList({ instituteId, assessmentId }),
+    );
     const preExistingStudentIds = useMemo(() => {
+        if (assessmentId !== "defaultId")
+            return studentList
+                .filter(
+                    (user: Step3ParticipantsListIndiviudalStudentInterface) =>
+                        user.source === "ADMIN_PRE_REGISTRATION",
+                )
+                .map((user: Step3ParticipantsListIndiviudalStudentInterface) => user.userId);
         return (storeDataStep3.select_individually?.student_details || []).map(
             (student) => student.user_id,
         );

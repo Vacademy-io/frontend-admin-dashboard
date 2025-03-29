@@ -23,7 +23,7 @@ export const FormSubmitButtons = ({
     };
 
     return (
-        <DialogFooter className="px-6 py-4">
+        <DialogFooter className="flex w-full">
             <div className="flex w-full justify-between">
                 <MyButton
                     buttonType="secondary"

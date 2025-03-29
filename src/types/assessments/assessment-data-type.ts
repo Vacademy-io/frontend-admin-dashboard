@@ -9,17 +9,16 @@ interface AccessControl {
     roles: string[] | null;
     user_ids: string[];
 }
-
-interface RegistrationFormField {
+export interface RegistrationFormField {
     id: string;
-    fieldName: string;
-    fieldKey: string;
-    commaSeparatedOptions: string;
+    field_name: string;
+    field_key: string;
+    comma_separated_options: string;
     status: string;
-    isMandatory: boolean;
-    fieldType: string;
-    createdAt: string;
-    updatedAt: string;
+    is_mandatory: boolean;
+    field_type: string;
+    created_at: string;
+    updated_at: string;
 }
 
 interface PreBatchRegistration {
@@ -137,6 +136,7 @@ interface StepData {
 }
 
 export interface ConvertedCustomField {
+    id: string;
     name: string;
     type: string;
     default_value: string;
@@ -146,17 +146,54 @@ export interface ConvertedCustomField {
     comma_separated_options: string;
 }
 
-// Assuming customFields is an object where keys are strings and values are the custom field details
-export type CustomFields = {
+export interface CustomFieldStep3 {
+    id: string;
     type: string;
     name: string;
     oldKey: boolean;
     isRequired: boolean;
-    options?: { id: number; value: string }[];
+    options?: { id: string; value: string }[];
+    default_value?: string;
+    description?: string;
+    key?: string;
+    is_mandatory?: boolean;
+}
+
+// Assuming customFields is an object where keys are strings and values are the custom field details
+export type CustomFields = {
+    id: string;
+    type: string;
+    name: string;
+    oldKey: boolean;
+    isRequired: boolean;
+    options?: { id: string; value: string }[];
     default_value?: string;
     description?: string;
     key?: string;
     is_mandatory?: boolean;
 }[];
+
+export interface Step3StudentDetailInterface {
+    username: string;
+    user_id: string;
+    email: string;
+    full_name: string;
+    mobile_number: string;
+    guardian_email: string;
+    guardian_mobile_number: string;
+    file_id: string;
+    reattempt_count: number;
+}
+
+export interface NotificationStep3 {
+    when_assessment_created: boolean;
+    show_leaderboard?: boolean;
+    before_assessment_goes_live: {
+        checked: boolean;
+        value: string; // Assuming value is a string that needs to be converted to a number
+    };
+    when_assessment_live: boolean;
+    when_assessment_report_generated: boolean;
+}
 
 export type Steps = StepData[];

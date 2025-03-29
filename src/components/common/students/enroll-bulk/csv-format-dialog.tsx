@@ -13,9 +13,9 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { UploadCSVButton } from "./upload-csv-button";
-import { enrollBulkFormType } from "@/types/students/bulk-upload-types";
-import { CSVFormatFormType } from "@/types/students/bulk-upload-types";
-import { csvFormatSchema } from "@/types/students/bulk-upload-types";
+import { enrollBulkFormType } from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
+import { CSVFormatFormType } from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
+import { csvFormatSchema } from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
 
 export const CSVFormatDialog = ({
     packageDetails,
@@ -26,8 +26,6 @@ export const CSVFormatDialog = ({
     openDialog: boolean;
     setOpenDialog: Dispatch<SetStateAction<boolean>>;
 }) => {
-    // const [openDialog, setOpenDialog] = useState(false);
-
     const defaultValues = {
         autoGenerateUsername: true,
         autoGeneratePassword: true,
@@ -61,15 +59,8 @@ export const CSVFormatDialog = ({
         setCsvFormatFormValues(data);
     };
 
-    // const triggerButton = (
-    //     <MyButton buttonType="primary" layoutVariant="default" scale="large" type="submit">
-    //         Done
-    //     </MyButton>
-    // );
-
     return (
         <MyDialog
-            // trigger={triggerButton}
             heading="Download Template"
             dialogWidth="w-full"
             open={openDialog}
@@ -258,6 +249,7 @@ export const CSVFormatDialog = ({
                             <UploadCSVButton
                                 packageDetails={packageDetails}
                                 csvFormatDetails={csvFormatFormValues}
+                                setOpenDialog={setOpenDialog} // Pass down the setter function
                             />
                         </div>
                     </form>

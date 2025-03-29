@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Define TestInputField schema
 const testInputFieldSchema = z.object({
-    id: z.number(),
+    id: z.string(),
     type: z.string(),
     name: z.string(),
     oldKey: z.boolean(),
@@ -10,7 +10,7 @@ const testInputFieldSchema = z.object({
     options: z
         .array(
             z.object({
-                id: z.number(),
+                id: z.string(),
                 value: z.string(),
             }),
         )

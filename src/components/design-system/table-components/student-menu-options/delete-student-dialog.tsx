@@ -1,9 +1,9 @@
 import { MyDialog } from "../../dialog";
 import { ReactNode } from "react";
-import { useDialogStore } from "../../utils/useDialogStore";
+import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
 import { MyButton } from "../../button";
-import { useDeleteStudentMutation } from "@/services/student-list-section/useStudentOperations";
-import { useBulkDeleteStudentsMutation } from "@/services/student-list-section/useBulkOperations";
+import { useDeleteStudentMutation } from "@/routes/students/students-list/-services/useStudentOperations";
+import { useBulkDeleteStudentsMutation } from "@/routes/students/students-list/-services/useBulkOperations";
 
 interface DeleteStudentDialogProps {
     trigger: ReactNode;

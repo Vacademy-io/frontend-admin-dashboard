@@ -36,7 +36,11 @@ import {
     QUESTION_WISE_COLUMNS_INTERNAL_OR_CLOSE_WIDTH,
 } from "@/components/design-system/utils/constants/table-layout";
 import { convertToLocalDateTime, extractDateTime } from "@/constants/helper";
-import { StudentResponseQuestionwiseInterface } from "@/types/assessments/student-questionwise-status";
+import {
+    Step3ParticipantsListIndiviudalStudentInterface,
+    Step3ParticipantsListInterface,
+    StudentResponseQuestionwiseInterface,
+} from "@/types/assessments/student-questionwise-status";
 
 export const convertMarksRankData = (leaderboard: StudentLeaderboardEntry[]) => {
     const rankMap = new Map();
@@ -75,9 +79,9 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                             .date,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
-                        end_time: extractDateTime(convertToLocalDateTime(student.and_time || ""))
+                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
                             .time,
-                        duration: (student.duration % 60) + " min",
+                        duration: (student.duration / 60).toFixed(2) + " min",
                         score: `${student.score} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
@@ -114,9 +118,9 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                             .date,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .time,
-                        end_time: extractDateTime(convertToLocalDateTime(student.and_time || ""))
+                        end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
                             .time,
-                        duration: (student.duration % 60) + " min",
+                        duration: (student.duration / 60).toFixed(2) + " min",
                         score: `${student.score} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
@@ -187,6 +191,38 @@ export const getQuestionWiseFilteredDataStudentData = (
         default:
             return [];
     }
+};
+
+export const getAssessmentStep3ParticipantsListWithBatchName = (
+    studentsListData: Step3ParticipantsListInterface[],
+    batches_for_sessions: BatchDetailsInterface[],
+) => {
+    return studentsListData.map((student) => {
+        return {
+            id: student.user_id,
+            full_name: student.full_name,
+            package_session_id: getBatchNameById(batches_for_sessions, student.package_session_id),
+            institute_enrollment_id: student.institute_enrollment_id,
+            gender: student.gender,
+            mobile_number: student.mobile_number,
+            email: student.email,
+            city: student.city,
+            state: student.region,
+        };
+    });
+};
+
+export const getAssessmentStep3ParticipantsListIndividualStudents = (
+    studentsListData: Step3ParticipantsListIndiviudalStudentInterface[],
+) => {
+    return studentsListData.map((student) => {
+        return {
+            id: student.userId,
+            full_name: student.participantName,
+            mobile_number: student.phoneNumber,
+            email: student.userEmail,
+        };
+    });
 };
 
 export const getAllColumnsForTable = (type: string, selectedParticipantsTab: string) => {

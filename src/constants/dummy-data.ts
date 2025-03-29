@@ -1,13 +1,4 @@
-import { RolesDummyDataType } from "@/types/dashboard/user-roles";
-
-export const QUESTION_TYPES = [
-    "MCQS",
-    "MCQM",
-    "Integer",
-    "True or False",
-    "Match the following",
-    "Short answer",
-];
+export const QUESTION_TYPES = ["MCQS", "MCQM"];
 
 export const QUESTION_LABELS = ["(1.)", "1.)", "(1)", "1)"];
 export const OPTIONS_LABELS = ["(a.)", "a.)", "(a)", "a)", "(A.)", "A.)", "(A)", "A)"];
@@ -53,62 +44,6 @@ export const RoleTypeUserStatus = [
     { id: "1", name: "ACTIVE" },
     { id: "2", name: "DISABLED" },
 ];
-
-export const RolesDummyData: RolesDummyDataType = {
-    instituteUsers: [
-        {
-            id: "1",
-            name: "Test 1",
-            email: "test1@gmail.com",
-            roleType: ["ADMIN", "COURSE CREATOR", "ASSESSMENT CREATOR", "EVALUATOR"],
-            status: "ACTIVE",
-        },
-        {
-            id: "2",
-            name: "Test 2",
-            email: "test2@gmail.com",
-            roleType: ["ADMIN"],
-            status: "DISABLED",
-        },
-        {
-            id: "3",
-            name: "Test 3",
-            email: "test3@gmail.com",
-            roleType: ["COURSE CREATOR"],
-            status: "DISABLED",
-        },
-    ],
-    invites: [
-        {
-            id: "1",
-            name: "Test 11",
-            email: "test11@gmail.com",
-            roleType: ["ADMIN", "COURSE CREATOR"],
-            status: "ACTIVE",
-        },
-        {
-            id: "2",
-            name: "Test 22",
-            email: "test22@gmail.com",
-            roleType: ["ADMIN"],
-            status: "DISABLED",
-        },
-        {
-            id: "3",
-            name: "Test 33",
-            email: "test33@gmail.com",
-            roleType: ["COURSE CREATOR"],
-            status: "DISABLED",
-        },
-        {
-            id: "4",
-            name: "Test 44",
-            email: "test44@gmail.com",
-            roleType: ["COURSE CREATOR"],
-            status: "DISABLED",
-        },
-    ],
-};
 
 export const BulkActionDropdownStudentSubmissionsList = [
     "Provide Reattempt",

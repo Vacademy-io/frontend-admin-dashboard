@@ -3,25 +3,34 @@ import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { FormSubmitButtons } from "../form-components/form-submit-buttons";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepFourData, stepFourSchema } from "@/types/students/schema-enroll-students-manually";
+import {
+    StepFourData,
+    stepFourSchema,
+} from "@/schemas/student/student-list/schema-enroll-students-manually";
 import PhoneInputField from "@/components/design-system/phone-input-field";
+import { StudentTable } from "@/types/student-table-types";
+import { useEffect, useRef } from "react";
 
-export const StepFourForm = () => {
+export const StepFourForm = ({
+    initialValues,
+    submitFn,
+}: {
+    initialValues?: StudentTable;
+    submitFn: (fn: () => void) => void;
+}) => {
     const { stepFourData, setStepFourData, nextStep } = useFormStore();
 
     const form = useForm<StepFourData>({
         resolver: zodResolver(stepFourSchema),
         defaultValues: stepFourData || {
-            fatherName: "",
-            motherName: "",
+            fatherName: initialValues?.father_name || "",
+            motherName: initialValues?.mother_name || "",
             guardianName: "",
-            guardianEmail: "",
-            guardianMobileNumber: "",
+            guardianEmail: initialValues?.parents_email || "",
+            guardianMobileNumber: initialValues?.parents_mobile_number || "",
         },
         mode: "onChange",
     });
@@ -31,11 +40,29 @@ export const StepFourForm = () => {
         nextStep();
     };
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    const requestFormSubmit = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    useEffect(() => {
+        if (submitFn) {
+            submitFn(requestFormSubmit);
+        }
+    }, [submitFn]);
+
     return (
         <div>
-            <DialogDescription className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center px-6 text-neutral-600">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+                    <form
+                        ref={formRef}
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex flex-col gap-6"
+                    >
                         <FormItemWrapper<StepFourData> control={form.control} name="fatherName">
                             <FormStepHeading stepNumber={4} heading="Parent's/Guardians Details" />
                         </FormItemWrapper>
@@ -145,6 +172,7 @@ export const StepFourForm = () => {
                                                 name="guardianMobileNumber"
                                                 control={form.control}
                                                 country="in"
+                                                required={false}
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -153,8 +181,7 @@ export const StepFourForm = () => {
                         </div>
                     </form>
                 </Form>
-            </DialogDescription>
-            <FormSubmitButtons stepNumber={4} onNext={form.handleSubmit(onSubmit)} />
+            </div>
         </div>
     );
 };

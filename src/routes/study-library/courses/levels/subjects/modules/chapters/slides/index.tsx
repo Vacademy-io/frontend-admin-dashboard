@@ -1,26 +1,30 @@
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { SearchInput } from "@/components/common/students/students-list/student-list-section/search-input";
-import { SlideMaterial } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/add-chapters/slide-material";
-import { ChapterSidebarAddButton } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-add-button";
-import { ChapterSidebarSlides } from "@/components/common/study-library/course-material/level-study-material/subject-material/module-material/chapter-material/slides-material/slides-sidebar/slides-sidebar-slides";
+import { SlideMaterial } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-components/slide-material";
+import { ChapterSidebarAddButton } from "./-components/slides-sidebar/slides-sidebar-add-button";
+import { ChapterSidebarSlides } from "./-components/slides-sidebar/slides-sidebar-slides";
 import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { studyLibrarySteps } from "@/constants/intro/steps";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
-import { slideOrderPayloadType, useSlides } from "@/hooks/study-library/use-slides";
+import {
+    Slide,
+    slideOrderPayloadType,
+    useSlides,
+} from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import useIntroJsTour from "@/hooks/use-intro";
 import { truncateString } from "@/lib/reusable/truncateString";
 import { InitStudyLibraryProvider } from "@/providers/study-library/init-study-library-provider";
 import { ModulesWithChaptersProvider } from "@/providers/study-library/modules-with-chapters-provider";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { useChapterName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
-import { CaretLeft, MagnifyingGlass } from "phosphor-react";
-import { useEffect, useState } from "react";
+import { CaretLeft } from "phosphor-react";
+import { useEffect, useRef, useState } from "react";
+import { SaveDraftProvider } from "./-context/saveDraftContext";
 
 interface ChapterSearchParams {
     courseId: string;
@@ -49,8 +53,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
     const { courseId, subjectId, levelId, moduleId, chapterId } = Route.useSearch();
-    const [inputSearch, setInputSearch] = useState("");
-    const { open, state, toggleSidebar } = useSidebar();
+    const { open } = useSidebar();
     const navigate = useNavigate();
     const { activeItem } = useContentStore();
     const [subjectName, setSubjectName] = useState("");
@@ -88,10 +91,6 @@ function RouteComponent() {
             },
             hash: "",
         });
-    };
-
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInputSearch(e.target.value);
     };
 
     const handleSlideOrderChange = async (slideOrderPayload: slideOrderPayloadType) => {
@@ -135,7 +134,8 @@ function RouteComponent() {
                     </p>
                 </div>
                 <div className="flex w-full flex-col items-center gap-6">
-                    {open ? (
+                    {/* <>
+                   {open ? (
                         <SearchInput
                             searchInput={inputSearch}
                             placeholder="Search chapters"
@@ -149,6 +149,7 @@ function RouteComponent() {
                             }}
                         />
                     )}
+                    </> */}
                     <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
                 </div>
             </div>
@@ -198,13 +199,28 @@ function RouteComponent() {
         setNavHeading(heading);
     }, []);
 
+    const getCurrentEditorHTMLContentRef = useRef<() => string>(() => "");
+    const saveDraftRef = useRef(async (slide: Slide) => {
+        console.log("slide for saving draft: ", slide);
+    });
+
     return (
-        <LayoutContainer sidebarComponent={SidebarComponent}>
-            <InitStudyLibraryProvider>
-                <ModulesWithChaptersProvider subjectId={subjectId}>
-                    <SlideMaterial />
-                </ModulesWithChaptersProvider>
-            </InitStudyLibraryProvider>
-        </LayoutContainer>
+        <SaveDraftProvider
+            getCurrentEditorHTMLContent={() => getCurrentEditorHTMLContentRef.current()}
+            saveDraft={(slide) => saveDraftRef.current(slide)}
+        >
+            <LayoutContainer sidebarComponent={SidebarComponent}>
+                <InitStudyLibraryProvider>
+                    <ModulesWithChaptersProvider subjectId={subjectId}>
+                        <SlideMaterial
+                            setGetCurrentEditorHTMLContent={(fn) =>
+                                (getCurrentEditorHTMLContentRef.current = fn)
+                            }
+                            setSaveDraft={(fn) => (saveDraftRef.current = fn)}
+                        />
+                    </ModulesWithChaptersProvider>
+                </InitStudyLibraryProvider>
+            </LayoutContainer>
+        </SaveDraftProvider>
     );
 }

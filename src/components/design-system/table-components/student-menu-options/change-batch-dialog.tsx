@@ -1,12 +1,12 @@
 // components/change-batch-dialog.tsx
 import { MyDialog } from "../../dialog";
-import { ReactNode, useState } from "react";
-import { useDialogStore } from "../../utils/useDialogStore";
-import { BatchDropdown } from "@/components/common/batch-dropdown";
-import { MyButton } from "../../button";
-import { useUpdateBatchMutation } from "@/services/student-list-section/useStudentOperations";
-import { useBulkUpdateBatchMutation } from "@/services/student-list-section/useBulkOperations";
+import { ReactNode } from "react";
+import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
+import { useUpdateBatchMutation } from "@/routes/students/students-list/-services/useStudentOperations";
+import { useBulkUpdateBatchMutation } from "@/routes/students/students-list/-services/useBulkOperations";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { StudyMaterialDetailsForm } from "@/routes/study-library/courses/-components/upload-study-material/study-material-details-form";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 interface ChangeBatchDialogProps {
     trigger: ReactNode;
@@ -16,27 +16,27 @@ interface ChangeBatchDialogProps {
 
 const ChangeBatchDialogContent = () => {
     const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } = useDialogStore();
-
-    const [selectedBatchId, setSelectedBatchId] = useState<string>("");
-    const [isFormValid, setIsFormValid] = useState({
-        session: false,
-    });
+    const { getPackageSessionId } = useInstituteDetailsStore();
 
     const { mutate: updateSingleBatch, isPending: isSinglePending } = useUpdateBatchMutation();
     const { mutate: updateBulkBatch, isPending: isBulkPending } = useBulkUpdateBatchMutation();
-    const { instituteDetails } = useInstituteDetailsStore();
 
     const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.full_name;
 
-    const handleSessionValidation = (isValid: boolean) => {
-        setIsFormValid((prev) => ({ ...prev, session: isValid }));
-    };
+    const submitChangeBatch = (data: {
+        [x: string]:
+            | {
+                  id: string;
+                  name: string;
+              }
+            | undefined;
+    }) => {
+        const packageSessionId = getPackageSessionId({
+            courseId: data["course"]?.id || "",
+            sessionId: data["session"]?.id || "",
+            levelId: data["level"]?.id || "",
+        });
 
-    const handleBatchChange = (batchId: string) => {
-        setSelectedBatchId(batchId);
-    };
-
-    const handleSubmit = () => {
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
             updateBulkBatch(
                 {
@@ -44,7 +44,7 @@ const ChangeBatchDialogContent = () => {
                         userId: student.user_id,
                         currentPackageSessionId: student.package_session_id || "",
                     })),
-                    newPackageSessionId: selectedBatchId,
+                    newPackageSessionId: packageSessionId || "",
                 },
                 {
                     onSuccess: closeAllDialogs,
@@ -59,7 +59,7 @@ const ChangeBatchDialogContent = () => {
                             currentPackageSessionId: selectedStudent.package_session_id || "",
                         },
                     ],
-                    newPackageSessionId: selectedBatchId,
+                    newPackageSessionId: packageSessionId || "",
                 },
                 {
                     onSuccess: closeAllDialogs,
@@ -68,38 +68,19 @@ const ChangeBatchDialogContent = () => {
         }
     };
 
-    const currentBatchInfo = isBulkAction
-        ? null
-        : instituteDetails?.batches_for_sessions.find(
-              (batch) => batch.id === selectedStudent?.package_session_id,
-          );
-
-    const currentSession = currentBatchInfo?.session.session_name;
-    const isLoading = isSinglePending || isBulkPending;
+    if (isBulkPending || isSinglePending) return <DashboardLoader />;
 
     return (
-        <div className="flex flex-col gap-6 p-6 text-neutral-600">
-            <div>
+        <div className="flex flex-col gap-6">
+            <p>
                 Batch for <span className="text-primary-500">{displayText}</span> will be changed to
                 the following
-            </div>
-            <BatchDropdown
-                handleSessionValidation={handleSessionValidation}
-                session={currentSession}
-                currentPackageSessionId={
-                    !isBulkAction ? selectedStudent?.package_session_id : undefined
-                }
-                onBatchSelect={handleBatchChange}
+            </p>
+            <StudyMaterialDetailsForm
+                fields={["course", "session", "level"]}
+                onFormSubmit={submitChangeBatch}
+                submitButtonName="Change Batch"
             />
-            <MyButton
-                buttonType="primary"
-                scale="large"
-                layoutVariant="default"
-                disable={!isFormValid.session || isLoading}
-                onClick={handleSubmit}
-            >
-                {isLoading ? "Updating..." : "Change Group/Batch"}
-            </MyButton>
         </div>
     );
 };

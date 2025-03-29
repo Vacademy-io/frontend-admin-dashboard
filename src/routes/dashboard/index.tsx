@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
@@ -22,6 +22,7 @@ import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtili
 import { TokenKey } from "@/constants/auth/tokens";
 import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
 import RoleTypeComponent from "./-components/RoleTypeComponent";
+import useLocalStorage from "@/hooks/use-local-storage";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -34,6 +35,8 @@ export const Route = createFileRoute("/dashboard/")({
 export function DashboardComponent() {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
+    const location = useLocation();
+    const { getValue, setValue } = useLocalStorage<boolean>(IntroKey.dashboardWelcomeVideo, true);
     const { data: instituteDetails, isLoading: isInstituteLoading } =
         useSuspenseQuery(useInstituteQuery());
     const subModules = getModuleFlags(instituteDetails?.sub_modules);
@@ -51,6 +54,13 @@ export function DashboardComponent() {
             console.log("Tour Completed");
         },
     });
+
+    useEffect(() => {
+        console.log(location.pathname);
+        if (location.pathname !== "/dashboard") {
+            setValue(false);
+        }
+    }, [location.pathname, setValue]);
 
     const handleAssessmentTypeRoute = (type: string) => {
         navigate({
@@ -90,18 +100,22 @@ export function DashboardComponent() {
             <h1 className="text-2xl">
                 Hello <span className="text-primary-500">{tokenData?.fullname}!</span>
             </h1>
-            <p className="mt-1 text-sm">
-                Welcome aboard! We&apos;re excited to have you here. Let’s set up your admin
-                dashboard and make learning seamless and engaging.
-            </p>
-            {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
-                <iframe
-                    className="m-auto mt-6 h-[70vh] w-[70%] rounded-xl"
-                    src="https://www.youtube.com/embed/ovEtbkMzcUQ"
-                    title="YouTube video player"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                />
+            {getValue() && (
+                <>
+                    <p className="mt-1 text-sm">
+                        Welcome aboard! We&apos;re excited to have you here. Let&apos;s set up your
+                        admin dashboard and make learning seamless and engaging.
+                    </p>
+                    {instituteDetails?.id !== SSDC_INSTITUTE_ID && (
+                        <iframe
+                            className="m-auto mt-6 h-[70vh] w-[70%] rounded-xl"
+                            src="https://www.youtube.com/embed/s2z1xbCWwRE?si=cgJvdMCJ8xg32lZ7"
+                            title="YouTube video player"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                        />
+                    )}
+                </>
             )}
             <div className="mt-8 flex w-full flex-col gap-6">
                 <Card className="grow bg-neutral-50 shadow-none">
@@ -202,7 +216,7 @@ export function DashboardComponent() {
                                         className="text-sm"
                                     >
                                         <Plus size={32} />
-                                        Create
+                                        Create Course
                                     </MyButton>
                                     <MyButton
                                         type="submit"

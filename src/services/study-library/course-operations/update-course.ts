@@ -1,7 +1,7 @@
 // services/study-library/course-operations/update-course.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { AddCourseData } from "@/components/common/study-library/course-material/add-course/add-course-form";
+import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
 import { UPDATE_COURSE } from "@/constants/urls";
 
 export const useUpdateCourse = () => {

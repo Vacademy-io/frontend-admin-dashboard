@@ -1,4 +1,5 @@
 // stores/study-library/useStudyLibraryStore.ts
+import { SessionType } from "@/schemas/student/student-list/institute-schema";
 import { create } from "zustand";
 
 export interface CourseType {
@@ -8,11 +9,7 @@ export interface CourseType {
     status: string;
 }
 
-export interface StudyLibrarySessionType {
-    id: string;
-    session_name: string;
-    status: string;
-}
+export type StudyLibrarySessionType = SessionType;
 
 export interface SubjectType {
     id: string;

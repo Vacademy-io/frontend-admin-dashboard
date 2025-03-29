@@ -2,19 +2,24 @@ import { MyButton } from "@/components/design-system/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "phosphor-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScheduleTestFilters } from "@/routes/assessment/assessment-list/-components/ScheduleTestFilters";
 import { MyFilterOption } from "@/types/assessments/my-filter";
-import { RolesDummyData, RoleType, RoleTypeUserStatus } from "@/constants/dummy-data";
+import { RoleType, RoleTypeUserStatus } from "@/constants/dummy-data";
 import RoleTypeFilterButtons from "./RoleTypeFilterButtons";
 import InviteUsersComponent from "./InviteUsersComponent";
 import InviteUsersTab from "./InviteUsersTab";
 import InstituteUsersComponent from "./InstituteUsersTab";
 import { RolesDummyDataType } from "@/types/dashboard/user-roles";
+import { getInstituteId } from "@/constants/helper";
+import { fetchInstituteDashboardUsers } from "../-services/dashboard-services";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useMutation } from "@tanstack/react-query";
+import { useRefetchUsersStore } from "../-global-states/refetch-store-users";
 
 export interface RoleTypeSelectedFilter {
-    roleType: { id: string; name: string }[];
+    roles: { id: string; name: string }[];
     status: { id: string; name: string }[];
 }
 
@@ -22,13 +27,21 @@ export interface RoleTypeSelectedFilter {
 type TabKey = keyof RolesDummyDataType;
 
 const RoleTypeComponent = () => {
+    const setHandleRefetchUsersData = useRefetchUsersStore(
+        (state) => state.setHandleRefetchUsersData,
+    );
+    const [isLoading, setIsLoading] = useState(false);
+    const instituteId = getInstituteId();
     const [selectedTab, setSelectedTab] = useState<TabKey>("instituteUsers");
     const [selectedFilter, setSelectedFilter] = useState({
-        roleType: [],
+        roles: [],
         status: [],
     });
 
-    const selectedTabData = RolesDummyData[selectedTab];
+    const [dashboardUsers, setDashboardUsers] = useState({
+        instituteUsers: [],
+        invites: [],
+    });
 
     const handleFilterChange = (filterKey: string, selectedItems: MyFilterOption[]) => {
         setSelectedFilter((prev) => {
@@ -37,22 +50,180 @@ const RoleTypeComponent = () => {
         });
     };
 
+    const getDashboardUsersData = useMutation({
+        mutationFn: ({
+            instituteId,
+            selectedFilter,
+        }: {
+            instituteId: string | undefined;
+            selectedFilter: RoleTypeSelectedFilter;
+        }) => fetchInstituteDashboardUsers(instituteId, selectedFilter),
+        onSuccess: (data) => {
+            if (selectedTab === "instituteUsers") {
+                setDashboardUsers({ ...dashboardUsers, ["instituteUsers"]: data });
+            } else {
+                setDashboardUsers({ ...dashboardUsers, ["invites"]: data });
+            }
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
     const handleSubmitFilters = () => {
-        console.log("submit filter");
+        getDashboardUsersData.mutate({
+            instituteId,
+            selectedFilter,
+        });
     };
 
     const handleResetFilters = () => {
         setSelectedFilter({
-            roleType: [],
+            roles: [],
             status: [],
+        });
+        getDashboardUsersData.mutate({
+            instituteId,
+            selectedFilter: {
+                roles: [
+                    { id: "1", name: "ADMIN" },
+                    { id: "2", name: "COURSE CREATOR" },
+                    { id: "3", name: "ASSESSMENT CREATOR" },
+                    { id: "4", name: "EVALUATOR" },
+                ],
+                status:
+                    selectedTab === "instituteUsers"
+                        ? [
+                              { id: "1", name: "ACTIVE" },
+                              { id: "2", name: "DISABLED" },
+                          ]
+                        : [{ id: "1", name: "INVITED" }],
+            },
         });
     };
 
     const handleTabChange = (value: string) => {
         if (value === "instituteUsers" || value === "invites") {
             setSelectedTab(value as TabKey);
+            getDashboardUsersData.mutate({
+                instituteId,
+                selectedFilter: {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status:
+                        value === "instituteUsers"
+                            ? [
+                                  { id: "1", name: "ACTIVE" },
+                                  { id: "2", name: "DISABLED" },
+                              ]
+                            : [{ id: "1", name: "INVITED" }],
+                },
+            });
         }
     };
+
+    const handleRefetchData = () => {
+        const timeoutId = setTimeout(() => {
+            Promise.all([
+                fetchInstituteDashboardUsers(instituteId, {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status: [
+                        { id: "1", name: "ACTIVE" },
+                        { id: "2", name: "DISABLED" },
+                    ],
+                }),
+                fetchInstituteDashboardUsers(instituteId, {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status: [{ id: "1", name: "INVITED" }],
+                }),
+            ])
+                .then(([instituteUsersData, invitesData]) => {
+                    setDashboardUsers((prev) => ({
+                        ...prev,
+                        instituteUsers: instituteUsersData,
+                        invites: invitesData,
+                    }));
+                })
+                .catch((error) => {
+                    console.error(error);
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                });
+        }, 0);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    };
+
+    // Define the handleRefetchData function here
+    useEffect(() => {
+        setHandleRefetchUsersData(handleRefetchData);
+    }, [setHandleRefetchUsersData]);
+
+    useEffect(() => {
+        setIsLoading(true);
+
+        const timeoutId = setTimeout(() => {
+            Promise.all([
+                fetchInstituteDashboardUsers(instituteId, {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status: [
+                        { id: "1", name: "ACTIVE" },
+                        { id: "2", name: "DISABLED" },
+                    ],
+                }),
+                fetchInstituteDashboardUsers(instituteId, {
+                    roles: [
+                        { id: "1", name: "ADMIN" },
+                        { id: "2", name: "COURSE CREATOR" },
+                        { id: "3", name: "ASSESSMENT CREATOR" },
+                        { id: "4", name: "EVALUATOR" },
+                    ],
+                    status: [{ id: "1", name: "INVITED" }],
+                }),
+            ])
+                .then(([instituteUsersData, invitesData]) => {
+                    setDashboardUsers((prev) => ({
+                        ...prev,
+                        instituteUsers: instituteUsersData,
+                        invites: invitesData,
+                    }));
+                })
+                .catch((error) => {
+                    console.error(error);
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                });
+        }, 0);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, []);
+
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <Dialog>
@@ -98,7 +269,7 @@ const RoleTypeComponent = () => {
                                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                                     variant="outline"
                                 >
-                                    {RolesDummyData["instituteUsers"].length}
+                                    {dashboardUsers["instituteUsers"].length}
                                 </Badge>
                             </TabsTrigger>
                             <TabsTrigger
@@ -120,7 +291,7 @@ const RoleTypeComponent = () => {
                                     className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
                                     variant="outline"
                                 >
-                                    {RolesDummyData["invites"].length}
+                                    {dashboardUsers["invites"].length}
                                 </Badge>
                             </TabsTrigger>
                         </TabsList>
@@ -128,15 +299,19 @@ const RoleTypeComponent = () => {
                             <ScheduleTestFilters
                                 label="Role Type"
                                 data={RoleType}
-                                selectedItems={selectedFilter["roleType"] || []}
-                                onSelectionChange={(items) => handleFilterChange("roleType", items)}
+                                selectedItems={selectedFilter["roles"] || []}
+                                onSelectionChange={(items) => handleFilterChange("roles", items)}
                             />
-                            <ScheduleTestFilters
-                                label="Status"
-                                data={RoleTypeUserStatus}
-                                selectedItems={selectedFilter["status"] || []}
-                                onSelectionChange={(items) => handleFilterChange("status", items)}
-                            />
+                            {selectedTab === "instituteUsers" && (
+                                <ScheduleTestFilters
+                                    label="Status"
+                                    data={RoleTypeUserStatus}
+                                    selectedItems={selectedFilter["status"] || []}
+                                    onSelectionChange={(items) =>
+                                        handleFilterChange("status", items)
+                                    }
+                                />
+                            )}
                             <RoleTypeFilterButtons
                                 selectedQuestionPaperFilters={selectedFilter}
                                 handleSubmitFilters={handleSubmitFilters}
@@ -144,14 +319,19 @@ const RoleTypeComponent = () => {
                             />
                         </div>
                     </div>
-                    <InviteUsersTab selectedTab={selectedTab} selectedTabData={selectedTabData} />
                     <InstituteUsersComponent
                         selectedTab={selectedTab}
-                        selectedTabData={selectedTabData}
+                        selectedTabData={dashboardUsers.instituteUsers}
+                        refetchData={handleRefetchData}
+                    />
+                    <InviteUsersTab
+                        selectedTab={selectedTab}
+                        selectedTabData={dashboardUsers.invites}
+                        refetchData={handleRefetchData}
                     />
                 </Tabs>
                 <div className="mr-4 text-end">
-                    <InviteUsersComponent />
+                    <InviteUsersComponent refetchData={handleRefetchData} />
                 </div>
             </DialogContent>
         </Dialog>

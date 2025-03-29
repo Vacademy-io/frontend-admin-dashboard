@@ -220,7 +220,7 @@ export const StatusChips = ({
     className,
     showIcon = true,
 }: {
-    status: ActivityStatus | "ACTIVE" | "TEMINATED" | "INACTIVE";
+    status: ActivityStatus | "ACTIVE" | "TEMINATED" | "INACTIVE" | "EVALUATED";
     children?: ReactNode;
     className?: string;
     showIcon?: boolean;
@@ -237,7 +237,7 @@ export const StatusChips = ({
 
     return (
         <ChipsWrapper className={cn(statusData.color.bg, "")}>
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
                 {showIcon && (
                     <StatusIcon
                         className={cn(statusData.color.icon, "size-[18px]")}

@@ -4,33 +4,23 @@ import { create } from "zustand";
 interface Role {
     roleId: string;
     roleName: string;
-    isSelected: boolean;
 }
 
 interface User {
     userId: string;
     email: string;
+    name: string;
+    roles: Role[];
+    status: string;
 }
 
 // Define the type for the state
 interface AccessControlState {
     status?: string;
-    assessment_creation_access?: {
-        roles: Role[];
-        users: User[];
-    };
-    live_assessment_notification?: {
-        roles: Role[];
-        users: User[];
-    };
-    assessment_submission_and_report_access?: {
-        roles: Role[];
-        users: User[];
-    };
-    evaluation_process?: {
-        roles: Role[];
-        users: User[];
-    };
+    assessment_creation_access?: User[];
+    live_assessment_notification?: User[];
+    assessment_submission_and_report_access?: User[];
+    evaluation_process?: User[];
     setAccessControlData: (data: Partial<AccessControlState>) => void;
     getAccessControlData: () => AccessControlState;
     reset: () => void;

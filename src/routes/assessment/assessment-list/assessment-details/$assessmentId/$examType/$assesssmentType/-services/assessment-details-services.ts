@@ -2,6 +2,7 @@ import {
     GET_ADMIN_PARTICIPANTS,
     GET_ASSESSMENT_TOTAL_MARKS_URL,
     GET_BATCH_DETAILS_URL,
+    GET_INDIVIDUAL_STUDENT_DETAILS_URL,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
     GET_PARTICIPANTS_QUESTION_WISE,
@@ -15,7 +16,7 @@ import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
 import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSubmissionsTab";
-import { StudentReportFilterInterface } from "@/components/common/students/students-list/student-side-view/student-test-records/student-test-record";
+import { StudentReportFilterInterface } from "@/routes/students/students-list/-components/students-list/student-side-view/student-test-records/student-test-record";
 import { SelectedFilterQuestionWise } from "@/types/assessments/student-questionwise-status";
 import { SelectedFilterRevaluateInterface } from "@/types/assessments/assessment-revaluate-question-wise";
 import { AssessmentParticipantsInterface } from "../-components/AssessmentParticipantsList";
@@ -61,7 +62,7 @@ export const getQuestionsInsightsData = async (
 export const handleGetQuestionInsightsData = ({
     assessmentId,
     instituteId,
-    sectionId,
+    sectionId = "",
 }: {
     assessmentId: string;
     instituteId: string | undefined;
@@ -377,7 +378,40 @@ export const getBatchDetailsListOfStudents = async (
             pageNo,
             pageSize,
         },
-        data: selectedFilter,
+        data: {
+            ...selectedFilter,
+            gender: selectedFilter.gender.map((type: { id: string; name: string }) => type.name),
+        },
     });
     return response?.data;
+};
+
+export const getBatchDetailsListOfIndividualStudents = async (
+    instituteId: string | undefined,
+    assessmentId: string,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: GET_INDIVIDUAL_STUDENT_DETAILS_URL,
+        params: {
+            instituteId,
+            assessmentId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetIndividualStudentList = ({
+    instituteId,
+    assessmentId,
+}: {
+    instituteId: string | undefined;
+    assessmentId: string;
+}) => {
+    return {
+        queryKey: ["GET_INDIVIDUAL_STUDENT_DETAILS", instituteId, assessmentId],
+        queryFn: () => getBatchDetailsListOfIndividualStudents(instituteId, assessmentId),
+        staleTime: 60 * 60 * 1000,
+        enabled: assessmentId !== "defaultId" ? true : false,
+    };
 };

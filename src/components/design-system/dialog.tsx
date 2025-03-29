@@ -1,6 +1,12 @@
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 
 interface DialogProps {
     trigger?: ReactNode;
@@ -10,6 +16,7 @@ interface DialogProps {
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     children?: React.ReactNode;
+    footer?: JSX.Element;
 }
 
 export const MyDialog = ({
@@ -20,19 +27,27 @@ export const MyDialog = ({
     dialogWidth,
     open,
     onOpenChange,
+    footer,
 }: DialogProps) => {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
-            <DialogContent className={`${dialogWidth} p-0 font-normal`}>
-                <DialogTitle>
-                    <h1 className="rounded-t-lg bg-primary-50 px-6 py-4 font-semibold text-primary-500">
+            <DialogContent
+                className={`${dialogWidth} dialog-no-close-icon flex max-h-[80vh] max-w-[80vw] flex-col p-0`}
+            >
+                <DialogTitle className="flex justify-between rounded-lg bg-primary-50">
+                    <DialogHeader className="sticky top-0 z-10 rounded-t-lg px-6 py-4 font-semibold text-primary-500">
                         {heading}
-                    </h1>
-                    <DialogDescription asChild className=" ">
-                        <div className="p-3">{children || content}</div>
-                    </DialogDescription>
+                    </DialogHeader>
                 </DialogTitle>
+                <DialogDescription asChild className="no-scrollbar flex-1 overflow-y-scroll">
+                    <div className="p-3">{children || content}</div>
+                </DialogDescription>
+                {footer && (
+                    <DialogFooter className="sticky top-0 z-10 w-full rounded-b-lg bg-white px-4 py-4">
+                        {footer}
+                    </DialogFooter>
+                )}
             </DialogContent>
         </Dialog>
     );
