@@ -29,8 +29,8 @@ export default function ProgressReports() {
     const courseList = getCourseFromPackage();
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
-    const [reportData, setReportData] = useState(true);
-    setReportData(true);
+    // const [reportData, setReportData] = useState(true);
+    const reportData = true;
     const {
         register,
         handleSubmit,

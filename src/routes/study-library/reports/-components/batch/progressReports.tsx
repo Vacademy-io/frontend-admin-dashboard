@@ -12,6 +12,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { MyButton } from "@/components/design-system/button";
+import { fetchSubjectWiseProgress } from "../../-services/utils";
+import {
+    SubjectProgressResponse,
+    SubjectOverviewColumns,
+    SUBJECT_OVERVIEW_WIDTH,
+    SubjectOverviewColumnType,
+} from "../../-types/types";
+import { useMutation } from "@tanstack/react-query";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { MyTable } from "@/components/design-system/table";
+import { usePacageDetails } from "../../-store/usePacageDetails";
 
 const formSchema = z.object({
     course: z.string().min(1, "Course is required"),
@@ -22,14 +33,18 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ProgressReports() {
-    const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage2 } =
-        useInstituteDetailsStore();
-
+    const {
+        getCourseFromPackage,
+        getSessionFromPackage,
+        getLevelsFromPackage2,
+        getPackageSessionId,
+    } = useInstituteDetailsStore();
+    const { setPacageSessionId, setCourse, setSession, setLevel } = usePacageDetails();
     const courseList = getCourseFromPackage();
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
-    const [reportData, setReportData] = useState(true);
-    setReportData(true);
+    const [subjectReportData, setSubjectReportData] = useState<SubjectProgressResponse>();
+    const tableState = { columnVisibility: { module_id: false } };
     const {
         register,
         handleSubmit,
@@ -45,11 +60,36 @@ export default function ProgressReports() {
             level: "",
         },
     });
-
     console.log(errors);
-
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
+    const transformToSubjectOverview = (
+        data: SubjectProgressResponse,
+    ): SubjectOverviewColumnType[] => {
+        return data.flatMap((subject) =>
+            subject.modules.map((module) => ({
+                subject: subject.subject_name,
+                module: module.module_name,
+                module_id: module.module_id,
+                module_completed: `${module.module_completion_percentage}%`,
+                average_time_spent: `${module.avg_time_spent_minutes} min`,
+            })),
+        );
+    };
+
+    const subjectWiseData = {
+        content: subjectReportData ? transformToSubjectOverview(subjectReportData) : [],
+        total_pages: 0,
+        page_no: 0,
+        page_size: 10,
+        total_elements: 0,
+        last: false,
+    };
+
+    const SubjectWiseMutation = useMutation({
+        mutationFn: fetchSubjectWiseProgress,
+    });
+    const { isPending, error } = SubjectWiseMutation;
 
     useEffect(() => {
         if (selectedCourse) {
@@ -75,6 +115,35 @@ export default function ProgressReports() {
     const onSubmit = (data: FormValues) => {
         console.log("Submitted Data:", data);
         // api call
+        SubjectWiseMutation.mutate(
+            {
+                packageSessionId:
+                    getPackageSessionId({
+                        courseId: data.course,
+                        sessionId: data.session,
+                        levelId: data.level,
+                    }) || "",
+            },
+            {
+                onSuccess: (data) => {
+                    console.log("Success:", data);
+                    setSubjectReportData(data);
+                },
+                onError: (error) => {
+                    console.error("Error:", error);
+                },
+            },
+        );
+        setCourse(courseList.find((course) => (course.id = data.course))?.name || "");
+        setSession(sessionList.find((course) => (course.id = data.session))?.name || "");
+        setLevel(levelList.find((course) => (course.id = data.level))?.level_name || "");
+        setPacageSessionId(
+            getPackageSessionId({
+                courseId: data.course,
+                sessionId: data.session,
+                levelId: data.level,
+            }) || "",
+        );
     };
 
     return (
@@ -160,17 +229,29 @@ export default function ProgressReports() {
                 </div>
                 {/* <FormMessage/> */}
             </form>
-            {reportData && <div className="border"></div>}
-            {reportData && (
+            {isPending && <DashboardLoader height="10vh" />}
+            {subjectReportData && !isPending && <div className="border"></div>}
+            {subjectReportData && (
                 <div className="flex flex-col gap-10">
                     <div className="flex flex-row justify-between gap-10">
                         <div className="flex flex-col gap-6">
                             <div className="text-h3 text-primary-500">
-                                10th Premier Pro Group1 (2024-2025)
+                                {courseList.find((course) => (course.id = selectedCourse))?.name}{" "}
                             </div>
-                            <div>Date</div>
                         </div>
                         <MyButton buttonType="secondary">Export</MyButton>
+                    </div>
+                    <div className="flex flex-col justify-between gap-6">
+                        <div className="text-h3 text-primary-500">Subject-wise Overview</div>
+                        <MyTable
+                            data={subjectWiseData}
+                            columns={SubjectOverviewColumns}
+                            isLoading={isPending}
+                            error={error}
+                            columnWidths={SUBJECT_OVERVIEW_WIDTH}
+                            currentPage={0}
+                            tableState={tableState}
+                        ></MyTable>
                     </div>
                 </div>
             )}

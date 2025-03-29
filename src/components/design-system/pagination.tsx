@@ -77,7 +77,7 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                         </PaginationLink>
                     </PaginationItem>
 
-                    {totalPages === 1 ? (
+                    {totalPages < 2 ? (
                         <></>
                     ) : totalPages > 1 && (currentPage === 0 || currentPage === totalPages - 1) ? (
                         <>

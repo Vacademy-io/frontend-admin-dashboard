@@ -7,13 +7,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Command, CommandInput, CommandList, CommandItem } from "@/components/ui/command";
+import { Command, CommandInput, CommandList } from "@/components/ui/command";
 import { LevelType } from "@/schemas/student/student-list/institute-schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { MyButton } from "@/components/design-system/button";
 import ReportRecipientsDialogBox from "./reportRecipientsDialogBox";
+import { useMutation } from "@tanstack/react-query";
+import { fetchLearnersReport } from "../../-services/utils";
+import { useLearnerDetails, UserResponse } from "../../-store/useLearnersDetails";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
+
 // import { MyTable } from "@/components/design-system/table";
 // import { LineChartComponent } from "../batch/lineChart";
 
@@ -43,19 +49,26 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 export default function TimelineReports() {
-    const { getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage2 } =
-        useInstituteDetailsStore();
-
+    const {
+        getCourseFromPackage,
+        getSessionFromPackage,
+        getLevelsFromPackage2,
+        getPackageSessionId,
+    } = useInstituteDetailsStore();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const courseList = getCourseFromPackage();
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
-    const [studentList, setStudentList] = useState<string[]>([]);
+    const [studentList, setStudentList] = useState<UserResponse>([]);
     const [reportData, setReportData] = useState(true);
+    // const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    setReportData(true); // remove this is only for commid errors
-    setStudentList([]); // remove this is only for commid errors
+    // setReportData(true); // remove this is only for commid errors
+    // setStudentList([]); // remove this is only for commid errors
     const filteredStudents = studentList.filter((student) =>
-        student.toLowerCase().includes(searchTerm.toLowerCase()),
+        student.full_name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
     const {
@@ -79,6 +92,7 @@ export default function TimelineReports() {
 
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
+    const selectedLevel = watch("level");
 
     useEffect(() => {
         if (selectedCourse) {
@@ -100,9 +114,45 @@ export default function TimelineReports() {
             setLevelList([]);
         }
     }, [selectedSession]);
+    const { data } = useLearnerDetails(
+        // const { data, isLoading, error } = useLearnerDetails(
+        getPackageSessionId({
+            courseId: selectedCourse,
+            sessionId: selectedSession,
+            levelId: selectedLevel,
+        }) || "",
+        INSTITUTE_ID || "",
+    );
+    useEffect(() => {
+        if (data) {
+            setStudentList(data);
+        }
+    }, [data]);
 
     const onSubmit = (data: FormValues) => {
         console.log("Submitted Data:", data);
+        generateReportMutation.mutate(
+            {
+                start_date: data.startDate,
+                end_date: data.endDate,
+                package_session_id:
+                    getPackageSessionId({
+                        courseId: data.course,
+                        sessionId: data.session,
+                        levelId: data.level,
+                    }) || "",
+                user_id: "",
+            },
+            {
+                onSuccess: (data) => {
+                    console.log("Success:", data);
+                    setReportData(data);
+                },
+                onError: (error) => {
+                    console.error("Error:", error);
+                },
+            },
+        );
         // api call
     };
 
@@ -114,6 +164,7 @@ export default function TimelineReports() {
     //     total_elements: 0,
     //     last: true,
     // };
+    const generateReportMutation = useMutation({ mutationFn: fetchLearnersReport });
 
     return (
         <div className="mt-10 flex flex-col gap-10">
@@ -199,6 +250,7 @@ export default function TimelineReports() {
                         }}
                         {...register("student")}
                         defaultValue=""
+                        disabled={!studentList.length}
                     >
                         <SelectTrigger className="h-[40px] w-[320px]">
                             <SelectValue placeholder="Select Student" />
@@ -214,13 +266,15 @@ export default function TimelineReports() {
                                 <CommandList>
                                     {filteredStudents.length > 0 ? (
                                         filteredStudents.map((student, index) => (
-                                            <CommandItem
+                                            <SelectItem
                                                 key={index}
-                                                value={student}
-                                                onSelect={() => setValue("student", student)}
+                                                value={student.user_id}
+                                                onSelect={() =>
+                                                    setValue("student", student.user_id)
+                                                }
                                             >
-                                                {student}
-                                            </CommandItem>
+                                                {student.full_name}
+                                            </SelectItem>
                                         ))
                                     ) : (
                                         <div className="p-2 text-gray-500">No students found</div>

@@ -13,6 +13,7 @@ import {
     RowSelectionState,
     OnChangeFn,
     ColumnDef,
+    VisibilityState,
 } from "@tanstack/react-table";
 import { ChangeBatchDialog } from "./table-components/student-menu-options/change-batch-dialog";
 import { ExtendSessionDialog } from "./table-components/student-menu-options/extend-session-dialog";
@@ -47,6 +48,7 @@ interface MyTableProps<T> {
     columnWidths?: ColumnWidthConfig;
     scrollable?: boolean;
     className?: string;
+    tableState?: { columnVisibility: VisibilityState };
 }
 
 export function MyTable<T>({
@@ -60,13 +62,16 @@ export function MyTable<T>({
     onRowSelectionChange,
     scrollable = false,
     className = "",
+    tableState,
 }: MyTableProps<T>) {
+    console.log(tableState);
     const table = useReactTable({
         data: data?.content || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         meta: { onSort },
         state: {
+            columnVisibility: tableState?.columnVisibility || {},
             rowSelection,
         },
         enableRowSelection: true,

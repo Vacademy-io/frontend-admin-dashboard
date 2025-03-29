@@ -53,6 +53,16 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>;
 
+interface LeaderBoardData {
+    daily_avg_time: number;
+    avg_concentration: number;
+    rank: number;
+    total_time: number;
+    user_id: string;
+    email: string;
+    full_name: string;
+}
+
 export default function TimelineReports() {
     const {
         getCourseFromPackage,
@@ -65,7 +75,7 @@ export default function TimelineReports() {
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
     const [reportData, setReportData] = useState<BatchReportResponse>();
-    const [leaderboardData, setleaderboardData] = useState();
+    const [leaderboardData, setleaderboardData] = useState<LeaderBoardData[]>();
     const [loading, setLoading] = useState(false);
     const [currPage, setCurrPage] = useState<number>(0);
     const [totalPage, setTotalPage] = useState<number>(0);
@@ -99,7 +109,6 @@ export default function TimelineReports() {
     useEffect(() => {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
-            console.log(sessionList);
             setValue("session", "select level");
             setValue("level", "select level");
         } else {
@@ -108,9 +117,7 @@ export default function TimelineReports() {
         }
     }, [selectedCourse]);
     useEffect(() => {
-        console.log(sessionList);
         if (sessionList?.length === 1 && sessionList[0]?.id === "DEFAULT") {
-            console.log("here");
             setValue("session", "DEFAULT");
             setValue("level", "DEFAULT");
             setDefaultSessionLevels(true);
@@ -133,7 +140,6 @@ export default function TimelineReports() {
     }, [selectedSession]);
 
     const onSubmit = (data: FormValues) => {
-        console.log("Submitted Data:", data);
         setLoading(true);
         generateReportMutation.mutate(
             {
@@ -149,7 +155,6 @@ export default function TimelineReports() {
             },
             {
                 onSuccess: (data) => {
-                    console.log("Success:", data);
                     setReportData(data);
                     setLoading(false);
                 },
@@ -173,7 +178,6 @@ export default function TimelineReports() {
             },
             {
                 onSuccess: (data) => {
-                    console.log("Success:", data);
                     setTotalPage(data.totalPages);
                     setleaderboardData(data.content);
                     setLoading(false);
@@ -201,17 +205,7 @@ export default function TimelineReports() {
         }));
     };
 
-    const transformToLeaderBoard = (
-        data: {
-            daily_avg_time: number;
-            avg_concentration: number;
-            rank: number;
-            total_time: number;
-            user_id: string;
-            email: string;
-            full_name: string;
-        }[],
-    ): LeaderBoardColumnType[] => {
+    const transformToLeaderBoard = (data: LeaderBoardData[]): LeaderBoardColumnType[] => {
         return data.map((item) => ({
             rank: item.rank.toString(),
             name: item.full_name,
@@ -222,9 +216,9 @@ export default function TimelineReports() {
     };
 
     const tableData = {
-        content: convertFormat(reportData?.daily_learner_time_spent_by_batch),
-        total_pages: 0,
-        page_no: 0,
+        content: convertFormat(reportData?.daily_time_spent),
+        total_pages: totalPage,
+        page_no: currPage,
         page_size: 10,
         total_elements: 0,
         last: false,
@@ -384,19 +378,19 @@ export default function TimelineReports() {
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">Course Completed by batch</div>
-                            <div>{reportData?.percentage_course_completed_by_batch}</div>
+                            <div>{reportData?.percentage_course_completed}</div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">
                                 Daily Time spent by batch (Avg)
                             </div>
-                            <div>{reportData?.avg_time_spent_by_batch_in_minutes}</div>
+                            <div>{reportData?.avg_time_spent_in_minutes}</div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">
                                 Concentration score of batch (Avg)
                             </div>
-                            <div>{reportData?.percentage_concentration_score_of_batch || 0}</div>
+                            <div>{reportData?.percentage_concentration_score || 0}</div>
                         </div>
                     </div>
                     <div className="flex flex-col gap-6">
@@ -404,9 +398,7 @@ export default function TimelineReports() {
                             Concentration score of batch (Avg)
                         </div>
                         <div className="flex h-[570px] w-full flex-row gap-6">
-                            <LineChartComponent
-                                chartData={reportData.daily_learner_time_spent_by_batch}
-                            />
+                            <LineChartComponent chartData={reportData.daily_time_spent} />
                             <div className="h-full w-[30%]">
                                 <MyTable
                                     data={tableData}
