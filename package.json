@@ -3,13 +3,6 @@
     "version": "0.1.0",
     "private": true,
     "type": "module",
-    "workspaces": [
-        "src/components/common/excalidraw/excalidraw-app",
-        "src/components/common/excalidraw/excalidraw",
-        "src/components/common/excalidraw/packages/utils",
-        "src/components/common/excalidraw/packages/math",
-        "src/components/common/excalidraw/examples/*"
-    ],
     "scripts": {
         "start": "yarn --cwd ./components/common/excalidraw/excalidraw-app start",
         "dev": "vite --host",
