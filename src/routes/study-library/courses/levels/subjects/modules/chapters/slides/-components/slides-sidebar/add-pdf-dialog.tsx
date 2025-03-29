@@ -91,7 +91,7 @@ export const AddPdfDialog = ({
                 form.reset();
                 const slideId = crypto.randomUUID();
 
-                const response = await addUpdateDocumentSlide({
+                const response: string = await addUpdateDocumentSlide({
                     id: slideId,
                     title: data.pdfTitle,
                     image_file_id: "",
@@ -114,7 +114,7 @@ export const AddPdfDialog = ({
 
                 if (response) {
                     setTimeout(() => {
-                        setActiveItem(getSlideById(slideId));
+                        setActiveItem(getSlideById(response));
                     }, 500);
                     openState?.(false);
                     toast.success("PDF uploaded successfully!");

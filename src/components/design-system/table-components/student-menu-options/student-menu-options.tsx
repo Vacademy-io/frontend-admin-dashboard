@@ -4,20 +4,24 @@ import { MyButton } from "../../button";
 import { DotsThree } from "@phosphor-icons/react";
 import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
 import { StudentTable } from "@/types/student-table-types";
+import { useEffect, useState } from "react";
+import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
 
 const getMenuOptions = (status?: string) => {
     if (status === "INACTIVE") {
-        return ["View Student Portal", "Re-enroll Student", "Delete Student"];
+        // return ["View Student Portal", "Re-enroll Student", "Delete Student"];
+        return ["Re-enroll Student"];
     }
 
-    return [
-        "View Student Portal",
-        "Change Batch",
-        "Extend Session",
-        "Re-register for Next Session",
-        "Terminate Registration",
-        "Delete Student",
-    ];
+    // return [
+    //     "View Student Portal",
+    //     "Change Batch",
+    //     "Extend Session",
+    //     "Re-register for Next Session",
+    //     "Terminate Registration",
+    //     "Delete Student",
+    // ];
+    return ["Change Batch", "Terminate Registration"];
 };
 
 export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
@@ -29,13 +33,15 @@ export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
         openDeleteDialog,
     } = useDialogStore();
 
+    const [showReEnrollDialog, setShowReEnrollDialog] = useState(false);
     const menuOptions = getMenuOptions(student.status);
 
     const handleMenuOptionsChange = (value: string) => {
+        console.log("Selected option:", value);
         switch (value) {
             case "Re-enroll Student":
-                // You can reuse openReRegisterDialog or create a new dialog for re-enrollment
-                // openReRegisterDialog(student);
+                console.log("Setting showReEnrollDialog to true");
+                setShowReEnrollDialog(true);
                 break;
             case "Change Batch":
                 openChangeBatchDialog(student);
@@ -59,16 +65,31 @@ export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
         }
     };
 
+    // This useEffect will help debug when the state changes
+    useEffect(() => {
+        console.log("showReEnrollDialog state changed to:", showReEnrollDialog);
+    }, [showReEnrollDialog]);
+
     return (
-        <MyDropdown dropdownList={menuOptions} onSelect={handleMenuOptionsChange}>
-            <MyButton
-                buttonType="secondary"
-                scale="small"
-                layoutVariant="icon"
-                className="flex items-center justify-center"
-            >
-                <DotsThree />
-            </MyButton>
-        </MyDropdown>
+        <>
+            <MyDropdown dropdownList={menuOptions} onSelect={handleMenuOptionsChange}>
+                <MyButton
+                    buttonType="secondary"
+                    scale="small"
+                    layoutVariant="icon"
+                    className="flex items-center justify-center"
+                >
+                    <DotsThree />
+                </MyButton>
+            </MyDropdown>
+
+            {/* Always render the button but with programmatic open control */}
+            <EnrollManuallyButton
+                initialValues={student}
+                triggerButton={<div className="hidden" />}
+                forceOpen={showReEnrollDialog}
+                onClose={() => setShowReEnrollDialog(false)}
+            />
+        </>
     );
 };

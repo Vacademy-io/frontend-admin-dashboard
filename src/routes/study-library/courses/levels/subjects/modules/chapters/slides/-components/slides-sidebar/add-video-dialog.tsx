@@ -14,9 +14,15 @@ const formSchema = z.object({
         .string()
         .min(1, "URL is required")
         .url("Please enter a valid URL")
-        .refine((url) => url.includes("youtube.com") || url.includes("youtu.be"), {
-            message: "Please enter a valid YouTube URL",
-        }),
+        .refine(
+            (url) =>
+                url.includes("youtube.com") ||
+                url.includes("youtu.be") ||
+                url.includes("drive.google.com"),
+            {
+                message: "Please enter a valid YouTube URL",
+            },
+        ),
     videoName: z.string().min(1, "File name is required"),
 });
 
@@ -34,7 +40,7 @@ export const AddVideoDialog = ({
     const handleSubmit = async (data: FormValues) => {
         try {
             const slideId = crypto.randomUUID();
-            await addUpdateVideoSlide({
+            const response: string = await addUpdateVideoSlide({
                 id: slideId,
                 title: data.videoName,
                 description: null,
@@ -58,7 +64,7 @@ export const AddVideoDialog = ({
             form.reset();
             openState?.(false);
             setTimeout(() => {
-                setActiveItem(getSlideById(slideId));
+                setActiveItem(getSlideById(response));
             }, 500);
         } catch (error) {
             toast.error("Failed to add video");
@@ -90,7 +96,7 @@ export const AddVideoDialog = ({
                                     required={true}
                                     input={field.value}
                                     inputType="text"
-                                    inputPlaceholder="Enter YouTube video URL here"
+                                    inputPlaceholder="Enter YouTube/Google-Drive video URL here"
                                     onChangeFunction={field.onChange}
                                     className="w-full"
                                 />

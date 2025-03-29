@@ -4,7 +4,7 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { Dispatch, SetStateAction, useState } from "react";
 
-interface PublishUnpublishDialogProps {
+interface PublishDialogProps {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
     handlePublishUnpublishSlide: (
@@ -55,28 +55,25 @@ const NotifyDialog = ({
     );
 };
 
-export const PublishUnpublishDialog = ({
+export const PublishDialog = ({
     isOpen,
     setIsOpen,
     handlePublishUnpublishSlide,
-}: PublishUnpublishDialogProps) => {
+}: PublishDialogProps) => {
     const { activeItem } = useContentStore();
     const [notify, setNotify] = useState(false);
     const [openNotifyDialog, setOpenNotifyDialog] = useState(false);
 
     const publishTrigger = (
-        <MyButton buttonType="primary" scale="medium" layoutVariant="default">
+        <MyButton
+            buttonType="primary"
+            scale="medium"
+            layoutVariant="default"
+            disable={activeItem?.status == "PUBLISHED"}
+        >
             Publish
         </MyButton>
     );
-
-    const unpublishTrigger = (
-        <MyButton buttonType="secondary" scale="medium" layoutVariant="default">
-            Unpublish
-        </MyButton>
-    );
-
-    const trigger = activeItem?.status == "PUBLISHED" ? unpublishTrigger : publishTrigger;
 
     const handleNotify = (notify: boolean) => {
         setNotify(notify);
@@ -87,39 +84,27 @@ export const PublishUnpublishDialog = ({
 
     return (
         <MyDialog
-            heading={`${trigger == unpublishTrigger ? "Unpublish" : "Publish"} Slide`}
+            heading={`Publish Slide`}
             dialogWidth="w-[400px]"
             open={isOpen}
             onOpenChange={setIsOpen}
-            trigger={trigger}
+            trigger={publishTrigger}
         >
             <div className="flex w-full flex-col gap-6">
-                <p>
-                    Are you sure you want to {trigger == unpublishTrigger ? "unpublish" : "publish"}{" "}
-                    this slide?
-                </p>
+                <p>Are you sure you want to publish this slide?</p>
                 <div className="flex justify-end gap-4">
                     <MyButton buttonType="secondary" onClick={() => setIsOpen(false)}>
                         Cancel
                     </MyButton>
 
-                    <MyButton
-                        buttonType="primary"
-                        onClick={() => {
-                            if (trigger == unpublishTrigger) {
-                                handlePublishUnpublishSlide(setIsOpen, notify);
-                            } else {
-                                setOpenNotifyDialog(true);
-                            }
-                        }}
-                    >
+                    <MyButton buttonType="primary" onClick={() => setOpenNotifyDialog(true)}>
                         Yes, I&apos;m sure
                     </MyButton>
 
                     <NotifyDialog
                         openNotifyDialog={openNotifyDialog}
                         setOpenNotifyDialog={setOpenNotifyDialog}
-                        handleNotify={handleNotify}
+                        handleNotify={() => handleNotify(notify)}
                     />
                 </div>
             </div>

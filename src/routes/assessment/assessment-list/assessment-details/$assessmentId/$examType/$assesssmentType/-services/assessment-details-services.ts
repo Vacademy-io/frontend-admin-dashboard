@@ -64,7 +64,7 @@ export const getQuestionsInsightsData = async (
 export const handleGetQuestionInsightsData = ({
     assessmentId,
     instituteId,
-    sectionId,
+    sectionId = "",
 }: {
     assessmentId: string;
     instituteId: string | undefined;
@@ -414,6 +414,7 @@ export const handleGetIndividualStudentList = ({
         queryKey: ["GET_INDIVIDUAL_STUDENT_DETAILS", instituteId, assessmentId],
         queryFn: () => getBatchDetailsListOfIndividualStudents(instituteId, assessmentId),
         staleTime: 60 * 60 * 1000,
+        enabled: assessmentId !== "defaultId" ? true : false,
     };
 };
 

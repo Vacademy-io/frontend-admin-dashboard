@@ -220,7 +220,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     const maxQuestions = currentSectionQuestions.length;
     // Get the current question index for the selected section
     const currentQuestionIndex = currentQuestionIndexes[selectedSection] || 0;
-
     const handlePageClick = (pageIndex: number) => {
         if (pageIndex >= 0 && pageIndex < maxQuestions) {
             setCurrentQuestionIndexes((prev) => ({
@@ -372,16 +371,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         }));
     };
 
-    // When switching sections, ensure `currentQuestionIndex` is within bounds
-    useEffect(() => {
-        const maxQuestionsInNewSection =
-            form.getValues(`sections.${selectedSectionIndex}.questions`)?.length || 0;
-        setCurrentQuestionIndexes((prev) => ({
-            ...prev,
-            [selectedSection]: Math.min(prev[selectedSection] || 0, maxQuestionsInNewSection - 1),
-        }));
-    }, [selectedSection]); // Runs when section changes
-
     const previousSections = useRef<sectionsEditQuestionFormType["sections"]>();
 
     useEffect(() => {
@@ -397,6 +386,15 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     }, []);
 
     useEffect(() => {
+        const maxQuestionsInNewSection =
+            form.getValues(`sections.${selectedSectionIndex}.questions`)?.length || 0;
+        setCurrentQuestionIndexes((prev) => ({
+            ...prev,
+            [selectedSection]: Math.min(prev[selectedSection] || 0, maxQuestionsInNewSection - 1),
+        }));
+    }, [selectedSection]);
+
+    useEffect(() => {
         // announcementDialogTrigger(
         //     previousSections.current,
         //     form.getValues("sections"),
@@ -405,7 +403,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
         // );
     }, [currentQuestionIndex]);
 
-    // Add this new useEffect to handle section/question changes
     useEffect(() => {
         if (selectedSection && currentQuestionIndexes[selectedSection] !== undefined) {
             const sectionIndex = form
@@ -669,8 +666,15 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                             }
                                                                             props={{
                                                                                 form: form,
+                                                                                selectedSection:
+                                                                                    selectedSection,
+                                                                                currentQuestionIndexes:
+                                                                                    currentQuestionIndexes,
+                                                                                setCurrentQuestionIndexes:
+                                                                                    setCurrentQuestionIndexes,
                                                                                 currentQuestionIndex:
                                                                                     index,
+
                                                                                 currentQuestionImageIndex:
                                                                                     currentQuestionImageIndex,
                                                                                 setCurrentQuestionImageIndex:
@@ -699,7 +703,11 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                     }
                                     props={{
                                         form: form,
+                                        selectedSection: selectedSection,
+                                        currentQuestionIndexes: currentQuestionIndexes,
+                                        setCurrentQuestionIndexes: setCurrentQuestionIndexes,
                                         currentQuestionIndex: currentQuestionIndex,
+
                                         currentQuestionImageIndex: currentQuestionImageIndex,
                                         setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
                                         className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",

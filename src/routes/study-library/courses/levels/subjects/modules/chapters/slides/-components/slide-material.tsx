@@ -13,8 +13,12 @@ import { SlidesMenuOption } from "./slides-menu-options/slides-menu-option";
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
 import { useRouter } from "@tanstack/react-router";
 import { getPublicUrl } from "@/services/upload_file";
-import { PublishUnpublishDialog } from "./publish-slide-dialog";
-import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
+import { PublishDialog } from "./publish-slide-dialog";
+import { UnpublishDialog } from "./unpublish-slide-dialog";
+import {
+    Slide,
+    useSlides,
+} from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import { toast } from "sonner";
 import { Check, PencilSimpleLine } from "phosphor-react";
 
@@ -38,7 +42,13 @@ export const formatHTMLString = (htmlString: string) => {
     return formattedHtml;
 };
 
-export const SlideMaterial = () => {
+export const SlideMaterial = ({
+    setGetCurrentEditorHTMLContent,
+    setSaveDraft,
+}: {
+    setGetCurrentEditorHTMLContent: (fn: () => string) => void;
+    setSaveDraft: (fn: (slide: Slide) => Promise<void>) => void;
+}) => {
     const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
@@ -51,6 +61,7 @@ export const SlideMaterial = () => {
 
     const { chapterId } = router.state.location.search;
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+    const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
     const { addUpdateVideoSlide } = useSlides(chapterId || "");
 
@@ -61,7 +72,7 @@ export const SlideMaterial = () => {
     const updateHeading = async () => {
         const status = activeItem?.status == "DRAFT" ? "DRAFT" : "UNSYNC";
         if (activeItem) {
-            if (activeItem.published_url != null) {
+            if (activeItem.source_type == "VIDEO") {
                 const url =
                     activeItem?.status == "PUBLISHED"
                         ? activeItem.published_url
@@ -138,6 +149,8 @@ export const SlideMaterial = () => {
                 />
             </div>,
         );
+        // editor.insertBlock('Paragraph',{ at: 1, focus: true });
+        editor.focus();
     };
 
     const loadContent = async () => {
@@ -149,21 +162,50 @@ export const SlideMaterial = () => {
                 </div>,
             );
             return;
-        } else if (activeItem.published_url != null || activeItem.video_url != null) {
-            setContent(
-                <div key={`video-${activeItem.slide_id}`} className="size-full">
-                    <YouTubePlayer
-                        videoUrl={
-                            (activeItem.status == "PUBLISHED"
-                                ? activeItem.published_url
-                                : activeItem.video_url) || ""
-                        }
-                        videoTitle={activeItem.video_title}
-                    />
-                </div>,
-            );
+        } else if (activeItem.source_type == "VIDEO") {
+            const videoURL =
+                (activeItem.status == "PUBLISHED"
+                    ? activeItem.published_url
+                    : activeItem.video_url) || "";
+            if (videoURL.includes("drive")) {
+                if (videoURL.includes("drive")) {
+                    const videoId = videoURL.match(/\/d\/(.+?)\//)?.[1];
+                    const embedUrl = videoId
+                        ? `https://drive.google.com/file/d/${videoId}/preview`
+                        : null;
+
+                    console.log(embedUrl);
+
+                    setContent(
+                        embedUrl ? (
+                            <div
+                                key={`video-${activeItem.slide_id}`}
+                                className="relative max-h-[80vh] w-full"
+                            >
+                                <div className="relative aspect-[16/9] max-h-[80vh] w-full">
+                                    <iframe
+                                        key={`drive-video-${activeItem.slide_id}`}
+                                        src={embedUrl}
+                                        className="absolute inset-0 h-full w-full"
+                                        allow="autoplay"
+                                        allowFullScreen
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div>Unable to load the video. Ensure it is publicly accessible.</div>
+                        ),
+                    );
+                }
+            } else if (videoURL.includes("youtube")) {
+                setContent(
+                    <div key={`video-${activeItem.slide_id}`} className="size-full">
+                        <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
+                    </div>,
+                );
+            }
             return;
-        } else if (activeItem?.document_type == "PDF" && activeItem != null) {
+        } else if (activeItem.source_type == "DOCUMENT" && activeItem.document_type == "PDF") {
             const url = await getPublicUrl(
                 (activeItem.status == "PUBLISHED"
                     ? activeItem.published_data
@@ -171,7 +213,7 @@ export const SlideMaterial = () => {
             );
             setContent(<PDFViewer pdfUrl={url} />);
             return;
-        } else if (activeItem?.document_type === "DOC" && activeItem != null) {
+        } else if (activeItem.source_type == "DOCUMENT" && activeItem.document_type == "DOC") {
             try {
                 setTimeout(() => {
                     setEditorContent();
@@ -187,29 +229,14 @@ export const SlideMaterial = () => {
         return;
     };
 
-    function calculateValue() {
-        const data = editor.getEditorValue();
-        const htmlString = html.serialize(editor, data);
-        const formattedHtmlString = formatHTMLString(htmlString);
-        if (activeItem?.status == "UNSYNC") {
-            return activeItem?.document_type == "PDF"
-                ? activeItem.document_data
-                : formattedHtmlString;
-        } else if (activeItem?.status == "PUBLISHED") {
-            return activeItem.published_data;
-        } else {
-            return activeItem?.document_data;
-        }
-    }
-
-    const handlePublishUnpublishSlide = async (
+    const handlePublishSlide = async (
         setIsOpen: Dispatch<SetStateAction<boolean>>,
         notify: boolean,
     ) => {
-        const status = activeItem?.status == "PUBLISHED" ? "DRAFT" : "PUBLISHED";
-        const operation = status == "DRAFT" ? "unpublish" : "publish";
-        if (activeItem?.document_type == "DOC" || activeItem?.document_type == "PDF") {
-            const documentData = calculateValue() || null;
+        const status = "PUBLISHED";
+        if (activeItem?.source_type == "DOCUMENT") {
+            if (activeItem.document_type == "DOC") SaveDraft();
+            const publishedData = activeItem.document_data;
             try {
                 await addUpdateDocumentSlide({
                     id: activeItem?.slide_id || "",
@@ -220,21 +247,21 @@ export const SlideMaterial = () => {
                     document_slide: {
                         id: activeItem?.document_id || "",
                         type: activeItem.document_type,
-                        data: operation == "unpublish" ? documentData : null,
+                        data: null,
                         title: activeItem?.document_title || "",
                         cover_file_id: activeItem.document_cover_file_id || "",
                         total_pages: 0,
-                        published_data: operation == "publish" ? documentData : null,
+                        published_data: publishedData,
                         published_document_total_pages: 0,
                     },
                     status: status,
                     new_slide: false,
                     notify: notify,
                 });
-                toast.success(`slide ${operation}ed successfully!`);
+                toast.success(`slide published successfully!`);
                 setIsOpen(false);
             } catch {
-                toast.error(`Error in ${operation}ing the slide`);
+                toast.error(`Error in publishing the slide`);
             }
         } else {
             try {
@@ -247,30 +274,82 @@ export const SlideMaterial = () => {
                     video_slide: {
                         id: activeItem?.video_id || "",
                         description: activeItem?.video_description || "",
-                        url:
-                            operation == "unpublish"
-                                ? activeItem
-                                    ? activeItem.published_url
-                                    : null
-                                : null,
+                        url: null,
                         title: activeItem?.video_title || "",
                         video_length_in_millis: 0,
-                        published_url:
-                            operation == "publish"
-                                ? activeItem
-                                    ? activeItem.video_url
-                                    : null
-                                : null,
+                        published_url: activeItem?.video_url || null,
                         published_video_length_in_millis: 0,
                     },
                     status: status,
                     new_slide: false,
                     notify: notify,
                 });
-                toast.success(`slide ${operation}ed successfully!`);
+                toast.success(`slide published successfully!`);
                 setIsOpen(false);
             } catch {
-                toast.error(`Error in ${operation}ing the slide`);
+                toast.error(`Error in publishing the slide`);
+            }
+        }
+    };
+    const handleUnpublishSlide = async (
+        setIsOpen: Dispatch<SetStateAction<boolean>>,
+        notify: boolean,
+    ) => {
+        const status = "DRAFT";
+        if (activeItem?.source_type == "DOCUMENT") {
+            if (activeItem.document_type == "DOC") SaveDraft();
+            const draftData = activeItem.document_data;
+            try {
+                await addUpdateDocumentSlide({
+                    id: activeItem?.slide_id || "",
+                    title: activeItem?.slide_title || "",
+                    image_file_id: activeItem?.document_cover_file_id || "",
+                    description: activeItem?.slide_title || "",
+                    slide_order: null,
+                    document_slide: {
+                        id: activeItem?.document_id || "",
+                        type: activeItem.document_type,
+                        data: draftData,
+                        title: activeItem?.document_title || "",
+                        cover_file_id: activeItem.document_cover_file_id || "",
+                        total_pages: 0,
+                        published_data: null,
+                        published_document_total_pages: 0,
+                    },
+                    status: status,
+                    new_slide: false,
+                    notify: notify,
+                });
+                toast.success(`slide unpublished successfully!`);
+                setIsOpen(false);
+            } catch {
+                toast.error(`Error in unpublishing the slide`);
+            }
+        } else {
+            try {
+                await addUpdateVideoSlide({
+                    id: activeItem?.slide_id,
+                    title: activeItem?.slide_title || "",
+                    description: activeItem?.slide_description || "",
+                    image_file_id: activeItem?.document_cover_file_id || "",
+                    slide_order: null,
+                    video_slide: {
+                        id: activeItem?.video_id || "",
+                        description: activeItem?.video_description || "",
+                        url: activeItem?.video_url || null,
+                        title: activeItem?.video_title || "",
+                        video_length_in_millis: 0,
+                        published_url: null,
+                        published_video_length_in_millis: 0,
+                    },
+                    status: status,
+                    new_slide: false,
+                    notify: notify,
+                });
+                toast.success(`slide unpublished successfully!`);
+                setIsOpen(false);
+            } catch {
+                toast.error(`Error in unpublishing the slide`);
             }
         }
     };
@@ -284,45 +363,49 @@ export const SlideMaterial = () => {
         loadContent();
     }, [activeItem]);
 
-    // Modified SaveDraft function
-    const SaveDraft = () => {
+    const getCurrentEditorHTMLContent: () => string = () => {
         const data = editor.getEditorValue();
         const htmlString = html.serialize(editor, data);
         const formattedHtmlString = formatHTMLString(htmlString);
+        return formattedHtmlString;
+    };
 
-        const status =
-            activeItem?.status == "PUBLISHED"
+    // Modified SaveDraft function
+    const SaveDraft = async (slideToSave?: Slide | null) => {
+        const slide = slideToSave ? slideToSave : activeItem;
+
+        const currentHtml = getCurrentEditorHTMLContent();
+        const status = slide
+            ? slide.status == "PUBLISHED"
                 ? "UNSYNC"
-                : activeItem?.status == "UNSYNC"
+                : slide.status == "UNSYNC"
                   ? "UNSYNC"
-                  : "DRAFT";
+                  : "DRAFT"
+            : "DRAFT";
 
         try {
-            const saveDocDraft = async () => {
-                await addUpdateDocumentSlide({
-                    id: activeItem?.slide_id || "",
-                    title: activeItem?.slide_title || "",
-                    image_file_id: "",
-                    description: activeItem?.slide_title || "",
-                    slide_order: null,
-                    document_slide: {
-                        id: activeItem?.document_id || "",
-                        type: "DOC",
-                        data: formattedHtmlString, // Use the formatted HTML string
-                        title: activeItem?.slide_title || "",
-                        cover_file_id: "",
-                        total_pages: 0,
-                        published_data: null,
-                        published_document_total_pages: 0,
-                    },
-                    status: status,
-                    new_slide: false,
-                    notify: false,
-                });
-            };
-            saveDocDraft();
-        } catch (err) {
-            console.log("error updating slide: ", err);
+            await addUpdateDocumentSlide({
+                id: slide?.slide_id || "",
+                title: slide?.slide_title || "",
+                image_file_id: "",
+                description: slide?.slide_title || "",
+                slide_order: null,
+                document_slide: {
+                    id: slide?.document_id || "",
+                    type: "DOC",
+                    data: currentHtml,
+                    title: slide?.slide_title || "",
+                    cover_file_id: "",
+                    total_pages: 0,
+                    published_data: null,
+                    published_document_total_pages: 0,
+                },
+                status: status,
+                new_slide: false,
+                notify: false,
+            });
+        } catch {
+            toast.error("error updating slide");
         }
     };
 
@@ -330,8 +413,8 @@ export const SlideMaterial = () => {
         try {
             await SaveDraft();
             toast.success("Slide saved successfully");
-        } catch (err) {
-            console.log("error saving document: ", err);
+        } catch {
+            toast.error("error saving document");
         }
     };
 
@@ -360,8 +443,14 @@ export const SlideMaterial = () => {
         };
     }, [activeItem?.document_type, editor]);
 
+    // Update the refs whenever these functions change
+    useEffect(() => {
+        setGetCurrentEditorHTMLContent(getCurrentEditorHTMLContent);
+        setSaveDraft(SaveDraft);
+    }, [editor]);
+
     return (
-        <div className="flex w-full flex-col" ref={selectionRef}>
+        <div className="flex w-full flex-1 flex-col" ref={selectionRef}>
             {activeItem && (
                 <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
                     {isEditing ? (
@@ -402,10 +491,15 @@ export const SlideMaterial = () => {
                                     Save Draft
                                 </MyButton>
                             )}
-                            <PublishUnpublishDialog
+                            <UnpublishDialog
+                                isOpen={isUnpublishDialogOpen}
+                                setIsOpen={setIsUnpublishDialogOpen}
+                                handlePublishUnpublishSlide={handleUnpublishSlide}
+                            />
+                            <PublishDialog
                                 isOpen={isPublishDialogOpen}
                                 setIsOpen={setIsPublishDialogOpen}
-                                handlePublishUnpublishSlide={handlePublishUnpublishSlide}
+                                handlePublishUnpublishSlide={handlePublishSlide}
                             />
                         </div>
                         <SlidesMenuOption />
