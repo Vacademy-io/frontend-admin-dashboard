@@ -278,7 +278,7 @@ export default function SlidesEditor() {
                 </div>
 
                 <div 
-                    className="slide-container flex flex-1 gap-4"
+                    className="slide-container flex  gap-4"
                     style={{ position: 'relative' }}
                 >
                     {slides.map((slide, index) => (
@@ -287,7 +287,7 @@ export default function SlidesEditor() {
                             className={`slide-${slide.id}`}
                             style={{ 
                                 display: slide.id === currentSlide ? 'block' : 'none',
-                                width: '100%',
+                               
                                 height: '100%'
                             }}
                         >

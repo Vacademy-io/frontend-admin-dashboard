@@ -1,14 +1,14 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ExportIcon, ImportIcon } from "./Icons"
 import type { Slide } from "./types"
 import { SlideTypeSheet } from "./slideTypeSheet"
-import { SlideType } from "./constant/slideType"
+import { type SlideType } from "./constant/slideType"
+
 
 
 interface SlideListProps {
