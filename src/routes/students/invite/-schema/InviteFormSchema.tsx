@@ -128,6 +128,12 @@ export const defaultFormValues: Partial<InviteForm> = {
             isRequired: true,
         },
     ],
+    batches: {
+        maxCourses: 0,
+        courseSelectionMode: "institute",
+        preSelectedCourses: [],
+        learnerChoiceCourses: [],
+    },
     studentExpiryDays: 365,
     inviteeEmail: "",
     inviteeEmails: [],

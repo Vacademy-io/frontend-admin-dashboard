@@ -47,14 +47,12 @@ export const MaxLimitField = ({
 
     return (
         <div className="flex items-center gap-6">
-            <p>
-                Allowed limit for {title} preference (Max: {maxAllowed})
-            </p>
+            <p className="text-subtitle text-neutral-600">Allowed limit for {title} preference</p>
             <MyInput
                 input={input}
                 inputType="number"
                 onChangeFunction={handleInputChange}
-                className="w-[70px]"
+                className="w-[50px]"
                 inputPlaceholder="1"
                 disabled={isDisabled}
             />
