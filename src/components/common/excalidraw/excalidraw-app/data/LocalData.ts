@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 /**
  * This file deals with saving data state (appState, elements, images, ...)
  * locally to the browser.

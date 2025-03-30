@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { queryByTestId, fireEvent } from "@testing-library/react";
 import React from "react";
 

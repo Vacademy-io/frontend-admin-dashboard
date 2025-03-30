@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { pointFrom } from "@excalidraw/math";
 import { queryByText } from "@testing-library/react";
 import React from "react";

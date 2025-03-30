@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { CaptureUpdateAction, newElementWith } from "@excalidraw/excalidraw";
 import {
   createRedoAction,

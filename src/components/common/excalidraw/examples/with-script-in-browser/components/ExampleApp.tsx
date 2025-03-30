@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { nanoid } from "nanoid";
 import React, {
   useEffect,

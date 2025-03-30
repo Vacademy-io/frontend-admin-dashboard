@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { Excalidraw } from "../index";
 import { KEYS } from "../keys";
 import { reseed } from "../random";

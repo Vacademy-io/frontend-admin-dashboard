@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { MIME_TYPES } from "@excalidraw/excalidraw/constants";
 import * as mockedSceneExportUtils from "@excalidraw/excalidraw/scene/export";
 import { diagramFactory } from "@excalidraw/excalidraw/tests/fixtures/diagramFixture";

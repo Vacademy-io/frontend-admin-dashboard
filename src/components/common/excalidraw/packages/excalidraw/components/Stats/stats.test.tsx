@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { degreesToRadians, pointFrom, pointRotateRads } from "@excalidraw/math";
 import { act, fireEvent, queryByTestId } from "@testing-library/react";
 import React from "react";

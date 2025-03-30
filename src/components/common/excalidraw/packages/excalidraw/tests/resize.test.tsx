@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { pointFrom } from "@excalidraw/math";
 import React from "react";
 

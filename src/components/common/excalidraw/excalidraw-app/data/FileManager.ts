@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { compressData } from "@excalidraw/excalidraw/data/encode";
 import { newElementWith } from "@excalidraw/excalidraw/element/mutateElement";

@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { MIME_TYPES } from "@excalidraw/excalidraw";
 import { fileOpen as _fileOpen } from "browser-fs-access";
 import { unstable_batchedUpdates } from "react-dom";

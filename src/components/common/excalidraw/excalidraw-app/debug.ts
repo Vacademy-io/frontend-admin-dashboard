@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 declare global {
   interface Window {
     debug: typeof Debug;

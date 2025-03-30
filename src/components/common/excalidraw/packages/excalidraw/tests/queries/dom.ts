@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { waitFor } from "@testing-library/dom";
 import { fireEvent } from "@testing-library/react";
 

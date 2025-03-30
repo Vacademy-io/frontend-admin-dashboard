@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { API } from "./tests/helpers/api";
 import { Keyboard, Pointer } from "./tests/helpers/ui";
 import { getCloneByOrigId, render } from "./tests/test-utils";

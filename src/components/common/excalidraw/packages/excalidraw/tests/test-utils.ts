@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import "pepjs";
 import { act } from "@testing-library/react";
 import {

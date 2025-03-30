@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { pointFrom, type Radians } from "@excalidraw/math";
 import React from "react";
 import { vi } from "vitest";

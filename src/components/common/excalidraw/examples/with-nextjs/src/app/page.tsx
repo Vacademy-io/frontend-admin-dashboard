@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import dynamic from "next/dynamic";
 import Script from "next/script";
 

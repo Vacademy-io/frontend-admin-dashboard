@@ -545,7 +545,7 @@ export interface ExcalidrawProps {
   theme?: Theme;
   // @TODO come with better API before v0.18.0
   scrollBehavior?: ScrollBehavior;
-  toggleScrollBehavior: boolean | null;
+  toggleScrollBehavior?: boolean | null;
   name?: string;
   renderCustomStats?: (
     elements: readonly NonDeletedExcalidrawElement[],
