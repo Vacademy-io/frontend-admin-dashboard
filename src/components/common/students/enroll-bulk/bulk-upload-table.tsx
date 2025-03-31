@@ -335,7 +335,7 @@ export function EditableBulkUploadTable({
     return paginatedData.content.length == 0 ? (
         <p className="w-full text-center text-subtitle text-primary-500">No uploaded data found!</p>
     ) : (
-        <div className="no-scrollbar flex flex-col gap-6 px-6">
+        <div className="no-scrollbar relative flex flex-col gap-6 overflow-y-scroll px-6">
             <div className="no-scrollbar flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <StudentSearchBox
@@ -356,9 +356,7 @@ export function EditableBulkUploadTable({
                         </Label>
                     </div>
                     {isEditing && (
-                        <div className="ml-6 text-sm text-neutral-600">
-                            Double click on cell to edit
-                        </div>
+                        <div className="text-sm text-primary-500">Double click on cell to edit</div>
                     )}
                 </div>
                 <div className="flex gap-4">

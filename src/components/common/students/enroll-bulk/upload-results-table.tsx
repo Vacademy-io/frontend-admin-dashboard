@@ -9,14 +9,12 @@ import { ColumnDef } from "@tanstack/react-table";
 interface UploadResultsTableProps {
     data: SchemaFields[];
     onViewError?: (rowIndex: number) => void;
-    onClose?: () => void;
     onDownloadResponse?: () => void;
 }
 
 export const UploadResultsTable = ({
     data,
     onViewError,
-    onClose,
     onDownloadResponse,
 }: UploadResultsTableProps) => {
     // Calculate upload stats
@@ -183,26 +181,8 @@ export const UploadResultsTable = ({
     }, [data]);
 
     return (
-        <div className="flex h-full flex-col">
-            <div className="flex items-center justify-between bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                <span>Upload Results</span>
-                {onDownloadResponse && (
-                    <MyButton
-                        buttonType="secondary"
-                        scale="small"
-                        layoutVariant="default"
-                        onClick={onDownloadResponse}
-                    >
-                        Download Response
-                    </MyButton>
-                )}
-            </div>
-
-            <div
-                className={`mx-6 mt-4 rounded-md p-4 ${
-                    failedCount > 0 ? "bg-warning-50" : "bg-success-50"
-                }`}
-            >
+        <div className="flex h-full flex-col gap-6">
+            <div className={`flex items-center gap-4`}>
                 <div className="flex items-center">
                     {failedCount > 0 ? (
                         <Warning className="h-5 w-5 text-warning-500" />
@@ -210,22 +190,33 @@ export const UploadResultsTable = ({
                         <CheckCircle className="h-5 w-5 text-success-500" weight="fill" />
                     )}
                     <h3
-                        className={`ml-2 text-lg font-medium ${
+                        className={`text-subtitle font-medium ${
                             failedCount > 0 ? "text-warning-700" : "text-success-700"
                         }`}
                     >
-                        Upload Summary: {successCount} successful, {failedCount} failed
+                        {successCount} successful, {failedCount} failed
                     </h3>
                 </div>
                 {failedCount > 0 && (
-                    <p className="mt-2 text-sm text-warning-700">
+                    <p className="text-body text-warning-700">
                         Some entries were not uploaded successfully. Please check the ERROR column
                         for details.
                     </p>
                 )}
+                {onDownloadResponse && (
+                    <MyButton
+                        buttonType="secondary"
+                        scale="small"
+                        layoutVariant="default"
+                        onClick={onDownloadResponse}
+                        className="w-fit"
+                    >
+                        Download Response
+                    </MyButton>
+                )}
             </div>
 
-            <div className="flex-grow px-6 pb-0 pt-6">
+            <div className="flex-grow">
                 <div className="no-scrollbar">
                     <div className="no-scrollbar">
                         <MyTable<SchemaFields>
@@ -238,17 +229,6 @@ export const UploadResultsTable = ({
                         />
                     </div>
                 </div>
-            </div>
-
-            <div className="flex justify-end border-t p-6">
-                <MyButton
-                    buttonType="primary"
-                    scale="large"
-                    layoutVariant="default"
-                    onClick={onClose}
-                >
-                    Close
-                </MyButton>
             </div>
         </div>
     );
