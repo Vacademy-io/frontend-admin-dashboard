@@ -332,30 +332,35 @@ export function EditableBulkUploadTable({
         setEditCell(null); // Reset any active edit cell when toggling
     };
 
-    return (
+    return paginatedData.content.length == 0 ? (
+        <p className="w-full text-center text-subtitle text-primary-500">No uploaded data found!</p>
+    ) : (
         <div className="no-scrollbar flex flex-col gap-6 px-6">
-            <div className="mb-4 flex flex-col gap-2">
-                <div className="flex items-center space-x-2">
-                    <Switch checked={isEditing} onCheckedChange={toggleEditing} id="edit-mode" />
-                    <Label htmlFor="edit-mode" className="font-medium text-neutral-900">
-                        Enable Editing Mode
-                    </Label>
-                </div>
-                {isEditing && (
-                    <div className="ml-6 text-sm text-neutral-600">
-                        Double click on cell to edit
-                    </div>
-                )}
-            </div>
-
             <div className="no-scrollbar flex items-center justify-between">
-                <StudentSearchBox
-                    searchInput={searchInput}
-                    searchFilter={searchFilter}
-                    onSearchChange={handleSearchChange}
-                    onSearchEnter={handleSearchEnter}
-                    onClearSearch={handleClearSearch}
-                />
+                <div className="flex items-center gap-2">
+                    <StudentSearchBox
+                        searchInput={searchInput}
+                        searchFilter={searchFilter}
+                        onSearchChange={handleSearchChange}
+                        onSearchEnter={handleSearchEnter}
+                        onClearSearch={handleClearSearch}
+                    />
+                    <div className="sticky top-0 flex items-center gap-2">
+                        <Switch
+                            checked={isEditing}
+                            onCheckedChange={toggleEditing}
+                            id="edit-mode"
+                        />
+                        <Label htmlFor="edit-mode" className="font-medium text-neutral-900">
+                            Enable Editing Mode
+                        </Label>
+                    </div>
+                    {isEditing && (
+                        <div className="ml-6 text-sm text-neutral-600">
+                            Double click on cell to edit
+                        </div>
+                    )}
+                </div>
                 <div className="flex gap-4">
                     {csvErrors.length > 0 && (
                         <MyButton

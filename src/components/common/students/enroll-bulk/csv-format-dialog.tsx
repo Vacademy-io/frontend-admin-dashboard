@@ -1,6 +1,6 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -59,16 +59,38 @@ export const CSVFormatDialog = ({
         setCsvFormatFormValues(data);
     };
 
+    const footer = (
+        <div
+            className="flex justify-end"
+            onClick={() => {
+                formRef.current?.requestSubmit();
+            }}
+        >
+            <UploadCSVButton
+                packageDetails={packageDetails}
+                csvFormatDetails={csvFormatFormValues}
+                setOpenDialog={setOpenDialog} // Pass down the setter function
+            />
+        </div>
+    );
+
+    const formRef = useRef<HTMLFormElement>(null);
+
     return (
         <MyDialog
             heading="Download Template"
             dialogWidth="w-full"
             open={openDialog}
             onOpenChange={handleOpenChange}
+            footer={footer}
         >
-            <div className="p-6 text-neutral-600">
+            <div className="px-6 text-neutral-600">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+                    <form
+                        ref={formRef}
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex flex-col gap-6"
+                    >
                         <div className="flex flex-col gap-4">
                             <h3 className="font-medium text-neutral-900">Enrollment Preferences</h3>
                             <div className="flex flex-col gap-3">
@@ -243,14 +265,6 @@ export const CSVFormatDialog = ({
                                     />
                                 ))}
                             </div>
-                        </div>
-
-                        <div className="mt-4 flex justify-end">
-                            <UploadCSVButton
-                                packageDetails={packageDetails}
-                                csvFormatDetails={csvFormatFormValues}
-                                setOpenDialog={setOpenDialog} // Pass down the setter function
-                            />
                         </div>
                     </form>
                 </Form>

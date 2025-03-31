@@ -44,7 +44,7 @@ export const MyDialog = ({
                     <div className="p-3">{children || content}</div>
                 </DialogDescription>
                 {footer && (
-                    <DialogFooter className="sticky top-0 z-10 w-full rounded-b-lg bg-white px-4 py-4">
+                    <DialogFooter className="sticky top-0 z-10 w-full rounded-b-lg border-t border-t-neutral-300 bg-white px-4 py-4">
                         {footer}
                     </DialogFooter>
                 )}

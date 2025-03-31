@@ -9,7 +9,7 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyButton } from "@/components/design-system/button";
 import { ImportFileImage } from "@/assets/svgs";
 import { useBulkUploadInit } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadInit";
-import { useState, useCallback, Dispatch, SetStateAction } from "react";
+import { useState, useCallback, Dispatch, SetStateAction, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { validateCsvData, createAndDownloadCsv } from "./utils/csv-utils";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
@@ -310,6 +310,12 @@ export const UploadCSVButton = ({
             createAndDownloadCsv(uploadResponse, "upload_response.csv");
         }
     };
+
+    useEffect(() => {
+        if (fileState.file) {
+            setShowPreview(true);
+        }
+    }, [fileState.file]);
 
     return (
         <>

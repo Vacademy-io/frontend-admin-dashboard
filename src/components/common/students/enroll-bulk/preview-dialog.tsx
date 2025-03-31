@@ -88,10 +88,10 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="no-scrollbar h-[80vh] w-[80vw] max-w-[1200px] overflow-hidden p-0 font-normal">
+            <DialogContent className="no-scrollbar max-h-[80vh] w-[80vw] max-w-[1200px] overflow-x-hidden overflow-y-scroll p-0 font-normal">
                 {uploadCompleted && uploadResponse ? (
                     // Show upload results using the new component
-                    <DialogDescription className="flex flex-col overflow-x-scroll p-6">
+                    <DialogDescription className="no-scrollbar flex flex-col overflow-x-scroll p-6">
                         <UploadResultsTable
                             data={uploadResponse}
                             onViewError={handleViewError}
@@ -124,7 +124,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                             </div>
                         )}
 
-                        <DialogDescription className="flex flex-col overflow-x-scroll p-6">
+                        <DialogDescription className="no-scrollbar flex flex-col overflow-x-scroll p-6">
                             <EditableBulkUploadTable
                                 headers={headers}
                                 onEdit={onEdit}
