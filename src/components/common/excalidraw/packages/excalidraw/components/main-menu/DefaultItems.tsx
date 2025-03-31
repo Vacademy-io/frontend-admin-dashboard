@@ -49,8 +49,8 @@ import "./DefaultItems.scss";
 import type { Theme } from "../../element/types";
 import { actionToggleScrollBehavior } from "../../actions/actionCanvas";
 import { values } from "idb-keyval";
-import firebase from "firebase";
-import apps = firebase.apps;
+// import firebase from "firebase";
+// import apps = firebase.apps;
 
 export const LoadScene = () => {
   const { t } = useI18n();
