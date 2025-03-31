@@ -216,7 +216,7 @@ export function DashboardComponent() {
                                         className="text-sm"
                                     >
                                         <Plus size={32} />
-                                        Create
+                                        Create Course
                                     </MyButton>
                                     <MyButton
                                         type="submit"

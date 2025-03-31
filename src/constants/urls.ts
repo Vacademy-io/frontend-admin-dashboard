@@ -104,6 +104,8 @@ export const GET_USER_VIDEO_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-servic
 export const GET_USER_DOC_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-document-activity-logs`;
 export const GET_STUDENT_SUBJECT_PROGRESS = `${BASE_URL}/admin-core-service/subject/learner/v1/subjects`;
 export const GET_STUDENT_SLIDE_PROGRESS = `${BASE_URL}/admin-core-service/slide/institute-learner/v1/get-slides-with-status`;
+export const COPY_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/copy`;
+export const MOVE_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/move`;
 
 export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js`;
 
@@ -120,3 +122,9 @@ export const GET_INVITE_LIST = `${BASE_URL}/admin-core-service/learner-invitatio
 export const UPDATE_INVITE_LINK_STATUS = `${BASE_URL}/admin-core-service/learner-invitation/update-learner-invitation-status`;
 
 export const ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/learner-invitation/invitation-responses`;
+export const GET_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report`;
+export const GET_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report`;
+export const GET_LEADERBOARD_DATA = `${BASE_URL}/admin-core-service/learner-management/batch-report/leaderboard`;
+export const SUBJECT_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/subject-wise-progress`;
+export const CHAPTER_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/chapter-wise-progress`;
+export const GET_LEARNERS_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/learner-details`;

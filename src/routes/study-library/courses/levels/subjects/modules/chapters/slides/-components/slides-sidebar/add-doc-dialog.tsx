@@ -99,17 +99,15 @@ export const AddDocDialog = ({
                 notify: false,
             });
 
-            toast.success("PDF uploaded successfully!");
+            toast.success("Document uploaded successfully!");
 
             if (response) {
                 setTimeout(() => {
-                    setActiveItem(getSlideById(slideId));
+                    setActiveItem(getSlideById(response));
                 }, 500);
                 openState?.(false);
-                toast.success("PDF uploaded successfully!");
+                toast.success("Document uploaded successfully!");
             }
-
-            console.log("Item successfully added to store");
 
             setUploadProgress(100);
             toast.success("Document converted successfully!");

@@ -48,6 +48,7 @@ export const MoveToDialog = ({ openDialog, setOpenDialog, chapter }: MoveTo) => 
                 chapterId: chapter.chapter.id,
             });
             toast.success("Chapter moved successfully");
+            setOpenDialog(null);
         } catch (err) {
             toast.error("Failed to move chapter");
         }

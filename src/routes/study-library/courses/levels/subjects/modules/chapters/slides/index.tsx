@@ -6,6 +6,7 @@ import { SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { studyLibrarySteps } from "@/constants/intro/steps";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import {
+    Slide,
     slideOrderPayloadType,
     useSlides,
 } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
@@ -22,7 +23,8 @@ import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
 import { CaretLeft } from "phosphor-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { SaveDraftProvider } from "./-context/saveDraftContext";
 
 interface ChapterSearchParams {
     courseId: string;
@@ -197,13 +199,28 @@ function RouteComponent() {
         setNavHeading(heading);
     }, []);
 
+    const getCurrentEditorHTMLContentRef = useRef<() => string>(() => "");
+    const saveDraftRef = useRef(async (slide: Slide) => {
+        console.log("slide for saving draft: ", slide);
+    });
+
     return (
-        <LayoutContainer sidebarComponent={SidebarComponent}>
-            <InitStudyLibraryProvider>
-                <ModulesWithChaptersProvider subjectId={subjectId}>
-                    <SlideMaterial />
-                </ModulesWithChaptersProvider>
-            </InitStudyLibraryProvider>
-        </LayoutContainer>
+        <SaveDraftProvider
+            getCurrentEditorHTMLContent={() => getCurrentEditorHTMLContentRef.current()}
+            saveDraft={(slide) => saveDraftRef.current(slide)}
+        >
+            <LayoutContainer sidebarComponent={SidebarComponent}>
+                <InitStudyLibraryProvider>
+                    <ModulesWithChaptersProvider subjectId={subjectId}>
+                        <SlideMaterial
+                            setGetCurrentEditorHTMLContent={(fn) =>
+                                (getCurrentEditorHTMLContentRef.current = fn)
+                            }
+                            setSaveDraft={(fn) => (saveDraftRef.current = fn)}
+                        />
+                    </ModulesWithChaptersProvider>
+                </InitStudyLibraryProvider>
+            </LayoutContainer>
+        </SaveDraftProvider>
     );
 }

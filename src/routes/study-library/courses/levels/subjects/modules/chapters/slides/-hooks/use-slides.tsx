@@ -32,7 +32,7 @@ export interface Slide {
 }
 
 interface VideoSlidePayload {
-    id?: string;
+    id?: string | null;
     title: string;
     description: string | null;
     image_file_id: string | null;
@@ -52,7 +52,7 @@ interface VideoSlidePayload {
 }
 
 interface DocumentSlidePayload {
-    id: string;
+    id: string | null;
     title: string;
     image_file_id: string;
     description: string | null;

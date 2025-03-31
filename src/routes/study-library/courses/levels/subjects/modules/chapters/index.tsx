@@ -10,6 +10,7 @@ import { CaretLeft } from "phosphor-react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { getModuleName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ModulesSearchParams {
     courseId: string;
@@ -36,6 +37,13 @@ function RouteComponent() {
     const [currentModuleId, setCurrentModuleId] = useState(moduleId);
     const { setNavHeading } = useNavHeadingStore();
     const { setActiveItem, setItems } = useContentStore();
+    const queryClient = useQueryClient(); // Get the queryClient instance
+
+    const invalidateModulesQuery = () => {
+        queryClient.invalidateQueries({
+            queryKey: ["GET_MODULES_WITH_CHAPTERS", subjectId],
+        });
+    };
 
     useEffect(() => {
         setActiveItem(null);
@@ -77,6 +85,7 @@ function RouteComponent() {
 
     useEffect(() => {
         setNavHeading(heading);
+        invalidateModulesQuery();
     }, []);
 
     return (

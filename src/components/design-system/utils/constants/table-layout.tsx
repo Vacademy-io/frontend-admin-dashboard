@@ -3,8 +3,8 @@ export type ColumnWidthConfig = Record<string, string>;
 
 // Default widths for student list columns
 export const STUDENT_LIST_COLUMN_WIDTHS: ColumnWidthConfig = {
-    checkbox: "min-w-[56px] sticky left-0",
-    details: "min-w-[80px] sticky left-[52px]",
+    checkbox: "min-w-[56px] sticky z-10 left-0",
+    details: "min-w-[80px] sticky z-10 left-[52px]",
     full_name: "min-w-[180px] sticky left-[130px]",
     username: "min-w-[180px]",
     package_session_id: "min-w-[240px]",
@@ -22,7 +22,7 @@ export const STUDENT_LIST_COLUMN_WIDTHS: ColumnWidthConfig = {
     region: "min-w-[180px]",
     expiry_date: "min-w-[180px]",
     status: "min-w-[180px]",
-    options: "min-w-[56px] sticky right-0",
+    options: "min-w-[56px] sticky z-10 right-0",
 };
 
 export const STUDENT_LIST_ASSESSMENT_COLUMN_WIDTHS: ColumnWidthConfig = {

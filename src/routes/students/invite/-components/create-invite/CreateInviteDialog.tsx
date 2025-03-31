@@ -1,26 +1,27 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
 import { Copy } from "phosphor-react";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { InviteFormType } from "../../-schema/InviteFormSchema";
+import { InviteForm } from "../../-schema/InviteFormSchema";
 import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
-import { SelectionModeSection } from "./SelectionModeSection";
+import { CourseList } from "./batch-selection/course/CourseList";
 
 interface CreateInviteDialogProps {
-    initialValues?: InviteFormType;
+    initialValues?: InviteForm;
     triggerButton?: JSX.Element;
     submitButton: JSX.Element;
     open?: boolean;
     onOpenChange?: () => void;
     submitForm?: (fn: () => void) => void;
-    onCreateInvite?: (invite: InviteFormType) => void;
+    onCreateInvite?: (invite: InviteForm) => void;
     inviteLink?: string | null;
+    setInviteLink?: Dispatch<SetStateAction<string | null>>;
 }
 
 // Define a type for email entries
@@ -38,12 +39,10 @@ export const CreateInviteDialog = ({
     submitForm,
     onCreateInvite,
     inviteLink,
+    setInviteLink,
 }: CreateInviteDialogProps) => {
     const {
         form,
-        courseList,
-        sessionList,
-        levelList,
         toggleIsRequired,
         handleAddOpenFieldValues,
         handleDeleteOpenField,
@@ -156,10 +155,14 @@ export const CreateInviteDialog = ({
             <FormProvider {...form}>
                 <form
                     ref={formRef}
-                    onSubmit={form.handleSubmit((data: InviteFormType) => {
-                        console.log("Form values:", data);
-                        // Continue with valid form data
-                        onCreateInvite && onCreateInvite(data);
+                    onSubmit={form.handleSubmit((data: InviteForm) => {
+                        try {
+                            onCreateInvite && onCreateInvite(data);
+                            reset();
+                            setInviteLink && setInviteLink(null);
+                        } catch {
+                            console.error("error creating invite");
+                        }
                     })}
                 >
                     <div className="flex flex-col gap-10">
@@ -211,30 +214,7 @@ export const CreateInviteDialog = ({
                             handleDeleteOpenField={handleDeleteOpenField}
                         />
 
-                        {/* Course, Session, Level Selection Sections */}
-                        <SelectionModeSection
-                            title="Course"
-                            type="course"
-                            dropdownList={courseList}
-                        />
-
-                        <SelectionModeSection
-                            title="Session"
-                            type="session"
-                            dropdownList={sessionList.filter(() =>
-                                watch("preSelectedCourses") ? true : false,
-                            )}
-                        />
-
-                        <SelectionModeSection
-                            title="Level"
-                            type="level"
-                            dropdownList={levelList.filter(() =>
-                                watch("preSelectedCourses") && watch("preSelectedSessions")
-                                    ? true
-                                    : false,
-                            )}
-                        />
+                        <CourseList />
 
                         {/* Student Expiry Date */}
                         <div className="flex items-center gap-6">
@@ -330,8 +310,6 @@ export const CreateInviteDialog = ({
                             </div>
                         </div>
 
-                        <Separator />
-
                         {/* Generated Invite Link */}
 
                         {/*<p className="text-subtitle font-semibold">Invite Link</p>
@@ -352,25 +330,28 @@ export const CreateInviteDialog = ({
                                 )}
                             /> */}
                         {inviteLink && inviteLink != null && (
-                            <div className="flex w-fit items-center gap-4">
-                                <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
-                                    {inviteLink}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <MyButton
-                                        buttonType="secondary"
-                                        scale="medium"
-                                        layoutVariant="icon"
-                                        onClick={() => handleCopyClick(inviteLink)}
-                                        type="button"
-                                    >
-                                        <Copy />
-                                    </MyButton>
-                                    {copySuccess === inviteLink && (
-                                        <span className="text-caption text-primary-500">
-                                            Copied!
-                                        </span>
-                                    )}
+                            <div className="flex flex-col gap-10">
+                                <Separator />
+                                <div className="flex w-fit items-center gap-4">
+                                    <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
+                                        {inviteLink}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <MyButton
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="icon"
+                                            onClick={() => handleCopyClick(inviteLink)}
+                                            type="button"
+                                        >
+                                            <Copy />
+                                        </MyButton>
+                                        {copySuccess === inviteLink && (
+                                            <span className="text-caption text-primary-500">
+                                                Copied!
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
