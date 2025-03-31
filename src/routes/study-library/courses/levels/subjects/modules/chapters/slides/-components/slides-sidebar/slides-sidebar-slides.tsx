@@ -24,7 +24,7 @@ export const ChapterSidebarSlides = ({
 }: {
     handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
 }) => {
-    const { open } = useSidebar();
+    const { open, state, toggleSidebar } = useSidebar();
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
@@ -57,6 +57,7 @@ export const ChapterSidebarSlides = ({
 
         // Now set the new active item
         setActiveItem(slide);
+        if (state == "expanded") toggleSidebar();
     };
 
     useEffect(() => {
@@ -168,7 +169,7 @@ export const ChapterSidebarSlides = ({
                                             )}
                                         </p>
                                     </div>
-                                    {slide.status != "DRAFT" && (
+                                    {slide.status != "DRAFT" && state == "expanded" && (
                                         <CheckCircle
                                             weight="fill"
                                             className="text-success-600"
