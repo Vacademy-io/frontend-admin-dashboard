@@ -154,6 +154,64 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
     };
 }
 
+function stripHtmlTags(str: string) {
+    return str.replace(/<[^>]*>/g, "").trim();
+}
+
+function cleanQuestionData(question: MyQuestion) {
+    return {
+        ...question,
+        questionName: stripHtmlTags(question.questionName || ""),
+        singleChoiceOptions:
+            question.singleChoiceOptions?.map((option) => ({
+                ...option,
+                name: stripHtmlTags(option.name || ""),
+            })) || [],
+        multipleChoiceOptions:
+            question.multipleChoiceOptions?.map((option) => ({
+                ...option,
+                name: stripHtmlTags(option.name || ""),
+            })) || [],
+    };
+}
+
+export function compareQuestions(
+    oldData: MyQuestionPaperFormInterface,
+    newData: MyQuestionPaperFormInterface,
+) {
+    const oldQuestionsMap = new Map(
+        oldData.questions?.map((q) => [q.questionId, cleanQuestionData(q)]),
+    );
+    const newQuestionsMap = new Map(
+        newData.questions?.map((q) => [q.questionId, cleanQuestionData(q)]),
+    );
+
+    const added_questions = [];
+    const deleted_questions = [];
+    const updated_questions = [];
+
+    // Find added and updated questions
+    for (const [questionId, newQuestion] of newQuestionsMap.entries()) {
+        if (!oldQuestionsMap.has(questionId)) {
+            added_questions.push(newQuestion);
+        } else {
+            const oldQuestion = oldQuestionsMap.get(questionId);
+            if (JSON.stringify(oldQuestion) !== JSON.stringify(newQuestion)) {
+                updated_questions.push(newQuestion);
+            }
+        }
+    }
+
+    // Find deleted questions
+    for (const [questionId, oldQuestion] of oldQuestionsMap.entries()) {
+        if (!newQuestionsMap.has(questionId)) {
+            deleted_questions.push(oldQuestion);
+        }
+    }
+
+    return { added_questions, deleted_questions, updated_questions };
+}
+
 export function transformQuestionPaperEditData(
     data: MyQuestionPaperFormInterface,
     previousQuestionPaperData: MyQuestionPaperFormEditInterface,
