@@ -1,7 +1,7 @@
 import { LevelField, SelectionMode } from "@/routes/students/invite/-schema/InviteFormSchema";
 import { useLevelManager } from "../../../../-hooks/useLevelManager";
 import { BatchSelectionMode } from "../BatchSelectionMode";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { MaxLimitField } from "../MaxLimitField";
 import { MyButton } from "@/components/design-system/button";
@@ -29,7 +29,7 @@ export const LevelSelection = ({
     preSelectedLevels,
     learnerChoiceLevels,
     maxLevels,
-    handleIsLevelAdding,
+    // handleIsLevelAdding,
 }: LevelSelectionProps) => {
     const {
         getLearnerChoiceLevelsLength,
@@ -172,15 +172,15 @@ export const LevelSelection = ({
         ...learnerChoiceLevels.map((level) => ({ ...level, type: "learnerChoice" as const })),
     ]);
 
-    useEffect(() => {
-        if (learnerChoiceSelected.length == 0) {
-            if (isSaved) handleIsLevelAdding(false);
-            else handleIsLevelAdding(true);
-        } else {
-            if (isMaxLimitSaved && isSaved) handleIsLevelAdding(false);
-            else handleIsLevelAdding(true);
-        }
-    }, [learnerChoiceSelected, isMaxLimitSaved, isSaved]);
+    // useEffect(() => {
+    //     if (learnerChoiceSelected.length == 0) {
+    //         if (isSaved) handleIsLevelAdding(false);
+    //         else handleIsLevelAdding(true);
+    //     } else {
+    //         if (isMaxLimitSaved && isSaved) handleIsLevelAdding(false);
+    //         else handleIsLevelAdding(true);
+    //     }
+    // }, [learnerChoiceSelected, isMaxLimitSaved, isSaved]);
 
     return (
         <div className="flex flex-col gap-2">

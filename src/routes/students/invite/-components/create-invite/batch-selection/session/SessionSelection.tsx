@@ -49,7 +49,7 @@ export const SessionSelection = ({
     const [initialSessionId, setInitialSessionId] = useState<string>(sessionId || "");
     const [isEditing, setIsEditing] = useState<boolean>(!sessionId); // Start in editing mode if no sessionId provided
     const [savedSession, setSavedSession] = useState<{ id: string; name: string } | null>(null);
-    const [isLevelAdding, setIsLevelAdding] = useState(true);
+    const [isLevelAdding, setIsLevelAdding] = useState(false);
 
     const handleIsLevelAdding = (value: boolean) => setIsLevelAdding(value);
 
