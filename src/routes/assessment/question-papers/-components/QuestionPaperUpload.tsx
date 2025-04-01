@@ -368,6 +368,7 @@ export const QuestionPaperUpload = ({
         }
     };
 
+    console.log(form.getValues());
     return (
         <>
             <FormProvider {...form}>
