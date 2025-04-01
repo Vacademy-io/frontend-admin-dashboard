@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { useInviteFormContext } from "@/routes/students/invite/-context/useInviteFormContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCourseManager } from "../../../../-hooks/useCourseManager";
 import { CourseSelection } from "./CourseSelection";
 import { MaxLimitField } from "../MaxLimitField";
@@ -11,6 +11,11 @@ export const CourseList = () => {
     const batch = getValues("batches");
     const { getAllAvailableCourses, setMaxCourses } = useCourseManager();
     const [isAddingCourse, setIsAddingCourse] = useState(false);
+    const [isMaxLimitSaved, setIsMaxLimitSaved] = useState(false);
+    useEffect(() => {
+        console.log(isMaxLimitSaved);
+    }, []);
+    const handleIsMaxLimitSaved = (value: boolean) => setIsMaxLimitSaved(value);
 
     const availableCourses = getAllAvailableCourses();
     // Get preSelectedSessions
@@ -76,6 +81,7 @@ export const CourseList = () => {
                         maxAllowed={10}
                         maxValue={currentMaxCourses}
                         onMaxChange={handleMaxCoursesChange}
+                        handleIsMaxLimitSaved={handleIsMaxLimitSaved}
                     />
                 )}
             </div>

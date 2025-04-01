@@ -9,6 +9,7 @@ interface MaxLimitFieldProp {
     maxValue: number;
     isDisabled?: boolean;
     onMaxChange?: (value: number) => void;
+    handleIsMaxLimitSaved: (value: boolean) => void;
 }
 
 export const MaxLimitField = ({
@@ -17,10 +18,15 @@ export const MaxLimitField = ({
     maxValue,
     isDisabled = false,
     onMaxChange,
+    handleIsMaxLimitSaved,
 }: MaxLimitFieldProp) => {
     const [input, setInput] = useState(maxValue.toString() || "1");
     const [isEditing, setIsEditing] = useState(true); // Start in editing mode
     const [savedValue, setSavedValue] = useState(maxValue);
+
+    useEffect(() => {
+        handleIsMaxLimitSaved(!isEditing);
+    }, [isEditing]);
 
     // Update input when maxValue changes externally
     useEffect(() => {

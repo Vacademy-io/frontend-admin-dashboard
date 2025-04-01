@@ -18,6 +18,7 @@ interface SessionSelectionProps {
     isCourseCompulsory: boolean;
     sessionId?: string;
     isSessionCompulsory?: boolean;
+    handleIsAddingSession: (value: boolean) => void;
 }
 
 // Type guard for PreSelectedSession
@@ -31,6 +32,7 @@ export const SessionSelection = ({
     isCourseCompulsory,
     sessionId,
     isSessionCompulsory,
+    handleIsAddingSession,
 }: SessionSelectionProps) => {
     const { form } = useInviteFormContext();
     const [selectionMode, setSelectionMode] = useState<SelectionMode>(
@@ -47,6 +49,9 @@ export const SessionSelection = ({
     const [initialSessionId, setInitialSessionId] = useState<string>(sessionId || "");
     const [isEditing, setIsEditing] = useState<boolean>(!sessionId); // Start in editing mode if no sessionId provided
     const [savedSession, setSavedSession] = useState<{ id: string; name: string } | null>(null);
+    const [isLevelAdding, setIsLevelAdding] = useState(true);
+
+    const handleIsLevelAdding = (value: boolean) => setIsLevelAdding(value);
 
     const { getAllAvailableSessions, addOrUpdateSession } = useSessionManager(
         courseId,
@@ -140,6 +145,11 @@ export const SessionSelection = ({
     const handleSessionSelect = (value: string) => {
         setSelectedSessionId(value);
     };
+
+    useEffect(() => {
+        if (!isEditing && !isLevelAdding) handleIsAddingSession(false);
+        else handleIsAddingSession(true);
+    }, [isEditing, isLevelAdding]);
 
     const handleSaveSession = () => {
         // Find the session name from options
@@ -246,10 +256,17 @@ export const SessionSelection = ({
                 <LevelSelection
                     {...commonProps}
                     preSelectedLevels={sessionDetails.preSelectedLevels}
+                    handleIsLevelAdding={handleIsLevelAdding}
                 />
             );
         } else {
-            return <LevelSelection {...commonProps} preSelectedLevels={[]} />;
+            return (
+                <LevelSelection
+                    {...commonProps}
+                    preSelectedLevels={[]}
+                    handleIsLevelAdding={handleIsLevelAdding}
+                />
+            );
         }
     };
 

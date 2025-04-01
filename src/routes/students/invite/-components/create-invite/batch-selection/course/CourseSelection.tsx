@@ -32,6 +32,9 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
     const [inititalCourseId, setInititalCourseId] = useState<string>(courseId || "");
     const [savedCourse, setSavedCourse] = useState<{ id: string; name: string } | null>(null);
     const { getCourse } = useSessionManager(courseId || "", isCourseCompulsory || true);
+    const [isAddingSession, setIsAddingSession] = useState(true);
+
+    const handleIsAddingSession = (value: boolean) => setIsAddingSession(value);
 
     useEffect(() => {
         if (courseId && isCourseCompulsory) {
@@ -112,6 +115,8 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
                 courseId={selectedCourseId}
                 isCourseCompulsory={selectionMode == "institute" ? true : false}
                 maxSessions={courseDetails?.maxSessions}
+                handleIsAddingSession={handleIsAddingSession}
+                isAddingSession={isAddingSession}
             />
         );
     };

@@ -1,7 +1,7 @@
 import { LevelField, SelectionMode } from "@/routes/students/invite/-schema/InviteFormSchema";
 import { useLevelManager } from "../../../../-hooks/useLevelManager";
 import { BatchSelectionMode } from "../BatchSelectionMode";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { MaxLimitField } from "../MaxLimitField";
 import { MyButton } from "@/components/design-system/button";
@@ -17,6 +17,7 @@ interface LevelSelectionProps {
     preSelectedLevels: LevelField[];
     learnerChoiceLevels: LevelField[];
     maxLevels: number;
+    handleIsLevelAdding: (value: boolean) => void;
 }
 
 export const LevelSelection = ({
@@ -28,6 +29,7 @@ export const LevelSelection = ({
     preSelectedLevels,
     learnerChoiceLevels,
     maxLevels,
+    handleIsLevelAdding,
 }: LevelSelectionProps) => {
     const {
         getLearnerChoiceLevelsLength,
@@ -40,6 +42,8 @@ export const LevelSelection = ({
     // Local state for UI management
     const [localSelectionMode, setLocalSelectionMode] = useState<SelectionMode>(levelSelectionMode);
     const [isSaved, setIsSaved] = useState<boolean>(false);
+    const [isMaxLimitSaved, setIsMaxLimitSaved] = useState(false);
+    const handleIsMaxLimitSaved = (value: boolean) => setIsMaxLimitSaved(value);
 
     // Local state for level selections
     const [compulsorySelected, setCompulsorySelected] = useState<string[]>(
@@ -167,6 +171,16 @@ export const LevelSelection = ({
         ...learnerChoiceLevels.map((level) => ({ ...level, type: "learnerChoice" as const })),
     ]);
 
+    useEffect(() => {
+        if (learnerChoiceSelected.length == 0) {
+            if (isSaved) handleIsLevelAdding(false);
+            else handleIsLevelAdding(true);
+        } else {
+            if (isMaxLimitSaved && isSaved) handleIsLevelAdding(false);
+            else handleIsLevelAdding(true);
+        }
+    }, [learnerChoiceSelected, isMaxLimitSaved, isSaved]);
+
     return (
         <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
@@ -273,6 +287,7 @@ export const LevelSelection = ({
                                 maxAllowed={learnerChoiceLength || 10}
                                 maxValue={maxLevels}
                                 onMaxChange={handleMaxLevelChange}
+                                handleIsMaxLimitSaved={handleIsMaxLimitSaved}
                             />
                         </div>
                     )}
