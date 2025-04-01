@@ -57,7 +57,7 @@ export const ChapterSidebarSlides = ({
 
         // Now set the new active item
         setActiveItem(slide);
-        if (state == "expanded") toggleSidebar();
+        toggleSidebar();
     };
 
     useEffect(() => {

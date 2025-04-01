@@ -1,5 +1,7 @@
 import { MyInput } from "@/components/design-system/input";
 import { useEffect, useState } from "react";
+import { MyButton } from "@/components/design-system/button";
+import { Check, PencilSimple } from "phosphor-react";
 
 interface MaxLimitFieldProp {
     title: string;
@@ -17,10 +19,13 @@ export const MaxLimitField = ({
     onMaxChange,
 }: MaxLimitFieldProp) => {
     const [input, setInput] = useState(maxValue.toString() || "1");
+    const [isEditing, setIsEditing] = useState(true); // Start in editing mode
+    const [savedValue, setSavedValue] = useState(maxValue);
 
     // Update input when maxValue changes externally
     useEffect(() => {
         setInput(maxValue.toString());
+        setSavedValue(maxValue);
     }, [maxValue]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,17 +50,64 @@ export const MaxLimitField = ({
         }
     };
 
+    const handleSave = () => {
+        setSavedValue(parseInt(input));
+        setIsEditing(false);
+
+        // Call onMaxChange to save the value to parent component
+        if (onMaxChange) {
+            onMaxChange(parseInt(input));
+        }
+    };
+
+    const handleEdit = () => {
+        setIsEditing(true);
+    };
+
     return (
-        <div className="flex items-center gap-6">
-            <p className="text-subtitle text-neutral-600">Allowed limit for {title} preference</p>
-            <MyInput
-                input={input}
-                inputType="number"
-                onChangeFunction={handleInputChange}
-                className="w-[50px]"
-                inputPlaceholder="1"
-                disabled={isDisabled}
-            />
-        </div>
+        <>
+            {isEditing ? (
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-6">
+                        <p className="text-subtitle text-neutral-600">
+                            Allowed limit for {title} preference
+                        </p>
+                        <MyInput
+                            input={input}
+                            inputType="number"
+                            onChangeFunction={handleInputChange}
+                            className="w-[50px]"
+                            inputPlaceholder="1"
+                            disabled={isDisabled}
+                        />
+                    </div>
+                    <MyButton
+                        buttonType="secondary"
+                        scale="medium"
+                        layoutVariant="icon"
+                        onClick={handleSave}
+                        type="button"
+                    >
+                        <Check />
+                    </MyButton>
+                </div>
+            ) : (
+                <div className="flex items-center justify-between rounded-md">
+                    <div className="flex flex-col">
+                        <p className="text-subtitle font-semibold">Maximum {title}s</p>
+                        <p className="text-body">{savedValue}</p>
+                    </div>
+                    <MyButton
+                        buttonType="secondary"
+                        scale="small"
+                        layoutVariant="icon"
+                        onClick={handleEdit}
+                        type="button"
+                    >
+                        <PencilSimple />
+                    </MyButton>
+                </div>
+            )}
+        </>
     );
 };

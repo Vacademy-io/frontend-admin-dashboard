@@ -3,7 +3,6 @@ import { PreSelectedCourse } from "@/routes/students/invite/-schema/InviteFormSc
 import { SessionSelection } from "./SessionSelection";
 import { MyButton } from "@/components/design-system/button";
 import { useState } from "react";
-import { Check, PencilSimple } from "phosphor-react";
 import { MaxLimitField } from "../MaxLimitField";
 
 interface SessionListProps {
@@ -25,8 +24,6 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
     );
     const { course } = getCourse();
     const [isAddingSession, setIsAddingSession] = useState(false);
-    const [isSavingAll, setIsSavingAll] = useState(false);
-    const [isMaxValueSaved, setIsMaxValueSaved] = useState(false);
 
     const availableSessions = getAllAvailableSessions();
     // Get preSelectedSessions
@@ -49,19 +46,7 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
 
     // Handle save all button click
     const handleSaveAll = () => {
-        setIsSavingAll(true);
         setIsAddingSession(false);
-    };
-
-    // Handle save max value button click
-    const handleSaveMaxValue = () => {
-        setIsMaxValueSaved(true);
-    };
-
-    // Handle edit max value button click
-    const handleEditMaxValue = () => {
-        setIsMaxValueSaved(false);
-        setIsSavingAll(false);
     };
 
     return (
@@ -77,42 +62,14 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
                         </MyButton>
                     )}
 
-                {isSavingAll && !isMaxValueSaved && (
-                    <div className="flex items-center gap-2">
-                        <MaxLimitField
-                            title="Session"
-                            maxAllowed={10}
-                            maxValue={currentMaxSessions}
-                            onMaxChange={handleMaxSessionsChange}
-                        />
-                        <MyButton
-                            buttonType="secondary"
-                            scale="medium"
-                            layoutVariant="icon"
-                            onClick={handleSaveMaxValue}
-                            type="button"
-                        >
-                            <Check />
-                        </MyButton>
-                    </div>
-                )}
-
-                {isSavingAll && isMaxValueSaved && (
-                    <div className="flex items-center justify-between rounded-md p-3">
-                        <div className="flex flex-col">
-                            <p className="text-subtitle font-semibold">Maximum Sessions</p>
-                            <p className="text-body">{currentMaxSessions}</p>
-                        </div>
-                        <MyButton
-                            buttonType="secondary"
-                            scale="small"
-                            layoutVariant="icon"
-                            onClick={handleEditMaxValue}
-                            type="button"
-                        >
-                            <PencilSimple />
-                        </MyButton>
-                    </div>
+                {/* MaxLimitField will handle its own editing/saving state */}
+                {(learnerChoiceSessions.length > 0 || preSelectedSessions.length > 0) && (
+                    <MaxLimitField
+                        title="Session"
+                        maxAllowed={10}
+                        maxValue={currentMaxSessions}
+                        onMaxChange={handleMaxSessionsChange}
+                    />
                 )}
             </div>
 
@@ -123,7 +80,7 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
                 )}
 
             {/* Add Session button or Session form */}
-            {!isSavingAll && availableSessions.length > 0 && !isAddingSession && (
+            {availableSessions.length > 0 && !isAddingSession && (
                 <MyButton
                     onClick={() => setIsAddingSession(true)}
                     type="button"
@@ -136,7 +93,7 @@ export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: Sessi
             )}
 
             {/* Session Selection form when adding a session */}
-            {!isSavingAll && isAddingSession && (
+            {isAddingSession && (
                 <div className="flex items-center gap-1">
                     <SessionSelection courseId={courseId} isCourseCompulsory={isCourseCompulsory} />
                 </div>

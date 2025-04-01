@@ -1,6 +1,5 @@
 import { MyButton } from "@/components/design-system/button";
 import { useInviteFormContext } from "@/routes/students/invite/-context/useInviteFormContext";
-import { Check, PencilSimple } from "phosphor-react";
 import { useState } from "react";
 import { useCourseManager } from "../../../../-hooks/useCourseManager";
 import { CourseSelection } from "./CourseSelection";
@@ -12,8 +11,6 @@ export const CourseList = () => {
     const batch = getValues("batches");
     const { getAllAvailableCourses, setMaxCourses } = useCourseManager();
     const [isAddingCourse, setIsAddingCourse] = useState(false);
-    const [isSavingAll, setIsSavingAll] = useState(false);
-    const [isMaxValueSaved, setIsMaxValueSaved] = useState(false);
 
     const availableCourses = getAllAvailableCourses();
     // Get preSelectedSessions
@@ -35,19 +32,7 @@ export const CourseList = () => {
 
     // Handle save all button click
     const handleSaveAll = () => {
-        setIsSavingAll(true);
         setIsAddingCourse(false);
-    };
-
-    // Handle save max value button click
-    const handleSaveMaxValue = () => {
-        setIsMaxValueSaved(true);
-    };
-
-    // Handle edit max value button click
-    const handleEditMaxValue = () => {
-        setIsMaxValueSaved(false);
-        setIsSavingAll(false);
     };
 
     return (
@@ -55,12 +40,12 @@ export const CourseList = () => {
             <div className="flex flex-col gap-3">
                 <p className="text-title font-semibold">Batches</p>
 
-                {/* Show a message if no sessions are present */}
-                {/* {preSelectedCourses.length === 0 &&
-                learnerChoiceCourses.length === 0 &&
-                !isAddingCourse && (
-                    <p className="text-body text-neutral-500">No courses added yet</p>
-                )} */}
+                {/* Show a message if no courses are present */}
+                {preSelectedCourses.length === 0 &&
+                    learnerChoiceCourses.length === 0 &&
+                    !isAddingCourse && (
+                        <p className="text-body text-neutral-500">No courses added yet</p>
+                    )}
 
                 {preSelectedCourses.length > 0 &&
                     preSelectedCourses.map((course, key) => (
@@ -71,7 +56,7 @@ export const CourseList = () => {
                         <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
                     ))}
 
-                {/* Show Save All button when not adding a session */}
+                {/* Show Save All button when not adding a course */}
                 {!isAddingCourse &&
                     (preSelectedCourses.length > 0 || learnerChoiceCourses.length > 0) && (
                         <MyButton
@@ -84,53 +69,25 @@ export const CourseList = () => {
                         </MyButton>
                     )}
 
-                {isSavingAll && !isMaxValueSaved && (
-                    <div className="flex items-center gap-2">
-                        <MaxLimitField
-                            title="Session"
-                            maxAllowed={10}
-                            maxValue={currentMaxCourses}
-                            onMaxChange={handleMaxCoursesChange}
-                        />
-                        <MyButton
-                            buttonType="secondary"
-                            scale="medium"
-                            layoutVariant="icon"
-                            onClick={handleSaveMaxValue}
-                            type="button"
-                        >
-                            <Check />
-                        </MyButton>
-                    </div>
-                )}
-
-                {isSavingAll && isMaxValueSaved && (
-                    <div className="flex items-center justify-between rounded-md p-3">
-                        <div className="flex flex-col">
-                            <p className="text-subtitle font-semibold">Maximum Courses</p>
-                            <p className="text-body">{currentMaxCourses}</p>
-                        </div>
-                        <MyButton
-                            buttonType="secondary"
-                            scale="small"
-                            layoutVariant="icon"
-                            onClick={handleEditMaxValue}
-                            type="button"
-                        >
-                            <PencilSimple />
-                        </MyButton>
-                    </div>
+                {/* MaxLimitField will handle its own editing/saving state */}
+                {(preSelectedCourses.length > 0 || learnerChoiceCourses.length > 0) && (
+                    <MaxLimitField
+                        title="Course"
+                        maxAllowed={10}
+                        maxValue={currentMaxCourses}
+                        onMaxChange={handleMaxCoursesChange}
+                    />
                 )}
             </div>
 
             {/* Session Selection form when adding a session */}
-            {!isSavingAll && (
+            {!isAddingCourse && (
                 <div className="flex items-center gap-1">
                     <CourseSelection />
                 </div>
             )}
 
-            {!isSavingAll && availableCourses.length > 0 && (
+            {!isAddingCourse && availableCourses.length > 0 && (
                 <div>
                     <div
                         onClick={() => setIsAddingCourse(true)}
