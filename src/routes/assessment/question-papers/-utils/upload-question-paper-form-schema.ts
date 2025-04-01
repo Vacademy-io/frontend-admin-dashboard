@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isQuillContentEmpty } from "./helper";
 
 export const uploadQuestionPaperFormSchema = z.object({
     questionPaperId: z
@@ -46,7 +47,9 @@ export const uploadQuestionPaperFormSchema = z.object({
         z
             .object({
                 questionId: z.string().optional(),
-                questionName: z.string().min(1, "Question name is required"),
+                questionName: z.string().refine((val) => !isQuillContentEmpty(val), {
+                    message: "Question name is required",
+                }),
                 explanation: z.string().optional(),
                 questionType: z.string().default("MCQS"),
                 questionPenalty: z.string(),
