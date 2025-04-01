@@ -142,13 +142,13 @@ export const uploadQuestionPaperFormSchema = z.object({
                     }
 
                     question.singleChoiceOptions.forEach((opt, index) => {
-                        if (!opt.name && !opt.image?.imageName) {
+                        if (!opt?.name?.trim() && (!opt.image || !opt.image.imageName?.trim())) {
                             ctx.addIssue({
                                 code: z.ZodIssueCode.custom,
                                 message: `Option ${
                                     index + 1
                                 } must have either a name or an imageName`,
-                                path: ["singleChoiceOptions", index],
+                                path: ["singleChoiceOptions", index, "name"],
                             });
                         }
                     });
@@ -186,13 +186,13 @@ export const uploadQuestionPaperFormSchema = z.object({
                     }
 
                     question.multipleChoiceOptions.forEach((opt, index) => {
-                        if (!opt.name && !opt.image?.imageName) {
+                        if (!opt.name?.trim() && (!opt.image || !opt.image.imageName?.trim())) {
                             ctx.addIssue({
                                 code: z.ZodIssueCode.custom,
                                 message: `Option ${
                                     index + 1
                                 } must have either a name or an imageName`,
-                                path: ["multipleChoiceOptions", index],
+                                path: ["multipleChoiceOptions", index, "name"],
                             });
                         }
                     });

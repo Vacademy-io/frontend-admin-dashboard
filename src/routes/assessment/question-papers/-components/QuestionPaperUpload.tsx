@@ -285,6 +285,10 @@ export const QuestionPaperUpload = ({
 
     const onInvalid = (err: unknown) => {
         console.error(err);
+        toast.error("Please fill all the required fields in question paper!", {
+            className: "error-toast",
+            duration: 3000,
+        });
     };
 
     const addDocsFileMutation = useMutation({
