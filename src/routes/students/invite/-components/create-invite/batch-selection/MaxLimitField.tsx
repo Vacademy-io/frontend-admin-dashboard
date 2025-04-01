@@ -75,9 +75,7 @@ export const MaxLimitField = ({
             {isEditing ? (
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-6">
-                        <p className="text-subtitle text-neutral-600">
-                            Allowed limit for {title} preference
-                        </p>
+                        <p className="text-body">Allowed limit for {title} preference</p>
                         <MyInput
                             input={input}
                             inputType="number"
@@ -88,7 +86,7 @@ export const MaxLimitField = ({
                         />
                     </div>
                     <MyButton
-                        buttonType="secondary"
+                        buttonType="primary"
                         scale="medium"
                         layoutVariant="icon"
                         onClick={handleSave}

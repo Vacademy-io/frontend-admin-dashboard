@@ -160,6 +160,7 @@ export const LevelSelection = ({
     // Handle edit button click
     const handleEdit = () => {
         setIsSaved(false);
+        setIsMaxLimitSaved(false);
     };
 
     // Get the current learner choice levels length
@@ -198,7 +199,8 @@ export const LevelSelection = ({
                         </MyButton>
                     </div>
                 ) : localSelectionMode === "student" ? (
-                    learnerChoiceSelected.length > 0 && (
+                    learnerChoiceSelected.length > 0 &&
+                    !isMaxLimitSaved && (
                         <MyButton
                             onClick={handleSaveLevels}
                             className="w-fit"
@@ -209,7 +211,8 @@ export const LevelSelection = ({
                         </MyButton>
                     )
                 ) : localSelectionMode === "institute" ? (
-                    compulsorySelected.length > 0 && (
+                    compulsorySelected.length > 0 &&
+                    !isMaxLimitSaved && (
                         <MyButton
                             onClick={handleSaveLevels}
                             className="w-fit"
@@ -220,7 +223,8 @@ export const LevelSelection = ({
                         </MyButton>
                     )
                 ) : (
-                    (compulsorySelected.length > 0 || learnerChoiceSelected.length > 0) && (
+                    (compulsorySelected.length > 0 || learnerChoiceSelected.length > 0) &&
+                    !isMaxLimitSaved && (
                         <MyButton
                             onClick={handleSaveLevels}
                             className="w-fit"
@@ -230,6 +234,18 @@ export const LevelSelection = ({
                             Save Levels
                         </MyButton>
                     )
+                )}
+                {/* Add MaxLimitField after the level list if learner choice levels exist */}
+                {isSaved && learnerChoiceSelected.length > 0 && (
+                    <div className="mt-2">
+                        <MaxLimitField
+                            title="Level"
+                            maxAllowed={learnerChoiceLength || 10}
+                            maxValue={maxLevels}
+                            onMaxChange={handleMaxLevelChange}
+                            handleIsMaxLimitSaved={handleIsMaxLimitSaved}
+                        />
+                    </div>
                 )}
             </div>
             {!isSaved ? (
@@ -277,19 +293,6 @@ export const LevelSelection = ({
 
                     {selectedLevels.length === 0 && (
                         <p className="text-gray-500">No levels selected</p>
-                    )}
-
-                    {/* Add MaxLimitField after the level list if learner choice levels exist */}
-                    {learnerChoiceSelected.length > 0 && (
-                        <div className="mt-2">
-                            <MaxLimitField
-                                title="Level"
-                                maxAllowed={learnerChoiceLength || 10}
-                                maxValue={maxLevels}
-                                onMaxChange={handleMaxLevelChange}
-                                handleIsMaxLimitSaved={handleIsMaxLimitSaved}
-                            />
-                        </div>
                     )}
                 </div>
             )}

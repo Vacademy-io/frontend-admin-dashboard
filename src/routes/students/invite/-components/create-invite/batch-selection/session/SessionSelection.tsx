@@ -18,7 +18,7 @@ interface SessionSelectionProps {
     isCourseCompulsory: boolean;
     sessionId?: string;
     isSessionCompulsory?: boolean;
-    handleIsAddingSession: (value: boolean) => void;
+    handleIsAddingSession?: (value: boolean) => void;
 }
 
 // Type guard for PreSelectedSession
@@ -147,8 +147,8 @@ export const SessionSelection = ({
     };
 
     useEffect(() => {
-        if (!isEditing && !isLevelAdding) handleIsAddingSession(false);
-        else handleIsAddingSession(true);
+        if (!isEditing && !isLevelAdding) handleIsAddingSession && handleIsAddingSession(false);
+        else handleIsAddingSession && handleIsAddingSession(true);
     }, [isEditing, isLevelAdding]);
 
     const handleSaveSession = () => {
@@ -273,15 +273,15 @@ export const SessionSelection = ({
     return (
         <div className="flex w-full flex-col gap-1 rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-2">
             {isEditing ? (
-                <>
-                    <BatchSelectionMode
-                        title="Session"
-                        parentSelectionMode={isCourseCompulsory ? "institute" : "student"}
-                        mode={selectionMode}
-                        onChangeMode={handleSelectionModeChange}
-                    />
+                sessionOptions.length > 0 && (
+                    <>
+                        <BatchSelectionMode
+                            title="Session"
+                            parentSelectionMode={isCourseCompulsory ? "institute" : "student"}
+                            mode={selectionMode}
+                            onChangeMode={handleSelectionModeChange}
+                        />
 
-                    {sessionOptions.length > 0 && (
                         <div className="flex items-center gap-3">
                             <SelectField
                                 label={`${selectFieldLabel} Session`}
@@ -305,8 +305,8 @@ export const SessionSelection = ({
                                 </MyButton>
                             )}
                         </div>
-                    )}
-                </>
+                    </>
+                )
             ) : (
                 // Display mode - show session name with edit button and LevelSelection component
                 <div className="flex w-full gap-6">

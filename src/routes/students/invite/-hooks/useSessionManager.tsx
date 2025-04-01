@@ -257,6 +257,15 @@ export function useSessionManager(courseId: string, isCourseCompulsory: boolean)
         return null;
     };
 
+    const getCurrentSessions = () => {
+        const { course } = getCourse();
+        return {
+            preSelectedSessions:
+                course && isPreSelectedCourse(course) ? course.preSelectedSessions || [] : [],
+            learnerChoiceSessions: course ? course.learnerChoiceSessions || [] : [],
+        };
+    };
+
     return {
         getCourse,
         getAllAvailableSessions,
@@ -268,5 +277,6 @@ export function useSessionManager(courseId: string, isCourseCompulsory: boolean)
         setMaxSessions,
         changeSessionSelectionMode,
         findSessionById,
+        getCurrentSessions,
     };
 }
