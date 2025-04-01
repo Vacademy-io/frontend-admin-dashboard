@@ -67,6 +67,7 @@ export const uploadQuestionPaperFormSchema = z.object({
                 .optional(),
             singleChoiceOptions: z.array(
                 z.object({
+                    id: z.string().optional(),
                     name: z.string().optional(),
                     isSelected: z.boolean().optional(),
                     image: z.object({
@@ -80,6 +81,7 @@ export const uploadQuestionPaperFormSchema = z.object({
             ),
             multipleChoiceOptions: z.array(
                 z.object({
+                    id: z.string().optional(),
                     name: z.string().optional(),
                     isSelected: z.boolean().optional(),
                     image: z.object({

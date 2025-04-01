@@ -180,8 +180,8 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
         const options =
             question.questionType === "MCQS"
                 ? question.singleChoiceOptions.map((opt, idx) => ({
-                      id: key === "added" ? null : idx, // Set to null if it's a new question
-                      preview_id: idx, // Always use index as preview_id
+                      id: key === "added" ? null : opt.id, // Set to null if it's a new question
+                      preview_id: key === "added" ? idx : opt.id, // Always use index as preview_id
                       question_id: question.questionId,
                       text: {
                           id: null, // Assuming no mapping for text ID
@@ -199,8 +199,8 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
                       },
                   }))
                 : question.multipleChoiceOptions.map((opt, idx) => ({
-                      id: key === "added" ? null : idx, // Set to null if it's a new question
-                      preview_id: idx, // Always use index as preview_id
+                      id: key === "added" ? null : opt.id, // Set to null if it's a new question
+                      preview_id: key === "added" ? idx : opt.id, // Always use index as preview_id
                       question_id: question.questionId,
                       text: {
                           id: null,
@@ -417,6 +417,7 @@ export const transformResponseDataToMyQuestionsSchema = (
 
         if (item.question_type === "MCQS") {
             baseQuestion.singleChoiceOptions = item.options.map((option) => ({
+                id: option.id,
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
                 image: {
@@ -431,6 +432,7 @@ export const transformResponseDataToMyQuestionsSchema = (
                 },
             }));
             baseQuestion.multipleChoiceOptions = Array(4).fill({
+                id: "",
                 name: "",
                 isSelected: false,
                 image: {
@@ -443,6 +445,7 @@ export const transformResponseDataToMyQuestionsSchema = (
             });
         } else if (item.question_type === "MCQM") {
             baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
+                id: option.id,
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
                 image: {
@@ -457,6 +460,7 @@ export const transformResponseDataToMyQuestionsSchema = (
                 },
             }));
             baseQuestion.singleChoiceOptions = Array(4).fill({
+                id: "",
                 name: "",
                 isSelected: false,
                 image: {
