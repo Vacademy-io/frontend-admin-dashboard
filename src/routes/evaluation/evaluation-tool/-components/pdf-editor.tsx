@@ -31,11 +31,10 @@ import { useRouter } from "@tanstack/react-router";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs`;
 
-const PDFEvaluator = ({publicUrl}:{publicUrl?:string}) => {
+const PDFEvaluator = ({file}:{file?:File}) => {
     // File states
-    console.log(publicUrl)
-    const [pdfFile, setPdfFile] = useState<File | null>(null);
-    const [pdfUrl, setPdfUrl] = useState<string | null>(publicUrl || null);
+    const [pdfFile, setPdfFile] = useState<File | null>(file);
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [error, setError] = useState("");
 
     // PDF states
@@ -109,8 +108,7 @@ const PDFEvaluator = ({publicUrl}:{publicUrl?:string}) => {
 
     // Canvas setup
     useEffect(() => {
-        console.log(publicUrl, canvasRef.current, !fabricCanvas)
-        if (publicUrl && canvasRef.current && !fabricCanvas) {
+        if (pdfFile && canvasRef.current && !fabricCanvas) {
             const canvas = new Canvas(canvasRef.current, {
                 width: 600,
                 height: 800,
@@ -136,7 +134,7 @@ const PDFEvaluator = ({publicUrl}:{publicUrl?:string}) => {
             };
         }
         return;
-    }, [pdfFile,publicUrl,loadingDoc]);
+    }, [pdfFile,loadingDoc]);
 
     useEffect(() => {
         setTimeout(() => {
@@ -197,7 +195,6 @@ const PDFEvaluator = ({publicUrl}:{publicUrl?:string}) => {
     // New download function using html2canvas
     const downloadAnnotatedPDF = async () => {
         if (!pdfFile) return;
-
         try {
             // Save current page annotations first
             if (fabricCanvas) {
@@ -327,7 +324,23 @@ const PDFEvaluator = ({publicUrl}:{publicUrl?:string}) => {
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if ((event.key === "Delete" || event.key === "Backspace") && fabricCanvas) {
+            // Check if text is currently selected
+            const isTextSelected = window.getSelection()?.toString().trim() !== '';
+            
+            // Check if the active element is an input, textarea, or has contenteditable attribute
+            const isInputFocused = document.activeElement?.tagName.toLowerCase() === "input" || 
+                                    document.activeElement?.getAttribute('contenteditable') === 'true';
+            
+            // Check if the active canvas object is a text object with an active cursor
+            const isTextObjectActive = fabricCanvas?.getActiveObject()?.type === 'i-text' && 
+                                        (fabricCanvas?.getActiveObject() as fabric.IText)?.isEditing;
+            
+            // Only proceed with delete if none of the above conditions are true
+            if ((event.key === "Delete" || event.key === "Backspace") && 
+                fabricCanvas && 
+                !isTextSelected && 
+                !isInputFocused && 
+                !isTextObjectActive) {
                 event.preventDefault();
                 canvasUtils.deleteSelectedShape();
             }
@@ -609,7 +622,7 @@ const PDFEvaluator = ({publicUrl}:{publicUrl?:string}) => {
                                     >
                                             <ProgressBar progress={progress} />
                                         <Document
-                                            file={pdfUrl}
+                                            file={pdfUrl || file}
                                             onLoadSuccess={({ numPages }) => {
                                                 setNumPages(numPages);
                                                 setDocLoaded(true);
