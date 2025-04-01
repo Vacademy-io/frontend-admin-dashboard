@@ -7,6 +7,12 @@ import {
     ModulesWithChaptersProgressType,
     SubjectWithDetails,
 } from "@/routes/students/students-list/-types/student-subjects-details-types";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
+import { Separator } from "@/components/ui/separator";
+import { MyButton } from "@/components/design-system/button";
+// import { Select } from "@/components/ui/select";
+// import SelectField from "@/components/design-system/select-field";
 
 export const StudentLearningProgress = () => {
     const [currentSubjectDetails, setCurrentSubjectDetails] = useState<SubjectWithDetails | null>(
@@ -16,6 +22,18 @@ export const StudentLearningProgress = () => {
         useState<ModulesWithChaptersProgressType | null>(null);
 
     const { selectedStudent } = useStudentSidebar();
+    const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
+
+    const [batch, setBatch] = useState<BatchForSessionType | null>(null);
+    // const [percentageCompleted, setPercentageCompleted] = useState(0);
+
+    useEffect(() => {
+        setBatch(
+            getDetailsFromPackageSessionId({
+                packageSessionId: selectedStudent?.package_session_id || "",
+            }),
+        );
+    }, [selectedStudent]);
 
     const {
         data: subjectsWithChapters,
@@ -59,7 +77,27 @@ export const StudentLearningProgress = () => {
         return <p>No subject has been created</p>;
 
     return (
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-6">
+            <div className="flex items-center gap-10">
+                <div className="flex flex-col gap-6">
+                    <p className="text-title font-semibold text-primary-500">
+                        {batch?.package_dto.package_name}
+                    </p>
+                    <div className="flex flex-col gap-2">
+                        <p className="text-body">Session: {batch?.session.session_name}</p>
+                        <p className="text-body">Level: {batch?.level.level_name}</p>
+                    </div>
+                </div>
+            </div>
+            <div className="flex items-center justify-between">
+                <MyButton buttonType="secondary" scale="large">
+                    Check Learning Timeline
+                </MyButton>
+                <MyButton buttonType="secondary" scale="large">
+                    Check Learning Progress
+                </MyButton>
+            </div>
+            <Separator />
             <div className="no-scrollbar flex w-full overflow-x-scroll">
                 <div className="flex flex-nowrap">
                     {subjectsWithChapters?.map((subjectData, index) => (
