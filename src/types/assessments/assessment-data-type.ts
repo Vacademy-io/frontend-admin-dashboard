@@ -155,7 +155,7 @@ export interface CustomFieldStep3 {
     options?: { id: string; value: string }[];
     default_value?: string;
     description?: string;
-    key?: string;
+    key: string;
     is_mandatory?: boolean;
 }
 

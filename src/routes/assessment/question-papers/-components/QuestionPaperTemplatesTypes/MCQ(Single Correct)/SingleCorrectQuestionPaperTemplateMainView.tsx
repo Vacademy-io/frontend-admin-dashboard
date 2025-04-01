@@ -12,7 +12,6 @@ import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-t
 import { formatStructure } from "../../../-utils/helper";
 import { OptionImagePreview } from "../../options/MCQ(Single Correct)/OptionImagePreview";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { useEffect } from "react";
 
 export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -22,7 +21,6 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
-    const questions = form.watch("questions");
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const optionsType = getValues("optionsType") || "";
@@ -80,12 +78,6 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
             );
         });
     };
-
-    useEffect(() => {
-        questions.forEach((_, index) => {
-            form.trigger(`questions.${index}.questionName`);
-        });
-    }, [questions, form.trigger]);
 
     if (allQuestions.length === 0) {
         return (
