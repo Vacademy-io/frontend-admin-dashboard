@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useCourseManager } from "../../../../-hooks/useCourseManager";
 import { CourseSelection } from "./CourseSelection";
 import { MaxLimitField } from "../MaxLimitField";
+import { TrashSimple } from "phosphor-react";
 
 export const CourseList = () => {
     const { form } = useInviteFormContext();
@@ -15,6 +16,7 @@ export const CourseList = () => {
         hasValidLearnerChoiceCourseStructure,
         isValidPreSelectedCourse,
         isValidLearnerChoiceCourse,
+        deleteCourse, // Import the deleteCourse function from useCourseManager
     } = useCourseManager();
     const [isAddingCourse, setIsAddingCourse] = useState(false);
     const [isMaxLimitSaved, setIsMaxLimitSaved] = useState(false);
@@ -46,8 +48,20 @@ export const CourseList = () => {
     };
 
     // Handle save all button click
-    const handleSaveAll = () => {
-        setIsAddingCourse(false);
+    // const handleSaveAll = () => {
+    //     setIsAddingCourse(false);
+    // };
+
+    // Handle course deletion
+    const handleDeleteCourse = (courseId: string) => {
+        const success = deleteCourse(courseId);
+        if (success) {
+            console.log("Course deleted successfully:", courseId);
+            // The form state will be updated automatically through the form context
+            // and the component will re-render with the updated batchData
+        } else {
+            console.error("Failed to delete course:", courseId);
+        }
     };
 
     useEffect(() => {
@@ -63,7 +77,7 @@ export const CourseList = () => {
                     <p className="text-title font-semibold">Batches</p>
 
                     {/* Show Save All button when not adding a course */}
-                    {!isAddingCourse &&
+                    {/* {!isAddingCourse &&
                         (batchData.preSelectedCourses.length > 0 ||
                             batchData.learnerChoiceCourses.length > 0) && (
                             <MyButton
@@ -74,7 +88,7 @@ export const CourseList = () => {
                             >
                                 Save All
                             </MyButton>
-                        )}
+                        )} */}
 
                     {/* MaxLimitField will handle its own editing/saving state */}
                     {(batchData.preSelectedCourses.length > 0 ||
@@ -101,47 +115,58 @@ export const CourseList = () => {
                     batchData.preSelectedCourses.map(
                         (course, key) =>
                             isValidPreSelectedCourse(course) && (
-                                // <CourseSelection
-                                //     courseId={course.id}
-                                //     isCourseCompulsory={true}
-                                //     handleIsAddingCourse={handleIsAddingCourse}
-                                // />
-                                <div key={key}>
-                                    <p>Pre selected Course name: {course.name}</p>
-                                    {course.preSelectedSessions.length && (
-                                        <p>Pre selection sessions</p>
-                                    )}
-                                    {course.preSelectedSessions.map((session, key1) => (
-                                        <div key={key1}>
-                                            <p>Session name: {session.name}</p>
-                                            {session.preSelectedLevels && (
-                                                <p>Pre selected levels</p>
-                                            )}
-                                            {session.preSelectedLevels.map((level, key2) => (
-                                                <p key={key2}>level name: {level.name}</p>
-                                            ))}
-                                            {session.learnerChoiceLevels && (
-                                                <p>learner choice levels</p>
-                                            )}
-                                            {session.learnerChoiceLevels.map((level, key2) => (
-                                                <p key={key2}>level name: {level.name}</p>
-                                            ))}
-                                        </div>
-                                    ))}
-                                    {course.learnerChoiceSessions.length && (
-                                        <p>Learner choice sessions</p>
-                                    )}
-                                    {course.learnerChoiceSessions.map((session, key1) => (
-                                        <div key={key1}>
-                                            <p>Session name: {session.name}</p>
-                                            {session.learnerChoiceLevels && (
-                                                <p>learner choice levels</p>
-                                            )}
-                                            {session.learnerChoiceLevels.map((level, key2) => (
-                                                <p key={key2}>level name: {level.name}</p>
-                                            ))}
-                                        </div>
-                                    ))}
+                                <div
+                                    key={key}
+                                    className="flex justify-between rounded-lg border border-neutral-300 bg-primary-50 p-4"
+                                >
+                                    <div>
+                                        <p>Pre selected Course name: {course.name}</p>
+                                        {course.preSelectedSessions.length > 0 && (
+                                            <p>Pre selection sessions</p>
+                                        )}
+                                        {course.preSelectedSessions.map((session, key1) => (
+                                            <div key={key1}>
+                                                <p>Session name: {session.name}</p>
+                                                {session.preSelectedLevels &&
+                                                    session.preSelectedLevels.length > 0 && (
+                                                        <p>Pre selected levels</p>
+                                                    )}
+                                                {session.preSelectedLevels.map((level, key2) => (
+                                                    <p key={key2}>level name: {level.name}</p>
+                                                ))}
+                                                {session.learnerChoiceLevels &&
+                                                    session.learnerChoiceLevels.length > 0 && (
+                                                        <p>learner choice levels</p>
+                                                    )}
+                                                {session.learnerChoiceLevels.map((level, key2) => (
+                                                    <p key={key2}>level name: {level.name}</p>
+                                                ))}
+                                            </div>
+                                        ))}
+                                        {course.learnerChoiceSessions.length > 0 && (
+                                            <p>Learner choice sessions</p>
+                                        )}
+                                        {course.learnerChoiceSessions.map((session, key1) => (
+                                            <div key={key1}>
+                                                <p>Session name: {session.name}</p>
+                                                {session.learnerChoiceLevels &&
+                                                    session.learnerChoiceLevels.length > 0 && (
+                                                        <p>learner choice levels</p>
+                                                    )}
+                                                {session.learnerChoiceLevels.map((level, key2) => (
+                                                    <p key={key2}>level name: {level.name}</p>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="small"
+                                        onClick={() => handleDeleteCourse(course.id)}
+                                        type="button"
+                                    >
+                                        <TrashSimple className="text-danger-600" />
+                                    </MyButton>
                                 </div>
                             ),
                     )}
@@ -151,30 +176,38 @@ export const CourseList = () => {
                     batchData.learnerChoiceCourses.map(
                         (course, key) =>
                             isValidLearnerChoiceCourse(course) && (
-                                <div key={key}>
-                                    <p>Learner choice Course name: {course.name}</p>
-                                    {course.learnerChoiceSessions.length && (
-                                        <p>Learner choice sessions</p>
-                                    )}
-                                    {course.learnerChoiceSessions.map((session, key1) => (
-                                        <div key={key1}>
-                                            <p>Session name: {session.name}</p>
-                                            {session.learnerChoiceLevels && (
-                                                <p>learner choice levels</p>
-                                            )}
-                                            {session.learnerChoiceLevels.map((level, key2) => (
-                                                <p key={key2}>level name: {level.name}</p>
-                                            ))}
-                                        </div>
-                                    ))}
+                                <div
+                                    key={key}
+                                    className="flex justify-between rounded-lg border border-neutral-300 bg-primary-50 p-4"
+                                >
+                                    <div>
+                                        <p>Learner choice Course name: {course.name}</p>
+                                        {course.learnerChoiceSessions.length > 0 && (
+                                            <p>Learner choice sessions</p>
+                                        )}
+                                        {course.learnerChoiceSessions.map((session, key1) => (
+                                            <div key={key1}>
+                                                <p>Session name: {session.name}</p>
+                                                {session.learnerChoiceLevels &&
+                                                    session.learnerChoiceLevels.length > 0 && (
+                                                        <p>learner choice levels</p>
+                                                    )}
+                                                {session.learnerChoiceLevels.map((level, key2) => (
+                                                    <p key={key2}>level name: {level.name}</p>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="small"
+                                        onClick={() => handleDeleteCourse(course.id)}
+                                        type="button"
+                                    >
+                                        <TrashSimple className="text-danger-600" />
+                                    </MyButton>
                                 </div>
                             ),
-                        // <CourseSelection
-                        //     courseId={course.id}
-                        //     isCourseCompulsory={false}
-                        //     key={key}
-                        //     handleIsAddingCourse={handleIsAddingCourse}
-                        // />
                     )}
             </div>
 
