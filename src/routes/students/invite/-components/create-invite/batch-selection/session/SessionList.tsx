@@ -47,7 +47,7 @@ export const SessionList = ({
         preSelectedSessions: [],
         learnerChoiceSessions: course?.learnerChoiceSessions || [],
     });
-    const currentMaxSessions = maxSessions || course?.maxSessions || 0;
+    const currentMaxSessions = maxSessions || course?.maxSessions || 1;
     const [isLevelSaved, setIsLevelSaved] = useState(false);
     const handleIsLevelSaved = (value: boolean) => setIsLevelSaved(value);
 
@@ -101,7 +101,7 @@ export const SessionList = ({
                 {!isAddingSession && sessions.learnerChoiceSessions.length > 0 && sessionsSaved && (
                     <MaxLimitField
                         title="Session"
-                        maxAllowed={10}
+                        maxAllowed={sessions.learnerChoiceSessions.length}
                         maxValue={currentMaxSessions}
                         onMaxChange={handleMaxSessionsChange}
                         handleIsMaxLimitSaved={handleIsMaxLimitSaved}

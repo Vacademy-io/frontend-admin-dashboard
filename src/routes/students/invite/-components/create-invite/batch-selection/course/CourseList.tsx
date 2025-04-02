@@ -35,7 +35,7 @@ export const CourseList = () => {
     }, [watch("batches")]);
 
     // Default to 0 if maxSessions not provided in props and not on course
-    const currentMaxCourses = batchData?.maxCourses || 0;
+    const currentMaxCourses = batchData?.maxCourses || 1;
 
     // Handle max sessions change
     const handleMaxCoursesChange = (value: number) => {
@@ -81,7 +81,7 @@ export const CourseList = () => {
                         batchData.learnerChoiceCourses.length > 0) && (
                         <MaxLimitField
                             title="Course"
-                            maxAllowed={10}
+                            maxAllowed={batchData.learnerChoiceCourses.length}
                             maxValue={currentMaxCourses}
                             onMaxChange={handleMaxCoursesChange}
                             handleIsMaxLimitSaved={handleIsMaxLimitSaved}
