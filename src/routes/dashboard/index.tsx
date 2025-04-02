@@ -134,7 +134,9 @@ export function DashboardComponent() {
                             </MyButton>
                         </div>
                         <CardDescription className="flex items-center gap-2">
-                            <CompletionStatusComponent />
+                            <CompletionStatusComponent
+                                profileCompletionPercentage={data.profile_completion_percentage}
+                            />
                             <span>{data.profile_completion_percentage}% complete</span>
                         </CardDescription>
                     </CardHeader>
