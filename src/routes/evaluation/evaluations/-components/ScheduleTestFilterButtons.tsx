@@ -34,8 +34,7 @@ const ScheduleTestFilterButtons = ({
             tag_ids?.length > 0 ||
             assessment_statuses?.length > 0 ||
             assessment_modes?.length > 0 ||
-            access_statuses?.length > 0 ||
-            evaluation_types?.length > 0
+            access_statuses?.length > 0 
         );
     };
     return (

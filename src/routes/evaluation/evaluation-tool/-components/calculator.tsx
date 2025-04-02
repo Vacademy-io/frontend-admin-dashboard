@@ -24,6 +24,13 @@ export default function Calculator({
     };
 
     const inputDigit = (digit: string) => {
+        // If we just completed an equals operation (operator is null), reset the display
+        if (operator === null && firstOperand !== null) {
+            setDisplay(digit);
+            setFirstOperand(null);
+            return;
+        }
+
         if (waitingForSecondOperand) {
             setDisplay(digit);
             setWaitingForSecondOperand(false);
@@ -111,7 +118,12 @@ export default function Calculator({
         <MyDialog heading="Calculator" open={open} onOpenChange={onOpenChange}>
             <div className="mx-auto flex size-3/4 flex-col overflow-hidden rounded-2xl bg-slate-50">
                 {/* Display */}
-                <div className="flex h-1/4 items-end justify-end bg-slate-100 p-6 text-black">
+                <div className="flex h-1/4 items-end justify-end bg-slate-100 p-6 text-black relative">
+                    {operator && (
+                        <div className="absolute top-2 left-2 text-[22px] text-gray-500">
+                            {operator}
+                        </div>
+                    )}
                     <div className="truncate text-5xl font-light">{display}</div>
                 </div>
 

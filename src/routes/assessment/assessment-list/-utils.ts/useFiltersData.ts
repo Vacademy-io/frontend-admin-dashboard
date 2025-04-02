@@ -70,8 +70,8 @@ export const useFilterDataForAssesmentInitData = (initData: AssessmentDetailsTyp
 
     const EvaluationTypeData = useMemo(() => {
         return (
-            initData?.evaluation_types?.map((data, idx) => ({
-                id: String(idx),
+            initData?.evaluation_types?.map((data) => ({
+                id: String(data),
                 name: data,
             })) || []
         );
