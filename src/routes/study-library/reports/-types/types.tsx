@@ -15,6 +15,11 @@ export interface BatchReportResponse {
     daily_time_spent: DailyLearnerTimeSpent[];
 }
 
+export interface LearnersReportResponse {
+    learner_progress_report: BatchReportResponse;
+    batch_progress_report: BatchReportResponse;
+}
+
 export interface LearnerReport {
     daily_avg_time: number;
     avg_concentration: number;
@@ -33,6 +38,26 @@ export const activityLogColumns: ColumnDef<{ date: string; timeSpent: string }>[
     {
         accessorKey: "timeSpent",
         header: "Time Spent",
+    },
+];
+
+export interface TransformedReport {
+    date: string;
+    timeSpent: string;
+    timeSpentBatch: string;
+}
+export const learnersReportColumns: ColumnDef<TransformedReport>[] = [
+    {
+        accessorKey: "date",
+        header: "Date",
+    },
+    {
+        accessorKey: "timeSpent",
+        header: "Time Spent",
+    },
+    {
+        accessorKey: "timeSpentBatch",
+        header: "Time Spent By Batch (Avg)",
     },
 ];
 
@@ -71,6 +96,11 @@ export const CONCENTRATION_SCORE: ColumnWidthConfig = {
     date: "w-[60px]",
     timeSpent: "w-[50px]",
 };
+export const LEARNERS_REPORTS_COLUMNS: ColumnWidthConfig = {
+    date: "w-[70px]",
+    timeSpent: "w-[50px]",
+    timeSpentBatch: "w-[70px]",
+};
 
 export const LEADERBOARD_WIDTH: Record<keyof LeaderBoardColumnType, string> = {
     rank: "w-[60px]",
@@ -102,6 +132,7 @@ export interface SubjectOverviewColumnType {
     average_time_spent: string;
     details?: string;
     module_id: string;
+    user_id?: string;
 }
 export const SubjectOverviewColumns: ColumnDef<SubjectOverviewColumnType>[] = [
     {
@@ -129,6 +160,10 @@ export const SubjectOverviewColumns: ColumnDef<SubjectOverviewColumnType>[] = [
         header: "",
         cell: ({ row }) => <ViewDetails row={row} />,
     },
+    {
+        accessorKey: "user_id",
+        header: "",
+    },
 ];
 
 export const SUBJECT_OVERVIEW_WIDTH: Record<keyof SubjectOverviewColumnType, string> = {
@@ -138,6 +173,7 @@ export const SUBJECT_OVERVIEW_WIDTH: Record<keyof SubjectOverviewColumnType, str
     average_time_spent: "w-[200px]",
     details: "w-[100px]",
     module_id: "w-[0px]",
+    user_id: "w-[0px]",
 };
 
 export const df = () => {
@@ -183,4 +219,65 @@ export const CHAPTER_OVERVIEW_WIDTH: Record<keyof ChapterOverviewColumnType, str
     study_slide: "w-[300px]",
     batch_concentration_score: "w-[300px]",
     average_time_spent: "w-[300px]",
+};
+
+interface SlideDetail {
+    slide_id: string;
+    slide_title: string;
+    chapter_id: string;
+    chapter_name: string;
+    module_id: string;
+    module_name: string;
+    subject_id: string;
+    subject_name: string;
+    concentration_score: number;
+    time_spent: string;
+}
+
+export interface SlideData {
+    date: string;
+    slide_details: SlideDetail[];
+}
+export interface SlidesColumnType {
+    study_slide: string;
+    subject: string;
+    module: string;
+    chapter: string;
+    concentration_score: string;
+    time_spent: string;
+}
+
+export const SlidesColumns: ColumnDef<SlidesColumnType>[] = [
+    {
+        accessorKey: "study_slide",
+        header: "Study Slide",
+    },
+    {
+        accessorKey: "subject",
+        header: "Suject",
+    },
+    {
+        accessorKey: "module",
+        header: "Module",
+    },
+    {
+        accessorKey: "chapter",
+        header: "Chapter",
+    },
+    {
+        accessorKey: "concentration_score",
+        header: "Concentration Score",
+    },
+    {
+        accessorKey: "time_spent",
+        header: "Time Spent",
+    },
+];
+export const SLIDES_WIDTH: Record<keyof SlidesColumnType, string> = {
+    study_slide: "min-w-[300px]",
+    subject: "w-[200px]",
+    module: "w-[200px]",
+    chapter: "w-[200px]",
+    concentration_score: "w-[150px]",
+    time_spent: "w-[150px]",
 };

@@ -45,14 +45,7 @@ export default function ProgressReports() {
     const [levelList, setLevelList] = useState<LevelType[]>([]);
     const [subjectReportData, setSubjectReportData] = useState<SubjectProgressResponse>();
     const tableState = { columnVisibility: { module_id: false } };
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        watch,
-        trigger,
-        formState: { errors },
-    } = useForm<FormValues>({
+    const { register, handleSubmit, setValue, watch, trigger } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             course: "",
@@ -60,7 +53,6 @@ export default function ProgressReports() {
             level: "",
         },
     });
-    console.log(errors);
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
     const transformToSubjectOverview = (
@@ -113,7 +105,6 @@ export default function ProgressReports() {
     }, [selectedSession]);
 
     const onSubmit = (data: FormValues) => {
-        console.log("Submitted Data:", data);
         // api call
         SubjectWiseMutation.mutate(
             {
@@ -126,7 +117,6 @@ export default function ProgressReports() {
             },
             {
                 onSuccess: (data) => {
-                    console.log("Success:", data);
                     setSubjectReportData(data);
                 },
                 onError: (error) => {

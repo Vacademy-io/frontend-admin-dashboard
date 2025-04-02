@@ -49,7 +49,7 @@ const MultipleInput = ({ itemsList, onListChange }: MultipleInputProps) => {
             </div>
 
             <div className="flex flex-wrap gap-2">
-                {list.map((item) => (
+                {list?.map((item) => (
                     <div
                         key={item}
                         className="flex w-fit flex-row items-center gap-2 rounded-lg border px-3 py-1"
