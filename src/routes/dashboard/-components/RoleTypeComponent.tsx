@@ -17,6 +17,7 @@ import { fetchInstituteDashboardUsers } from "../-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useMutation } from "@tanstack/react-query";
 import { useRefetchUsersStore } from "../-global-states/refetch-store-users";
+import { countAdminRoles } from "../-utils/helper";
 
 export interface RoleTypeSelectedFilter {
     roles: { id: string; name: string }[];
@@ -26,7 +27,18 @@ export interface RoleTypeSelectedFilter {
 // Type for tabs
 type TabKey = keyof RolesDummyDataType;
 
-const RoleTypeComponent = () => {
+interface RoleTypeProps {
+    setRoleTypeCount: React.Dispatch<
+        React.SetStateAction<{
+            ADMIN: number;
+            "COURSE CREATOR": number;
+            "ASSESSMENT CREATOR": number;
+            EVALUATOR: number;
+        }>
+    >;
+}
+
+const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
     const setHandleRefetchUsersData = useRefetchUsersStore(
         (state) => state.setHandleRefetchUsersData,
     );
@@ -170,6 +182,17 @@ const RoleTypeComponent = () => {
             clearTimeout(timeoutId);
         };
     };
+
+    useEffect(() => {
+        const cnt1 = countAdminRoles(dashboardUsers.instituteUsers);
+        const cnt2 = countAdminRoles(dashboardUsers.invites);
+        setRoleTypeCount({
+            ADMIN: cnt1.ADMIN + cnt2.ADMIN,
+            "COURSE CREATOR": cnt1["COURSE CREATOR"] + cnt2["COURSE CREATOR"],
+            "ASSESSMENT CREATOR": cnt1["ASSESSMENT CREATOR"] + cnt2["ASSESSMENT CREATOR"],
+            EVALUATOR: cnt1.EVALUATOR + cnt2.EVALUATOR,
+        });
+    }, [dashboardUsers]);
 
     // Define the handleRefetchData function here
     useEffect(() => {
