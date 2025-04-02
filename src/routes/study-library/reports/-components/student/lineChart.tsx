@@ -27,10 +27,8 @@ export interface ChartDataType {
     avg_daily_time_minutes_batch: number;
 }
 export function LineChartComponent({ chartData }: { chartData: ChartDataType[] }) {
-    console.log(chartData);
     return (
         <Card className="w-[65%]">
-            {/* <CardContent className="h-[520px] border-none"> */}
             <ChartContainer className="h-[530px] w-full pb-6 pt-6" config={chartConfig}>
                 <LineChart
                     accessibilityLayer

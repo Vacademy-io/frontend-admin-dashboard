@@ -132,7 +132,6 @@ export default function TimelineReports() {
     }, [sessionList]);
 
     useEffect(() => {
-        console.log(pacageSessionId);
         leaderboardMutation.mutate(
             {
                 body: {
@@ -211,7 +210,6 @@ export default function TimelineReports() {
                 onSuccess: (data) => {
                     setTotalPage(data.totalPages);
                     setleaderboardData(data.content);
-
                     setLoading(false);
                 },
                 onError: (error) => {

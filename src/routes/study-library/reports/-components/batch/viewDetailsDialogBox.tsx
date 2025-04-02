@@ -40,7 +40,6 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                     },
                     {
                         onSuccess: (data) => {
-                            console.log("Success:", data);
                             setChapterReportData(data);
                         },
                         onError: (error) => {
@@ -56,7 +55,6 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                     },
                     {
                         onSuccess: (data) => {
-                            console.log("Success:", data);
                             setChapterReportData(data);
                         },
                         onError: (error) => {

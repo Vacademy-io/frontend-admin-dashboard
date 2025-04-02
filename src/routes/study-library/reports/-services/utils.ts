@@ -69,7 +69,6 @@ export const fetchChapterWiseProgress = async (data: {
 
         return response.data;
     } catch (error) {
-        console.error("Failed to fetch chapter-wise progress:", error);
         return null;
     }
 };
@@ -87,7 +86,6 @@ export const fetchLearnersChapterWiseProgress = async (data: {
 
         return response.data;
     } catch (error) {
-        console.error("Failed to fetch chapter-wise progress:", error);
         return null;
     }
 };
@@ -103,7 +101,6 @@ export const fetchSubjectWiseProgress = async (data: { packageSessionId: string 
 
         return response.data;
     } catch (error) {
-        console.error("Failed to fetch subject-wise progress:", error);
         return null;
     }
 };
@@ -121,7 +118,6 @@ export const fetchLearnersSubjectWiseProgress = async (data: {
 
         return response.data;
     } catch (error) {
-        console.error("Failed to fetch subject-wise progress:", error);
         return null;
     }
 };
@@ -141,7 +137,7 @@ export const fetchSlideWiseProgress = async (data: {
         });
         return response.data;
     } catch (error) {
-        console.error("Error fetching slide-wise progress:", error);
+        console.error(error);
         throw error;
     }
 };

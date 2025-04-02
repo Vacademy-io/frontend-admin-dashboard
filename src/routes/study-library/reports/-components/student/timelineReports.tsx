@@ -146,7 +146,6 @@ export default function TimelineReports() {
     }, [data]);
 
     const onSubmit = (data: FormValues) => {
-        console.log("Submitted Data:", data);
         generateReportMutation.mutate(
             {
                 start_date: data.startDate,
@@ -161,7 +160,6 @@ export default function TimelineReports() {
             },
             {
                 onSuccess: (data) => {
-                    console.log("Success:", data);
                     setReportData(data);
                 },
                 onError: (error) => {
@@ -183,7 +181,6 @@ export default function TimelineReports() {
             },
             {
                 onSuccess: (data) => {
-                    console.log("Success:", data);
                     setSlideData(data);
                 },
                 onError: (error) => {
@@ -224,7 +221,7 @@ export default function TimelineReports() {
                                 <SelectValue placeholder="Select a Course" />
                             </SelectTrigger>
                             <SelectContent>
-                                {courseList.map((course) => (
+                                {courseList?.map((course) => (
                                     <SelectItem key={course.id} value={course.id}>
                                         {course.name}
                                     </SelectItem>
@@ -248,7 +245,7 @@ export default function TimelineReports() {
                                 <SelectValue placeholder="Select a Session" />
                             </SelectTrigger>
                             <SelectContent>
-                                {sessionList.map((session) => (
+                                {sessionList?.map((session) => (
                                     <SelectItem key={session.id} value={session.id}>
                                         {session.name}
                                     </SelectItem>
@@ -272,7 +269,7 @@ export default function TimelineReports() {
                                 <SelectValue placeholder="Select a Level" />
                             </SelectTrigger>
                             <SelectContent>
-                                {levelList.map((level) => (
+                                {levelList?.map((level) => (
                                     <SelectItem key={level.id} value={level.id}>
                                         {level.level_name}
                                     </SelectItem>
@@ -305,7 +302,7 @@ export default function TimelineReports() {
                                 />
                                 <CommandList>
                                     {filteredStudents.length > 0 ? (
-                                        filteredStudents.map((student, index) => (
+                                        filteredStudents?.map((student, index) => (
                                             <SelectItem
                                                 key={index}
                                                 value={student.user_id}
@@ -352,7 +349,7 @@ export default function TimelineReports() {
                     <div className="mt-4 text-red-500">
                         <h4 className="font-semibold">Please fix the following errors:</h4>
                         <ul className="ml-4 list-disc">
-                            {Object.entries(errors).map(([key, error]) => (
+                            {Object.entries(errors)?.map(([key, error]) => (
                                 <li key={key}>{error.message}</li>
                             ))}
                         </ul>
@@ -459,7 +456,7 @@ export default function TimelineReports() {
                             <div className="text-h3 font-[600] text-primary-500">
                                 Learning Timeline
                             </div>
-                            {slideData.map((slide, idx) => (
+                            {slideData?.map((slide, idx) => (
                                 <div key={idx} className="flex flex-col gap-1">
                                     <div className="flex flex-row gap-1 font-[600]">
                                         Date:{" "}
@@ -469,7 +466,7 @@ export default function TimelineReports() {
                                     </div>
                                     <MyTable
                                         data={{
-                                            content: slide.slide_details.map((slide) => ({
+                                            content: slide.slide_details?.map((slide) => ({
                                                 study_slide: slide.slide_title,
                                                 subject: slide.subject_name,
                                                 module: slide.module_name,

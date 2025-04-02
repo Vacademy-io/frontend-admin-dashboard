@@ -120,7 +120,6 @@ export default function ProgressReports() {
     const { isPending, error } = SubjectWiseMutation;
 
     const onSubmit = (data: FormValues) => {
-        console.log("Submitted Data:", data);
         SubjectWiseMutation.mutate(
             {
                 packageSessionId:
@@ -133,7 +132,6 @@ export default function ProgressReports() {
             },
             {
                 onSuccess: (data) => {
-                    console.log("Success:", data);
                     setSubjectReportData(data);
                 },
                 onError: (error) => {
