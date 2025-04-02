@@ -11,38 +11,60 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyTable } from "@/components/design-system/table";
-import { fetchChapterWiseProgress } from "../../-services/utils";
+import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress } from "../../-services/utils";
 import { usePacageDetails } from "../../-store/usePacageDetails";
 import dayjs from "dayjs";
+import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
 
 export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
     const [chapterReportData, setChapterReportData] = useState<ChapterReport>();
     const { pacageSessionId, course, session, level } = usePacageDetails();
-    console.log(row.getValue("module_id"));
     const ChapterWiseMutation = useMutation({
         mutationFn: fetchChapterWiseProgress,
     });
-    const { isPending, error } = ChapterWiseMutation;
+    const LearnersChapterWiseMutation = useMutation({
+        mutationFn: fetchLearnersChapterWiseProgress,
+    });
+    const { isPending: isChapterPending, error: chapterError } = ChapterWiseMutation;
+    const { isPending: isLearnerPending, error: learnerError } = LearnersChapterWiseMutation;
     const date = new Date().toString();
     const currDate = dayjs(date).format("DD/MM/YYYY");
     useEffect(() => {
         if (viewDetailsState) {
-            ChapterWiseMutation.mutate(
-                {
-                    packageSessionId: pacageSessionId,
-                    moduleId: row.getValue("module_id"),
-                },
-                {
-                    onSuccess: (data) => {
-                        console.log("Success:", data);
-                        setChapterReportData(data);
+            if (row.getValue("user_id")) {
+                LearnersChapterWiseMutation.mutate(
+                    {
+                        userId: row.getValue("user_id"),
+                        moduleId: row.getValue("module_id"),
                     },
-                    onError: (error) => {
-                        console.error("Error:", error);
+                    {
+                        onSuccess: (data) => {
+                            console.log("Success:", data);
+                            setChapterReportData(data);
+                        },
+                        onError: (error) => {
+                            console.error("Error:", error);
+                        },
                     },
-                },
-            );
+                );
+            } else {
+                ChapterWiseMutation.mutate(
+                    {
+                        packageSessionId: pacageSessionId,
+                        moduleId: row.getValue("module_id"),
+                    },
+                    {
+                        onSuccess: (data) => {
+                            console.log("Success:", data);
+                            setChapterReportData(data);
+                        },
+                        onError: (error) => {
+                            console.error("Error:", error);
+                        },
+                    },
+                );
+            }
         }
     }, [viewDetailsState]);
 
@@ -72,7 +94,7 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                         <div>Subject: {row.getValue("subject")}</div>
                         <div>Module: {row.getValue("module")}</div>
                     </div>
-                    {isPending && <DashboardLoader height="10vh" />}
+                    {(isChapterPending || isLearnerPending) && <DashboardLoader height="10vh" />}
                     {chapterReportData &&
                         chapterReportData.map((chapter) => (
                             <div key={chapter.chapter_id} className="flex flex-col gap-6">
@@ -88,11 +110,12 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                         content:
                                             chapter.slides?.map((slide) => ({
                                                 study_slide: slide.slide_title,
-                                                batch_concentration_score:
-                                                    slide.avg_concentration_score.toFixed(2), // Formatting as string
-                                                average_time_spent: `${slide.avg_time_spent.toFixed(
-                                                    2,
-                                                )} mins`,
+                                                batch_concentration_score: `${formatToTwoDecimalPlaces(
+                                                    slide.avg_concentration_score,
+                                                )} %`,
+                                                average_time_spent: `${convertMinutesToTimeFormat(
+                                                    slide.avg_time_spent,
+                                                )}`,
                                             })) || [],
                                         total_pages: 0,
                                         page_no: 0,
@@ -101,8 +124,8 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                                         last: false,
                                     }}
                                     columns={ChapterOverviewColumns} // Use correct column config
-                                    isLoading={isPending}
-                                    error={error}
+                                    isLoading={isChapterPending || isLearnerPending}
+                                    error={chapterError || learnerError}
                                     columnWidths={CHAPTER_OVERVIEW_WIDTH} // Ensure this width config matches
                                     currentPage={0}
                                 />
