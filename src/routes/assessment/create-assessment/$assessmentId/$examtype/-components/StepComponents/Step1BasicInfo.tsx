@@ -32,6 +32,9 @@ import { useParams } from "@tanstack/react-router";
 import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
+import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
+import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
+import { useAccessControlStore } from "../../-utils/zustand-global-states/step4-access-control";
 
 export function convertDateFormat(dateStr: string) {
     const date = new Date(dateStr);
@@ -42,14 +45,32 @@ export function convertDateFormat(dateStr: string) {
 
 const heading = (
     <div className="flex items-center gap-4">
-        <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
+        <CaretLeft
+            onClick={() => {
+                useBasicInfoStore.getState().reset();
+                useSectionDetailsStore.getState().reset();
+                useTestAccessStore.getState().reset();
+                useAccessControlStore.getState().reset();
+                window.history.back();
+            }}
+            className="cursor-pointer"
+        />
         <h1 className="text-lg">Create Assessment</h1>
     </div>
 );
 
 const headingUpdate = (
     <div className="flex items-center gap-4">
-        <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
+        <CaretLeft
+            onClick={() => {
+                useBasicInfoStore.getState().reset();
+                useSectionDetailsStore.getState().reset();
+                useTestAccessStore.getState().reset();
+                useAccessControlStore.getState().reset();
+                window.history.back();
+            }}
+            className="cursor-pointer"
+        />
         <h1 className="text-lg">Update Assessment</h1>
     </div>
 );
