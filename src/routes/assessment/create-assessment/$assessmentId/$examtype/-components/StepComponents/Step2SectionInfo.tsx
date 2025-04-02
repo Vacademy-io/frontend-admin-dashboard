@@ -784,7 +784,6 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
-                {/* will be adding this later
                 {examtype !== "SURVEY" && (
                     <FormField
                         control={form.control}
@@ -810,7 +809,7 @@ export const Step2SectionInfo = ({
                             </FormItem>
                         )}
                     />
-                )} */}
+                )}
                 {Boolean(allSections?.[index]?.adaptive_marking_for_each_question?.length) && (
                     <div>
                         <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
