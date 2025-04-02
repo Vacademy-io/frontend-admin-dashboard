@@ -246,7 +246,7 @@ export const convertCustomFields = (customFields: CustomFields): ConvertedCustom
             default_value: "", // Provide a default value, if necessary
             description: "", // Provide a description, if necessary
             is_mandatory: field.isRequired,
-            key: "", // Use the ID as the key
+            key: field.key ?? "", // Use the ID as the key
             comma_separated_options: field.options
                 ? field.options.map((opt) => opt.value).join(",")
                 : "", // Join options for dropdowns

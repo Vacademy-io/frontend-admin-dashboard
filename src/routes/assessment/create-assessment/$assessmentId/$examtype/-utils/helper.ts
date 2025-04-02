@@ -532,6 +532,7 @@ export function convertToCustomFieldsData(data: RegistrationFormField[] | undefi
                 ? true
                 : false,
         isRequired: field.is_mandatory,
+        key: field.field_key,
         ...(field.field_type === "dropdown" && {
             options: field.comma_separated_options.split(",").map((value, index) => ({
                 id: String(index),
@@ -550,6 +551,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             name: "Full Name",
             oldKey: true,
             isRequired: true,
+            key: "full_name",
         },
         {
             id: "1",
@@ -557,6 +559,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             name: "Email",
             oldKey: true,
             isRequired: true,
+            key: "email",
         },
         {
             id: "2",
@@ -564,6 +567,7 @@ export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
             name: "Phone Number",
             oldKey: true,
             isRequired: true,
+            key: "phone_number",
         },
     ];
 
@@ -590,7 +594,7 @@ export const convertToCustomFieldSchema = (field: CustomFieldStep3): ConvertedCu
         default_value: "", // Provide a default value, if necessary
         description: "", // Provide a description, if necessary
         is_mandatory: field.isRequired,
-        key: "", // Use the ID as the key
+        key: field.key, // Use the ID as the key
         comma_separated_options: field.options
             ? field.options.map((opt) => opt.value).join(",")
             : "", // Join options for dropdowns
