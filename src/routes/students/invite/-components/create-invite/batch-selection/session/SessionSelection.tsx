@@ -19,6 +19,7 @@ interface SessionSelectionProps {
     sessionId?: string;
     isSessionCompulsory?: boolean;
     handleIsAddingSession?: (value: boolean) => void;
+    handleIsLevelSaved: (value: boolean) => void;
 }
 
 // Type guard for PreSelectedSession
@@ -33,6 +34,7 @@ export const SessionSelection = ({
     sessionId,
     isSessionCompulsory,
     handleIsAddingSession,
+    handleIsLevelSaved,
 }: SessionSelectionProps) => {
     const { form } = useInviteFormContext();
     const [selectionMode, setSelectionMode] = useState<SelectionMode>(
@@ -253,6 +255,7 @@ export const SessionSelection = ({
                     {...commonProps}
                     preSelectedLevels={sessionDetails.preSelectedLevels}
                     handleIsLevelAdding={handleIsLevelAdding}
+                    handleIsLevelSaved={handleIsLevelSaved}
                 />
             );
         } else {
@@ -261,6 +264,7 @@ export const SessionSelection = ({
                     {...commonProps}
                     preSelectedLevels={[]}
                     handleIsLevelAdding={handleIsLevelAdding}
+                    handleIsLevelSaved={handleIsLevelSaved}
                 />
             );
         }

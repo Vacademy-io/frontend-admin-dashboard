@@ -36,9 +36,6 @@ export const SessionList = ({
         useSessionManager(courseId, isCourseCompulsory);
     const { course } = getCourse();
     const [isMaxLimitSaved, setIsMaxLimitSaved] = useState(false);
-    useEffect(() => {
-        console.log("is max limit saved: ", isMaxLimitSaved);
-    }, []);
     const handleIsMaxLimitSaved = (value: boolean) => setIsMaxLimitSaved(value);
     const availableSessions = getAllAvailableSessions();
     const [sessionsSaved, setSessionsSaved] = useState(false);
@@ -48,9 +45,15 @@ export const SessionList = ({
         learnerChoiceSessions: LearnerChoiceSession[];
     }>({
         preSelectedSessions: [],
-        learnerChoiceSessions: [],
+        learnerChoiceSessions: course?.learnerChoiceSessions || [],
     });
     const currentMaxSessions = maxSessions || course?.maxSessions || 0;
+    const [isLevelSaved, setIsLevelSaved] = useState(false);
+    const handleIsLevelSaved = (value: boolean) => setIsLevelSaved(value);
+
+    useEffect(() => {
+        if (!isLevelSaved) handleIsAddingSession(true);
+    }, [isLevelSaved]);
 
     useEffect(() => {
         const value = getCurrentSessions();
@@ -87,7 +90,8 @@ export const SessionList = ({
                     !isMaxLimitSaved &&
                     !sessionsSaved &&
                     (sessions.learnerChoiceSessions.length > 0 ||
-                        sessions.preSelectedSessions.length > 0) && (
+                        sessions.preSelectedSessions.length > 0) &&
+                    isLevelSaved && (
                         <MyButton onClick={handleSaveAll} type="button" scale="small">
                             Save All
                         </MyButton>
@@ -120,6 +124,7 @@ export const SessionList = ({
                         handleIsAddingSession={handleIsAddingSession}
                         sessionId={preSelectedSession.id}
                         isSessionCompulsory={true}
+                        handleIsLevelSaved={handleIsLevelSaved}
                     />
                 ))}
             {sessions.learnerChoiceSessions.length > 0 &&
@@ -131,6 +136,7 @@ export const SessionList = ({
                         handleIsAddingSession={handleIsAddingSession}
                         sessionId={learnerChoiceSession.id}
                         isSessionCompulsory={false}
+                        handleIsLevelSaved={handleIsLevelSaved}
                     />
                 ))}
 
@@ -154,6 +160,7 @@ export const SessionList = ({
                         courseId={courseId}
                         isCourseCompulsory={isCourseCompulsory}
                         handleIsAddingSession={handleIsAddingSession}
+                        handleIsLevelSaved={handleIsLevelSaved}
                     />
                 </div>
             )}

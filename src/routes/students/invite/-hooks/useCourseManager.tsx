@@ -153,6 +153,64 @@ export function useCourseManager() {
         return true;
     };
 
+    // Additional functions for the useCourseManager hook
+
+    // 1. Check if any preSelectedCourse has at least one session with at least one level
+    const hasValidPreSelectedCourseStructure = () => {
+        const batch = getValues("batches");
+        const preSelectedCourses = batch?.preSelectedCourses || [];
+
+        return preSelectedCourses.some((course) => {
+            // Check for preSelectedSessions with preSelectedLevels
+            const hasPreSelectedSessionWithLevels = course.preSelectedSessions.some(
+                (session) => session.preSelectedLevels.length > 0,
+            );
+
+            // Check for learnerChoiceSessions with learnerChoiceLevels
+            const hasLearnerChoiceSessionWithLevels = course.learnerChoiceSessions.some(
+                (session) => session.learnerChoiceLevels.length > 0,
+            );
+
+            return hasPreSelectedSessionWithLevels || hasLearnerChoiceSessionWithLevels;
+        });
+    };
+
+    // 2. Check if any learnerChoiceCourse has at least one session with at least one level
+    const hasValidLearnerChoiceCourseStructure = () => {
+        const batch = getValues("batches");
+        const learnerChoiceCourses = batch?.learnerChoiceCourses || [];
+
+        return learnerChoiceCourses.some((course) => {
+            // Check for learnerChoiceSessions with learnerChoiceLevels
+            return course.learnerChoiceSessions.some(
+                (session) => session.learnerChoiceLevels.length > 0,
+            );
+        });
+    };
+
+    // 3. Check if a specific preSelectedCourse has at least one session with at least one level
+    const isValidPreSelectedCourse = (course: PreSelectedCourse) => {
+        // Check for preSelectedSessions with preSelectedLevels
+        const hasPreSelectedSessionWithLevels = course.preSelectedSessions.some(
+            (session) => session.preSelectedLevels.length > 0,
+        );
+
+        // Check for learnerChoiceSessions with learnerChoiceLevels
+        const hasLearnerChoiceSessionWithLevels = course.learnerChoiceSessions.some(
+            (session) => session.learnerChoiceLevels.length > 0,
+        );
+
+        return hasPreSelectedSessionWithLevels || hasLearnerChoiceSessionWithLevels;
+    };
+
+    // 4. Check if a specific learnerChoiceCourse has at least one session with at least one level
+    const isValidLearnerChoiceCourse = (course: LearnerChoiceCourse) => {
+        // Check for learnerChoiceSessions with learnerChoiceLevels
+        return course.learnerChoiceSessions.some(
+            (session) => session.learnerChoiceLevels.length > 0,
+        );
+    };
+
     return {
         getAllAvailableCourses,
         addOrUpdateCourse,
@@ -160,5 +218,9 @@ export function useCourseManager() {
         findCourseById,
         setMaxCourses,
         changeCourseSelectionMode,
+        hasValidPreSelectedCourseStructure,
+        hasValidLearnerChoiceCourseStructure,
+        isValidPreSelectedCourse,
+        isValidLearnerChoiceCourse,
     };
 }

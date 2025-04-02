@@ -35,17 +35,32 @@ export const CourseSelection = ({
     const { getAllAvailableCourses, addOrUpdateCourse } = useCourseManager();
     const [selectedCourseId, setSelectedCourseId] = useState<string>(courseId || "");
     const [inititalCourseId, setInititalCourseId] = useState<string>(courseId || "");
-    const [savedCourse, setSavedCourse] = useState<{ id: string; name: string } | null>(null);
-    const { getCourse } = useSessionManager(courseId || "", isCourseCompulsory || true);
+    const { getCourse } = useSessionManager(
+        courseId || "",
+        isCourseCompulsory !== undefined ? isCourseCompulsory : true,
+    );
+    const [savedCourse, setSavedCourse] = useState<{ id: string; name: string } | null>(
+        getCourse().course,
+    );
     const [isAddingSession, setIsAddingSession] = useState(true);
     const handleIsAddingSession = (value: boolean) => setIsAddingSession(value);
     const [sessionSaved, setSessionSaved] = useState(false);
     const handleSessionSaved = (value: boolean) => setSessionSaved(value);
 
     useEffect(() => {
-        if (!isAddingSession && savedCourse && sessionSaved) handleIsAddingCourse(false);
+        console.log("courseId: ", courseId);
+        console.log("saved course: ", savedCourse);
+    }, []);
+
+    useEffect(() => {
+        setSavedCourse(getCourse().course);
+        console.log(getCourse());
+    }, [courseId]);
+
+    useEffect(() => {
+        if (!isAddingSession && !isEditing && sessionSaved) handleIsAddingCourse(false);
         else handleIsAddingCourse(true);
-    }, [isAddingSession, savedCourse, sessionSaved]);
+    }, [isAddingSession, isEditing, sessionSaved]);
 
     useEffect(() => {
         if (courseId && isCourseCompulsory) {

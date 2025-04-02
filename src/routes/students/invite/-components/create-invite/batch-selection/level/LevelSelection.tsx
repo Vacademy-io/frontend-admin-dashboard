@@ -1,7 +1,7 @@
 import { LevelField, SelectionMode } from "@/routes/students/invite/-schema/InviteFormSchema";
 import { useLevelManager } from "../../../../-hooks/useLevelManager";
 import { BatchSelectionMode } from "../BatchSelectionMode";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { MaxLimitField } from "../MaxLimitField";
 import { MyButton } from "@/components/design-system/button";
@@ -18,6 +18,7 @@ interface LevelSelectionProps {
     learnerChoiceLevels: LevelField[];
     maxLevels: number;
     handleIsLevelAdding: (value: boolean) => void;
+    handleIsLevelSaved: (value: boolean) => void;
 }
 
 export const LevelSelection = ({
@@ -30,6 +31,7 @@ export const LevelSelection = ({
     learnerChoiceLevels,
     maxLevels,
     // handleIsLevelAdding,
+    handleIsLevelSaved,
 }: LevelSelectionProps) => {
     const {
         getLearnerChoiceLevelsLength,
@@ -44,6 +46,10 @@ export const LevelSelection = ({
     const [isSaved, setIsSaved] = useState<boolean>(false);
     const [isMaxLimitSaved, setIsMaxLimitSaved] = useState(false);
     const handleIsMaxLimitSaved = (value: boolean) => setIsMaxLimitSaved(value);
+
+    useEffect(() => {
+        handleIsLevelSaved(isSaved);
+    }, [isSaved]);
 
     // Local state for level selections
     const [compulsorySelected, setCompulsorySelected] = useState<string[]>(
