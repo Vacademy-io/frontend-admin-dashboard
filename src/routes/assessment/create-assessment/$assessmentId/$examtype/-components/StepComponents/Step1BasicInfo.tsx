@@ -111,7 +111,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 },
             },
             assessmentPreview: {
-                checked: storeDataStep1.assessmentPreview?.checked || false, // Default to true
+                checked: storeDataStep1.assessmentPreview?.checked || true, // Default to true
                 previewTimeLimit:
                     storeDataStep1.assessmentPreview?.previewTimeLimit || timeLimit[0], // Default preview time
             },
@@ -119,9 +119,9 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             submissionType: storeDataStep1.submissionType || "",
             durationDistribution: storeDataStep1.durationDistribution || "",
             evaluationType: storeDataStep1.evaluationType || "",
-            switchSections: storeDataStep1.switchSections || false, // Default to false
-            raiseReattemptRequest: storeDataStep1.raiseReattemptRequest || false, // Default to true
-            raiseTimeIncreaseRequest: storeDataStep1.raiseTimeIncreaseRequest || false, // Default to false
+            switchSections: storeDataStep1.switchSections || true, // Default to false
+            raiseReattemptRequest: storeDataStep1.raiseReattemptRequest || true, // Default to true
+            raiseTimeIncreaseRequest: storeDataStep1.raiseTimeIncreaseRequest || true, // Default to false
         },
         mode: "onChange", // Validate as user types
     });
@@ -264,9 +264,10 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 },
                 assessmentPreview: {
                     checked:
-                        (assessmentDetails[currentStep]?.saved_data?.assessment_preview ?? 0) > 0
+                        assessmentDetails[currentStep]?.saved_data?.assessment_preview &&
+                        assessmentDetails[currentStep]?.saved_data?.assessment_preview > 0
                             ? true
-                            : false, // Default to false if undefined or 0
+                            : false,
                     previewTimeLimit:
                         assessmentDetails[currentStep]?.saved_data?.assessment_preview !== undefined
                             ? getTimeLimitString(
@@ -282,12 +283,11 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 durationDistribution:
                     assessmentDetails[currentStep]?.saved_data?.duration_distribution || "",
                 evaluationType: assessmentDetails[currentStep]?.saved_data?.evaluation_type || "",
-                switchSections:
-                    assessmentDetails[currentStep]?.saved_data?.can_switch_section || false, // Default to false
+                switchSections: assessmentDetails[currentStep]?.saved_data?.can_switch_section, // Default to false
                 raiseReattemptRequest:
-                    assessmentDetails[currentStep]?.saved_data?.reattempt_consent || false, // Default to true
+                    assessmentDetails[currentStep]?.saved_data?.reattempt_consent, // Default to true
                 raiseTimeIncreaseRequest:
-                    assessmentDetails[currentStep]?.saved_data?.add_time_consent || false, // Default to false
+                    assessmentDetails[currentStep]?.saved_data?.add_time_consent, // Default to false
             });
         }
     }, []);
