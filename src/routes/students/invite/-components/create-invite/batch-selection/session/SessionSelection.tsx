@@ -254,7 +254,7 @@ export const SessionSelection = ({
     };
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex w-full flex-col gap-1 rounded-lg border border-neutral-300 bg-neutral-50 py-2 pl-2">
             {isEditing ? (
                 <>
                     <BatchSelectionMode
@@ -265,7 +265,7 @@ export const SessionSelection = ({
                     />
 
                     {sessionOptions.length > 0 && (
-                        <div className="mt-2 flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <SelectField
                                 label={`${selectFieldLabel} Session`}
                                 name="sessionSelect"
@@ -274,6 +274,7 @@ export const SessionSelection = ({
                                 onSelect={handleSessionSelect}
                                 required={true}
                                 className="w-64"
+                                selectFieldForInvite={true}
                             />
                             {showSaveButton && (
                                 <MyButton
@@ -283,7 +284,7 @@ export const SessionSelection = ({
                                     disabled={!selectedSessionId}
                                     type="button"
                                 >
-                                    Save Session
+                                    Save
                                 </MyButton>
                             )}
                         </div>
@@ -291,10 +292,13 @@ export const SessionSelection = ({
                 </>
             ) : (
                 // Display mode - show session name with edit button and LevelSelection component
-                <div className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between rounded-md p-3">
+                <div className="flex w-full gap-6">
+                    <div className="flex justify-between gap-2 rounded-md">
                         <div className="flex flex-col">
-                            <p className="text-body">{savedSession?.name}</p>
+                            <p className="text-body">
+                                {savedSession?.name}
+                                {` (${selectionMode == "institute" ? "Compulsory" : "Optional"})`}
+                            </p>
                         </div>
                         <MyButton
                             buttonType="secondary"

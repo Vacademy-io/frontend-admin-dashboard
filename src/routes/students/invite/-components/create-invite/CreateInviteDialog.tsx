@@ -1,7 +1,7 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
 import { Copy } from "phosphor-react";
@@ -21,6 +21,7 @@ interface CreateInviteDialogProps {
     submitForm?: (fn: () => void) => void;
     onCreateInvite?: (invite: InviteForm) => void;
     inviteLink?: string | null;
+    setInviteLink?: Dispatch<SetStateAction<string | null>>;
 }
 
 // Define a type for email entries
@@ -38,6 +39,7 @@ export const CreateInviteDialog = ({
     submitForm,
     onCreateInvite,
     inviteLink,
+    setInviteLink,
 }: CreateInviteDialogProps) => {
     const {
         form,
@@ -154,9 +156,13 @@ export const CreateInviteDialog = ({
                 <form
                     ref={formRef}
                     onSubmit={form.handleSubmit((data: InviteForm) => {
-                        console.log("Form values:", data);
-                        // Continue with valid form data
-                        onCreateInvite && onCreateInvite(data);
+                        try {
+                            onCreateInvite && onCreateInvite(data);
+                            reset();
+                            setInviteLink && setInviteLink(null);
+                        } catch {
+                            console.error("error creating invite");
+                        }
                     })}
                 >
                     <div className="flex flex-col gap-10">

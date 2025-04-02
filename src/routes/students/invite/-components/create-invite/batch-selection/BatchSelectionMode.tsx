@@ -19,7 +19,7 @@ export const BatchSelectionMode = ({
     return (
         <div className={`flex flex-col gap-4`}>
             <div className="flex items-center gap-6">
-                <p className="text-subtitle font-semibold">{title} Selection Mode</p>
+                <p className="text-body font-semibold text-neutral-600">{title} Selection Mode</p>
                 <RadioGroup
                     className="flex items-center gap-6"
                     value={mode}

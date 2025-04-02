@@ -125,3 +125,9 @@ export const ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/learner-invitatio
 
 export const GET_ATTEMPT_DATA = `${BASE_URL}/assessment-service/assessment/manual-evaluation/get/attempt-data`;
 export const UPDATE_ATTEMPT = `${BASE_URL}/assessment-service/assessment/manual-evaluation/update/attempt`
+export const GET_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report`;
+export const GET_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report`;
+export const GET_LEADERBOARD_DATA = `${BASE_URL}/admin-core-service/learner-management/batch-report/leaderboard`;
+export const SUBJECT_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/subject-wise-progress`;
+export const CHAPTER_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/chapter-wise-progress`;
+export const GET_LEARNERS_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/learner-details`;

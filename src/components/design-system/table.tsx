@@ -13,6 +13,7 @@ import {
     RowSelectionState,
     OnChangeFn,
     ColumnDef,
+    VisibilityState,
 } from "@tanstack/react-table";
 import { ChangeBatchDialog } from "./table-components/student-menu-options/change-batch-dialog";
 import { ExtendSessionDialog } from "./table-components/student-menu-options/extend-session-dialog";
@@ -45,6 +46,9 @@ interface MyTableProps<T> {
     onRowSelectionChange?: OnChangeFn<RowSelectionState>;
     currentPage: number;
     columnWidths?: ColumnWidthConfig;
+    scrollable?: boolean;
+    className?: string;
+    tableState?: { columnVisibility: VisibilityState };
 }
 
 export function MyTable<T>({
@@ -56,13 +60,18 @@ export function MyTable<T>({
     columnWidths,
     rowSelection,
     onRowSelectionChange,
+    scrollable = false,
+    className = "",
+    tableState,
 }: MyTableProps<T>) {
+    console.log(tableState);
     const table = useReactTable({
         data: data?.content || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         meta: { onSort },
         state: {
+            columnVisibility: tableState?.columnVisibility || {},
             rowSelection,
         },
         enableRowSelection: true,
@@ -98,7 +107,11 @@ export function MyTable<T>({
     if (!table) return <DashboardLoader />;
 
     return (
-        <div className="h-auto w-full overflow-visible rounded-lg border">
+        <div
+            className={`h-auto w-full ${
+                scrollable ? "overflow-auto" : "overflow-visible"
+            } rounded-lg border ${className}`}
+        >
             <div className="max-w-full overflow-visible rounded-lg">
                 <Table className="rounded-lg">
                     <TableHeader className="relative bg-primary-200">

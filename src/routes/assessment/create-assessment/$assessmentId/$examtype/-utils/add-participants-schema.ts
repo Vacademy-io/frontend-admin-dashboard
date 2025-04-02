@@ -7,6 +7,7 @@ const testInputFieldSchema = z.object({
     name: z.string(),
     oldKey: z.boolean(),
     isRequired: z.boolean(),
+    key: z.string(),
     options: z
         .array(
             z.object({
