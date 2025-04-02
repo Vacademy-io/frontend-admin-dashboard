@@ -149,12 +149,13 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                         <CheckCircle size={22} weight="fill" className="text-success-600" />
                     </div>
                 )}
+                {/* will be adding this later
                 {section.problem_randomization && (
                     <div className="flex w-1/2 items-center justify-between">
-                        <h1>Problem Randamization:</h1>
+                        <h1>Problem Randomization:</h1>
                         <CheckCircle size={22} weight="fill" className="text-success-600" />
                     </div>
-                )}
+                )} */}
                 {adaptiveMarking.length > 0 && (
                     <div>
                         <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>

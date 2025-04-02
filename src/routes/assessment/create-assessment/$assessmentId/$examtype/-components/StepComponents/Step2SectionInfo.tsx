@@ -684,7 +684,7 @@ export const Step2SectionInfo = ({
                             name={`section.${index}.partial_marking`}
                             render={({ field }) => (
                                 <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>
+                                    <FormLabel className="font-normal">
                                         Partial Marking
                                         {getStepKey({
                                             assessmentDetails,
@@ -762,14 +762,15 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
+                {/* will be adding this later
                 {examtype !== "SURVEY" && (
                     <FormField
                         control={form.control}
                         name={`section.${index}.problem_randomization`}
                         render={({ field }) => (
                             <FormItem className="flex w-1/2 items-center justify-between">
-                                <FormLabel>
-                                    Problem Randamization
+                                <FormLabel className="font-normal">
+                                    Problem Randomization
                                     {getStepKey({
                                         assessmentDetails,
                                         currentStep,
@@ -787,7 +788,7 @@ export const Step2SectionInfo = ({
                             </FormItem>
                         )}
                     />
-                )}
+                )} */}
                 {Boolean(allSections?.[index]?.adaptive_marking_for_each_question?.length) && (
                     <div>
                         <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
