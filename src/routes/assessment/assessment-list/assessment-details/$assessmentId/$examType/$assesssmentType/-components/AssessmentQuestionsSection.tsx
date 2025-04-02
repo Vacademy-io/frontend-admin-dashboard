@@ -151,7 +151,7 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                 )}
                 {section.problem_randomization && (
                     <div className="flex w-1/2 items-center justify-between">
-                        <h1>Problem Randamization:</h1>
+                        <h1>Problem Randomization:</h1>
                         <CheckCircle size={22} weight="fill" className="text-success-600" />
                     </div>
                 )}

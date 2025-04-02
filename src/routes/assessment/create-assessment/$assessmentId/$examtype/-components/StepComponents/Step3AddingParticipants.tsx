@@ -1139,6 +1139,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         </div>
                     </div>
                     <Separator className="my-4" />
+                    {/* will be added later
                     <FormField
                         control={form.control}
                         name="show_leaderboard"
@@ -1153,7 +1154,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 </FormControl>
                             </FormItem>
                         )}
-                    />
+                    /> */}
                     <div className="flex w-3/4 justify-between" id="notify-via-email">
                         {getStepKey({
                             assessmentDetails,
@@ -1267,6 +1268,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 />
                             </div>
                         )}
+                        {/* will be added later
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -1422,7 +1424,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                     )}
                                 />
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </div>
             </form>
