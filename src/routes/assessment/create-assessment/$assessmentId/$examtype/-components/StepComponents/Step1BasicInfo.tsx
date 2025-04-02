@@ -619,6 +619,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 )}
                             />
                         )}
+                        {/* will be adding this later
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -682,7 +683,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     </FormItem>
                                 )}
                             />
-                        )}
+                        )} */}
                     </div>
                 </div>
             </form>
