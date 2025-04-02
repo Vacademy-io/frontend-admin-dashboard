@@ -264,10 +264,9 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 },
                 assessmentPreview: {
                     checked:
-                        assessmentDetails[currentStep]?.saved_data?.assessment_preview &&
-                        assessmentDetails[currentStep]?.saved_data?.assessment_preview > 0
+                        (assessmentDetails[currentStep]?.saved_data?.assessment_preview ?? 0) > 0
                             ? true
-                            : false,
+                            : false, // Default to false if undefined or 0
                     previewTimeLimit:
                         assessmentDetails[currentStep]?.saved_data?.assessment_preview !== undefined
                             ? getTimeLimitString(
