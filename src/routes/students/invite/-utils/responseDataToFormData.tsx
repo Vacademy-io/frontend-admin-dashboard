@@ -157,7 +157,7 @@ export default function responseDataToFormData(data: LearnerInvitationType): Inv
         custom_fields: CustomFields,
         batches: formBatch,
         studentExpiryDays: daysRemaining, // Use calculated value
-        inviteeEmails: [],
+        inviteeEmails: [{ id: "", value: "abc@gmail.com" }],
         inviteeEmail: "",
     };
 

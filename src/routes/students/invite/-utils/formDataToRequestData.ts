@@ -131,7 +131,10 @@ export const fetchCustomFields = (data: InviteForm): CustomFieldType[] => {
     return customFields;
 };
 
-export default function formDataToRequestData(data: InviteForm): CreateInvitationRequestType {
+export default function formDataToRequestData(
+    data: InviteForm,
+    id?: string,
+): CreateInvitationRequestType {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
@@ -140,7 +143,7 @@ export default function formDataToRequestData(data: InviteForm): CreateInvitatio
     const request: CreateInvitationRequestType = {
         emails_to_send_invitation: data.inviteeEmails.map((emailObj) => emailObj.value),
         learner_invitation: {
-            id: null,
+            id: id ? id : null,
             name: data.inviteLink,
             status: data.activeStatus ? "ACTIVE" : "INACTIVE",
             date_generated: null,

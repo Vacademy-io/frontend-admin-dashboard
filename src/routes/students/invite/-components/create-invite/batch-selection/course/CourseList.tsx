@@ -32,8 +32,8 @@ export const CourseList = () => {
     const [isAddingNewCourse, setIsAddingNewCourse] = useState(false);
 
     useEffect(() => {
-        setBatchData(getValues("batches"));
-        console.log("batchdata: ", batchData);
+        const currentBatchData = getValues("batches");
+        setBatchData(currentBatchData);
     }, [watch("batches")]);
 
     // Default to 0 if maxSessions not provided in props and not on course

@@ -11,6 +11,7 @@ import { InviteForm } from "../../-schema/InviteFormSchema";
 import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
 import { CourseList } from "./batch-selection/course/CourseList";
+import { toast } from "sonner";
 
 interface CreateInviteDialogProps {
     initialValues?: InviteForm;
@@ -22,6 +23,7 @@ interface CreateInviteDialogProps {
     onCreateInvite?: (invite: InviteForm) => void;
     inviteLink?: string | null;
     setInviteLink?: Dispatch<SetStateAction<string | null>>;
+    isEditing?: boolean;
 }
 
 // Define a type for email entries
@@ -39,7 +41,7 @@ export const CreateInviteDialog = ({
     submitForm,
     onCreateInvite,
     inviteLink,
-    setInviteLink,
+    isEditing,
 }: CreateInviteDialogProps) => {
     const {
         form,
@@ -157,11 +159,11 @@ export const CreateInviteDialog = ({
                     ref={formRef}
                     onSubmit={form.handleSubmit((data: InviteForm) => {
                         try {
+                            console.log("inside handleSubmit");
                             onCreateInvite && onCreateInvite(data);
-                            reset();
-                            setInviteLink && setInviteLink(null);
+                            // Other success handling
                         } catch {
-                            console.error("error creating invite");
+                            toast.error("error updating/creating invite");
                         }
                     })}
                 >
@@ -245,70 +247,72 @@ export const CreateInviteDialog = ({
                         </div>
 
                         {/* Invitee Email */}
-                        <div className="flex flex-col gap-3">
-                            <div className="flex items-end justify-between gap-10">
-                                <FormField
-                                    control={control}
-                                    name="inviteeEmail"
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <p>
-                                                Enter invitee email
-                                                <span className="text-primary-500">*</span>
-                                            </p>
-                                            <FormControl>
-                                                <MyInput
-                                                    placeholder="you@email.com"
-                                                    inputType="email"
-                                                    input={field.value || ""}
-                                                    onChangeFunction={field.onChange}
-                                                    className="w-full"
-                                                    // required={true}
-                                                    error={
-                                                        emailError ||
-                                                        (emailList.length === 0
-                                                            ? emptyEmailsError
-                                                            : undefined)
-                                                    }
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="large"
-                                    layoutVariant="default"
-                                    type="button"
-                                    onClick={handleAddEmail}
-                                    disabled={!!emailError || !emailInput}
-                                    className={`${
-                                        emailError || emptyEmailsError ? "mb-7" : "mb-0"
-                                    }`}
-                                >
-                                    Add
-                                </MyButton>
-                            </div>
-
-                            {/* Display added emails */}
-                            <div className="flex flex-wrap gap-2">
-                                {emailList?.map((entry: EmailEntry) => (
-                                    <div
-                                        key={entry.id}
-                                        className="text-primary-700 flex items-center gap-2 rounded-lg border border-primary-300 bg-primary-50 px-3"
+                        {!isEditing && (
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-end justify-between gap-10">
+                                    <FormField
+                                        control={control}
+                                        name="inviteeEmail"
+                                        render={({ field }) => (
+                                            <FormItem className="w-full">
+                                                <p>
+                                                    Enter invitee email
+                                                    <span className="text-primary-500">*</span>
+                                                </p>
+                                                <FormControl>
+                                                    <MyInput
+                                                        placeholder="you@email.com"
+                                                        inputType="email"
+                                                        input={field.value || ""}
+                                                        onChangeFunction={field.onChange}
+                                                        className="w-full"
+                                                        // required={true}
+                                                        error={
+                                                            emailError ||
+                                                            (emailList.length === 0
+                                                                ? emptyEmailsError
+                                                                : undefined)
+                                                        }
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="large"
+                                        layoutVariant="default"
+                                        type="button"
+                                        onClick={handleAddEmail}
+                                        disabled={!!emailError || !emailInput}
+                                        className={`${
+                                            emailError || emptyEmailsError ? "mb-7" : "mb-0"
+                                        }`}
                                     >
-                                        <span>{entry.value}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveEmail(entry.id)}
-                                            className="hover:text-primary-700 text-primary-500"
+                                        Add
+                                    </MyButton>
+                                </div>
+
+                                {/* Display added emails */}
+                                <div className="flex flex-wrap gap-2">
+                                    {emailList?.map((entry: EmailEntry) => (
+                                        <div
+                                            key={entry.id}
+                                            className="text-primary-700 flex items-center gap-2 rounded-lg border border-primary-300 bg-primary-50 px-3"
                                         >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
+                                            <span>{entry.value}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveEmail(entry.id)}
+                                                className="hover:text-primary-700 text-primary-500"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Generated Invite Link */}
 
