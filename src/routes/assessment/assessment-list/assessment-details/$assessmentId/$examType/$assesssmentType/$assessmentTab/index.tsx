@@ -22,12 +22,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AssessmentOverviewTab from "./-components/AssessmentOverviewTab";
 import { AssessmentBasicInfoTab } from "./-components/AssessmentBasicInfoTab";
 import { AssessmentQuestionsTab } from "./-components/AssessmentQuestionsTab";
+import AssessmentSubmissionsTab from "./-components/AssessmentSubmissionsTab";
 import AssessmentParticipantsTab from "./-components/AssessmentParticipantsTab";
 import AssessmentAccessControlTab from "./-components/AssessmentAccessControlTab";
-import AssessmentSubmissionsTab from "./-components/AssessmentSubmissionsTab";
 
 export const Route = createFileRoute(
-    "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/",
+    "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
 )({
     component: () => (
         <LayoutContainer>
@@ -44,7 +44,7 @@ const heading = (
 );
 
 const AssessmentDetailsComponent = () => {
-    const { assessmentId, examType, assesssmentType } = Route.useParams();
+    const { assessmentId, examType, assesssmentType, assessmentTab } = Route.useParams();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
@@ -222,22 +222,24 @@ const AssessmentDetailsComponent = () => {
                                     Overview
                                 </span>
                             </TabsTrigger>
-                            <TabsTrigger
-                                value="submissions"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === "submissions"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
-                                        selectedTab === "submissions" ? "text-primary-500" : ""
+                            {assessmentTab !== "upcomingTests" && (
+                                <TabsTrigger
+                                    value="submissions"
+                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                        selectedTab === "submissions"
+                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                            : "border-none bg-transparent"
                                     }`}
                                 >
-                                    Submissions
-                                </span>
-                            </TabsTrigger>
+                                    <span
+                                        className={`${
+                                            selectedTab === "submissions" ? "text-primary-500" : ""
+                                        }`}
+                                    >
+                                        Submissions
+                                    </span>
+                                </TabsTrigger>
+                            )}
                             <TabsTrigger
                                 value="basicInfo"
                                 className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${

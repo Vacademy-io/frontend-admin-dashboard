@@ -14,10 +14,10 @@ import {
     OnChangeFn,
     ColumnDef,
 } from "@tanstack/react-table";
-import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-reattempt-dialog";
-import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-revaluate-assessment-dialog";
-import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-release-result";
-import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-revaluate-questionwise-dialog";
+import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-reattempt-dialog";
+import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-revaluate-assessment-dialog";
+import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-release-result";
+import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-revaluate-questionwise-dialog";
 import { ColumnWidthConfig } from "@/components/design-system/utils/constants/table-layout";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useSubmissionsBulkActionsDialogStoreAttempted } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";

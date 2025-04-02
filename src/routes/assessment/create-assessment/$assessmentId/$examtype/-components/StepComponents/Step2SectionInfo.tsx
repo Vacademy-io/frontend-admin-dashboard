@@ -39,7 +39,7 @@ import { useQuestionsForSection } from "../../-hooks/getQuestionsDataForSection"
 import {
     calculateAveragePenalty,
     parseHtmlToString,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
+} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
