@@ -596,12 +596,23 @@ export const Step2SectionInfo = ({
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (
+                                                        !/[0-9.]/.test(charCode) ||
+                                                        (charCode === "." &&
+                                                            field.value.includes("."))
+                                                    ) {
+                                                        e.preventDefault(); // Prevent non-numeric and multiple decimals
+                                                    }
+                                                }}
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
-                                                        /[^0-9]/g,
+                                                        /[^0-9.]/g,
                                                         "",
-                                                    ); // Remove non-numeric characters
-                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                    ); // Allow numbers and decimal
+                                                    if (inputValue.split(".").length > 2) return; // Prevent multiple decimals
+                                                    field.onChange(inputValue);
                                                 }}
                                                 size="large"
                                                 {...field}
@@ -643,16 +654,22 @@ export const Step2SectionInfo = ({
                                                     input={field.value}
                                                     onKeyPress={(e) => {
                                                         const charCode = e.key;
-                                                        if (!/[0-9]/.test(charCode)) {
-                                                            e.preventDefault(); // Prevent non-numeric input
+                                                        if (
+                                                            !/[0-9.]/.test(charCode) ||
+                                                            (charCode === "." &&
+                                                                field.value.includes("."))
+                                                        ) {
+                                                            e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                         }
                                                     }}
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
-                                                            /[^0-9]/g,
+                                                            /[^0-9.]/g,
                                                             "",
-                                                        ); // Remove non-numeric characters
-                                                        field.onChange(inputValue); // Call onChange with the sanitized value
+                                                        ); // Allow numbers and decimal
+                                                        if (inputValue.split(".").length > 2)
+                                                            return; // Prevent multiple decimals
+                                                        field.onChange(inputValue);
                                                     }}
                                                     size="large"
                                                     {...field}
@@ -678,7 +695,6 @@ export const Step2SectionInfo = ({
                                 )}
                             />
                         </div>
-
                         <FormField
                             control={form.control}
                             name={`section.${index}.partial_marking`}
@@ -722,20 +738,26 @@ export const Step2SectionInfo = ({
                                                     }
                                                     onKeyPress={(e) => {
                                                         const charCode = e.key;
-                                                        if (!/[0-9]/.test(charCode)) {
-                                                            e.preventDefault(); // Prevent non-numeric input
+                                                        if (
+                                                            !/[0-9.]/.test(charCode) ||
+                                                            (charCode === "." &&
+                                                                field.value.includes("."))
+                                                        ) {
+                                                            e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                         }
+                                                    }}
+                                                    onChangeFunction={(e) => {
+                                                        const inputValue = e.target.value.replace(
+                                                            /[^0-9.]/g,
+                                                            "",
+                                                        ); // Allow numbers and decimal
+                                                        if (inputValue.split(".").length > 2)
+                                                            return; // Prevent multiple decimals
+                                                        field.onChange(inputValue);
                                                     }}
                                                     inputType="text"
                                                     inputPlaceholder="00"
                                                     input={field.value}
-                                                    onChangeFunction={(e) => {
-                                                        const inputValue = e.target.value.replace(
-                                                            /[^0-9]/g,
-                                                            "",
-                                                        );
-                                                        field.onChange(inputValue);
-                                                    }}
                                                     size="large"
                                                     {...field}
                                                     className="mr-2 w-11"
