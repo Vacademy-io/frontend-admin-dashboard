@@ -126,6 +126,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Full Name",
                         oldKey: true,
                         isRequired: true,
+                        key: "full_name",
                     },
                     {
                         id: "1",
@@ -133,6 +134,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Email",
                         oldKey: true,
                         isRequired: true,
+                        key: "email",
                     },
                     {
                         id: "2",
@@ -140,6 +142,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Phone Number",
                         oldKey: true,
                         isRequired: true,
+                        key: "phone_number",
                     },
                 ],
             },
@@ -274,6 +277,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 name,
                 oldKey,
                 isRequired: true,
+                key: "",
             },
         ];
 
@@ -299,6 +303,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             oldKey,
             ...(type === "dropdown" && { options: dropdownOptions }), // Include options if type is dropdown
             isRequired: true,
+            key: "",
         };
 
         // Add the new field to the array

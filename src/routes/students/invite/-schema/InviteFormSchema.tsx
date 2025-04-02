@@ -24,6 +24,7 @@ const learnerChoiceSessionSchema = z.object({
     id: z.string(),
     name: z.string(),
     maxLevels: z.number(),
+    levelSelectionMode: selectionModeSchema,
     learnerChoiceLevels: z.array(levelSchema),
 });
 
@@ -31,6 +32,7 @@ const preSelectedSessionSchema = z.object({
     id: z.string(),
     name: z.string(),
     maxLevels: z.number(),
+    levelSelectionMode: selectionModeSchema,
     learnerChoiceLevels: z.array(levelSchema),
     preSelectedLevels: z.array(levelSchema),
 });
@@ -39,6 +41,7 @@ const learnerChoiceCoursesSchema = z.object({
     id: z.string(),
     name: z.string(),
     maxSessions: z.number(),
+    sessionSelectionMode: selectionModeSchema,
     learnerChoiceSessions: z.array(learnerChoiceSessionSchema),
 });
 
@@ -46,12 +49,14 @@ const preSelectedCoursesSchema = z.object({
     id: z.string(),
     name: z.string(),
     maxSessions: z.number(),
+    sessionSelectionMode: selectionModeSchema,
     learnerChoiceSessions: z.array(learnerChoiceSessionSchema),
     preSelectedSessions: z.array(preSelectedSessionSchema),
 });
 
 const batchSchema = z.object({
     maxCourses: z.number(),
+    courseSelectionMode: selectionModeSchema,
     preSelectedCourses: z.array(preSelectedCoursesSchema),
     learnerChoiceCourses: z.array(learnerChoiceCoursesSchema),
 });
@@ -123,6 +128,12 @@ export const defaultFormValues: Partial<InviteForm> = {
             isRequired: true,
         },
     ],
+    batches: {
+        maxCourses: 0,
+        courseSelectionMode: "institute",
+        preSelectedCourses: [],
+        learnerChoiceCourses: [],
+    },
     studentExpiryDays: 365,
     inviteeEmail: "",
     inviteeEmails: [],

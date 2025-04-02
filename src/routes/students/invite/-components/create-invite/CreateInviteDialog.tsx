@@ -1,18 +1,16 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
-import { Check, Copy } from "phosphor-react";
+import { Copy } from "phosphor-react";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { InviteForm } from "../../-schema/InviteFormSchema";
 import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
-import { CourseSelection } from "./batch-selection-fields.tsx/CourseSelection";
-import { MaxLimitField } from "./batch-selection-fields.tsx/MaxLimitField";
-import { ShowSelectedBatchDetails } from "./ShowSelectedBatchDetails";
+import { CourseList } from "./batch-selection/course/CourseList";
 
 interface CreateInviteDialogProps {
     initialValues?: InviteForm;
@@ -23,6 +21,7 @@ interface CreateInviteDialogProps {
     submitForm?: (fn: () => void) => void;
     onCreateInvite?: (invite: InviteForm) => void;
     inviteLink?: string | null;
+    setInviteLink?: Dispatch<SetStateAction<string | null>>;
 }
 
 // Define a type for email entries
@@ -40,6 +39,7 @@ export const CreateInviteDialog = ({
     submitForm,
     onCreateInvite,
     inviteLink,
+    setInviteLink,
 }: CreateInviteDialogProps) => {
     const {
         form,
@@ -60,17 +60,6 @@ export const CreateInviteDialog = ({
     } = form;
     const [emailError, setEmailError] = useState<string | null>(null);
     const emptyEmailsError = errors.inviteeEmails?.message;
-    // const {getCourseFromPackage, instituteDetails} = useInstituteDetailsStore();
-    const [areMaxSessionsSaved, setAreMaxSessionsSaved] = useState(false);
-    const [areMaxCourseSaved, setAreMaxCourseSaved] = useState(false);
-    const [courseSaved, setCourseSaved] = useState(false);
-
-    const handleAreMaxSessionsSaved = (saved: boolean) => setAreMaxSessionsSaved(saved);
-
-    const handleAddCourse = () => {
-        // add selected course here
-        handleAreMaxSessionsSaved(false);
-    };
 
     // Watch the email input to validate in real-time
     const emailInput = watch("inviteeEmail");
@@ -154,8 +143,6 @@ export const CreateInviteDialog = ({
         }
     }, [submitForm]);
 
-    const value = getValues("batches");
-
     return (
         <MyDialog
             heading="Invite Students"
@@ -169,9 +156,13 @@ export const CreateInviteDialog = ({
                 <form
                     ref={formRef}
                     onSubmit={form.handleSubmit((data: InviteForm) => {
-                        console.log("Form values:", data);
-                        // Continue with valid form data
-                        onCreateInvite && onCreateInvite(data);
+                        try {
+                            onCreateInvite && onCreateInvite(data);
+                            reset();
+                            setInviteLink && setInviteLink(null);
+                        } catch {
+                            console.error("error creating invite");
+                        }
                     })}
                 >
                     <div className="flex flex-col gap-10">
@@ -223,84 +214,7 @@ export const CreateInviteDialog = ({
                             handleDeleteOpenField={handleDeleteOpenField}
                         />
 
-                        {/* Course, Session, Level Selection Sections */}
-                        {/* <SelectionModeSection
-                            title="Course"
-                            type="course"
-                            dropdownList={courseList}
-                        />
-
-                        <SelectionModeSection
-                            title="Session"
-                            type="session"
-                            dropdownList={sessionList.filter(() =>
-                                watch("preSelectedCourses") ? true : false,
-                            )}
-                        />
-
-                        <SelectionModeSection
-                            title="Level"
-                            type="level"
-                            dropdownList={levelList.filter(() =>
-                                watch("preSelectedCourses") && watch("preSelectedSessions")
-                                    ? true
-                                    : false,
-                            )}
-                        /> */}
-                        {areMaxCourseSaved ? (
-                            <ShowSelectedBatchDetails batch={value} />
-                        ) : (
-                            <div>
-                                {courseSaved ? (
-                                    <div className="flex items-center justify-between gap-2">
-                                        <ShowSelectedBatchDetails batch={value} />
-                                        <div className="flex items-center gap-2">
-                                            <MaxLimitField title="Course" maxAllowed={1} />
-                                            <MyButton
-                                                buttonType="secondary"
-                                                scale="medium"
-                                                layoutVariant="icon"
-                                                type="button"
-                                                onClick={() => setAreMaxCourseSaved(true)}
-                                            >
-                                                <Check />
-                                            </MyButton>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <CourseSelection
-                                                handleAreMaxSessionsSaved={
-                                                    handleAreMaxSessionsSaved
-                                                }
-                                                areMaxSessionsSaved={areMaxSessionsSaved}
-                                            />
-                                            {areMaxSessionsSaved && (
-                                                <MyButton
-                                                    buttonType="primary"
-                                                    scale="small"
-                                                    onClick={() => setCourseSaved(true)}
-                                                >
-                                                    Save all courses
-                                                </MyButton>
-                                            )}
-                                        </div>
-                                        <div>
-                                            {areMaxSessionsSaved && !courseSaved && (
-                                                <MyButton
-                                                    buttonType="text"
-                                                    className="text-primary-500"
-                                                    onClick={() => handleAddCourse()}
-                                                >
-                                                    Add course
-                                                </MyButton>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        <CourseList />
 
                         {/* Student Expiry Date */}
                         <div className="flex items-center gap-6">

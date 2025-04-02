@@ -74,6 +74,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
         ],
         batches: {
             maxCourses: 0,
+            courseSelectionMode: "institute",
             preSelectedCourses: [],
             learnerChoiceCourses: [],
         },

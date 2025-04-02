@@ -491,24 +491,28 @@ export function QuestionPaperTemplate({
                                     </Sortable>
                                 </div>
                             </div>
-
                             <Separator orientation="vertical" className="min-h-screen" />
-                            <MainViewComponentFactory
-                                type={
-                                    getValues(
-                                        `questions.${currentQuestionIndex}.questionType`,
-                                    ) as QuestionType
-                                }
-                                props={{
-                                    form: form,
-                                    currentQuestionIndex: currentQuestionIndex,
-                                    setCurrentQuestionIndex: setCurrentQuestionIndex,
-                                    currentQuestionImageIndex: currentQuestionImageIndex,
-                                    setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
-                                    className:
-                                        "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
-                                }}
-                            />
+                            {questions.length === 0 ? (
+                                <div className="flex h-screen w-screen items-center justify-center">
+                                    <h1>No Question Exists.</h1>
+                                </div>
+                            ) : (
+                                <MainViewComponentFactory
+                                    type={
+                                        getValues(
+                                            `questions.${currentQuestionIndex}.questionType`,
+                                        ) as QuestionType
+                                    }
+                                    props={{
+                                        form: form,
+                                        currentQuestionIndex: currentQuestionIndex,
+                                        setCurrentQuestionIndex: setCurrentQuestionIndex,
+                                        currentQuestionImageIndex: currentQuestionImageIndex,
+                                        setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
+                                        className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                    }}
+                                />
+                            )}
                         </div>
                     </div>
                 )}

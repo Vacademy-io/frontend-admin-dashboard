@@ -3,6 +3,7 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Invite } from "./-components/invite";
+import { InviteFormProvider } from "./-context/useInviteFormContext";
 
 export const Route = createFileRoute("/students/invite/")({
     component: RouteComponent,
@@ -16,8 +17,10 @@ function RouteComponent() {
     }, []);
 
     return (
-        <LayoutContainer>
-            <Invite />
-        </LayoutContainer>
+        <InviteFormProvider>
+            <LayoutContainer>
+                <Invite />
+            </LayoutContainer>
+        </InviteFormProvider>
     );
 }

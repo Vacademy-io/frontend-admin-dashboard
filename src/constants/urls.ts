@@ -2,6 +2,7 @@ export const BASE_URL = "https://backend-stage.vacademy.io";
 export const BASE_URL_LEARNER_DASHBOARD = "https://frontend-learner-dashboard-app.pages.dev";
 
 export const SSDC_INSTITUTE_ID = "69ca11c6-54e1-4e99-9498-50c9a4272ce6";
+export const SHUBHAM_INSTITUTE_ID = "d0de8707-f36c-43a0-953c-019ca507c81d";
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
@@ -121,3 +122,12 @@ export const GET_INVITE_LIST = `${BASE_URL}/admin-core-service/learner-invitatio
 export const UPDATE_INVITE_LINK_STATUS = `${BASE_URL}/admin-core-service/learner-invitation/update-learner-invitation-status`;
 
 export const ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/learner-invitation/invitation-responses`;
+export const GET_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report`;
+export const GET_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report`;
+export const GET_LEADERBOARD_DATA = `${BASE_URL}/admin-core-service/learner-management/batch-report/leaderboard`;
+export const SUBJECT_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/subject-wise-progress`;
+export const SUBJECT_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report/subject-wise-progress`;
+export const SLIDE_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report/slide-wise-progress`;
+export const CHAPTER_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/chapter-wise-progress`;
+export const CHAPTER_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report/chapter-wise-progress`;
+export const GET_LEARNERS_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/learner-details`;

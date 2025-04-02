@@ -148,6 +148,155 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
     };
 }
 
+function stripHtmlTags(str: string) {
+    return str.replace(/<[^>]*>/g, "").trim();
+}
+
+function cleanQuestionData(question: MyQuestion) {
+    return {
+        ...question,
+        questionName: stripHtmlTags(question.questionName || ""),
+        singleChoiceOptions:
+            question.singleChoiceOptions?.map((option) => ({
+                ...option,
+                name: stripHtmlTags(option.name || ""),
+            })) || [],
+        multipleChoiceOptions:
+            question.multipleChoiceOptions?.map((option) => ({
+                ...option,
+                name: stripHtmlTags(option.name || ""),
+            })) || [],
+    };
+}
+
+export function convertQuestionsDataToResponse(questions: MyQuestion[], key: string) {
+    const convertedQuestions = questions?.map((question) => {
+        const options =
+            question.questionType === "MCQS"
+                ? question.singleChoiceOptions.map((opt, idx) => ({
+                      id: key === "added" ? null : opt.id, // Set to null if it's a new question
+                      preview_id: key === "added" ? idx : opt.id, // Always use index as preview_id
+                      question_id: question.questionId,
+                      text: {
+                          id: null, // Assuming no mapping for text ID
+                          type: "HTML",
+                          content: opt?.name?.replace(/<\/?p>/g, ""),
+                      },
+                      media_id: opt.image.imageName,
+                      option_order: null,
+                      created_on: null,
+                      updated_on: null,
+                      explanation_text: {
+                          id: null,
+                          type: "HTML",
+                          content: question.explanation,
+                      },
+                  }))
+                : question.multipleChoiceOptions.map((opt, idx) => ({
+                      id: key === "added" ? null : opt.id, // Set to null if it's a new question
+                      preview_id: key === "added" ? idx : opt.id, // Always use index as preview_id
+                      question_id: question.questionId,
+                      text: {
+                          id: null,
+                          type: "HTML",
+                          content: opt?.name?.replace(/<\/?p>/g, ""),
+                      },
+                      media_id: opt.image.imageName,
+                      option_order: null,
+                      created_on: null,
+                      updated_on: null,
+                      explanation_text: {
+                          id: null,
+                          type: "HTML",
+                          content: question.explanation,
+                      },
+                  }));
+
+        const correctOptionIds = (
+            question.questionType === "MCQS"
+                ? question.singleChoiceOptions
+                : question.multipleChoiceOptions
+        )
+            .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+            .filter((idx) => idx !== null);
+
+        const auto_evaluation_json = JSON.stringify({
+            type: question.questionType === "MCQS" ? "MCQS" : "MCQM",
+            data: {
+                correctOptionIds,
+            },
+        });
+
+        return {
+            id: key === "added" ? null : question.questionId, // Set to null if it's a new question
+            preview_id: question.questionId, // Keep preview_id as the questionId
+            text: {
+                id: null,
+                type: "HTML",
+                content: question.questionName.replace(/<\/?p>/g, ""),
+            },
+            media_id: question?.imageDetails?.map((img) => img.imageName).join(","),
+            created_at: null,
+            updated_at: null,
+            question_response_type: null,
+            question_type: question.questionType,
+            access_level: null,
+            auto_evaluation_json,
+            evaluation_type: null,
+            explanation_text: {
+                id: null,
+                type: "HTML",
+                content: question.explanation,
+            },
+            default_question_time_mins: null,
+            options,
+            errors: [],
+            warnings: [],
+        };
+    });
+    return convertedQuestions;
+}
+
+export function compareQuestions(
+    oldData: MyQuestionPaperFormInterface,
+    newData: MyQuestionPaperFormInterface,
+) {
+    const oldQuestionsMap = new Map(
+        oldData.questions?.map((q) => [q.questionId, cleanQuestionData(q)]),
+    );
+    const newQuestionsMap = new Map(
+        newData.questions?.map((q) => [q.questionId, cleanQuestionData(q)]),
+    );
+
+    let added_questions = [];
+    let deleted_questions = [];
+    let updated_questions = [];
+
+    // Find added and updated questions
+    for (const [questionId, newQuestion] of newQuestionsMap.entries()) {
+        if (!oldQuestionsMap.has(questionId)) {
+            added_questions.push(newQuestion);
+        } else {
+            const oldQuestion = oldQuestionsMap.get(questionId);
+            if (JSON.stringify(oldQuestion) !== JSON.stringify(newQuestion)) {
+                updated_questions.push(newQuestion);
+            }
+        }
+    }
+
+    // Find deleted questions
+    for (const [questionId, oldQuestion] of oldQuestionsMap.entries()) {
+        if (!newQuestionsMap.has(questionId)) {
+            deleted_questions.push(oldQuestion);
+        }
+    }
+    added_questions = convertQuestionsDataToResponse(added_questions, "added");
+    deleted_questions = convertQuestionsDataToResponse(deleted_questions, "deleted");
+    updated_questions = convertQuestionsDataToResponse(updated_questions, "updated");
+
+    return { added_questions, deleted_questions, updated_questions };
+}
+
 export function transformQuestionPaperEditData(
     data: MyQuestionPaperFormInterface,
     previousQuestionPaperData: MyQuestionPaperFormEditInterface,
@@ -155,10 +304,6 @@ export function transformQuestionPaperEditData(
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-    // Extract previous question IDs for comparison
-    const previousQuestionIds = previousQuestionPaperData.questions.map(
-        (prevQuestion) => prevQuestion.questionId,
-    );
 
     return {
         id: data.questionPaperId,
@@ -166,93 +311,7 @@ export function transformQuestionPaperEditData(
         institute_id: INSTITUTE_ID,
         ...(data.yearClass !== "N/A" && { level_id: data.yearClass }),
         ...(data.subject !== "N/A" && { subject_id: data.subject }),
-        questions: data?.questions?.map((question) => {
-            // Check if the current question ID exists in the previous data
-            const isNewQuestion = !previousQuestionIds.includes(question.questionId);
-
-            const options =
-                question.questionType === "MCQS"
-                    ? question.singleChoiceOptions.map((opt, idx) => ({
-                          id: isNewQuestion ? null : idx, // Set to null if it's a new question
-                          preview_id: idx, // Always use index as preview_id
-                          question_id: isNewQuestion ? null : question.questionId,
-                          text: {
-                              id: null, // Assuming no mapping for text ID
-                              type: "HTML",
-                              content: opt?.name?.replace(/<\/?p>/g, ""),
-                          },
-                          media_id: null,
-                          option_order: null,
-                          created_on: null,
-                          updated_on: null,
-                          explanation_text: {
-                              id: null,
-                              type: "HTML",
-                              content: question.explanation,
-                          },
-                      }))
-                    : question.multipleChoiceOptions.map((opt, idx) => ({
-                          id: isNewQuestion ? null : idx,
-                          preview_id: idx,
-                          question_id: isNewQuestion ? null : question.questionId,
-                          text: {
-                              id: null,
-                              type: "HTML",
-                              content: opt?.name?.replace(/<\/?p>/g, ""),
-                          },
-                          media_id: null,
-                          option_order: null,
-                          created_on: null,
-                          updated_on: null,
-                          explanation_text: {
-                              id: null,
-                              type: "HTML",
-                              content: question.explanation,
-                          },
-                      }));
-
-            const correctOptionIds = (
-                question.questionType === "MCQS"
-                    ? question.singleChoiceOptions
-                    : question.multipleChoiceOptions
-            )
-                .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
-                .filter((idx) => idx !== null);
-
-            const auto_evaluation_json = JSON.stringify({
-                type: question.questionType === "MCQS" ? "MCQS" : "MCQM",
-                data: {
-                    correctOptionIds,
-                },
-            });
-
-            return {
-                id: isNewQuestion ? null : question.questionId, // Set to null if it's a new question
-                preview_id: question.questionId, // Keep preview_id as the questionId
-                text: {
-                    id: null,
-                    type: "HTML",
-                    content: question.questionName.replace(/<\/?p>/g, ""),
-                },
-                media_id: null,
-                created_at: null,
-                updated_at: null,
-                question_response_type: null,
-                question_type: question.questionType,
-                access_level: null,
-                auto_evaluation_json,
-                evaluation_type: null,
-                explanation_text: {
-                    id: null,
-                    type: "HTML",
-                    content: question.explanation,
-                },
-                default_question_time_mins: null,
-                options,
-                errors: [],
-                warnings: [],
-            };
-        }),
+        ...compareQuestions(previousQuestionPaperData, data),
     };
 }
 
@@ -363,6 +422,7 @@ export const transformResponseDataToMyQuestionsSchema = (
 
         if (item.question_type === "MCQS") {
             baseQuestion.singleChoiceOptions = item.options.map((option) => ({
+                id: option.id,
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
                 image: {
@@ -377,6 +437,7 @@ export const transformResponseDataToMyQuestionsSchema = (
                 },
             }));
             baseQuestion.multipleChoiceOptions = Array(4).fill({
+                id: "",
                 name: "",
                 isSelected: false,
                 image: {
@@ -389,6 +450,7 @@ export const transformResponseDataToMyQuestionsSchema = (
             });
         } else if (item.question_type === "MCQM") {
             baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
+                id: option.id,
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
                 image: {
@@ -403,6 +465,7 @@ export const transformResponseDataToMyQuestionsSchema = (
                 },
             }));
             baseQuestion.singleChoiceOptions = Array(4).fill({
+                id: "",
                 name: "",
                 isSelected: false,
                 image: {
@@ -448,6 +511,18 @@ export const handleRefetchData = (
             statuses: [{ id: "ACTIVE", name: "ACTIVE" }],
         },
     });
+};
+
+// Helper function to check if Quill content is effectively empty
+export const isQuillContentEmpty = (content: string) => {
+    if (!content) return true;
+
+    // Check for common Quill empty patterns
+    if (content === "<p><br></p>" || content === "<p></p>") return true;
+
+    // Strip all HTML tags and check if there's any text content left
+    const textOnly = content.replace(/<[^>]*>/g, "").trim();
+    return textOnly.length === 0;
 };
 
 function getEvaluationJSON(
