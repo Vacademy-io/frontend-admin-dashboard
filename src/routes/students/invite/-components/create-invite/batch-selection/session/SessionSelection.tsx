@@ -114,19 +114,16 @@ export const SessionSelection = ({
                     });
                 }
             });
-            console.log("options if sessionid: ", availableSessions);
 
             setSessionOptions(options);
         } else {
             // If no sessionId, just use all available sessions
             const availableSessions = getAllAvailableSessions();
-            console.log("available sessions if !sessionid: ", availableSessions);
             const options = availableSessions.map((session) => ({
                 _id: session.id,
                 value: session.id,
                 label: session.name,
             }));
-            console.log("available sessions if options: ", options);
 
             setSessionOptions(options);
 
@@ -204,7 +201,6 @@ export const SessionSelection = ({
             const success = addOrUpdateSession(newSession, selectionMode, sessionId);
 
             if (success) {
-                console.log("Successfully saved learner choice session:", selectedSessionId);
                 // Update the initial session ID to match the current selection
                 setInitialSessionId(selectedSessionId);
 

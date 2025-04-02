@@ -16,9 +16,14 @@ import { useInviteFormContext } from "@/routes/students/invite/-context/useInvit
 interface CourseSelectionProps {
     courseId?: string;
     isCourseCompulsory?: boolean;
+    handleIsAddingCourse: (value: boolean) => void;
 }
 
-export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectionProps) => {
+export const CourseSelection = ({
+    courseId,
+    isCourseCompulsory,
+    handleIsAddingCourse,
+}: CourseSelectionProps) => {
     const { form } = useInviteFormContext();
     const [selectionMode, setSelectionMode] = useState<SelectionMode>(
         !isCourseCompulsory ? "student" : "institute",
@@ -33,8 +38,14 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
     const [savedCourse, setSavedCourse] = useState<{ id: string; name: string } | null>(null);
     const { getCourse } = useSessionManager(courseId || "", isCourseCompulsory || true);
     const [isAddingSession, setIsAddingSession] = useState(true);
-
     const handleIsAddingSession = (value: boolean) => setIsAddingSession(value);
+    const [sessionSaved, setSessionSaved] = useState(false);
+    const handleSessionSaved = (value: boolean) => setSessionSaved(value);
+
+    useEffect(() => {
+        if (!isAddingSession && savedCourse && sessionSaved) handleIsAddingCourse(false);
+        else handleIsAddingCourse(true);
+    }, [isAddingSession, savedCourse, sessionSaved]);
 
     useEffect(() => {
         if (courseId && isCourseCompulsory) {
@@ -117,6 +128,7 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
                 maxSessions={courseDetails?.maxSessions}
                 handleIsAddingSession={handleIsAddingSession}
                 isAddingSession={isAddingSession}
+                handleSessionSaved={handleSessionSaved}
             />
         );
     };
@@ -180,7 +192,6 @@ export const CourseSelection = ({ courseId, isCourseCompulsory }: CourseSelectio
             const success = addOrUpdateCourse(newCourse, selectionMode, courseId);
 
             if (success) {
-                console.log("Successfully saved learner choice course:", selectedCourseId);
                 // Update the initial session ID to match the current selection
                 setInititalCourseId(selectedCourseId);
 

@@ -4,11 +4,15 @@ import { useEffect, useState } from "react";
 import { useCourseManager } from "../../../../-hooks/useCourseManager";
 import { CourseSelection } from "./CourseSelection";
 import { MaxLimitField } from "../MaxLimitField";
+import {
+    LearnerChoiceCourse,
+    PreSelectedCourse,
+} from "@/routes/students/invite/-schema/InviteFormSchema";
 
 export const CourseList = () => {
     const { form } = useInviteFormContext();
-    const { getValues } = form;
-    const batch = getValues("batches");
+    const { getValues, watch } = form;
+    const [batch, setBatch] = useState(getValues("batches"));
     const { getAllAvailableCourses, setMaxCourses } = useCourseManager();
     const [isAddingCourse, setIsAddingCourse] = useState(false);
     const [isMaxLimitSaved, setIsMaxLimitSaved] = useState(false);
@@ -16,13 +20,26 @@ export const CourseList = () => {
         console.log(isMaxLimitSaved);
     }, []);
     const handleIsMaxLimitSaved = (value: boolean) => setIsMaxLimitSaved(value);
+    const handleIsAddingCourse = (value: boolean) => setIsAddingCourse(value);
 
-    const availableCourses = getAllAvailableCourses();
-    // Get preSelectedSessions
-    const preSelectedCourses = batch?.preSelectedCourses || [];
+    const batchData = watch("batches");
 
-    // Get learnerChoiceSessions (available for both course types)
-    const learnerChoiceCourses = batch?.learnerChoiceCourses || [];
+    const [courses, setCourses] = useState<{
+        preSelectedCourses: PreSelectedCourse[];
+        learnerChoiceCourses: LearnerChoiceCourse[];
+    }>({
+        preSelectedCourses: [],
+        learnerChoiceCourses: [],
+    });
+    const [availableCourses, setAvailableCourses] = useState(getAllAvailableCourses());
+
+    useEffect(() => {
+        setCourses({
+            preSelectedCourses: batchData?.preSelectedCourses || [],
+            learnerChoiceCourses: batchData?.learnerChoiceCourses || [],
+        });
+        setAvailableCourses(getAllAvailableCourses());
+    }, [batchData]);
 
     // Default to 0 if maxSessions not provided in props and not on course
     const currentMaxCourses = batch?.maxCourses || 0;
@@ -40,30 +57,47 @@ export const CourseList = () => {
         setIsAddingCourse(false);
     };
 
+    useEffect(() => {
+        setBatch(getValues("batches"));
+        console.log("isAddingCourse: ", isAddingCourse);
+        console.log("courses: ", courses);
+    }, [isAddingCourse]);
+
     return (
         <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-3">
                 <p className="text-title font-semibold">Batches</p>
 
                 {/* Show a message if no courses are present */}
-                {preSelectedCourses.length === 0 &&
-                    learnerChoiceCourses.length === 0 &&
+                {courses.preSelectedCourses.length === 0 &&
+                    courses.learnerChoiceCourses.length === 0 &&
                     !isAddingCourse && (
                         <p className="text-body text-neutral-500">No courses added yet</p>
                     )}
 
-                {preSelectedCourses.length > 0 &&
-                    preSelectedCourses.map((course, key) => (
-                        <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
+                {courses.preSelectedCourses.length > 0 &&
+                    courses.preSelectedCourses.map((course, key) => (
+                        <CourseSelection
+                            courseId={course.id}
+                            isCourseCompulsory={true}
+                            key={key}
+                            handleIsAddingCourse={handleIsAddingCourse}
+                        />
                     ))}
-                {learnerChoiceCourses.length > 0 &&
-                    learnerChoiceCourses.map((course, key) => (
-                        <CourseSelection courseId={course.id} isCourseCompulsory={true} key={key} />
+                {courses.learnerChoiceCourses.length > 0 &&
+                    courses.learnerChoiceCourses.map((course, key) => (
+                        <CourseSelection
+                            courseId={course.id}
+                            isCourseCompulsory={true}
+                            key={key}
+                            handleIsAddingCourse={handleIsAddingCourse}
+                        />
                     ))}
 
                 {/* Show Save All button when not adding a course */}
                 {!isAddingCourse &&
-                    (preSelectedCourses.length > 0 || learnerChoiceCourses.length > 0) && (
+                    (courses.preSelectedCourses.length > 0 ||
+                        courses.learnerChoiceCourses.length > 0) && (
                         <MyButton
                             onClick={handleSaveAll}
                             type="button"
@@ -75,7 +109,8 @@ export const CourseList = () => {
                     )}
 
                 {/* MaxLimitField will handle its own editing/saving state */}
-                {(preSelectedCourses.length > 0 || learnerChoiceCourses.length > 0) && (
+                {(courses.preSelectedCourses.length > 0 ||
+                    courses.learnerChoiceCourses.length > 0) && (
                     <MaxLimitField
                         title="Course"
                         maxAllowed={10}
@@ -87,9 +122,9 @@ export const CourseList = () => {
             </div>
 
             {/* Session Selection form when adding a session */}
-            {!isAddingCourse && (
+            {isAddingCourse && (
                 <div className="flex items-center gap-1">
-                    <CourseSelection />
+                    <CourseSelection handleIsAddingCourse={handleIsAddingCourse} />
                 </div>
             )}
 

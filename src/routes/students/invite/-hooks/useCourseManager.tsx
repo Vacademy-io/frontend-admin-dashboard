@@ -62,6 +62,7 @@ export function useCourseManager() {
 
             currentCourses.push(courseToAdd);
             setValue("batches.preSelectedCourses", currentCourses);
+            console.log("batch: ", batch);
             return true;
         }
         // For student selection mode (learnerChoiceCourses)
@@ -80,6 +81,7 @@ export function useCourseManager() {
 
             currentCourses.push(courseToAdd);
             setValue("batches.learnerChoiceCourses", currentCourses);
+            console.log("batch: ", batch);
             return true;
         }
 

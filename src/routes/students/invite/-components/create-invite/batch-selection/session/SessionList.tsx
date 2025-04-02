@@ -15,6 +15,7 @@ interface SessionListProps {
     maxSessions?: number;
     handleIsAddingSession: (value: boolean) => void;
     isAddingSession: boolean;
+    handleSessionSaved: (value: boolean) => void;
 }
 
 // Type guard
@@ -29,6 +30,7 @@ export const SessionList = ({
     maxSessions,
     handleIsAddingSession,
     isAddingSession,
+    handleSessionSaved,
 }: SessionListProps) => {
     const { getCourse, getAllAvailableSessions, setMaxSessions, getCurrentSessions } =
         useSessionManager(courseId, isCourseCompulsory);
@@ -65,9 +67,13 @@ export const SessionList = ({
 
     // Handle save all button click
     const handleSaveAll = () => {
-        handleIsAddingSession(false);
         setSessionsSaved(true);
     };
+
+    useEffect(() => {
+        handleSessionSaved(sessionsSaved);
+        handleIsAddingSession(!sessionsSaved);
+    }, [sessionsSaved]);
 
     return (
         <div className="flex flex-col">

@@ -63,9 +63,7 @@ export function useLevelManager(
                 return { session: null, path: null };
 
             session = course?.learnerChoiceSessions[sessionIndex];
-            console.log("session: ", session);
             sessionPath = `${coursePath}.learnerChoiceSessions.${sessionIndex}`;
-            console.log("session path: ", sessionPath);
         }
 
         return { session, path: sessionPath };
@@ -114,8 +112,6 @@ export function useLevelManager(
             setValue(`${path}.learnerChoiceLevels` as any, currentLevels);
         }
 
-        const batch = getValues("batches");
-        console.log("batch: ", batch);
         return true;
     };
 
@@ -152,7 +148,6 @@ export function useLevelManager(
     // Change level selection mode
     const changeLevelSelectionMode = (newMode: SelectionMode) => {
         const { path } = getSession();
-        console.log("path in change level selection mode: ", path);
         if (!path) return false;
 
         // Use as any to bypass strict typing
