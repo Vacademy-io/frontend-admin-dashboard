@@ -11,8 +11,10 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 import { Separator } from "@/components/ui/separator";
 import { MyButton } from "@/components/design-system/button";
-// import { Select } from "@/components/ui/select";
-// import SelectField from "@/components/design-system/select-field";
+import calculateLearningPercentage from "@/routes/students/students-list/-utils/calculateLearningPercentage";
+import { PercentCompletionStatus } from "./PercentCompletionStatus";
+import SelectField from "@/components/design-system/select-field";
+import { useForm, FormProvider } from "react-hook-form";
 
 export const StudentLearningProgress = () => {
     const [currentSubjectDetails, setCurrentSubjectDetails] = useState<SubjectWithDetails | null>(
@@ -25,7 +27,15 @@ export const StudentLearningProgress = () => {
     const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
 
     const [batch, setBatch] = useState<BatchForSessionType | null>(null);
-    // const [percentageCompleted, setPercentageCompleted] = useState(0);
+    const [percentageCompleted, setPercentageCompleted] = useState<number>(0);
+
+    // Initialize the form and its methods
+    const formMethods = useForm({
+        defaultValues: {
+            subject: "",
+            module: "",
+        },
+    });
 
     useEffect(() => {
         setBatch(
@@ -46,8 +56,16 @@ export const StudentLearningProgress = () => {
     });
 
     useEffect(() => {
+        if (subjectsWithChapters && subjectsWithChapters !== null) {
+            const percentage = calculateLearningPercentage(subjectsWithChapters);
+            setPercentageCompleted(percentage);
+        }
+    }, [subjectsWithChapters]);
+
+    useEffect(() => {
         if (subjectsWithChapters && subjectsWithChapters.length > 0 && subjectsWithChapters[0]) {
             setCurrentSubjectDetails(subjectsWithChapters[0]);
+            formMethods.setValue("subject", subjectsWithChapters[0].subject_dto.id.toString());
         } else {
             setCurrentSubjectDetails(null);
         }
@@ -60,10 +78,31 @@ export const StudentLearningProgress = () => {
             currentSubjectDetails.modules[0]
         ) {
             setCurrentModuleDetails(currentSubjectDetails.modules[0]);
+            formMethods.setValue("module", currentSubjectDetails.modules[0].module.id.toString());
         } else {
             setCurrentModuleDetails(null);
         }
     }, [currentSubjectDetails]);
+
+    const handleSubjectChange = (value: string) => {
+        const selectedSubject = subjectsWithChapters?.find(
+            (subject) => subject.subject_dto.id.toString() === value,
+        );
+        if (selectedSubject) {
+            setCurrentSubjectDetails(selectedSubject);
+        }
+    };
+
+    const handleModuleChange = (value: string) => {
+        if (currentSubjectDetails) {
+            const selectedModule = currentSubjectDetails.modules.find(
+                (module) => module.module.id.toString() === value,
+            );
+            if (selectedModule) {
+                setCurrentModuleDetails(selectedModule);
+            }
+        }
+    };
 
     if (selectedStudent == null) return <p>Student details unavailable</p>;
     if (isLoading) return <DashboardLoader />;
@@ -76,76 +115,86 @@ export const StudentLearningProgress = () => {
     )
         return <p>No subject has been created</p>;
 
-    return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-10">
-                <div className="flex flex-col gap-6">
-                    <p className="text-title font-semibold text-primary-500">
-                        {batch?.package_dto.package_name}
-                    </p>
-                    <div className="flex flex-col gap-2">
-                        <p className="text-body">Session: {batch?.session.session_name}</p>
-                        <p className="text-body">Level: {batch?.level.level_name}</p>
-                    </div>
-                </div>
-            </div>
-            <div className="flex items-center justify-between">
-                <MyButton buttonType="secondary" scale="large">
-                    Check Learning Timeline
-                </MyButton>
-                <MyButton buttonType="secondary" scale="large">
-                    Check Learning Progress
-                </MyButton>
-            </div>
-            <Separator />
-            <div className="no-scrollbar flex w-full overflow-x-scroll">
-                <div className="flex flex-nowrap">
-                    {subjectsWithChapters?.map((subjectData, index) => (
-                        <div
-                            key={index}
-                            className={`w-[150px] py-[9px] text-center ${
-                                currentSubjectDetails?.subject_dto.id == subjectData.subject_dto.id
-                                    ? "rounded-lg border border-primary-200 bg-white text-primary-500"
-                                    : "border-none bg-none text-neutral-600"
-                            } cursor-pointer text-subtitle`}
-                            onClick={() => {
-                                setCurrentSubjectDetails(subjectData);
-                            }}
-                        >
-                            {subjectData.subject_dto.subject_name}
-                        </div>
-                    ))}
-                </div>
-            </div>
+    // Prepare options for subject dropdown
+    const subjectOptions = subjectsWithChapters.map((subject) => ({
+        _id: subject.subject_dto.id,
+        value: subject.subject_dto.id.toString(),
+        label: subject.subject_dto.subject_name,
+    }));
 
-            <div className="flex flex-col gap-10">
-                {currentSubjectDetails && currentSubjectDetails.modules.length > 0 ? (
-                    <div className="flex flex-col gap-10">
-                        <div className="no-scrollbar flex w-full overflow-x-scroll">
-                            <div className="flex flex-nowrap">
-                                {currentSubjectDetails.modules.map((moduleData, index) => (
-                                    <div
-                                        key={index}
-                                        className={`w-[150px] py-[9px] text-center ${
-                                            currentModuleDetails?.module.id == moduleData.module.id
-                                                ? "rounded-lg border border-primary-200 bg-white text-primary-500"
-                                                : "border-none bg-none text-neutral-600"
-                                        } cursor-pointer text-subtitle`}
-                                        onClick={() => {
-                                            setCurrentModuleDetails(moduleData);
-                                        }}
-                                    >
-                                        {moduleData.module.module_name}
-                                    </div>
-                                ))}
-                            </div>
+    // Prepare options for module dropdown
+    const moduleOptions =
+        currentSubjectDetails?.modules.map((module) => ({
+            _id: module.module.id,
+            value: module.module.id.toString(),
+            label: module.module.module_name,
+        })) || [];
+
+    return (
+        <FormProvider {...formMethods}>
+            <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-10">
+                    <div className="flex flex-col gap-6">
+                        <p className="text-title font-semibold text-primary-500">
+                            {batch?.package_dto.package_name}
+                        </p>
+                        <div className="flex flex-col gap-2">
+                            <p className="text-body">Session: {batch?.session.session_name}</p>
+                            <p className="text-body">Level: {batch?.level.level_name}</p>
                         </div>
-                        <SubjectProgress moduleDetails={currentModuleDetails} />
                     </div>
-                ) : (
-                    <p>No modules created for this subject </p>
-                )}
+                    <div className="flex flex-col">
+                        <PercentCompletionStatus percentage={percentageCompleted} />
+                        <p className="text-caption">{percentageCompleted} % completed</p>
+                    </div>
+                </div>
+                <div className="flex items-center justify-between">
+                    <MyButton buttonType="secondary" scale="large">
+                        Check Learning Timeline
+                    </MyButton>
+                    <MyButton buttonType="secondary" scale="large">
+                        Check Learning Progress
+                    </MyButton>
+                </div>
+                <Separator />
+
+                {/* Subject dropdown */}
+                <div className="flex items-center justify-between gap-2">
+                    <div className="w-full">
+                        <SelectField
+                            label="Subject"
+                            name="subject"
+                            options={subjectOptions}
+                            control={formMethods.control}
+                            onSelect={handleSubjectChange}
+                            className="flex w-[250px] items-center gap-3"
+                            labelStyle="w-fit mt-2"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-10">
+                        {currentSubjectDetails && currentSubjectDetails.modules.length > 0 ? (
+                            <div className="flex flex-col gap-10">
+                                {/* Module dropdown */}
+                                <div className="w-full">
+                                    <SelectField
+                                        label="Module"
+                                        name="module"
+                                        options={moduleOptions}
+                                        control={formMethods.control}
+                                        onSelect={handleModuleChange}
+                                        className="flex w-[200px] items-center gap-3"
+                                        labelStyle="w-fit mt-2"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <p>No modules created for this subject </p>
+                        )}
+                    </div>
+                </div>
+                <SubjectProgress moduleDetails={currentModuleDetails} />
             </div>
-        </div>
+        </FormProvider>
     );
 };

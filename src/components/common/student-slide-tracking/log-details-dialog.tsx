@@ -147,14 +147,20 @@ export const LogDetailsDialog = ({ isOpen, onClose, logData }: LogDetailsDialogP
 
                 <div className="mt-6">
                     {isVideo ? (
-                        <MyTable
-                            data={VideoTable.data}
-                            columns={VideoTable.columns}
-                            isLoading={false}
-                            error={null}
-                            columnWidths={VIDEO_LOG_COLUMN_WIDTHS}
-                            currentPage={page}
-                        />
+                        VideoTable.data.content.length == 0 ? (
+                            <p className="text-primary-500">No logs found!</p>
+                        ) : (
+                            <MyTable
+                                data={VideoTable.data}
+                                columns={VideoTable.columns}
+                                isLoading={false}
+                                error={null}
+                                columnWidths={VIDEO_LOG_COLUMN_WIDTHS}
+                                currentPage={page}
+                            />
+                        )
+                    ) : DocumentTable.data.content.length == 0 ? (
+                        <p className="text-primary-500">No logs found!</p>
                     ) : (
                         <MyTable
                             data={DocumentTable.data}
