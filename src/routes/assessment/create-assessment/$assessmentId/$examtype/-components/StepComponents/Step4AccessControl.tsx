@@ -651,7 +651,7 @@ const AccessControlCards = ({
                             </MyButton>
                         </DialogTrigger>
                         <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-0 overflow-y-auto !p-0">
-                            <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
+                            <h1 className="sticky top-0 z-10 rounded-t-lg bg-primary-50 p-4 text-primary-500">
                                 Add User
                             </h1>
                             <div className="flex items-center justify-between p-6 !pb-0">
@@ -738,7 +738,7 @@ const AccessControlCards = ({
                                     );
                                 })}
                             </div>
-                            <div className="flex items-center justify-between p-6">
+                            <div className="sticky bottom-0 left-0 flex items-center justify-between bg-white p-6 shadow-md">
                                 <Step4InviteUsers refetchData={handleRefetchData} />
                                 <MyButton
                                     type="button"
@@ -755,7 +755,7 @@ const AccessControlCards = ({
                     </Dialog>
                 </div>
                 <div className="flex flex-wrap items-center gap-8">
-                    {getKeyVal.map((user) => {
+                    {getKeyVal?.map((user) => {
                         return (
                             <div
                                 key={user.userId}
