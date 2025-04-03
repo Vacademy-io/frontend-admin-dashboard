@@ -1,3 +1,4 @@
+// batch-section.tsx
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import {
@@ -6,6 +7,8 @@ import {
 } from "@/routes/students/manage-batches/-types/manage-batches-types";
 import { Plus, TrashSimple } from "phosphor-react";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
 
 interface batchCardProps {
     batch: BatchType;
@@ -13,6 +16,28 @@ interface batchCardProps {
 
 const BatchCard = ({ batch }: batchCardProps) => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const navigate = useNavigate();
+    const { levelName, packageName } = useGetStudentBatch(batch.package_session_id);
+
+    const handleViewBatch = () => {
+        // Navigate to student list with this batch pre-selected
+        const batchName = `${levelName} ${packageName}`;
+        console.log(
+            "Navigating with batch:",
+            batchName,
+            "package_session_id:",
+            batch.package_session_id,
+        );
+
+        navigate({
+            to: "/students/students-list",
+            search: {
+                batch: batchName,
+                package_session_id: batch.package_session_id,
+            },
+        });
+    };
+
     return (
         <>
             <div className="flex flex-col gap-8 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
@@ -42,7 +67,12 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         {" "}
                         <Plus /> Enroll Student
                     </MyButton>
-                    <MyButton buttonType="secondary" layoutVariant="default" scale="medium">
+                    <MyButton
+                        buttonType="secondary"
+                        layoutVariant="default"
+                        scale="medium"
+                        onClick={handleViewBatch}
+                    >
                         View Batch
                     </MyButton>
                 </div>

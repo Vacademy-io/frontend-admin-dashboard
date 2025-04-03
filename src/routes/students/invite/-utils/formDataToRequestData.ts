@@ -40,7 +40,8 @@ export const fetchPreSelectedSessions = (session: PreSelectedSession): PreSelect
         id: session.id,
         name: session.name,
         institute_assigned: preSelectedLevels.length == 0 ? false : true,
-        max_selectable_levels: learnerChoiceLevels.length == 0 ? 0 : session.maxLevels,
+        max_selectable_levels:
+            learnerChoiceLevels.length == 0 ? 0 : session.maxLevels == 0 ? 1 : session.maxLevels,
         pre_selected_levels: preSelectedLevels,
         learner_choice_levels: learnerChoiceLevels,
     };
@@ -57,7 +58,12 @@ export const fetchLearnerChoiceSessions = (
     const learnerChoiceSession: LearnerChoiceSessionType = {
         id: session.id,
         name: session.name,
-        max_selectable_levels: session.learnerChoiceLevels.length == 0 ? 0 : session.maxLevels,
+        max_selectable_levels:
+            session.learnerChoiceLevels.length == 0
+                ? 0
+                : session.maxLevels == 0
+                  ? 1
+                  : session.maxLevels,
         learner_choice_levels: learnerChoiceLevels,
     };
     return learnerChoiceSession;
@@ -76,7 +82,12 @@ export const fetchPreSelectedCourses = (course: PreSelectedCourse): PreSelectedP
         id: course.id,
         name: course.name,
         institute_assigned: course.preSelectedSessions.length > 0 ? true : false,
-        max_selectable_sessions: course.learnerChoiceSessions.length == 0 ? 0 : course.maxSessions,
+        max_selectable_sessions:
+            course.learnerChoiceSessions.length == 0
+                ? 0
+                : course.maxSessions == 0
+                  ? 1
+                  : course.maxSessions,
         pre_selected_session_dtos: preSelectedSessions,
         learner_choice_sessions: learnerChoiceSessions,
     };
@@ -93,7 +104,12 @@ export const fetchLearnerChoiceCourses = (
     const learnerChoiceCourse: LearnerChoicePackagesType = {
         id: course.id,
         name: course.name,
-        max_selectable_sessions: course.learnerChoiceSessions.length == 0 ? 0 : course.maxSessions,
+        max_selectable_sessions:
+            course.learnerChoiceSessions.length == 0
+                ? 0
+                : course.maxSessions == 0
+                  ? 1
+                  : course.maxSessions,
         learner_choice_sessions: learnerChoiceSessions,
     };
     return learnerChoiceCourse;
@@ -110,7 +126,11 @@ export const fetchBatchOptions = (data: InviteForm): string => {
     const batchOptionsJson: BatchOptionJsonType = {
         institute_assigned: data.batches.preSelectedCourses.length > 0 ? true : false,
         max_selectable_packages:
-            data.batches.learnerChoiceCourses.length == 0 ? 0 : data.batches.maxCourses,
+            data.batches.learnerChoiceCourses.length == 0
+                ? 0
+                : data.batches.maxCourses == 0
+                  ? 1
+                  : data.batches.maxCourses,
         pre_selected_packages: preSelectedCoures,
         learner_choice_packages: learnerChoiceCourses,
     };
