@@ -359,7 +359,7 @@ export const Step2SectionInfo = ({
                                 Choose Saved Paper
                             </MyButton>
                         </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                        <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
                             <div className="flex h-14 w-full items-center justify-between rounded-md bg-primary-50">
                                 <h1 className="rounded-sm p-4 font-bold text-primary-500">
                                     Choose Saved Question Paper From List

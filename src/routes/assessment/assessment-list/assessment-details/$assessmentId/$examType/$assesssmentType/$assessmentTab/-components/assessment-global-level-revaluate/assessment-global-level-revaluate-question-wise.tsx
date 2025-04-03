@@ -151,7 +151,7 @@ export function AssessmentGlobalLevelRevaluateQuestionWise() {
                         Question Wise
                     </MyButton>
                 </DialogTrigger>
-                <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
+                <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-0 overflow-y-auto !p-0">
                     <Tabs
                         value={selectedSection}
                         onValueChange={setSelectedSection}

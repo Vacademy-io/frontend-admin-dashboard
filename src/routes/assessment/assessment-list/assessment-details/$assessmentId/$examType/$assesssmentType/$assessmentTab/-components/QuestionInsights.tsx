@@ -256,7 +256,7 @@ export function QuestionInsightsComponent() {
                                                             View List
                                                         </p>
                                                     </DialogTrigger>
-                                                    <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
+                                                    <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0">
                                                         <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                             Correct Respondents
                                                         </h1>
@@ -315,7 +315,7 @@ export function QuestionInsightsComponent() {
                                                             View List
                                                         </p>
                                                     </DialogTrigger>
-                                                    <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
+                                                    <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0">
                                                         <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                             Partially Correct Respondents
                                                         </h1>
@@ -369,7 +369,7 @@ export function QuestionInsightsComponent() {
                                                             View List
                                                         </p>
                                                     </DialogTrigger>
-                                                    <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
+                                                    <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0">
                                                         <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                             Wrong Respondents
                                                         </h1>
@@ -422,7 +422,7 @@ export function QuestionInsightsComponent() {
                                                             View List
                                                         </p>
                                                     </DialogTrigger>
-                                                    <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0">
+                                                    <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0">
                                                         <h1 className="h-14 w-full bg-primary-50 p-4 font-semibold text-primary-500">
                                                             Skipped Respondents
                                                         </h1>

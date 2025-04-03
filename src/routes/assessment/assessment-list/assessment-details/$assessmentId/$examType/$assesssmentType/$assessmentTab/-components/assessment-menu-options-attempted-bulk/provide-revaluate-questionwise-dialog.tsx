@@ -264,7 +264,7 @@ export const ProvideRevaluateQuestionWiseDialog = ({
         <MyDialog
             trigger={trigger}
             heading="Question Wise Revaluation"
-            dialogWidth="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0"
+            dialogWidth="no-scrollbar !m-0 h-[90vh] !w-full !max-w-[90vw] !gap-0 overflow-y-auto !p-0"
             content={<ProvideRevaluateQuestionWiseDialogContent />}
             open={open}
             onOpenChange={onOpenChange}

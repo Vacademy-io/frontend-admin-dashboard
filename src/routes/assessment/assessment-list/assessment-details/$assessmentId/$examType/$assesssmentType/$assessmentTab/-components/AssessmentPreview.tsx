@@ -482,15 +482,19 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                         <DialogTrigger className="cursor-pointer rounded-full border p-2">
                             <SpeakerLow size={20} />
                         </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col gap-4 overflow-y-auto !rounded-none !p-0">
+                        <DialogContent className="no-scrollbar !m-0 flex h-[80vh] !w-full !max-w-[80vw] flex-col gap-4 overflow-y-auto !p-0">
                             <h1 className="h-14 bg-primary-50 p-4 font-semibold text-primary-500">
                                 Live Assessment Announcement
                             </h1>
+                            <AnnouncementComponent
+                                announcementList={announcementList}
+                                setAnnouncementList={setAnnouncementList}
+                            />
                             <div className="flex max-h-screen flex-col gap-4 overflow-y-auto p-4 pt-0">
                                 {announcementList.length === 0 ? (
                                     <p className="text-center">No Announcement Exists</p>
                                 ) : (
-                                    announcementList.map((announcement: Announcement) => (
+                                    announcementList?.map((announcement: Announcement) => (
                                         <Card
                                             key={announcement.id}
                                             className="w-full bg-neutral-50 pb-3 shadow-none"
@@ -518,10 +522,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                         </Card>
                                     ))
                                 )}
-                                <AnnouncementComponent
-                                    announcementList={announcementList}
-                                    setAnnouncementList={setAnnouncementList}
-                                />
                             </div>
                         </DialogContent>
                     </Dialog>

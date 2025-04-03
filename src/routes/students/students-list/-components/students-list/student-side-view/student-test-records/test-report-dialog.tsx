@@ -65,7 +65,7 @@ export const TestReportDialog = ({
     };
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
+            <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-0 overflow-y-auto !p-0">
                 <DialogHeader className="flex flex-col gap-6">
                     <div className="flex items-center justify-between">
                         <DialogTitle className="w-full bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
