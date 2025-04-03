@@ -37,6 +37,8 @@ import {
     convertMinutesToTimeFormat,
 } from "../../-services/helper";
 import dayjs from "dayjs";
+import { useSearch } from "@tanstack/react-router";
+import { Route } from "@/routes/study-library/reports";
 
 const formSchema = z
     .object({
@@ -83,6 +85,7 @@ export default function TimelineReports() {
     const filteredStudents = studentList.filter((student) =>
         student.full_name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
+    const search = useSearch({ from: Route.id });
 
     const {
         register,
@@ -215,7 +218,7 @@ export default function TimelineReports() {
                                 trigger("course");
                             }}
                             {...register("course")}
-                            defaultValue=""
+                            defaultValue={search.studentReport ? search.studentReport.courseId : ""}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Course" />
@@ -238,7 +241,9 @@ export default function TimelineReports() {
                                 trigger("session");
                             }}
                             {...register("session")}
-                            defaultValue=""
+                            defaultValue={
+                                search.studentReport ? search.studentReport.sessionId : ""
+                            }
                             disabled={!sessionList.length}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
@@ -261,7 +266,7 @@ export default function TimelineReports() {
                                 setValue("level", value);
                                 trigger("level");
                             }}
-                            defaultValue=""
+                            defaultValue={search.studentReport ? search.studentReport.levelId : ""}
                             disabled={!levelList.length}
                             {...register("level")}
                         >

@@ -135,11 +135,33 @@ export const StudentLearningProgress = () => {
     const handleLearningTimeLineClick = () => {
         router.navigate({
             to: "/study-library/reports",
+            search: {
+                studentReport: {
+                    tab: "STUDENT",
+                    learningTab: "TIMELINE",
+                    courseId: batch?.package_dto.id,
+                    sessionId: batch?.session.id,
+                    levelId: batch?.session.id,
+                    fullName: selectedStudent.full_name,
+                    userId: selectedStudent.user_id,
+                },
+            },
         });
     };
     const handleLearningProgressClick = () => {
         router.navigate({
             to: "/study-library/reports",
+            search: {
+                studentReport: {
+                    tab: "STUDENT",
+                    learningTab: "PROGRESS",
+                    courseId: batch?.package_dto.id,
+                    sessionId: batch?.session.id,
+                    levelId: batch?.session.id,
+                    fullName: selectedStudent.full_name,
+                    userId: selectedStudent.user_id,
+                },
+            },
         });
     };
 
