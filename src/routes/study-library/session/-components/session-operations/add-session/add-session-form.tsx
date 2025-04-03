@@ -98,14 +98,27 @@ export const AddSessionForm = ({
         // When refreshing packageWithLevels, combine existing levels with locally added ones
         const packages = getPackageWiseLevels();
 
-        // For each package, add only its own locally added levels
+        // Create a deep copy to avoid mutation issues
         const updatedPackages = packages.map((pkg) => {
             const packageId = pkg.package_dto.id;
             const levelsToAdd = locallyAddedLevels[packageId] || [];
 
             return {
                 ...pkg,
-                levels: [...pkg.level, ...levelsToAdd],
+                level: [
+                    ...pkg.level,
+                    ...levelsToAdd.map((level) => ({
+                        level_dto: {
+                            id: level.id,
+                            level_name: level.level_name,
+                            duration_in_days: level.duration_in_days,
+                            thumbnail_id: level.thumbnail_id,
+                        },
+                        package_session_id: "", // Use empty string instead of null
+                        package_session_status: "ACTIVE", // Use "ACTIVE" instead of null
+                        start_date: new Date().toISOString(), // Use current date instead of null
+                    })),
+                ],
             };
         });
 
@@ -144,46 +157,39 @@ export const AddSessionForm = ({
         durationInDays: number | null,
         packageId: string,
     ) => {
+        const tempId = `temp-${Date.now()}`; // Create a unique temporary ID
+
         // Create the new level object with the correct structure
         const newLevel: LevelForSession = {
             level_dto: {
-                id: "", // Use the temp ID instead of null
-                new_level: true,
+                id: tempId,
+                new_level: true, // Ensure this is explicitly set to true
                 level_name: levelName,
                 duration_in_days: durationInDays,
                 thumbnail_file_id: null,
                 package_id: packageId,
             },
-            package_session_id: null,
-            package_session_status: null,
-            start_date: null,
+            package_session_id: "", // Use empty string instead of null
+            package_session_status: "ACTIVE", // Use "ACTIVE" instead of null
+            start_date: new Date().toISOString(), // Use current date instead of null
         };
 
-        // Check if this level name already exists for this package to avoid duplicates
+        // Add to form values
         const currentLevels = form.getValues("levels");
-        const levelNameExists = currentLevels.some(
-            (level) =>
-                level.level_dto.level_name === levelName &&
-                level.level_dto.package_id === packageId,
-        );
+        form.setValue("levels", [...currentLevels, newLevel]);
 
-        if (!levelNameExists) {
-            // Add to form values only if it doesn't exist
-            form.setValue("levels", [...currentLevels, newLevel]);
+        // Add to local state for tracking
+        const levelForLocalTracking: LevelType = {
+            id: tempId,
+            level_name: levelName,
+            duration_in_days: durationInDays,
+            thumbnail_id: null,
+        };
 
-            // Add to local state for THIS package only with the same ID
-            const levelForPackage: LevelType = {
-                id: "",
-                level_name: levelName,
-                duration_in_days: durationInDays,
-                thumbnail_id: null,
-            };
-
-            setLocallyAddedLevels((prev) => ({
-                ...prev,
-                [packageId]: [...(prev[packageId] || []), levelForPackage],
-            }));
-        }
+        setLocallyAddedLevels((prev) => ({
+            ...prev,
+            [packageId]: [...(prev[packageId] || []), levelForLocalTracking],
+        }));
 
         // Reset inputs
         setNewLevelName("");
