@@ -23,9 +23,11 @@ import { handleDeleteAssessment } from "../-services/assessment-services";
 export function ScheduleTestDetailsDropdownLive({
     scheduleTestContent,
     handleRefetchData,
+    selectedTab,
 }: {
     scheduleTestContent: TestContent;
     handleRefetchData: () => void;
+    selectedTab: string;
 }) {
     const [isRemiderAlertDialogOpen, setIsRemiderAlertDialogOpen] = useState(false);
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
@@ -34,11 +36,12 @@ export function ScheduleTestDetailsDropdownLive({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
                 assesssmentType: scheduleTestContent.assessment_visibility,
+                assessmentTab: selectedTab,
             },
         });
     };
@@ -197,19 +200,22 @@ export function ScheduleTestDetailsDropdownLive({
 export function ScheduleTestDetailsDropdownUpcoming({
     scheduleTestContent,
     handleRefetchData,
+    selectedTab,
 }: {
     scheduleTestContent: TestContent;
     handleRefetchData: () => void;
+    selectedTab: string;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
                 assesssmentType: scheduleTestContent.assessment_visibility,
+                assessmentTab: selectedTab,
             },
         });
     };
@@ -286,20 +292,23 @@ export function ScheduleTestDetailsDropdownUpcoming({
 export function ScheduleTestDetailsDropdownPrevious({
     scheduleTestContent,
     handleRefetchData,
+    selectedTab,
 }: {
     scheduleTestContent: TestContent;
     handleRefetchData: () => void;
+    selectedTab: string;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const [isReopenAssessment, setIsReopenAssessment] = useState(false);
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
                 assesssmentType: scheduleTestContent.assessment_visibility,
+                assessmentTab: selectedTab,
             },
         });
     };
@@ -390,19 +399,22 @@ export function ScheduleTestDetailsDropdownPrevious({
 export function ScheduleTestDetailsDropdowDrafts({
     scheduleTestContent,
     handleRefetchData,
+    selectedTab,
 }: {
     scheduleTestContent: TestContent;
     handleRefetchData: () => void;
+    selectedTab: string;
 }) {
     const [isDeleteAssessmentDialog, setIsDeleteAssessmentDialog] = useState(false);
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
                 assesssmentType: scheduleTestContent.assessment_visibility,
+                assessmentTab: selectedTab,
             },
         });
     };
@@ -467,6 +479,7 @@ export function ScheduleTestMainDropdownComponent({
                 <ScheduleTestDetailsDropdownLive
                     scheduleTestContent={scheduleTestContent}
                     handleRefetchData={handleRefetchData}
+                    selectedTab={selectedTab}
                 />
             );
         case "upcomingTests":
@@ -474,6 +487,7 @@ export function ScheduleTestMainDropdownComponent({
                 <ScheduleTestDetailsDropdownUpcoming
                     scheduleTestContent={scheduleTestContent}
                     handleRefetchData={handleRefetchData}
+                    selectedTab={selectedTab}
                 />
             );
         case "previousTests":
@@ -481,6 +495,7 @@ export function ScheduleTestMainDropdownComponent({
                 <ScheduleTestDetailsDropdownPrevious
                     scheduleTestContent={scheduleTestContent}
                     handleRefetchData={handleRefetchData}
+                    selectedTab={selectedTab}
                 />
             );
         case "draftTests":
@@ -488,6 +503,7 @@ export function ScheduleTestMainDropdownComponent({
                 <ScheduleTestDetailsDropdowDrafts
                     scheduleTestContent={scheduleTestContent}
                     handleRefetchData={handleRefetchData}
+                    selectedTab={selectedTab}
                 />
             );
         default:

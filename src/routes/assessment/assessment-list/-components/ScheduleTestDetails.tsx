@@ -17,10 +17,10 @@ import {
 } from "../../create-assessment/$assessmentId/$examtype/-utils/helper";
 import { ScheduleTestMainDropdownComponent } from "./ScheduleTestDetailsDropdownMenu";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
-import { getBatchNamesByIds } from "../assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { getBatchNamesByIds } from "../assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -41,11 +41,12 @@ const ScheduleTestDetails = ({
     const handleNavigateAssessment = (assessmentId: string) => {
         if (!isDialogOpen) {
             navigate({
-                to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+                to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
                 params: {
                     assessmentId: assessmentId,
                     examType: scheduleTestContent.play_mode,
                     assesssmentType: scheduleTestContent.assessment_visibility,
+                    assessmentTab: selectedTab,
                 },
             });
         }

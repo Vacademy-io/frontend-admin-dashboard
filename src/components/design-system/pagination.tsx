@@ -77,7 +77,9 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                         </PaginationLink>
                     </PaginationItem>
 
-                    {totalPages > 1 && (currentPage === 0 || currentPage === totalPages - 1) ? (
+                    {totalPages < 2 ? (
+                        <></>
+                    ) : totalPages > 1 && (currentPage === 0 || currentPage === totalPages - 1) ? (
                         <>
                             <PaginationItem>
                                 <PaginationEllipsis />
@@ -130,33 +132,37 @@ export function MyPagination({ currentPage, totalPages, onPageChange }: Paginati
                 </PaginationContent>
             </Pagination>
 
-            <div className="flex items-center gap-2">
-                <div>Go to</div>
-                <div className="relative">
-                    <MyInput
-                        inputType="text"
-                        input={pageInput}
-                        onChangeFunction={handlePageInputChange}
-                        className="h-7 w-[50px] pr-7"
-                    />
-                    <KeyReturn
-                        weight="fill"
-                        className={`absolute right-2 top-1/4 size-[18px] cursor-pointer text-primary-500 ${
-                            (pageInput.length || (submittedPage.length && !pageInput.length)) &&
-                            submittedPage !== pageInput
-                                ? "visible"
-                                : "hidden"
-                        }`}
-                        onClick={handlePageInputSubmit}
-                    />
-                    <XCircle
-                        className={`absolute right-2 top-1/4 size-[18px] cursor-pointer text-neutral-400 ${
-                            pageInput === submittedPage && pageInput !== "" ? "visible" : "hidden"
-                        }`}
-                        onClick={handleClearPageInput}
-                    />
+            {totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                    <div>Go to</div>
+                    <div className="relative">
+                        <MyInput
+                            inputType="text"
+                            input={pageInput}
+                            onChangeFunction={handlePageInputChange}
+                            className="h-7 w-[50px] pr-7"
+                        />
+                        <KeyReturn
+                            weight="fill"
+                            className={`absolute right-2 top-1/4 size-[18px] cursor-pointer text-primary-500 ${
+                                (pageInput.length || (submittedPage.length && !pageInput.length)) &&
+                                submittedPage !== pageInput
+                                    ? "visible"
+                                    : "hidden"
+                            }`}
+                            onClick={handlePageInputSubmit}
+                        />
+                        <XCircle
+                            className={`absolute right-2 top-1/4 size-[18px] cursor-pointer text-neutral-400 ${
+                                pageInput === submittedPage && pageInput !== ""
+                                    ? "visible"
+                                    : "hidden"
+                            }`}
+                            onClick={handleClearPageInput}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

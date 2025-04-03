@@ -15,6 +15,7 @@ import calculateLearningPercentage from "@/routes/students/students-list/-utils/
 import { PercentCompletionStatus } from "./PercentCompletionStatus";
 import SelectField from "@/components/design-system/select-field";
 import { useForm, FormProvider } from "react-hook-form";
+import { useRouter } from "@tanstack/react-router";
 
 export const StudentLearningProgress = () => {
     const [currentSubjectDetails, setCurrentSubjectDetails] = useState<SubjectWithDetails | null>(
@@ -28,6 +29,7 @@ export const StudentLearningProgress = () => {
 
     const [batch, setBatch] = useState<BatchForSessionType | null>(null);
     const [percentageCompleted, setPercentageCompleted] = useState<number>(0);
+    const router = useRouter();
 
     // Initialize the form and its methods
     const formMethods = useForm({
@@ -130,6 +132,17 @@ export const StudentLearningProgress = () => {
             label: module.module.module_name,
         })) || [];
 
+    const handleLearningTimeLineClick = () => {
+        router.navigate({
+            to: "/study-library/reports",
+        });
+    };
+    const handleLearningProgressClick = () => {
+        router.navigate({
+            to: "/study-library/reports",
+        });
+    };
+
     return (
         <FormProvider {...formMethods}>
             <div className="flex flex-col gap-6">
@@ -149,10 +162,18 @@ export const StudentLearningProgress = () => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <MyButton buttonType="secondary" scale="large">
+                    <MyButton
+                        buttonType="secondary"
+                        scale="large"
+                        onClick={handleLearningTimeLineClick}
+                    >
                         Check Learning Timeline
                     </MyButton>
-                    <MyButton buttonType="secondary" scale="large">
+                    <MyButton
+                        buttonType="secondary"
+                        scale="large"
+                        onClick={handleLearningProgressClick}
+                    >
                         Check Learning Progress
                     </MyButton>
                 </div>

@@ -39,12 +39,14 @@ export interface MyImageDetail {
 }
 
 export interface MySingleChoiceOption {
+    id?: string;
     name?: string; // Optional string
     isSelected?: boolean; // Optional boolean
     image: MyImage; // Required image object
 }
 
 export interface MyMultipleChoiceOption {
+    id?: string;
     name?: string; // Optional string
     isSelected?: boolean; // Optional boolean
     image: MyImage; // Required image object

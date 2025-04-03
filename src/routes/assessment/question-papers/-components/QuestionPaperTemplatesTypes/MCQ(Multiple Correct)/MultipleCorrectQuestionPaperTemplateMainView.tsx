@@ -12,7 +12,6 @@ import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-t
 import { formatStructure } from "../../../-utils/helper";
 import { OptionImagePreview } from "../../options/MCQ(Multiple Correct)/OptionImagePreview";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { useEffect } from "react";
 
 export const MultipleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -22,7 +21,6 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
-    const questions = form.watch("questions");
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const optionsType = getValues("optionsType") || "";
@@ -61,12 +59,6 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
             "",
         );
     };
-
-    useEffect(() => {
-        questions.forEach((_, index) => {
-            form.trigger(`questions.${index}.questionName`);
-        });
-    }, [questions, form.trigger]);
 
     if (allQuestions.length === 0) {
         return (

@@ -48,7 +48,7 @@ import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
 import { convertDateFormat } from "./Step1BasicInfo";
-import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
 import { getInstituteId } from "@/constants/helper";
 import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
 
@@ -126,6 +126,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Full Name",
                         oldKey: true,
                         isRequired: true,
+                        key: "full_name",
                     },
                     {
                         id: "1",
@@ -133,6 +134,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Email",
                         oldKey: true,
                         isRequired: true,
+                        key: "email",
                     },
                     {
                         id: "2",
@@ -140,6 +142,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Phone Number",
                         oldKey: true,
                         isRequired: true,
+                        key: "phone_number",
                     },
                 ],
             },
@@ -274,6 +277,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 name,
                 oldKey,
                 isRequired: true,
+                key: "",
             },
         ];
 
@@ -299,6 +303,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             oldKey,
             ...(type === "dropdown" && { options: dropdownOptions }), // Include options if type is dropdown
             isRequired: true,
+            key: "",
         };
 
         // Add the new field to the array
@@ -1134,6 +1139,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         </div>
                     </div>
                     <Separator className="my-4" />
+                    {/* will be added later
                     <FormField
                         control={form.control}
                         name="show_leaderboard"
@@ -1148,7 +1154,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 </FormControl>
                             </FormItem>
                         )}
-                    />
+                    /> */}
                     <div className="flex w-3/4 justify-between" id="notify-via-email">
                         {getStepKey({
                             assessmentDetails,
@@ -1262,6 +1268,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 />
                             </div>
                         )}
+                        {/* will be added later
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -1417,7 +1424,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                     )}
                                 />
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </div>
             </form>

@@ -51,7 +51,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { BatchesFilterData } = useFilterDataForAssesment(initData);
     const instituteId = getInstituteId();
-    const { assessmentId, examType, assesssmentType } = Route.useParams();
+    const { assessmentId, examType, assesssmentType, assessmentTab } = Route.useParams();
     const { data: totalMarks } = useSuspenseQuery(
         handleGetAssessmentTotalMarksData({ assessmentId }),
     );
@@ -748,26 +748,30 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 {attemptedCount}
                             </Badge>
                         </TabsTrigger>
-                        <TabsTrigger
-                            value="Ongoing"
-                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                selectedTab === "Ongoing"
-                                    ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                    : "border-none bg-transparent"
-                            }`}
-                        >
-                            <span
-                                className={`${selectedTab === "Ongoing" ? "text-primary-500" : ""}`}
+                        {assessmentTab !== "previousTests" && (
+                            <TabsTrigger
+                                value="Ongoing"
+                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                    selectedTab === "Ongoing"
+                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                        : "border-none bg-transparent"
+                                }`}
                             >
-                                Ongoing
-                            </span>
-                            <Badge
-                                className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
-                                variant="outline"
-                            >
-                                {ongoingCount}
-                            </Badge>
-                        </TabsTrigger>
+                                <span
+                                    className={`${
+                                        selectedTab === "Ongoing" ? "text-primary-500" : ""
+                                    }`}
+                                >
+                                    Ongoing
+                                </span>
+                                <Badge
+                                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                                    variant="outline"
+                                >
+                                    {ongoingCount}
+                                </Badge>
+                            </TabsTrigger>
+                        )}
                         <TabsTrigger
                             value="Pending"
                             className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
@@ -811,51 +815,53 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <Tabs
-                        value={selectedParticipantsTab}
-                        onValueChange={handleParticipantsTab}
-                        className={`ml-4 flex justify-start rounded-lg bg-white p-0 pr-4 shadow-none`}
-                    >
-                        <TabsList className="flex h-auto flex-wrap justify-start border border-gray-500 !bg-transparent p-0">
-                            <TabsTrigger
-                                value="internal"
-                                className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 px-4 ${
-                                    selectedParticipantsTab === "internal"
-                                        ? "!bg-primary-100"
-                                        : "bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
+                    {assesssmentType === "PUBLIC" && (
+                        <Tabs
+                            value={selectedParticipantsTab}
+                            onValueChange={handleParticipantsTab}
+                            className={`ml-4 flex justify-start rounded-lg bg-white p-0 pr-4 shadow-none`}
+                        >
+                            <TabsList className="flex h-auto flex-wrap justify-start border border-gray-500 !bg-transparent p-0">
+                                <TabsTrigger
+                                    value="internal"
+                                    className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 px-4 ${
                                         selectedParticipantsTab === "internal"
-                                            ? "text-teal-800 dark:text-teal-400"
-                                            : ""
+                                            ? "!bg-primary-100"
+                                            : "bg-transparent"
                                     }`}
                                 >
-                                    Internal Participants
-                                </span>
-                            </TabsTrigger>
-                            <Separator orientation="vertical" className="h-full bg-gray-500" />
-                            <TabsTrigger
-                                value="external"
-                                className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 px-4 ${
-                                    selectedParticipantsTab === "external"
-                                        ? "!bg-primary-100"
-                                        : "bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
+                                    <span
+                                        className={`${
+                                            selectedParticipantsTab === "internal"
+                                                ? "text-teal-800 dark:text-teal-400"
+                                                : ""
+                                        }`}
+                                    >
+                                        Internal Participants
+                                    </span>
+                                </TabsTrigger>
+                                <Separator orientation="vertical" className="h-full bg-gray-500" />
+                                <TabsTrigger
+                                    value="external"
+                                    className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 px-4 ${
                                         selectedParticipantsTab === "external"
-                                            ? "text-teal-800 dark:text-teal-400"
-                                            : ""
+                                            ? "!bg-primary-100"
+                                            : "bg-transparent"
                                     }`}
                                 >
-                                    External Participants
-                                </span>
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                                    <span
+                                        className={`${
+                                            selectedParticipantsTab === "external"
+                                                ? "text-teal-800 dark:text-teal-400"
+                                                : ""
+                                        }`}
+                                    >
+                                        External Participants
+                                    </span>
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    )}
                     <div className="flex items-center gap-6">
                         <AssessmentDetailsSearchComponent
                             onSearch={handleSearch}
@@ -988,7 +994,10 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
                     <TabsContent value={selectedTab}>
-                        <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                        <SidebarProvider
+                            style={{ ["--sidebar-width" as string]: "565px" }}
+                            defaultOpen={false}
+                        >
                             <AssessmentSubmissionsStudentTable
                                 data={{
                                     content: getAssessmentSubmissionsFilteredDataStudentData(

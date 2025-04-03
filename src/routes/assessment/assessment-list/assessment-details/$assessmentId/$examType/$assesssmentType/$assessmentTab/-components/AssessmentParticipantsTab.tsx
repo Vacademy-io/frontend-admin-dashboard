@@ -119,12 +119,13 @@ const AssessmentParticipantsTab = () => {
                     </div>
                 </div>
                 <Separator />
+                {/* will be added later
                 {assessmentDetails[2]?.saved_data?.notifications?.participant_show_leaderboard && (
                     <div className="flex w-1/2 items-center justify-between">
                         <p className="text-sm font-semibold">Show Leaderboard to Participants</p>
                         <CheckCircle size={22} weight="fill" className="text-success-600" />
                     </div>
-                )}
+                )} */}
                 <div className="flex w-full items-start gap-16">
                     {/* Participants Data */}
                     <div className="flex w-1/2 flex-col gap-6">
@@ -167,7 +168,7 @@ const AssessmentParticipantsTab = () => {
                             </div>
                         )}
                     </div>
-                    {/* Parents Data */}
+                    {/* Parents Data, this will be added later
                     <div className="flex w-1/2 flex-col gap-6">
                         <p className="font-semibold">Notify Parents via Email:</p>
                         {assessmentDetails[2]?.saved_data?.notifications
@@ -200,14 +201,14 @@ const AssessmentParticipantsTab = () => {
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
                         )}
-                        {/* <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between">
                             <p className="text-sm">When students appears for the Assessment:</p>
                             <CheckCircle size={22} weight="fill" className="text-success-600" />
                         </div>
                         <div className="flex items-center justify-between">
                             <p className="text-sm">When students finishes the Assessment:</p>
                             <CheckCircle size={22} weight="fill" className="text-success-600" />
-                        </div> */}
+                        </div>
                         {assessmentDetails[2]?.saved_data?.notifications
                             ?.parent_when_assessment_report_generated && (
                             <div className="flex items-center justify-between">
@@ -215,7 +216,7 @@ const AssessmentParticipantsTab = () => {
                                 <CheckCircle size={22} weight="fill" className="text-success-600" />
                             </div>
                         )}
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </>
