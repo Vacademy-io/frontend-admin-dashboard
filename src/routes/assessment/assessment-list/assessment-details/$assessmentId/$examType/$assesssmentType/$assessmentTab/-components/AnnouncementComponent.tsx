@@ -56,7 +56,7 @@ export const AnnouncementComponent = ({
     return (
         <>
             <Dialog open={isMakeAssessmentDialog} onOpenChange={setIsMakeAssessmentDialog}>
-                <DialogTrigger className="mt-4 flex justify-end">
+                <DialogTrigger className="flex justify-end pr-4">
                     <MyButton
                         type="button"
                         scale="large"

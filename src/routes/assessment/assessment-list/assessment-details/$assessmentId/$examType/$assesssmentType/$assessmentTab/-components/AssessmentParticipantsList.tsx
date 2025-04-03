@@ -171,7 +171,7 @@ export const AssessmentParticipantsList = ({ batchId }: { batchId: string }) => 
                     </span>
                 </div>
             </DialogTrigger>
-            <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col gap-6 overflow-y-auto !rounded-none !p-0">
+            <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col gap-6 overflow-y-auto !p-0">
                 <h1 className="rounded-t-lg bg-primary-100 p-4 font-semibold text-primary-500">
                     Participants List
                 </h1>

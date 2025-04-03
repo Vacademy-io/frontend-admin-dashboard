@@ -11,7 +11,6 @@ import {
     handleGetQuestionInsightsData,
 } from "../../-services/assessment-details-services";
 import {
-    parseHtmlToString,
     transformQuestionInsightsQuestionsData,
     transformQuestionsDataToRevaluateAPI,
 } from "../../-utils/helper";
@@ -146,7 +145,7 @@ export function StudentRevaluateQuestionWiseComponent({
     }, [selectedSection]);
     return (
         <>
-            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0">
+            <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-0 overflow-y-auto !p-0">
                 <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
                     Question Wise Revaluation
                 </h1>
@@ -206,12 +205,13 @@ export function StudentRevaluateQuestionWiseComponent({
                                         key={question.assessment_question_preview_dto.questionId}
                                     >
                                         <TableCell>{index + 1}</TableCell>
-                                        <TableCell>
-                                            {parseHtmlToString(
-                                                question.assessment_question_preview_dto
-                                                    .questionName,
-                                            )}
-                                        </TableCell>
+                                        <TableCell
+                                            dangerouslySetInnerHTML={{
+                                                __html:
+                                                    question.assessment_question_preview_dto
+                                                        .questionName || "",
+                                            }}
+                                        />
                                         <TableCell>
                                             <Checkbox
                                                 checked={
