@@ -11,7 +11,6 @@ import {
     handleGetQuestionInsightsData,
 } from "../../-services/assessment-details-services";
 import {
-    parseHtmlToString,
     transformQuestionInsightsQuestionsData,
     transformQuestionsDataToRevaluateAPI,
 } from "../../-utils/helper";
@@ -206,12 +205,13 @@ export function StudentRevaluateQuestionWiseComponent({
                                         key={question.assessment_question_preview_dto.questionId}
                                     >
                                         <TableCell>{index + 1}</TableCell>
-                                        <TableCell>
-                                            {parseHtmlToString(
-                                                question.assessment_question_preview_dto
-                                                    .questionName,
-                                            )}
-                                        </TableCell>
+                                        <TableCell
+                                            dangerouslySetInnerHTML={{
+                                                __html:
+                                                    question.assessment_question_preview_dto
+                                                        .questionName || "",
+                                            }}
+                                        />
                                         <TableCell>
                                             <Checkbox
                                                 checked={

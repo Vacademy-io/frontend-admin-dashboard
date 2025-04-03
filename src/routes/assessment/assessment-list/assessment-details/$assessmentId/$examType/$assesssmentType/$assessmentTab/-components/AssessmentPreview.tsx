@@ -24,7 +24,6 @@ import {
     handleAddedQuestionsToSections,
     mergeSectionData,
     // announcementDialogTrigger,
-    parseHtmlToString,
     transformPreviewDataToSections,
     transformSectionQuestions,
     transformSectionsAndQuestionsData,
@@ -483,7 +482,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                         <DialogTrigger className="cursor-pointer rounded-full border p-2">
                             <SpeakerLow size={20} />
                         </DialogTrigger>
-                        <DialogContent className="flex h-full !max-w-full flex-col !rounded-none p-0">
+                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col gap-4 overflow-y-auto !rounded-none !p-0">
                             <h1 className="h-14 bg-primary-50 p-4 font-semibold text-primary-500">
                                 Live Assessment Announcement
                             </h1>
@@ -500,11 +499,11 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                 <CardTitle className="font-semibold text-neutral-600">
                                                     {announcement.title}
                                                 </CardTitle>
-                                                <CardDescription>
-                                                    {parseHtmlToString(
-                                                        announcement.instructions || "",
-                                                    )}
-                                                </CardDescription>
+                                                <CardDescription
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: announcement.instructions || "",
+                                                    }}
+                                                />
                                             </CardHeader>
                                             <p className="-mt-3 ml-2 flex items-center">
                                                 <DotOutline

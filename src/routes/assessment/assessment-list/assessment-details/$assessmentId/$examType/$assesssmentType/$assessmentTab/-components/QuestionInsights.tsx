@@ -16,7 +16,6 @@ import {
 } from "../-services/assessment-details-services";
 import {
     getCorrectOptionsForQuestion,
-    parseHtmlToString,
     transformQuestionInsightsQuestionsData,
 } from "../-utils/helper";
 import QuestionAssessmentStatus from "./QuestionAssessmentStatus";
@@ -133,9 +132,13 @@ export function QuestionInsightsComponent() {
                             <div className="my-4 flex w-1/2 flex-col gap-8 p-2">
                                 <h3>
                                     Question&nbsp;({index + 1}.)&nbsp;
-                                    {parseHtmlToString(
-                                        question.assessment_question_preview_dto.questionName,
-                                    )}
+                                    <span
+                                        dangerouslySetInnerHTML={{
+                                            __html:
+                                                question.assessment_question_preview_dto
+                                                    .questionName || "",
+                                        }}
+                                    />
                                 </h3>
                                 <div className="flex flex-nowrap items-center gap-8 text-sm font-semibold">
                                     <p className="whitespace-nowrap font-normal">Correct Answer:</p>
@@ -161,13 +164,11 @@ export function QuestionInsightsComponent() {
                                                         key={idx}
                                                     >
                                                         <span>({option?.optionType}.)&nbsp;</span>
-                                                        <span>
-                                                            {option?.optionName
-                                                                ? parseHtmlToString(
-                                                                      option.optionName,
-                                                                  )
-                                                                : ""}
-                                                        </span>
+                                                        <span
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: option?.optionName || "",
+                                                            }}
+                                                        />
                                                     </div>
                                                 );
                                             },

@@ -10,7 +10,6 @@ import {
     handleGetQuestionInsightsData,
 } from "../../-services/assessment-details-services";
 import {
-    parseHtmlToString,
     transformQuestionInsightsQuestionsData,
     transformQuestionsDataToRevaluateAPI,
 } from "../../-utils/helper";
@@ -209,14 +208,16 @@ export const ProvideRevaluateQuestionWiseDialogContent = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody className="bg-neutral-50">
-                            {selectedSectionData.map((question, index) => (
+                            {selectedSectionData?.map((question, index) => (
                                 <TableRow key={question.assessment_question_preview_dto.questionId}>
                                     <TableCell>{index + 1}</TableCell>
-                                    <TableCell>
-                                        {parseHtmlToString(
-                                            question.assessment_question_preview_dto.questionName,
-                                        )}
-                                    </TableCell>
+                                    <TableCell
+                                        dangerouslySetInnerHTML={{
+                                            __html:
+                                                question.assessment_question_preview_dto
+                                                    .questionName || "",
+                                        }}
+                                    />
                                     <TableCell>
                                         <Checkbox
                                             checked={

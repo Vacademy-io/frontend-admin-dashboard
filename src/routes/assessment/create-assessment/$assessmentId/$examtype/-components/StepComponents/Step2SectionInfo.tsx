@@ -36,10 +36,7 @@ import sectionDetailsSchema from "../../-utils/section-details-schema";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { Route } from "../..";
 import { useQuestionsForSection } from "../../-hooks/getQuestionsDataForSection";
-import {
-    calculateAveragePenalty,
-    parseHtmlToString,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
+import { calculateAveragePenalty } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -833,9 +830,11 @@ export const Step2SectionInfo = ({
                                             return (
                                                 <TableRow key={idx}>
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>
-                                                        {parseHtmlToString(question.questionName)}
-                                                    </TableCell>
+                                                    <TableCell
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: question.questionName || "",
+                                                        }}
+                                                    />
                                                     <TableCell>{question.questionType}</TableCell>
                                                     <TableCell>
                                                         <FormField
