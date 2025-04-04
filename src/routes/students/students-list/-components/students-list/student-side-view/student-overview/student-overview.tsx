@@ -7,6 +7,8 @@ import { useStudentSidebar } from "@/routes/students/students-list/-context/sele
 import { useEffect, useState } from "react";
 import { OverViewData, OverviewDetailsType } from "./overview";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { useStudentCredentails } from "@/services/student-list-section/getStudentCredentails";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const StudentOverview = () => {
     const { selectedStudent } = useStudentSidebar();
@@ -15,12 +17,39 @@ export const StudentOverview = () => {
 
     const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
 
+    const {
+        data: StudentCredentails,
+        isLoading: loadingCredentials,
+        isError: errorCredentials,
+    } = useStudentCredentails({ userId: selectedStudent?.user_id || "" });
+
+    const [password, setPassword] = useState(
+        errorCredentials
+            ? "Error fetching password"
+            : StudentCredentails
+              ? StudentCredentails.password
+              : "password not found",
+    );
+
+    useEffect(() => {
+        const newPassword = errorCredentials
+            ? "Error fetching password"
+            : StudentCredentails
+              ? StudentCredentails.password
+              : "password not found";
+        setPassword(newPassword);
+    }, [StudentCredentails]);
+
     useEffect(() => {
         const details = getDetailsFromPackageSessionId({
             packageSessionId: selectedStudent?.package_session_id || "",
         });
         setOverviewData(
-            OverViewData({ selectedStudent: selectedStudent, packageSessionDetails: details }),
+            OverViewData({
+                selectedStudent: selectedStudent,
+                packageSessionDetails: details,
+                password: password,
+            }),
         );
 
         // Calculate days until expiry
@@ -41,6 +70,14 @@ export const StudentOverview = () => {
             setDaysUntilExpiry(0);
         }
     }, [selectedStudent, instituteDetails]);
+
+    if (loadingCredentials) {
+        return (
+            <div className="flex h-full items-center justify-center">
+                <DashboardLoader />
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-10 text-neutral-600">

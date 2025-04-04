@@ -29,6 +29,7 @@ export interface Slide {
     status: "PUBLISHED" | "DRAFT" | "DELETED" | "UNSYNC";
     published_data: string;
     published_url: string;
+    last_sync_date: string | null;
 }
 
 interface VideoSlidePayload {

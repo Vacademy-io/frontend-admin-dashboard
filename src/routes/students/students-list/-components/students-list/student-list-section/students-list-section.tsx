@@ -142,7 +142,7 @@ export const StudentsListSection = () => {
 
     return (
         <section className="flex max-w-full flex-col gap-8 overflow-visible">
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
                 <StudentListHeader />
                 <StudentFilters
                     currentSession={currentSession}

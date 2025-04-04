@@ -21,6 +21,7 @@ import {
 } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import { toast } from "sonner";
 import { Check, PencilSimpleLine } from "phosphor-react";
+import { formatReadableDate } from "@/utils/formatReadableData";
 
 export const formatHTMLString = (htmlString: string) => {
     // Remove the body tag and its attributes
@@ -453,31 +454,38 @@ export const SlideMaterial = ({
         <div className="flex w-full flex-1 flex-col" ref={selectionRef}>
             {activeItem && (
                 <div className="-mx-8 -my-8 flex items-center justify-between gap-6 border-b border-neutral-300 px-8 py-4">
-                    {isEditing ? (
-                        <div className="flex items-center justify-center gap-2">
-                            <input
-                                type="text"
-                                value={heading}
-                                onChange={handleHeadingChange}
-                                className="w-full text-h3 font-semibold text-neutral-600 focus:outline-none"
-                                autoFocus
-                            />
-                            <Check
-                                onClick={updateHeading}
-                                className="cursor-pointer hover:text-primary-500"
-                            />
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-center gap-2">
-                            <h3 className="text-h3 font-semibold text-neutral-600">
-                                {heading || "No content selected"}
-                            </h3>
-                            <PencilSimpleLine
-                                className="cursor-pointer hover:text-primary-500"
-                                onClick={() => setIsEditing(true)}
-                            />
-                        </div>
-                    )}
+                    <div className="flex items-center gap-4">
+                        {isEditing ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <input
+                                    type="text"
+                                    value={heading}
+                                    onChange={handleHeadingChange}
+                                    className="w-fit text-h3 font-semibold text-neutral-600 focus:outline-none"
+                                    autoFocus
+                                />
+                                <Check
+                                    onClick={updateHeading}
+                                    className="cursor-pointer hover:text-primary-500"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center gap-2">
+                                <h3 className="text-h3 font-semibold text-neutral-600">
+                                    {heading || "No content selected"}
+                                </h3>
+                                <PencilSimpleLine
+                                    className="cursor-pointer hover:text-primary-500"
+                                    onClick={() => setIsEditing(true)}
+                                />
+                            </div>
+                        )}
+                        {activeItem.last_sync_date != null && (
+                            <p className="text-neutral-500">
+                                Last synced at: {formatReadableDate(activeItem.last_sync_date)}
+                            </p>
+                        )}
+                    </div>
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-6">
                             <ActivityStatsSidebar />
