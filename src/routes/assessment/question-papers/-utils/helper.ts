@@ -8,7 +8,6 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
-import { getPublicUrls } from "@/services/upload_file";
 
 export function formatStructure(structure: string, value: string | number): string {
     // If structure does not contain parentheses, just replace the number/letter with the value
@@ -344,47 +343,7 @@ export const getIdBySubjectName = (
     return subject?.id || "N/A";
 };
 
-const fetchImageUrls = async (mediaIds: string[]) => {
-    if (mediaIds.length === 0) return {};
-
-    const uniqueMediaIds = [...new Set(mediaIds)].join(",");
-    const data = await getPublicUrls(uniqueMediaIds);
-
-    // Create a mapping of media_id -> url
-    const mediaIdToUrlMap: Record<string, string> = {};
-    data.forEach((item: { id: string; url: string }) => {
-        mediaIdToUrlMap[item.id] = item.url;
-    });
-
-    return mediaIdToUrlMap;
-};
-
-const getMediaIdToUrlMap = async (data: QuestionResponse[]) => {
-    const allMediaIds: string[] = [];
-
-    data.forEach((item) => {
-        if (item.media_id) {
-            allMediaIds.push(...item.media_id.split(","));
-        }
-        item.options.forEach((option) => {
-            if (option.media_id) {
-                allMediaIds.push(option.media_id);
-            }
-        });
-    });
-
-    return await fetchImageUrls(allMediaIds);
-};
-
-export const processQuestions = async (data: QuestionResponse[]) => {
-    const mediaIdToUrlMap = await getMediaIdToUrlMap(data);
-    return transformResponseDataToMyQuestionsSchema(data, mediaIdToUrlMap);
-};
-
-export const transformResponseDataToMyQuestionsSchema = (
-    data: QuestionResponse[],
-    mediaIdToUrlMap: Record<string, string>,
-) => {
+export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[]) => {
     return data?.map((item) => {
         const correctOptionIds =
             JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
@@ -410,56 +369,22 @@ export const transformResponseDataToMyQuestionsSchema = (
                 id: option.id ? option.id : "",
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile:
-                        option.media_id !== null && option.media_id !== ""
-                            ? mediaIdToUrlMap[option.media_id!]
-                            : "",
-                    isDeleted: false,
-                },
             }));
             baseQuestion.multipleChoiceOptions = Array(4).fill({
                 id: "",
                 name: "",
                 isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
             });
         } else if (item.question_type === "MCQM") {
             baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
                 id: option.id ? option.id : "",
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile:
-                        option.media_id !== null && option.media_id !== ""
-                            ? mediaIdToUrlMap[option.media_id!]
-                            : "",
-                    isDeleted: false,
-                },
             }));
             baseQuestion.singleChoiceOptions = Array(4).fill({
                 id: "",
                 name: "",
                 isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
             });
         }
         return baseQuestion;

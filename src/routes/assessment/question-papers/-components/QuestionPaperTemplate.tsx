@@ -13,7 +13,11 @@ import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainView
 import { QuestionPaperTemplateProps } from "@/types/assessments/question-paper-template";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQuestionPaperById, updateQuestionPaper } from "../-utils/question-paper-services";
-import { getIdByLevelName, getIdBySubjectName, processQuestions } from "../-utils/helper";
+import {
+    getIdByLevelName,
+    getIdBySubjectName,
+    transformResponseDataToMyQuestionsSchema,
+} from "../-utils/helper";
 import {
     MyQuestion,
     MyQuestionPaperFormEditInterface,
@@ -162,7 +166,7 @@ export function QuestionPaperTemplate({
             setIsQuestionDataLoading(false);
         },
         onSuccess: async (data) => {
-            const transformQuestionsData: MyQuestion[] = await processQuestions(
+            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
                 data.question_dtolist,
             );
             setPreviousQuestionPaperData({

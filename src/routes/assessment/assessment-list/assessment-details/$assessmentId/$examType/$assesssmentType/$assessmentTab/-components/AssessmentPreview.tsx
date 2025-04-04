@@ -45,7 +45,7 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { savePrivateQuestions } from "../-services/assessment-details-services";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
-import { processQuestions } from "@/routes/assessment/question-papers/-utils/helper";
+import { transformResponseDataToMyQuestionsSchema } from "@/routes/assessment/question-papers/-utils/helper";
 import { MyQuestion } from "@/types/assessments/question-paper-form";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 
@@ -71,7 +71,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     const [currentQuestionIndexes, setCurrentQuestionIndexes] = useState<{
         [sectionId: string]: number;
     }>({});
-    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
     const [selectedSection, setSelectedSection] = useState(
         assessmentDetails[1]?.saved_data.sections?.[0]?.id || "",
     );
@@ -215,7 +214,9 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     const handleSubmitSectionsForm = useMutation({
         mutationFn: ({ data }: { data: AssessmentDetailQuestions }) => savePrivateQuestions(data),
         onSuccess: async (data) => {
-            const transformedQuestionsData: MyQuestion[] = await processQuestions(data.questions);
+            const transformedQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
+                data.questions,
+            );
 
             const getSectionsWithAddedQuestionsCnt = getSectionsWithEmptyQuestionIds(
                 form.getValues(),
@@ -279,6 +280,10 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
 
     const onInvalid = (err: unknown) => {
         console.error(err);
+        toast.error("Please fill all required fields!", {
+            className: "error-toast",
+            duration: 2000,
+        });
     };
 
     function onSubmit(values: z.infer<typeof sectionsEditQuestionFormSchema>) {
@@ -601,11 +606,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                                     setCurrentQuestionIndexes,
                                                                                 currentQuestionIndex:
                                                                                     index,
-
-                                                                                currentQuestionImageIndex:
-                                                                                    currentQuestionImageIndex,
-                                                                                setCurrentQuestionImageIndex:
-                                                                                    setCurrentQuestionImageIndex,
                                                                                 className:
                                                                                     "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
                                                                                 selectedSectionIndex:
@@ -634,9 +634,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                         currentQuestionIndexes: currentQuestionIndexes,
                                         setCurrentQuestionIndexes: setCurrentQuestionIndexes,
                                         currentQuestionIndex: currentQuestionIndex,
-
-                                        currentQuestionImageIndex: currentQuestionImageIndex,
-                                        setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
                                         className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
                                         selectedSectionIndex: selectedSectionIndex,
                                     }}
