@@ -105,97 +105,40 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                 min: "",
                             },
                             questionMark: "",
-                            imageDetails: [],
                             singleChoiceOptions: [
                                 {
                                     name: "",
                                     isSelected: false,
-                                    image: {
-                                        imageId: "",
-                                        imageName: "",
-                                        imageTitle: "",
-                                        imageFile: "",
-                                        isDeleted: false,
-                                    },
                                 },
                                 {
                                     name: "",
                                     isSelected: false,
-                                    image: {
-                                        imageId: "",
-                                        imageName: "",
-                                        imageTitle: "",
-                                        imageFile: "",
-                                        isDeleted: false,
-                                    },
                                 },
                                 {
                                     name: "",
                                     isSelected: false,
-                                    image: {
-                                        imageId: "",
-                                        imageName: "",
-                                        imageTitle: "",
-                                        imageFile: "",
-                                        isDeleted: false,
-                                    },
                                 },
                                 {
                                     name: "",
                                     isSelected: false,
-                                    image: {
-                                        imageId: "",
-                                        imageName: "",
-                                        imageTitle: "",
-                                        imageFile: "",
-                                        isDeleted: false,
-                                    },
                                 },
                             ],
                             multipleChoiceOptions: [
                                 {
                                     name: "",
                                     isSelected: false,
-                                    image: {
-                                        imageId: "",
-                                        imageName: "",
-                                        imageTitle: "",
-                                        imageFile: "",
-                                        isDeleted: false,
-                                    },
                                 },
                                 {
                                     name: "",
                                     isSelected: false,
-                                    image: {
-                                        imageId: "",
-                                        imageName: "",
-                                        imageTitle: "",
-                                        imageFile: "",
-                                        isDeleted: false,
-                                    },
                                 },
                                 {
                                     name: "",
                                     isSelected: false,
-                                    image: {
-                                        imageId: "",
-                                        imageName: "",
-                                        imageTitle: "",
-                                        imageFile: "",
-                                        isDeleted: false,
-                                    },
                                 },
                                 {
                                     name: "",
                                     isSelected: false,
-                                    image: {
-                                        imageId: "",
-                                        imageName: "",
-                                        imageTitle: "",
-                                        imageFile: "",
-                                        isDeleted: false,
-                                    },
                                 },
                             ],
                         },
@@ -245,28 +188,13 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                 min: "",
             },
             questionMark: "",
-            imageDetails: [],
             singleChoiceOptions: Array(4).fill({
                 name: "",
                 isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
             }),
             multipleChoiceOptions: Array(4).fill({
                 name: "",
                 isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
             }),
         };
 

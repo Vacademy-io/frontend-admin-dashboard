@@ -56,7 +56,6 @@ export const Step2SectionInfo = ({
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
@@ -303,8 +302,6 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                currentQuestionImageIndex={currentQuestionImageIndex}
-                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -340,8 +337,6 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                currentQuestionImageIndex={currentQuestionImageIndex}
-                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -378,8 +373,6 @@ export const Step2SectionInfo = ({
                                     sectionsForm={form}
                                     currentQuestionIndex={currentQuestionIndex}
                                     setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                    currentQuestionImageIndex={currentQuestionImageIndex}
-                                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                 />
                             </div>
                         </DialogContent>
