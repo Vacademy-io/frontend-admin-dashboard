@@ -78,7 +78,6 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                     )}
                 />
             </div>
-
             <div className="flex w-full grow flex-col gap-2">
                 <div className="flex gap-2">
                     <div
@@ -225,7 +224,6 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                 </div>
             </div>
-
             <div className="absolute bottom-10 right-12">
                 {(isDropdownVisible || isDropdownOpen) && (
                     <DropdownMenu

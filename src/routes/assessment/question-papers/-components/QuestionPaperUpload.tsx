@@ -84,6 +84,7 @@ export const QuestionPaperUpload = ({
     const answerIdentifier = getValues("answersType");
     const explanationIdentifier = getValues("explanationsType");
     const fileUpload = getValues("fileUpload");
+    const questions = getValues("questions");
     watch("fileUpload");
 
     const isFormValidWhenManuallyCreated = !!title && !!yearClass && !!subject;
@@ -488,7 +489,7 @@ export const QuestionPaperUpload = ({
                                         Done
                                     </Button>
                                 )}
-                                {!fileUpload && (
+                                {!fileUpload && !isManualCreated && (
                                     <Button
                                         disabled={
                                             isManualCreated
@@ -496,7 +497,22 @@ export const QuestionPaperUpload = ({
                                                 : !isFormValidWhenUploaded
                                         }
                                         type="submit"
-                                        className="w-56 bg-primary-500 text-white"
+                                        className={`w-56 bg-primary-500 text-white`}
+                                    >
+                                        Done
+                                    </Button>
+                                )}
+                                {!fileUpload && isManualCreated && (
+                                    <Button
+                                        disabled={
+                                            isManualCreated
+                                                ? !isFormValidWhenManuallyCreated
+                                                : !isFormValidWhenUploaded
+                                        }
+                                        type="submit"
+                                        className={`w-56 bg-primary-500 text-white ${
+                                            questions.length > 0 ? "block" : "hidden"
+                                        }`}
                                     >
                                         Done
                                     </Button>
