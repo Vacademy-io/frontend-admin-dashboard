@@ -5,7 +5,7 @@ import { z } from "zod";
 import { AccessControlFormSchema } from "../../-utils/access-control-form-schema";
 import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
-import { Plus, X } from "phosphor-react";
+import { Info, Plus, X } from "phosphor-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -679,7 +679,7 @@ const AccessControlCards = ({
                                 </div>
                             </div>
                             <div className="flex flex-col gap-6 p-6">
-                                {existingInstituteUsersData.map((user) => {
+                                {existingInstituteUsersData?.map((user) => {
                                     const isSelected = selectedUsers.includes(user.userId);
                                     return (
                                         <div
@@ -725,20 +725,55 @@ const AccessControlCards = ({
                                                 </div>
                                             </div>
                                             {user.status === "INVITED" && (
-                                                <p
-                                                    onClick={() =>
-                                                        handlCancelInviteUser(user.userId)
-                                                    }
-                                                    className="cursor-pointer text-sm text-primary-500"
-                                                >
-                                                    Cancel Invitation
-                                                </p>
+                                                <Dialog>
+                                                    <DialogTrigger className="text-sm font-semibold text-primary-500">
+                                                        Cancel Invitation
+                                                    </DialogTrigger>
+                                                    <DialogContent className="flex w-[500px] flex-col p-0">
+                                                        <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
+                                                            Cancel Invitation
+                                                        </h1>
+                                                        <div className="flex flex-col gap-4 p-4 pt-3">
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-danger-600">
+                                                                    Attention
+                                                                </span>
+                                                                <Info
+                                                                    size={18}
+                                                                    className="text-danger-600"
+                                                                />
+                                                            </div>
+                                                            <h1 className="-mt-2 font-thin">
+                                                                Are you sure you want to cancel
+                                                                invitation for
+                                                                <span className="text-primary-500">
+                                                                    &nbsp;{user.name}
+                                                                </span>
+                                                                ?
+                                                            </h1>
+                                                            <div className="mt-2 flex justify-end">
+                                                                <MyButton
+                                                                    type="button"
+                                                                    scale="large"
+                                                                    buttonType="primary"
+                                                                    onClick={() =>
+                                                                        handlCancelInviteUser(
+                                                                            user.userId,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Yes
+                                                                </MyButton>
+                                                            </div>
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
                                             )}
                                         </div>
                                     );
                                 })}
                             </div>
-                            <div className="sticky bottom-0 left-0 flex items-center justify-between bg-white p-6 shadow-md">
+                            <div className="sticky bottom-0 left-0 flex items-center justify-between bg-white p-6">
                                 <Step4InviteUsers refetchData={handleRefetchData} />
                                 <MyButton
                                     type="button"
