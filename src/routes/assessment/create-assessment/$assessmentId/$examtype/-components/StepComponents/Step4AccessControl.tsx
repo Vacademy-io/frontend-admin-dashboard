@@ -679,7 +679,7 @@ const AccessControlCards = ({
                                 </div>
                             </div>
                             <div className="flex flex-col gap-6 p-6">
-                                {existingInstituteUsersData.map((user) => {
+                                {existingInstituteUsersData?.map((user) => {
                                     const isSelected = selectedUsers.includes(user.userId);
                                     return (
                                         <div
@@ -773,7 +773,7 @@ const AccessControlCards = ({
                                     );
                                 })}
                             </div>
-                            <div className="sticky bottom-0 left-0 flex items-center justify-between bg-white p-6 shadow-md">
+                            <div className="sticky bottom-0 left-0 flex items-center justify-between bg-white p-6">
                                 <Step4InviteUsers refetchData={handleRefetchData} />
                                 <MyButton
                                     type="button"

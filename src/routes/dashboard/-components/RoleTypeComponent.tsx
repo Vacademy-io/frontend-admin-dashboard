@@ -263,16 +263,16 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                 </MyButton>
             </DialogTrigger>
             <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-4 overflow-y-auto !p-0">
-                <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
+                <h1 className="sticky left-0 top-0 bg-primary-50 p-4 font-semibold text-primary-500">
                     Manage Role Types Users
                 </h1>
                 <Tabs
                     value={selectedTab}
                     onValueChange={handleTabChange}
-                    className="flex flex-col justify-between p-4"
+                    className="flex h-[90vh] flex-col overflow-auto px-4"
                 >
-                    <div className="flex items-start justify-between gap-8">
-                        <div className="flex flex-wrap items-center gap-4">
+                    <div className="sticky top-0 z-10 flex items-start justify-between gap-8 bg-white pb-4">
+                        <div className="sticky top-0 flex flex-wrap items-center gap-4">
                             <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
                                 <TabsTrigger
                                     value="instituteUsers"
@@ -345,16 +345,23 @@ const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
                         </div>
                         <InviteUsersComponent refetchData={handleRefetchData} />
                     </div>
-                    <InstituteUsersComponent
-                        selectedTab={selectedTab}
-                        selectedTabData={dashboardUsers.instituteUsers}
-                        refetchData={handleRefetchData}
-                    />
-                    <InviteUsersTab
-                        selectedTab={selectedTab}
-                        selectedTabData={dashboardUsers.invites}
-                        refetchData={handleRefetchData}
-                    />
+                    {/* Scrollable Content Area */}
+                    <div className="flex-1 overflow-y-auto px-4 pb-6 pt-4">
+                        {selectedTab === "instituteUsers" && (
+                            <InstituteUsersComponent
+                                selectedTab={selectedTab}
+                                selectedTabData={dashboardUsers.instituteUsers}
+                                refetchData={handleRefetchData}
+                            />
+                        )}
+                        {selectedTab === "invites" && (
+                            <InviteUsersTab
+                                selectedTab={selectedTab}
+                                selectedTabData={dashboardUsers.invites}
+                                refetchData={handleRefetchData}
+                            />
+                        )}
+                    </div>
                 </Tabs>
             </DialogContent>
         </Dialog>
