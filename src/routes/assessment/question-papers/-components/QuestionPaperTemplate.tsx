@@ -13,7 +13,12 @@ import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainView
 import { QuestionPaperTemplateProps } from "@/types/assessments/question-paper-template";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQuestionPaperById, updateQuestionPaper } from "../-utils/question-paper-services";
-import { getIdByLevelName, getIdBySubjectName, processQuestions } from "../-utils/helper";
+import {
+    getIdByLevelName,
+    getIdBySubjectName,
+    processQuestions,
+    getPPTViewTitle,
+} from "../-utils/helper";
 import {
     MyQuestion,
     MyQuestionPaperFormEditInterface,
@@ -71,12 +76,12 @@ export function QuestionPaperTemplate({
     });
 
     // Function to handle adding a new question
-    const handleAddNewQuestion = () => {
+    const handleAddNewQuestion = (newQuestionType: string) => {
         append({
             questionId: String(questions.length + 1),
             questionName: "",
             explanation: "",
-            questionType: "MCQS",
+            questionType: newQuestionType,
             questionPenalty: "",
             questionDuration: {
                 hrs: "",
@@ -429,16 +434,11 @@ export function QuestionPaperTemplate({
                                                                                 <h1 className="left-0 w-96 whitespace-nowrap text-4xl font-bold">
                                                                                     {index + 1}
                                                                                     &nbsp;
-                                                                                    {getValues(
-                                                                                        `questions.${index}.questionType`,
-                                                                                    ) === "MCQS"
-                                                                                        ? "MCQ (Single Correct)"
-                                                                                        : getValues(
-                                                                                                `questions.${index}.questionType`,
-                                                                                            ) ===
-                                                                                            "MCQM"
-                                                                                          ? "MCQ (Multiple Correct)"
-                                                                                          : "MCQ (Multiple Correct)"}
+                                                                                    {getPPTViewTitle(
+                                                                                        getValues(
+                                                                                            `questions.${index}.questionType`,
+                                                                                        ) as QuestionType,
+                                                                                    )}
                                                                                 </h1>
                                                                                 <SortableDragHandle
                                                                                     variant="outline"
@@ -509,7 +509,8 @@ export function QuestionPaperTemplate({
                                         setCurrentQuestionIndex: setCurrentQuestionIndex,
                                         currentQuestionImageIndex: currentQuestionImageIndex,
                                         setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
-                                        className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                        className:
+                                            "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
                                     }}
                                 />
                             )}

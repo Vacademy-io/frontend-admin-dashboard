@@ -9,7 +9,13 @@ import { useMutation } from "@tanstack/react-query";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { getPublicUrls } from "@/services/upload_file";
-import { QuestionType } from "@/constants/dummy-data";
+import { QuestionType, QUESTION_TYPES } from "@/constants/dummy-data";
+
+export function getPPTViewTitle(type: QuestionType): string {
+    const question = QUESTION_TYPES.find((q) => q.code === type);
+    if (question) return question.display; // Return the display text or undefined if not found
+    else return "";
+}
 
 export function formatStructure(structure: string, value: string | number): string {
     // If structure does not contain parentheses, just replace the number/letter with the value

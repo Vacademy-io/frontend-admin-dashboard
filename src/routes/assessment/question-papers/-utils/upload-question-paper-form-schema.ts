@@ -113,94 +113,24 @@ export const uploadQuestionPaperFormSchema = z.object({
                 subjectiveAnswerText: z.string().optional(),
             })
             .superRefine((question, ctx) => {
-                // Validate based on question type
-                if (question.questionType === "MCQS") {
-                    // Validate singleChoiceOptions when type is MCQS
-                    if (
-                        !question.singleChoiceOptions ||
-                        question.singleChoiceOptions.length === 0
-                    ) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: "MCQS questions must have singleChoiceOptions",
-                            path: ["singleChoiceOptions"],
-                        });
-                        return;
-                    }
+                const { numericType, validAnswers } = question;
 
-                    if (question.singleChoiceOptions.length !== 4) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: "MCQS must have exactly 4 options",
-                            path: ["singleChoiceOptions"],
-                        });
-                    }
+                if (!validAnswers || !Array.isArray(validAnswers)) return;
+                const typeChecks: Record<string, (n: number) => boolean> = {
+                    SINGLE_DIGIT_NON_NEGATIVE_INTEGER: (n) =>
+                        Number.isInteger(n) && n >= 0 && n <= 9,
+                    INTEGER: (n) => Number.isInteger(n),
+                    POSITIVE_INTEGER: (n) => Number.isInteger(n) && n > 0,
+                    DECIMAL: (n) => typeof n === "number",
+                };
 
-                    const selectedCount = question.singleChoiceOptions.filter(
-                        (opt) => opt.isSelected,
-                    ).length;
-                    if (selectedCount !== 1) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: "MCQS must have exactly one option selected",
-                            path: ["singleChoiceOptions"],
-                        });
-                    }
+                const check = numericType ? typeChecks[numericType] : undefined;
 
-                    question.singleChoiceOptions.forEach((opt, index) => {
-                        if (!opt?.name?.trim() && (!opt.image || !opt.image.imageName?.trim())) {
-                            ctx.addIssue({
-                                code: z.ZodIssueCode.custom,
-                                message: `Option ${
-                                    index + 1
-                                } must have either a name or an imageName`,
-                                path: ["singleChoiceOptions", index, "name"],
-                            });
-                        }
-                    });
-                } else if (question.questionType === "MCQM") {
-                    // Validate multipleChoiceOptions when type is MCQM
-                    if (
-                        !question.multipleChoiceOptions ||
-                        question.multipleChoiceOptions.length === 0
-                    ) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: "MCQM questions must have multipleChoiceOptions",
-                            path: ["multipleChoiceOptions"],
-                        });
-                        return;
-                    }
-
-                    if (question.multipleChoiceOptions.length !== 4) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: "MCQM must have exactly 4 options",
-                            path: ["multipleChoiceOptions"],
-                        });
-                    }
-
-                    const selectedCount = question.multipleChoiceOptions.filter(
-                        (opt) => opt.isSelected,
-                    ).length;
-                    if (selectedCount < 1) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: "MCQM must have at least one option selected",
-                            path: ["multipleChoiceOptions"],
-                        });
-                    }
-
-                    question.multipleChoiceOptions.forEach((opt, index) => {
-                        if (!opt.name?.trim() && (!opt.image || !opt.image.imageName?.trim())) {
-                            ctx.addIssue({
-                                code: z.ZodIssueCode.custom,
-                                message: `Option ${
-                                    index + 1
-                                } must have either a name or an imageName`,
-                                path: ["multipleChoiceOptions", index, "name"],
-                            });
-                        }
+                if (check && !validAnswers.every(check)) {
+                    ctx.addIssue({
+                        path: ["validAnswers"],
+                        code: z.ZodIssueCode.custom,
+                        message: `Not correct answer type is entered ${numericType}`,
                     });
                 }
             }),
