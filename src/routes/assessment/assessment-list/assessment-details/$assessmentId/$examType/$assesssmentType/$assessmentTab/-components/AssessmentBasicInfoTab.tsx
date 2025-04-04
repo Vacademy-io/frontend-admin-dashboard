@@ -110,6 +110,7 @@ export const AssessmentBasicInfoTab = () => {
                             <CheckCircle size={22} weight="fill" className="text-success-600" />
                         </div>
                     )}
+                    {/* will be adding this later
                     {assessmentDetails[0]?.saved_data?.reattempt_consent && (
                         <div className="flex items-center justify-between text-sm">
                             <h1 className="font-semibold">
@@ -125,7 +126,7 @@ export const AssessmentBasicInfoTab = () => {
                             </h1>
                             <CheckCircle size={22} weight="fill" className="text-success-600" />
                         </div>
-                    )}
+                    )} */}
                 </div>
             </div>
         </>

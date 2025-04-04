@@ -15,21 +15,66 @@ import "./index.css";
 import { useEffect, useRef } from "react";
 import { ALL_OPERATORS } from "./Operators";
 
+// Function to resize an image to 300x300 px
+const resizeImage = (file, callback) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            // Set the canvas size to 300x300
+            canvas.width = 200;
+            canvas.height = 200;
+
+            // Draw the image onto the canvas
+            ctx.drawImage(img, 0, 0, 200, 200);
+
+            // Convert canvas back to base64
+            const resizedImage = canvas.toDataURL("image/png");
+            callback(resizedImage);
+        };
+    };
+};
+
+// Custom Image Handler for Quill Editor
+const imageHandler = function () {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (file) {
+            resizeImage(file, (resizedImage) => {
+                const quill = this.quill;
+                const range = quill.getSelection();
+                quill.insertEmbed(range.index, "image", resizedImage);
+            });
+        }
+    };
+};
+
 export const MainViewQuillEditor = ({ value, onChange }) => {
     const reactQuillRef = useRef(null);
-    const mathQuillInitialized = useRef(false); // Flag to prevent multiple initializations
+    const mathQuillInitialized = useRef(false);
 
     useEffect(() => {
-        // Initialize MathQuill formula authoring only once
         if (!mathQuillInitialized.current) {
             const enableMathQuillFormulaAuthoring = mathquill4quill({ Quill, katex });
             const quill = reactQuillRef.current?.getEditor();
             if (quill) {
                 enableMathQuillFormulaAuthoring(quill, { operators: ALL_OPERATORS });
-                mathQuillInitialized.current = true; // Mark as initialized
+                mathQuillInitialized.current = true;
             }
         }
-    }, []); // Only run on mount
+    }, []);
 
     useEffect(() => {
         const styleElement = document.createElement("style");
@@ -42,7 +87,6 @@ export const MainViewQuillEditor = ({ value, onChange }) => {
         document.head.appendChild(styleElement);
 
         return () => {
-            // Clean up: Remove the style tag when the component unmounts
             document.head.removeChild(styleElement);
         };
     }, []);
@@ -54,9 +98,13 @@ export const MainViewQuillEditor = ({ value, onChange }) => {
                 [{ align: [] }],
                 [{ list: "ordered" }, { list: "bullet" }],
                 ["formula"], // Formula button
+                ["image"], // Image button
             ],
+            handlers: {
+                image: imageHandler, // Custom image handler
+            },
         },
-        formula: true, // Temporary Disabling formula functionality
+        formula: true,
     };
 
     return (

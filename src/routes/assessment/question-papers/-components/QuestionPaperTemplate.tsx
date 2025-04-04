@@ -280,7 +280,7 @@ export function QuestionPaperTemplate({
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+            <DialogContent className="no-scrollbar !m-0 h-[90vh] !w-full !max-w-[90vw] !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
                 {isQuestionDataLoading ? (
                     <DashboardLoader />
                 ) : (
