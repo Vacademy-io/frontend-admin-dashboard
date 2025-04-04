@@ -207,7 +207,7 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
                           type: "HTML",
                           content: opt?.name?.replace(/<\/?p>/g, ""),
                       },
-                      media_id: opt.image.imageName,
+                      media_id: null,
                       option_order: null,
                       created_on: null,
                       updated_on: null,
@@ -385,7 +385,7 @@ export const transformResponseDataToMyQuestionsSchema = (
     data: QuestionResponse[],
     mediaIdToUrlMap: Record<string, string>,
 ) => {
-    return data.map((item) => {
+    return data?.map((item) => {
         const correctOptionIds =
             JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
         const markingJson = item.marking_json ? JSON.parse(item.marking_json) : {};
@@ -407,7 +407,7 @@ export const transformResponseDataToMyQuestionsSchema = (
 
         if (item.question_type === "MCQS") {
             baseQuestion.singleChoiceOptions = item.options.map((option) => ({
-                id: option.id,
+                id: option.id ? option.id : "",
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
                 image: {
@@ -435,7 +435,7 @@ export const transformResponseDataToMyQuestionsSchema = (
             });
         } else if (item.question_type === "MCQM") {
             baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
-                id: option.id,
+                id: option.id ? option.id : "",
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
                 image: {

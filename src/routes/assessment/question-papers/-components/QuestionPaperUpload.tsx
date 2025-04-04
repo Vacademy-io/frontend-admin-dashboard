@@ -231,6 +231,7 @@ export const QuestionPaperUpload = ({
                     })),
                 });
             }
+            form.trigger("questions");
         },
         onError: (error: unknown) => {
             toast.error(error as string);
