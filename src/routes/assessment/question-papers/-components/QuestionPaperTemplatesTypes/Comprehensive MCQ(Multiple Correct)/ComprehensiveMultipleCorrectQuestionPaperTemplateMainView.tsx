@@ -8,99 +8,58 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
 import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { OptionImagePreview } from "../../options/MCQ(Single Correct)/OptionImagePreview";
-import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
 import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
+import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
+import { formatStructure } from "../../../-utils/helper";
+import { OptionImagePreview } from "../../options/MCQ(Multiple Correct)/OptionImagePreview";
+import { QUESTION_TYPES } from "@/constants/dummy-data";
 
-interface ImageDetail {
-    imageId: string;
-    imageName: string;
-    imageTitle: string;
-    imageFile: string;
-    isDeleted: boolean;
-}
-
-interface ChoiceOption {
-    name: string;
-    isSelected: boolean;
-    image: ImageDetail;
-}
-
-export const SingleCorrectQuestionPaperTemplateMainView = ({
+export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
     currentQuestionImageIndex,
     setCurrentQuestionImageIndex,
     className,
-    selectedSectionIndex,
-}: SectionQuestionPaperFormProps) => {
+}: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
 
-    const imageDetails = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
-    );
-    const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
+    const answersType = getValues("answersType") || "Answer:";
+    const explanationsType = getValues("explanationsType") || "Explanation:";
+    const optionsType = getValues("optionsType") || "";
+    const questionsType = getValues("questionsType") || "";
 
-    const option1 = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}`,
-    ) as ChoiceOption;
-    const option2 = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}`,
-    ) as ChoiceOption;
-    const option3 = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}`,
-    ) as ChoiceOption;
-    const option4 = getValues(
-        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}`,
-    ) as ChoiceOption;
+    const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
+    const allQuestions = getValues("questions") || [];
 
-    const handleRemovePicture = (currentQuestionImageIndex: number) => {
-        // Filter out the image to be removed
-        const updatedImageDetails = imageDetails?.filter(
-            (_, index: number) => index !== currentQuestionImageIndex,
-        );
+    const option1 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`);
+    const option2 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`);
+    const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
+    const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
 
-        // Update the value with the filtered array
+    const handleRemovePicture = (index: number) => {
         setValue(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.imageDetails`,
-            updatedImageDetails,
+            `questions.${currentQuestionIndex}.imageDetails`,
+            imageDetails?.filter((_, i) => i !== index),
         );
     };
 
     const handleRemovePictureInOptions = (optionIndex: number) => {
         setValue(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.isDeleted`,
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.isDeleted`,
             true,
         );
         setValue(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageFile`,
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageFile`,
             "",
         );
         setValue(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageName`,
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageName`,
             "",
         );
         setValue(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.image.imageTitle`,
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.image.imageTitle`,
             "",
         );
-    };
-
-    const handleOptionChange = (optionIndex: number) => {
-        const options = [0, 1, 2, 3];
-
-        // Check current state of the selected option
-        const isCurrentlySelected = getValues(
-            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
-        );
-
-        options.forEach((option) => {
-            setValue(
-                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
-                option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
-            );
-        });
     };
 
     if (allQuestions.length === 0) {
@@ -130,7 +89,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             </div>
                             <SelectField
                                 label="Question Type"
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`}
+                                name={`questions.${currentQuestionIndex}.questionType`}
                                 options={QUESTION_TYPES.map((option, index) => ({
                                     value: option.code,
                                     label: option.display,
@@ -142,13 +101,13 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             />
                             <CustomInput
                                 control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
+                                name={`questions.${currentQuestionIndex}.questionMark`}
                                 label="Marks"
                                 required
                             />
                             <CustomInput
                                 control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionPenalty`}
+                                name={`questions.${currentQuestionIndex}.questionPenalty`}
                                 label="Negative Marking"
                                 required
                             />
@@ -157,7 +116,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 <div className="flex items-center gap-4 text-sm">
                                     <CustomInput
                                         control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.hrs`}
+                                        name={`questions.${currentQuestionIndex}.questionDuration.hrs`}
                                         label=""
                                         className="w-10"
                                     />
@@ -165,7 +124,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     <span>:</span>
                                     <CustomInput
                                         control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.min`}
+                                        name={`questions.${currentQuestionIndex}.questionDuration.min`}
                                         label=""
                                         className="w-10"
                                     />
@@ -177,13 +136,33 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                 </Popover>
             </div>
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                <span>Comprehension Text</span>
+                <FormField
+                    control={control}
+                    name={`questions.${currentQuestionIndex}.parentRichTextContent`}
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormControl>
+                                <MainViewQuillEditor
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
                     Question&nbsp;
-                    {currentQuestionIndex + 1}
+                    {questionsType
+                        ? formatStructure(questionsType, currentQuestionIndex + 1)
+                        : currentQuestionIndex + 1}
                 </span>
                 <FormField
                     control={control}
-                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionName`}
+                    name={`questions.${currentQuestionIndex}.questionName`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
@@ -223,11 +202,9 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             setCurrentQuestionImageIndex={
                                                 setCurrentQuestionImageIndex
                                             }
-                                            selectedSectionIndex={selectedSectionIndex}
                                             isUploadedAgain={true}
                                         />
                                         <Button
-                                            type="button"
                                             variant="outline"
                                             className="p-0 px-2"
                                             onClick={() => handleRemovePicture(index)}
@@ -239,20 +216,19 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             </div>
                         );
                     })}
+
                 {Array.isArray(imageDetails) && imageDetails.length < 4 && (
                     <QuestionImagePreviewDialogue
                         form={form}
                         currentQuestionIndex={currentQuestionIndex}
                         currentQuestionImageIndex={currentQuestionImageIndex}
                         setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
-                        selectedSectionIndex={selectedSectionIndex}
-                        isUploadedAgain={false}
                     />
                 )}
             </div>
 
             <div className="flex w-full grow flex-col gap-4">
-                <span className="-mb-3">Answer:</span>
+                <span className="-mb-3">{answersType}</span>
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
@@ -261,7 +237,9 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">(a.)</span>
+                                <span className="!p-0 text-sm">
+                                    {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
+                                </span>
                             </div>
                             {option1?.image?.imageFile ? (
                                 <div className="flex w-72 flex-col">
@@ -278,12 +256,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={0}
-                                                selectedSectionIndex={selectedSectionIndex}
-                                                currentQuestionIndex={currentQuestionIndex}
                                                 isUploadedAgain={true}
+                                                currentQuestionIndex={currentQuestionIndex}
                                             />
                                             <Button
-                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(0)}
@@ -296,7 +272,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}.name`}
+                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -314,7 +290,6 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 <OptionImagePreview
                                     form={form}
                                     option={0}
-                                    selectedSectionIndex={selectedSectionIndex}
                                     currentQuestionIndex={currentQuestionIndex}
                                 />
                             )}
@@ -322,14 +297,14 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(0)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
+                                                onCheckedChange={field.onChange}
+                                                className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -349,7 +324,9 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">(b.)</span>
+                                <span className="!p-0 text-sm">
+                                    {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
+                                </span>
                             </div>
                             {option2?.image?.imageFile ? (
                                 <div className="flex w-72 flex-col">
@@ -366,12 +343,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={1}
-                                                currentQuestionIndex={currentQuestionIndex}
-                                                selectedSectionIndex={selectedSectionIndex}
                                                 isUploadedAgain={true}
+                                                currentQuestionIndex={currentQuestionIndex}
                                             />
                                             <Button
-                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(1)}
@@ -384,7 +359,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}.name`}
+                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -403,21 +378,20 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     form={form}
                                     option={1}
                                     currentQuestionIndex={currentQuestionIndex}
-                                    selectedSectionIndex={selectedSectionIndex}
                                 />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(1)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
+                                                onCheckedChange={field.onChange}
+                                                className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -439,7 +413,9 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">(c.)</span>
+                                <span className="!p-0 text-sm">
+                                    {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
+                                </span>
                             </div>
                             {option3?.image?.imageFile ? (
                                 <div className="flex w-72 flex-col">
@@ -456,12 +432,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={2}
-                                                currentQuestionIndex={currentQuestionIndex}
-                                                selectedSectionIndex={selectedSectionIndex}
                                                 isUploadedAgain={true}
+                                                currentQuestionIndex={currentQuestionIndex}
                                             />
                                             <Button
-                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(2)}
@@ -474,7 +448,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}.name`}
+                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -493,21 +467,20 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     form={form}
                                     option={2}
                                     currentQuestionIndex={currentQuestionIndex}
-                                    selectedSectionIndex={selectedSectionIndex}
                                 />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(2)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
+                                                onCheckedChange={field.onChange}
+                                                className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -527,7 +500,9 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     >
                         <div className="flex w-full items-center gap-4">
                             <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">(d.)</span>
+                                <span className="!p-0 text-sm">
+                                    {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
+                                </span>
                             </div>
                             {option4?.image?.imageFile ? (
                                 <div className="flex w-72 flex-col">
@@ -544,12 +519,10 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                             <OptionImagePreview
                                                 form={form}
                                                 option={3}
-                                                currentQuestionIndex={currentQuestionIndex}
-                                                selectedSectionIndex={selectedSectionIndex}
                                                 isUploadedAgain={true}
+                                                currentQuestionIndex={currentQuestionIndex}
                                             />
                                             <Button
-                                                type="button"
                                                 variant="outline"
                                                 className="p-0 px-2"
                                                 onClick={() => handleRemovePictureInOptions(3)}
@@ -562,7 +535,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                             ) : (
                                 <FormField
                                     control={control}
-                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}.name`}
+                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -581,21 +554,20 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                     form={form}
                                     option={3}
                                     currentQuestionIndex={currentQuestionIndex}
-                                    selectedSectionIndex={selectedSectionIndex}
                                 />
                             )}
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(3)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
+                                                onCheckedChange={field.onChange}
+                                                className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
                                                         : "" // Default styles when unchecked
@@ -610,11 +582,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                 </div>
             </div>
-            <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>Explanation:</span>
+
+            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                <span>{explanationsType}</span>
                 <FormField
                     control={control}
-                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.explanation`}
+                    name={`questions.${currentQuestionIndex}.explanation`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>

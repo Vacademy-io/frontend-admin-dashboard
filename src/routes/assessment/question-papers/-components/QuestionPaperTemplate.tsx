@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DotsSixVertical, Plus } from "phosphor-react";
+import { DotsSixVertical, Plus, X } from "phosphor-react";
 import { useEffect, useState } from "react";
 import { useFieldArray } from "react-hook-form";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -13,7 +13,12 @@ import { MainViewComponentFactory } from "./QuestionPaperTemplatesTypes/MainView
 import { QuestionPaperTemplateProps } from "@/types/assessments/question-paper-template";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQuestionPaperById, updateQuestionPaper } from "../-utils/question-paper-services";
-import { getIdByLevelName, getIdBySubjectName, processQuestions } from "../-utils/helper";
+import {
+    getIdByLevelName,
+    getIdBySubjectName,
+    processQuestions,
+    getPPTViewTitle,
+} from "../-utils/helper";
 import {
     MyQuestion,
     MyQuestionPaperFormEditInterface,
@@ -25,6 +30,14 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { QuestionPaperEditDialog } from "./QuestionPaperEditDialogue";
 import { useRefetchStore } from "../-global-states/refetch-store";
 import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { QuestionType } from "@/constants/dummy-data";
+import { QuestionTypeSelection } from "./QuestionTypeSelection";
 
 export function QuestionPaperTemplate({
     form,
@@ -42,6 +55,7 @@ export function QuestionPaperTemplate({
     const { handleRefetchData } = useRefetchStore();
     const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
+    const [addQuestionDialogBox, setAddQuestionDialogBox] = useState(false);
     const { control, getValues, setValue, formState, watch } = form;
     const questions = getValues("questions");
     const title = getValues("title") || "";
@@ -62,12 +76,12 @@ export function QuestionPaperTemplate({
     });
 
     // Function to handle adding a new question
-    const handleAddNewQuestion = () => {
+    const handleAddNewQuestion = (newQuestionType: string) => {
         append({
             questionId: String(questions.length + 1),
             questionName: "",
             explanation: "",
-            questionType: "MCQS",
+            questionType: newQuestionType,
             questionPenalty: "",
             questionDuration: {
                 hrs: "",
@@ -169,6 +183,7 @@ export function QuestionPaperTemplate({
             ],
         });
         setCurrentQuestionIndex(0);
+        setAddQuestionDialogBox(false);
     };
 
     // Function to handle page navigation by question number
@@ -280,7 +295,7 @@ export function QuestionPaperTemplate({
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="no-scrollbar !m-0 h-[90vh] !w-full !max-w-[90vw] !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
+            <DialogContent className="no-scrollbar !m-0 !h-screen !w-full !max-w-full !gap-0 !overflow-hidden overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
                 {isQuestionDataLoading ? (
                     <DashboardLoader />
                 ) : (
@@ -343,13 +358,42 @@ export function QuestionPaperTemplate({
                         </div>
                         <div className="flex h-screen items-start">
                             <div className="mt-4 flex w-40 flex-col items-center justify-center gap-2">
-                                <Button
-                                    type="button"
-                                    className="max-w-sm bg-primary-500 text-xs text-white shadow-none"
-                                    onClick={handleAddNewQuestion}
+                                <AlertDialog
+                                    open={addQuestionDialogBox}
+                                    onOpenChange={setAddQuestionDialogBox}
                                 >
-                                    Add Question
-                                </Button>
+                                    <AlertDialogTrigger>
+                                        <Button
+                                            type="button"
+                                            className="max-w-sm bg-primary-500 text-xs text-white shadow-none"
+                                        >
+                                            Add Question
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent className="h-[80%] overflow-y-auto p-0">
+                                        <div className="sticky top-0 flex items-center justify-between rounded-md bg-primary-50">
+                                            <h1 className="rounded-sm p-4 font-bold text-primary-500">
+                                                Add Question
+                                            </h1>
+                                            <AlertDialogCancel
+                                                onClick={() => setAddQuestionDialogBox(false)}
+                                                className="border-none bg-primary-50 shadow-none hover:bg-primary-50"
+                                            >
+                                                <X className="text-neutral-600" />
+                                            </AlertDialogCancel>
+                                        </div>
+                                        <QuestionTypeSelection
+                                            currentQuestionIndex={currentQuestionIndex}
+                                            setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                            currentQuestionImageIndex={currentQuestionImageIndex}
+                                            setCurrentQuestionImageIndex={
+                                                setCurrentQuestionImageIndex
+                                            }
+                                            isDirectAdd={false}
+                                            handleSelect={handleAddNewQuestion}
+                                        ></QuestionTypeSelection>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                                 <div className="flex h-[325vh] w-40 flex-col items-start justify-between gap-4 overflow-x-hidden overflow-y-scroll p-2">
                                     <Sortable
                                         value={fields}
@@ -390,16 +434,11 @@ export function QuestionPaperTemplate({
                                                                                 <h1 className="left-0 w-96 whitespace-nowrap text-4xl font-bold">
                                                                                     {index + 1}
                                                                                     &nbsp;
-                                                                                    {getValues(
-                                                                                        `questions.${index}.questionType`,
-                                                                                    ) === "MCQS"
-                                                                                        ? "MCQ (Single Correct)"
-                                                                                        : getValues(
-                                                                                                `questions.${index}.questionType`,
-                                                                                            ) ===
-                                                                                            "MCQM"
-                                                                                          ? "MCQ (Multiple Correct)"
-                                                                                          : "MCQ (Multiple Correct)"}
+                                                                                    {getPPTViewTitle(
+                                                                                        getValues(
+                                                                                            `questions.${index}.questionType`,
+                                                                                        ) as QuestionType,
+                                                                                    )}
                                                                                 </h1>
                                                                                 <SortableDragHandle
                                                                                     variant="outline"
@@ -412,10 +451,8 @@ export function QuestionPaperTemplate({
                                                                             <PPTComponentFactory
                                                                                 type={
                                                                                     getValues(
-                                                                                        `questions.${index}.questionType`,
-                                                                                    ) as
-                                                                                        | "MCQS"
-                                                                                        | "MCQM"
+                                                                                        `questions.${currentQuestionIndex}.questionType`,
+                                                                                    ) as QuestionType
                                                                                 }
                                                                                 props={{
                                                                                     form: form,
@@ -464,7 +501,7 @@ export function QuestionPaperTemplate({
                                     type={
                                         getValues(
                                             `questions.${currentQuestionIndex}.questionType`,
-                                        ) as "MCQS" | "MCQM"
+                                        ) as QuestionType
                                     }
                                     props={{
                                         form: form,
@@ -472,7 +509,8 @@ export function QuestionPaperTemplate({
                                         setCurrentQuestionIndex: setCurrentQuestionIndex,
                                         currentQuestionImageIndex: currentQuestionImageIndex,
                                         setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
-                                        className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                        className:
+                                            "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
                                     }}
                                 />
                             )}

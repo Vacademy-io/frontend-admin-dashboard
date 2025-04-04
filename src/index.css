@@ -189,6 +189,10 @@ html {
     .dialog-no-close-icon button[data-dialog-close] {
         display: none;
     }
+
+    .dialog-height {
+        height: calc(100vh - 80px);
+    }
 }
 
 @layer utilities {
