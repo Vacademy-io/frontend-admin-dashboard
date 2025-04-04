@@ -90,7 +90,6 @@ export default function TimelineReports() {
         handleSubmit,
         setValue,
         watch,
-        trigger,
         formState: { errors },
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -105,19 +104,29 @@ export default function TimelineReports() {
 
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
+    const selectedLevel = watch("level");
     const startDate = watch("startDate");
     const endDate = watch("endDate");
 
     useEffect(() => {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
-            setValue("session", "select level");
-            setValue("level", "select level");
+            setValue("session", "");
         } else {
             setSessionList([]);
-            setLevelList([]);
         }
     }, [selectedCourse]);
+
+    useEffect(() => {
+        if (selectedSession === "") {
+            setValue("level", "");
+            setLevelList([]);
+        } else if (selectedCourse && selectedSession) {
+            setLevelList(
+                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
+            );
+        }
+    }, [selectedSession]);
     useEffect(() => {
         if (sessionList?.length === 1 && sessionList[0]?.id === "DEFAULT") {
             setValue("session", "DEFAULT");
@@ -154,15 +163,6 @@ export default function TimelineReports() {
             },
         );
     }, [currPage]);
-    useEffect(() => {
-        if (selectedCourse && selectedSession) {
-            setLevelList(
-                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
-            );
-        } else {
-            setLevelList([]);
-        }
-    }, [selectedSession]);
 
     const onSubmit = (data: FormValues) => {
         setLoading(true);
@@ -291,7 +291,6 @@ export default function TimelineReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("course", value);
-                                trigger("course");
                             }}
                             {...register("course")}
                             defaultValue=""
@@ -318,9 +317,9 @@ export default function TimelineReports() {
                                 // value={watch("session") === "" ? null : watch("session")}
                                 onValueChange={(value) => {
                                     setValue("session", value);
-                                    trigger("session");
                                 }}
                                 defaultValue=""
+                                value={selectedSession}
                                 disabled={!sessionList.length}
                             >
                                 <SelectTrigger className="h-[40px] w-[320px]">
@@ -345,9 +344,9 @@ export default function TimelineReports() {
                             <Select
                                 onValueChange={(value) => {
                                     setValue("level", value);
-                                    trigger("level");
                                 }}
                                 defaultValue=""
+                                value={selectedLevel}
                                 disabled={!levelList.length}
                             >
                                 <SelectTrigger className="h-[40px] w-[320px]">

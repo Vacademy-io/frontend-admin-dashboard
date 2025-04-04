@@ -55,6 +55,7 @@ export default function ProgressReports() {
     });
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
+    const selectedLevel = watch("level");
     const transformToSubjectOverview = (
         data: SubjectProgressResponse,
     ): SubjectOverviewColumnType[] => {
@@ -87,20 +88,19 @@ export default function ProgressReports() {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
             setValue("session", "");
-            setValue("level", "");
         } else {
             setSessionList([]);
-            setLevelList([]);
         }
     }, [selectedCourse]);
 
     useEffect(() => {
-        if (selectedCourse && selectedSession) {
+        if (selectedSession === "") {
+            setValue("level", "");
+            setLevelList([]);
+        } else if (selectedCourse && selectedSession) {
             setLevelList(
                 getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
             );
-        } else {
-            setLevelList([]);
         }
     }, [selectedSession]);
 
@@ -145,7 +145,6 @@ export default function ProgressReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("course", value);
-                                trigger("course");
                             }}
                             {...register("course")}
                             defaultValue=""
@@ -168,10 +167,10 @@ export default function ProgressReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("session", value);
-                                trigger("session");
                             }}
                             {...register("session")}
                             defaultValue=""
+                            value={selectedSession}
                             disabled={!sessionList.length}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
@@ -195,6 +194,7 @@ export default function ProgressReports() {
                                 trigger("level");
                             }}
                             defaultValue=""
+                            value={selectedLevel}
                             disabled={!levelList.length}
                             {...register("level")}
                         >
