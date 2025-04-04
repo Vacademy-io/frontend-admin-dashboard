@@ -48,7 +48,7 @@ import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
 import { convertDateFormat } from "./Step1BasicInfo";
-import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
 import { getInstituteId } from "@/constants/helper";
 import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
 
@@ -1139,6 +1139,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         </div>
                     </div>
                     <Separator className="my-4" />
+                    {/* will be added later
                     <FormField
                         control={form.control}
                         name="show_leaderboard"
@@ -1153,7 +1154,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 </FormControl>
                             </FormItem>
                         )}
-                    />
+                    /> */}
                     <div className="flex w-3/4 justify-between" id="notify-via-email">
                         {getStepKey({
                             assessmentDetails,
@@ -1267,6 +1268,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 />
                             </div>
                         )}
+                        {/* will be added later
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -1422,7 +1424,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                     )}
                                 />
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </div>
             </form>

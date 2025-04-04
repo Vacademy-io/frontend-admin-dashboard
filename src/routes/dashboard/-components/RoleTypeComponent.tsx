@@ -17,6 +17,7 @@ import { fetchInstituteDashboardUsers } from "../-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useMutation } from "@tanstack/react-query";
 import { useRefetchUsersStore } from "../-global-states/refetch-store-users";
+import { countAdminRoles } from "../-utils/helper";
 
 export interface RoleTypeSelectedFilter {
     roles: { id: string; name: string }[];
@@ -26,7 +27,18 @@ export interface RoleTypeSelectedFilter {
 // Type for tabs
 type TabKey = keyof RolesDummyDataType;
 
-const RoleTypeComponent = () => {
+interface RoleTypeProps {
+    setRoleTypeCount: React.Dispatch<
+        React.SetStateAction<{
+            ADMIN: number;
+            "COURSE CREATOR": number;
+            "ASSESSMENT CREATOR": number;
+            EVALUATOR: number;
+        }>
+    >;
+}
+
+const RoleTypeComponent = ({ setRoleTypeCount }: RoleTypeProps) => {
     const setHandleRefetchUsersData = useRefetchUsersStore(
         (state) => state.setHandleRefetchUsersData,
     );
@@ -171,6 +183,17 @@ const RoleTypeComponent = () => {
         };
     };
 
+    useEffect(() => {
+        const cnt1 = countAdminRoles(dashboardUsers.instituteUsers);
+        const cnt2 = countAdminRoles(dashboardUsers.invites);
+        setRoleTypeCount({
+            ADMIN: cnt1.ADMIN + cnt2.ADMIN,
+            "COURSE CREATOR": cnt1["COURSE CREATOR"] + cnt2["COURSE CREATOR"],
+            "ASSESSMENT CREATOR": cnt1["ASSESSMENT CREATOR"] + cnt2["ASSESSMENT CREATOR"],
+            EVALUATOR: cnt1.EVALUATOR + cnt2.EVALUATOR,
+        });
+    }, [dashboardUsers]);
+
     // Define the handleRefetchData function here
     useEffect(() => {
         setHandleRefetchUsersData(handleRefetchData);
@@ -239,63 +262,65 @@ const RoleTypeComponent = () => {
                     Manage Users
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-4 overflow-y-auto !rounded-none !p-0">
-                <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
+            <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-4 overflow-y-auto !p-0">
+                <h1 className="sticky left-0 top-0 bg-primary-50 p-4 font-semibold text-primary-500">
                     Manage Role Types Users
                 </h1>
                 <Tabs
                     value={selectedTab}
                     onValueChange={handleTabChange}
-                    className="flex flex-col justify-between p-4"
+                    className="flex h-[90vh] flex-col overflow-auto px-4"
                 >
-                    <div className="flex items-center justify-start gap-8">
-                        <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
-                            <TabsTrigger
-                                value="instituteUsers"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === "instituteUsers"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
-                                        selectedTab === "instituteUsers" ? "text-primary-500" : ""
+                    <div className="sticky top-0 z-10 flex items-start justify-between gap-8 bg-white pb-4">
+                        <div className="sticky top-0 flex flex-wrap items-center gap-4">
+                            <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                                <TabsTrigger
+                                    value="instituteUsers"
+                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                        selectedTab === "instituteUsers"
+                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                            : "border-none bg-transparent"
                                     }`}
                                 >
-                                    Institute Users
-                                </span>
-                                <Badge
-                                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
-                                    variant="outline"
-                                >
-                                    {dashboardUsers["instituteUsers"].length}
-                                </Badge>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="invites"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === "invites"
-                                        ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
-                                        : "border-none bg-transparent"
-                                }`}
-                            >
-                                <span
-                                    className={`${
-                                        selectedTab === "invites" ? "text-primary-500" : ""
+                                    <span
+                                        className={`${
+                                            selectedTab === "instituteUsers"
+                                                ? "text-primary-500"
+                                                : ""
+                                        }`}
+                                    >
+                                        Institute Users
+                                    </span>
+                                    <Badge
+                                        className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                                        variant="outline"
+                                    >
+                                        {dashboardUsers["instituteUsers"].length}
+                                    </Badge>
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="invites"
+                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                        selectedTab === "invites"
+                                            ? "rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                                            : "border-none bg-transparent"
                                     }`}
                                 >
-                                    Invites
-                                </span>
-                                <Badge
-                                    className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
-                                    variant="outline"
-                                >
-                                    {dashboardUsers["invites"].length}
-                                </Badge>
-                            </TabsTrigger>
-                        </TabsList>
-                        <div className="flex items-center gap-4">
+                                    <span
+                                        className={`${
+                                            selectedTab === "invites" ? "text-primary-500" : ""
+                                        }`}
+                                    >
+                                        Invites
+                                    </span>
+                                    <Badge
+                                        className="rounded-[10px] bg-primary-500 p-0 px-2 text-[9px] text-white"
+                                        variant="outline"
+                                    >
+                                        {dashboardUsers["invites"].length}
+                                    </Badge>
+                                </TabsTrigger>
+                            </TabsList>
                             <ScheduleTestFilters
                                 label="Role Type"
                                 data={RoleType}
@@ -318,21 +343,26 @@ const RoleTypeComponent = () => {
                                 handleResetFilters={handleResetFilters}
                             />
                         </div>
+                        <InviteUsersComponent refetchData={handleRefetchData} />
                     </div>
-                    <InstituteUsersComponent
-                        selectedTab={selectedTab}
-                        selectedTabData={dashboardUsers.instituteUsers}
-                        refetchData={handleRefetchData}
-                    />
-                    <InviteUsersTab
-                        selectedTab={selectedTab}
-                        selectedTabData={dashboardUsers.invites}
-                        refetchData={handleRefetchData}
-                    />
+                    {/* Scrollable Content Area */}
+                    <div className="flex-1 overflow-y-auto px-4 pb-6 pt-4">
+                        {selectedTab === "instituteUsers" && (
+                            <InstituteUsersComponent
+                                selectedTab={selectedTab}
+                                selectedTabData={dashboardUsers.instituteUsers}
+                                refetchData={handleRefetchData}
+                            />
+                        )}
+                        {selectedTab === "invites" && (
+                            <InviteUsersTab
+                                selectedTab={selectedTab}
+                                selectedTabData={dashboardUsers.invites}
+                                refetchData={handleRefetchData}
+                            />
+                        )}
+                    </div>
                 </Tabs>
-                <div className="mr-4 text-end">
-                    <InviteUsersComponent refetchData={handleRefetchData} />
-                </div>
             </DialogContent>
         </Dialog>
     );

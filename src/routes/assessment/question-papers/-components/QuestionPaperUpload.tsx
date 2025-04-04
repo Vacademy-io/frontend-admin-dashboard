@@ -379,8 +379,6 @@ export const QuestionPaperUpload = ({
             fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
-
-    console.log(form.getValues());
     return (
         <>
             <FormProvider {...form}>
