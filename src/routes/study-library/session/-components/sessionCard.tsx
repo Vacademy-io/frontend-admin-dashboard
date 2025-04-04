@@ -144,12 +144,17 @@ export function SessionCard({ data }: SessionCardProps) {
                     <div key={idx}>
                         <div className="text-base">{item?.package_dto.package_name}</div>
                         <div>
-                            {item.level.map((level, idx) => (
-                                <div key={idx} className="flex flex-row items-center gap-1">
-                                    <div className="size-2 rounded-full bg-neutral-300"></div>
-                                    <div className="text-sm">{level.level_dto.level_name}</div>
-                                </div>
-                            ))}
+                            {item.level.map(
+                                (level, idx) =>
+                                    level.package_session_status == "ACTIVE" && (
+                                        <div key={idx} className="flex flex-row items-center gap-1">
+                                            <div className="size-2 rounded-full bg-neutral-300"></div>
+                                            <div className="text-sm">
+                                                {level.level_dto.level_name}
+                                            </div>
+                                        </div>
+                                    ),
+                            )}
                         </div>
                     </div>
                 ))}
