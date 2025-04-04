@@ -71,7 +71,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
     const [currentQuestionIndexes, setCurrentQuestionIndexes] = useState<{
         [sectionId: string]: number;
     }>({});
-    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
     const [selectedSection, setSelectedSection] = useState(
         assessmentDetails[1]?.saved_data.sections?.[0]?.id || "",
     );
@@ -601,11 +600,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                                     setCurrentQuestionIndexes,
                                                                                 currentQuestionIndex:
                                                                                     index,
-
-                                                                                currentQuestionImageIndex:
-                                                                                    currentQuestionImageIndex,
-                                                                                setCurrentQuestionImageIndex:
-                                                                                    setCurrentQuestionImageIndex,
                                                                                 className:
                                                                                     "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
                                                                                 selectedSectionIndex:
@@ -634,9 +628,6 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                         currentQuestionIndexes: currentQuestionIndexes,
                                         setCurrentQuestionIndexes: setCurrentQuestionIndexes,
                                         currentQuestionIndex: currentQuestionIndex,
-
-                                        currentQuestionImageIndex: currentQuestionImageIndex,
-                                        setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
                                         className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
                                         selectedSectionIndex: selectedSectionIndex,
                                     }}
