@@ -16,7 +16,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
-    const { control, getValues } = form;
+    const { control, getValues, setValue } = form;
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const optionsType = getValues("optionsType") || "";
@@ -27,6 +27,24 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     const option2 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`);
     const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
     const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
+
+    const handleOptionChange = (optionIndex: number) => {
+        const options = [0, 1, 2, 3];
+
+        // Check current state of the selected option
+        const isCurrentlySelected = getValues(
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.isSelected`,
+        );
+
+        options.forEach((option) => {
+            setValue(
+                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.isSelected`,
+                option === optionIndex ? !isCurrentlySelected : false,
+                { shouldDirty: true, shouldValidate: true },
+            );
+        });
+        form.trigger(`questions.${currentQuestionIndex}.multipleChoiceOptions`);
+    };
 
     if (allQuestions.length === 0) {
         return (
@@ -106,7 +124,6 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                     {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
                                 </span>
                             </div>
-
                             <FormField
                                 control={control}
                                 name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.name`}
@@ -132,7 +149,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => handleOptionChange(0)}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -183,7 +200,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => handleOptionChange(1)}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -236,7 +253,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => handleOptionChange(2)}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -287,7 +304,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => handleOptionChange(3)}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked

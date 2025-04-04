@@ -59,6 +59,22 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
         }
     };
 
+    const handleOptionChange = (optionIndex: number) => {
+        const options = [0, 1, 2, 3];
+
+        // Check current state of the selected option
+        const isCurrentlySelected = getValues(
+            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.isSelected`,
+        );
+
+        options.forEach((option) => {
+            setValue(
+                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.isSelected`,
+                option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
+            );
+        });
+    };
+
     return (
         <div
             className={className}
@@ -101,7 +117,7 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => handleOptionChange(0)}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -136,7 +152,7 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => handleOptionChange(1)}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -173,7 +189,7 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => handleOptionChange(2)}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -208,7 +224,7 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={field.onChange}
+                                                onCheckedChange={() => handleOptionChange(3)}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
