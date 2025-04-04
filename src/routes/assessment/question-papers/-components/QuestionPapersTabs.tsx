@@ -28,8 +28,6 @@ interface QuestionPapersTabsProps {
     sectionsForm?: UseFormReturn<SectionFormType>;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }
 
 export const QuestionPapersTabs = ({
@@ -38,8 +36,6 @@ export const QuestionPapersTabs = ({
     sectionsForm,
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
 }: QuestionPapersTabsProps) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -342,8 +338,6 @@ export const QuestionPapersTabs = ({
                         sectionsForm={sectionsForm}
                         currentQuestionIndex={currentQuestionIndex}
                         setCurrentQuestionIndex={setCurrentQuestionIndex}
-                        currentQuestionImageIndex={currentQuestionImageIndex}
-                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">
@@ -364,8 +358,6 @@ export const QuestionPapersTabs = ({
                         sectionsForm={sectionsForm}
                         currentQuestionIndex={currentQuestionIndex}
                         setCurrentQuestionIndex={setCurrentQuestionIndex}
-                        currentQuestionImageIndex={currentQuestionImageIndex}
-                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">

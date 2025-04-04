@@ -41,8 +41,6 @@ interface QuestionPaperUploadProps {
     sectionsForm?: UseFormReturn<SectionFormType>;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }
 
 export const QuestionPaperUpload = ({
@@ -51,8 +49,6 @@ export const QuestionPaperUpload = ({
     sectionsForm,
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
 }: QuestionPaperUploadProps) => {
     const { instituteDetails } = useInstituteDetailsStore();
 
@@ -74,113 +70,7 @@ export const QuestionPaperUpload = ({
             answersType: "",
             explanationsType: "",
             fileUpload: undefined,
-            questions: [
-                {
-                    questionId: "1",
-                    questionName: "",
-                    explanation: "",
-                    questionType: "MCQS",
-                    questionPenalty: "",
-                    questionDuration: {
-                        hrs: "",
-                        min: "",
-                    },
-                    questionMark: "",
-                    imageDetails: [],
-                    singleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                    multipleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                },
-            ],
+            questions: [],
         },
     });
     const { getValues, setValue, watch } = form;
@@ -571,10 +461,6 @@ export const QuestionPaperUpload = ({
                                             buttonText="Preview"
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                            currentQuestionImageIndex={currentQuestionImageIndex}
-                                            setCurrentQuestionImageIndex={
-                                                setCurrentQuestionImageIndex
-                                            }
                                         />
                                     )
                                 )}
@@ -587,8 +473,6 @@ export const QuestionPaperUpload = ({
                                         buttonText="Add Questions"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                        currentQuestionImageIndex={currentQuestionImageIndex}
-                                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                     />
                                 )}
                                 {fileUpload && (
