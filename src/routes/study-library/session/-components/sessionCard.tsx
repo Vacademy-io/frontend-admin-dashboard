@@ -31,8 +31,8 @@ export function SessionCard({ data }: SessionCardProps) {
     const handleEditSession = (sessionData: AddSessionDataType) => {
         // Get all the selected package_session_ids from the form
         const visiblePackageSessionIds = sessionData.levels
-            .filter((level) => level.package_session_id) // Filter out any null values
-            .map((level) => level.package_session_id)
+            .filter((level) => level.level_dto.package_id) // Filter out any null values
+            .map((level) => level.level_dto.package_id)
             .join(",");
 
         // Get all package_session_ids from the original data
@@ -47,7 +47,7 @@ export function SessionCard({ data }: SessionCardProps) {
 
         // Find package_session_ids that are in the original data but not in the form data
         const hiddenPackageSessionIds = allPackageSessionIds
-            .filter((id) => !sessionData.levels.some((level) => level.package_session_id === id))
+            .filter((id) => !sessionData.levels.some((level) => level.level_dto.package_id === id))
             .join(",");
 
         const requestData = {

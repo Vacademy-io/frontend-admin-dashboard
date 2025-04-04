@@ -33,9 +33,9 @@ const formSchema = z.object({
                 thumbnail_file_id: z.string().nullable(),
                 package_id: z.string(), // Moved package_id into level_dto
             }),
-            package_session_id: z.string().nullable(),
-            package_session_status: z.string().nullable(),
-            start_date: z.string().nullable(),
+            // package_session_id: z.string().nullable(),
+            // package_session_status: z.string().nullable(),
+            // start_date: z.string().nullable(),
         }),
     ),
 });
@@ -81,9 +81,9 @@ export const AddSessionForm = ({
                                 thumbnail_file_id: levelWithStatus.level_dto.thumbnail_id,
                                 package_id: packageItem.package_dto.id,
                             },
-                            package_session_id: levelWithStatus.package_session_id,
-                            package_session_status: levelWithStatus.package_session_status,
-                            start_date: levelWithStatus.start_date,
+                            // package_session_id: levelWithStatus.package_session_id,
+                            // package_session_status: levelWithStatus.package_session_status,
+                            // start_date: levelWithStatus.start_date,
                         });
                     }
                 });
@@ -169,9 +169,9 @@ export const AddSessionForm = ({
                 thumbnail_file_id: null,
                 package_id: packageId,
             },
-            package_session_id: "", // Use empty string instead of null
-            package_session_status: "ACTIVE", // Use "ACTIVE" instead of null
-            start_date: new Date().toISOString(), // Use current date instead of null
+            // package_session_id: "", // Use empty string instead of null
+            // package_session_status: "ACTIVE", // Use "ACTIVE" instead of null
+            // start_date: new Date().toISOString(), // Use current date instead of null
         };
 
         // Add to form values
@@ -220,9 +220,9 @@ export const AddSessionForm = ({
                     thumbnail_file_id: level.level_dto.thumbnail_id,
                     package_id: packageId,
                 },
-                package_session_id: level.package_session_id,
-                package_session_status: level.package_session_status,
-                start_date: level.start_date,
+                // package_session_id: level.package_session_id,
+                // package_session_status: level.package_session_status,
+                // start_date: level.start_date,
             };
             form.setValue("levels", [...currentLevels, levelToAdd]);
         }
