@@ -39,9 +39,11 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
         options.forEach((option) => {
             setValue(
                 `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
-                option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
+                option === optionIndex ? !isCurrentlySelected : false,
+                { shouldDirty: true, shouldValidate: true },
             );
         });
+        form.trigger(`questions.${currentQuestionIndex}.singleChoiceOptions`);
     };
 
     if (allQuestions.length === 0) {

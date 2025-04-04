@@ -53,7 +53,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                               type: "HTML", // Assuming option content is HTML
                               content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
-                          media_id: opt.image.imageName, // Assuming no direct mapping for option media ID
+                          media_id: null, // Assuming no direct mapping for option media ID
                           option_order: null,
                           created_on: null,
                           updated_on: null,
@@ -72,7 +72,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                               type: "HTML", // Assuming option content is HTML
                               content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                           },
-                          media_id: opt.image.imageName, // Assuming no direct mapping for option media ID
+                          media_id: null, // Assuming no direct mapping for option media ID
                           option_order: null,
                           created_on: null,
                           updated_on: null,
@@ -111,7 +111,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     type: "HTML", // Assuming the content is HTML
                     content: question.questionName.replace(/<\/?p>/g, ""), // Remove <p> tags from content
                 },
-                media_id: question?.imageDetails?.map((img) => img.imageName).join(","), // Assuming no direct mapping for media_id
+                media_id: null, // Assuming no direct mapping for media_id
                 created_at: null,
                 updated_at: null,
                 question_response_type: null, // Assuming no direct mapping for response type
@@ -188,7 +188,7 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
                           type: "HTML",
                           content: opt?.name?.replace(/<\/?p>/g, ""),
                       },
-                      media_id: opt.image.imageName,
+                      media_id: null,
                       option_order: null,
                       created_on: null,
                       updated_on: null,
@@ -241,7 +241,7 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
                 type: "HTML",
                 content: question.questionName.replace(/<\/?p>/g, ""),
             },
-            media_id: question?.imageDetails?.map((img) => img.imageName).join(","),
+            media_id: null,
             created_at: null,
             updated_at: null,
             question_response_type: null,
@@ -401,16 +401,6 @@ export const transformResponseDataToMyQuestionsSchema = (
                 hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
                 min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
             },
-            imageDetails:
-                item.media_id !== "" && item.media_id !== null
-                    ? item.media_id?.split(",").map((id) => ({
-                          imageId: "",
-                          imageName: "",
-                          imageTitle: "",
-                          imageFile: mediaIdToUrlMap[id] || "",
-                          isDeleted: false,
-                      }))
-                    : [],
             singleChoiceOptions: [],
             multipleChoiceOptions: [],
         };

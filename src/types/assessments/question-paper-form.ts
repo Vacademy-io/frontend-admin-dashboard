@@ -25,7 +25,6 @@ export interface MyQuestion {
         hrs: string;
         min: string;
     };
-    imageDetails?: MyImageDetail[]; // Optional array of image details
     singleChoiceOptions: MySingleChoiceOption[]; // Array of single choice options
     multipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
 }
@@ -42,7 +41,6 @@ export interface MySingleChoiceOption {
     id?: string;
     name?: string; // Optional string
     isSelected?: boolean; // Optional boolean
-    image: MyImage; // Required image object
 }
 
 export interface MyMultipleChoiceOption {
