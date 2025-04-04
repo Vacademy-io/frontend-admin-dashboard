@@ -29,14 +29,6 @@ export interface MyQuestion {
     multipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
 }
 
-export interface MyImageDetail {
-    imageId?: string; // Optional string
-    imageName: string; // Required string, must have at least 1 character
-    imageTitle?: string; // Optional string
-    imageFile: string; // Required string
-    isDeleted?: boolean; // Optional boolean
-}
-
 export interface MySingleChoiceOption {
     id?: string;
     name?: string; // Optional string

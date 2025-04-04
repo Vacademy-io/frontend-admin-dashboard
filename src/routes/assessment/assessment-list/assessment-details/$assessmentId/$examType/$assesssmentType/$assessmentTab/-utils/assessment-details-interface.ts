@@ -190,18 +190,9 @@ export interface SectionInfoWithAddedQuestionsCnt {
 
 export type SectionInfoWithAddedQuestionsCntOrNull = SectionInfoWithAddedQuestionsCnt | null;
 
-interface Image {
-    imageId?: string;
-    imageName?: string;
-    imageTitle?: string;
-    imageFile?: string;
-    isDeleted?: boolean;
-}
-
 interface ChoiceOptionWithAddedQuestions {
     name?: string;
     isSelected?: boolean;
-    image: Image;
 }
 
 interface QuestionDuration {
