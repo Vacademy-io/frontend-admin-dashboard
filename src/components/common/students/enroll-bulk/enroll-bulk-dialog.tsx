@@ -1,5 +1,3 @@
-import { DialogHeader } from "@/components/ui/dialog";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
 import { Form, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -84,107 +82,102 @@ export const EnrollBulkDialog = () => {
     };
 
     return (
-        <DialogHeader className="w-full">
-            <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                Enroll in Bulk
-            </div>
-            <DialogDescription className="flex w-full flex-col items-center justify-center gap-6 p-6 text-neutral-600">
-                <Form {...form} className="w-full">
-                    <FormProvider {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmitEnrollBulkForm)}>
-                            <div className="flex w-full flex-col gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="course"
-                                    render={({ field: { onChange, value } }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <div className="flex flex-col gap-1">
-                                                    <div>
-                                                        Course
-                                                        <span className="text-subtitle text-danger-600">
-                                                            *
-                                                        </span>
-                                                    </div>
-                                                    <MyDropdown
-                                                        currentValue={value.name}
-                                                        dropdownList={courseList}
-                                                        handleChange={onChange}
-                                                        placeholder="Select Course"
-                                                    />
+        <>
+            <Form {...form} className="w-full">
+                <FormProvider {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmitEnrollBulkForm)}>
+                        <div className="flex w-full flex-col gap-4">
+                            <FormField
+                                control={form.control}
+                                name="course"
+                                render={({ field: { onChange, value } }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    Course
+                                                    <span className="text-subtitle text-danger-600">
+                                                        *
+                                                    </span>
                                                 </div>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="session"
-                                    render={({ field: { onChange, value } }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <div className="flex flex-col gap-1">
-                                                    <div>
-                                                        Session{" "}
-                                                        <span className="text-subtitle text-danger-600">
-                                                            *
-                                                        </span>
-                                                    </div>
-                                                    <MyDropdown
-                                                        currentValue={value.name}
-                                                        dropdownList={sessionList}
-                                                        handleChange={onChange}
-                                                        placeholder="Select Session"
-                                                    />
+                                                <MyDropdown
+                                                    currentValue={value.name}
+                                                    dropdownList={courseList}
+                                                    handleChange={onChange}
+                                                    placeholder="Select Course"
+                                                />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="session"
+                                render={({ field: { onChange, value } }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    Session{" "}
+                                                    <span className="text-subtitle text-danger-600">
+                                                        *
+                                                    </span>
                                                 </div>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
+                                                <MyDropdown
+                                                    currentValue={value.name}
+                                                    dropdownList={sessionList}
+                                                    handleChange={onChange}
+                                                    placeholder="Select Session"
+                                                />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
 
-                                <FormField
-                                    control={form.control}
-                                    name="level"
-                                    render={({ field: { onChange, value } }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <div className="flex flex-col gap-1">
-                                                    <div>
-                                                        Level{" "}
-                                                        <span className="text-subtitle text-danger-600">
-                                                            *
-                                                        </span>
-                                                    </div>
-                                                    <MyDropdown
-                                                        currentValue={value.name}
-                                                        dropdownList={levelList}
-                                                        handleChange={onChange}
-                                                        placeholder="Select Session"
-                                                    />
+                            <FormField
+                                control={form.control}
+                                name="level"
+                                render={({ field: { onChange, value } }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    Level{" "}
+                                                    <span className="text-subtitle text-danger-600">
+                                                        *
+                                                    </span>
                                                 </div>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                <MyButton
-                                    buttonType="primary"
-                                    layoutVariant="default"
-                                    scale="large"
-                                    type="button"
-                                    onClick={handleDoneClick}
-                                >
-                                    Done
-                                </MyButton>
-                            </div>
-                        </form>
-                    </FormProvider>
-                </Form>
-                <CSVFormatDialog
-                    packageDetails={formValues}
-                    openDialog={openSetFormatDialog}
-                    setOpenDialog={setOpenSetFormatDialog}
-                />
-            </DialogDescription>
-        </DialogHeader>
+                                                <MyDropdown
+                                                    currentValue={value.name}
+                                                    dropdownList={levelList}
+                                                    handleChange={onChange}
+                                                    placeholder="Select Session"
+                                                />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <MyButton
+                                buttonType="primary"
+                                layoutVariant="default"
+                                scale="large"
+                                type="button"
+                                onClick={handleDoneClick}
+                            >
+                                Done
+                            </MyButton>
+                        </div>
+                    </form>
+                </FormProvider>
+            </Form>
+            <CSVFormatDialog
+                packageDetails={formValues}
+                openDialog={openSetFormatDialog}
+                setOpenDialog={setOpenSetFormatDialog}
+            />
+        </>
     );
 };

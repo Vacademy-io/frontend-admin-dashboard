@@ -1,15 +1,20 @@
 import TimelineReports from "./timelineReports";
 import ProgressReports from "./progressReports";
 import { useState } from "react";
+import { useSearch } from "@tanstack/react-router";
+import { Route } from "@/routes/study-library/reports";
+
 export default function StudentReports() {
-    const [learningData, setLearningData] = useState("TIMELINE");
+    const search = useSearch({ from: Route.id });
+    const [learningData, setLearningData] = useState(
+        search.studentReport ? search.studentReport.learningTab : "TIMELINE",
+    );
     const renderLearningData = () => {
         switch (learningData) {
             case "TIMELINE":
                 return <TimelineReports></TimelineReports>;
             case "PROGRESS":
                 return <ProgressReports></ProgressReports>;
-
             default:
                 return <></>;
         }

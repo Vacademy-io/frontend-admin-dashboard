@@ -29,6 +29,8 @@ import { useMutation } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { usePacageDetails } from "../../-store/usePacageDetails";
 import { convertMinutesToTimeFormat } from "../../-services/helper";
+import { useSearch } from "@tanstack/react-router";
+import { Route } from "@/routes/study-library/reports";
 
 const formSchema = z.object({
     course: z.string().min(1, "Course is required"),
@@ -61,7 +63,7 @@ export default function ProgressReports() {
     const filteredStudents = studentList.filter((student) =>
         student.full_name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-
+    const search = useSearch({ from: Route.id });
     const {
         register,
         handleSubmit,
@@ -191,7 +193,7 @@ export default function ProgressReports() {
                                 setValue("course", value);
                             }}
                             {...register("course")}
-                            defaultValue=""
+                            defaultValue={search.studentReport ? search.studentReport.courseId : ""}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Course" />
@@ -213,7 +215,9 @@ export default function ProgressReports() {
                                 console.log("here");
                                 setValue("session", value);
                             }}
-                            defaultValue=""
+                            defaultValue={
+                                search.studentReport ? search.studentReport.sessionId : ""
+                            }
                             value={selectedSession}
                             disabled={!sessionList.length}
                         >
@@ -236,7 +240,7 @@ export default function ProgressReports() {
                             onValueChange={(value) => {
                                 setValue("level", value);
                             }}
-                            defaultValue=""
+                            defaultValue={search.studentReport ? search.studentReport.levelId : ""}
                             value={selectedLevel}
                             disabled={!levelList.length}
                             {...register("level")}

@@ -190,15 +190,11 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                 return <></>;
             }
             const expiryDate = new Date(row.original.expiry_date);
-            console.log("expiryDate: ", expiryDate);
             const today = new Date();
-            console.log("today: ", today);
 
             // Use getTime() to get timestamps in milliseconds
             const diffTime = expiryDate.getTime() - today.getTime();
-            console.log("time diff: ", diffTime);
             const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            console.log("daysLeft: ", daysLeft);
 
             return (
                 <div

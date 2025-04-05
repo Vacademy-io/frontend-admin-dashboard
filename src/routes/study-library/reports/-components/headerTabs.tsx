@@ -5,9 +5,15 @@ import StudentReports from "./student/studentReports";
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSearch } from "@tanstack/react-router";
+import { Route } from "@/routes/study-library/reports";
 
 export default function HeaderTabs() {
-    const [selectedTab, setSelectedTab] = useState("BATCH");
+    const search = useSearch({ from: Route.id });
+
+    const [selectedTab, setSelectedTab] = useState(
+        search.studentReport ? search.studentReport.tab : "BATCH",
+    );
     const [settingDialogState, setSettingDialogState] = useState(false);
 
     const handleTabChange = (value: string) => {

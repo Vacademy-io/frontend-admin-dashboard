@@ -56,7 +56,9 @@ const SelectField: React.FC<SelectFieldProps> = ({
                         !selectFieldForInvite ? cn("w-44", className) : cn("flex items-center")
                     }
                 >
-                    <FormLabel className={!cn("flex items-center") ? labelStyle : "w-[330px]"}>
+                    <FormLabel
+                        className={labelStyle ? cn("flex items-center", labelStyle) : "w-[330px]"}
+                    >
                         {label}
                         {required && <span className="text-red-500">*</span>}
                     </FormLabel>

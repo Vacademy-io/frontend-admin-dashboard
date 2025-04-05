@@ -18,6 +18,7 @@ import {
     PreSelectedSessionType,
 } from "../-types/create-invitation-types";
 import { TokenKey } from "@/constants/auth/tokens";
+// import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 
 export const fetchLevel = (level: LevelField): InviteLevelType => {
     return {
@@ -40,7 +41,8 @@ export const fetchPreSelectedSessions = (session: PreSelectedSession): PreSelect
         id: session.id,
         name: session.name,
         institute_assigned: preSelectedLevels.length == 0 ? false : true,
-        max_selectable_levels: learnerChoiceLevels.length == 0 ? 0 : session.maxLevels,
+        max_selectable_levels:
+            learnerChoiceLevels.length == 0 ? 0 : session.maxLevels == 0 ? 1 : session.maxLevels,
         pre_selected_levels: preSelectedLevels,
         learner_choice_levels: learnerChoiceLevels,
     };
@@ -57,7 +59,12 @@ export const fetchLearnerChoiceSessions = (
     const learnerChoiceSession: LearnerChoiceSessionType = {
         id: session.id,
         name: session.name,
-        max_selectable_levels: session.learnerChoiceLevels.length == 0 ? 0 : session.maxLevels,
+        max_selectable_levels:
+            session.learnerChoiceLevels.length == 0
+                ? 0
+                : session.maxLevels == 0
+                  ? 1
+                  : session.maxLevels,
         learner_choice_levels: learnerChoiceLevels,
     };
     return learnerChoiceSession;
@@ -76,7 +83,12 @@ export const fetchPreSelectedCourses = (course: PreSelectedCourse): PreSelectedP
         id: course.id,
         name: course.name,
         institute_assigned: course.preSelectedSessions.length > 0 ? true : false,
-        max_selectable_sessions: course.learnerChoiceSessions.length == 0 ? 0 : course.maxSessions,
+        max_selectable_sessions:
+            course.learnerChoiceSessions.length == 0
+                ? 0
+                : course.maxSessions == 0
+                  ? 1
+                  : course.maxSessions,
         pre_selected_session_dtos: preSelectedSessions,
         learner_choice_sessions: learnerChoiceSessions,
     };
@@ -93,26 +105,38 @@ export const fetchLearnerChoiceCourses = (
     const learnerChoiceCourse: LearnerChoicePackagesType = {
         id: course.id,
         name: course.name,
-        max_selectable_sessions: course.learnerChoiceSessions.length == 0 ? 0 : course.maxSessions,
+        max_selectable_sessions:
+            course.learnerChoiceSessions.length == 0
+                ? 0
+                : course.maxSessions == 0
+                  ? 1
+                  : course.maxSessions,
         learner_choice_sessions: learnerChoiceSessions,
     };
     return learnerChoiceCourse;
 };
 
 export const fetchBatchOptions = (data: InviteForm): string => {
-    const preSelectedCoures = data.batches.preSelectedCourses.map((course) =>
-        fetchPreSelectedCourses(course),
-    );
-    const learnerChoiceCourses = data.batches.learnerChoiceCourses.map((course) =>
-        fetchLearnerChoiceCourses(course),
-    );
+    // const preSelectedCoures = data.batches.preSelectedCourses.map((course) =>
+    //     fetchPreSelectedCourses(course),
+    // );
+    // const learnerChoiceCourses = data.batches.learnerChoiceCourses.map((course) =>
+    //     fetchLearnerChoiceCourses(course),
+    // );
+
+    // const preSelectedCoures = [];
+    // const learnerChoiceCourses = [];
 
     const batchOptionsJson: BatchOptionJsonType = {
         institute_assigned: data.batches.preSelectedCourses.length > 0 ? true : false,
         max_selectable_packages:
-            data.batches.learnerChoiceCourses.length == 0 ? 0 : data.batches.maxCourses,
-        pre_selected_packages: preSelectedCoures,
-        learner_choice_packages: learnerChoiceCourses,
+            data.batches.learnerChoiceCourses.length == 0
+                ? 0
+                : data.batches.maxCourses == 0
+                  ? 1
+                  : data.batches.maxCourses,
+        pre_selected_packages: [],
+        learner_choice_packages: [],
     };
     return JSON.stringify(batchOptionsJson);
 };
@@ -131,7 +155,10 @@ export const fetchCustomFields = (data: InviteForm): CustomFieldType[] => {
     return customFields;
 };
 
-export default function formDataToRequestData(data: InviteForm): CreateInvitationRequestType {
+export default function formDataToRequestData(
+    data: InviteForm,
+    id?: string,
+): CreateInvitationRequestType {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
@@ -140,7 +167,7 @@ export default function formDataToRequestData(data: InviteForm): CreateInvitatio
     const request: CreateInvitationRequestType = {
         emails_to_send_invitation: data.inviteeEmails.map((emailObj) => emailObj.value),
         learner_invitation: {
-            id: null,
+            id: id ? id : null,
             name: data.inviteLink,
             status: data.activeStatus ? "ACTIVE" : "INACTIVE",
             date_generated: null,

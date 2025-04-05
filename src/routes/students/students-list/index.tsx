@@ -4,8 +4,16 @@ import { LayoutContainer } from "@/components/common/layout-container/layout-con
 import { StudentsListSection } from "@/routes/students/students-list/-components/students-list/student-list-section/students-list-section";
 import { Helmet } from "react-helmet";
 
+interface StudentListSearchParams {
+    batch?: string;
+    package_session_id?: string;
+}
 export const Route = createFileRoute("/students/students-list/")({
     component: StudentsList,
+    validateSearch: (search): StudentListSearchParams => ({
+        batch: search.batch as string | undefined,
+        package_session_id: search.package_session_id as string | undefined,
+    }),
 });
 
 export function StudentsList() {

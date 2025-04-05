@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FilterRequestType } from "../-types/enroll-request-types";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { ENROLL_REQUESTS } from "@/constants/urls";
+import { LearnerInvitationPagination } from "../-types/enroll-response-type";
 
 interface EnrollRequestParamType {
     instituteId: string;
@@ -16,7 +17,7 @@ export const useGetEnrollRequests = ({
     pageSize,
     filterRequest,
 }: EnrollRequestParamType) => {
-    return useQuery({
+    return useQuery<LearnerInvitationPagination | null>({
         queryKey: ["enrollRequestList", instituteId, pageNo, pageSize, filterRequest],
         queryFn: async () => {
             const response = await authenticatedAxiosInstance.post(
