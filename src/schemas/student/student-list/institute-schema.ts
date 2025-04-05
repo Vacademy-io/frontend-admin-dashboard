@@ -23,7 +23,7 @@ export const LevelSchema = z.object({
 export const PackageSchema = z.object({
     id: z.string(),
     package_name: z.string(),
-    thumbnail_id: z.string().nullable(),
+    thumbnail_id: z.string().nullable().optional(),
 });
 
 export const BatchForSessionSchema = z.object({
@@ -83,7 +83,7 @@ export type levelWithDetails = {
         id: string;
         level_name: string;
         duration_in_days: number | null;
-        thumbnail_id: string | null;
+        thumbnail_id?: string | null;
     };
     package_session_id: string;
     package_session_status: string;

@@ -272,7 +272,7 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
                     package_dto: {
                         id: batch.package_dto.id,
                         package_name: batch.package_dto.package_name,
-                        thumbnail_file_id: batch.package_dto.thumbnail_id,
+                        thumbnail_file_id: batch.package_dto.thumbnail_id || "",
                     },
                     level: [],
                 };

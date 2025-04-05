@@ -143,6 +143,7 @@ export const CreateInviteDialog = ({
         if (submitForm) {
             submitForm(() => {
                 if (formRef.current) {
+                    console.log("inside submit function");
                     formRef.current.requestSubmit();
                 }
             });
@@ -153,9 +154,15 @@ export const CreateInviteDialog = ({
     const courseSelectionMode = watch("batches.courseSelectionMode");
 
     useEffect(() => {
-        console.log("pre selected courses: ", getValues("batches.preSelectedCourses"));
-        console.log("learner choice courses: ", getValues("batches.learnerChoiceCourses"));
-    }, [watch("batches.preSelectedCourses"), watch("batches.learnerChoiceCourses")]);
+        console.log(getValues());
+        console.log("form errors: ", form.formState.errors);
+    }, [watch()]);
+
+    useEffect(() => {
+        const len = watch("batches.learnerChoiceCourses").length;
+        const maxValue = watch("batches.maxCourses");
+        if (maxValue > len) setValue("batches.maxCourses", len);
+    }, [watch("batches.learnerChoiceCourses").length]);
 
     return (
         <MyDialog
@@ -171,7 +178,7 @@ export const CreateInviteDialog = ({
                     ref={formRef}
                     onSubmit={form.handleSubmit((data: InviteForm) => {
                         try {
-                            console.log("inside handleSubmit");
+                            console.log("inside handleSubmit of form");
                             onCreateInvite && onCreateInvite(data);
                             // Other success handling
                         } catch {
@@ -179,7 +186,7 @@ export const CreateInviteDialog = ({
                         }
                     })}
                 >
-                    <div className="flex flex-col gap-10">
+                    <div className="flex flex-col gap-10 text-neutral-600">
                         {/* Invite Link & Active Status */}
                         <div className="flex justify-between gap-4">
                             <FormField
@@ -229,7 +236,10 @@ export const CreateInviteDialog = ({
                         />
 
                         {/* <CourseList /> */}
-                        <div>
+                        <div className="flex flex-col gap-3">
+                            <p className="text-subtitle font-semibold">
+                                Batch Selection<span className="text-danger-600">*</span>
+                            </p>
                             <FormField
                                 control={form.control}
                                 name="batches.courseSelectionMode"
@@ -243,8 +253,11 @@ export const CreateInviteDialog = ({
                                                         : "student"
                                                 }
                                                 onValueChange={(value) => {
-                                                    // Update the form value
-                                                    // form.setValue("batches.courseSelectionMode", value as "institute" | "student");
+                                                    // Set the proper enum value
+                                                    form.setValue(
+                                                        "batches.courseSelectionMode",
+                                                        value as "institute" | "student",
+                                                    );
 
                                                     // Clear the appropriate arrays
                                                     if (value === "institute") {
@@ -260,16 +273,15 @@ export const CreateInviteDialog = ({
                                                         );
                                                     }
 
-                                                    // This ensures the boolean value is set correctly for the field
                                                     field.onChange(value);
                                                 }}
-                                                className="flex gap-8"
+                                                className="flex items-center gap-8"
                                             >
                                                 <div className="flex items-center space-x-2">
                                                     <RadioGroupItem value="institute" />
                                                     <label
                                                         htmlFor="contain_levels_true"
-                                                        className="text-sm"
+                                                        className="text-subtitle text-neutral-600"
                                                     >
                                                         I want to assign batches
                                                     </label>
@@ -278,7 +290,7 @@ export const CreateInviteDialog = ({
                                                     <RadioGroupItem value="student" />
                                                     <label
                                                         htmlFor="contain_levels_false"
-                                                        className="text-sm"
+                                                        className="text-subtitle text-neutral-600"
                                                     >
                                                         I want students to choose batches
                                                     </label>
@@ -288,62 +300,14 @@ export const CreateInviteDialog = ({
                                     </FormItem>
                                 )}
                             />
-
-                            {courseSelectionMode === "institute" ? (
-                                <div>
-                                    {instituteDetails?.batches_for_sessions.map((batch) => (
-                                        <FormField
-                                            key={batch.id}
-                                            control={control}
-                                            name="batches.preSelectedCourses"
-                                            render={({ field }) => {
-                                                return (
-                                                    <FormItem key={batch.id}>
-                                                        <FormControl>
-                                                            <div className="flex items-center gap-2">
-                                                                <Checkbox
-                                                                    className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
-                                                                    checked={field.value?.some(
-                                                                        (item) =>
-                                                                            item.id === batch.id,
-                                                                    )}
-                                                                    onCheckedChange={(checked) => {
-                                                                        const newValue = checked
-                                                                            ? [
-                                                                                  ...field.value,
-                                                                                  batch,
-                                                                              ]
-                                                                            : field.value.filter(
-                                                                                  (b) =>
-                                                                                      b.id !==
-                                                                                      batch.id,
-                                                                              );
-                                                                        // form.setValue("batches.preSelectedCourses", newValue);
-                                                                        field.onChange(newValue);
-                                                                    }}
-                                                                />
-                                                                <label className="text-neutral-600">
-                                                                    {batch.level.level_name}{" "}
-                                                                    {batch.package_dto.package_name}{" "}
-                                                                    {batch.session.session_name}{" "}
-                                                                    institute
-                                                                </label>
-                                                            </div>
-                                                        </FormControl>
-                                                    </FormItem>
-                                                );
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-2">
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                            <div className="ml-3">
+                                {courseSelectionMode === "institute" ? (
+                                    <div className="grid grid-cols-3 gap-x-1 gap-y-1 text-caption">
                                         {instituteDetails?.batches_for_sessions.map((batch) => (
                                             <FormField
                                                 key={batch.id}
                                                 control={control}
-                                                name="batches.learnerChoiceCourses"
+                                                name="batches.preSelectedCourses"
                                                 render={({ field }) => {
                                                     return (
                                                         <FormItem key={batch.id}>
@@ -369,20 +333,19 @@ export const CreateInviteDialog = ({
                                                                                           b.id !==
                                                                                           batch.id,
                                                                                   );
-                                                                            // form.setValue("batches.learnerChoiceCourses", newValue);
+                                                                            // form.setValue("batches.preSelectedCourses", newValue);
                                                                             field.onChange(
                                                                                 newValue,
                                                                             );
                                                                         }}
                                                                     />
-                                                                    <label className="text-neutral-600">
+                                                                    <label className="text-wrap text-neutral-600">
                                                                         {batch.level.level_name}{" "}
                                                                         {
                                                                             batch.package_dto
                                                                                 .package_name
                                                                         }{" "}
                                                                         {batch.session.session_name}{" "}
-                                                                        learner
                                                                     </label>
                                                                 </div>
                                                             </FormControl>
@@ -392,51 +355,112 @@ export const CreateInviteDialog = ({
                                             />
                                         ))}
                                     </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2 text-caption">
+                                        <div className="grid grid-cols-3 gap-x-4 gap-y-1">
+                                            {instituteDetails?.batches_for_sessions.map((batch) => (
+                                                <FormField
+                                                    key={batch.id}
+                                                    control={control}
+                                                    name="batches.learnerChoiceCourses"
+                                                    render={({ field }) => {
+                                                        return (
+                                                            <FormItem key={batch.id}>
+                                                                <FormControl>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Checkbox
+                                                                            className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+                                                                            checked={field.value?.some(
+                                                                                (item) =>
+                                                                                    item.id ===
+                                                                                    batch.id,
+                                                                            )}
+                                                                            onCheckedChange={(
+                                                                                checked,
+                                                                            ) => {
+                                                                                const newValue =
+                                                                                    checked
+                                                                                        ? [
+                                                                                              ...field.value,
+                                                                                              batch,
+                                                                                          ]
+                                                                                        : field.value.filter(
+                                                                                              (b) =>
+                                                                                                  b.id !==
+                                                                                                  batch.id,
+                                                                                          );
+                                                                                // form.setValue("batches.learnerChoiceCourses", newValue);
+                                                                                field.onChange(
+                                                                                    newValue,
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                        <label className="text-wrap text-neutral-600">
+                                                                            {batch.level.level_name}{" "}
+                                                                            {
+                                                                                batch.package_dto
+                                                                                    .package_name
+                                                                            }{" "}
+                                                                            {
+                                                                                batch.session
+                                                                                    .session_name
+                                                                            }{" "}
+                                                                        </label>
+                                                                    </div>
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        );
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
 
-                                    {getValues("batches.learnerChoiceCourses").length > 0 && (
-                                        <FormField
-                                            control={control}
-                                            name="batches.maxCourses"
-                                            render={({ field }) => {
-                                                return (
-                                                    <FormItem>
-                                                        <FormControl>
-                                                            <div>
-                                                                <label>
-                                                                    Enter max number of batches a
-                                                                    student can select
-                                                                </label>
-                                                                <input
-                                                                    type="number"
-                                                                    value={field.value}
-                                                                    onChange={(e) => {
-                                                                        const learnerChoiceNumber =
-                                                                            getValues(
-                                                                                "batches.learnerChoiceCourses",
-                                                                            ).length;
-                                                                        const numValue =
-                                                                            parseInt(
-                                                                                e.target.value,
-                                                                            ) || 1;
-                                                                        const value =
-                                                                            numValue <= 0
-                                                                                ? 1
-                                                                                : numValue >
-                                                                                    learnerChoiceNumber
-                                                                                  ? learnerChoiceNumber
-                                                                                  : numValue;
-                                                                        field.onChange(value);
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        </FormControl>
-                                                    </FormItem>
-                                                );
-                                            }}
-                                        />
-                                    )}
-                                </div>
-                            )}
+                                        {getValues("batches.learnerChoiceCourses").length > 0 && (
+                                            <FormField
+                                                control={control}
+                                                name="batches.maxCourses"
+                                                render={({ field }) => {
+                                                    return (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <div className="flex items-center gap-2">
+                                                                    <label className="text-body">
+                                                                        Enter max number of batches
+                                                                        a student can select
+                                                                    </label>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={field.value || 1}
+                                                                        onChange={(e) => {
+                                                                            const learnerChoiceNumber =
+                                                                                getValues(
+                                                                                    "batches.learnerChoiceCourses",
+                                                                                ).length;
+                                                                            const numValue =
+                                                                                parseInt(
+                                                                                    e.target.value,
+                                                                                ) || 1;
+                                                                            const value =
+                                                                                numValue <= 0
+                                                                                    ? 1
+                                                                                    : numValue >
+                                                                                        learnerChoiceNumber
+                                                                                      ? learnerChoiceNumber
+                                                                                      : numValue;
+                                                                            field.onChange(value);
+                                                                        }}
+                                                                        className="w-[50px] rounded-lg border border-neutral-300 px-2 py-1"
+                                                                    />
+                                                                </div>
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    );
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Student Expiry Date */}
@@ -476,10 +500,7 @@ export const CreateInviteDialog = ({
                                         name="inviteeEmail"
                                         render={({ field }) => (
                                             <FormItem className="w-full">
-                                                <p>
-                                                    Enter invitee email
-                                                    <span className="text-primary-500">*</span>
-                                                </p>
+                                                <p>Enter invitee email</p>
                                                 <FormControl>
                                                     <MyInput
                                                         placeholder="you@email.com"

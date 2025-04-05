@@ -197,6 +197,7 @@ export function EditableBulkUploadTable({
     const [page, setPage] = useState(0);
     const [searchInput, setSearchInput] = useState("");
     const [searchFilter, setSearchFilter] = useState("");
+
     const [editCell, setEditCell] = useState<{ rowIndex: number; columnId: string } | null>(null);
     const { setCsvErrors } = useBulkUploadStore();
 
@@ -260,15 +261,26 @@ export function EditableBulkUploadTable({
     }, [csvData, searchFilter]);
 
     const paginatedData = useMemo(() => {
-        const start = page * ITEMS_PER_PAGE;
+        const totalItems = filteredData.length;
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+        // Ensure page is never out of bounds
+        const safePage = totalPages === 0 ? 0 : Math.min(page, totalPages - 1);
+        if (safePage !== page && totalItems > 0) {
+            // Set page to safe value if needed
+            setPage(safePage);
+        }
+
+        const start = safePage * ITEMS_PER_PAGE;
         const end = start + ITEMS_PER_PAGE;
+
         return {
             content: filteredData.slice(start, end),
-            page_no: page,
+            page_no: safePage,
             page_size: ITEMS_PER_PAGE,
-            total_elements: filteredData.length,
-            total_pages: Math.ceil(filteredData.length / ITEMS_PER_PAGE),
-            last: end >= filteredData.length,
+            total_elements: totalItems,
+            total_pages: totalPages,
+            last: end >= totalItems,
         };
     }, [filteredData, page]);
 
@@ -278,13 +290,13 @@ export function EditableBulkUploadTable({
 
     const handleSearchEnter = () => {
         setSearchFilter(searchInput);
-        setPage(0);
+        setPage(0); // Reset to first page when searching
     };
 
     const handleClearSearch = () => {
         setSearchInput("");
         setSearchFilter("");
-        setPage(0);
+        setPage(0); // Reset to first page when clearing search
     };
 
     const downloadErrorCases = () => {
@@ -325,7 +337,7 @@ export function EditableBulkUploadTable({
         createAndDownloadCsv(validData, "VALID_DATA.csv");
     };
 
-    const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+    // const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
 
     const toggleEditing = (value: boolean) => {
         setIsEditing(value);
@@ -408,9 +420,9 @@ export function EditableBulkUploadTable({
             </div>
 
             <MyPagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={(newPage) => setPage(newPage - 1)}
+                currentPage={page + 1} // Convert to 1-based for display
+                totalPages={paginatedData.total_pages}
+                onPageChange={(newPage) => setPage(newPage - 1)} // Convert back to 0-based
             />
         </div>
     );

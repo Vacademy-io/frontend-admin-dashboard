@@ -17,7 +17,6 @@ import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import createInviteLink from "../-utils/createInviteLink";
 import { useInviteFormContext } from "../-context/useInviteFormContext";
-// import { useCourseManager } from "../-hooks/useCourseManager";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -28,18 +27,14 @@ export const Invite = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-    // const { hasValidPreSelectedCourseStructure, hasValidLearnerChoiceCourseStructure } =
-    // useCourseManager();
+    const { form } = useInviteFormContext();
+    const { setValue } = form;
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
         initialPageSize: 5,
     });
 
-    // const [filterRequest, setFilterRequest] = useState<InviteFilterRequest>({
-    //     status: ["ACTIVE", "INACTIVE"],
-    //     name: ""
-    // })
     const filterRequest = {
         status: ["ACTIVE", "INACTIVE"],
         name: "",
@@ -67,11 +62,8 @@ export const Invite = () => {
     );
 
     const inviteSubmitButton = (
-        <div
-            className="flex w-full items-center justify-end"
-            onClick={() => formSubmitRef.current()}
-        >
-            <MyButton>Create</MyButton>
+        <div className="flex w-full items-center justify-end">
+            <MyButton onClick={() => formSubmitRef.current()}>Create</MyButton>
         </div>
     );
 
@@ -94,11 +86,7 @@ export const Invite = () => {
         console.log(updatedInvite);
     };
 
-    const { form } = useInviteFormContext();
-    const { getValues, setValue } = form;
-
     const onCreateInvite = async (invite: InviteForm) => {
-        invite.batches = getValues("batches");
         const requestData = formDataToRequestData(invite);
         try {
             const { data: responseData }: { data: CreateInvitationRequestType } =

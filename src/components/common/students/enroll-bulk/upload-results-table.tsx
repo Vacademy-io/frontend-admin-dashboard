@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { SchemaFields } from "@/types/students/bulk-upload-types";
 import { CheckCircle, X, Warning } from "@phosphor-icons/react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MyButton } from "@/components/design-system/button";
 import { MyTable } from "@/components/design-system/table";
 import { ColumnDef } from "@tanstack/react-table";
+import { MyPagination } from "@/components/design-system/pagination";
 
 interface UploadResultsTableProps {
     data: SchemaFields[];
@@ -18,6 +19,36 @@ export const UploadResultsTable = ({
     onDownloadResponse,
 }: UploadResultsTableProps) => {
     // Calculate upload stats
+    const [page, setPage] = useState(0);
+    const ITEMS_PER_PAGE = 10;
+
+    // // Create table data in the format expected by MyTable
+    // const tableData = useMemo(() => {
+    //     return {
+    //         content: data,
+    //         page_no: 0,
+    //         page_size: data.length,
+    //         total_elements: data.length,
+    //         total_pages: 1,
+    //         last: true,
+    //     };
+    // }, [data]);
+
+    const paginatedData = useMemo(() => {
+        const totalItems = data.length;
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+        const start = page * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+
+        return {
+            content: data.slice(start, end),
+            page_no: page,
+            page_size: ITEMS_PER_PAGE,
+            total_elements: totalItems,
+            total_pages: totalPages,
+            last: end >= totalItems,
+        };
+    }, [data, page]);
     const successCount = data.filter((row) => row.STATUS === "true").length;
     const failedCount = data.filter((row) => row.STATUS !== "true").length;
 
@@ -168,18 +199,6 @@ export const UploadResultsTable = ({
         return widths;
     }, [displayColumns]);
 
-    // Create table data in the format expected by MyTable
-    const tableData = useMemo(() => {
-        return {
-            content: data,
-            page_no: 0,
-            page_size: data.length,
-            total_elements: data.length,
-            total_pages: 1,
-            last: true,
-        };
-    }, [data]);
-
     return (
         <div className="flex h-full flex-col gap-6">
             <div className={`flex items-center gap-4`}>
@@ -220,16 +239,23 @@ export const UploadResultsTable = ({
                 <div className="no-scrollbar">
                     <div className="no-scrollbar">
                         <MyTable<SchemaFields>
-                            data={tableData}
+                            data={paginatedData}
                             columns={columns}
                             isLoading={false}
                             error={null}
                             columnWidths={columnWidths}
-                            currentPage={0}
+                            currentPage={page}
                         />
                     </div>
                 </div>
             </div>
+            {data.length > ITEMS_PER_PAGE && (
+                <MyPagination
+                    currentPage={page + 1}
+                    totalPages={paginatedData.total_pages}
+                    onPageChange={(newPage) => setPage(newPage - 1)}
+                />
+            )}
         </div>
     );
 };
