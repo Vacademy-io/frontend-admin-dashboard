@@ -20,7 +20,7 @@ import {
 } from "../-services/assessment-details-services";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise, Export, WarningCircle } from "phosphor-react";
+import { ArrowCounterClockwise, Export } from "phosphor-react";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
@@ -33,9 +33,10 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { StudentSidebarContext } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { BulkActions } from "./bulk-actions/bulk-actions";
 import { AssessmentSubmissionsStudentTable } from "./AssessmentSubmissionsStudentTable";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AssessmentGlobalLevelRevaluateAssessment from "./assessment-global-level-revaluate/assessment-global-level-revaluate-assessment";
 import { AssessmentGlobalLevelRevaluateQuestionWise } from "./assessment-global-level-revaluate/assessment-global-level-revaluate-question-wise";
+import { AssessmentGlobalLevelReleaseResultAssessment } from "./assessment-global-level-revaluate/assessment-global-level-release-result-assessment";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -45,6 +46,10 @@ export interface SelectedSubmissionsFilterInterface {
     batches: MyFilterOption[];
     status: string[];
     sort_columns: Record<string, string>;
+}
+
+export interface SelectedReleaseResultFilterInterface {
+    attempt_ids: string[];
 }
 
 const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
@@ -69,6 +74,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         status: ["ACTIVE"],
         sort_columns: {},
     });
+
     const [searchText, setSearchText] = useState("");
     const [participantsData, setParticipantsData] = useState({
         content: [],
@@ -949,45 +955,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                         </div>
                                     </DialogContent>
                                 </Dialog>
-                                <Dialog>
-                                    <DialogTrigger>
-                                        <MyButton
-                                            type="button"
-                                            scale="large"
-                                            buttonType="secondary"
-                                            className="font-medium"
-                                        >
-                                            Release Result
-                                        </MyButton>
-                                    </DialogTrigger>
-                                    <DialogContent className="flex flex-col p-0">
-                                        <h1 className="rounded-md bg-primary-50 p-4 text-primary-500">
-                                            Release Result For All Students
-                                        </h1>
-                                        <div className="flex flex-col gap-2 p-4">
-                                            <div className="flex items-center text-danger-600">
-                                                <p>Attention</p>
-                                                <WarningCircle size={18} />
-                                            </div>
-                                            <h1>
-                                                Are you sure you want to release result for all
-                                                students?
-                                            </h1>
-                                            <div className="flex justify-end">
-                                                <DialogClose>
-                                                    <MyButton
-                                                        type="button"
-                                                        scale="large"
-                                                        buttonType="primary"
-                                                        className="mt-4 font-medium"
-                                                    >
-                                                        Yes
-                                                    </MyButton>
-                                                </DialogClose>
-                                            </div>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                                <AssessmentGlobalLevelReleaseResultAssessment />
                             </div>
                         )}
                     </div>
