@@ -87,10 +87,7 @@ export const inviteFormSchema = z.object({
     batches: batchSchema,
     studentExpiryDays: z.number(),
     inviteeEmail: z.string().optional(), // For the input field
-    inviteeEmails: z
-        .array(emailEntrySchema)
-        .min(1, "Please add at least one email address")
-        .default([]),
+    inviteeEmails: z.array(emailEntrySchema).optional(),
 });
 
 export type InviteForm = z.infer<typeof inviteFormSchema>;

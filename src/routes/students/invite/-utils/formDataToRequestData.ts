@@ -18,6 +18,7 @@ import {
     PreSelectedSessionType,
 } from "../-types/create-invitation-types";
 import { TokenKey } from "@/constants/auth/tokens";
+import { createBatchOptions } from "./formFormatToRequest";
 // import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 
 export const fetchLevel = (level: LevelField): InviteLevelType => {
@@ -162,10 +163,19 @@ export default function formDataToRequestData(
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-    const batchOptions = fetchBatchOptions(data);
     const customFields = fetchCustomFields(data);
+    const batches =
+        data.batches.courseSelectionMode === "institute"
+            ? data.batches.preSelectedCourses
+            : data.batches.learnerChoiceCourses;
+    const batchOptionJson = createBatchOptions(
+        batches,
+        data.batches.courseSelectionMode,
+        data.batches.maxCourses,
+    );
+
     const request: CreateInvitationRequestType = {
-        emails_to_send_invitation: data.inviteeEmails.map((emailObj) => emailObj.value),
+        emails_to_send_invitation: data.inviteeEmails?.map((emailObj) => emailObj.value) || [],
         learner_invitation: {
             id: id ? id : null,
             name: data.inviteLink,
@@ -174,7 +184,7 @@ export default function formDataToRequestData(
             expiry_date: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
             institute_id: INSTITUTE_ID || "",
             invite_code: null,
-            batch_options_json: batchOptions,
+            batch_options_json: JSON.stringify(batchOptionJson),
             custom_fields: customFields,
         },
     };

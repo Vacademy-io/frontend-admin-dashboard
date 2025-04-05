@@ -246,7 +246,7 @@ export const AddSessionForm = ({
                     new_level: false,
                     level_name: level.level_dto.level_name,
                     duration_in_days: level.level_dto.duration_in_days,
-                    thumbnail_file_id: level.level_dto.thumbnail_id,
+                    thumbnail_file_id: level.level_dto.thumbnail_id || "",
                     package_id: packageId,
                 },
                 // package_session_id: level.package_session_id,

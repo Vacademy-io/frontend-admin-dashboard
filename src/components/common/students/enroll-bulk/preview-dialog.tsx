@@ -83,13 +83,6 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     const footer = (
         <footer className="">
             <div className="flex w-full justify-between">
-                <div>
-                    {csvErrors.length > 0 && (
-                        <span className="text-sm text-danger-600">
-                            Please fix validation errors before proceeding
-                        </span>
-                    )}
-                </div>
                 <MyButton
                     buttonType="primary"
                     scale="large"
@@ -121,9 +114,9 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                         />
                     </div>
                 ) : (
-                    <>
+                    <div className="flex flex-col gap-4">
                         {csvErrors.length > 0 && (
-                            <div className="rounded-md bg-danger-50">
+                            <div className="rounded-md">
                                 <div className="flex items-center">
                                     <Warning className="h-5 w-5 text-danger-500" />
                                     <h3 className="ml-2 text-lg font-medium text-danger-700">
@@ -145,7 +138,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                                 statusColumnRenderer={CustomStatusColumnRenderer}
                             />
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
 
