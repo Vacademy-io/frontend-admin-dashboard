@@ -7,6 +7,7 @@ import { StudentFiltersProps } from "@/routes/students/students-list/-types/stud
 import { useMemo } from "react";
 import { SessionDropdown } from "../../../../../../components/common/session-dropdown";
 import { exportStudentsCsv } from "../../../-services/exportStudentsCsv";
+import { exportAccountDetails } from "../../../-services/exportAccountDetails";
 
 export const StudentFilters = ({
     currentSession,
@@ -34,6 +35,10 @@ export const StudentFilters = ({
         exportStudentsCsv({ pageNo: 0, pageSize: totalElements || 0, filters: appliedFilters });
     };
 
+    const handleExportAccountDetails = () => {
+        exportAccountDetails({ pageNo: 0, pageSize: totalElements || 0, filters: appliedFilters });
+    };
+
     return (
         <div className="flex items-start justify-between gap-4">
             <div className="flex w-full flex-col gap-3" id="organize">
@@ -44,7 +49,12 @@ export const StudentFilters = ({
                         onSessionChange={onSessionChange}
                     />
                     <div className="flex items-center gap-4">
-                        <MyButton scale="large" buttonType="secondary" layoutVariant="default">
+                        <MyButton
+                            scale="large"
+                            buttonType="secondary"
+                            layoutVariant="default"
+                            onClick={handleExportAccountDetails}
+                        >
                             <Export />
                             <div>Export account details</div>
                         </MyButton>
