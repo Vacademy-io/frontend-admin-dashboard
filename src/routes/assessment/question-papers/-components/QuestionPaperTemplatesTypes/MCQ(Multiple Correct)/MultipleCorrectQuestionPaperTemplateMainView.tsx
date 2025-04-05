@@ -63,7 +63,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     };
 
     useEffect(() => {
-        questions.forEach((_, index) => {
+        questions?.forEach((_, index) => {
             form.trigger(`questions.${index}.questionName`);
         });
     }, [questions, form.trigger]);
