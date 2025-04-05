@@ -134,3 +134,4 @@ export const CHAPTER_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/lear
 export const GET_LEARNERS_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/learner-details`;
 
 export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-credentials`;
+export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;
