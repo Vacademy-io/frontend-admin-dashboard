@@ -709,6 +709,7 @@ export const Step2SectionInfo = ({
                                 </FormItem>
                             )}
                         />
+                        {/* will be adding it later
                         <div className="flex w-1/2 items-center justify-between">
                             <div className="flex w-52 items-center justify-between gap-4">
                                 <h1>Cut off Marks</h1>
@@ -771,7 +772,7 @@ export const Step2SectionInfo = ({
                                     </FormItem>
                                 )}
                             />
-                        </div>
+                        </div> */}
                     </div>
                 )}
                 {examtype !== "SURVEY" && (
