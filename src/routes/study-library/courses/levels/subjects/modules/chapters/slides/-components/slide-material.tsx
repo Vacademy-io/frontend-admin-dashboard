@@ -198,7 +198,7 @@ export const SlideMaterial = ({
                         ),
                     );
                 }
-            } else if (videoURL.includes("youtube")) {
+            } else {
                 setContent(
                     <div key={`video-${activeItem.slide_id}`} className="size-full">
                         <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
