@@ -14,6 +14,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useFieldArray, useForm } from "react-hook-form";
 import { CheckCircle } from "phosphor-react";
 import { useSaveDraft } from "../../-context/saveDraftContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface FormValues {
     slides: Slide[];
@@ -148,35 +149,46 @@ export const ChapterSidebarSlides = ({
                                         : "hover:border hover:border-neutral-200 hover:bg-white hover:text-primary-500"
                                 }`}
                             >
-                                <div className="flex flex-1 items-center justify-between gap-2">
-                                    <div className="flex flex-1 items-center gap-3">
-                                        <p
-                                            className={`${
-                                                open ? "visible" : "hidden"
-                                            } font-semibold`}
-                                        >
-                                            S{index + 1}
-                                        </p>
-                                        {getIcon(slide)}
-                                        <p
-                                            className={`flex-1 text-subtitle ${
-                                                open ? "visible" : "hidden"
-                                            } text-body`}
-                                        >
-                                            {truncateString(
-                                                slide.document_title || slide.video_title || "",
-                                                12,
-                                            )}
-                                        </p>
-                                    </div>
-                                    {slide.status != "DRAFT" && state == "expanded" && (
-                                        <CheckCircle
-                                            weight="fill"
-                                            className="text-success-600"
-                                            size={20}
-                                        />
-                                    )}
-                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger className="w-full">
+                                            <div className="flex flex-1 items-center gap-2">
+                                                <div className="flex gap-3">
+                                                    <p
+                                                        className={`${
+                                                            open ? "visible" : "hidden"
+                                                        } font-semibold`}
+                                                    >
+                                                        S{index + 1}
+                                                    </p>
+                                                    {getIcon(slide)}
+                                                    <p
+                                                        className={`flex-1 text-subtitle ${
+                                                            open ? "visible" : "hidden"
+                                                        } text-body`}
+                                                    >
+                                                        {truncateString(
+                                                            slide.document_title ||
+                                                                slide.video_title ||
+                                                                "",
+                                                            12,
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                {slide.status != "DRAFT" && state == "expanded" && (
+                                                    <CheckCircle
+                                                        weight="fill"
+                                                        className="text-success-600"
+                                                        size={20}
+                                                    />
+                                                )}
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="border border-neutral-300 bg-primary-100 text-neutral-600">
+                                            <p>{slide.document_title || slide.video_title || ""}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                                 {open && (
                                     <div className="drag-handle-container">
                                         <SortableDragHandle

@@ -143,7 +143,6 @@ export const CreateInviteDialog = ({
         if (submitForm) {
             submitForm(() => {
                 if (formRef.current) {
-                    console.log("inside submit function");
                     formRef.current.requestSubmit();
                 }
             });
@@ -152,11 +151,6 @@ export const CreateInviteDialog = ({
 
     const { instituteDetails } = useInstituteDetailsStore();
     const courseSelectionMode = watch("batches.courseSelectionMode");
-
-    useEffect(() => {
-        console.log(getValues());
-        console.log("form errors: ", form.formState.errors);
-    }, [watch()]);
 
     useEffect(() => {
         const len = watch("batches.learnerChoiceCourses").length;
@@ -178,7 +172,6 @@ export const CreateInviteDialog = ({
                     ref={formRef}
                     onSubmit={form.handleSubmit((data: InviteForm) => {
                         try {
-                            console.log("inside handleSubmit of form");
                             onCreateInvite && onCreateInvite(data);
                             // Other success handling
                         } catch {
