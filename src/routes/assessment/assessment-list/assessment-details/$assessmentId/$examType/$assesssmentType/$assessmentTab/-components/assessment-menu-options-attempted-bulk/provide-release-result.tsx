@@ -2,6 +2,12 @@ import { ReactNode } from "react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { useSubmissionsBulkActionsDialogStoreAttempted } from "../bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
+import { useMutation } from "@tanstack/react-query";
+import { SelectedReleaseResultFilterInterface } from "../AssessmentSubmissionsTab";
+import { getReleaseStudentResult } from "../../-services/assessment-details-services";
+import { toast } from "sonner";
+import { Route } from "../..";
+import { getInstituteId } from "@/constants/helper";
 
 interface ProvideDialogDialogProps {
     trigger: ReactNode;
@@ -12,12 +18,49 @@ interface ProvideDialogDialogProps {
 const ProvideReleaseResultDialogContent = () => {
     const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } =
         useSubmissionsBulkActionsDialogStoreAttempted();
-
+    const { assessmentId } = Route.useParams();
+    const instituteId = getInstituteId();
     const displayText = isBulkAction ? bulkActionInfo?.displayText : selectedStudent?.student_name;
+
+    const getReleaseResultMutation = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+            methodType,
+            selectedFilter,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+            methodType: string;
+            selectedFilter: SelectedReleaseResultFilterInterface;
+        }) => getReleaseStudentResult(assessmentId, instituteId, methodType, selectedFilter),
+        onSuccess: () => {
+            toast.success(
+                "Your result for this assessment has been released for the selected students. Please check your email!",
+                {
+                    className: "success-toast",
+                    duration: 4000,
+                },
+            );
+            closeAllDialogs();
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
 
     const handleSubmit = () => {
         if (isBulkAction && bulkActionInfo?.selectedStudents) {
-            console.log("bulk actions");
+            getReleaseResultMutation.mutate({
+                assessmentId,
+                instituteId,
+                methodType: "PARTICIPANTS",
+                selectedFilter: {
+                    attempt_ids: bulkActionInfo.selectedStudents.map(
+                        (student) => student.attempt_id,
+                    ),
+                },
+            });
         } else if (selectedStudent) {
             console.log("individual student");
         }
