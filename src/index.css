@@ -399,3 +399,7 @@ html {
 /* .Island{
     background-color: hsl(var(--primary-100)) !important;
 } */
+
+.zoom-actions{
+    display: none !important;
+}

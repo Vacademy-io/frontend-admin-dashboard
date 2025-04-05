@@ -247,8 +247,8 @@ export default function SlidesEditor() {
 
     return (
         <div className="flex h-screen w-full bg-white">
-            <div className="flex size-full flex-col rounded-xl bg-primary-100 p-1">
-                <div className="mb-2 flex justify-end gap-2 rounded-md bg-primary-200 p-3">
+            <div className="flex size-full flex-col rounded-xl bg-primary-100">
+                <div className="flex justify-end gap-2 rounded-md bg-primary-200 p-1 mb-1 h-32">
                     <Button 
                         variant="destructive" 
                         onClick={takeScreenshot}
@@ -325,7 +325,7 @@ export default function SlidesEditor() {
                             )}
                         </div>
 
-                        <div className="mt-4 flex justify-center gap-2">
+                        {/* <div className="mt-4 flex justify-center gap-2">
                             <Button
                                 disabled={isFirstSlide}
                                 onClick={goToPreviousSlide}
@@ -340,7 +340,7 @@ export default function SlidesEditor() {
                             >
                                 →
                             </Button>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

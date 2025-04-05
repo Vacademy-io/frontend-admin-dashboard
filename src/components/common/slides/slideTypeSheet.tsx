@@ -49,7 +49,7 @@ export function SlideTypeSheet({ open, onOpenChange, onSelectType }: SlideTypeSh
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange} >
-      <SheetContent className="w-[350px] sm:w-[400px] overflow-y-auto bg-primary-200" side="left">
+      <SheetContent className="w-[350px] sm:w-[400px] overflow-y-auto"side="left">
         <SheetHeader>
           <SheetTitle className="text-xl">Select Slide</SheetTitle>
         </SheetHeader>
@@ -58,7 +58,7 @@ export function SlideTypeSheet({ open, onOpenChange, onSelectType }: SlideTypeSh
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search on teleport"
+              placeholder="Search..."
               className="pl-9 pr-4"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -71,7 +71,7 @@ export function SlideTypeSheet({ open, onOpenChange, onSelectType }: SlideTypeSh
             {filteredSlideTypes.map((type) => (
               <div
                 key={type.id}
-                className="relative cursor-pointer rounded-md border border-primary-300 p-3 hover:border-primary-400 hover:bg-primary-300"
+                className="relative cursor-pointer rounded-md border border-primary-300 p-3 hover:border-primary-400 hover:bg-primary-100"
                 onClick={() => onSelectType(type.id as SlideType)}
               >
                 <div className="flex h-16 flex-col items-center justify-center">
