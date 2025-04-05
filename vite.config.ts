@@ -15,6 +15,9 @@ export default defineConfig({
             "@": path.resolve(__dirname, "./src"),
         },
     },
+    define: {
+        global: "globalThis", // <-- this is the key line
+    },
     test: {
         globals: true,
         environment: "happy-dom",

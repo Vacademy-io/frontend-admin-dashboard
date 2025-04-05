@@ -20,6 +20,7 @@ import LinkTool, { DefaultLinkToolRender } from "@yoopta/link-tool";
 import { getPublicUrl, UploadFileInS3 } from "@/services/upload_file";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "../auth/tokens";
+// import { MathBlockPlugin } from "./MathEquation";
 
 export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -37,6 +38,7 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
     Code,
     Link,
     Embed,
+    // MathBlockPlugin,
     Image.extend({
         options: {
             async onUpload(file) {

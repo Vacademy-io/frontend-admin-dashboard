@@ -325,6 +325,12 @@ importers:
             mammoth:
                 specifier: ^1.9.0
                 version: 1.9.0
+            mathlive:
+                specifier: ^0.105.0
+                version: 0.105.0
+            mathquill:
+                specifier: 0.10.1-a
+                version: 0.10.1-a
             mathquill4quill:
                 specifier: ^2.4.0
                 version: 2.4.0
@@ -385,6 +391,9 @@ importers:
             react-icons:
                 specifier: ^5.3.0
                 version: 5.4.0(react@18.3.1)
+            react-mathquill:
+                specifier: ^1.0.3
+                version: 1.0.3(react@18.3.1)
             react-pdf:
                 specifier: ^9.2.1
                 version: 9.2.1(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1883,6 +1892,13 @@ packages:
             {
                 integrity: sha512-DZ6ONbs8qdJK0fdN7AB82CgI6tYXf4HWk1wSVa0+9bhVznCuuvhQtX8bFBoy3dv8rZSQqUd8GvhVAcielcidrA==,
             }
+
+    "@cortex-js/compute-engine@0.28.0":
+        resolution:
+            {
+                integrity: sha512-kGs74P4KVNLSqu+iVhLSAvodScZdVGoZI2kOsUjnBEFCFjlPJ1Nj5TpBz/4nwPT+viguB+g7VseXsmcxWRx23Q==,
+            }
+        engines: { node: ">=21.7.3", npm: ">=10.5.0" }
 
     "@csstools/normalize.css@12.1.1":
         resolution:
@@ -7654,6 +7670,13 @@ packages:
                 integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==,
             }
 
+    complex-esm@2.1.1-esm1:
+        resolution:
+            {
+                integrity: sha512-IShBEWHILB9s7MnfyevqNGxV0A1cfcSnewL/4uPFiSxkcQL4Mm3FxJ0pXMtCXuWLjYz3lRRyk6OfkeDZcjD6nw==,
+            }
+        engines: { node: ">=16.14.2", npm: ">=8.5.0" }
+
     component-classes@1.2.6:
         resolution:
             {
@@ -11049,6 +11072,13 @@ packages:
                 integrity: sha512-a+bKEcCjtuW5WTdgeXFzswSrdqi0jk4XlEtZlx5A94wCoBpFjfFTbo/Tra5SpNCl/YFZPvcV1dJc+TAYeg6ROQ==,
             }
 
+    jquery@1.12.4:
+        resolution:
+            {
+                integrity: sha512-UEVp7PPK9xXYSk8xqXCJrkXnKZtlgWkd2GsAQbMRFK6S/ePU2JN5G2Zum8hIVjzR3CpdfSqdqAzId/xd4TJHeg==,
+            }
+        deprecated: This version is deprecated. Please upgrade to the latest version or find support at https://www.herodevs.com/support/jquery-nes.
+
     jquery@3.7.1:
         resolution:
             {
@@ -11650,10 +11680,23 @@ packages:
             }
         engines: { node: ">= 0.4" }
 
+    mathlive@0.105.0:
+        resolution:
+            {
+                integrity: sha512-P0/mruXNLhiSIiELgZ6Xu9Pqte2bNZb+bXyfWs7q4yr3h3q+SrDaXGT53+EVorf7Wvm/kotEq4qOA1qquG3wTg==,
+            }
+        engines: { node: ">=21.0.0", npm: ">=10.5.0" }
+
     mathquill4quill@2.4.0:
         resolution:
             {
                 integrity: sha512-uQ4xEaVbsqS50GUNlEXG7yKaupqSi2KObrZH6gIAVPOOyHF+iAZM9xFewFd4adyw1lBMUO9U8FcE84mNGYpP7g==,
+            }
+
+    mathquill@0.10.1-a:
+        resolution:
+            {
+                integrity: sha512-snSAEwAtwdwBFSor+nVBnWWQtTw67kgAgKMyAIxuz4ZPboy0qkWZmd7BL3lfOXp/INihhRlU1PcfaAtDaRhmzA==,
             }
 
     mdn-data@2.0.14:
@@ -14144,6 +14187,14 @@ packages:
             {
                 integrity: sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==,
             }
+
+    react-mathquill@1.0.3:
+        resolution:
+            {
+                integrity: sha512-H0z0FJsrjgKzXA1kR3rxcQyO28bXyeyMUM13VJ9jAn5cA9SJ35eScE5AK46R0O/H5zRyycGlSo2u+Pdxakbpkg==,
+            }
+        peerDependencies:
+            react: ^18.2.0
 
     react-moveable@0.30.3:
         resolution:
@@ -18179,6 +18230,11 @@ snapshots:
             "@codemirror/state": 6.5.1
             style-mod: 4.1.2
             w3c-keyname: 2.2.8
+
+    "@cortex-js/compute-engine@0.28.0":
+        dependencies:
+            complex-esm: 2.1.1-esm1
+            decimal.js: 10.4.3
 
     "@csstools/normalize.css@12.1.1": {}
 
@@ -22486,6 +22542,8 @@ snapshots:
 
     commondir@1.0.1: {}
 
+    complex-esm@2.1.1-esm1: {}
+
     component-classes@1.2.6:
         dependencies:
             component-indexof: 0.0.3
@@ -24984,6 +25042,8 @@ snapshots:
 
     jpeg-exif@1.1.4: {}
 
+    jquery@1.12.4: {}
+
     jquery@3.7.1: {}
 
     js-cookie@3.0.5: {}
@@ -25377,7 +25437,15 @@ snapshots:
 
     math-intrinsics@1.1.0: {}
 
+    mathlive@0.105.0:
+        dependencies:
+            "@cortex-js/compute-engine": 0.28.0
+
     mathquill4quill@2.4.0: {}
+
+    mathquill@0.10.1-a:
+        dependencies:
+            jquery: 1.12.4
 
     mdn-data@2.0.14: {}
 
@@ -27034,6 +27102,10 @@ snapshots:
     react-is@18.3.1: {}
 
     react-lifecycles-compat@3.0.4: {}
+
+    react-mathquill@1.0.3(react@18.3.1):
+        dependencies:
+            react: 18.3.1
 
     react-moveable@0.30.3:
         dependencies:
