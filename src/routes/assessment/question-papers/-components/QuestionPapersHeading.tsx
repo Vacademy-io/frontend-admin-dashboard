@@ -15,15 +15,11 @@ import { Dispatch, SetStateAction } from "react";
 interface QuestionPaperHeadingInterface {
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }
 
 export const QuestionPapersHeading = ({
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
 }: QuestionPaperHeadingInterface) => {
     const isMobile = useIsMobile();
     const {
@@ -100,8 +96,6 @@ export const QuestionPapersHeading = ({
                                     <QuestionTypeSelection
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                        currentQuestionImageIndex={currentQuestionImageIndex}
-                                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                     ></QuestionTypeSelection>
                                 </AlertDialog>
                             </AlertDialogContent>
@@ -133,8 +127,6 @@ export const QuestionPapersHeading = ({
                                     isManualCreated={false}
                                     currentQuestionIndex={currentQuestionIndex}
                                     setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                    currentQuestionImageIndex={currentQuestionImageIndex}
-                                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                 />
                             </AlertDialogContent>
                         </AlertDialog>

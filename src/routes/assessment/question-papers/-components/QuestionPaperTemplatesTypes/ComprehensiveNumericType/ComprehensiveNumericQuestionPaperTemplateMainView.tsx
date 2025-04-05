@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Sliders, TrashSimple, X, Plus } from "phosphor-react";
+import { Sliders, X, Plus } from "phosphor-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import "react-quill/dist/quill.snow.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -8,7 +8,6 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
 import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import QuestionImagePreviewDialogue from "../../QuestionImagePreviewDialogue";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
 import { QUESTION_TYPES, NUMERIC_TYPES } from "@/constants/dummy-data";
@@ -18,12 +17,10 @@ import { useState, useEffect } from "react";
 export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
     const [isMultipleAnswersAllowed, setIsMultipleAnswersAllowed] = useState(false);
-    const { control, getValues, setValue, trigger, watch } = form;
+    const { control, getValues, trigger, watch } = form;
 
     const numericType = watch(`questions.${currentQuestionIndex}.numericType`);
     const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`);
@@ -38,7 +35,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const questionsType = getValues("questionsType") || "";
 
-    const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
+    // const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
 
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -86,16 +83,6 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
             form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
         }
     }, []);
-
-    const handleRemovePicture = (currentQuestionImageIndex: number) => {
-        // Filter out the image to be removed
-        const updatedImageDetails = imageDetails?.filter(
-            (_, index: number) => index !== currentQuestionImageIndex,
-        );
-
-        // Update the value with the filtered array
-        setValue(`questions.${currentQuestionIndex}.imageDetails`, updatedImageDetails);
-    };
 
     if (allQuestions.length === 0) {
         return (
@@ -230,55 +217,6 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                         </FormItem>
                     )}
                 />
-            </div>
-
-            <div className="flex flex-wrap items-end justify-center gap-8">
-                {Array.isArray(allQuestions) &&
-                    allQuestions.length > 0 &&
-                    Array.isArray(imageDetails) &&
-                    imageDetails.length > 0 &&
-                    imageDetails.map((imgDetail, index) => {
-                        return (
-                            <div className="flex w-72 flex-col" key={index}>
-                                <div className="h-64 w-72 items-center justify-center bg-black !p-0">
-                                    <img
-                                        src={imgDetail.imageFile}
-                                        alt="logo"
-                                        className="h-64 w-96"
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between pt-2">
-                                    <span className="text-sm">{imgDetail.imageTitle}</span>
-                                    <div className="flex items-center gap-4">
-                                        <QuestionImagePreviewDialogue
-                                            form={form}
-                                            currentQuestionIndex={currentQuestionIndex}
-                                            currentQuestionImageIndex={index}
-                                            setCurrentQuestionImageIndex={
-                                                setCurrentQuestionImageIndex
-                                            }
-                                            isUploadedAgain={true}
-                                        />
-                                        <Button
-                                            variant="outline"
-                                            className="p-0 px-2"
-                                            onClick={() => handleRemovePicture(index)}
-                                        >
-                                            <TrashSimple size={32} className="text-red-500" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                {Array.isArray(imageDetails) && imageDetails.length < 4 && (
-                    <QuestionImagePreviewDialogue
-                        form={form}
-                        currentQuestionIndex={currentQuestionIndex}
-                        currentQuestionImageIndex={currentQuestionImageIndex}
-                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
-                    />
-                )}
             </div>
 
             <div className="flex w-full flex-col gap-4">

@@ -14,15 +14,21 @@ import { useMutation } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
 import { addQuestionPaper, getQuestionPaperById } from "../-utils/question-paper-services";
-import { MyQuestion, MyQuestionPaperFormInterface } from "@/types/assessments/question-paper-form";
-import { getIdByLevelName, getIdBySubjectName, processQuestions } from "../-utils/helper";
+import {
+    MyQuestion,
+    MyQuestionPaperFormInterface,
+} from "../../../../types/assessments/question-paper-form";
+import {
+    getIdByLevelName,
+    getIdBySubjectName,
+    transformResponseDataToMyQuestionsSchema,
+} from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import {
     ANSWER_LABELS,
     EXPLANATION_LABELS,
     OPTIONS_LABELS,
     QUESTION_LABELS,
-    QuestionType,
 } from "@/constants/dummy-data";
 import { useFilterDataForAssesment } from "../../assessment-list/-utils.ts/useFiltersData";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
@@ -39,9 +45,6 @@ interface QuestionPaperUploadProps {
     sectionsForm?: UseFormReturn<SectionFormType>;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
-    firstQuestionType?: QuestionType;
 }
 
 export const QuestionPaperUpload = ({
@@ -50,9 +53,6 @@ export const QuestionPaperUpload = ({
     sectionsForm,
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
-    firstQuestionType = QuestionType.MCQS,
 }: QuestionPaperUploadProps) => {
     const { instituteDetails } = useInstituteDetailsStore();
 
@@ -74,113 +74,7 @@ export const QuestionPaperUpload = ({
             answersType: "",
             explanationsType: "",
             fileUpload: undefined,
-            questions: [
-                {
-                    questionId: "1",
-                    questionName: "",
-                    explanation: "",
-                    questionType: firstQuestionType,
-                    questionPenalty: "",
-                    questionDuration: {
-                        hrs: "",
-                        min: "",
-                    },
-                    questionMark: "",
-                    imageDetails: [],
-                    singleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                    multipleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                },
-            ],
+            questions: [],
         },
     });
     const { getValues, setValue, watch } = form;
@@ -194,6 +88,7 @@ export const QuestionPaperUpload = ({
     const answerIdentifier = getValues("answersType");
     const explanationIdentifier = getValues("explanationsType");
     const fileUpload = getValues("fileUpload");
+    const questions = getValues("questions");
     watch("fileUpload");
 
     const isFormValidWhenManuallyCreated = !!title && !!yearClass && !!subject;
@@ -218,7 +113,7 @@ export const QuestionPaperUpload = ({
         },
         onSuccess: async (data) => {
             const getQuestionPaper = await getQuestionPaperById(data.saved_question_paper_id);
-            const transformQuestionsData: MyQuestion[] = await processQuestions(
+            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
                 getQuestionPaper.question_dtolist,
             );
             setCurrentQuestionIndex(0);
@@ -287,7 +182,7 @@ export const QuestionPaperUpload = ({
 
     const onInvalid = (err: unknown) => {
         console.error(err);
-        toast.error("Please fill all the required fields in question paper!", {
+        toast.error("some of your questions are incomplete or needs attentions!", {
             className: "error-toast",
             duration: 3000,
         });
@@ -324,7 +219,7 @@ export const QuestionPaperUpload = ({
             setIsProgress(false);
         },
         onSuccess: async (data) => {
-            const transformQuestionsData = await processQuestions(data);
+            const transformQuestionsData = transformResponseDataToMyQuestionsSchema(data);
             setValue("questions", transformQuestionsData);
             console.log("question ", getValues("questions"));
             if (index !== undefined) {
@@ -348,6 +243,7 @@ export const QuestionPaperUpload = ({
                     })),
                 });
             }
+            form.trigger("questions");
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -579,10 +475,6 @@ export const QuestionPaperUpload = ({
                                             buttonText="Preview"
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                            currentQuestionImageIndex={currentQuestionImageIndex}
-                                            setCurrentQuestionImageIndex={
-                                                setCurrentQuestionImageIndex
-                                            }
                                         />
                                     )
                                 )}
@@ -595,8 +487,6 @@ export const QuestionPaperUpload = ({
                                         buttonText="Create"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                        currentQuestionImageIndex={currentQuestionImageIndex}
-                                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                     />
                                 )}
                                 {fileUpload && (
@@ -612,7 +502,7 @@ export const QuestionPaperUpload = ({
                                         Done
                                     </Button>
                                 )}
-                                {!fileUpload && (
+                                {!fileUpload && !isManualCreated && (
                                     <Button
                                         disabled={
                                             isManualCreated
@@ -620,7 +510,22 @@ export const QuestionPaperUpload = ({
                                                 : !isFormValidWhenUploaded
                                         }
                                         type="submit"
-                                        className="w-56 bg-primary-500 text-white"
+                                        className={`w-56 bg-primary-500 text-white`}
+                                    >
+                                        Done
+                                    </Button>
+                                )}
+                                {!fileUpload && isManualCreated && (
+                                    <Button
+                                        disabled={
+                                            isManualCreated
+                                                ? !isFormValidWhenManuallyCreated
+                                                : !isFormValidWhenUploaded
+                                        }
+                                        type="submit"
+                                        className={`w-56 bg-primary-500 text-white ${
+                                            questions.length > 0 ? "block" : "hidden"
+                                        }`}
                                     >
                                         Done
                                     </Button>

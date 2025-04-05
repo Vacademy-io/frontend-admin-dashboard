@@ -14,8 +14,6 @@ export interface SectionQuestionPaperFormProps {
     currentQuestionIndexes: QuestionIndexes;
     setCurrentQuestionIndexes: React.Dispatch<React.SetStateAction<QuestionIndexes>>;
     currentQuestionIndex: number;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: (index: number) => void;
     className: string;
     selectedSectionIndex: number;
 }

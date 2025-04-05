@@ -11,6 +11,7 @@ export const useInviteForm = (initialValues?: InviteForm) => {
     const form = useForm<InviteForm>({
         resolver: zodResolver(inviteFormSchema),
         defaultValues: initialValues || defaultFormValues,
+        mode: "onChange",
     });
     const { setValue, getValues } = form;
 

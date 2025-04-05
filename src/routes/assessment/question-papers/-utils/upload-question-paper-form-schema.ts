@@ -58,32 +58,12 @@ export const uploadQuestionPaperFormSchema = z.object({
                     min: z.string(),
                 }),
                 questionMark: z.string(),
-                imageDetails: z
-                    .array(
-                        z.object({
-                            imageId: z.string().optional(),
-                            imageName: z.string().min(1, "Image name is required"),
-                            imageTitle: z.string().optional(),
-                            imageFile: z.string().min(1, "Image file is required"),
-                            isDeleted: z.boolean().optional(),
-                        }),
-                    )
-                    .optional(),
                 singleChoiceOptions: z
                     .array(
                         z.object({
                             id: z.string().optional(),
                             name: z.string().optional(),
                             isSelected: z.boolean().optional(),
-                            image: z
-                                .object({
-                                    imageId: z.string().optional(),
-                                    imageName: z.string().optional(),
-                                    imageTitle: z.string().optional(),
-                                    imageFile: z.string().optional(),
-                                    isDeleted: z.boolean().optional(),
-                                })
-                                .optional(),
                         }),
                     )
                     .optional(),
@@ -93,15 +73,6 @@ export const uploadQuestionPaperFormSchema = z.object({
                             id: z.string().optional(),
                             name: z.string().optional(),
                             isSelected: z.boolean().optional(),
-                            image: z
-                                .object({
-                                    imageId: z.string().optional(),
-                                    imageName: z.string().optional(),
-                                    imageTitle: z.string().optional(),
-                                    imageFile: z.string().optional(),
-                                    isDeleted: z.boolean().optional(),
-                                })
-                                .optional(),
                         }),
                     )
                     .optional(),
@@ -113,6 +84,93 @@ export const uploadQuestionPaperFormSchema = z.object({
                 subjectiveAnswerText: z.string().optional(),
             })
             .superRefine((question, ctx) => {
+                // Validate based on question type
+                if (question.questionType === "MCQS") {
+                    // Validate singleChoiceOptions when type is MCQS
+                    if (
+                        !question.singleChoiceOptions ||
+                        question.singleChoiceOptions.length === 0
+                    ) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "MCQS questions must have singleChoiceOptions",
+                            path: ["singleChoiceOptions"],
+                        });
+                        return;
+                    }
+
+                    if (question.singleChoiceOptions.length !== 4) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "MCQS must have exactly 4 options",
+                            path: ["singleChoiceOptions"],
+                        });
+                    }
+
+                    const selectedCount = question.singleChoiceOptions.filter(
+                        (opt) => opt.isSelected,
+                    ).length;
+                    if (selectedCount !== 1) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "MCQS must have exactly one option selected",
+                            path: ["singleChoiceOptions"],
+                        });
+                    }
+
+                    question.singleChoiceOptions.forEach((opt, index) => {
+                        if (!opt?.name?.trim()) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: `Option ${index + 1} is required`,
+                                path: ["singleChoiceOptions", index, "name"],
+                            });
+                        }
+                    });
+                } else if (question.questionType === "MCQM") {
+                    // Validate multipleChoiceOptions when type is MCQM
+                    if (
+                        !question.multipleChoiceOptions ||
+                        question.multipleChoiceOptions.length === 0
+                    ) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "MCQM questions must have multipleChoiceOptions",
+                            path: ["multipleChoiceOptions"],
+                        });
+                        return;
+                    }
+
+                    if (question.multipleChoiceOptions.length !== 4) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "MCQM must have exactly 4 options",
+                            path: ["multipleChoiceOptions"],
+                        });
+                    }
+
+                    const selectedCount = question.multipleChoiceOptions.filter(
+                        (opt) => opt.isSelected,
+                    ).length;
+                    if (selectedCount < 1) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "MCQM must have at least one option selected",
+                            path: ["multipleChoiceOptions"],
+                        });
+                    }
+
+                    question.multipleChoiceOptions.forEach((opt, index) => {
+                        if (!opt.name?.trim()) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: `Option ${index + 1} is required`,
+                                path: ["multipleChoiceOptions", index, "name"],
+                            });
+                        }
+                    });
+                }
+
                 const { numericType, validAnswers } = question;
 
                 if (!validAnswers || !Array.isArray(validAnswers)) return;

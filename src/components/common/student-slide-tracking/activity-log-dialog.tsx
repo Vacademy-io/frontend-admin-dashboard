@@ -104,24 +104,28 @@ export const ActivityLogDialog = ({
                     </div>
                 </DialogHeader>
 
-                <div className="no-scrollbar mt-6 overflow-x-scroll">
-                    <MyTable
-                        data={tableData}
-                        columns={activityLogColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
-                        currentPage={page}
-                    />
-
-                    <div className="mt-6">
-                        <MyPagination
+                {tableData.content.length == 0 ? (
+                    <p className="text-primary-500">No activity found</p>
+                ) : (
+                    <div className="no-scrollbar mt-6 overflow-x-scroll">
+                        <MyTable
+                            data={tableData}
+                            columns={activityLogColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
                             currentPage={page}
-                            totalPages={tableData.total_pages}
-                            onPageChange={handlePageChange}
                         />
+
+                        <div className="mt-6">
+                            <MyPagination
+                                currentPage={page}
+                                totalPages={tableData.total_pages}
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
             </DialogContent>
         </Dialog>
     );

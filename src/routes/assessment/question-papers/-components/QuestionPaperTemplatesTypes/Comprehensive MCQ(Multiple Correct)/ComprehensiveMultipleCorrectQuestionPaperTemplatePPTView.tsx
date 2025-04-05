@@ -25,7 +25,6 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
     const optionsType = getValues("optionsType") || "";
-    const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
 
     const option1 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`);
@@ -46,7 +45,6 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
                 questionId: questionToDuplicate.questionId || "",
                 questionName: questionToDuplicate.questionName || "",
                 explanation: questionToDuplicate.explanation || "",
-                imageDetails: questionToDuplicate.imageDetails || [],
                 multipleChoiceOptions: questionToDuplicate.multipleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
@@ -72,31 +70,6 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
                         </FormItem>
                     )}
                 />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-8 py-2">
-                {Array.isArray(allQuestions) &&
-                    allQuestions.length > 0 &&
-                    Array.isArray(imageDetails) &&
-                    imageDetails.length > 0 &&
-                    imageDetails.slice(0, 4).map((imgDetail, index) => {
-                        if (imgDetail.imageFile) {
-                            return (
-                                <div className="flex flex-col" key={index}>
-                                    <div className="size-16 items-center justify-center bg-black !p-0">
-                                        <img
-                                            src={imgDetail.imageFile}
-                                            alt="logo"
-                                            className="size-16"
-                                        />
-                                    </div>
-                                </div>
-                            );
-                        }
-
-                        // Return null if imageFile doesn't exist
-                        return null;
-                    })}
             </div>
 
             <div className="flex w-full grow flex-col gap-2">

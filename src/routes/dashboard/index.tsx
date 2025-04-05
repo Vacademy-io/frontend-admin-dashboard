@@ -14,7 +14,10 @@ import useIntroJsTour from "@/hooks/use-intro";
 import { dashboardSteps } from "@/constants/intro/steps";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { getInstituteDashboardData } from "./-services/dashboard-services";
+import {
+    getAssessmentsCountsData,
+    getInstituteDashboardData,
+} from "./-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SSDC_INSTITUTE_ID } from "@/constants/urls";
 import { Helmet } from "react-helmet";
@@ -43,6 +46,10 @@ export function DashboardComponent() {
 
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
         getInstituteDashboardData(instituteDetails?.id),
+    );
+
+    const { data: assessmentCount, isLoading: isAssessmentCountLoading } = useSuspenseQuery(
+        getAssessmentsCountsData(instituteDetails?.id),
     );
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
@@ -92,7 +99,8 @@ export function DashboardComponent() {
         }
     }, [location.pathname, setValue]);
 
-    if (isInstituteLoading || isDashboardLoading) return <DashboardLoader />;
+    if (isInstituteLoading || isDashboardLoading || isAssessmentCountLoading)
+        return <DashboardLoader />;
     return (
         <>
             <Helmet>
@@ -344,25 +352,25 @@ export function DashboardComponent() {
                                         <div className="flex items-center gap-2">
                                             <span>Live</span>
                                             <span className="text-primary-500">
-                                                {data.batch_count}
+                                                {assessmentCount?.live_count}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span>Upcoming</span>
                                             <span className="text-primary-500">
-                                                {data.student_count}
+                                                {assessmentCount?.upcoming_count}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span>Previous</span>
                                             <span className="text-primary-500">
-                                                {data.student_count}
+                                                {assessmentCount?.previous_count}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span>Drafts</span>
                                             <span className="text-primary-500">
-                                                {data.student_count}
+                                                {assessmentCount?.draft_count}
                                             </span>
                                         </div>
                                     </CardDescription>

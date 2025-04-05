@@ -1,7 +1,7 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { DotsSixVertical, Plus, X } from "phosphor-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useFieldArray } from "react-hook-form";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { getQuestionPaperById, updateQuestionPaper } from "../-utils/question-pa
 import {
     getIdByLevelName,
     getIdBySubjectName,
-    processQuestions,
+    transformResponseDataToMyQuestionsSchema,
     getPPTViewTitle,
 } from "../-utils/helper";
 import {
@@ -48,8 +48,6 @@ export function QuestionPaperTemplate({
     isAssessment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
 }: QuestionPaperTemplateProps) {
     const { instituteLogo } = useInstituteLogoStore();
     const { handleRefetchData } = useRefetchStore();
@@ -57,7 +55,7 @@ export function QuestionPaperTemplate({
     const { instituteDetails } = useInstituteDetailsStore();
     const [addQuestionDialogBox, setAddQuestionDialogBox] = useState(false);
     const { control, getValues, setValue, formState, watch } = form;
-    const questions = getValues("questions");
+    const questions = watch("questions") || [];
     const title = getValues("title") || "";
     const yearClass = getValues("yearClass") || "";
     const subject = getValues("subject") || "";
@@ -88,97 +86,40 @@ export function QuestionPaperTemplate({
                 min: "",
             },
             questionMark: "",
-            imageDetails: [],
             singleChoiceOptions: [
                 {
                     name: "",
                     isSelected: false,
-                    image: {
-                        imageId: "",
-                        imageName: "",
-                        imageTitle: "",
-                        imageFile: "",
-                        isDeleted: false,
-                    },
                 },
                 {
                     name: "",
                     isSelected: false,
-                    image: {
-                        imageId: "",
-                        imageName: "",
-                        imageTitle: "",
-                        imageFile: "",
-                        isDeleted: false,
-                    },
                 },
                 {
                     name: "",
                     isSelected: false,
-                    image: {
-                        imageId: "",
-                        imageName: "",
-                        imageTitle: "",
-                        imageFile: "",
-                        isDeleted: false,
-                    },
                 },
                 {
                     name: "",
                     isSelected: false,
-                    image: {
-                        imageId: "",
-                        imageName: "",
-                        imageTitle: "",
-                        imageFile: "",
-                        isDeleted: false,
-                    },
                 },
             ],
             multipleChoiceOptions: [
                 {
                     name: "",
                     isSelected: false,
-                    image: {
-                        imageId: "",
-                        imageName: "",
-                        imageTitle: "",
-                        imageFile: "",
-                        isDeleted: false,
-                    },
                 },
                 {
                     name: "",
                     isSelected: false,
-                    image: {
-                        imageId: "",
-                        imageName: "",
-                        imageTitle: "",
-                        imageFile: "",
-                        isDeleted: false,
-                    },
                 },
                 {
                     name: "",
                     isSelected: false,
-                    image: {
-                        imageId: "",
-                        imageName: "",
-                        imageTitle: "",
-                        imageFile: "",
-                        isDeleted: false,
-                    },
                 },
                 {
                     name: "",
                     isSelected: false,
-                    image: {
-                        imageId: "",
-                        imageName: "",
-                        imageTitle: "",
-                        imageFile: "",
-                        isDeleted: false,
-                    },
                 },
             ],
         });
@@ -189,6 +130,7 @@ export function QuestionPaperTemplate({
     // Function to handle page navigation by question number
     const handlePageClick = (pageIndex: number) => {
         setCurrentQuestionIndex(pageIndex);
+        form.trigger();
     };
 
     const handleUpdateQuestionPaper = useMutation({
@@ -235,7 +177,7 @@ export function QuestionPaperTemplate({
             setIsQuestionDataLoading(false);
         },
         onSuccess: async (data) => {
-            const transformQuestionsData: MyQuestion[] = await processQuestions(
+            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
                 data.question_dtolist,
             );
             setPreviousQuestionPaperData({
@@ -261,13 +203,6 @@ export function QuestionPaperTemplate({
     const handleViewQuestionPaper = () => {
         handleMutationViewQuestionPaper.mutate({ questionPaperId });
     };
-
-    useEffect(() => {
-        setValue(
-            `questions.${currentQuestionIndex}`,
-            getValues(`questions.${currentQuestionIndex}`),
-        );
-    }, [currentQuestionIndex]);
 
     return (
         <Dialog>
@@ -385,10 +320,6 @@ export function QuestionPaperTemplate({
                                         <QuestionTypeSelection
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                            currentQuestionImageIndex={currentQuestionImageIndex}
-                                            setCurrentQuestionImageIndex={
-                                                setCurrentQuestionImageIndex
-                                            }
                                             isDirectAdd={false}
                                             handleSelect={handleAddNewQuestion}
                                         ></QuestionTypeSelection>
@@ -449,6 +380,7 @@ export function QuestionPaperTemplate({
                                                                                 </SortableDragHandle>
                                                                             </div>
                                                                             <PPTComponentFactory
+                                                                                key={index}
                                                                                 type={
                                                                                     getValues(
                                                                                         `questions.${currentQuestionIndex}.questionType`,
@@ -460,10 +392,6 @@ export function QuestionPaperTemplate({
                                                                                         index,
                                                                                     setCurrentQuestionIndex:
                                                                                         setCurrentQuestionIndex,
-                                                                                    currentQuestionImageIndex:
-                                                                                        currentQuestionImageIndex,
-                                                                                    setCurrentQuestionImageIndex:
-                                                                                        setCurrentQuestionImageIndex,
                                                                                     className:
                                                                                         "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
                                                                                 }}
@@ -498,6 +426,7 @@ export function QuestionPaperTemplate({
                                 </div>
                             ) : (
                                 <MainViewComponentFactory
+                                    key={currentQuestionIndex}
                                     type={
                                         getValues(
                                             `questions.${currentQuestionIndex}.questionType`,
@@ -507,8 +436,6 @@ export function QuestionPaperTemplate({
                                         form: form,
                                         currentQuestionIndex: currentQuestionIndex,
                                         setCurrentQuestionIndex: setCurrentQuestionIndex,
-                                        currentQuestionImageIndex: currentQuestionImageIndex,
-                                        setCurrentQuestionImageIndex: setCurrentQuestionImageIndex,
                                         className:
                                             "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
                                     }}

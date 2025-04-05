@@ -5,8 +5,25 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { useEffect } from "react";
 import HeaderTabs from "./-components/headerTabs";
 
+export interface StudentReportParam {
+    tab?: string;
+    learningTab?: string;
+    courseId?: string;
+    sessionId?: string;
+    levelId?: string;
+    fullName?: string;
+    userId?: string;
+}
+
+export interface searchParams {
+    studentReport: StudentReportParam | undefined;
+}
+
 export const Route = createFileRoute("/study-library/reports/")({
     component: RouteComponent,
+    validateSearch: (search: searchParams) => ({
+        studentReport: search.studentReport as StudentReportParam | undefined,
+    }),
 });
 
 const heading = (

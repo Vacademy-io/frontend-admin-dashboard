@@ -32,8 +32,6 @@ interface QuestionTypeProps {
 interface QuestionPaperHeadingInterface {
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
     isDirectAdd?: boolean;
     handleSelect?: (tyep: string) => void;
 }
@@ -41,13 +39,12 @@ interface QuestionPaperHeadingInterface {
 export function QuestionTypeSelection({
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
     isDirectAdd = true,
     handleSelect,
 }: QuestionPaperHeadingInterface) {
     const { setIsManualQuestionPaperDialogOpen } = useDialogStore();
     const [questionType, setQuestionType] = useState<QuestionTypeList>(QuestionTypeList.MCQS);
+    console.log(questionType);
     const QuestionType: React.FC<QuestionTypeProps> = ({
         icon,
         text,
@@ -184,11 +181,8 @@ export function QuestionTypeSelection({
                     </div>
                     <QuestionPaperUpload
                         isManualCreated={true}
-                        firstQuestionType={questionType}
                         currentQuestionIndex={currentQuestionIndex}
                         setCurrentQuestionIndex={setCurrentQuestionIndex}
-                        currentQuestionImageIndex={currentQuestionImageIndex}
-                        setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                     />
                 </AlertDialogContent>
             )}

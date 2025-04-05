@@ -1,11 +1,4 @@
 import React, { useState } from "react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogFooter,
-    DialogDescription,
-} from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
@@ -16,6 +9,7 @@ import { SchemaFields } from "@/types/students/bulk-upload-types";
 import { EditableBulkUploadTable } from "./bulk-upload-table";
 import { UploadResultsTable } from "./upload-results-table";
 import { ErrorDetailsDialog } from "./error-details-dialog";
+import { MyDialog } from "@/components/design-system/dialog";
 
 interface PreviewDialogProps {
     isOpen: boolean;
@@ -86,30 +80,43 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
         return uniqueRows.size;
     }, [csvErrors]);
 
+    const footer = (
+        <footer className="">
+            <div className="flex w-full justify-between">
+                <MyButton
+                    buttonType="primary"
+                    scale="large"
+                    layoutVariant="default"
+                    onClick={handleClose}
+                >
+                    Close
+                </MyButton>
+            </div>
+        </footer>
+    );
+
     return (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="no-scrollbar h-[80vh] w-[80vw] max-w-[1200px] overflow-hidden p-0 font-normal">
+        <MyDialog
+            open={isOpen}
+            onOpenChange={handleClose}
+            heading={uploadCompleted && uploadResponse ? "Upload Response" : "Preview Data"}
+            dialogWidth="w-[80vw]"
+            footer={footer}
+        >
+            <div className="no-scrollbar max-h-[80vh] w-[80vw] overflow-x-hidden p-0 font-normal">
                 {uploadCompleted && uploadResponse ? (
                     // Show upload results using the new component
-                    <DialogDescription className="flex flex-col overflow-x-scroll p-6">
+                    <div className="no-scrollbar flex flex-col overflow-x-scroll">
                         <UploadResultsTable
                             data={uploadResponse}
                             onViewError={handleViewError}
-                            onClose={handleClose}
                             onDownloadResponse={onDownloadResponse}
                         />
-                    </DialogDescription>
+                    </div>
                 ) : (
-                    // Show preview/validation UI
-                    <>
-                        <DialogHeader className="h-full">
-                            <div className="flex items-center justify-between bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                                <span>Preview Data</span>
-                            </div>
-                        </DialogHeader>
-
+                    <div className="flex flex-col gap-4">
                         {csvErrors.length > 0 && (
-                            <div className="mx-6 mt-4 rounded-md bg-danger-50 p-4">
+                            <div className="rounded-md">
                                 <div className="flex items-center">
                                     <Warning className="h-5 w-5 text-danger-500" />
                                     <h3 className="ml-2 text-lg font-medium text-danger-700">
@@ -124,35 +131,16 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                             </div>
                         )}
 
-                        <DialogDescription className="flex flex-col overflow-x-scroll p-6">
+                        <div className="no-scrollbar flex flex-col">
                             <EditableBulkUploadTable
                                 headers={headers}
                                 onEdit={onEdit}
                                 statusColumnRenderer={CustomStatusColumnRenderer}
                             />
-                        </DialogDescription>
-                        <DialogFooter className="border-t px-6 py-4">
-                            <div className="flex w-full justify-between">
-                                <div>
-                                    {csvErrors.length > 0 && (
-                                        <span className="text-sm text-danger-600">
-                                            Please fix validation errors before proceeding
-                                        </span>
-                                    )}
-                                </div>
-                                <MyButton
-                                    buttonType="primary"
-                                    scale="large"
-                                    layoutVariant="default"
-                                    onClick={handleClose}
-                                >
-                                    Close
-                                </MyButton>
-                            </div>
-                        </DialogFooter>
-                    </>
+                        </div>
+                    </div>
                 )}
-            </DialogContent>
+            </div>
 
             {/* Error details dialog */}
             {showErrorDialog && uploadResponse && selectedErrorRow !== null && (
@@ -174,6 +162,6 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                     isApiError={true}
                 />
             )}
-        </Dialog>
+        </MyDialog>
     );
 };
