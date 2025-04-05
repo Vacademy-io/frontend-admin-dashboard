@@ -13,7 +13,6 @@ import { useGetInviteDetails } from "../-services/get-invite-details";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import responseDataToFormData from "../-utils/responseDataToFormData";
 import { useInviteFormContext } from "../-context/useInviteFormContext";
-import { useCourseManager } from "../-hooks/useCourseManager";
 import { useUpdateInvite } from "../-services/update-invite";
 import formDataToRequestData from "../-utils/formDataToRequestData";
 interface InviteCardMenuOptionsProps {
@@ -31,8 +30,6 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
     const { reset: resetContext } = contextForm;
     const updateInviteStatusMutation = useUpdateInviteLinkStatus();
     const { data, isLoading, isError } = useGetInviteDetails({ learnerInvitationId: invite.id });
-    const { hasValidPreSelectedCourseStructure, hasValidLearnerChoiceCourseStructure } =
-        useCourseManager();
     const updateInviteMutation = useUpdateInvite();
     const onDeleteInvite = async (invite: InviteLinkType) => {
         try {
@@ -57,13 +54,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                 formSubmitRef.current();
             }}
         >
-            <MyButton
-                disable={
-                    !hasValidLearnerChoiceCourseStructure() && !hasValidPreSelectedCourseStructure()
-                }
-            >
-                Save Changes
-            </MyButton>
+            <MyButton>Save Changes</MyButton>
         </div>
     );
 

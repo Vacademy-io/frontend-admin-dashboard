@@ -18,6 +18,7 @@ import {
     PreSelectedSessionType,
 } from "../-types/create-invitation-types";
 import { TokenKey } from "@/constants/auth/tokens";
+// import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 
 export const fetchLevel = (level: LevelField): InviteLevelType => {
     return {
@@ -116,12 +117,15 @@ export const fetchLearnerChoiceCourses = (
 };
 
 export const fetchBatchOptions = (data: InviteForm): string => {
-    const preSelectedCoures = data.batches.preSelectedCourses.map((course) =>
-        fetchPreSelectedCourses(course),
-    );
-    const learnerChoiceCourses = data.batches.learnerChoiceCourses.map((course) =>
-        fetchLearnerChoiceCourses(course),
-    );
+    // const preSelectedCoures = data.batches.preSelectedCourses.map((course) =>
+    //     fetchPreSelectedCourses(course),
+    // );
+    // const learnerChoiceCourses = data.batches.learnerChoiceCourses.map((course) =>
+    //     fetchLearnerChoiceCourses(course),
+    // );
+
+    // const preSelectedCoures = [];
+    // const learnerChoiceCourses = [];
 
     const batchOptionsJson: BatchOptionJsonType = {
         institute_assigned: data.batches.preSelectedCourses.length > 0 ? true : false,
@@ -131,8 +135,8 @@ export const fetchBatchOptions = (data: InviteForm): string => {
                 : data.batches.maxCourses == 0
                   ? 1
                   : data.batches.maxCourses,
-        pre_selected_packages: preSelectedCoures,
-        learner_choice_packages: learnerChoiceCourses,
+        pre_selected_packages: [],
+        learner_choice_packages: [],
     };
     return JSON.stringify(batchOptionsJson);
 };

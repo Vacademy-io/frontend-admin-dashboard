@@ -17,7 +17,7 @@ import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import createInviteLink from "../-utils/createInviteLink";
 import { useInviteFormContext } from "../-context/useInviteFormContext";
-import { useCourseManager } from "../-hooks/useCourseManager";
+// import { useCourseManager } from "../-hooks/useCourseManager";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -28,8 +28,8 @@ export const Invite = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
-    const { hasValidPreSelectedCourseStructure, hasValidLearnerChoiceCourseStructure } =
-        useCourseManager();
+    // const { hasValidPreSelectedCourseStructure, hasValidLearnerChoiceCourseStructure } =
+    // useCourseManager();
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
@@ -71,13 +71,7 @@ export const Invite = () => {
             className="flex w-full items-center justify-end"
             onClick={() => formSubmitRef.current()}
         >
-            <MyButton
-                disable={
-                    !hasValidLearnerChoiceCourseStructure() && !hasValidPreSelectedCourseStructure()
-                }
-            >
-                Create
-            </MyButton>
+            <MyButton>Create</MyButton>
         </div>
     );
 

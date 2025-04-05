@@ -103,17 +103,17 @@ export const responseToFormPreSelectedCourse = (
 };
 
 export const responseToFormBatch = (responseBatch: BatchOptionJsonType): BatchDetails => {
-    const preSelectedCourse = responseBatch.pre_selected_packages.map((course) =>
-        responseToFormPreSelectedCourse(course),
-    );
-    const learnerChoiceCourse = responseBatch.learner_choice_packages.map((course) =>
-        responseToFormLearnerChoiceCourse(course),
-    );
+    // const preSelectedCourse = responseBatch.pre_selected_packages.map((course) =>
+    //     responseToFormPreSelectedCourse(course),
+    // );
+    // const learnerChoiceCourse = responseBatch.learner_choice_packages.map((course) =>
+    //     responseToFormLearnerChoiceCourse(course),
+    // );
     const batchFormData: BatchDetails = {
         maxCourses: responseBatch.max_selectable_packages,
         courseSelectionMode: responseBatch.institute_assigned ? "institute" : "student",
-        preSelectedCourses: preSelectedCourse,
-        learnerChoiceCourses: learnerChoiceCourse,
+        preSelectedCourses: [],
+        learnerChoiceCourses: [],
     };
     return batchFormData;
 };

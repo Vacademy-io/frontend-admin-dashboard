@@ -1,3 +1,4 @@
+import { BatchForSessionSchema } from "@/schemas/student/student-list/institute-schema";
 import { z } from "zod";
 
 // Define the email entry schema
@@ -57,8 +58,8 @@ const preSelectedCoursesSchema = z.object({
 const batchSchema = z.object({
     maxCourses: z.number(),
     courseSelectionMode: selectionModeSchema,
-    preSelectedCourses: z.array(preSelectedCoursesSchema),
-    learnerChoiceCourses: z.array(learnerChoiceCoursesSchema),
+    preSelectedCourses: z.array(BatchForSessionSchema),
+    learnerChoiceCourses: z.array(BatchForSessionSchema),
 });
 
 const customFieldSchema = z.object({
