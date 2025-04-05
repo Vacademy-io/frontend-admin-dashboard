@@ -9,7 +9,5 @@ export interface QuestionPaperTemplateFormProps {
     form: UseFormReturn<QuestionPaperForm>;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
     className: string;
 }

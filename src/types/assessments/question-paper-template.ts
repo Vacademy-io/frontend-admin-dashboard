@@ -14,8 +14,6 @@ export interface QuestionPaperTemplateProps {
     isAssessment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }
 
 export interface QuestionData {

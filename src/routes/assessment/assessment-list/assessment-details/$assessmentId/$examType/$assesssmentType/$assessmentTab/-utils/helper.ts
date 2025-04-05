@@ -82,7 +82,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
                             .time,
                         duration: (student.duration / 60).toFixed(2) + " min",
-                        score: `${student.score} / ${totalMarks}`,
+                        score: `${student.score.toFixed(2)} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
@@ -121,7 +121,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
                             .time,
                         duration: (student.duration / 60).toFixed(2) + " min",
-                        score: `${student.score} / ${totalMarks}`,
+                        score: `${student.score.toFixed(2)} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
@@ -712,7 +712,7 @@ export function mergeSectionData(
             section.sectionId,
             section.questions.map((question, index) => {
                 // Transform question format to match target structure
-                const correctOptionIdsCnt = question.multipleChoiceOptions.filter(
+                const correctOptionIdsCnt = question.multipleChoiceOptions?.filter(
                     (option) => option.isSelected,
                 ).length;
                 return {

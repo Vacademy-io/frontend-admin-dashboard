@@ -69,7 +69,6 @@ export default function ProgressReports() {
         handleSubmit,
         setValue,
         watch,
-        trigger,
         formState: { errors },
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -101,15 +100,18 @@ export default function ProgressReports() {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
             setValue("session", "");
-            setValue("level", "");
         } else {
             setSessionList([]);
-            setLevelList([]);
+            setStudentList([]);
         }
     }, [selectedCourse]);
 
     useEffect(() => {
-        if (selectedCourse && selectedSession) {
+        if (selectedSession === "") {
+            setValue("level", "");
+            setLevelList([]);
+            setStudentList([]);
+        } else if (selectedCourse && selectedSession) {
             setLevelList(
                 getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
             );
@@ -189,7 +191,6 @@ export default function ProgressReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("course", value);
-                                trigger("course");
                             }}
                             {...register("course")}
                             defaultValue={search.studentReport ? search.studentReport.courseId : ""}
@@ -217,6 +218,7 @@ export default function ProgressReports() {
                             defaultValue={
                                 search.studentReport ? search.studentReport.sessionId : ""
                             }
+                            value={selectedSession}
                             disabled={!sessionList.length}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
@@ -237,9 +239,9 @@ export default function ProgressReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("level", value);
-                                trigger("level");
                             }}
                             defaultValue={search.studentReport ? search.studentReport.levelId : ""}
+                            value={selectedLevel}
                             disabled={!levelList.length}
                             {...register("level")}
                         >

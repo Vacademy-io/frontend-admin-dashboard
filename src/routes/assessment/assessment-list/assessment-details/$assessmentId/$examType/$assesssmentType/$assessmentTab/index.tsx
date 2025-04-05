@@ -192,7 +192,7 @@ const AssessmentDetailsComponent = () => {
                                 </MyButton>
                             </DialogTrigger>
                             {Object.keys(questionsDataSectionWise).length > 0 && (
-                                <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                                <DialogContent className="no-scrollbar !m-0 h-[90vh] !w-[90vw] !max-w-full !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
                                     <AssessmentPreview handleCloseDialog={handleCloseDialog} />
                                 </DialogContent>
                             )}

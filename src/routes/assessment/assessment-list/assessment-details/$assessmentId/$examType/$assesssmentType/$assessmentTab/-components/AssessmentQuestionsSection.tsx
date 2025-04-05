@@ -21,11 +21,7 @@ import {
     calculateTotalMarks,
     getQuestionTypeCounts,
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
-import {
-    calculateAverageMarks,
-    calculateAveragePenalty,
-    parseHtmlToString,
-} from "../-utils/helper";
+import { calculateAverageMarks, calculateAveragePenalty } from "../-utils/helper";
 import { QuestionData } from "@/types/assessments/assessment-steps";
 
 interface QuestionDuration {
@@ -104,9 +100,12 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                 {section?.description?.content && (
                     <div className="flex flex-col gap-2">
                         <h1>Section Description</h1>
-                        <p className="font-thin">
-                            {parseHtmlToString(section.description.content)}
-                        </p>
+                        <p
+                            className="font-thin"
+                            dangerouslySetInnerHTML={{
+                                __html: section.description.content || "",
+                            }}
+                        />
                     </div>
                 )}
                 {assessmentDetails[1]?.saved_data?.duration_distribution === "SECTION" &&
@@ -175,9 +174,11 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                                     return (
                                         <TableRow key={index}>
                                             <TableCell>{index + 1}</TableCell>
-                                            <TableCell>
-                                                {parseHtmlToString(question.questionName)}
-                                            </TableCell>
+                                            <TableCell
+                                                dangerouslySetInnerHTML={{
+                                                    __html: question.questionName || "",
+                                                }}
+                                            />
                                             <TableCell>{question.questionType}</TableCell>
                                             <TableCell>{question.questionMark}</TableCell>
                                             <TableCell>{question.questionPenalty}</TableCell>

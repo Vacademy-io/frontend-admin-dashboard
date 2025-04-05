@@ -92,7 +92,6 @@ export default function TimelineReports() {
         handleSubmit,
         setValue,
         watch,
-        trigger,
         formState: { errors },
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -116,23 +115,24 @@ export default function TimelineReports() {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
             setValue("session", "");
-            setValue("level", "");
         } else {
             setSessionList([]);
-            setLevelList([]);
+            setStudentList([]);
         }
     }, [selectedCourse]);
 
     useEffect(() => {
-        if (selectedCourse && selectedSession) {
+        if (selectedSession === "") {
+            setValue("level", "");
+            setLevelList([]);
+            setStudentList([]);
+        } else if (selectedCourse && selectedSession) {
             setLevelList(
                 getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
             );
         }
-        // else {
-        //     setLevelList([]);
-        // }
     }, [selectedSession]);
+
     const { data } = useLearnerDetails(
         // const { data, isLoading, error } = useLearnerDetails(
         getPackageSessionId({
@@ -215,7 +215,6 @@ export default function TimelineReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("course", value);
-                                trigger("course");
                             }}
                             {...register("course")}
                             defaultValue={search.studentReport ? search.studentReport.courseId : ""}
@@ -238,13 +237,13 @@ export default function TimelineReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("session", value);
-                                trigger("session");
                             }}
                             {...register("session")}
                             defaultValue={
                                 search.studentReport ? search.studentReport.sessionId : ""
                             }
                             disabled={!sessionList.length}
+                            value={selectedSession}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Session" />
@@ -264,9 +263,9 @@ export default function TimelineReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("level", value);
-                                trigger("level");
                             }}
                             defaultValue={search.studentReport ? search.studentReport.levelId : ""}
+                            value={selectedLevel}
                             disabled={!levelList.length}
                             {...register("level")}
                         >
