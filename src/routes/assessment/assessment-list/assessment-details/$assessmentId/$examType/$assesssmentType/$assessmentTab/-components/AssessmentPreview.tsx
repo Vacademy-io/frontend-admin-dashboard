@@ -280,7 +280,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
 
     const onInvalid = (err: unknown) => {
         console.error(err);
-        toast.error("Please fill all required fields!", {
+        toast.error("some of your questions are incomplete or needs attentions!", {
             className: "error-toast",
             duration: 2000,
         });
