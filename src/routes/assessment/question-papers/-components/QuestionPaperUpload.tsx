@@ -180,7 +180,7 @@ export const QuestionPaperUpload = ({
 
     const onInvalid = (err: unknown) => {
         console.error(err);
-        toast.error("Please fill all the required fields in question paper!", {
+        toast.error("some of your questions are incomplete or needs attentions!", {
             className: "error-toast",
             duration: 3000,
         });
