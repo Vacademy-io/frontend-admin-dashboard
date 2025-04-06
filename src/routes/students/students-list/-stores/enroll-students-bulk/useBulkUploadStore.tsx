@@ -1,8 +1,11 @@
 // updated-useBulkUploadStore.ts
 import { create } from "zustand";
-import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
-import { validateCellValue } from "@/components/common/students/enroll-bulk/bulk-upload-table";
-import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
+import {
+    SchemaFields,
+    ValidationError,
+} from "@/routes/students/students-list/-types/bulk-upload-types";
+import { validateCellValue } from "@/routes/students/students-list/-components/enroll-bulk/bulk-upload-table";
+import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 
 interface BulkUploadStoreState {
     csvData: SchemaFields[] | undefined;

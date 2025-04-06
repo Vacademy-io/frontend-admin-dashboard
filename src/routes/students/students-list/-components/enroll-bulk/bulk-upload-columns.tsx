@@ -1,8 +1,11 @@
 // editable-bulk-upload-columns.tsx
 import { type ColumnDef } from "@tanstack/react-table";
-import { type ValidationError, type SchemaFields } from "@/types/students/bulk-upload-types";
+import {
+    type ValidationError,
+    type SchemaFields,
+} from "@/routes/students/students-list/-types/bulk-upload-types";
 import { cn } from "@/lib/utils";
-import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
+import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 import { Row } from "@tanstack/react-table";
 import { CheckCircle, Warning } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";

@@ -8,20 +8,20 @@ import {
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { MyButton } from "@/components/design-system/button";
 import { ImportFileImage } from "@/assets/svgs";
-import { useBulkUploadInit } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadInit";
+import { useBulkUploadInit } from "@/routes/students/students-list/-hooks/enroll-student-bulk/useBulkUploadInit";
 import { useState, useCallback, Dispatch, SetStateAction, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { validateCsvData, createAndDownloadCsv } from "./utils/csv-utils";
-import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
-import { SchemaFields } from "@/types/students/bulk-upload-types";
+import { useBulkUploadStore } from "@/routes/students/students-list/-stores/enroll-students-bulk/useBulkUploadStore";
+import { SchemaFields } from "@/routes/students/students-list/-types/bulk-upload-types";
 import {
     CSVFormatFormType,
     enrollBulkFormType,
-} from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
+} from "@/routes/students/students-list/-schemas/student-bulk-enroll/enroll-bulk-schema";
 import { parseApiResponse, getUploadStats } from "./utils/parse-api-response-string";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
-import { useBulkUploadMutation } from "@/hooks/student-list-section/enroll-student-bulk/useBulkUploadMutation";
+import { useBulkUploadMutation } from "@/routes/students/students-list/-hooks/enroll-student-bulk/useBulkUploadMutation";
 import { PreviewDialog } from "./preview-dialog";
 import { toast } from "sonner";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";

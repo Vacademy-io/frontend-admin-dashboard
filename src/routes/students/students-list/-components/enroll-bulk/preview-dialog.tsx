@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { MyButton } from "@/components/design-system/button";
-import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
-import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
+import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
+import { useBulkUploadStore } from "@/routes/students/students-list/-stores/enroll-students-bulk/useBulkUploadStore";
 import { Warning } from "@phosphor-icons/react";
 import { StatusColumnRenderer } from "./status-column-rendered";
 import { Row } from "@tanstack/react-table";
-import { SchemaFields } from "@/types/students/bulk-upload-types";
+import { SchemaFields } from "@/routes/students/students-list/-types/bulk-upload-types";
 import { EditableBulkUploadTable } from "./bulk-upload-table";
 import { UploadResultsTable } from "./upload-results-table";
 import { ErrorDetailsDialog } from "./error-details-dialog";

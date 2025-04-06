@@ -1,5 +1,8 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
-import { CSVFormatConfig, SchemaFields } from "@/types/students/bulk-upload-types";
+import {
+    CSVFormatConfig,
+    SchemaFields,
+} from "@/routes/students/students-list/-types/bulk-upload-types";
 import Papa from "papaparse";
 import { toast } from "sonner";
 import { STUDENT_CSV_UPLOAD_URL } from "@/constants/urls";

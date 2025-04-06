@@ -3,9 +3,9 @@ import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import {
     BulkUploadResponse,
     BulkUploadSchema,
-} from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
+} from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 import { INIT_CSV_BULK } from "@/constants/urls";
-import { CSVFormatConfig } from "@/types/students/bulk-upload-types";
+import { CSVFormatConfig } from "@/routes/students/students-list/-types/bulk-upload-types";
 
 interface BulkUploadInitParams {
     instituteId: string;

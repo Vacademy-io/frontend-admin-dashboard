@@ -1,7 +1,10 @@
 // utils/csv-utils.ts
 import Papa from "papaparse";
-import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
-import { Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
+import {
+    SchemaFields,
+    ValidationError,
+} from "@/routes/students/students-list/-types/bulk-upload-types";
+import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 
 type ParseResult = {
     data: SchemaFields[];

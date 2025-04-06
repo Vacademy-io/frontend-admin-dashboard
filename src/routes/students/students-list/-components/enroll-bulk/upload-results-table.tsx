@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { SchemaFields } from "@/types/students/bulk-upload-types";
+import { SchemaFields } from "@/routes/students/students-list/-types/bulk-upload-types";
 import { CheckCircle, X, Warning } from "@phosphor-icons/react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MyButton } from "@/components/design-system/button";
