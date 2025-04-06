@@ -422,9 +422,9 @@ export function EditableBulkUploadTable({
             </div>
 
             <MyPagination
-                currentPage={page + 1}
+                currentPage={page}
                 totalPages={paginatedData.total_pages}
-                onPageChange={(newPage) => setPage(newPage - 1)}
+                onPageChange={(newPage) => setPage(newPage)}
             />
         </div>
     );
