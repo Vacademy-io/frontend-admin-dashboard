@@ -26,6 +26,8 @@ import { TokenKey } from "@/constants/auth/tokens";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 import { useRefetchStoreAssessment } from "../-global-store/refetch-store";
+import { Route } from "..";
+import { useNavigate } from "@tanstack/react-router";
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -42,12 +44,14 @@ export interface SelectedQuestionPaperFilters {
 }
 
 export const ScheduleTestMainComponent = () => {
+    const navigate = useNavigate();
+    const searchParams = Route.useSearch();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const [isOpen, setIsOpen] = useState(false);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { setNavHeading } = useNavHeadingStore();
-    const [selectedTab, setSelectedTab] = useState("liveTests");
+    const [selectedTab, setSelectedTab] = useState(searchParams.selectedTab ?? "liveTests");
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
@@ -424,6 +428,15 @@ export const ScheduleTestMainComponent = () => {
             setIsOpen(true);
         }
     }, []);
+
+    useEffect(() => {
+        navigate({
+            to: "/assessment/assessment-list",
+            search: {
+                selectedTab: selectedTab,
+            },
+        });
+    }, [selectedTab]);
 
     // Define the handleRefetchData function here
     useEffect(() => {
