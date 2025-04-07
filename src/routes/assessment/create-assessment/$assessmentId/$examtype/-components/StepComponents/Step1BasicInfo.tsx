@@ -136,7 +136,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     // Determine if all fields are filled
     const isFormValid1 =
-        examType === "EXAM" || examType === "SURVEY"
+        (examType === "EXAM" || examType === "SURVEY") && assessmentId === "defaultId"
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
               !!liveDateRangeEndDate &&
@@ -145,7 +145,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             : !!assessmentName && Object.entries(form.formState.errors).length === 0;
 
     const isFormValid2 =
-        examType === "EXAM" || examType === "SURVEY"
+        (examType === "EXAM" || examType === "SURVEY") && assessmentId === "defaultId"
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
               !!liveDateRangeEndDate &&
