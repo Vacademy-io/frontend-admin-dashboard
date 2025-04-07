@@ -44,6 +44,7 @@ export function AssessmentDetailsMarkRankGraph({
                     left: 12,
                     right: 12,
                     bottom: 50,
+                    top: 12,
                 }}
             >
                 <CartesianGrid vertical={false} />
