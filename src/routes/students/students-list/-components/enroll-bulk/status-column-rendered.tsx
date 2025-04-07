@@ -13,12 +13,16 @@ interface StatusColumnRendererProps {
     row: Row<SchemaFields>;
     csvErrors: ValidationError[];
     csvData: SchemaFields[] | undefined;
+    currentPage: number;
+    ITEMS_PER_PAGE: number;
 }
 
 export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
     row,
     csvErrors,
     csvData,
+    currentPage,
+    ITEMS_PER_PAGE,
 }) => {
     const [showErrorDialog, setShowErrorDialog] = useState(false);
     const rowIndex = row.index;
@@ -79,7 +83,8 @@ export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
     }
 
     // For pre-upload validation errors
-    const validationErrors = csvErrors.filter((error) => error.path[0] === rowIndex);
+    const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
+    const validationErrors = csvErrors.filter((error) => error.path[0] === absoluteRowIndex);
 
     if (validationErrors.length === 0) {
         return (

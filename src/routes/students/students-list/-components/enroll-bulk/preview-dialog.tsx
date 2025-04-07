@@ -3,8 +3,8 @@ import { MyButton } from "@/components/design-system/button";
 import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/routes/students/students-list/-stores/enroll-students-bulk/useBulkUploadStore";
 import { Warning } from "@phosphor-icons/react";
-import { StatusColumnRenderer } from "./status-column-rendered";
-import { Row } from "@tanstack/react-table";
+// import { StatusColumnRenderer } from "./status-column-rendered";
+// import { Row } from "@tanstack/react-table";
 import { SchemaFields } from "@/routes/students/students-list/-types/bulk-upload-types";
 import { EditableBulkUploadTable } from "./bulk-upload-table";
 import { UploadResultsTable } from "./upload-results-table";
@@ -16,7 +16,13 @@ interface PreviewDialogProps {
     onClose: () => void;
     file: File | null;
     headers: Header[];
-    onEdit?: (rowIndex: number, columnId: string, value: string) => void;
+    onEdit?: (
+        rowIndex: number,
+        columnId: string,
+        value: string,
+        currentPage: number,
+        ITEMS_PER_PAGE: number,
+    ) => void;
     uploadCompleted?: boolean;
     uploadResponse?: SchemaFields[] | null;
     onDownloadResponse?: () => void;
@@ -33,9 +39,10 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     onDownloadResponse,
     closeAllDialogs,
 }) => {
-    const { csvData, csvErrors, setIsEditing } = useBulkUploadStore();
+    const { csvErrors, setIsEditing } = useBulkUploadStore();
     const [selectedErrorRow, setSelectedErrorRow] = useState<number | null>(null);
     const [showErrorDialog, setShowErrorDialog] = useState(false);
+    // const [page, setPage] = useState(1);
 
     // When the dialog closes, ensure edit mode is turned off
     React.useEffect(() => {
@@ -53,18 +60,20 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     };
 
     // Create a wrapped status column renderer with proper type safety
-    const CustomStatusColumnRenderer = React.useCallback(
-        ({ row }: { row: Row<SchemaFields> }) => {
-            return (
-                <StatusColumnRenderer
-                    row={row}
-                    csvErrors={csvErrors}
-                    csvData={uploadCompleted && uploadResponse ? uploadResponse : csvData}
-                />
-            );
-        },
-        [csvErrors, csvData, uploadCompleted, uploadResponse],
-    );
+    // const CustomStatusColumnRenderer = React.useCallback(
+    //     ({ row }: { row: Row<SchemaFields> }) => {
+    //         return (
+    //             <StatusColumnRenderer
+    //                 row={row}
+    //                 csvErrors={csvErrors}
+    //                 csvData={uploadCompleted && uploadResponse ? uploadResponse : csvData}
+    //                 currentPage={page}
+    //                 ITEMS_PER_PAGE={10}
+    //             />
+    //         );
+    //     },
+    //     [csvErrors, csvData, uploadCompleted, uploadResponse, page],
+    // );
 
     // Handler for viewing error details
     const handleViewError = (rowIndex: number) => {
@@ -132,11 +141,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                         )}
 
                         <div className="no-scrollbar flex flex-col">
-                            <EditableBulkUploadTable
-                                headers={headers}
-                                onEdit={onEdit}
-                                statusColumnRenderer={CustomStatusColumnRenderer}
-                            />
+                            <EditableBulkUploadTable headers={headers} onEdit={onEdit} />
                         </div>
                     </div>
                 )}
