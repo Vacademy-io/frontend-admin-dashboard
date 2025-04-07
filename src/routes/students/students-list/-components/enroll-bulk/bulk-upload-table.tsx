@@ -1,8 +1,8 @@
 // editable-bulk-upload-table.tsx
 import React, { useState, useMemo } from "react";
-import { type Header } from "@/schemas/student/student-bulk-enroll/csv-bulk-init";
-import { useBulkUploadStore } from "@/stores/students/enroll-students-bulk/useBulkUploadStore";
-import { StudentSearchBox } from "../../student-search-box";
+import { type Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
+import { useBulkUploadStore } from "@/routes/students/students-list/-stores/enroll-students-bulk/useBulkUploadStore";
+import { StudentSearchBox } from "@/components/common/student-search-box";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
 import {
@@ -11,7 +11,10 @@ import {
     isValidDateFormat,
 } from "./utils/csv-utils";
 import { MyTable } from "@/components/design-system/table";
-import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
+import {
+    SchemaFields,
+    ValidationError,
+} from "@/routes/students/students-list/-types/bulk-upload-types";
 import { Row } from "@tanstack/react-table";
 import { createEditableBulkUploadColumns } from "./bulk-upload-columns";
 import { Switch } from "@/components/ui/switch";
@@ -265,9 +268,10 @@ export function EditableBulkUploadTable({
         const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
         // Ensure page is never out of bounds
-        const safePage = totalPages === 0 ? 0 : Math.min(page, totalPages - 1);
-        if (safePage !== page && totalItems > 0) {
-            // Set page to safe value if needed
+        const safePage = Math.max(0, Math.min(page, Math.max(0, totalPages - 1)));
+
+        // Reset to page 0 if we're on an invalid page
+        if (safePage !== page) {
             setPage(safePage);
         }
 
@@ -337,14 +341,12 @@ export function EditableBulkUploadTable({
         createAndDownloadCsv(validData, "VALID_DATA.csv");
     };
 
-    // const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
-
     const toggleEditing = (value: boolean) => {
         setIsEditing(value);
         setEditCell(null); // Reset any active edit cell when toggling
     };
 
-    return paginatedData.content.length == 0 ? (
+    return paginatedData.content.length === 0 ? (
         <p className="w-full text-center text-subtitle text-primary-500">No uploaded data found!</p>
     ) : (
         <div className="no-scrollbar relative flex flex-col gap-6 overflow-y-scroll px-6">
@@ -420,9 +422,9 @@ export function EditableBulkUploadTable({
             </div>
 
             <MyPagination
-                currentPage={page + 1} // Convert to 1-based for display
+                currentPage={page}
                 totalPages={paginatedData.total_pages}
-                onPageChange={(newPage) => setPage(newPage - 1)} // Convert back to 0-based
+                onPageChange={(newPage) => setPage(newPage)}
             />
         </div>
     );

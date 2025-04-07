@@ -1,6 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
-import { ValidationError, SchemaFields } from "@/types/students/bulk-upload-types";
+import {
+    ValidationError,
+    SchemaFields,
+} from "@/routes/students/students-list/-types/bulk-upload-types";
 import {
     Table,
     TableBody,

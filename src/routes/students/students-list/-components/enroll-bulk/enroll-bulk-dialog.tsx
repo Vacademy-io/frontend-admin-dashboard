@@ -3,13 +3,13 @@ import { Form, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { MyDropdown } from "../enroll-manually/dropdownForPackageItems";
-import { DropdownItemType } from "../enroll-manually/dropdownTypesForPackageItems";
+import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
+import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 import { CSVFormatDialog } from "./csv-format-dialog";
 import {
     enrollBulkFormSchema,
     enrollBulkFormType,
-} from "@/schemas/student/student-bulk-enroll/enroll-bulk-schema";
+} from "@/routes/students/students-list/-schemas/student-bulk-enroll/enroll-bulk-schema";
 
 import { MyButton } from "@/components/design-system/button";
 
@@ -45,31 +45,66 @@ export const EnrollBulkDialog = () => {
 
     useEffect(() => {
         const values = form.watch();
-
-        // Update course list when session or level changes
-        setCourseList(
-            getCourseFromPackage({
-                sessionId: values.session.id,
-                levelId: values.level.id,
-            }),
-        );
-
         // Update session list when course or level changes
-        setSessionList(
-            getSessionFromPackage({
-                courseId: values.course.id,
-                levelId: values.level.id,
-            }),
-        );
+        if (values.level.id == "" || values.session.id == "") {
+            setSessionList(
+                getSessionFromPackage({
+                    courseId: values.course.id,
+                    levelId: values.level.id,
+                }),
+            );
 
-        // Update level list when course or session changes
-        setLevelList(
-            getLevelsFromPackage({
-                courseId: values.course.id,
-                sessionId: values.session.id,
-            }),
-        );
-    }, [form.watch("course"), form.watch("session"), form.watch("level")]);
+            // Update level list when course or session changes
+            setLevelList(
+                getLevelsFromPackage({
+                    courseId: values.course.id,
+                    sessionId: values.session.id,
+                }),
+            );
+        }
+    }, [form.watch("course")]);
+    useEffect(() => {
+        const values = form.watch();
+
+        if (values.course.id == "" || values.session.id == "") {
+            // Update session list when course or level changes
+            setSessionList(
+                getSessionFromPackage({
+                    courseId: values.course.id,
+                    levelId: values.level.id,
+                }),
+            );
+
+            // Update course list when session or level changes
+            setCourseList(
+                getCourseFromPackage({
+                    sessionId: values.session.id,
+                    levelId: values.level.id,
+                }),
+            );
+        }
+    }, [form.watch("level")]);
+
+    useEffect(() => {
+        const values = form.watch();
+        // Update course list when session or level changes
+        if (values.course.id == "" || values.level.id == "") {
+            setCourseList(
+                getCourseFromPackage({
+                    sessionId: values.session.id,
+                    levelId: values.level.id,
+                }),
+            );
+
+            // Update level list when course or session changes
+            setLevelList(
+                getLevelsFromPackage({
+                    courseId: values.course.id,
+                    sessionId: values.session.id,
+                }),
+            );
+        }
+    }, [form.watch("session")]);
 
     const onSubmitEnrollBulkForm = (values: enrollBulkFormType) => {
         setFormValues(values);
@@ -153,7 +188,7 @@ export const EnrollBulkDialog = () => {
                                                     currentValue={value.name}
                                                     dropdownList={levelList}
                                                     handleChange={onChange}
-                                                    placeholder="Select Session"
+                                                    placeholder="Select Level"
                                                 />
                                             </div>
                                         </FormControl>

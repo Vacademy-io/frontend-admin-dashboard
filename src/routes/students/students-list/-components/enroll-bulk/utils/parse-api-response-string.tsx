@@ -1,5 +1,5 @@
 // utils/csv-response-parser.ts
-import { SchemaFields } from "@/types/students/bulk-upload-types";
+import { SchemaFields } from "@/routes/students/students-list/-types/bulk-upload-types";
 
 /**
  * Parse the raw API response from the bulk upload endpoint

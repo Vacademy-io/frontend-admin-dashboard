@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { CheckCircle, X } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";
 import { ErrorDetailsDialog } from "./error-details-dialog";
-import { SchemaFields, ValidationError } from "@/types/students/bulk-upload-types";
+import {
+    SchemaFields,
+    ValidationError,
+} from "@/routes/students/students-list/-types/bulk-upload-types";
 import { Row } from "@tanstack/react-table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
