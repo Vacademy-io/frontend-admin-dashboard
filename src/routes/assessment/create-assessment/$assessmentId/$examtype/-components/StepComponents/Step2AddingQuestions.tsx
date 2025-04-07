@@ -452,7 +452,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                       ? "SECTION"
                                                                       : "QUESTION"
                                                             }
-                                                            className="flex items-center gap-6"
+                                                            className="flex items-start gap-6"
                                                         >
                                                             {getFieldOptions({
                                                                 assessmentDetails,
@@ -505,7 +505,41 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                             )}
                                         />
                                     )}
-
+                                    {form.getValues("testDuration.entireTestDuration.checked") && (
+                                        <div className="mt-3 text-sm">
+                                            <p>
+                                                Entire Assessment Duration –{" "}
+                                                <span className="font-light">
+                                                    Set a single time limit for the whole
+                                                    assessement.
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
+                                    {form.getValues("testDuration.sectionWiseDuration") && (
+                                        <div className="mt-3 text-sm">
+                                            <p>
+                                                Section-wise Duration –{" "}
+                                                <span className="font-light">
+                                                    Assign a specific time for each section in the
+                                                    Sections tab. The total assessment duration will
+                                                    be the sum of all section times.
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
+                                    {form.getValues("testDuration.questionWiseDuration") && (
+                                        <div className="mt-3 text-sm">
+                                            <p>
+                                                Question-wise Duration –{" "}
+                                                <span className="font-light">
+                                                    Define individual time limits for each question
+                                                    in the Sections tab, where a time input field is
+                                                    available next to each question.
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
                                     {form.watch("testDuration").entireTestDuration.checked &&
                                         getStepKey({
                                             assessmentDetails,

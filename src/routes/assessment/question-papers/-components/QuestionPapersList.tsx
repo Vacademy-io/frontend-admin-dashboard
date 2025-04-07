@@ -14,7 +14,11 @@ import {
     PaginatedResponse,
     QuestionPaperInterface,
 } from "@/types/assessments/question-paper-template";
-import { getLevelNameById, getSubjectNameById, processQuestions } from "../-utils/helper";
+import {
+    getLevelNameById,
+    getSubjectNameById,
+    transformResponseDataToMyQuestionsSchema,
+} from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { MyQuestion } from "@/types/assessments/question-paper-form";
@@ -36,8 +40,6 @@ export const QuestionPapersList = ({
     sectionsForm,
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
 }: {
     questionPaperList: PaginatedResponse;
     pageNo: number;
@@ -48,8 +50,6 @@ export const QuestionPapersList = ({
     sectionsForm?: UseFormReturn<SectionFormType>;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -96,7 +96,7 @@ export const QuestionPapersList = ({
         mutationFn: ({ id }: { id: string }) => getQuestionPaperById(id),
         onSuccess: async (data) => {
             setIsSavedQuestionPaperDialogOpen(false);
-            const transformQuestionsData: MyQuestion[] = await processQuestions(
+            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
                 data.question_dtolist,
             );
             if (sectionsForm && index !== undefined) {
@@ -193,10 +193,6 @@ export const QuestionPapersList = ({
                                             refetchData={refetchData}
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                            currentQuestionImageIndex={currentQuestionImageIndex}
-                                            setCurrentQuestionImageIndex={
-                                                setCurrentQuestionImageIndex
-                                            }
                                         />
                                         <DropdownMenuItem
                                             onClick={() =>

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import introJs from "intro.js";
 import "intro.js/introjs.css";
 import useLocalStorage from "./use-local-storage";
-import { IntroJs } from "intro.js/src/intro";
 
 export interface Step {
     element: string;
@@ -19,23 +18,15 @@ interface UseIntroJsTourProps {
     onTourExit?: () => void;
 }
 
-const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsTourProps) => {
+const useIntroJsTour = ({ key, steps, onTourExit }: UseIntroJsTourProps) => {
     const { getValue, setValue } = useLocalStorage<boolean>(key, false);
     const [hasDisplayedIntro, setHasDisplayedIntro] = useState(false);
-    const [introInstance, setIntroInstance] = useState<IntroJs | null>(null);
+
+    const isSingleStep = steps.length === 1;
 
     useEffect(() => {
         if (!getValue() && !hasDisplayedIntro) {
-            // Cleanup existing instance before starting a new one
-            if (introInstance) {
-                introInstance.exit(true);
-            }
-
-            const instance: IntroJs = introJs();
-            setIntroInstance(instance);
-
-            // Handle single step case
-            const isSingleStep = steps.length === 1;
+            const instance = introJs();
 
             instance.setOptions({
                 showProgress: !isSingleStep,
@@ -45,95 +36,43 @@ const useIntroJsTour = ({ key, steps, partial = false, onTourExit }: UseIntroJsT
                 nextLabel: "Next",
                 prevLabel: "Previous",
                 highlightClass: "custom-highlight",
-                tooltipClass: `custom-tooltip ${isSingleStep ? "single-step" : ""}`,
+                tooltipClass: `custom-tooltip `,
                 steps,
-                doneLabel: isSingleStep ? " " : "Done",
+                doneLabel: "Done",
                 exitOnEsc: true,
             });
 
-            let clickListener: (event: MouseEvent) => void;
-            let exitByClickingOutside = false; // Track exit by clicking outside
+            let lastTarget: Element | null = null;
 
-            instance.onchange(() => {
-                // Cleanup previous listeners
-                if (clickListener) {
-                    document.removeEventListener("click", clickListener);
+            instance.onafterchange((targetElement) => {
+                if (lastTarget) {
+                    lastTarget.removeEventListener("click", handleTargetClick);
                 }
 
-                const targetElement = document.querySelector(
-                    steps[instance._currentStep]?.element ?? "",
-                );
-
-                if (targetElement) {
-                    const oldClickOnTarget = targetElement.getAttribute("data-intro-click");
-                    if (oldClickOnTarget) {
-                        targetElement.removeEventListener("click", JSON.parse(oldClickOnTarget));
-                    }
-                }
-
-                // Handle click outside to exit
-                clickListener = (event: MouseEvent) => {
-                    event.stopPropagation();
-                    const target = event.target as HTMLElement;
-                    if (target.classList.contains("introjs-overlay")) {
-                        exitByClickingOutside = true;
-                        instance.exit(true);
-                    }
-                };
-
-                // Handle click on the target element
-                const clickOnTarget = (e: Event) => {
-                    e.stopPropagation();
-                    instance.exit(true);
-                };
-
-                if (targetElement) {
-                    targetElement.setAttribute("data-intro-click", JSON.stringify(clickOnTarget));
-                    targetElement.addEventListener("click", clickOnTarget, { once: true });
-                }
-
-                // document.addEventListener("click", clickListener);
+                targetElement.addEventListener("click", handleTargetClick);
+                lastTarget = targetElement;
             });
 
-            instance.onbeforeexit(() => {
-                // If exited by clicking outside, allow it without confirmation
-                if (exitByClickingOutside) {
-                    exitByClickingOutside = false;
-                    return true;
-                }
+            const handleTargetClick = () => {
+                instance.exit(true);
+                setValue(true);
+                if (onTourExit) onTourExit();
+            };
 
-                // Directly allow exit without confirmation for all steps
-                return true; // Allow normal exit
-            });
-
-            instance.onexit(() => {
-                // Cleanup state and call exit callback
-                console.log("all completed");
-                setHasDisplayedIntro(false);
-                if (!partial) setValue(true);
+            instance.oncomplete(() => {
+                setValue(true);
                 if (onTourExit) onTourExit();
             });
 
-            // For single step, auto-complete after a delay
-            if (isSingleStep) {
-                instance.oncomplete(() => {
-                    console.log("single step completed");
-                    if (!partial) setValue(true);
-                    if (onTourExit) onTourExit();
-                });
-            }
+            instance.onexit(() => {
+                setValue(true);
+                if (onTourExit) onTourExit();
+            });
 
             instance.start();
             setHasDisplayedIntro(true);
         }
-
-        return () => {
-            // Cleanup on unmount
-            if (introInstance) {
-                introInstance.exit(true);
-            }
-        };
-    }, [getValue, setValue, steps, key, onTourExit, hasDisplayedIntro]);
+    }, [getValue, hasDisplayedIntro, key, onTourExit, setValue, steps]);
 
     return null;
 };

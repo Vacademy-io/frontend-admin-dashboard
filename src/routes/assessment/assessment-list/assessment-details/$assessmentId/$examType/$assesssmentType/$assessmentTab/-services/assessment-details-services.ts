@@ -7,6 +7,7 @@ import {
     GET_OVERVIEW_URL,
     GET_PARTICIPANTS_QUESTION_WISE,
     GET_QUESTIONS_INSIGHTS_URL,
+    GET_RELEASE_STUDENT_RESULT,
     GET_REVALUATE_STUDENT_RESULT,
     PRIVATE_ADD_QUESTIONS,
     STUDENT_REPORT_DETAIL_URL,
@@ -15,7 +16,10 @@ import {
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { AssessmentStudentLeaderboardInterface } from "../-components/AssessmentStudentLeaderboard";
 import { AssessmentDetailQuestions } from "../-utils/assessment-details-interface";
-import { SelectedSubmissionsFilterInterface } from "../-components/AssessmentSubmissionsTab";
+import {
+    SelectedReleaseResultFilterInterface,
+    SelectedSubmissionsFilterInterface,
+} from "../-components/AssessmentSubmissionsTab";
 import { StudentReportFilterInterface } from "@/routes/students/students-list/-components/students-list/student-side-view/student-test-records/student-test-record";
 import { SelectedFilterQuestionWise } from "@/types/assessments/student-questionwise-status";
 import { SelectedFilterRevaluateInterface } from "@/types/assessments/assessment-revaluate-question-wise";
@@ -356,6 +360,25 @@ export const getRevaluateStudentResult = async (
     const response = await authenticatedAxiosInstance({
         method: "POST",
         url: GET_REVALUATE_STUDENT_RESULT,
+        params: {
+            assessmentId,
+            instituteId,
+            methodType,
+        },
+        data: selectedFilter,
+    });
+    return response?.data;
+};
+
+export const getReleaseStudentResult = async (
+    assessmentId: string,
+    instituteId: string | undefined,
+    methodType: string,
+    selectedFilter: SelectedReleaseResultFilterInterface,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: GET_RELEASE_STUDENT_RESULT,
         params: {
             assessmentId,
             instituteId,
