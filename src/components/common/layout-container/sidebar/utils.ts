@@ -48,6 +48,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: "Reports",
                 subItemLink: "/study-library/reports",
             },
+            {
+                subItem: "Present",
+                subItemLink: "/study-library/present",
+            },
         ],
     },
     {

@@ -36,7 +36,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
             `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.isSelected`,
         );
 
-        options.forEach((option) => {
+        options?.forEach((option) => {
             setValue(
                 `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.isSelected`,
                 option === optionIndex ? !isCurrentlySelected : false,

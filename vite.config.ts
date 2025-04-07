@@ -12,7 +12,10 @@ export default defineConfig({
     // plugins: [react(), tsconfigPaths(), svgr({ include: "**/*.svg" })],
     resolve: {
         alias: {
+       
+    
             "@": path.resolve(__dirname, "./src"),
+       
         },
     },
     test: {
