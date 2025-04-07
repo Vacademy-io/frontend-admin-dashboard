@@ -7,7 +7,6 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { QuestionPaperUpload } from "./QuestionPaperUpload";
-import { QuestionTypeSelection } from "./QuestionTypeSelection";
 import { useIsMobile } from "@/hooks/use-mobile";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { Dispatch, SetStateAction } from "react";
@@ -69,18 +68,18 @@ export const QuestionPapersHeading = ({
                     <div className="mb-6 mt-2 flex flex-col items-center justify-center gap-6">
                         {/* Create Manually Dialog */}
                         <AlertDialog
-                        // open={isManualQuestionPaperDialogOpen}
-                        // onOpenChange={setIsManualQuestionPaperDialogOpen}
+                            open={isManualQuestionPaperDialogOpen}
+                            onOpenChange={setIsManualQuestionPaperDialogOpen}
                         >
                             <AlertDialogTrigger>
                                 <Button variant="outline" className="w-40 text-neutral-600">
                                     Create Manually
                                 </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="h-[80%] overflow-y-auto p-0">
-                                <div className="sticky top-0 flex items-center justify-between rounded-md bg-primary-50">
+                            <AlertDialogContent className="p-0">
+                                <div className="flex items-center justify-between rounded-md bg-primary-50">
                                     <h1 className="rounded-sm p-4 font-bold text-primary-500">
-                                        Add Question
+                                        Create Question Paper Manually
                                     </h1>
                                     <AlertDialogCancel
                                         onClick={() => setIsManualQuestionPaperDialogOpen(false)}
@@ -89,15 +88,11 @@ export const QuestionPapersHeading = ({
                                         <X className="text-neutral-600" />
                                     </AlertDialogCancel>
                                 </div>
-                                <AlertDialog
-                                    open={isManualQuestionPaperDialogOpen}
-                                    onOpenChange={setIsManualQuestionPaperDialogOpen}
-                                >
-                                    <QuestionTypeSelection
-                                        currentQuestionIndex={currentQuestionIndex}
-                                        setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                    ></QuestionTypeSelection>
-                                </AlertDialog>
+                                <QuestionPaperUpload
+                                    isManualCreated={true}
+                                    currentQuestionIndex={currentQuestionIndex}
+                                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                />
                             </AlertDialogContent>
                         </AlertDialog>
 
