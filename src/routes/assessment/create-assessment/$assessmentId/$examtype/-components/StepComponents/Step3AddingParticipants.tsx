@@ -19,6 +19,8 @@ import {
 import QRCode from "react-qr-code";
 import {
     copyToClipboard,
+    filterLevelDetailsByIds,
+    getAllSessions,
     getCustomFieldsWhileEditStep3,
     getStepKey,
     handleDownloadQRCode,
@@ -48,10 +50,10 @@ import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
 import { convertDateFormat } from "./Step1BasicInfo";
-import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
 import { getInstituteId } from "@/constants/helper";
 import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
-
+import { useStudyLibraryQuery } from "@/routes/study-library/courses/-services/getStudyLibraryDetails";
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 const Step3AddingParticipants: React.FC<StepContentProps> = ({
@@ -86,22 +88,23 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         }),
     );
 
-    const { batches_for_sessions } = instituteDetails || {};
+    const { data: batches_for_sessions } = useSuspenseQuery(useStudyLibraryQuery());
+    const sectionsInfo = getAllSessions(batches_for_sessions);
+
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
 
     // Extract batch IDs from preBatchData
-    const batchIds = new Set(
-        assessmentDetails[currentStep]?.saved_data.pre_batch_registrations.map(
-            (batch) => batch.batchId,
-        ),
+    const batchIds = assessmentDetails[currentStep]?.saved_data.pre_batch_registrations.map(
+        (batch) => batch.batchId,
     );
 
     // Filter matching batches
-    const matchedBatches = batches_for_sessions?.filter((batch) => batchIds.has(batch.id));
+    const matchedBatches = filterLevelDetailsByIds(batches_for_sessions, batchIds);
 
     const transformedBatches =
         assessmentId !== "defaultId"
-            ? transformBatchData(matchedBatches || [])
-            : transformBatchData(batches_for_sessions || []);
+            ? transformBatchData(matchedBatches || [], selectedSection)
+            : transformBatchData(batches_for_sessions || [], selectedSection);
 
     const oldFormData = useRef<TestAccessFormType | null>(null);
 
@@ -126,6 +129,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Full Name",
                         oldKey: true,
                         isRequired: true,
+                        key: "full_name",
                     },
                     {
                         id: "1",
@@ -133,6 +137,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Email",
                         oldKey: true,
                         isRequired: true,
+                        key: "email",
                     },
                     {
                         id: "2",
@@ -140,6 +145,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         name: "Phone Number",
                         oldKey: true,
                         isRequired: true,
+                        key: "phone_number",
                     },
                 ],
             },
@@ -274,6 +280,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 name,
                 oldKey,
                 isRequired: true,
+                key: "",
             },
         ];
 
@@ -299,6 +306,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             oldKey,
             ...(type === "dropdown" && { options: dropdownOptions }), // Include options if type is dropdown
             isRequired: true,
+            key: "",
         };
 
         // Add the new field to the array
@@ -1060,7 +1068,13 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     <AddingParticipantsTab
                         batches={transformedBatches}
                         form={form}
-                        totalBatches={transformBatchData(batches_for_sessions || [])}
+                        totalBatches={transformBatchData(
+                            batches_for_sessions || [],
+                            selectedSection,
+                        )}
+                        selectedSection={selectedSection}
+                        setSelectedSection={setSelectedSection}
+                        sectionsInfo={sectionsInfo}
                     />
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between" id="join-link-qr-code">
@@ -1134,6 +1148,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         </div>
                     </div>
                     <Separator className="my-4" />
+                    {/* will be added later
                     <FormField
                         control={form.control}
                         name="show_leaderboard"
@@ -1148,7 +1163,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 </FormControl>
                             </FormItem>
                         )}
-                    />
+                    /> */}
                     <div className="flex w-3/4 justify-between" id="notify-via-email">
                         {getStepKey({
                             assessmentDetails,
@@ -1262,6 +1277,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 />
                             </div>
                         )}
+                        {/* will be added later
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -1417,7 +1433,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                     )}
                                 />
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </div>
             </form>

@@ -159,24 +159,28 @@ export const ActivityStatsSidebar = () => {
                     </div>
                     <div className="no-scrollbar flex w-full flex-col gap-10 overflow-y-scroll">
                         <div className="flex w-full flex-col gap-6 p-6">
-                            <div>
-                                <MyTable<ActivityStatsColumnsType>
-                                    data={tableData}
-                                    columns={ActivityStatsColumns}
-                                    isLoading={isLoading}
-                                    error={error}
-                                    columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
-                                    currentPage={page}
-                                />
-
-                                <div className="mt-6">
-                                    <MyPagination
+                            {tableData.content.length == 0 ? (
+                                <p className="text-primary-500">No student activity found</p>
+                            ) : (
+                                <div>
+                                    <MyTable<ActivityStatsColumnsType>
+                                        data={tableData}
+                                        columns={ActivityStatsColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
                                         currentPage={page}
-                                        totalPages={tableData.total_pages}
-                                        onPageChange={handlePageChange}
                                     />
+
+                                    <div className="mt-6">
+                                        <MyPagination
+                                            currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                     <ActivityLogDialog />

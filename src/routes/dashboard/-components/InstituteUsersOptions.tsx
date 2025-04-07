@@ -20,6 +20,7 @@ import {
     handleAddUserDashboardRoles,
     handleDeleteDisableDashboardUsers,
 } from "../-services/dashboard-services";
+import { toast } from "sonner";
 export const inviteUsersSchema = z.object({
     roleType: z.array(z.string()).min(1, "At least one role type is required"),
 });
@@ -62,6 +63,10 @@ const ChangeRoleTypeComponent: React.FC<ChangeRoleTypeComponentProps> = ({
         onSuccess: () => {
             onClose();
             refetchData();
+            toast.success("User roles has been changed successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;
@@ -144,6 +149,10 @@ const DisableUserComponent: React.FC<DisableUserComponentProps> = ({
         onSuccess: () => {
             onClose();
             refetchData();
+            toast.success("User has been disabled successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;
@@ -210,6 +219,10 @@ const EnableUserComponent: React.FC<EnableUserComponentProps> = ({
         onSuccess: () => {
             onClose();
             refetchData();
+            toast.success("User has been enabled successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;
@@ -276,6 +289,10 @@ const DeleteUserComponent: React.FC<DeleteUserComponentProps> = ({
         onSuccess: () => {
             onClose();
             refetchData();
+            toast.success("User has been deleted successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;

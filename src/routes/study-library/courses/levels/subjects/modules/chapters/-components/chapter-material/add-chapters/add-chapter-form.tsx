@@ -189,6 +189,7 @@ export const AddChapterForm = ({ initialValues, onSubmitSuccess, mode }: AddChap
 
                 await updateChapterMutation.mutateAsync({
                     chapterId: initialValues.chapter.id,
+                    moduleId: moduleId,
                     commaSeparatedPackageSessionIds: selectedPackageSessionIds,
                     chapter: updatedChapter,
                 });

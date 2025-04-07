@@ -9,10 +9,10 @@ import {
     getStudentReport,
     handleStudentReportData,
     viewStudentReport,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyPagination } from "@/components/design-system/pagination";
-import { AssessmentDetailsSearchComponent } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/SearchComponent";
+import { AssessmentDetailsSearchComponent } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/SearchComponent";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { AssessmentReportStudentInterface } from "@/types/assessments/assessment-overview";

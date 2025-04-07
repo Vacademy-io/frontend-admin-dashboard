@@ -45,6 +45,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: "/study-library/session",
             },
             {
+                subItem: "Reports",
+                subItemLink: "/study-library/reports",
+            },
+            {
                 subItem: "Present",
                 subItemLink: "/study-library/present",
             },
@@ -58,7 +62,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
         subItems: [
             {
                 subItem: "Assessment List",
-                subItemLink: "/assessment/assessment-list",
+                subItemLink: "/assessment/assessment-list?selectedTab=liveTests",
             },
             {
                 subItem: "Question Papers",

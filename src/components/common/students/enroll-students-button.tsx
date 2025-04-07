@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { EnrollManuallyButton } from "./enroll-manually/enroll-manually-button";
-import { EnrollBulkButton } from "./enroll-bulk/enroll-bulk-button";
+import { EnrollBulkButton } from "@/routes/students/students-list/-components/enroll-bulk/enroll-bulk-button";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { cn } from "@/lib/utils";

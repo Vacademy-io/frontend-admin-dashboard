@@ -1,177 +1,236 @@
-import { MyButton } from "@/components/design-system/button";
-import { useInviteFormContext } from "@/routes/students/invite/-context/useInviteFormContext";
-import { Check, PencilSimple } from "phosphor-react";
-import { useState } from "react";
-import { useCourseManager } from "../../../../-hooks/useCourseManager";
-import { CourseSelection } from "./CourseSelection";
-import { Separator } from "@/components/ui/separator";
-import { MaxLimitField } from "../MaxLimitField";
+// import { MyButton } from "@/components/design-system/button";
+// import { useInviteFormContext } from "@/routes/students/invite/-context/useInviteFormContext";
+// import { useEffect, useState } from "react";
+// import { useCourseManager } from "../../../../-hooks/useCourseManager";
+// import { CourseSelection } from "./CourseSelection";
+// import { MaxLimitField } from "../MaxLimitField";
+// import { TrashSimple } from "phosphor-react";
 
-export const CourseList = () => {
-    const { form } = useInviteFormContext();
-    const { getValues } = form;
-    const batch = getValues("batches");
-    const { getAllAvailableCourses, setMaxCourses } = useCourseManager();
-    const [isAddingCourse, setIsAddingCourse] = useState(false);
-    const [isSavingAll, setIsSavingAll] = useState(false);
-    const [isMaxValueSaved, setIsMaxValueSaved] = useState(false);
+// export const CourseList = () => {
+//     const { form } = useInviteFormContext();
+//     const { getValues, watch } = form;
+//     const {
+//         getAllAvailableCourses,
+//         setMaxCourses,
+//         hasValidPreSelectedCourseStructure,
+//         hasValidLearnerChoiceCourseStructure,
+//         isValidPreSelectedCourse,
+//         isValidLearnerChoiceCourse,
+//         deleteCourse, // Import the deleteCourse function from useCourseManager
+//     } = useCourseManager();
+//     const [isAddingCourse, setIsAddingCourse] = useState(false);
+//     const [isMaxLimitSaved, setIsMaxLimitSaved] = useState(false);
+//     useEffect(() => {
+//         console.log(isMaxLimitSaved);
+//     }, []);
+//     const handleIsMaxLimitSaved = (value: boolean) => setIsMaxLimitSaved(value);
+//     const handleIsAddingCourse = (value: boolean) => {
+//         setIsAddingCourse(value);
+//         if (!value) setIsAddingNewCourse(false); // Reset when not adding a course
+//     };
+//     const [batchData, setBatchData] = useState(getValues("batches"));
+//     const [isAddingNewCourse, setIsAddingNewCourse] = useState(false);
 
-    const availableCourses = getAllAvailableCourses();
-    // Get preSelectedSessions
-    const preSelectedCourses = batch?.preSelectedCourses || [];
+//     useEffect(() => {
+//         const currentBatchData = getValues("batches");
+//         setBatchData(currentBatchData);
+//     }, [watch("batches")]);
 
-    // Get learnerChoiceSessions (available for both course types)
-    const learnerChoiceCourses = batch?.learnerChoiceCourses || [];
+//     // Default to 0 if maxSessions not provided in props and not on course
+//     const currentMaxCourses = batchData?.maxCourses || 1;
 
-    // Default to 0 if maxSessions not provided in props and not on course
-    const currentMaxCourses = batch?.maxCourses || 0;
+//     // Handle max sessions change
+//     const handleMaxCoursesChange = (value: number) => {
+//         const success = setMaxCourses(value);
+//         if (success) {
+//             console.log("Max courses updated to:", value);
+//         }
+//     };
 
-    // Handle max sessions change
-    const handleMaxCoursesChange = (value: number) => {
-        const success = setMaxCourses(value);
-        if (success) {
-            console.log("Max courses updated to:", value);
-        }
-    };
+//     // Handle save all button click
+//     // const handleSaveAll = () => {
+//     //     setIsAddingCourse(false);
+//     // };
 
-    // Handle save all button click
-    const handleSaveAll = () => {
-        setIsSavingAll(true);
-        setIsAddingCourse(false);
-    };
+//     // Handle course deletion
+//     const handleDeleteCourse = (courseId: string) => {
+//         const success = deleteCourse(courseId);
+//         if (success) {
+//             console.log("Course deleted successfully:", courseId);
+//             // The form state will be updated automatically through the form context
+//             // and the component will re-render with the updated batchData
+//         } else {
+//             console.error("Failed to delete course:", courseId);
+//         }
+//     };
 
-    // Handle save max value button click
-    const handleSaveMaxValue = () => {
-        setIsMaxValueSaved(true);
-    };
+//     useEffect(() => {
+//         if (isAddingCourse == false) setIsAddingCourse(false);
+//     }, [isAddingCourse]);
 
-    // Handle edit max value button click
-    const handleEditMaxValue = () => {
-        setIsMaxValueSaved(false);
-        setIsSavingAll(false);
-    };
+//     const currentAvailableCourses = getAllAvailableCourses();
 
-    return (
-        <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-                <p className="text-title font-semibold">Courses</p>
+//     return (
+//         <div className="flex flex-col gap-2">
+//             <div className="flex flex-col gap-3">
+//                 <div className="flex items-center gap-2">
+//                     <p className="text-title font-semibold">Batches</p>
 
-                {/* Show Save All button when not adding a session */}
-                {!isAddingCourse &&
-                    (preSelectedCourses.length > 0 || learnerChoiceCourses.length > 0) && (
-                        <MyButton onClick={handleSaveAll} type="button" scale="small">
-                            Save All
-                        </MyButton>
-                    )}
-            </div>
+//                     {/* Show Save All button when not adding a course */}
+//                     {/* {!isAddingCourse &&
+//                         (batchData.preSelectedCourses.length > 0 ||
+//                             batchData.learnerChoiceCourses.length > 0) && (
+//                             <MyButton
+//                                 onClick={handleSaveAll}
+//                                 type="button"
+//                                 scale="small"
+//                                 className="w-fit"
+//                             >
+//                                 Save All
+//                             </MyButton>
+//                         )} */}
 
-            {/* Sessions List */}
-            <div className="flex flex-col gap-2">
-                {/* Display Compulsory (PreSelected) Sessions if present */}
-                {preSelectedCourses.length > 0 && (
-                    <div className="flex flex-col gap-2">
-                        <p className="text-subtitle font-medium">Compulsory Courses</p>
-                        <ul className="list-disc pl-5">
-                            {preSelectedCourses.map((course) => (
-                                <CourseSelection
-                                    key={course.id}
-                                    courseId={course.id}
-                                    isCourseCompulsory={true}
-                                />
-                            ))}
-                        </ul>
-                    </div>
-                )}
+//                     {/* MaxLimitField will handle its own editing/saving state */}
+//                     {(batchData.preSelectedCourses.length > 0 ||
+//                         batchData.learnerChoiceCourses.length > 0) && (
+//                         <MaxLimitField
+//                             title="Course"
+//                             maxAllowed={batchData.learnerChoiceCourses.length}
+//                             maxValue={currentMaxCourses}
+//                             onMaxChange={handleMaxCoursesChange}
+//                             handleIsMaxLimitSaved={handleIsMaxLimitSaved}
+//                         />
+//                     )}
+//                 </div>
 
-                {learnerChoiceCourses.length > 0 && (
-                    <div className="flex flex-col gap-2">
-                        <p className="text-subtitle font-medium">Learner Choice Courses</p>
-                        <ul className="list-disc pl-5">
-                            {learnerChoiceCourses.map((course) => (
-                                <CourseSelection
-                                    key={course.id}
-                                    courseId={course.id}
-                                    isCourseCompulsory={false}
-                                />
-                            ))}
-                        </ul>
-                    </div>
-                )}
+//                 {/* Show a message if no courses are present */}
+//                 {batchData.preSelectedCourses.length === 0 &&
+//                     batchData.learnerChoiceCourses.length === 0 &&
+//                     !isAddingCourse && (
+//                         <p className="text-body text-neutral-500">No courses added yet</p>
+//                     )}
 
-                {/* Show a message if no sessions are present */}
-                {preSelectedCourses.length === 0 &&
-                    learnerChoiceCourses.length === 0 &&
-                    !isAddingCourse && (
-                        <p className="text-body text-neutral-500">No courses added yet</p>
-                    )}
-            </div>
+//                 {hasValidPreSelectedCourseStructure() &&
+//                     batchData.preSelectedCourses.length > 0 &&
+//                     batchData.preSelectedCourses.map(
+//                         (course, key) =>
+//                             isValidPreSelectedCourse(course) && (
+//                                 <div
+//                                     key={key}
+//                                     className="flex justify-between rounded-lg border border-neutral-300 bg-primary-50 p-4"
+//                                 >
+//                                     <div>
+//                                         <p>Pre selected Course name: {course.name}</p>
+//                                         {course.preSelectedSessions.length > 0 && (
+//                                             <p>Pre selection sessions</p>
+//                                         )}
+//                                         {course.preSelectedSessions.map((session, key1) => (
+//                                             <div key={key1}>
+//                                                 <p>Session name: {session.name}</p>
+//                                                 {session.preSelectedLevels &&
+//                                                     session.preSelectedLevels.length > 0 && (
+//                                                         <p>Pre selected levels</p>
+//                                                     )}
+//                                                 {session.preSelectedLevels.map((level, key2) => (
+//                                                     <p key={key2}>level name: {level.name}</p>
+//                                                 ))}
+//                                                 {session.learnerChoiceLevels &&
+//                                                     session.learnerChoiceLevels.length > 0 && (
+//                                                         <p>learner choice levels</p>
+//                                                     )}
+//                                                 {session.learnerChoiceLevels.map((level, key2) => (
+//                                                     <p key={key2}>level name: {level.name}</p>
+//                                                 ))}
+//                                             </div>
+//                                         ))}
+//                                         {course.learnerChoiceSessions.length > 0 && (
+//                                             <p>Learner choice sessions</p>
+//                                         )}
+//                                         {course.learnerChoiceSessions.map((session, key1) => (
+//                                             <div key={key1}>
+//                                                 <p>Session name: {session.name}</p>
+//                                                 {session.learnerChoiceLevels &&
+//                                                     session.learnerChoiceLevels.length > 0 && (
+//                                                         <p>learner choice levels</p>
+//                                                     )}
+//                                                 {session.learnerChoiceLevels.map((level, key2) => (
+//                                                     <p key={key2}>level name: {level.name}</p>
+//                                                 ))}
+//                                             </div>
+//                                         ))}
+//                                     </div>
+//                                     <MyButton
+//                                         buttonType="secondary"
+//                                         scale="small"
+//                                         onClick={() => handleDeleteCourse(course.id)}
+//                                         type="button"
+//                                     >
+//                                         <TrashSimple className="text-danger-600" />
+//                                     </MyButton>
+//                                 </div>
+//                             ),
+//                     )}
 
-            {/* Max Limit Field Section - visible when Save All clicked */}
-            {isSavingAll && !isMaxValueSaved && (
-                <div className="flex items-center gap-2">
-                    <MaxLimitField
-                        title="Session"
-                        maxAllowed={10}
-                        maxValue={currentMaxCourses}
-                        onMaxChange={handleMaxCoursesChange}
-                    />
-                    <MyButton
-                        buttonType="secondary"
-                        scale="medium"
-                        layoutVariant="icon"
-                        onClick={handleSaveMaxValue}
-                        type="button"
-                    >
-                        <Check />
-                    </MyButton>
-                </div>
-            )}
+//                 {hasValidLearnerChoiceCourseStructure() &&
+//                     batchData.learnerChoiceCourses.length > 0 &&
+//                     batchData.learnerChoiceCourses.map(
+//                         (course, key) =>
+//                             isValidLearnerChoiceCourse(course) && (
+//                                 <div
+//                                     key={key}
+//                                     className="flex justify-between rounded-lg border border-neutral-300 bg-primary-50 p-4"
+//                                 >
+//                                     <div>
+//                                         <p>Learner choice Course name: {course.name}</p>
+//                                         {course.learnerChoiceSessions.length > 0 && (
+//                                             <p>Learner choice sessions</p>
+//                                         )}
+//                                         {course.learnerChoiceSessions.map((session, key1) => (
+//                                             <div key={key1}>
+//                                                 <p>Session name: {session.name}</p>
+//                                                 {session.learnerChoiceLevels &&
+//                                                     session.learnerChoiceLevels.length > 0 && (
+//                                                         <p>learner choice levels</p>
+//                                                     )}
+//                                                 {session.learnerChoiceLevels.map((level, key2) => (
+//                                                     <p key={key2}>level name: {level.name}</p>
+//                                                 ))}
+//                                             </div>
+//                                         ))}
+//                                     </div>
+//                                     <MyButton
+//                                         buttonType="secondary"
+//                                         scale="small"
+//                                         onClick={() => handleDeleteCourse(course.id)}
+//                                         type="button"
+//                                     >
+//                                         <TrashSimple className="text-danger-600" />
+//                                     </MyButton>
+//                                 </div>
+//                             ),
+//                     )}
+//             </div>
 
-            {/* Max Value Display with Edit Button - visible after saving max value */}
-            {isSavingAll && isMaxValueSaved && (
-                <div className="flex items-center justify-between rounded-md border border-neutral-200 p-3">
-                    <div className="flex flex-col">
-                        <p className="text-subtitle font-semibold">Maximum Courses</p>
-                        <p className="text-body">{currentMaxCourses}</p>
-                    </div>
-                    <MyButton
-                        buttonType="secondary"
-                        scale="small"
-                        layoutVariant="icon"
-                        onClick={handleEditMaxValue}
-                        type="button"
-                    >
-                        <PencilSimple />
-                    </MyButton>
-                </div>
-            )}
+//             {/* Session Selection form when adding a session */}
+//             {isAddingCourse && isAddingNewCourse && (
+//                 <div className="flex items-center gap-1">
+//                     <CourseSelection handleIsAddingCourse={handleIsAddingCourse} />
+//                 </div>
+//             )}
 
-            {/* Session Selection form when adding a session */}
-            {!isSavingAll && isAddingCourse && (
-                <div className="flex items-center gap-1">
-                    <CourseSelection />
-                    {/* <MyButton
-                        buttonType="secondary"
-                        layoutVariant="icon"
-                        onClick={() => setIsAddingCourse(false)}
-                        type="button"
-                        >
-                        <Check />
-                    </MyButton> */}
-                </div>
-            )}
-
-            <Separator />
-            {!isSavingAll && availableCourses.length > 0 && (
-                <div>
-                    <div
-                        onClick={() => setIsAddingCourse(true)}
-                        className="w-fit cursor-pointer text-body text-primary-500"
-                    >
-                        Add Course
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
+//             {!isAddingCourse && currentAvailableCourses.length > 0 && (
+//                 <div>
+//                     <div
+//                         onClick={() => {
+//                             setIsAddingCourse(true);
+//                             setIsAddingNewCourse(true);
+//                         }}
+//                         className="w-fit cursor-pointer text-body text-primary-500"
+//                     >
+//                         Add Course
+//                     </div>
+//                 </div>
+//             )}
+//         </div>
+//     );
+// };

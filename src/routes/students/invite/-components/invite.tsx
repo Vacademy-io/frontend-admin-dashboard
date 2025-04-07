@@ -16,7 +16,7 @@ import { usePaginationState } from "@/hooks/pagination";
 import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import createInviteLink from "../-utils/createInviteLink";
-import { InviteFormProvider } from "../-context/useInviteFormContext";
+import { useInviteFormContext } from "../-context/useInviteFormContext";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -27,16 +27,14 @@ export const Invite = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+    const { form } = useInviteFormContext();
+    const { setValue } = form;
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
         initialPageSize: 5,
     });
 
-    // const [filterRequest, setFilterRequest] = useState<InviteFilterRequest>({
-    //     status: ["ACTIVE", "INACTIVE"],
-    //     name: ""
-    // })
     const filterRequest = {
         status: ["ACTIVE", "INACTIVE"],
         name: "",
@@ -64,11 +62,8 @@ export const Invite = () => {
     );
 
     const inviteSubmitButton = (
-        <div
-            className="flex w-full items-center justify-end"
-            onClick={() => formSubmitRef.current()}
-        >
-            <MyButton>Create</MyButton>
+        <div className="flex w-full items-center justify-end">
+            <MyButton onClick={() => formSubmitRef.current()}>Create</MyButton>
         </div>
     );
 
@@ -99,6 +94,12 @@ export const Invite = () => {
             toast.success("invitation created");
             const link = createInviteLink(responseData?.learner_invitation?.invite_code || "");
             setInviteLink(link);
+            setValue("batches", {
+                maxCourses: 0,
+                courseSelectionMode: "institute",
+                preSelectedCourses: [],
+                learnerChoiceCourses: [],
+            });
             // setOpenCreateInviteDialog(false);
         } catch {
             toast.error("failed to create invitation");
@@ -109,26 +110,25 @@ export const Invite = () => {
         <div className="flex w-full flex-col gap-10">
             <div className="flex items-center justify-between">
                 <p className="text-h3 font-semibold">Invite Link List</p>
-                <InviteFormProvider>
-                    <CreateInviteDialog
-                        triggerButton={CreateInviteButton}
-                        submitButton={inviteSubmitButton}
-                        submitForm={(fn: () => void) => {
-                            formSubmitRef.current = fn;
-                        }}
-                        onCreateInvite={onCreateInvite}
-                        open={openCreateInviteDialog}
-                        onOpenChange={onOpenChangeCreateInviteDialog}
-                        inviteLink={inviteLink}
-                    />
-                </InviteFormProvider>
+                <CreateInviteDialog
+                    triggerButton={CreateInviteButton}
+                    submitButton={inviteSubmitButton}
+                    submitForm={(fn: () => void) => {
+                        formSubmitRef.current = fn;
+                    }}
+                    onCreateInvite={onCreateInvite}
+                    open={openCreateInviteDialog}
+                    onOpenChange={onOpenChangeCreateInviteDialog}
+                    inviteLink={inviteLink}
+                    setInviteLink={setInviteLink}
+                />
             </div>
             <div className="flex w-full flex-col gap-10">
                 {isError ? (
                     <p>Error fetching invitation links</p>
                 ) : isLoading ? (
                     <DashboardLoader />
-                ) : !inviteList || !inviteList.content ? (
+                ) : !inviteList || !inviteList.content || inviteList?.content.length == 0 ? (
                     <div className="flex h-[70vh] w-full flex-col items-center justify-center gap-2">
                         <EmptyInvitePage />
                         <p>No invite link has been created yet!</p>

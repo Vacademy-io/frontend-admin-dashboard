@@ -1,25 +1,31 @@
 import { PolarGrid, PolarRadiusAxis, RadialBar, RadialBarChart } from "recharts";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 
-const chartData = [{ browser: "safari", visitors: 200, fill: "var(--color-safari)" }];
-
 const chartConfig = {
     visitors: {
         label: "Visitors",
-    },
-    safari: {
-        label: "Safari",
         color: "#F6B97B",
     },
 } satisfies ChartConfig;
 
-export function CompletionStatusComponent() {
+export function CompletionStatusComponent({
+    profileCompletionPercentage,
+}: {
+    profileCompletionPercentage: number;
+}) {
+    const chartData = [
+        {
+            browser: "visitors",
+            visitors: profileCompletionPercentage,
+            fill: "var(--color-visitors)",
+        },
+    ];
     return (
         <ChartContainer config={chartConfig} className="h-[100px] w-[80px]">
             <RadialBarChart
                 data={chartData}
                 startAngle={0}
-                endAngle={250}
+                endAngle={profileCompletionPercentage * 4}
                 innerRadius={30}
                 outerRadius={50}
             >

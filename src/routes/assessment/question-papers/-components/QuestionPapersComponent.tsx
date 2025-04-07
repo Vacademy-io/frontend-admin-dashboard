@@ -7,7 +7,6 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 export function QuestionPapersComponent() {
     const { setNavHeading } = useNavHeadingStore();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
 
     useEffect(() => {
         setNavHeading(<h1 className="text-lg">Question Papers</h1>);
@@ -26,15 +25,11 @@ export function QuestionPapersComponent() {
                 <QuestionPapersHeading
                     currentQuestionIndex={currentQuestionIndex}
                     setCurrentQuestionIndex={setCurrentQuestionIndex}
-                    currentQuestionImageIndex={currentQuestionImageIndex}
-                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                 />
                 <QuestionPapersTabs
                     isAssessment={false}
                     currentQuestionIndex={currentQuestionIndex}
                     setCurrentQuestionIndex={setCurrentQuestionIndex}
-                    currentQuestionImageIndex={currentQuestionImageIndex}
-                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                 />
             </div>
         </>

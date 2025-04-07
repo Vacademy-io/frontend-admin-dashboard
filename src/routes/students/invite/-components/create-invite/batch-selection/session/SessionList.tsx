@@ -1,190 +1,169 @@
-import { useSessionManager } from "../../../../-hooks/useSessionManager";
-import { PreSelectedCourse } from "@/routes/students/invite/-schema/InviteFormSchema";
-import { SessionSelection } from "./SessionSelection";
-import { MyButton } from "@/components/design-system/button";
-import { useState } from "react";
-import { Check, PencilSimple } from "phosphor-react";
-import { MaxLimitField } from "../MaxLimitField";
+// import { useSessionManager } from "../../../../-hooks/useSessionManager";
+// import {
+//     LearnerChoiceSession,
+//     PreSelectedCourse,
+//     PreSelectedSession,
+// } from "@/routes/students/invite/-schema/InviteFormSchema";
+// import { SessionSelection } from "./SessionSelection";
+// import { MyButton } from "@/components/design-system/button";
+// import { useEffect, useState } from "react";
+// import { MaxLimitField } from "../MaxLimitField";
 
-interface SessionListProps {
-    courseId: string;
-    isCourseCompulsory: boolean;
-    maxSessions?: number;
-}
+// interface SessionListProps {
+//     courseId: string;
+//     isCourseCompulsory: boolean;
+//     maxSessions?: number;
+//     handleIsAddingSession: (value: boolean) => void;
+//     isAddingSession: boolean;
+//     handleSessionSaved: (value: boolean) => void;
+// }
 
-// Type guard
-// eslint-disable-next-line
-function isPreSelectedCourse(course: any): course is PreSelectedCourse {
-    return "preSelectedSessions" in course;
-}
+// // Type guard
+// // eslint-disable-next-line
+// function isPreSelectedCourse(course: any): course is PreSelectedCourse {
+//     return "preSelectedSessions" in course;
+// }
 
-export const SessionList = ({ courseId, isCourseCompulsory, maxSessions }: SessionListProps) => {
-    const { getCourse, getAllAvailableSessions, setMaxSessions } = useSessionManager(
-        courseId,
-        isCourseCompulsory,
-    );
-    const { course } = getCourse();
-    const [isAddingSession, setIsAddingSession] = useState(false);
-    const [isSavingAll, setIsSavingAll] = useState(false);
-    const [isMaxValueSaved, setIsMaxValueSaved] = useState(false);
+// export const SessionList = ({
+//     courseId,
+//     isCourseCompulsory,
+//     maxSessions,
+//     handleIsAddingSession,
+//     isAddingSession,
+//     handleSessionSaved,
+// }: SessionListProps) => {
+//     const { getCourse, getAllAvailableSessions, setMaxSessions, getCurrentSessions } =
+//         useSessionManager(courseId, isCourseCompulsory);
+//     const { course } = getCourse();
+//     const [isMaxLimitSaved, setIsMaxLimitSaved] = useState(false);
+//     const handleIsMaxLimitSaved = (value: boolean) => setIsMaxLimitSaved(value);
+//     const availableSessions = getAllAvailableSessions();
+//     const [sessionsSaved, setSessionsSaved] = useState(false);
 
-    const availableSessions = getAllAvailableSessions();
-    // Get preSelectedSessions
-    const preSelectedSessions =
-        course && isPreSelectedCourse(course) ? course.preSelectedSessions || [] : [];
+//     const [sessions, setSessions] = useState<{
+//         preSelectedSessions: PreSelectedSession[];
+//         learnerChoiceSessions: LearnerChoiceSession[];
+//     }>({
+//         preSelectedSessions: [],
+//         learnerChoiceSessions: course?.learnerChoiceSessions || [],
+//     });
+//     const currentMaxSessions = maxSessions || course?.maxSessions || 1;
+//     const [isLevelSaved, setIsLevelSaved] = useState(false);
+//     const handleIsLevelSaved = (value: boolean) => setIsLevelSaved(value);
 
-    // Get learnerChoiceSessions (available for both course types)
-    const learnerChoiceSessions = course ? course.learnerChoiceSessions || [] : [];
+//     useEffect(() => {
+//         if (!isLevelSaved) handleIsAddingSession(true);
+//     }, [isLevelSaved]);
 
-    // Default to 0 if maxSessions not provided in props and not on course
-    const currentMaxSessions = maxSessions || course?.maxSessions || 0;
+//     useEffect(() => {
+//         const value = getCurrentSessions();
+//         setSessions(value);
+//     }, [courseId, isCourseCompulsory, isAddingSession]);
 
-    // Handle max sessions change
-    const handleMaxSessionsChange = (value: number) => {
-        const success = setMaxSessions(value);
-        if (success) {
-            console.log("Max sessions updated to:", value);
-        }
-    };
+//     // Handle max sessions change
+//     const handleMaxSessionsChange = (value: number) => {
+//         const success = setMaxSessions(value);
+//         if (success) {
+//             console.log("Max sessions updated to:", value);
+//         }
+//     };
 
-    // Handle save all button click
-    const handleSaveAll = () => {
-        setIsSavingAll(true);
-        setIsAddingSession(false);
-    };
+//     // Handle save all button click
+//     const handleSaveAll = () => {
+//         setSessionsSaved(true);
+//     };
 
-    // Handle save max value button click
-    const handleSaveMaxValue = () => {
-        setIsMaxValueSaved(true);
-    };
+//     useEffect(() => {
+//         handleSessionSaved(sessionsSaved);
+//         handleIsAddingSession(!sessionsSaved);
+//     }, [sessionsSaved]);
 
-    // Handle edit max value button click
-    const handleEditMaxValue = () => {
-        setIsMaxValueSaved(false);
-        setIsSavingAll(false);
-    };
+//     return (
+//         <div className="flex flex-col">
+//             <div className="flex items-center justify-between gap-2">
+//                 <p className="text-subtitle font-semibold underline">Sessions</p>
 
-    return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-2">
-                <p className="text-title font-semibold">Sessions</p>
+//                 {/* Show Save All button when not adding a session */}
+//                 {!isAddingSession &&
+//                     (sessions.preSelectedSessions.length > 0 ||
+//                         sessions.learnerChoiceSessions.length > 0) &&
+//                     !isMaxLimitSaved &&
+//                     !sessionsSaved &&
+//                     (sessions.learnerChoiceSessions.length > 0 ||
+//                         sessions.preSelectedSessions.length > 0) &&
+//                     isLevelSaved && (
+//                         <MyButton onClick={handleSaveAll} type="button" scale="small">
+//                             Save All
+//                         </MyButton>
+//                     )}
 
-                {/* Show Save All button when not adding a session */}
-                {!isAddingSession &&
-                    (learnerChoiceSessions.length > 0 || preSelectedSessions.length > 0) && (
-                        <MyButton onClick={handleSaveAll} type="button" scale="small">
-                            Save All
-                        </MyButton>
-                    )}
-            </div>
+//                 {/* MaxLimitField will handle its own editing/saving state */}
+//                 {!isAddingSession && sessions.learnerChoiceSessions.length > 0 && sessionsSaved && (
+//                     <MaxLimitField
+//                         title="Session"
+//                         maxAllowed={sessions.learnerChoiceSessions.length}
+//                         maxValue={currentMaxSessions}
+//                         onMaxChange={handleMaxSessionsChange}
+//                         handleIsMaxLimitSaved={handleIsMaxLimitSaved}
+//                     />
+//                 )}
+//             </div>
 
-            {/* Sessions List */}
-            <div className="flex flex-col gap-4">
-                {/* Display Compulsory (PreSelected) Sessions if present */}
-                {preSelectedSessions.length > 0 && (
-                    <div className="flex flex-col gap-2">
-                        <p className="text-subtitle font-medium">Compulsory Sessions</p>
-                        <ul className="list-disc pl-5">
-                            {preSelectedSessions.map((session) => (
-                                <SessionSelection
-                                    key={session.id}
-                                    courseId={courseId}
-                                    isCourseCompulsory={isCourseCompulsory}
-                                    sessionId={session.id}
-                                    isSessionCompulsory={true}
-                                />
-                            ))}
-                        </ul>
-                    </div>
-                )}
+//             {sessions.preSelectedSessions.length === 0 &&
+//                 sessions.learnerChoiceSessions.length === 0 &&
+//                 !isAddingSession && (
+//                     <p className="text-body text-neutral-500">No sessions added yet</p>
+//                 )}
 
-                {/* Display Learner Choice Sessions if present */}
-                {learnerChoiceSessions.length > 0 && (
-                    <div className="flex flex-col gap-2 border border-neutral-300">
-                        <p className="text-subtitle font-medium">Learner Choice Sessions</p>
-                        <ul className="list-disc pl-5">
-                            {learnerChoiceSessions.map((session) => (
-                                <SessionSelection
-                                    key={session.id}
-                                    courseId={courseId}
-                                    isCourseCompulsory={isCourseCompulsory}
-                                    sessionId={session.id}
-                                    isSessionCompulsory={false}
-                                />
-                            ))}
-                        </ul>
-                    </div>
-                )}
+//             {sessions.preSelectedSessions.length > 0 &&
+//                 sessions.preSelectedSessions.map((preSelectedSession, index) => (
+//                     <SessionSelection
+//                         key={index}
+//                         courseId={courseId}
+//                         isCourseCompulsory={isCourseCompulsory}
+//                         handleIsAddingSession={handleIsAddingSession}
+//                         sessionId={preSelectedSession.id}
+//                         isSessionCompulsory={true}
+//                         handleIsLevelSaved={handleIsLevelSaved}
+//                     />
+//                 ))}
+//             {sessions.learnerChoiceSessions.length > 0 &&
+//                 sessions.learnerChoiceSessions.map((learnerChoiceSession, index) => (
+//                     <SessionSelection
+//                         key={index}
+//                         courseId={courseId}
+//                         isCourseCompulsory={isCourseCompulsory}
+//                         handleIsAddingSession={handleIsAddingSession}
+//                         sessionId={learnerChoiceSession.id}
+//                         isSessionCompulsory={false}
+//                         handleIsLevelSaved={handleIsLevelSaved}
+//                     />
+//                 ))}
 
-                {/* Show a message if no sessions are present */}
-                {preSelectedSessions.length === 0 &&
-                    learnerChoiceSessions.length === 0 &&
-                    !isAddingSession && <p>No sessions added yet</p>}
-            </div>
+//             {/* Add Session button or Session form */}
+//             {availableSessions.length > 0 && !isAddingSession && (
+//                 <MyButton
+//                     onClick={() => handleIsAddingSession(true)}
+//                     type="button"
+//                     scale="small"
+//                     buttonType="text"
+//                     className="w-fit px-0 text-primary-500"
+//                 >
+//                     Add session
+//                 </MyButton>
+//             )}
 
-            {/* <Separator /> */}
-
-            {/* Max Limit Field Section - visible when Save All clicked */}
-            {isSavingAll && !isMaxValueSaved && (
-                <div className="flex items-center gap-2">
-                    <MaxLimitField
-                        title="Session"
-                        maxAllowed={10}
-                        maxValue={currentMaxSessions}
-                        onMaxChange={handleMaxSessionsChange}
-                    />
-                    <MyButton
-                        buttonType="secondary"
-                        scale="medium"
-                        layoutVariant="icon"
-                        onClick={handleSaveMaxValue}
-                        type="button"
-                    >
-                        <Check />
-                    </MyButton>
-                </div>
-            )}
-
-            {/* Max Value Display with Edit Button - visible after saving max value */}
-            {isSavingAll && isMaxValueSaved && (
-                <div className="flex items-center justify-between rounded-md border border-neutral-200 p-3">
-                    <div className="flex flex-col">
-                        <p className="text-subtitle font-semibold">Maximum Sessions</p>
-                        <p className="text-body">{currentMaxSessions}</p>
-                    </div>
-                    <MyButton
-                        buttonType="secondary"
-                        scale="small"
-                        layoutVariant="icon"
-                        onClick={handleEditMaxValue}
-                        type="button"
-                    >
-                        <PencilSimple />
-                    </MyButton>
-                </div>
-            )}
-
-            {/* Add Session button or Session form */}
-            {!isSavingAll && availableSessions.length > 0 && !isAddingSession && (
-                <MyButton onClick={() => setIsAddingSession(true)} type="button" scale="small">
-                    Add session
-                </MyButton>
-            )}
-
-            {/* Session Selection form when adding a session */}
-            {!isSavingAll && isAddingSession && (
-                <div className="flex items-center gap-1">
-                    <SessionSelection courseId={courseId} isCourseCompulsory={isCourseCompulsory} />
-                    {/* <MyButton
-                        buttonType="primary"
-                        layoutVariant="icon"
-                        onClick={() => setIsAddingSession(false)}
-                        type="button"
-                    >
-                        <Check />
-                    </MyButton> */}
-                </div>
-            )}
-        </div>
-    );
-};
+//             {/* Session Selection form when adding a session */}
+//             {isAddingSession && (
+//                 <div className="flex items-center gap-1">
+//                     <SessionSelection
+//                         courseId={courseId}
+//                         isCourseCompulsory={isCourseCompulsory}
+//                         handleIsAddingSession={handleIsAddingSession}
+//                         handleIsLevelSaved={handleIsLevelSaved}
+//                     />
+//                 </div>
+//             )}
+//         </div>
+//     );
+// };

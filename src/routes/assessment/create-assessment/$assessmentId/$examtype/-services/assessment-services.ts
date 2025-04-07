@@ -25,8 +25,8 @@ import {
 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
-import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/assessment-details-interface";
 import { TestAccessFormType } from "@/types/assessments/assessment-steps";
+import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/assessment-details-interface";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -246,7 +246,7 @@ export const convertCustomFields = (customFields: CustomFields): ConvertedCustom
             default_value: "", // Provide a default value, if necessary
             description: "", // Provide a description, if necessary
             is_mandatory: field.isRequired,
-            key: "", // Use the ID as the key
+            key: field.key ?? "", // Use the ID as the key
             comma_separated_options: field.options
                 ? field.options.map((opt) => opt.value).join(",")
                 : "", // Join options for dropdowns

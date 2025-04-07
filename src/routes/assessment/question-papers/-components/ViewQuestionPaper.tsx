@@ -16,8 +16,6 @@ export const ViewQuestionPaper = ({
     isAssessment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
 }: {
     questionPaperId: string | undefined;
     title: string | undefined;
@@ -27,8 +25,6 @@ export const ViewQuestionPaper = ({
     isAssessment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }) => {
     const { instituteDetails } = useInstituteDetailsStore();
     const form = useForm<z.infer<typeof uploadQuestionPaperFormSchema>>({
@@ -47,108 +43,7 @@ export const ViewQuestionPaper = ({
             answersType: "",
             explanationsType: "",
             fileUpload: null as unknown as File,
-            questions: [
-                {
-                    questionId: "1",
-                    questionName: "",
-                    explanation: "",
-                    questionType: "MCQS",
-                    questionMark: "",
-                    imageDetails: [],
-                    singleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                    multipleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
-                },
-            ],
+            questions: [],
         },
     });
 
@@ -175,8 +70,6 @@ export const ViewQuestionPaper = ({
                     isAssessment={isAssessment}
                     currentQuestionIndex={currentQuestionIndex}
                     setCurrentQuestionIndex={setCurrentQuestionIndex}
-                    currentQuestionImageIndex={currentQuestionImageIndex}
-                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                 />
             </form>
         </FormProvider>

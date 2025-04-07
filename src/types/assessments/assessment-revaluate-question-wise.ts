@@ -1,15 +1,6 @@
-interface ImageData {
-    imageId: string;
-    imageName: string;
-    imageTitle: string;
-    imageFile: string;
-    isDeleted: boolean;
-}
-
 interface Option {
     name?: string;
     isSelected?: boolean;
-    image: Partial<ImageData>; // Some options have empty image objects
 }
 
 interface QuestionDuration {

@@ -25,6 +25,8 @@ import { studentManagementSteps } from "@/constants/intro/steps";
 import { EmptyStudentListImage } from "@/assets/svgs";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
+import { useSearch } from "@tanstack/react-router";
+import { Route } from "@/routes/students/students-list";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -125,12 +127,22 @@ export const StudentsListSection = () => {
         0,
     );
 
+    const { instituteDetails } = useInstituteDetailsStore();
+    const search = useSearch({ from: Route.id });
+
+    useEffect(() => {
+        if (search.batch && search.package_session_id) {
+            console.log("batch to filter: ", search.batch);
+            console.log("package session id to filter: ", search.package_session_id);
+        }
+    }, [search, instituteDetails]);
+
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
 
     return (
         <section className="flex max-w-full flex-col gap-8 overflow-visible">
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
                 <StudentListHeader />
                 <StudentFilters
                     currentSession={currentSession}

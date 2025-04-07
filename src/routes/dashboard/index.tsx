@@ -1,7 +1,7 @@
 import { createFileRoute, useLocation, useNavigate, useRouter } from "@tanstack/react-router";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "phosphor-react";
@@ -14,7 +14,10 @@ import useIntroJsTour from "@/hooks/use-intro";
 import { dashboardSteps } from "@/constants/intro/steps";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { getInstituteDashboardData } from "./-services/dashboard-services";
+import {
+    getAssessmentsCountsData,
+    getInstituteDashboardData,
+} from "./-services/dashboard-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SSDC_INSTITUTE_ID } from "@/constants/urls";
 import { Helmet } from "react-helmet";
@@ -44,8 +47,18 @@ export function DashboardComponent() {
     const { data, isLoading: isDashboardLoading } = useSuspenseQuery(
         getInstituteDashboardData(instituteDetails?.id),
     );
+
+    const { data: assessmentCount, isLoading: isAssessmentCountLoading } = useSuspenseQuery(
+        getAssessmentsCountsData(instituteDetails?.id),
+    );
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
+    const [roleTypeCount, setRoleTypeCount] = useState({
+        ADMIN: 0,
+        "COURSE CREATOR": 0,
+        "ASSESSMENT CREATOR": 0,
+        EVALUATOR: 0,
+    });
 
     useIntroJsTour({
         key: IntroKey.dashboardFirstTimeVisit,
@@ -54,13 +67,6 @@ export function DashboardComponent() {
             console.log("Tour Completed");
         },
     });
-
-    useEffect(() => {
-        console.log(location.pathname);
-        if (location.pathname !== "/dashboard") {
-            setValue(false);
-        }
-    }, [location.pathname, setValue]);
 
     const handleAssessmentTypeRoute = (type: string) => {
         navigate({
@@ -87,7 +93,14 @@ export function DashboardComponent() {
         setNavHeading(<h1 className="text-lg">Dashboard</h1>);
     }, []);
 
-    if (isInstituteLoading || isDashboardLoading) return <DashboardLoader />;
+    useEffect(() => {
+        if (location.pathname !== "/dashboard") {
+            setValue(false);
+        }
+    }, [location.pathname, setValue]);
+
+    if (isInstituteLoading || isDashboardLoading || isAssessmentCountLoading)
+        return <DashboardLoader />;
     return (
         <>
             <Helmet>
@@ -134,7 +147,9 @@ export function DashboardComponent() {
                             </MyButton>
                         </div>
                         <CardDescription className="flex items-center gap-2">
-                            <CompletionStatusComponent />
+                            <CompletionStatusComponent
+                                profileCompletionPercentage={data.profile_completion_percentage}
+                            />
                             <span>{data.profile_completion_percentage}% complete</span>
                         </CardDescription>
                     </CardHeader>
@@ -149,25 +164,33 @@ export function DashboardComponent() {
                             <CardHeader className="flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
                                     <CardTitle>Role Type Users</CardTitle>
-                                    <RoleTypeComponent />
+                                    <RoleTypeComponent setRoleTypeCount={setRoleTypeCount} />
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4F9FF] py-1.5 font-thin shadow-none">
                                         Admin
                                     </Badge>
-                                    <span className="font-thin text-primary-500">1</span>
+                                    <span className="font-thin text-primary-500">
+                                        {roleTypeCount.ADMIN}
+                                    </span>
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F4FFF9] py-1.5 font-thin shadow-none">
                                         Course Creator
                                     </Badge>
-                                    <span className="font-thin text-primary-500">0</span>
+                                    <span className="font-thin text-primary-500">
+                                        {roleTypeCount["COURSE CREATOR"]}
+                                    </span>
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#FFF4F5] py-1.5 font-thin shadow-none">
                                         Assessment Creator
                                     </Badge>
-                                    <span className="font-thin text-primary-500">0</span>
+                                    <span className="font-thin text-primary-500">
+                                        {roleTypeCount["ASSESSMENT CREATOR"]}
+                                    </span>
                                     <Badge className="whitespace-nowrap rounded-lg border border-neutral-300 bg-[#F5F0FF] py-1.5 font-thin shadow-none">
                                         Evaluator
                                     </Badge>
-                                    <span className="font-thin text-primary-500">0</span>
+                                    <span className="font-thin text-primary-500">
+                                        {roleTypeCount.EVALUATOR}
+                                    </span>
                                 </div>
                             </CardHeader>
                         </Card>
@@ -326,28 +349,60 @@ export function DashboardComponent() {
                                         </Dialog>
                                     </div>
                                     <CardDescription className="flex items-center gap-4 py-6">
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/assessment/assessment-list",
+                                                    search: { selectedTab: "liveTests" },
+                                                })
+                                            }
+                                        >
                                             <span>Live</span>
                                             <span className="text-primary-500">
-                                                {data.batch_count}
+                                                {assessmentCount?.live_count}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/assessment/assessment-list",
+                                                    search: { selectedTab: "upcomingTests" },
+                                                })
+                                            }
+                                        >
                                             <span>Upcoming</span>
                                             <span className="text-primary-500">
-                                                {data.student_count}
+                                                {assessmentCount?.upcoming_count}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/assessment/assessment-list",
+                                                    search: { selectedTab: "previousTests" },
+                                                })
+                                            }
+                                        >
                                             <span>Previous</span>
                                             <span className="text-primary-500">
-                                                {data.student_count}
+                                                {assessmentCount?.previous_count}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/assessment/assessment-list",
+                                                    search: { selectedTab: "draftTests" },
+                                                })
+                                            }
+                                        >
                                             <span>Drafts</span>
                                             <span className="text-primary-500">
-                                                {data.student_count}
+                                                {assessmentCount?.draft_count}
                                             </span>
                                         </div>
                                     </CardDescription>
