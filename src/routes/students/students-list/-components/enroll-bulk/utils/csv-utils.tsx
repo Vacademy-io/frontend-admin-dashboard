@@ -5,6 +5,7 @@ import {
     ValidationError,
 } from "@/routes/students/students-list/-types/bulk-upload-types";
 import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
+import { CSVFormatFormType } from "../../../-schemas/student-bulk-enroll/enroll-bulk-schema";
 
 type ParseResult = {
     data: SchemaFields[];
@@ -90,7 +91,11 @@ export const convertExcelDateToDesiredFormat = (
 };
 
 // Enhanced validation function
-export const validateCsvData = (file: File, headers: Header[]): Promise<ParseResult> => {
+export const validateCsvData = (
+    file: File,
+    headers: Header[],
+    csvFormat?: CSVFormatFormType,
+): Promise<ParseResult> => {
     return new Promise((resolve, reject) => {
         Papa.parse<SchemaFields>(file, {
             header: true,
@@ -106,13 +111,20 @@ export const validateCsvData = (file: File, headers: Header[]): Promise<ParseRes
                         const fieldName = header.column_name;
                         const value = row[fieldName] as string;
 
+                        // Determine if field is optional based on both schema and user settings
+                        const isOptional =
+                            header.optional ||
+                            (csvFormat &&
+                                fieldName in csvFormat &&
+                                !csvFormat[fieldName as keyof CSVFormatFormType]);
+
                         // Skip validation if the field is optional and empty
-                        if (header.optional && (!value || value.trim() === "")) {
+                        if (isOptional && (!value || value.trim() === "")) {
                             return;
                         }
 
                         // Check if required field is missing
-                        if (!header.optional && (!value || value.trim() === "")) {
+                        if (!isOptional && (!value || value.trim() === "")) {
                             allErrors.push({
                                 path: [rowIndex, fieldName],
                                 message: `${fieldName.replace(/_/g, " ")} is required`,
