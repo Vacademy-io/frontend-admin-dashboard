@@ -13,6 +13,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Warning } from "@phosphor-icons/react";
+import { DialogTitle } from "@radix-ui/react-dialog";
+import { useEffect } from "react";
 
 interface ErrorDetailsDialogProps {
     isOpen: boolean;
@@ -30,6 +32,7 @@ export const ErrorDetailsDialog = ({
     isApiError = false,
 }: ErrorDetailsDialogProps) => {
     // For API errors, extract useful details from the error message
+
     const getFormattedApiError = (errorMessage: string) => {
         if (!errorMessage) return { mainError: "Unknown error", details: "" };
 
@@ -65,15 +68,21 @@ export const ErrorDetailsDialog = ({
             ? getFormattedApiError(errors[0].currentVal)
             : null;
 
+    useEffect(() => {
+        console.log("formattedError: ", formattedError);
+    }, [formattedError]);
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="w-[800px] max-w-[900px] p-0 font-normal">
-                <DialogHeader>
-                    <div className="flex items-center bg-danger-50 px-6 py-4 text-h3 font-semibold text-danger-600">
-                        <Warning className="mr-2 h-5 w-5" />
-                        {isApiError ? "Upload Error" : "Validation Errors"}
-                    </div>
-                </DialogHeader>
+                <DialogTitle>
+                    <DialogHeader>
+                        <div className="flex items-center bg-danger-50 px-6 py-4 text-h3 font-semibold text-danger-600">
+                            <Warning className="mr-2 h-5 w-5" />
+                            {isApiError ? "Upload Error" : "Validation Errors"}
+                        </div>
+                    </DialogHeader>
+                </DialogTitle>
 
                 <div className="p-6">
                     {isApiError ? (

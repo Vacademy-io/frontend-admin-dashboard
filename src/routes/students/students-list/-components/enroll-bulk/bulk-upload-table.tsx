@@ -24,13 +24,7 @@ import { ErrorDetailsDialog } from "./error-details-dialog";
 
 interface EditableBulkUploadTableProps {
     headers: Header[];
-    onEdit?: (
-        rowIndex: number,
-        columnId: string,
-        value: string,
-        currentPage: number,
-        ITEMS_PER_PAGE: number,
-    ) => void;
+    onEdit?: (rowIndex: number, columnId: string, value: string) => void;
 }
 
 interface RowWithError extends SchemaFields {
@@ -46,8 +40,6 @@ export const validateCellValue = (
     value: string,
     header: Header,
     rowIndex: number,
-    currentPage?: number,
-    ITEMS_PER_PAGE?: number,
 ): ValidationError | null => {
     const fieldName = header.column_name;
 
@@ -55,11 +47,11 @@ export const validateCellValue = (
     if (header.optional && (!value || value.trim() === "")) {
         return null;
     }
-    const absoluteRowIndex = rowIndex + (currentPage || 0) * (ITEMS_PER_PAGE || 10);
+    // const absoluteRowIndex = rowIndex + (currentPage || 0) * (ITEMS_PER_PAGE || 10);
     // Check if required field is missing
     if (!header.optional && (!value || value.trim() === "")) {
         return {
-            path: [absoluteRowIndex, fieldName],
+            path: [rowIndex, fieldName],
             message: `${fieldName.replace(/_/g, " ")} is required`,
             resolution: `Please provide a value for ${fieldName.replace(/_/g, " ")}`,
             currentVal: "N/A",
@@ -73,7 +65,7 @@ export const validateCellValue = (
         if (header.type === "enum" && header.options && header.options.length > 0) {
             if (!header.options.includes(value)) {
                 return {
-                    path: [absoluteRowIndex, fieldName],
+                    path: [rowIndex, fieldName],
                     message: `Invalid value for ${fieldName.replace(/_/g, " ")}`,
                     resolution: `Value must be one of: ${header.options.join(", ")}`,
                     currentVal: value,
@@ -88,7 +80,7 @@ export const validateCellValue = (
 
             if (!isValidDateFormat(formattedDate, header.format)) {
                 return {
-                    path: [absoluteRowIndex, fieldName],
+                    path: [rowIndex, fieldName],
                     message: `Invalid date format for ${fieldName.replace(/_/g, " ")}`,
                     resolution: `Date must be in format: ${header.format}`,
                     currentVal: value,
@@ -103,7 +95,7 @@ export const validateCellValue = (
                 const regex = new RegExp(header.regex);
                 if (!regex.test(value)) {
                     return {
-                        path: [absoluteRowIndex, fieldName],
+                        path: [rowIndex, fieldName],
                         message:
                             header.regex_error_message ||
                             `Invalid format for ${fieldName.replace(/_/g, " ")}`,
@@ -129,8 +121,6 @@ export const validateRowData = (
     rowData: SchemaFields,
     headers: Header[],
     rowIndex: number,
-    currentPage: number,
-    ITEMS_PER_PAGE: number,
 ): ValidationError[] => {
     const errors: ValidationError[] = [];
 
@@ -144,7 +134,7 @@ export const validateRowData = (
         }
 
         const value = rowData[fieldName] as string;
-        const error = validateCellValue(value, header, rowIndex, currentPage, ITEMS_PER_PAGE);
+        const error = validateCellValue(value, header, rowIndex);
 
         if (error) {
             errors.push(error);
@@ -157,17 +147,12 @@ export const validateRowData = (
 /**
  * Revalidate all data in the CSV
  */
-export const revalidateAllData = (
-    data: SchemaFields[],
-    headers: Header[],
-    currentPage: number,
-    ITEMS_PER_PAGE: number,
-): ValidationError[] => {
+export const revalidateAllData = (data: SchemaFields[], headers: Header[]): ValidationError[] => {
     let allErrors: ValidationError[] = [];
 
     // Validate each row
     data.forEach((row, rowIndex) => {
-        const rowErrors = validateRowData(row, headers, rowIndex, currentPage, ITEMS_PER_PAGE);
+        const rowErrors = validateRowData(row, headers, rowIndex);
         allErrors = [...allErrors, ...rowErrors];
     });
 
@@ -228,28 +213,29 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
 
         // Create a new data array with the updated value
         const newData = [...csvData];
-        newData[rowIndex] = { ...newData[rowIndex], [columnId]: value };
+        newData[rowIndex + currentPage * ITEMS_PER_PAGE] = {
+            ...newData[rowIndex + currentPage * ITEMS_PER_PAGE],
+            [columnId]: value,
+        };
 
         // Update the data
         setCsvData(newData);
 
         // Find the header for this column to use in validation
-        const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
+        // const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
         const header = headers.find((h) => h.column_name === columnId);
         if (header) {
             // Remove old errors for this specific cell
             const updatedErrors = csvErrors.filter(
-                (error) => !(error.path[0] === absoluteRowIndex && error.path[1] === columnId),
+                (error) =>
+                    !(
+                        error.path[0] === rowIndex + currentPage * ITEMS_PER_PAGE &&
+                        error.path[1] === columnId
+                    ),
             );
 
             // Validate the new value
-            const cellError = validateCellValue(
-                value,
-                header,
-                rowIndex,
-                currentPage,
-                ITEMS_PER_PAGE,
-            );
+            const cellError = validateCellValue(value, header, rowIndex);
 
             // Set updated errors
             setCsvErrors(cellError ? [...updatedErrors, cellError] : updatedErrors);
@@ -257,7 +243,7 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
 
         // Call external edit handler if provided
         if (onEdit) {
-            onEdit(rowIndex, columnId, value, currentPage, ITEMS_PER_PAGE);
+            onEdit(rowIndex, columnId, value);
         }
 
         setEditCell(null);
@@ -292,6 +278,7 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
             isEditing,
             onCellClick: (rowIndex, columnId) => {
                 if (isEditing) {
+                    console.log("cell needs to be edited now");
                     setEditCell({ rowIndex, columnId });
                 }
             },
@@ -483,8 +470,10 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
                         setShowErrorDialog(false);
                         setSelectedRowIndex(null);
                     }}
-                    errors={csvErrors.filter((error) => error.path[0] === selectedRowIndex)}
-                    rowData={csvData?.[selectedRowIndex] || {}}
+                    errors={csvErrors.filter(
+                        (error) => error.path[0] === selectedRowIndex + page * ITEMS_PER_PAGE,
+                    )}
+                    rowData={csvData?.[selectedRowIndex + page * ITEMS_PER_PAGE] || {}}
                 />
             )}
         </div>

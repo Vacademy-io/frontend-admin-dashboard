@@ -7,7 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 import { Row } from "@tanstack/react-table";
-import { CheckCircle, Warning } from "@phosphor-icons/react";
+import { CheckCircle } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -163,15 +163,15 @@ export const createEditableBulkUploadColumns = ({
                 cell: ({ getValue, row, column }) => {
                     const rowIndex = row.index;
                     const columnId = column.id;
-                    const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
+                    // const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
                     const error = csvErrors.find(
                         (error) =>
-                            error.path[0] === absoluteRowIndex &&
+                            error.path[0] === rowIndex + currentPage * ITEMS_PER_PAGE &&
                             error.path[1] === header.column_name,
                     );
                     const value = getValue() as string;
                     const isCurrentlyEditing =
-                        editCell?.rowIndex === absoluteRowIndex && editCell?.columnId === columnId;
+                        editCell?.rowIndex === rowIndex && editCell?.columnId === columnId;
 
                     // Render editable cell if in edit mode
                     if (isEditing && isCurrentlyEditing) {
@@ -240,17 +240,25 @@ export const createEditableBulkUploadColumns = ({
                         <div
                             className={cn(
                                 "cursor-pointer truncate px-4 py-2",
-                                error ? "text-danger-500" : "",
+                                error ? "text-danger-500" : "text-neutral-500",
                                 isEditing ? "hover:bg-neutral-100" : "",
                             )}
-                            onDoubleClick={() => {
+                            onClick={() => {
+                                console.log(" click");
                                 if (isEditing) {
+                                    console.log(" click 2");
+                                    onCellClick(rowIndex, columnId);
+                                }
+                            }}
+                            onDoubleClick={() => {
+                                console.log("double click");
+                                if (isEditing) {
+                                    console.log("double click 2");
                                     onCellClick(rowIndex, columnId);
                                 }
                             }}
                         >
                             {value || ""}
-                            <Warning />
                         </div>
                     );
                 },

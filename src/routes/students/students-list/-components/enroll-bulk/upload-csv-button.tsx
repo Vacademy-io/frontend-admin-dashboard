@@ -180,17 +180,9 @@ export const UploadCSVButton = ({
         setIsOpen(open);
     };
 
-    const handleEditCell = (
-        rowIndex: number,
-        columnId: string,
-        value: string,
-        currentPage: number,
-        ITEMS_PER_PAGE: number,
-    ) => {
-        const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
-        console.log(
-            `Editing cell: row ${absoluteRowIndex}, column ${columnId}, new value: ${value}`,
-        );
+    const handleEditCell = (rowIndex: number, columnId: string, value: string) => {
+        // const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
+        console.log(`Editing cell: row ${rowIndex}, column ${columnId}, new value: ${value}`);
     };
 
     const handleDownloadTemplate = () => {

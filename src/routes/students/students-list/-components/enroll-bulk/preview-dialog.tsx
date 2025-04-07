@@ -16,13 +16,7 @@ interface PreviewDialogProps {
     onClose: () => void;
     file: File | null;
     headers: Header[];
-    onEdit?: (
-        rowIndex: number,
-        columnId: string,
-        value: string,
-        currentPage: number,
-        ITEMS_PER_PAGE: number,
-    ) => void;
+    onEdit?: (rowIndex: number, columnId: string, value: string) => void;
     uploadCompleted?: boolean;
     uploadResponse?: SchemaFields[] | null;
     onDownloadResponse?: () => void;
