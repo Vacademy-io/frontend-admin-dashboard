@@ -18,23 +18,14 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { QuestionPaperUpload } from "./QuestionPaperUpload";
-import { Dispatch, SetStateAction } from "react";
 import { X } from "phosphor-react";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { useState } from "react";
 import { QuestionType as QuestionTypeList } from "@/constants/dummy-data";
-
-interface QuestionTypeProps {
-    icon: React.ReactNode; // Accepts an SVG or any React component
-    text: string; // Accepts the text label
-    type?: QuestionTypeList;
-}
-interface QuestionPaperHeadingInterface {
-    currentQuestionIndex: number;
-    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    isDirectAdd?: boolean;
-    handleSelect?: (tyep: string) => void;
-}
+import {
+    QuestionTypeProps,
+    QuestionPaperHeadingInterface,
+} from "@/types/assessments/question-type-types";
 
 export function QuestionTypeSelection({
     currentQuestionIndex,

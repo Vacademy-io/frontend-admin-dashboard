@@ -10,7 +10,8 @@ import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { CollapsibleQuillEditor } from "../CollapsibleQuillEditor";
 
 export const LongAnswerQuestionPaperTemplateMainView = ({
     form,
@@ -20,47 +21,7 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
     const { control, getValues } = form;
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const questionsType = getValues("questionsType") || "";
-
     const allQuestions = getValues("questions") || [];
-
-    const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
-    interface CollapsibleQuillEditorProps {
-        value: string | null | undefined;
-        onChange: (content: string) => void;
-    }
-
-    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange }) => {
-        return (
-            <div className="">
-                {!isExpanded ? (
-                    // Render only a single line preview
-                    <div className="flex cursor-pointer flex-row gap-1 border bg-primary-100 p-2">
-                        <div className="w-full max-w-[50vw] overflow-hidden text-ellipsis whitespace-nowrap text-body">
-                            {value && value.replace(/<[^>]+>/g, "")}
-                        </div>
-                        <button
-                            className="text-body text-blue-500"
-                            onClick={() => setIsExpanded(true)}
-                        >
-                            Show More
-                        </button>
-                    </div>
-                ) : (
-                    // Render full Quill Editor when expanded
-                    <div className="border bg-primary-100 p-2">
-                        <MainViewQuillEditor value={value} onChange={onChange} />
-                        <button
-                            className="mt-2 text-body text-blue-500"
-                            onClick={() => setIsExpanded(false)}
-                        >
-                            Show Less
-                        </button>
-                    </div>
-                )}
-            </div>
-        );
-    };
 
     useEffect(() => {
         const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);

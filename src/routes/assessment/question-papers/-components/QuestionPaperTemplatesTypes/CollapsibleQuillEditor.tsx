@@ -1,10 +1,6 @@
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { useState } from "react";
-
-interface CollapsibleQuillEditorProps {
-    value: string | null | undefined;
-    onChange: (content: string) => void;
-}
+import { CollapsibleQuillEditorProps } from "@/types/assessments/question-type-types";
 
 export const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({
     value,
