@@ -9,6 +9,7 @@ import { useInstituteQuery } from "@/services/student-list-section/getInstituteD
 import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
 import {
     copyToClipboard,
+    getAllSessions,
     handleDownloadQRCode,
     transformBatchData,
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
@@ -16,12 +17,23 @@ import { getBatchDetails } from "../-utils/helper";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
 import { AssessmentParticipantsList } from "./AssessmentParticipantsList";
 import { AssessmentParticipantsIndividualList } from "./AssessmentParticipantsIndividualList";
+import { useStudyLibraryQuery } from "@/routes/study-library/courses/-services/getStudyLibraryDetails";
+import { useState } from "react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const AssessmentParticipantsTab = () => {
     const { assessmentId, examType } = Route.useParams();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-    const { batches_for_sessions } = instituteDetails || {};
-    const transformedBatches = transformBatchData(batches_for_sessions || []);
+    const { data: batches_for_sessions } = useSuspenseQuery(useStudyLibraryQuery());
+    const sectionsInfo = getAllSessions(batches_for_sessions);
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
+    const transformedBatches = transformBatchData(batches_for_sessions || [], selectedSection);
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId,
@@ -41,6 +53,21 @@ const AssessmentParticipantsTab = () => {
             <div className="mt-4 flex flex-col gap-8">
                 <div className="flex flex-col gap-2">
                     <h1 className="font-semibold">Assessment Participants</h1>
+                    <div className="my-2 flex items-center gap-2">
+                        <span>Session</span>
+                        <Select value={selectedSection} onValueChange={setSelectedSection}>
+                            <SelectTrigger className="w-[180px] text-[1rem]">
+                                <SelectValue placeholder="Select Section" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {sectionsInfo?.map((section) => (
+                                    <SelectItem key={section.id} value={section.id}>
+                                        {section.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <div className="flex flex-col gap-4">
                         {(assessmentDetails[2]?.saved_data?.pre_user_registrations ?? 0) > 0 && (
                             <div className="flex items-center justify-between rounded-md border border-primary-200 bg-primary-50 px-4 py-2">
