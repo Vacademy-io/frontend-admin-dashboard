@@ -83,6 +83,7 @@
 }
 
 .ql-tooltip {
+    left: 0px !important;
     z-index: 1000;
     border: none !important;
     border-radius: 8px;

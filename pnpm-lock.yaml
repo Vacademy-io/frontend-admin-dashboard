@@ -331,9 +331,6 @@ importers:
             mathquill:
                 specifier: 0.10.1-a
                 version: 0.10.1-a
-            mathquill4quill:
-                specifier: ^2.4.0
-                version: 2.4.0
             next-themes:
                 specifier: ^0.4.3
                 version: 0.4.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -539,6 +536,9 @@ importers:
             lint-staged:
                 specifier: ^15.2.9
                 version: 15.3.0
+            mathquill4quill:
+                specifier: ^2.4.0
+                version: 2.4.0
             postcss:
                 specifier: ^8.4.41
                 version: 8.4.49
