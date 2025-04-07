@@ -571,6 +571,10 @@ const AccessControlCards = ({
 
             // Refetch data to update the user list
             handleRefetchData();
+            toast.success("Invitation for this user has been cancelled successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;
@@ -773,7 +777,7 @@ const AccessControlCards = ({
                                     );
                                 })}
                             </div>
-                            <div className="sticky bottom-0 left-0 flex items-center justify-between bg-white p-6">
+                            <footer className="sticky bottom-0 left-0 flex items-center justify-between bg-white p-6">
                                 <Step4InviteUsers refetchData={handleRefetchData} />
                                 <MyButton
                                     type="button"
@@ -785,7 +789,7 @@ const AccessControlCards = ({
                                 >
                                     Done
                                 </MyButton>
-                            </div>
+                            </footer>
                         </DialogContent>
                     </Dialog>
                 </div>
