@@ -4,14 +4,14 @@ import "katex/dist/katex.min.css";
 import { MathFormulaEditor } from "@/components/quill/MathFormulaEditor";
 import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
 
-export type MathElement = SlateElement & {
-    type: "math";
-    math: string;
-};
+// export type MathElement = SlateElement & {
+//     type: "math";
+//     math: string;
+// };
 
-export const MathBlockComponent = ({ element, attributes, children }: any) => {
+export const MathBlockComponent = ({ element, attributes, children }) => {
     const [editing, setEditing] = useState(true);
-    const [value, setValue] = useState((element as MathElement).math);
+    const [value, setValue] = useState(element.math);
 
     const handleSave = () => {
         setEditing(false);
