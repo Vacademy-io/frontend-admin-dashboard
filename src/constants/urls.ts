@@ -122,8 +122,9 @@ export const GET_BATCH_LIST = `${BASE_URL}/admin-core-service/batch/v1/batches-b
 export const CREATE_INVITATION = `${BASE_URL}/admin-core-service/learner-invitation/create`;
 export const GET_INVITE_LIST = `${BASE_URL}/admin-core-service/learner-invitation/invitation-details`;
 export const UPDATE_INVITE_LINK_STATUS = `${BASE_URL}/admin-core-service/learner-invitation/update-learner-invitation-status`;
-
+export const UPDATE_INVITATION = `${BASE_URL}/admin-core-service/learner-invitation/update`;
 export const ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/learner-invitation/invitation-responses`;
+export const GET_INVITE_DETAILS = `${BASE_URL}/admin-core-service/learner-invitation/learner-invitation-detail-by-id`;
 export const GET_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report`;
 export const GET_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report`;
 export const GET_LEADERBOARD_DATA = `${BASE_URL}/admin-core-service/learner-management/batch-report/leaderboard`;
@@ -133,3 +134,8 @@ export const SLIDE_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learne
 export const CHAPTER_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/chapter-wise-progress`;
 export const CHAPTER_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report/chapter-wise-progress`;
 export const GET_LEARNERS_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/learner-details`;
+
+export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-credentials`;
+export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;
+export const USERS_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/internal/users-credential`;
+export const EXPORT_ACCOUNT_DETAILS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/basic-details-csv`;

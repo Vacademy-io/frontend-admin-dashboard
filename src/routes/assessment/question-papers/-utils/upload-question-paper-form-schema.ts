@@ -76,6 +76,12 @@ export const uploadQuestionPaperFormSchema = z.object({
                         }),
                     )
                     .optional(),
+                parentRichTextContent: z.union([z.string(), z.null()]).optional(),
+                decimals: z.number().optional(),
+                numericType: z.string().optional(),
+                validAnswers: z.union([z.array(z.number()), z.null()]).optional(),
+                questionResponseType: z.union([z.string(), z.null()]).optional(),
+                subjectiveAnswerText: z.string().optional(),
             })
             .superRefine((question, ctx) => {
                 // Validate based on question type
@@ -162,6 +168,27 @@ export const uploadQuestionPaperFormSchema = z.object({
                                 path: ["multipleChoiceOptions", index, "name"],
                             });
                         }
+                    });
+                }
+
+                const { numericType, validAnswers } = question;
+
+                if (!validAnswers || !Array.isArray(validAnswers)) return;
+                const typeChecks: Record<string, (n: number) => boolean> = {
+                    SINGLE_DIGIT_NON_NEGATIVE_INTEGER: (n) =>
+                        Number.isInteger(n) && n >= 0 && n <= 9,
+                    INTEGER: (n) => Number.isInteger(n),
+                    POSITIVE_INTEGER: (n) => Number.isInteger(n) && n > 0,
+                    DECIMAL: (n) => typeof n === "number",
+                };
+
+                const check = numericType ? typeChecks[numericType] : undefined;
+
+                if (check && !validAnswers.every(check)) {
+                    ctx.addIssue({
+                        path: ["validAnswers"],
+                        code: z.ZodIssueCode.custom,
+                        message: `Not correct answer type is entered ${numericType}`,
                     });
                 }
             }),

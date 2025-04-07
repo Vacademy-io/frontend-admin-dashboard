@@ -220,7 +220,7 @@ export const StatusChips = ({
     className,
     showIcon = true,
 }: {
-    status: ActivityStatus | "ACTIVE" | "TEMINATED" | "INACTIVE" | "EVALUATED";
+    status: ActivityStatus | "ACTIVE" | "TERMINATED" | "INACTIVE" | "EVALUATED";
     children?: ReactNode;
     className?: string;
     showIcon?: boolean;

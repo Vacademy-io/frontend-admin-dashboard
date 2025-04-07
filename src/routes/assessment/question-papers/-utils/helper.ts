@@ -8,6 +8,13 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { QuestionType, QUESTION_TYPES } from "@/constants/dummy-data";
+
+export function getPPTViewTitle(type: QuestionType): string {
+    const question = QUESTION_TYPES.find((q) => q.code === type);
+    if (question) return question.display; // Return the display text or undefined if not found
+    else return "";
+}
 
 export function formatStructure(structure: string, value: string | number): string {
     // If structure does not contain parentheses, just replace the number/letter with the value
@@ -42,8 +49,10 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
         subject_id: data.subject, // Assuming there's no direct mapping for subject_id
         questions: data?.questions?.map((question) => {
             const options =
-                question.questionType === "MCQS"
-                    ? question.singleChoiceOptions.map((opt, idx) => ({
+                question.questionType === QuestionType.MCQS
+                    ? // ||
+                      // question.questionType === QuestionType.CMCQS
+                      question.singleChoiceOptions.map((opt, idx) => ({
                           id: null, // Assuming no direct mapping for option ID
                           preview_id: idx, // Using index as preview_id
                           question_id: null,
@@ -84,23 +93,31 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
 
             // Extract correct option indices as strings
             const correctOptionIds = (
-                question.questionType === "MCQS"
-                    ? question.singleChoiceOptions
+                question.questionType === QuestionType.MCQS
+                    ? // ||
+                      // question.questionType === QuestionType.CMCQS
+                      question.singleChoiceOptions
                     : question.multipleChoiceOptions
             )
                 .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
                 .filter((idx) => idx !== null); // Remove null values
 
-            const auto_evaluation_json = JSON.stringify({
-                type: question.questionType === "MCQS" ? "MCQS" : "MCQM",
-                data: {
-                    correctOptionIds,
-                },
-            });
+            const auto_evaluation_json = getEvaluationJSON(
+                question,
+                correctOptionIds,
+                question.validAnswers,
+                question.subjectiveAnswerText,
+            );
+            const options_json = getOptionsJson(question);
+            const parent_rich_text = question.parentRichTextContent
+                ? {
+                      id: null,
+                      type: "HTML",
+                      content: question.parentRichTextContent,
+                  }
+                : null;
 
-            const correctOptionIdsCnt = question.multipleChoiceOptions.filter(
-                (option) => option.isSelected,
-            ).length;
+            const questionTypeForBackend = getQuestionType(question.questionType);
 
             return {
                 id: null,
@@ -114,28 +131,9 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                 created_at: null,
                 updated_at: null,
                 question_response_type: null, // Assuming no direct mapping for response type
-                question_type: question.questionType,
+                question_type: questionTypeForBackend,
                 access_level: null, // Assuming no direct mapping for access level
                 auto_evaluation_json, // Add auto_evaluation_json
-                marking_json: JSON.stringify({
-                    type: question.questionType,
-                    data: {
-                        totalMark: question.questionMark || "",
-                        negativeMark: question.questionPenalty || "",
-                        negativeMarkingPercentage:
-                            question.questionMark && question.questionPenalty
-                                ? (Number(question.questionPenalty) /
-                                      Number(question.questionMark)) *
-                                  100
-                                : "",
-                        ...(question.questionType === "MCQM" && {
-                            partialMarking: correctOptionIdsCnt ? 1 / correctOptionIdsCnt : 0,
-                            partialMarkingPercentage: correctOptionIdsCnt
-                                ? (1 / correctOptionIdsCnt) * 100
-                                : 0,
-                        }),
-                    },
-                }),
                 evaluation_type: null, // Assuming no direct mapping for evaluation type
                 explanation_text: {
                     id: null, // Assuming no direct mapping for explanation text ID
@@ -146,6 +144,8 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
                     Number(question.questionDuration.hrs || 0) * 60 +
                     Number(question.questionDuration.min || 0),
                 options, // Use the mapped options
+                parent_rich_text,
+                options_json,
                 errors: [], // Assuming no errors are provided
                 warnings: [], // Assuming no warnings are provided
             };
@@ -347,21 +347,41 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
     return data?.map((item) => {
         const correctOptionIds =
             JSON.parse(item.auto_evaluation_json)?.data?.correctOptionIds || [];
-        const markingJson = item.marking_json ? JSON.parse(item.marking_json) : {};
+        const validAnswers = JSON.parse(item.auto_evaluation_json)?.data?.validAnswers || [];
+        let decimals;
+        let numericType;
+        let subjectiveAnswerText;
+        if (item.options_json) {
+            decimals = JSON.parse(item.options_json)?.decimals || 0;
+            numericType = JSON.parse(item.options_json)?.numeric_type || "";
+        }
+        if (item.auto_evaluation_json) {
+            if (item.question_type === "ONE_WORD") {
+                subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer;
+            } else if (item.question_type === "LONG_ANSWER") {
+                subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer?.content;
+            }
+        }
+        console.log(item.parent_rich_text);
         const baseQuestion: MyQuestion = {
             id: item.id || "",
             questionId: item.id || item.preview_id || undefined,
             questionName: item.text?.content || "",
             explanation: item.explanation_text?.content || "",
-            questionType: item.question_type === "MCQS" ? "MCQS" : "MCQM",
-            questionMark: markingJson.data?.totalMark || "0",
-            questionPenalty: markingJson.data?.negativeMark || "0",
+            questionType: item.question_type,
+            questionMark: "",
+            questionPenalty: "",
             questionDuration: {
                 hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
                 min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
             },
             singleChoiceOptions: [],
             multipleChoiceOptions: [],
+            validAnswers: [],
+            decimals,
+            numericType,
+            parentRichTextContent: item.parent_rich_text?.content || null,
+            subjectiveAnswerText,
         };
 
         if (item.question_type === "MCQS") {
@@ -385,7 +405,16 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
                 id: "",
                 name: "",
                 isSelected: false,
+                image: {
+                    imageId: "",
+                    imageName: "",
+                    imageTitle: "",
+                    imageFile: "",
+                    isDeleted: false,
+                },
             });
+        } else if (item.question_type === "NUMERIC") {
+            baseQuestion.validAnswers = validAnswers;
         }
         return baseQuestion;
     });
@@ -430,4 +459,98 @@ export const isQuillContentEmpty = (content: string) => {
     // Strip all HTML tags and check if there's any text content left
     const textOnly = content.replace(/<[^>]*>/g, "").trim();
     return textOnly.length === 0;
+};
+
+function getEvaluationJSON(
+    question: MyQuestion,
+    correctOptionIds?: (string | null)[],
+    validAnswers?: number[],
+    subjectiveAnswerText?: string,
+): string {
+    switch (question.questionType) {
+        case "MCQS":
+            return JSON.stringify({
+                type: "MCQS",
+                data: {
+                    correctOptionIds,
+                },
+            });
+        case "CMCQS":
+            return JSON.stringify({
+                type: "MCQS",
+                data: {
+                    correctOptionIds,
+                },
+            });
+        case "MCQM":
+            return JSON.stringify({
+                type: "MCQM",
+                data: {
+                    correctOptionIds,
+                },
+            });
+        case "CMCQM":
+            return JSON.stringify({
+                type: "MCQM",
+                data: {
+                    correctOptionIds,
+                },
+            });
+        case "NUMERIC":
+            return JSON.stringify({
+                type: "NUMERIC",
+                data: {
+                    validAnswers,
+                },
+            });
+        case "CNUMERIC":
+            return JSON.stringify({
+                type: "NUMERIC",
+                data: {
+                    validAnswers,
+                },
+            });
+        case "ONE_WORD":
+            return JSON.stringify({
+                type: "ONE_WORD",
+                data: {
+                    answer: subjectiveAnswerText?.replace(/<\/?p>/g, ""),
+                },
+            });
+        case "LONG_ANSWER":
+            return JSON.stringify({
+                type: "ONE_WORD",
+                data: {
+                    answer: {
+                        id: null,
+                        type: "HTML",
+                        content: subjectiveAnswerText?.replace(/<\/?p>/g, ""),
+                    },
+                },
+            });
+        default:
+            return "";
+    }
+}
+function getOptionsJson(question: MyQuestion): string | null {
+    console.log(question);
+    switch (question.questionType) {
+        case "MCQS":
+            return null;
+        case "MCQM":
+            return null;
+        case "NUMERIC":
+            return JSON.stringify({
+                decimals: question.decimals,
+                numericType: question.numericType,
+            });
+        default:
+            return null;
+    }
+}
+const getQuestionType = (type: string): string => {
+    if (type === "CMCQS") return "MCQS";
+    else if (type === "CMCQM") return "MCQM";
+    else if (type === "CNUMERIC") return "NUMERIC";
+    else return type;
 };

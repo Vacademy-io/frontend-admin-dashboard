@@ -1,12 +1,13 @@
 import { SidebarMenuItem } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { MyButton } from "@/components/design-system/button";
-import { PencilSimpleLine } from "@phosphor-icons/react";
 import { ProgressBar } from "@/components/design-system/progress-bar";
 import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { useEffect, useState } from "react";
 import { OverViewData, OverviewDetailsType } from "./overview";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { useStudentCredentails } from "@/services/student-list-section/getStudentCredentails";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { EditStudentDetails } from "./EditStudentDetails";
 
 export const StudentOverview = () => {
     const { selectedStudent } = useStudentSidebar();
@@ -15,12 +16,39 @@ export const StudentOverview = () => {
 
     const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
 
+    const {
+        data: StudentCredentails,
+        isLoading: loadingCredentials,
+        isError: errorCredentials,
+    } = useStudentCredentails({ userId: selectedStudent?.user_id || "" });
+
+    const [password, setPassword] = useState(
+        errorCredentials
+            ? "Error fetching password"
+            : StudentCredentails
+              ? StudentCredentails.password
+              : "password not found",
+    );
+
+    useEffect(() => {
+        const newPassword = errorCredentials
+            ? "Error fetching password"
+            : StudentCredentails
+              ? StudentCredentails.password
+              : "password not found";
+        setPassword(newPassword);
+    }, [StudentCredentails]);
+
     useEffect(() => {
         const details = getDetailsFromPackageSessionId({
             packageSessionId: selectedStudent?.package_session_id || "",
         });
         setOverviewData(
-            OverViewData({ selectedStudent: selectedStudent, packageSessionDetails: details }),
+            OverViewData({
+                selectedStudent: selectedStudent,
+                packageSessionDetails: details,
+                password: password,
+            }),
         );
 
         // Calculate days until expiry
@@ -42,8 +70,17 @@ export const StudentOverview = () => {
         }
     }, [selectedStudent, instituteDetails]);
 
+    if (loadingCredentials) {
+        return (
+            <div className="flex h-full items-center justify-center">
+                <DashboardLoader />
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
+            <EditStudentDetails />
             <SidebarMenuItem className="flex w-full flex-col gap-2">
                 <div className="flex gap-2">
                     <div className="text-subtitle font-semibold">Session Expiry (Days)</div>
@@ -81,14 +118,11 @@ export const StudentOverview = () => {
                                         ) : (
                                             <p className="py-4 text-center text-subtitle">
                                                 {" "}
-                                                Student details not available
+                                                S tudent details not available
                                             </p>
                                         )}
                                     </div>
                                 </div>
-                                <MyButton buttonType="secondary" scale="small" layoutVariant="icon">
-                                    <PencilSimpleLine size={14} />
-                                </MyButton>
                             </div>
                             <Separator />
                         </div>

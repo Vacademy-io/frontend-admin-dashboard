@@ -1,3 +1,4 @@
+import { BatchForSessionSchema } from "@/schemas/student/student-list/institute-schema";
 import { z } from "zod";
 
 // Define the email entry schema
@@ -57,39 +58,36 @@ const preSelectedCoursesSchema = z.object({
 const batchSchema = z.object({
     maxCourses: z.number(),
     courseSelectionMode: selectionModeSchema,
-    preSelectedCourses: z.array(preSelectedCoursesSchema),
-    learnerChoiceCourses: z.array(learnerChoiceCoursesSchema),
+    preSelectedCourses: z.array(BatchForSessionSchema),
+    learnerChoiceCourses: z.array(BatchForSessionSchema),
+});
+
+const customFieldSchema = z.object({
+    id: z.number(),
+    type: z.string(),
+    name: z.string(),
+    oldKey: z.boolean(),
+    isRequired: z.boolean(),
+    options: z
+        .array(
+            z.object({
+                id: z.number(),
+                value: z.string(),
+                disabled: z.boolean(),
+            }),
+        )
+        .optional(),
 });
 
 // Create schema for form validation
 export const inviteFormSchema = z.object({
     inviteLink: z.string().min(1, "Invite link is required"),
     activeStatus: z.boolean(),
-    custom_fields: z.array(
-        z.object({
-            id: z.number(),
-            type: z.string(),
-            name: z.string(),
-            oldKey: z.boolean(),
-            isRequired: z.boolean(),
-            options: z
-                .array(
-                    z.object({
-                        id: z.number(),
-                        value: z.string(),
-                        disabled: z.boolean(),
-                    }),
-                )
-                .optional(),
-        }),
-    ),
+    custom_fields: z.array(customFieldSchema),
     batches: batchSchema,
     studentExpiryDays: z.number(),
     inviteeEmail: z.string().optional(), // For the input field
-    inviteeEmails: z
-        .array(emailEntrySchema)
-        .min(1, "Please add at least one email address")
-        .default([]),
+    inviteeEmails: z.array(emailEntrySchema).optional(),
 });
 
 export type InviteForm = z.infer<typeof inviteFormSchema>;
@@ -101,6 +99,7 @@ export type LearnerChoiceSession = z.infer<typeof learnerChoiceSessionSchema>;
 export type PreSelectedCourse = z.infer<typeof preSelectedCoursesSchema>;
 export type LearnerChoiceCourse = z.infer<typeof learnerChoiceCoursesSchema>;
 export type BatchDetails = z.infer<typeof batchSchema>;
+export type CustomField = z.infer<typeof customFieldSchema>;
 
 export const defaultFormValues: Partial<InviteForm> = {
     inviteLink: "",

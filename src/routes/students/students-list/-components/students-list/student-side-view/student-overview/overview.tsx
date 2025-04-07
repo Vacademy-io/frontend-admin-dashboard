@@ -9,16 +9,18 @@ export interface OverviewDetailsType {
 export const OverViewData = ({
     selectedStudent,
     packageSessionDetails,
+    password,
 }: {
     selectedStudent: StudentTable | null;
     packageSessionDetails: BatchForSessionType | null;
+    password: string;
 }) => {
     if (selectedStudent == null) return null;
 
     const OverviewDetails: OverviewDetailsType[] = [
         {
             heading: `Account Credentials`,
-            content: [`Username: ${selectedStudent.username}`, `Password: `],
+            content: [`Username: ${selectedStudent.username}`, `Password: ${password}`],
         },
         {
             heading: `General Details`,

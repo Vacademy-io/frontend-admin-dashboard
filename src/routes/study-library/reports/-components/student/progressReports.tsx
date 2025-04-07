@@ -29,6 +29,8 @@ import { useMutation } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { usePacageDetails } from "../../-store/usePacageDetails";
 import { convertMinutesToTimeFormat } from "../../-services/helper";
+import { useSearch } from "@tanstack/react-router";
+import { Route } from "@/routes/study-library/reports";
 
 const formSchema = z.object({
     course: z.string().min(1, "Course is required"),
@@ -61,13 +63,12 @@ export default function ProgressReports() {
     const filteredStudents = studentList.filter((student) =>
         student.full_name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-
+    const search = useSearch({ from: Route.id });
     const {
         register,
         handleSubmit,
         setValue,
         watch,
-        trigger,
         formState: { errors },
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -99,15 +100,18 @@ export default function ProgressReports() {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
             setValue("session", "");
-            setValue("level", "");
         } else {
             setSessionList([]);
-            setLevelList([]);
+            setStudentList([]);
         }
     }, [selectedCourse]);
 
     useEffect(() => {
-        if (selectedCourse && selectedSession) {
+        if (selectedSession === "") {
+            setValue("level", "");
+            setLevelList([]);
+            setStudentList([]);
+        } else if (selectedCourse && selectedSession) {
             setLevelList(
                 getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
             );
@@ -187,10 +191,9 @@ export default function ProgressReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("course", value);
-                                trigger("course");
                             }}
                             {...register("course")}
-                            defaultValue=""
+                            defaultValue={search.studentReport ? search.studentReport.courseId : ""}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
                                 <SelectValue placeholder="Select a Course" />
@@ -212,7 +215,10 @@ export default function ProgressReports() {
                                 console.log("here");
                                 setValue("session", value);
                             }}
-                            defaultValue=""
+                            defaultValue={
+                                search.studentReport ? search.studentReport.sessionId : ""
+                            }
+                            value={selectedSession}
                             disabled={!sessionList.length}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
@@ -233,9 +239,9 @@ export default function ProgressReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("level", value);
-                                trigger("level");
                             }}
-                            defaultValue=""
+                            defaultValue={search.studentReport ? search.studentReport.levelId : ""}
+                            value={selectedLevel}
                             disabled={!levelList.length}
                             {...register("level")}
                         >
