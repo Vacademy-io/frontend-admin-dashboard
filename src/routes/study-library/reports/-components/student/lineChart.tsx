@@ -1,7 +1,6 @@
 "use client";
 
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-
 import { Card } from "@/components/ui/card";
 import {
     ChartConfig,
@@ -9,30 +8,33 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
-import { DailyLearnerTimeSpent } from "../../-types/types";
 import dayjs from "dayjs";
 
 const chartConfig = {
-    desktop: {
-        label: "timeSpent",
+    avg_daily_time_minutes: {
+        label: "Time Spent",
         color: "hsl(var(--chart-1))",
     },
-    mobile: {
-        label: "Mobile",
-        color: "hsl(var(--chart-2))",
+    avg_daily_time_minutes_batch: {
+        label: "Time Spent By Batch",
+        color: "hsl(var(--chart-6))",
     },
 } satisfies ChartConfig;
 
-export function LineChartComponent({ chartData }: { chartData: DailyLearnerTimeSpent[] }) {
+export interface ChartDataType {
+    activity_date: string;
+    avg_daily_time_minutes: number;
+    avg_daily_time_minutes_batch: number;
+}
+export function LineChartComponent({ chartData }: { chartData: ChartDataType[] }) {
     return (
-        <Card className="w-[70%]">
-            {/* <CardContent className="h-[520px] border-none"> */}
+        <Card className="w-[65%]">
             <ChartContainer className="h-[530px] w-full pb-6 pt-6" config={chartConfig}>
                 <LineChart
                     accessibilityLayer
                     data={chartData}
                     margin={{
-                        left: 25,
+                        left: 35,
                         right: 25,
                         bottom: 25, // Add more space at the bottom for the X-axis label
                     }}
@@ -54,7 +56,7 @@ export function LineChartComponent({ chartData }: { chartData: DailyLearnerTimeS
                         }}
                     />
                     <YAxis
-                        dataKey="avg_daily_time_minutes"
+                        dataKey="avg_daily_time_minutes_batch"
                         tickLine={false}
                         axisLine={true}
                         tickMargin={8}
@@ -72,10 +74,22 @@ export function LineChartComponent({ chartData }: { chartData: DailyLearnerTimeS
                     <Line
                         dataKey="avg_daily_time_minutes"
                         type="monotone"
-                        stroke="var(--color-desktop)"
+                        stroke="var(--color-avg_daily_time_minutes)"
                         strokeWidth={2}
                         dot={{
-                            fill: "var(--color-desktop)",
+                            fill: "var(--color-avg_daily_time_minutes)",
+                        }}
+                        activeDot={{
+                            r: 6,
+                        }}
+                    />
+                    <Line
+                        dataKey="avg_daily_time_minutes_batch"
+                        type="monotone"
+                        stroke="var(--color-avg_daily_time_minutes_batch)"
+                        strokeWidth={2}
+                        dot={{
+                            fill: "var(--color-avg_daily_time_minutes_batch)",
                         }}
                         activeDot={{
                             r: 6,

@@ -15,13 +15,28 @@ import { z } from "zod";
 import { MyButton } from "@/components/design-system/button";
 import ReportRecipientsDialogBox from "./reportRecipientsDialogBox";
 import { useMutation } from "@tanstack/react-query";
-import { fetchLearnersReport } from "../../-services/utils";
+import { fetchLearnersReport, fetchSlideWiseProgress } from "../../-services/utils";
 import { useLearnerDetails, UserResponse } from "../../-store/useLearnersDetails";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
-
-// import { MyTable } from "@/components/design-system/table";
-// import { LineChartComponent } from "../batch/lineChart";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import {
+    LearnersReportResponse,
+    LEARNERS_REPORTS_COLUMNS,
+    learnersReportColumns,
+    SlideData,
+    SLIDES_WIDTH,
+    SlidesColumns,
+} from "../../-types/types";
+import { MyTable } from "@/components/design-system/table";
+import { LineChartComponent } from "./lineChart";
+import {
+    transformLearnersReport,
+    transformToChartData,
+    formatToTwoDecimalPlaces,
+    convertMinutesToTimeFormat,
+} from "../../-services/helper";
+import dayjs from "dayjs";
 
 const formSchema = z
     .object({
@@ -62,11 +77,9 @@ export default function TimelineReports() {
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
     const [studentList, setStudentList] = useState<UserResponse>([]);
-    const [reportData, setReportData] = useState(true);
-    // const [loading, setLoading] = useState(true);
+    const [reportData, setReportData] = useState<LearnersReportResponse>();
+    const [slideData, setSlideData] = useState<SlideData[]>();
     const [searchTerm, setSearchTerm] = useState("");
-    // setReportData(true); // remove this is only for commid errors
-    // setStudentList([]); // remove this is only for commid errors
     const filteredStudents = studentList.filter((student) =>
         student.full_name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
@@ -93,6 +106,8 @@ export default function TimelineReports() {
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
     const selectedLevel = watch("level");
+    const startDate = watch("startDate");
+    const endDate = watch("endDate");
 
     useEffect(() => {
         if (selectedCourse) {
@@ -110,9 +125,10 @@ export default function TimelineReports() {
             setLevelList(
                 getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
             );
-        } else {
-            setLevelList([]);
         }
+        // else {
+        //     setLevelList([]);
+        // }
     }, [selectedSession]);
     const { data } = useLearnerDetails(
         // const { data, isLoading, error } = useLearnerDetails(
@@ -130,7 +146,6 @@ export default function TimelineReports() {
     }, [data]);
 
     const onSubmit = (data: FormValues) => {
-        console.log("Submitted Data:", data);
         generateReportMutation.mutate(
             {
                 start_date: data.startDate,
@@ -141,12 +156,32 @@ export default function TimelineReports() {
                         sessionId: data.session,
                         levelId: data.level,
                     }) || "",
-                user_id: "",
+                user_id: data.student,
             },
             {
                 onSuccess: (data) => {
-                    console.log("Success:", data);
                     setReportData(data);
+                },
+                onError: (error) => {
+                    console.error("Error:", error);
+                },
+            },
+        );
+        generateSlideMutation.mutate(
+            {
+                start_date: data.startDate,
+                end_date: data.endDate,
+                package_session_id:
+                    getPackageSessionId({
+                        courseId: data.course,
+                        sessionId: data.session,
+                        levelId: data.level,
+                    }) || "",
+                user_id: data.student,
+            },
+            {
+                onSuccess: (data) => {
+                    setSlideData(data);
                 },
                 onError: (error) => {
                     console.error("Error:", error);
@@ -156,15 +191,17 @@ export default function TimelineReports() {
         // api call
     };
 
-    // const tableData = {
-    //     content: [],
-    //     total_pages: 0,
-    //     page_no: 0,
-    //     page_size: 10,
-    //     total_elements: 0,
-    //     last: true,
-    // };
+    const tableData = {
+        content: reportData ? transformLearnersReport(reportData) : [],
+        total_pages: 0,
+        page_no: 0,
+        page_size: 10,
+        total_elements: 0,
+        last: true,
+    };
     const generateReportMutation = useMutation({ mutationFn: fetchLearnersReport });
+    const generateSlideMutation = useMutation({ mutationFn: fetchSlideWiseProgress });
+    const { isPending, error } = generateReportMutation;
 
     return (
         <div className="mt-10 flex flex-col gap-10">
@@ -184,7 +221,7 @@ export default function TimelineReports() {
                                 <SelectValue placeholder="Select a Course" />
                             </SelectTrigger>
                             <SelectContent>
-                                {courseList.map((course) => (
+                                {courseList?.map((course) => (
                                     <SelectItem key={course.id} value={course.id}>
                                         {course.name}
                                     </SelectItem>
@@ -208,7 +245,7 @@ export default function TimelineReports() {
                                 <SelectValue placeholder="Select a Session" />
                             </SelectTrigger>
                             <SelectContent>
-                                {sessionList.map((session) => (
+                                {sessionList?.map((session) => (
                                     <SelectItem key={session.id} value={session.id}>
                                         {session.name}
                                     </SelectItem>
@@ -232,7 +269,7 @@ export default function TimelineReports() {
                                 <SelectValue placeholder="Select a Level" />
                             </SelectTrigger>
                             <SelectContent>
-                                {levelList.map((level) => (
+                                {levelList?.map((level) => (
                                     <SelectItem key={level.id} value={level.id}>
                                         {level.level_name}
                                     </SelectItem>
@@ -265,7 +302,7 @@ export default function TimelineReports() {
                                 />
                                 <CommandList>
                                     {filteredStudents.length > 0 ? (
-                                        filteredStudents.map((student, index) => (
+                                        filteredStudents?.map((student, index) => (
                                             <SelectItem
                                                 key={index}
                                                 value={student.user_id}
@@ -312,20 +349,21 @@ export default function TimelineReports() {
                     <div className="mt-4 text-red-500">
                         <h4 className="font-semibold">Please fix the following errors:</h4>
                         <ul className="ml-4 list-disc">
-                            {Object.entries(errors).map(([key, error]) => (
+                            {Object.entries(errors)?.map(([key, error]) => (
                                 <li key={key}>{error.message}</li>
                             ))}
                         </ul>
                     </div>
                 )}
             </form>
+            {isPending && <DashboardLoader height="10vh" />}
             {reportData && <div className="border"></div>}
             {reportData && (
                 <div className="flex flex-col gap-10">
                     <div className="flex flex-row justify-between gap-10">
                         <div className="flex flex-col gap-6">
                             <div className="text-h3 text-primary-500">Student&lsquo;s Name</div>
-                            <div>Date</div>
+                            <div>{`Date ${startDate} - ${endDate}`}</div>
                         </div>
                         <div className="flex flex-row gap-10">
                             <ReportRecipientsDialogBox />
@@ -334,38 +372,134 @@ export default function TimelineReports() {
                     </div>
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
+                            <div className="text-h3 font-[600]">Course Completed</div>
+                            <div>
+                                {`${formatToTwoDecimalPlaces(
+                                    reportData?.learner_progress_report
+                                        ?.percentage_course_completed,
+                                )} %`}
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center justify-center">
+                            <div className="text-h3 font-[600]">Daily Time spent (Avg)</div>
+                            <div>
+                                {convertMinutesToTimeFormat(
+                                    reportData?.learner_progress_report?.avg_time_spent_in_minutes,
+                                )}
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center justify-center">
+                            <div className="text-h3 font-[600]">Concentration score (Avg)</div>
+                            <div>
+                                {`${formatToTwoDecimalPlaces(
+                                    reportData?.learner_progress_report
+                                        ?.percentage_concentration_score || 0,
+                                )} %`}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex flex-row items-center justify-between">
+                        <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">Course Completed by batch</div>
-                            <div></div>
+                            <div>
+                                {`${formatToTwoDecimalPlaces(
+                                    reportData?.batch_progress_report?.percentage_course_completed,
+                                )} %`}
+                            </div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">
                                 Daily Time spent by batch (Avg)
                             </div>
-                            <div></div>
+                            <div>
+                                {convertMinutesToTimeFormat(
+                                    reportData?.batch_progress_report?.avg_time_spent_in_minutes,
+                                )}
+                            </div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">
                                 Concentration score of batch (Avg)
                             </div>
-                            <div></div>
+                            <div>
+                                {`${formatToTwoDecimalPlaces(
+                                    reportData?.batch_progress_report
+                                        ?.percentage_concentration_score || 0,
+                                )} %`}
+                            </div>
                         </div>
                     </div>
                     <div className="flex flex-col gap-6">
                         <div className="text-h3 font-[600] text-primary-500">
                             Concentration score of batch (Avg)
                         </div>
-                        <div className="flex flex-row gap-6">
-                            {/* <LineChartComponent></LineChartComponent> */}
-                            {/* <MyTable
-                                data={tableData}
-                                columns={activityLogColumns}
-                                isLoading={isLoading}
-                                error={error}
-                                // columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
-                                currentPage={page}
-                            ></MyTable> */}
+                        <div className="flex h-[570px] w-full flex-row gap-6">
+                            <LineChartComponent
+                                chartData={transformToChartData(reportData)}
+                            ></LineChartComponent>
+                            <div className="h-full w-[35%]">
+                                <MyTable
+                                    data={tableData}
+                                    columns={learnersReportColumns}
+                                    isLoading={isPending}
+                                    error={error}
+                                    columnWidths={LEARNERS_REPORTS_COLUMNS}
+                                    currentPage={0}
+                                    scrollable={true}
+                                    className="!h-full"
+                                ></MyTable>
+                            </div>
                         </div>
                     </div>
+                    {slideData && (
+                        <div className="flex flex-col gap-6">
+                            <div className="text-h3 font-[600] text-primary-500">
+                                Learning Timeline
+                            </div>
+                            {slideData?.map((slide, idx) => (
+                                <div key={idx} className="flex flex-col gap-1">
+                                    <div className="flex flex-row gap-1 font-[600]">
+                                        Date:{" "}
+                                        <div className="text-primary-500">
+                                            {dayjs(slide.date).format("DD-MM-YYYY")}
+                                        </div>
+                                    </div>
+                                    <MyTable
+                                        data={{
+                                            content: slide.slide_details?.map((slide) => ({
+                                                study_slide: slide.slide_title,
+                                                subject: slide.subject_name,
+                                                module: slide.module_name,
+                                                chapter: slide.chapter_name,
+                                                concentration_score: `${slide.concentration_score.toFixed(
+                                                    2,
+                                                )} %`, // Formatting as string
+                                                time_spent: convertMinutesToTimeFormat(
+                                                    parseFloat(slide.time_spent),
+                                                ),
+                                            })),
+                                            total_pages: 0,
+                                            page_no: 0,
+                                            page_size: 10,
+                                            total_elements: 0,
+                                            last: true,
+                                        }}
+                                        columns={SlidesColumns}
+                                        isLoading={isPending}
+                                        error={error}
+                                        columnWidths={SLIDES_WIDTH}
+                                        currentPage={0}
+                                        // className="!h-full"
+                                    ></MyTable>
+                                </div>
+                            ))}
+                            {/* <MyPagination
+                                currentPage={currPage}
+                                totalPages={totalPage}
+                                onPageChange={setCurrPage}
+                            ></MyPagination> */}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

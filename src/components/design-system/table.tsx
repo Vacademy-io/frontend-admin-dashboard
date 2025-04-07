@@ -64,7 +64,6 @@ export function MyTable<T>({
     className = "",
     tableState,
 }: MyTableProps<T>) {
-    console.log(tableState);
     const table = useReactTable({
         data: data?.content || [],
         columns,
