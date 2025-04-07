@@ -145,7 +145,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             {showErrorDialog && uploadResponse && selectedErrorRow !== null && (
                 <ErrorDetailsDialog
                     isOpen={showErrorDialog}
-                    onClose={() => setShowErrorDialog(false)}
+                    onClose={() => setShowErrorDialog(!showErrorDialog)}
                     errors={[
                         {
                             path: [selectedErrorRow, "ERROR"],

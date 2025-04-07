@@ -73,7 +73,9 @@ export const createEditableBulkUploadColumns = ({
                 const rowIndex = props.row.index;
 
                 // Check if there are any errors for this row
-                const rowErrors = csvErrors.filter((error) => error.path[0] === rowIndex);
+                const rowErrors = csvErrors.filter(
+                    (error) => error.path[0] === rowIndex + currentPage * ITEMS_PER_PAGE,
+                );
                 const hasErrors = rowErrors.length > 0;
 
                 if (!hasErrors) {
@@ -92,7 +94,7 @@ export const createEditableBulkUploadColumns = ({
                             layoutVariant="default"
                             onClick={() => onViewErrors?.(rowIndex)}
                         >
-                            Check errors ({rowErrors.length})
+                            Errors ({rowErrors.length})
                         </MyButton>
                     </div>
                 );
@@ -135,7 +137,7 @@ export const createEditableBulkUploadColumns = ({
                                 layoutVariant="default"
                                 onClick={() => onViewErrors?.(rowIndex)}
                             >
-                                Check errors ({rowErrors.length})
+                                Errors ({rowErrors.length})
                             </MyButton>
                         </div>
                     );

@@ -103,7 +103,7 @@ export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
                     layoutVariant="default"
                     onClick={() => setShowErrorDialog(true)}
                 >
-                    Check errors ({validationErrors.length})
+                    Errors ({validationErrors.length})
                 </MyButton>
             </div>
 

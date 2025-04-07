@@ -463,19 +463,22 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
                 onPageChange={(newPage) => setPage(newPage)}
             />
 
-            {showErrorDialog && selectedRowIndex !== null && (
-                <ErrorDetailsDialog
-                    isOpen={showErrorDialog}
-                    onClose={() => {
-                        setShowErrorDialog(false);
-                        setSelectedRowIndex(null);
-                    }}
-                    errors={csvErrors.filter(
-                        (error) => error.path[0] === selectedRowIndex + page * ITEMS_PER_PAGE,
-                    )}
-                    rowData={csvData?.[selectedRowIndex + page * ITEMS_PER_PAGE] || {}}
-                />
-            )}
+            <ErrorDetailsDialog
+                isOpen={showErrorDialog}
+                onClose={() => setShowErrorDialog(!showErrorDialog)}
+                errors={
+                    selectedRowIndex !== null
+                        ? csvErrors.filter(
+                              (error) => error.path[0] === selectedRowIndex + page * ITEMS_PER_PAGE,
+                          )
+                        : []
+                }
+                rowData={
+                    selectedRowIndex !== null
+                        ? csvData?.[selectedRowIndex + page * ITEMS_PER_PAGE] || {}
+                        : {}
+                }
+            />
         </div>
     );
 }
