@@ -102,6 +102,7 @@ export const StatusColumnRenderer: React.FC<StatusColumnRendererProps> = ({
                     scale="small"
                     layoutVariant="default"
                     onClick={() => setShowErrorDialog(true)}
+                    className="bg-danger-600"
                 >
                     Errors ({validationErrors.length})
                 </MyButton>

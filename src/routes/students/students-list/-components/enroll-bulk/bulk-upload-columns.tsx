@@ -17,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Warning } from "phosphor-react";
 
 // Define the type for statusColumnRenderer properly
 type StatusColumnRenderer = (props: { row: Row<SchemaFields> }) => JSX.Element;
@@ -241,26 +242,31 @@ export const createEditableBulkUploadColumns = ({
                     return (
                         <div
                             className={cn(
-                                "cursor-pointer truncate px-4 py-2",
-                                error ? "text-danger-500" : "text-neutral-500",
-                                isEditing ? "hover:bg-neutral-100" : "",
+                                `cursor-pointer truncate px-4 py-2 ${
+                                    error ? "rounded-lg border border-danger-600" : "border-none"
+                                }`,
                             )}
                             onClick={() => {
-                                console.log(" click");
                                 if (isEditing) {
-                                    console.log(" click 2");
                                     onCellClick(rowIndex, columnId);
                                 }
                             }}
                             onDoubleClick={() => {
-                                console.log("double click");
                                 if (isEditing) {
-                                    console.log("double click 2");
                                     onCellClick(rowIndex, columnId);
                                 }
                             }}
                         >
-                            {value || ""}
+                            <p
+                                className={`flex items-center gap-1 truncate ${
+                                    error ? "text-danger-500" : "text-neutral-500"
+                                } ${isEditing ? "bg-white-100" : "bg-none"}`}
+                            >
+                                {value || ""}{" "}
+                                <span className={`${error ? "visible" : "hidden"}`}>
+                                    <Warning />
+                                </span>
+                            </p>
                         </div>
                     );
                 },

@@ -141,7 +141,16 @@ export const UploadCSVButton = ({
             try {
                 // Pass headers to the validation function
                 const result = await validateCsvData(file, data.headers);
-                setCsvData(result.data);
+
+                // Filter out completely empty rows
+                const nonEmptyRows = result.data.filter((row) => {
+                    return Object.values(row).some(
+                        (value) =>
+                            value && (typeof value === "string" ? value.trim() !== "" : true),
+                    );
+                });
+
+                setCsvData(nonEmptyRows);
                 setCsvErrors(result.errors);
 
                 // Show error summary if any errors exist
