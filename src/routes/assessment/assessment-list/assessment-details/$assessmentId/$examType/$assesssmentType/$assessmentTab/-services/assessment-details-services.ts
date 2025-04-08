@@ -5,11 +5,13 @@ import {
     GET_EXPORT_CSV_URL_LEADERBOARD,
     GET_EXPORT_CSV_URL_RANK_MARK,
     GET_EXPORT_CSV_URL_RESPONDENT_LIST,
+    GET_EXPORT_CSV_URL_SUBMISSIONS_LIST,
     GET_EXPORT_PDF_URL_LEADERBOARD,
     GET_EXPORT_PDF_URL_QUESTION_INSIGHTS,
     GET_EXPORT_PDF_URL_RANK_MARK,
     GET_EXPORT_PDF_URL_RESPONDENT_LIST,
     GET_EXPORT_PDF_URL_STUDENT_REPORT,
+    GET_EXPORT_PDF_URL_SUBMISSIONS_LIST,
     GET_INDIVIDUAL_STUDENT_DETAILS_URL,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
@@ -258,6 +260,44 @@ export const handleGetRespondentExportCSV = async (
             instituteId,
             sectionId,
             questionId,
+            assessmentId,
+        },
+        data: selectedFilter,
+    });
+    return response?.data;
+};
+
+export const handleGetSubmissionsExportPDF = async (
+    instituteId: string | undefined,
+    assessmentId: string,
+    selectedFilter: SelectedSubmissionsFilterInterface,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        responseType: "blob",
+        headers: {
+            Accept: "application/pdf",
+        },
+        url: GET_EXPORT_PDF_URL_SUBMISSIONS_LIST,
+        params: {
+            instituteId,
+            assessmentId,
+        },
+        data: selectedFilter,
+    });
+    return response?.data;
+};
+
+export const handleGetSubmissionsExportCSV = async (
+    instituteId: string | undefined,
+    assessmentId: string,
+    selectedFilter: SelectedSubmissionsFilterInterface,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: GET_EXPORT_CSV_URL_SUBMISSIONS_LIST,
+        params: {
+            instituteId,
             assessmentId,
         },
         data: selectedFilter,
