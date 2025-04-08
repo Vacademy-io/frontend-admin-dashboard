@@ -10,7 +10,7 @@ import { StudentMenuOptions } from "../../table-components/student-menu-options/
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useActivityStatsStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogDetailsDialog } from "@/components/common/student-slide-tracking/log-details-dialog";
 import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 
@@ -49,16 +49,12 @@ const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
 const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
     const { setSelectedStudent } = useStudentSidebar();
 
-    useEffect(() => {
+    const handleClick = async () => {
         setSelectedStudent(row.original);
-    }, [row.original]);
+    };
 
     return (
-        <SidebarTrigger
-            onClick={() => {
-                setSelectedStudent(row.original);
-            }}
-        >
+        <SidebarTrigger onClick={handleClick}>
             <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
         </SidebarTrigger>
     );
