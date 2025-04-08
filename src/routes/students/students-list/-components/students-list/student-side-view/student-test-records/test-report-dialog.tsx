@@ -1,9 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DotOutline, Export } from "@phosphor-icons/react";
-import { MyButton } from "@/components/design-system/button";
+import { DotOutline } from "@phosphor-icons/react";
 import { Separator } from "@radix-ui/react-separator";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { convertToLocalDateTime, extractDateTime } from "@/constants/helper";
 import { ResponseBreakdownComponent } from "./response-breakdown-component";
@@ -17,6 +16,9 @@ import { parseHtmlToString } from "@/components/common/export-offline/utils/util
 import { AssessmentReportStudentInterface } from "@/types/assessments/assessment-overview";
 import { AssessmentTestReport } from "@/types/assessments/assessment-data-report";
 import { Clock } from "phosphor-react";
+import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
+import { toast } from "sonner";
+import { handleGetStudentReportExportPDF } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
 
 interface TestReportDialogProps {
     isOpen: boolean;
@@ -63,6 +65,39 @@ export const TestReportDialog = ({
         wrongResponse: testReport.question_overall_detail_dto.wrongAttempt,
         skipped: testReport.question_overall_detail_dto.skippedCount,
     };
+    const getExportStudentReportDataPDF = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+            attemptId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+            attemptId: string;
+        }) => handleGetStudentReportExportPDF(assessmentId, instituteId, attemptId),
+        onSuccess: async (response) => {
+            const date = new Date();
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `pdf_student_report_${date.toLocaleString()}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Test report data for PDF exported successfully!");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+    const handleExportPDF = () => {
+        getExportStudentReportDataPDF.mutate({
+            assessmentId: studentReport.assessment_id,
+            instituteId: instituteDetails?.id,
+            attemptId: studentReport.assessment_id,
+        });
+    };
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-0 overflow-y-auto !p-0">
@@ -83,9 +118,14 @@ export const TestReportDialog = ({
                                 {studentReport.assessment_name}
                             </div>
                         </div>
-                        <MyButton buttonType="secondary" scale="large" layoutVariant="default">
-                            <Export /> Export
-                        </MyButton>
+                        <ExportDialogPDFCSV
+                            handleExportPDF={handleExportPDF}
+                            isPDFLoading={
+                                getExportStudentReportDataPDF.status === "pending" ? true : false
+                            }
+                            isEnablePDF={true}
+                            isEnableCSV={false}
+                        />
                     </div>
 
                     <div className="grid grid-cols-3 text-body">

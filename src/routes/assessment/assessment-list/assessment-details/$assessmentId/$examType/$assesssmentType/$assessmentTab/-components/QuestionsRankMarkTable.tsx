@@ -31,7 +31,9 @@ const AssessmentDetailsRankMarkTable = ({
                         {marksRanksData?.map((item) => (
                             <TableRow key={item.rank}>
                                 <TableCell className="w-1/4">{item.rank}</TableCell>
-                                <TableCell className="w-1/4">{item.marks.toFixed(2)}</TableCell>
+                                <TableCell className="w-1/4">
+                                    {item.marks ? item.marks.toFixed(2) : 0}
+                                </TableCell>
                                 <TableCell className="w-1/4">{item.percentile}%</TableCell>
                                 <TableCell className="w-1/4">{item.no_of_participants}</TableCell>
                             </TableRow>
