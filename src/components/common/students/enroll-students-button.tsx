@@ -5,11 +5,14 @@ import { EnrollBulkButton } from "@/routes/students/students-list/-components/en
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { cn } from "@/lib/utils";
+import { useDialogStore } from "@/stores/students/students-list/useDialogStore";
 
 export const EnrollStudentsButton = () => {
     const { getCourseFromPackage } = useInstituteDetailsStore();
+    const { isEnrollStudentsOpen, setEnrollStudentsOpen } = useDialogStore();
+
     return (
-        <Dialog>
+        <Dialog open={isEnrollStudentsOpen} onOpenChange={setEnrollStudentsOpen}>
             <DialogTrigger
                 disabled={getCourseFromPackage().length === 0}
                 className={cn(

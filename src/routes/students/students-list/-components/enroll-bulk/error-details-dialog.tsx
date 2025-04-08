@@ -33,11 +33,6 @@ export const ErrorDetailsDialog = ({
 }: ErrorDetailsDialogProps) => {
     // For API errors, extract useful details from the error message
 
-    useEffect(() => {
-        console.log("rowData: ", rowData);
-        console.log("errors: ", errors);
-    }, [rowData, errors]);
-
     const getFormattedApiError = (errorMessage: string) => {
         if (!errorMessage) return { mainError: "Unknown error", details: "" };
 

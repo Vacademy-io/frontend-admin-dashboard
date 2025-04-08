@@ -385,7 +385,7 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
     return paginatedData.content.length === 0 ? (
         <p className="w-full text-center text-subtitle text-primary-500">No uploaded data found!</p>
     ) : (
-        <div className="no-scrollbar relative flex flex-col gap-6 overflow-y-scroll px-6">
+        <div className="no-scrollbar flex flex-col gap-6 overflow-y-scroll px-6">
             <div className="no-scrollbar flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <StudentSearchBox

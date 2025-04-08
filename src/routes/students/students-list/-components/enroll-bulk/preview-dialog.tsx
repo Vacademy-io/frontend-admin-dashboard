@@ -36,9 +36,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     const { csvErrors, setIsEditing } = useBulkUploadStore();
     const [selectedErrorRow, setSelectedErrorRow] = useState<number | null>(null);
     const [showErrorDialog, setShowErrorDialog] = useState(false);
-    // const [page, setPage] = useState(1);
 
-    // When the dialog closes, ensure edit mode is turned off
     React.useEffect(() => {
         if (!isOpen) {
             setIsEditing(false);
@@ -52,22 +50,6 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             closeAllDialogs();
         }
     };
-
-    // Create a wrapped status column renderer with proper type safety
-    // const CustomStatusColumnRenderer = React.useCallback(
-    //     ({ row }: { row: Row<SchemaFields> }) => {
-    //         return (
-    //             <StatusColumnRenderer
-    //                 row={row}
-    //                 csvErrors={csvErrors}
-    //                 csvData={uploadCompleted && uploadResponse ? uploadResponse : csvData}
-    //                 currentPage={page}
-    //                 ITEMS_PER_PAGE={10}
-    //             />
-    //         );
-    //     },
-    //     [csvErrors, csvData, uploadCompleted, uploadResponse, page],
-    // );
 
     // Handler for viewing error details
     const handleViewError = (rowIndex: number) => {
@@ -92,7 +74,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                     layoutVariant="default"
                     onClick={handleClose}
                 >
-                    Close
+                    {uploadCompleted ? "Close" : "Go Back"}
                 </MyButton>
             </div>
         </footer>
