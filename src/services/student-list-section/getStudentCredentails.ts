@@ -1,6 +1,5 @@
 import { GET_USER_CREDENTIALS } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { useQuery } from "@tanstack/react-query";
 
 export interface StudentCredentialsType {
@@ -9,15 +8,16 @@ export interface StudentCredentialsType {
     user_id: string;
 }
 
+export const getStudentCredentails = async ({ userId }: { userId: string }) => {
+    const response = await authenticatedAxiosInstance.get(`${GET_USER_CREDENTIALS}/${userId}`);
+    return response.data;
+};
+
 export const useStudentCredentails = ({ userId }: { userId: string }) => {
-    const { setSelectedStudentCredentials } = useStudentSidebar();
     return useQuery<StudentCredentialsType | null>({
         queryKey: ["GET_USER_CREDENTIALS", userId],
         queryFn: async () => {
-            const response = await authenticatedAxiosInstance.get(
-                `${GET_USER_CREDENTIALS}/${userId}`,
-            );
-            setSelectedStudentCredentials(response.data);
+            const response = await getStudentCredentails({ userId });
             return response.data;
         },
         enabled: !!userId,

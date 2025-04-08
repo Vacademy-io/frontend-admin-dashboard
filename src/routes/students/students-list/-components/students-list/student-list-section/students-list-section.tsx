@@ -27,6 +27,8 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 import { useSearch } from "@tanstack/react-router";
 import { Route } from "@/routes/students/students-list";
+import { useUsersCredentials } from "../../../-services/usersCredentials";
+import { useStudentCredentialsStore } from "@/stores/students/students-list/useStudentCredentialsStore";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -76,6 +78,35 @@ export const StudentsListSection = () => {
         handleSort,
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters);
+
+    const getUserCredentialsMutation = useUsersCredentials();
+    const { credentialsMap } = useStudentCredentialsStore();
+
+    async function getCredentials() {
+        const ids = studentTableData?.content.map((student) => student.user_id);
+        console.log("Fetching credentials for IDs:", ids);
+        if (!ids || ids.length === 0) {
+            console.log("No student IDs available yet");
+            return;
+        }
+        const credentials = await getUserCredentialsMutation.mutateAsync({ userIds: ids || [] });
+        console.log("Received credentials:", credentials);
+        return credentials;
+    }
+
+    useEffect(() => {
+        async function fetchCredentials() {
+            console.log("studentTableData changed:", studentTableData);
+            if (studentTableData?.content && studentTableData.content.length > 0) {
+                await getCredentials();
+            }
+        }
+        fetchCredentials();
+    }, [studentTableData]);
+
+    useEffect(() => {
+        console.log("credentialsMap updated:", credentialsMap);
+    }, [credentialsMap]);
 
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
     useEffect(() => {

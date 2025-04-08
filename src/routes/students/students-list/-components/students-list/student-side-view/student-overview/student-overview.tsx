@@ -5,43 +5,27 @@ import { useStudentSidebar } from "@/routes/students/students-list/-context/sele
 import { useEffect, useState } from "react";
 import { OverViewData, OverviewDetailsType } from "./overview";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useStudentCredentails } from "@/services/student-list-section/getStudentCredentails";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { EditStudentDetails } from "./EditStudentDetails";
+import { useStudentCredentialsStore } from "@/stores/students/students-list/useStudentCredentialsStore";
 
 export const StudentOverview = () => {
-    const { selectedStudent, setSelectedStudentCredentials } = useStudentSidebar();
+    const { selectedStudent } = useStudentSidebar();
     const [overviewData, setOverviewData] = useState<OverviewDetailsType[] | null>(null);
     const [daysUntilExpiry, setDaysUntilExpiry] = useState<number>(0);
 
     const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
-
-    const {
-        data: StudentCredentails,
-        isLoading: loadingCredentials,
-        isError: errorCredentials,
-    } = useStudentCredentails({ userId: selectedStudent?.user_id || "" });
-
-    useEffect(() => {
-        if (StudentCredentails) setSelectedStudentCredentials(StudentCredentails);
-    }, [selectedStudent]);
-
+    const { getCredentials } = useStudentCredentialsStore();
     const [password, setPassword] = useState(
-        errorCredentials
-            ? "Error fetching password"
-            : StudentCredentails
-              ? StudentCredentails.password
-              : "password not found",
+        getCredentials(selectedStudent?.user_id || "")?.password || "password not found",
     );
 
     useEffect(() => {
-        const newPassword = errorCredentials
-            ? "Error fetching password"
-            : StudentCredentails
-              ? StudentCredentails.password
-              : "password not found";
-        setPassword(newPassword);
-    }, [StudentCredentails]);
+        if (selectedStudent) {
+            console.log("selectedStudent", selectedStudent.full_name);
+            const credentials = getCredentials(selectedStudent.user_id);
+            setPassword(credentials?.password || "password not found");
+        }
+    }, [selectedStudent]);
 
     useEffect(() => {
         const details = getDetailsFromPackageSessionId({
@@ -72,15 +56,7 @@ export const StudentOverview = () => {
         } else {
             setDaysUntilExpiry(0);
         }
-    }, [selectedStudent, instituteDetails]);
-
-    if (loadingCredentials) {
-        return (
-            <div className="flex h-full items-center justify-center">
-                <DashboardLoader />
-            </div>
-        );
-    }
+    }, [selectedStudent, instituteDetails, password]);
 
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
