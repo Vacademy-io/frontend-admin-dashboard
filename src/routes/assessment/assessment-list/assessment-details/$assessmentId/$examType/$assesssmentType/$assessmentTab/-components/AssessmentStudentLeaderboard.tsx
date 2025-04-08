@@ -297,8 +297,10 @@ const AssessmentStudentLeaderboard = () => {
                                             <div className="flex flex-col text-center text-neutral-500">
                                                 <span className="text-[12px]">Marks</span>
                                                 <span>
-                                                    {student.achieved_marks.toFixed(2)}/
-                                                    {totalMarks.total_achievable_marks}
+                                                    {student.achieved_marks
+                                                        ? student.achieved_marks.toFixed(2)
+                                                        : 0}
+                                                    /{totalMarks.total_achievable_marks}
                                                 </span>
                                             </div>
                                         </div>
