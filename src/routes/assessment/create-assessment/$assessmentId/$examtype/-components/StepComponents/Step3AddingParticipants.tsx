@@ -19,6 +19,8 @@ import {
 import QRCode from "react-qr-code";
 import {
     copyToClipboard,
+    filterLevelDetailsByIds,
+    getAllSessions,
     getCustomFieldsWhileEditStep3,
     getStepKey,
     handleDownloadQRCode,
@@ -51,7 +53,7 @@ import { convertDateFormat } from "./Step1BasicInfo";
 import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
 import { getInstituteId } from "@/constants/helper";
 import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
-
+import { useStudyLibraryQuery } from "@/routes/study-library/courses/-services/getStudyLibraryDetails";
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
 const Step3AddingParticipants: React.FC<StepContentProps> = ({
@@ -86,22 +88,23 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         }),
     );
 
-    const { batches_for_sessions } = instituteDetails || {};
+    const { data: batches_for_sessions } = useSuspenseQuery(useStudyLibraryQuery());
+    const sectionsInfo = getAllSessions(batches_for_sessions);
+
+    const [selectedSection, setSelectedSection] = useState(sectionsInfo ? sectionsInfo[0]?.id : "");
 
     // Extract batch IDs from preBatchData
-    const batchIds = new Set(
-        assessmentDetails[currentStep]?.saved_data.pre_batch_registrations.map(
-            (batch) => batch.batchId,
-        ),
+    const batchIds = assessmentDetails[currentStep]?.saved_data.pre_batch_registrations.map(
+        (batch) => batch.batchId,
     );
 
     // Filter matching batches
-    const matchedBatches = batches_for_sessions?.filter((batch) => batchIds.has(batch.id));
+    const matchedBatches = filterLevelDetailsByIds(batches_for_sessions, batchIds);
 
     const transformedBatches =
         assessmentId !== "defaultId"
-            ? transformBatchData(matchedBatches || [])
-            : transformBatchData(batches_for_sessions || []);
+            ? transformBatchData(matchedBatches || [], selectedSection)
+            : transformBatchData(batches_for_sessions || [], selectedSection);
 
     const oldFormData = useRef<TestAccessFormType | null>(null);
 
@@ -1065,7 +1068,13 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     <AddingParticipantsTab
                         batches={transformedBatches}
                         form={form}
-                        totalBatches={transformBatchData(batches_for_sessions || [])}
+                        totalBatches={transformBatchData(
+                            batches_for_sessions || [],
+                            selectedSection,
+                        )}
+                        selectedSection={selectedSection}
+                        setSelectedSection={setSelectedSection}
+                        sectionsInfo={sectionsInfo}
                     />
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between" id="join-link-qr-code">

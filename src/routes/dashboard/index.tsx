@@ -349,25 +349,57 @@ export function DashboardComponent() {
                                         </Dialog>
                                     </div>
                                     <CardDescription className="flex items-center gap-4 py-6">
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/assessment/assessment-list",
+                                                    search: { selectedTab: "liveTests" },
+                                                })
+                                            }
+                                        >
                                             <span>Live</span>
                                             <span className="text-primary-500">
                                                 {assessmentCount?.live_count}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/assessment/assessment-list",
+                                                    search: { selectedTab: "upcomingTests" },
+                                                })
+                                            }
+                                        >
                                             <span>Upcoming</span>
                                             <span className="text-primary-500">
                                                 {assessmentCount?.upcoming_count}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/assessment/assessment-list",
+                                                    search: { selectedTab: "previousTests" },
+                                                })
+                                            }
+                                        >
                                             <span>Previous</span>
                                             <span className="text-primary-500">
                                                 {assessmentCount?.previous_count}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div
+                                            className="flex items-center gap-2"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/assessment/assessment-list",
+                                                    search: { selectedTab: "draftTests" },
+                                                })
+                                            }
+                                        >
                                             <span>Drafts</span>
                                             <span className="text-primary-500">
                                                 {assessmentCount?.draft_count}

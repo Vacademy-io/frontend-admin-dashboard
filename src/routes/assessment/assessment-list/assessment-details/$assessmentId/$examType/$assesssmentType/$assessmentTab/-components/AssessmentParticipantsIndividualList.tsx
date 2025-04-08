@@ -51,6 +51,8 @@ export const AssessmentParticipantsIndividualList = ({ type }: { type: string })
         });
     };
 
+    console.log(participantsData);
+
     return (
         <Dialog>
             <DialogTrigger>
@@ -76,7 +78,8 @@ export const AssessmentParticipantsIndividualList = ({ type }: { type: string })
                                 content: getAssessmentStep3ParticipantsListIndividualStudents(
                                     participantsData.filter((item) =>
                                         type === "internal"
-                                            ? item.source === "ADMIN_PRE_REGISTRATION"
+                                            ? item.source === "ADMIN_PRE_REGISTRATION" ||
+                                              item.source === "BATCH_PREVIEW_REGISTRATION"
                                             : item.source === "OPEN_REGISTRATION",
                                     ),
                                 ),

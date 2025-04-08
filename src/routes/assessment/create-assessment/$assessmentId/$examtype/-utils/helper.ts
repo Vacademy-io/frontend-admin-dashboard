@@ -6,7 +6,6 @@ import {
     Step3StudentDetailInterface,
     Steps,
 } from "@/types/assessments/assessment-data-type";
-import { BatchData } from "@/types/assessments/batch-details";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
 import { AdaptiveMarkingQuestion } from "@/types/assessments/basic-details-type";
 import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questions";
@@ -23,6 +22,7 @@ import { z } from "zod";
 import sectionDetailsSchema from "./section-details-schema";
 import { convertCustomFields } from "../-services/assessment-services";
 import testAccessSchema from "./add-participants-schema";
+import { CourseWithSessionsType } from "@/stores/study-library/use-study-library-store";
 
 interface Role {
     roleId: string;
@@ -159,31 +159,59 @@ export const copyToClipboard = async (text: string) => {
     }
 };
 
-export function transformBatchData(data: BatchData[]) {
-    const batchDetails: Record<string, { name: string; id: string }[]> = {};
+export function transformBatchData(data: CourseWithSessionsType[], sessionId: string) {
+    const result: Record<string, { name: string; id: string }[]> = {};
+
+    data.forEach((courseEntry) => {
+        const groupName = courseEntry.course.package_name;
+        const matchingSession = courseEntry.sessions.find(
+            (session) => session.session_dto.id === sessionId,
+        );
+
+        if (matchingSession) {
+            const levels = matchingSession.level_with_details.map((level) => ({
+                id: level.id,
+                name: level.name,
+            }));
+
+            result[groupName] = levels;
+        }
+    });
+
+    return result;
+}
+
+export function filterLevelDetailsByIds(
+    data: CourseWithSessionsType[],
+    allowedIds: string[] | undefined,
+) {
+    return data.map((courseBlock) => ({
+        ...courseBlock,
+        sessions: courseBlock.sessions.map((session) => ({
+            ...session,
+            level_with_details: session.level_with_details.filter(
+                (level) => allowedIds?.includes(level.id),
+            ),
+        })),
+    }));
+}
+
+export function getAllSessions(data: CourseWithSessionsType[]) {
+    const sessionMap = new Map();
 
     data.forEach((item) => {
-        // Extract level name, package name, and ID
-        const levelName = item.level.level_name;
-        const packageName = item.package_dto.package_name;
-        const packageId = item.id;
-
-        // Create the batch key
-        const batchKey = `${levelName} Year/Class`;
-
-        // Initialize the batch key if not present
-        if (!batchDetails[batchKey]) {
-            batchDetails[batchKey] = [];
-        }
-
-        // Add the package details (name and id) to the batch key
-        batchDetails[batchKey]!.push({
-            name: `${levelName} ${packageName}`,
-            id: packageId || "",
+        item.sessions.forEach((session) => {
+            const { session_name, id } = session.session_dto;
+            const key = `${session_name}-${id}`;
+            if (!sessionMap.has(key)) {
+                sessionMap.set(key, { name: session_name, id });
+            }
         });
     });
 
-    return batchDetails;
+    const uniqueSessions = Array.from(sessionMap.values());
+
+    return uniqueSessions;
 }
 
 export const convertToUTC = (dateString: string) => {

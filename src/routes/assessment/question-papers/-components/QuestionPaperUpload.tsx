@@ -102,7 +102,6 @@ export const QuestionPaperUpload = ({
         setIsManualQuestionPaperDialogOpen,
         setIsUploadFromDeviceDialogOpen,
     } = useDialogStore();
-
     // Your mutation setup
     const handleSubmitFormData = useMutation({
         mutationFn: ({ data }: { data: MyQuestionPaperFormInterface }) => addQuestionPaper(data),
@@ -124,6 +123,7 @@ export const QuestionPaperUpload = ({
             });
             if (index !== undefined) {
                 // Check if index is defined
+
                 sectionsForm?.setValue(
                     `section.${index}.adaptive_marking_for_each_question`,
                     transformQuestionsData.map((question) => ({
@@ -141,6 +141,7 @@ export const QuestionPaperUpload = ({
                             hrs: question.questionDuration.hrs,
                             min: question.questionDuration.min,
                         },
+                        parentRichText: question.parentRichTextContent,
                     })),
                 );
                 sectionsForm?.trigger(`section.${index}.adaptive_marking_for_each_question`);
@@ -150,12 +151,13 @@ export const QuestionPaperUpload = ({
             setIsUploadFromDeviceDialogOpen(false);
         },
         onError: (error: unknown) => {
-            console.log("Error:", error);
             toast.error(error as string);
         },
     });
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
+        console.log("get questions ", getValues("questions"));
+        console.log("values ", values);
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
@@ -219,6 +221,7 @@ export const QuestionPaperUpload = ({
         onSuccess: async (data) => {
             const transformQuestionsData = transformResponseDataToMyQuestionsSchema(data);
             setValue("questions", transformQuestionsData);
+            console.log("question ", getValues("questions"));
             if (index !== undefined) {
                 sectionsForm?.setValue(`section.${index}`, {
                     ...sectionsForm?.getValues(`section.${index}`), // Keep other section data intact
@@ -232,6 +235,11 @@ export const QuestionPaperUpload = ({
                             hrs: question.questionDuration.hrs,
                             min: question.questionDuration.min,
                         },
+                        decimals: question.decimals,
+                        numericType: question.numericType,
+                        validAnswers: question.validAnswers,
+                        parentRichText: question.parentRichTextContent,
+                        subjectiveAnswerText: question.subjectiveAnswerText,
                     })),
                 });
             }
@@ -476,7 +484,7 @@ export const QuestionPaperUpload = ({
                                         questionPaperId={questionPaperId}
                                         isViewMode={false}
                                         isManualCreated={isManualCreated}
-                                        buttonText="Add Questions"
+                                        buttonText="Create"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
                                     />

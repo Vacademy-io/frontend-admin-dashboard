@@ -23,6 +23,7 @@ import {
 } from "../-services/dashboard-services";
 import { useMutation } from "@tanstack/react-query";
 import { getInstituteId } from "@/constants/helper";
+import { toast } from "sonner";
 
 export const inviteUsersSchema = z.object({
     name: z.string().min(1, "Full name is required"),
@@ -69,6 +70,10 @@ const EditComponent: React.FC<EditComponentProps> = ({ student, onClose, refetch
         onSuccess: () => {
             onClose();
             refetchData();
+            toast.success("Invitation for this user has been updated successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;
@@ -188,6 +193,10 @@ const ResendInviteComponent: React.FC<ResendInviteComponentProps> = ({
         onSuccess: () => {
             onClose();
             refetchData();
+            toast.success("Invitation for this user has been resend successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;
@@ -252,6 +261,10 @@ const CancelInviteComponent: React.FC<CancelInviteComponentProps> = ({
         onSuccess: () => {
             onClose();
             refetchData();
+            toast.success("Invitation for this user has been cancelled successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;
