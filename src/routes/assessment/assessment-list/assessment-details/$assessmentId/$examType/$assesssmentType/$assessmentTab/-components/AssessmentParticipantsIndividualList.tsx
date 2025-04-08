@@ -51,8 +51,6 @@ export const AssessmentParticipantsIndividualList = ({ type }: { type: string })
         });
     };
 
-    console.log(participantsData);
-
     return (
         <Dialog>
             <DialogTrigger>
