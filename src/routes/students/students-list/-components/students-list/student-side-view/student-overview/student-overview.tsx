@@ -10,7 +10,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { EditStudentDetails } from "./EditStudentDetails";
 
 export const StudentOverview = () => {
-    const { selectedStudent } = useStudentSidebar();
+    const { selectedStudent, setSelectedStudentCredentials } = useStudentSidebar();
     const [overviewData, setOverviewData] = useState<OverviewDetailsType[] | null>(null);
     const [daysUntilExpiry, setDaysUntilExpiry] = useState<number>(0);
 
@@ -21,6 +21,10 @@ export const StudentOverview = () => {
         isLoading: loadingCredentials,
         isError: errorCredentials,
     } = useStudentCredentails({ userId: selectedStudent?.user_id || "" });
+
+    useEffect(() => {
+        if (StudentCredentails) setSelectedStudentCredentials(StudentCredentails);
+    }, [selectedStudent]);
 
     const [password, setPassword] = useState(
         errorCredentials
