@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowCounterClockwise, Clock, Export } from "phosphor-react";
+import { ArrowCounterClockwise, Clock } from "phosphor-react";
 import { Crown, Person } from "@/svgs";
 import { MyPagination } from "@/components/design-system/pagination";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
@@ -11,11 +11,17 @@ import {
     getStudentLeaderboardDetails,
     handleGetAssessmentTotalMarksData,
     handleGetLeaderboardData,
+    handleGetStudentExportCSV,
+    handleGetStudentExportPDF,
 } from "../-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { getBatchNameById } from "../-utils/helper";
 import { StudentLeaderboard } from "@/types/assessment-overview";
+import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
+import { toast } from "sonner";
+import Papa from "papaparse";
+
 export interface AssessmentStudentLeaderboardInterface {
     name: string;
     status: string[];
@@ -125,6 +131,87 @@ const AssessmentStudentLeaderboard = () => {
         });
     };
 
+    const getExportLeaderboardDataPDF = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+        }) => handleGetStudentExportPDF(assessmentId, instituteId),
+        onSuccess: async (response) => {
+            const date = new Date();
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `pdf_student_leaderboard_report_${date.toLocaleString()}.pdf`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Leaderboard data for PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const getExportLeaderboardDataCSV = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+        }) => handleGetStudentExportCSV(assessmentId, instituteId),
+        onSuccess: (data) => {
+            const date = new Date();
+            const parsedData = Papa.parse(data, {
+                download: false,
+                header: true,
+                skipEmptyLines: true,
+            }).data;
+
+            const csv = Papa.unparse(parsedData);
+
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `csv_student_leaderboard_report_${date.toLocaleString()}.csv`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the created URL object
+            URL.revokeObjectURL(url);
+            toast.success("Leaderboard data for CSV exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getExportLeaderboardDataPDF.mutate({
+            assessmentId,
+            instituteId,
+        });
+    };
+    const handleExportCSV = () => {
+        getExportLeaderboardDataCSV.mutate({
+            assessmentId,
+            instituteId,
+        });
+    };
+
     if (isLoading) return <DashboardLoader />;
 
     return (
@@ -132,15 +219,16 @@ const AssessmentStudentLeaderboard = () => {
             <div className="flex items-center justify-between">
                 <h1>Leaderboard</h1>
                 <div className="flex items-center gap-6">
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="secondary"
-                        className="font-medium"
-                    >
-                        <Export size={32} />
-                        Export
-                    </MyButton>
+                    <ExportDialogPDFCSV
+                        handleExportPDF={handleExportPDF}
+                        handleExportCSV={handleExportCSV}
+                        isPDFLoading={
+                            getExportLeaderboardDataPDF.status === "pending" ? true : false
+                        }
+                        isCSVLoading={
+                            getExportLeaderboardDataCSV.status === "pending" ? true : false
+                        }
+                    />
                     <MyButton
                         type="button"
                         scale="large"
