@@ -8,11 +8,15 @@ const ExportDialogPDFCSV = ({
     handleExportCSV,
     isPDFLoading,
     isCSVLoading,
+    isEnablePDF = true,
+    isEnableCSV = true,
 }: {
-    handleExportPDF: () => void;
-    handleExportCSV: () => void;
-    isPDFLoading: boolean;
-    isCSVLoading: boolean;
+    handleExportPDF?: () => void;
+    handleExportCSV?: () => void;
+    isPDFLoading?: boolean;
+    isCSVLoading?: boolean;
+    isEnablePDF?: boolean;
+    isEnableCSV?: boolean;
 }) => {
     return (
         <Dialog>
@@ -32,24 +36,28 @@ const ExportDialogPDFCSV = ({
                     Export
                 </h1>
                 <div className="mb-4 flex flex-col items-center justify-center gap-4">
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="secondary"
-                        className="font-medium"
-                        onClick={handleExportPDF}
-                    >
-                        {isPDFLoading ? <DashboardLoader size={20} /> : "PDF"}
-                    </MyButton>
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="secondary"
-                        className="font-medium"
-                        onClick={handleExportCSV}
-                    >
-                        {isCSVLoading ? <DashboardLoader size={20} /> : "CSV"}
-                    </MyButton>
+                    {isEnablePDF && (
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="secondary"
+                            className="font-medium"
+                            onClick={handleExportPDF}
+                        >
+                            {isPDFLoading ? <DashboardLoader size={20} /> : "PDF"}
+                        </MyButton>
+                    )}
+                    {isEnableCSV && (
+                        <MyButton
+                            type="button"
+                            scale="large"
+                            buttonType="secondary"
+                            className="font-medium"
+                            onClick={handleExportCSV}
+                        >
+                            {isCSVLoading ? <DashboardLoader size={20} /> : "CSV"}
+                        </MyButton>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>

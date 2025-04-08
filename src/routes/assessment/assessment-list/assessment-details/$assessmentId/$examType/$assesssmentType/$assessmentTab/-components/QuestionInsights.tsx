@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { DotOutline } from "@phosphor-icons/react";
 import { Separator } from "@/components/ui/separator";
 import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise, Export } from "phosphor-react";
+import { ArrowCounterClockwise } from "phosphor-react";
 import { QuestionInsightsAnalysisChartComponent } from "./QuestionInsightsAnalysisChartComponent";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { getInstituteId } from "@/constants/helper";
@@ -13,12 +13,15 @@ import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$ass
 import {
     getQuestionsInsightsData,
     handleGetQuestionInsightsData,
+    handleGetStudentQuestionInsightsExportPDF,
 } from "../-services/assessment-details-services";
 import {
     getCorrectOptionsForQuestion,
     transformQuestionInsightsQuestionsData,
 } from "../-utils/helper";
 import QuestionAssessmentStatus from "./QuestionAssessmentStatus";
+import { toast } from "sonner";
+import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
 
 export function QuestionInsightsComponent() {
     const instituteId = getInstituteId();
@@ -73,6 +76,46 @@ export function QuestionInsightsComponent() {
         });
     };
 
+    const getExportQuestionInsightsDataPDF = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+            sectionIds,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+            sectionIds: string;
+        }) => handleGetStudentQuestionInsightsExportPDF(assessmentId, instituteId, sectionIds),
+        onSuccess: async (response) => {
+            const date = new Date();
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `pdf_student_question_insights_report_${date.toLocaleString()}.pdf`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Leaderboard data for PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getExportQuestionInsightsDataPDF.mutate({
+            assessmentId,
+            instituteId,
+            sectionIds:
+                assessmentDetails[1]?.saved_data.sections?.map((section) => section.id).join(",") ||
+                "",
+        });
+    };
+
     useEffect(() => {
         setSelectedSectionData(transformQuestionInsightsQuestionsData(data?.question_insight_dto));
     }, [selectedSection]);
@@ -102,15 +145,14 @@ export function QuestionInsightsComponent() {
                     ))}
                 </TabsList>
                 <div className="mt-3 flex items-center gap-6">
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="secondary"
-                        className="font-medium"
-                    >
-                        <Export size={32} />
-                        Export
-                    </MyButton>
+                    <ExportDialogPDFCSV
+                        handleExportPDF={handleExportPDF}
+                        isPDFLoading={
+                            getExportQuestionInsightsDataPDF.status === "pending" ? true : false
+                        }
+                        isEnablePDF={true}
+                        isEnableCSV={false}
+                    />
                     <MyButton
                         type="button"
                         scale="large"
