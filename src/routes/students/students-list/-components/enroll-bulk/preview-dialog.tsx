@@ -3,8 +3,8 @@ import { MyButton } from "@/components/design-system/button";
 import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 import { useBulkUploadStore } from "@/routes/students/students-list/-stores/enroll-students-bulk/useBulkUploadStore";
 import { Warning } from "@phosphor-icons/react";
-import { StatusColumnRenderer } from "./status-column-rendered";
-import { Row } from "@tanstack/react-table";
+// import { StatusColumnRenderer } from "./status-column-rendered";
+// import { Row } from "@tanstack/react-table";
 import { SchemaFields } from "@/routes/students/students-list/-types/bulk-upload-types";
 import { EditableBulkUploadTable } from "./bulk-upload-table";
 import { UploadResultsTable } from "./upload-results-table";
@@ -33,11 +33,10 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
     onDownloadResponse,
     closeAllDialogs,
 }) => {
-    const { csvData, csvErrors, setIsEditing } = useBulkUploadStore();
+    const { csvErrors, setIsEditing } = useBulkUploadStore();
     const [selectedErrorRow, setSelectedErrorRow] = useState<number | null>(null);
     const [showErrorDialog, setShowErrorDialog] = useState(false);
 
-    // When the dialog closes, ensure edit mode is turned off
     React.useEffect(() => {
         if (!isOpen) {
             setIsEditing(false);
@@ -51,20 +50,6 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             closeAllDialogs();
         }
     };
-
-    // Create a wrapped status column renderer with proper type safety
-    const CustomStatusColumnRenderer = React.useCallback(
-        ({ row }: { row: Row<SchemaFields> }) => {
-            return (
-                <StatusColumnRenderer
-                    row={row}
-                    csvErrors={csvErrors}
-                    csvData={uploadCompleted && uploadResponse ? uploadResponse : csvData}
-                />
-            );
-        },
-        [csvErrors, csvData, uploadCompleted, uploadResponse],
-    );
 
     // Handler for viewing error details
     const handleViewError = (rowIndex: number) => {
@@ -89,7 +74,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                     layoutVariant="default"
                     onClick={handleClose}
                 >
-                    Close
+                    {uploadCompleted ? "Close" : "Go Back"}
                 </MyButton>
             </div>
         </footer>
@@ -132,11 +117,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                         )}
 
                         <div className="no-scrollbar flex flex-col">
-                            <EditableBulkUploadTable
-                                headers={headers}
-                                onEdit={onEdit}
-                                statusColumnRenderer={CustomStatusColumnRenderer}
-                            />
+                            <EditableBulkUploadTable headers={headers} onEdit={onEdit} />
                         </div>
                     </div>
                 )}
@@ -146,7 +127,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
             {showErrorDialog && uploadResponse && selectedErrorRow !== null && (
                 <ErrorDetailsDialog
                     isOpen={showErrorDialog}
-                    onClose={() => setShowErrorDialog(false)}
+                    onClose={() => setShowErrorDialog(!showErrorDialog)}
                     errors={[
                         {
                             path: [selectedErrorRow, "ERROR"],

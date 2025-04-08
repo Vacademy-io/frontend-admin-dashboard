@@ -14,20 +14,11 @@ export const EnrollBulkButton = () => {
     );
 
     return (
-        // <Dialog>
-        //     <DialogTrigger>
-        // <MyButton buttonType="primary" scale="large" layoutVariant="default">
-        //     <span>
-        //         <Share />
-        //     </span>
-        //     Enroll in Bulk
-        //  </MyButton>
-        //     </DialogTrigger>
-        //     <DialogContent className="w-[400px] max-w-[800px] p-0 font-normal">
-        //         <EnrollBulkDialog />
-        //     </DialogContent>
-        // </Dialog>
-        <MyDialog heading="Enroll in Bulk" trigger={bulkTrigger}>
+        <MyDialog
+            heading="Enroll in Bulk"
+            trigger={bulkTrigger}
+            data-dialog-id="enroll-bulk-dialog"
+        >
             <EnrollBulkDialog />
         </MyDialog>
     );

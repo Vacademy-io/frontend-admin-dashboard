@@ -26,6 +26,7 @@ import { PreviewDialog } from "./preview-dialog";
 import { toast } from "sonner";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 interface FileState {
     file: File | null;
@@ -40,12 +41,12 @@ interface UploadCSVButtonProps {
 }
 
 // Define a more specific type for API responses
-interface ApiResponse {
-    data?: SchemaFields[] | string;
-    success?: boolean;
-    message?: string;
-    status?: number;
-}
+//  interface ApiResponse {
+//     data?: SchemaFields[] | string;
+//     success?: boolean;
+//     message?: string;
+//     status?: number;
+// }
 
 export const UploadCSVButton = ({
     disable,
@@ -58,6 +59,7 @@ export const UploadCSVButton = ({
     const [fileState, setFileState] = useState<FileState>({ file: null });
     const [uploadCompleted, setUploadCompleted] = useState(false);
     const [uploadResponse, setUploadResponse] = useState<SchemaFields[] | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const { mutateAsync } = useBulkUploadMutation();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
@@ -73,11 +75,21 @@ export const UploadCSVButton = ({
 
     // Function to close all dialogs
     const closeAllDialogs = () => {
-        setShowPreview(false);
         setIsOpen(false);
         // Close the CSV Format Dialog if it's open
         if (setOpenDialog) {
             setOpenDialog(false);
+        }
+
+        // Close the root enroll students dialog
+        const rootDialog = document.querySelector(
+            '[data-dialog-id="enroll-students-root-dialog"] [role="dialog"]',
+        );
+        if (rootDialog) {
+            const closeButton = rootDialog.querySelector('button[aria-label="Close"]');
+            if (closeButton instanceof HTMLButtonElement) {
+                closeButton.click();
+            }
         }
     };
 
@@ -141,7 +153,16 @@ export const UploadCSVButton = ({
             try {
                 // Pass headers to the validation function
                 const result = await validateCsvData(file, data.headers);
-                setCsvData(result.data);
+
+                // Filter out completely empty rows
+                const nonEmptyRows = result.data.filter((row) => {
+                    return Object.values(row).some(
+                        (value) =>
+                            value && (typeof value === "string" ? value.trim() !== "" : true),
+                    );
+                });
+
+                setCsvData(nonEmptyRows);
                 setCsvErrors(result.errors);
 
                 // Show error summary if any errors exist
@@ -181,6 +202,7 @@ export const UploadCSVButton = ({
     };
 
     const handleEditCell = (rowIndex: number, columnId: string, value: string) => {
+        // const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
         console.log(`Editing cell: row ${rowIndex}, column ${columnId}, new value: ${value}`);
     };
 
@@ -206,85 +228,77 @@ export const UploadCSVButton = ({
         }
     };
 
-    const processApiResponse = (response: ApiResponse | string): SchemaFields[] => {
-        // Handle different response formats
-        if (typeof response !== "string" && response.data && Array.isArray(response.data)) {
-            return response.data as SchemaFields[];
-        }
+    // const processApiResponse = (response: ApiResponse | string): SchemaFields[] => {
+    //     // Handle different response formats
+    //     if (typeof response !== "string" && response.data && Array.isArray(response.data)) {
+    //         return response.data as SchemaFields[];
+    //     }
 
-        // If response is a string or has data as string
-        const responseText =
-            typeof response === "string"
-                ? response
-                : response && typeof response.data === "string"
-                  ? response.data
-                  : "";
+    //     // If response is a string or has data as string
+    //     const responseText =
+    //         typeof response === "string"
+    //             ? response
+    //             : response && typeof response.data === "string"
+    //               ? response.data
+    //               : "";
 
-        if (responseText) {
-            return parseApiResponse(responseText);
-        }
+    //     if (responseText) {
+    //         return parseApiResponse(responseText);
+    //     }
 
-        return [];
-    };
+    //     return [];
+    // };
 
-    const generateUploadMessage = (stats: ReturnType<typeof getUploadStats>): string => {
-        if (stats.allSuccessful) {
-            return "File uploaded successfully";
-        } else if (stats.partialSuccess) {
-            return `File uploaded, ${stats.failed} entries are not uploaded due to errors`;
-        } else {
-            return "File upload failed due to errors in entries";
-        }
-    };
+    // const generateUploadMessage = (stats: ReturnType<typeof getUploadStats>): string => {
+    //     if (stats.allSuccessful) {
+    //         return "File uploaded successfully";
+    //     } else if (stats.partialSuccess) {
+    //         return `File uploaded, ${stats.failed} entries are not uploaded due to errors`;
+    //     } else {
+    //         return "File upload failed due to errors in entries";
+    //     }
+    // };
 
     const uploadCsv = async () => {
-        if (!csvData || !data?.submit_api) return;
+        if (!csvData || !fileState.file) return;
 
         try {
+            setIsUploading(true);
             const response = await mutateAsync({
                 data: csvData,
-                instituteId: data.submit_api.request_params.instituteId,
+                instituteId: INSTITUTE_ID || "",
                 bulkUploadInitRequest: requestPayload,
                 packageSessionId: packageSessionId || "",
-                notify: false,
+                notify: true,
             });
 
-            // Process the API response
-            const responseData = processApiResponse(response);
-            setUploadResponse(responseData);
-
-            // Analyze the results
-            const stats = getUploadStats(responseData);
-            const message = generateUploadMessage(stats);
-
-            // Show appropriate toast based on results
-            if (stats.allSuccessful) {
-                toast.success(message, {
-                    className: "success-toast",
-                    duration: 3000,
-                });
-                queryClient.invalidateQueries({ queryKey: ["yourQueryKey"] });
-            } else if (stats.partialSuccess) {
-                toast.warning(message, {
-                    className: "warning-toast",
-                    duration: 3000,
-                });
-                queryClient.invalidateQueries({ queryKey: ["yourQueryKey"] });
-            } else {
-                toast.error(message, {
-                    className: "error-toast",
-                    duration: 3000,
-                });
-            }
-
+            // Parse the response
+            const parsedResponse = parseApiResponse(response);
+            setUploadResponse(parsedResponse);
             setUploadCompleted(true);
+
+            // Show success message with upload stats
+            const stats = getUploadStats(parsedResponse);
+            toast.success(`Upload completed! ${stats.success} successful, ${stats.failed} failed`, {
+                className: "success-toast",
+                duration: 3000,
+            });
+
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ["students-list"] });
+
+            // Close other dialogs first
+            // closeAllDialogs();
+            // Then show preview dialog
             setShowPreview(true);
         } catch (error) {
-            console.error("Error in handleDoneClick:", error);
-            toast.error("Upload Failed", {
+            console.error("Upload failed:", error);
+            toast.error("Failed to upload CSV", {
                 className: "error-toast",
                 duration: 3000,
             });
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -317,6 +331,14 @@ export const UploadCSVButton = ({
         }
     }, [fileState.file]);
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center">
+                <DashboardLoader />
+            </div>
+        );
+    }
+
     return (
         <>
             <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -332,107 +354,108 @@ export const UploadCSVButton = ({
                     </MyButton>
                 </DialogTrigger>
 
-                <DialogContent className="w-[800px] max-w-[800px] p-0 font-normal">
-                    <DialogHeader>
-                        <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
-                            Upload CSV
+                <DialogContent className="overflow-y-scrolly max-h-[80vh] w-[800px] max-w-[800px] p-0 font-normal">
+                    {isUploading ? (
+                        <div className="flex items-center justify-center">
+                            <DashboardLoader />
                         </div>
-                        <DialogDescription className="flex flex-col items-center justify-center gap-6 p-6 text-neutral-600">
-                            {isLoading ? (
-                                <div>Loading...</div>
-                            ) : (
-                                <>
-                                    <div
-                                        {...getRootProps()}
-                                        className={`h-[270px] w-[720px] cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${
-                                            isDragActive ? "bg-primary-50" : "bg-white"
-                                        } transition-colors duration-200 ease-in-out`}
-                                    >
-                                        <input {...getInputProps()} />
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            <ImportFileImage />
-                                            {!fileState.file && (
-                                                <p className="text-center text-neutral-600">
-                                                    Drag and drop a CSV file here, or click to
-                                                    select one
-                                                </p>
-                                            )}
-                                            {fileState.file && (
-                                                <div className="text-center">
-                                                    <p className="font-medium text-primary-500">
-                                                        {fileState.file.name}
-                                                    </p>
-                                                    <p className="text-sm text-neutral-500">
-                                                        {(fileState.file.size / 1024).toFixed(2)} KB
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {fileState.error && (
-                                                <p className="text-sm text-danger-600">
-                                                    {fileState.error}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex gap-1 text-center">
-                                            {data?.instructions?.map((instruction, index) => (
-                                                <p key={index}>{instruction}.</p>
-                                            ))}
-                                        </div>
-                                        <MyButton
-                                            className="cursor-pointer text-[18px] font-semibold text-primary-500"
-                                            buttonType="text"
-                                            layoutVariant="default"
-                                            scale="medium"
-                                            onClick={handleDownloadTemplate}
-                                        >
-                                            Download Template
-                                        </MyButton>
-                                    </div>
-                                </>
-                            )}
-                        </DialogDescription>
-                        <DialogFooter className="px-6 py-4">
-                            <div className="flex w-full justify-between">
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="large"
-                                    layoutVariant="default"
-                                    type="button"
-                                    onClick={() => setShowPreview(true)}
-                                    disabled={!fileState.file || !data?.headers}
-                                >
-                                    {uploadCompleted ? "Show Uploaded File" : "Preview"}
-                                </MyButton>
-                                <MyButton
-                                    buttonType="primary"
-                                    scale="large"
-                                    layoutVariant="default"
-                                    type="button"
-                                    onClick={handleDoneClick}
-                                    disabled={!fileState.file}
-                                >
-                                    Done
-                                </MyButton>
+                    ) : (
+                        <DialogHeader>
+                            <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
+                                Upload CSV
                             </div>
-                        </DialogFooter>
-                    </DialogHeader>
+                            <DialogDescription className="flex flex-col items-center justify-center gap-6 p-6 text-neutral-600">
+                                <div
+                                    {...getRootProps()}
+                                    className={`h-[270px] w-[720px] cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${
+                                        isDragActive ? "bg-primary-50" : "bg-white"
+                                    } transition-colors duration-200 ease-in-out`}
+                                >
+                                    <input {...getInputProps()} />
+                                    <div className="flex flex-col items-center justify-center gap-4">
+                                        <ImportFileImage />
+                                        {!fileState.file && (
+                                            <p className="text-center text-neutral-600">
+                                                Drag and drop a CSV file here, or click to select
+                                                one
+                                            </p>
+                                        )}
+                                        {fileState.file && (
+                                            <div className="text-center">
+                                                <p className="font-medium text-primary-500">
+                                                    {fileState.file.name}
+                                                </p>
+                                                <p className="text-sm text-neutral-500">
+                                                    {(fileState.file.size / 1024).toFixed(2)} KB
+                                                </p>
+                                            </div>
+                                        )}
+                                        {fileState.error && (
+                                            <p className="text-sm text-danger-600">
+                                                {fileState.error}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col items-center">
+                                    <div className="flex gap-1 text-center">
+                                        {data?.instructions?.map((instruction, index) => (
+                                            <p key={index}>{instruction}.</p>
+                                        ))}
+                                    </div>
+                                    <MyButton
+                                        className="cursor-pointer text-[18px] font-semibold text-primary-500"
+                                        buttonType="text"
+                                        layoutVariant="default"
+                                        scale="medium"
+                                        onClick={handleDownloadTemplate}
+                                    >
+                                        Download Template
+                                    </MyButton>
+                                </div>
+                            </DialogDescription>
+                            <DialogFooter className="px-6 py-4">
+                                <div className="flex w-full justify-between">
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="large"
+                                        layoutVariant="default"
+                                        type="button"
+                                        onClick={() => setShowPreview(true)}
+                                        disabled={!fileState.file || !data?.headers}
+                                    >
+                                        {uploadCompleted ? "Show Uploaded File" : "Preview"}
+                                    </MyButton>
+                                    <MyButton
+                                        buttonType="primary"
+                                        scale="large"
+                                        layoutVariant="default"
+                                        type="button"
+                                        onClick={handleDoneClick}
+                                        disabled={!fileState.file}
+                                    >
+                                        Upload
+                                    </MyButton>
+                                </div>
+                            </DialogFooter>
+                        </DialogHeader>
+                    )}
                 </DialogContent>
             </Dialog>
 
-            {data?.headers && (
+            {/* Preview Dialog */}
+            {showPreview && (
                 <PreviewDialog
                     isOpen={showPreview}
                     onClose={() => setShowPreview(false)}
                     file={fileState.file}
-                    headers={data.headers}
+                    headers={data?.headers || []}
                     onEdit={handleEditCell}
                     uploadCompleted={uploadCompleted}
                     uploadResponse={uploadResponse}
                     onDownloadResponse={handleDownloadResponse}
-                    closeAllDialogs={closeAllDialogs} // Pass closeAllDialogs function
+                    closeAllDialogs={closeAllDialogs}
                 />
             )}
         </>
