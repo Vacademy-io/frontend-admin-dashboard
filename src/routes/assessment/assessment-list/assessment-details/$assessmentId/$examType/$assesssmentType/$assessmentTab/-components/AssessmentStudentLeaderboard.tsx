@@ -11,8 +11,8 @@ import {
     getStudentLeaderboardDetails,
     handleGetAssessmentTotalMarksData,
     handleGetLeaderboardData,
-    handleGetStudentExportCSV,
-    handleGetStudentExportPDF,
+    handleGetStudentLeaderboardExportCSV,
+    handleGetStudentLeaderboardExportPDF,
 } from "../-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
@@ -138,7 +138,7 @@ const AssessmentStudentLeaderboard = () => {
         }: {
             assessmentId: string;
             instituteId: string | undefined;
-        }) => handleGetStudentExportPDF(assessmentId, instituteId),
+        }) => handleGetStudentLeaderboardExportPDF(assessmentId, instituteId),
         onSuccess: async (response) => {
             const date = new Date();
             const url = window.URL.createObjectURL(new Blob([response]));
@@ -166,7 +166,7 @@ const AssessmentStudentLeaderboard = () => {
         }: {
             assessmentId: string;
             instituteId: string | undefined;
-        }) => handleGetStudentExportCSV(assessmentId, instituteId),
+        }) => handleGetStudentLeaderboardExportCSV(assessmentId, instituteId),
         onSuccess: (data) => {
             const date = new Date();
             const parsedData = Papa.parse(data, {

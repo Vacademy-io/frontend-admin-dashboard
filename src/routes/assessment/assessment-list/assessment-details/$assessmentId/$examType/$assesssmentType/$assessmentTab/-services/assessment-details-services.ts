@@ -3,7 +3,9 @@ import {
     GET_ASSESSMENT_TOTAL_MARKS_URL,
     GET_BATCH_DETAILS_URL,
     GET_EXPORT_CSV_URL_LEADERBOARD,
+    GET_EXPORT_CSV_URL_RANK_MARK,
     GET_EXPORT_PDF_URL_LEADERBOARD,
+    GET_EXPORT_PDF_URL_RANK_MARK,
     GET_INDIVIDUAL_STUDENT_DETAILS_URL,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
@@ -103,7 +105,7 @@ export const getStudentLeaderboardDetails = async (
     return response?.data;
 };
 
-export const handleGetStudentExportPDF = async (
+export const handleGetStudentLeaderboardExportPDF = async (
     assessmentId: string,
     instituteId: string | undefined,
 ) => {
@@ -122,13 +124,47 @@ export const handleGetStudentExportPDF = async (
     return response?.data;
 };
 
-export const handleGetStudentExportCSV = async (
+export const handleGetStudentLeaderboardExportCSV = async (
     assessmentId: string,
     instituteId: string | undefined,
 ) => {
     const response = await authenticatedAxiosInstance({
         method: "GET",
         url: GET_EXPORT_CSV_URL_LEADERBOARD,
+        params: {
+            assessmentId,
+            instituteId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetStudentRankMarkExportCSV = async (
+    assessmentId: string,
+    instituteId: string | undefined,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: GET_EXPORT_CSV_URL_RANK_MARK,
+        params: {
+            assessmentId,
+            instituteId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetStudentRankMarkExportPDF = async (
+    assessmentId: string,
+    instituteId: string | undefined,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        responseType: "blob",
+        headers: {
+            Accept: "application/pdf",
+        },
+        url: GET_EXPORT_PDF_URL_RANK_MARK,
         params: {
             assessmentId,
             instituteId,
