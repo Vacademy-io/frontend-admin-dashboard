@@ -22,6 +22,8 @@ const GenerateAIAssessmentComponent = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
+    const [assessmentData, setAssessmentData] = useState(null);
+    console.log(assessmentData);
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -48,9 +50,7 @@ const GenerateAIAssessmentComponent = () => {
         }
     };
 
-    const [assessmentData, setAssessmentData] = useState(null);
-    console.log(assessmentData);
-
+    /* Generate Assessment Complete */
     const MAX_POLL_ATTEMPTS = 10;
     const pollingCountRef = useRef(0);
     const pollingIntervalIdRef = useRef<NodeJS.Timeout | null>(null);
@@ -101,13 +101,13 @@ const GenerateAIAssessmentComponent = () => {
         }, 10000);
     };
 
-    // ✅ Optional: clean up on unmount
     useEffect(() => {
         return () => {
             clearPolling();
         };
     }, []);
 
+    /* Generate Assessment Pagewise */
     const convertPollingCountRef = useRef(0);
     const convertPollingIntervalIdRef = useRef<NodeJS.Timeout | null>(null);
     const MAX_CONVERT_ATTEMPTS = 10;
@@ -115,11 +115,8 @@ const GenerateAIAssessmentComponent = () => {
     const handleConvertPDFToHTMLMutation = useMutation({
         mutationFn: ({ pdfId }: { pdfId: string }) => handleConvertPDFToHTML(pdfId),
         onSuccess: async (response) => {
-            // ✅ Check if status is 200 and stop polling
             if (response) {
                 stopConvertPolling();
-
-                // Optional: get questions from HTML if needed
                 const questionsData = await handleGetQuestionsFromHTMLUrl(response.html);
                 console.log("✅ Questions Data:", questionsData);
             } else {
