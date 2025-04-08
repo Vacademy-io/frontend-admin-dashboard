@@ -11,7 +11,7 @@ import { useContentStore } from "@/routes/study-library/courses/levels/subjects/
 import { useQuery } from "@tanstack/react-query";
 import {
     getUserVideoSlideActivityLogs,
-    getUserVideoDocActivityLogs,
+    getUserDocActivityLogs,
 } from "@/services/study-library/slide-operations/user-slide-activity-logs";
 import { ActivityContent } from "@/types/study-library/user-slide-activity-response-type";
 import { StudentTable } from "@/types/student-table-types";
@@ -43,7 +43,7 @@ export const ActivityLogDialog = ({
                   pageNo: page,
                   pageSize: pageSize,
               })
-            : getUserVideoDocActivityLogs({
+            : getUserDocActivityLogs({
                   userId,
                   slideId,
                   pageNo: page,
@@ -81,6 +81,7 @@ export const ActivityLogDialog = ({
             lastPageRead: item.percentage_watched,
             videos: item.videos,
             documents: item.documents,
+            concentrationScore: item.concentration_score,
         }));
 
         return {
