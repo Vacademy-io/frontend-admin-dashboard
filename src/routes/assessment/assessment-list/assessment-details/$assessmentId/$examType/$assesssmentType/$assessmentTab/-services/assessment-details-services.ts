@@ -4,9 +4,11 @@ import {
     GET_BATCH_DETAILS_URL,
     GET_EXPORT_CSV_URL_LEADERBOARD,
     GET_EXPORT_CSV_URL_RANK_MARK,
+    GET_EXPORT_CSV_URL_RESPONDENT_LIST,
     GET_EXPORT_PDF_URL_LEADERBOARD,
     GET_EXPORT_PDF_URL_QUESTION_INSIGHTS,
     GET_EXPORT_PDF_URL_RANK_MARK,
+    GET_EXPORT_PDF_URL_RESPONDENT_LIST,
     GET_EXPORT_PDF_URL_STUDENT_REPORT,
     GET_INDIVIDUAL_STUDENT_DETAILS_URL,
     GET_LEADERBOARD_URL,
@@ -213,6 +215,52 @@ export const handleGetStudentReportExportPDF = async (
             attemptId,
             instituteId,
         },
+    });
+    return response?.data;
+};
+
+export const handleGetRespondentExportPDF = async (
+    instituteId: string | undefined,
+    sectionId: string,
+    questionId: string,
+    assessmentId: string,
+    selectedFilter: SelectedFilterQuestionWise,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        responseType: "blob",
+        headers: {
+            Accept: "application/pdf",
+        },
+        url: GET_EXPORT_PDF_URL_RESPONDENT_LIST,
+        params: {
+            instituteId,
+            sectionId,
+            questionId,
+            assessmentId,
+        },
+        data: selectedFilter,
+    });
+    return response?.data;
+};
+
+export const handleGetRespondentExportCSV = async (
+    instituteId: string | undefined,
+    sectionId: string,
+    questionId: string,
+    assessmentId: string,
+    selectedFilter: SelectedFilterQuestionWise,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: GET_EXPORT_CSV_URL_RESPONDENT_LIST,
+        params: {
+            instituteId,
+            sectionId,
+            questionId,
+            assessmentId,
+        },
+        data: selectedFilter,
     });
     return response?.data;
 };
