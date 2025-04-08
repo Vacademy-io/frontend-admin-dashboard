@@ -7,6 +7,7 @@ import {
     GET_EXPORT_PDF_URL_LEADERBOARD,
     GET_EXPORT_PDF_URL_QUESTION_INSIGHTS,
     GET_EXPORT_PDF_URL_RANK_MARK,
+    GET_EXPORT_PDF_URL_STUDENT_REPORT,
     GET_INDIVIDUAL_STUDENT_DETAILS_URL,
     GET_LEADERBOARD_URL,
     GET_OVERVIEW_URL,
@@ -190,6 +191,27 @@ export const handleGetStudentQuestionInsightsExportPDF = async (
             assessmentId,
             instituteId,
             sectionIds,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetStudentReportExportPDF = async (
+    assessmentId: string,
+    instituteId: string | undefined,
+    attemptId: string,
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        responseType: "blob",
+        headers: {
+            Accept: "application/pdf",
+        },
+        url: GET_EXPORT_PDF_URL_STUDENT_REPORT,
+        params: {
+            assessmentId,
+            attemptId,
+            instituteId,
         },
     });
     return response?.data;

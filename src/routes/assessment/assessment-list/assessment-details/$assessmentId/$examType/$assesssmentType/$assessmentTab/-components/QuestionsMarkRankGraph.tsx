@@ -126,7 +126,7 @@ export function QuestionsMarkRankGraph() {
         });
     };
 
-    const getExportLeaderboardDataPDF = useMutation({
+    const getExportRankMarkDataPDF = useMutation({
         mutationFn: ({
             assessmentId,
             instituteId,
@@ -147,14 +147,14 @@ export function QuestionsMarkRankGraph() {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Leaderboard data for PDF exported successfully");
+            toast.success("Student rank mark data for PDF exported successfully");
         },
         onError: (error: unknown) => {
             throw error;
         },
     });
 
-    const getExportLeaderboardDataCSV = useMutation({
+    const getExportRankMarkDataCSV = useMutation({
         mutationFn: ({
             assessmentId,
             instituteId,
@@ -187,7 +187,7 @@ export function QuestionsMarkRankGraph() {
 
             // Clean up the created URL object
             URL.revokeObjectURL(url);
-            toast.success("Leaderboard data for CSV exported successfully");
+            toast.success("Student rank mark data for CSV exported successfully");
         },
         onError: (error: unknown) => {
             throw error;
@@ -195,13 +195,13 @@ export function QuestionsMarkRankGraph() {
     });
 
     const handleExportPDF = () => {
-        getExportLeaderboardDataPDF.mutate({
+        getExportRankMarkDataPDF.mutate({
             assessmentId,
             instituteId,
         });
     };
     const handleExportCSV = () => {
-        getExportLeaderboardDataCSV.mutate({
+        getExportRankMarkDataCSV.mutate({
             assessmentId,
             instituteId,
         });
@@ -216,12 +216,8 @@ export function QuestionsMarkRankGraph() {
                     <ExportDialogPDFCSV
                         handleExportPDF={handleExportPDF}
                         handleExportCSV={handleExportCSV}
-                        isPDFLoading={
-                            getExportLeaderboardDataPDF.status === "pending" ? true : false
-                        }
-                        isCSVLoading={
-                            getExportLeaderboardDataCSV.status === "pending" ? true : false
-                        }
+                        isPDFLoading={getExportRankMarkDataPDF.status === "pending" ? true : false}
+                        isCSVLoading={getExportRankMarkDataCSV.status === "pending" ? true : false}
                     />
                     <MyButton
                         type="button"

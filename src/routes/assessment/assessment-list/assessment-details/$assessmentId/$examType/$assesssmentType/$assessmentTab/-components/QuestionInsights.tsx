@@ -99,7 +99,7 @@ export function QuestionInsightsComponent() {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success("Leaderboard data for PDF exported successfully");
+            toast.success("Student question insights data for PDF exported successfully");
         },
         onError: (error: unknown) => {
             throw error;

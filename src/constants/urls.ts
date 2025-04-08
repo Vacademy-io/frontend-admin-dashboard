@@ -51,6 +51,7 @@ export const GET_EXPORT_CSV_URL_LEADERBOARD = `${BASE_URL}/assessment-service/as
 export const GET_EXPORT_PDF_URL_RANK_MARK = `${BASE_URL}/assessment-service/assessment/export/pdf/marks-rank`;
 export const GET_EXPORT_CSV_URL_RANK_MARK = `${BASE_URL}/assessment-service/assessment/export/csv/marks-rank`;
 export const GET_EXPORT_PDF_URL_QUESTION_INSIGHTS = `${BASE_URL}/assessment-service/assessment/export/pdf/question-insights`;
+export const GET_EXPORT_PDF_URL_STUDENT_REPORT = `${BASE_URL}/assessment-service/assessment/export/pdf/student-report`;
 export const GET_QUESTIONS_INSIGHTS_URL = `${BASE_URL}/assessment-service/assessment/admin/get-question-insights`;
 export const GET_ADMIN_PARTICIPANTS = `${BASE_URL}/assessment-service/assessment/admin-participants/all/registered-participants`;
 export const GET_PARTICIPANTS_QUESTION_WISE = `${BASE_URL}/assessment-service/assessment/admin-participants/all/respondent-list`;
