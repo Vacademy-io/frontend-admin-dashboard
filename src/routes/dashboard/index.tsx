@@ -352,7 +352,7 @@ export function DashboardComponent() {
                                     </div>
                                     <CardDescription className="flex items-center gap-4 py-6">
                                         <div
-                                            className="flex items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-2"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/assessment/assessment-list",
@@ -366,7 +366,7 @@ export function DashboardComponent() {
                                             </span>
                                         </div>
                                         <div
-                                            className="flex items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-2"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/assessment/assessment-list",
@@ -380,7 +380,7 @@ export function DashboardComponent() {
                                             </span>
                                         </div>
                                         <div
-                                            className="flex items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-2"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/assessment/assessment-list",
@@ -394,7 +394,7 @@ export function DashboardComponent() {
                                             </span>
                                         </div>
                                         <div
-                                            className="flex items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-2"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/assessment/assessment-list",
