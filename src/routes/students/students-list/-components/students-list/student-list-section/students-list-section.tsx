@@ -73,6 +73,8 @@ export const StudentsListSection = () => {
     } = useStudentFilters();
     const filters = GetFilterData(currentSession.name);
 
+    const search = useSearch({ from: Route.id });
+
     const {
         studentTableData,
         isLoading: loadingData,
@@ -80,13 +82,17 @@ export const StudentsListSection = () => {
         page,
         handleSort,
         handlePageChange,
-    } = useStudentTable(appliedFilters, setAppliedFilters);
+    } = useStudentTable(
+        appliedFilters,
+        setAppliedFilters,
+        search.package_session_id ? [search.package_session_id] : null,
+    );
     const { selectedFilterList, setSelectedFilterList } = useStudentFiltersContext();
 
     const getUserCredentialsMutation = useUsersCredentials();
 
     async function getCredentials() {
-        const ids = studentTableData?.content.map((student) => student.user_id);
+        const ids = studentTableData?.content.map((student: StudentTable) => student.user_id);
         if (!ids || ids.length === 0) {
             return;
         }
@@ -154,7 +160,6 @@ export const StudentsListSection = () => {
     );
 
     const { instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
-    const search = useSearch({ from: Route.id });
 
     useEffect(() => {
         if (search.batch && search.package_session_id) {
@@ -163,6 +168,7 @@ export const StudentsListSection = () => {
             });
             const batchName =
                 (details?.level.level_name || "") + (details?.package_dto.package_name || "");
+            console.log("batchName: ", batchName);
             setColumnFilters((prev) => [
                 ...prev,
                 {
@@ -193,6 +199,10 @@ export const StudentsListSection = () => {
             console.log("selectedFilterList from students-list-section: ", selectedFilterList);
         }
     }, [search, instituteDetails]);
+
+    useEffect(() => {
+        console.log("appliedFilters from students-list-section: ", appliedFilters);
+    }, [appliedFilters]);
 
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
