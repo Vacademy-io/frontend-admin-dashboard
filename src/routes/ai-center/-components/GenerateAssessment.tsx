@@ -14,7 +14,7 @@ import { UploadSimple } from "phosphor-react";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-
+import GenerateCompleteAssessment from "./GenerateCompleteAssessment";
 const GenerateAIAssessmentComponent = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
@@ -23,7 +23,7 @@ const GenerateAIAssessmentComponent = () => {
     const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [assessmentData, setAssessmentData] = useState(null);
-    console.log(assessmentData);
+    const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -64,13 +64,11 @@ const GenerateAIAssessmentComponent = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId }: { pdfId: string }) => handleGenerateAssessmentQuestions(pdfId),
+        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) =>
+            handleGenerateAssessmentQuestions(pdfId, userPrompt),
         onSuccess: (response) => {
-            console.log("API response:", response);
-
             // Check if response indicates pending state
             if (response?.status === "pending") {
-                console.log("Assessment generation is pending");
                 pendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
@@ -81,21 +79,18 @@ const GenerateAIAssessmentComponent = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
-                console.log("Assessment generation completed");
                 setAssessmentData(response);
                 clearPolling();
+                setOpenCompleteAssessmentDialog(true);
                 return;
             }
 
             // Otherwise schedule next poll
             scheduleNextPoll();
         },
-        onError: (error) => {
-            console.log("Error in API call:", error);
-
+        onError: () => {
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
-                console.log("Resuming polling after pending state");
                 pendingRef.current = false;
                 scheduleNextPoll();
                 return;
@@ -104,7 +99,6 @@ const GenerateAIAssessmentComponent = () => {
             // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
-                console.log("Max polling attempts reached");
                 clearPolling();
                 return;
             }
@@ -129,18 +123,14 @@ const GenerateAIAssessmentComponent = () => {
     const pollGenerateAssessment = () => {
         // Don't call API if in pending state
         if (pendingRef.current) {
-            console.log("Skipping poll - in pending state");
             return;
         }
-
-        console.log("Polling API for assessment generation status");
-        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId });
+        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: "" });
     };
 
     const handleGenerateQuestionsForAssessment = () => {
         if (!uploadedFilePDFId) return;
 
-        console.log("Starting assessment generation");
         clearPolling();
         pollingCountRef.current = 0;
         pendingRef.current = false;
@@ -301,7 +291,6 @@ const GenerateAIAssessmentComponent = () => {
                     />
                 </CardContent>
             </Card>
-
             <Dialog open={openAssessmentDialog} onOpenChange={setOpenAssessmentDialog}>
                 <DialogContent className="p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
@@ -331,6 +320,14 @@ const GenerateAIAssessmentComponent = () => {
                     </div>
                 </DialogContent>
             </Dialog>
+            {assessmentData && (
+                <GenerateCompleteAssessment
+                    openCompleteAssessmentDialog={openCompleteAssessmentDialog}
+                    setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
+                    assessmentData={assessmentData}
+                    handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
+                />
+            )}
         </div>
     );
 };

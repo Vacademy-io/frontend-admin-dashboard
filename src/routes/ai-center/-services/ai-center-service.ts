@@ -17,12 +17,13 @@ export const handleStartProcessUploadedFile = async (fileId: string) => {
     return response?.data;
 };
 
-export const handleGenerateAssessmentQuestions = async (pdfId: string) => {
+export const handleGenerateAssessmentQuestions = async (pdfId: string, userPrompt: string) => {
     const response = await axios({
         method: "GET",
         url: GENERATE_QUESTIONS_FROM_FILE_AI_URL,
         params: {
             pdfId,
+            userPrompt,
         },
     });
     return response?.data;
