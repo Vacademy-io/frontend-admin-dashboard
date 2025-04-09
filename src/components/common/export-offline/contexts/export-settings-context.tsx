@@ -37,6 +37,7 @@ export interface ExportSettings {
     roughWorkSize: "small" | "medium" | "large";
     customLetterheadImage?: string;
     showFirstPageInstructions: boolean;
+    customImageSizes: { [imageUrl: string]: { width: number; height: number } };
 }
 
 const defaultSettings: ExportSettings = {
@@ -64,7 +65,8 @@ const defaultSettings: ExportSettings = {
     fontSize: "medium",
     roughWorkSize: "medium",
     customLetterheadImage: undefined,
-    showFirstPageInstructions: false,
+    showFirstPageInstructions: true,
+    customImageSizes: {},
 };
 
 const ExportSettingsContext = createContext<{

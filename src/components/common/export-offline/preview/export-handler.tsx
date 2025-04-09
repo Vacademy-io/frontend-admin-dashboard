@@ -8,6 +8,7 @@ import jsPDF from "jspdf";
 import { MyButton } from "@/components/design-system/button";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { CircleNotch } from "phosphor-react";
 
 interface ExportHandlerProps {
     sections: Section[];
@@ -100,9 +101,10 @@ export function ExportHandler({ sections, settings, setNumber }: ExportHandlerPr
 
                 // Capture at slightly lower scale but still maintaining quality
                 const canvas = await html2canvas(pageElement, {
-                    scale: 1.5, // Reduced from 2 to 1.5
+                    scale: 1.5,
+                    allowTaint: true,
                     useCORS: true,
-                    logging: false,
+                    logging: true,
                     backgroundColor: "#ffffff",
                     width: pageElement.offsetWidth,
                     height: pageElement.offsetHeight,
@@ -205,8 +207,9 @@ export function ExportHandler({ sections, settings, setNumber }: ExportHandlerPr
                     <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-lg bg-white p-4 shadow-xl">
                         <div className="flex w-full items-start justify-between">
                             <p>
-                                <h3 className="text-base font-semibold text-gray-800">
+                                <h3 className="flex items-center gap-x-2 text-base font-semibold text-gray-800">
                                     Generating PDF{" "}
+                                    <CircleNotch className="size-4 animate-spin text-primary-300" />
                                     {setNumber !== undefined &&
                                         ` (Set ${String.fromCharCode(65 + setNumber)})`}
                                 </h3>
@@ -222,7 +225,10 @@ export function ExportHandler({ sections, settings, setNumber }: ExportHandlerPr
                             </Button>
                         </div>
                         <div className="w-full">
-                            <Progress value={exportProgress} className="h-1.5 w-full" />
+                            <Progress
+                                value={exportProgress}
+                                className="h-1.5 w-full bg-slate-600"
+                            />
                         </div>
                         <span className="text-sm text-gray-600">{exportProgress}% Complete</span>
                     </div>
