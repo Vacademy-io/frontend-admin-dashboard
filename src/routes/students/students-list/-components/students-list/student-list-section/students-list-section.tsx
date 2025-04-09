@@ -28,7 +28,7 @@ import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 import { useSearch } from "@tanstack/react-router";
 import { Route } from "@/routes/students/students-list";
 import { useUsersCredentials } from "../../../-services/usersCredentials";
-import { useStudentCredentialsStore } from "@/stores/students/students-list/useStudentCredentialsStore";
+import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -58,6 +58,7 @@ export const StudentsListSection = () => {
         searchInput,
         searchFilter,
         currentSession,
+        sessionList,
         getActiveFiltersState,
         handleFilterChange,
         handleFilterClick,
@@ -69,7 +70,7 @@ export const StudentsListSection = () => {
         handleSessionChange,
         setColumnFilters,
     } = useStudentFilters();
-    const filters = GetFilterData(currentSession);
+    const filters = GetFilterData(currentSession.name);
 
     const {
         studentTableData,
@@ -81,33 +82,24 @@ export const StudentsListSection = () => {
     } = useStudentTable(appliedFilters, setAppliedFilters);
 
     const getUserCredentialsMutation = useUsersCredentials();
-    const { credentialsMap } = useStudentCredentialsStore();
 
     async function getCredentials() {
         const ids = studentTableData?.content.map((student) => student.user_id);
-        console.log("Fetching credentials for IDs:", ids);
         if (!ids || ids.length === 0) {
-            console.log("No student IDs available yet");
             return;
         }
         const credentials = await getUserCredentialsMutation.mutateAsync({ userIds: ids || [] });
-        console.log("Received credentials:", credentials);
         return credentials;
     }
 
     useEffect(() => {
         async function fetchCredentials() {
-            console.log("studentTableData changed:", studentTableData);
             if (studentTableData?.content && studentTableData.content.length > 0) {
                 await getCredentials();
             }
         }
         fetchCredentials();
     }, [studentTableData]);
-
-    useEffect(() => {
-        console.log("credentialsMap updated:", credentialsMap);
-    }, [credentialsMap]);
 
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
     useEffect(() => {
@@ -164,8 +156,6 @@ export const StudentsListSection = () => {
 
     useEffect(() => {
         if (search.batch && search.package_session_id) {
-            console.log("batch to filter: ", search.batch);
-            console.log("package session id to filter: ", search.package_session_id);
             const details = getDetailsFromPackageSessionId({
                 packageSessionId: search.package_session_id,
             });
@@ -183,6 +173,11 @@ export const StudentsListSection = () => {
                     ? [search.package_session_id]
                     : undefined,
             }));
+            const session: DropdownItemType = {
+                id: details?.session.id || "",
+                name: details?.session.session_name || "",
+            };
+            handleSessionChange(session);
         }
     }, [search, instituteDetails]);
 
@@ -212,6 +207,7 @@ export const StudentsListSection = () => {
                     page={page}
                     pageSize={10}
                     totalElements={studentTableData?.total_elements || 0}
+                    sessionList={sessionList}
                 />
                 {!studentTableData || studentTableData.content.length == 0 ? (
                     <div className="flex w-full flex-col items-center gap-3 text-neutral-600">

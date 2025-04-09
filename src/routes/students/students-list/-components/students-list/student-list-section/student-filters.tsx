@@ -5,9 +5,9 @@ import { Filters } from "./myFilter";
 import { StudentSearchBox } from "../../../../../../components/common/student-search-box";
 import { StudentFiltersProps } from "@/routes/students/students-list/-types/students-list-types";
 import { useMemo } from "react";
-import { SessionDropdown } from "../../../../../../components/common/session-dropdown";
 import { exportStudentsCsv } from "../../../-services/exportStudentsCsv";
 import { exportAccountDetails } from "../../../-services/exportAccountDetails";
+import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
 
 export const StudentFilters = ({
     currentSession,
@@ -26,6 +26,7 @@ export const StudentFilters = ({
     onClearFilters,
     totalElements,
     appliedFilters,
+    sessionList,
 }: StudentFiltersProps) => {
     const isFilterActive = useMemo(() => {
         return getActiveFiltersState();
@@ -43,10 +44,11 @@ export const StudentFilters = ({
         <div className="flex items-start justify-between gap-4">
             <div className="flex w-full flex-col gap-3" id="organize">
                 <div className="flex w-full justify-between">
-                    <SessionDropdown
-                        sessionDirection="flex-row"
-                        defaultSession={currentSession}
-                        onSessionChange={onSessionChange}
+                    <MyDropdown
+                        currentValue={currentSession}
+                        dropdownList={sessionList}
+                        placeholder="Select Session"
+                        handleChange={onSessionChange}
                     />
                     <div className="flex items-center gap-4">
                         <MyButton
