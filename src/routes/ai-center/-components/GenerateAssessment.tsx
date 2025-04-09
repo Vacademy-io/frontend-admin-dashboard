@@ -15,6 +15,13 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import GenerateCompleteAssessment from "./GenerateCompleteAssessment";
+import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
+import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
 const GenerateAIAssessmentComponent = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
@@ -22,8 +29,36 @@ const GenerateAIAssessmentComponent = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
-    const [assessmentData, setAssessmentData] = useState(null);
+    const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
+        title: "",
+        tags: [],
+        difficulty: "",
+        description: "",
+        subjects: [],
+        classes: [],
+        questions: [],
+    });
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
+    const [propmtInput, setPropmtInput] = useState("");
+
+    const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
+        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        mode: "onChange",
+        defaultValues: {
+            questionPaperId: "1",
+            isFavourite: false,
+            title: "",
+            createdOn: new Date(),
+            yearClass: "",
+            subject: "",
+            questionsType: "",
+            optionsType: "",
+            answersType: "",
+            explanationsType: "",
+            fileUpload: undefined,
+            questions: [],
+        },
+    });
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -79,9 +114,25 @@ const GenerateAIAssessmentComponent = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
-                setAssessmentData(response);
+                setAssessmentData((prev) => ({
+                    ...prev,
+                    questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
+                }));
+                const addedQuestions = [
+                    ...(assessmentData.questions ?? []),
+                    ...(response?.questions ?? []),
+                ];
+                const transformQuestionsData =
+                    transformQuestionsToGenerateAssessmentAI(addedQuestions);
+                form.reset({
+                    ...form.getValues(),
+                    title: assessmentData?.title,
+                    questions: transformQuestionsData,
+                });
+                form.trigger();
                 clearPolling();
                 setOpenCompleteAssessmentDialog(true);
+                setPropmtInput("");
                 return;
             }
 
@@ -125,8 +176,10 @@ const GenerateAIAssessmentComponent = () => {
         if (pendingRef.current) {
             return;
         }
-        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: "" });
+        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
     };
+
+    console.log(assessmentData);
 
     const handleGenerateQuestionsForAssessment = () => {
         if (!uploadedFilePDFId) return;
@@ -320,12 +373,15 @@ const GenerateAIAssessmentComponent = () => {
                     </div>
                 </DialogContent>
             </Dialog>
-            {assessmentData && (
+            {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
+                    form={form}
                     openCompleteAssessmentDialog={openCompleteAssessmentDialog}
                     setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
                     assessmentData={assessmentData}
                     handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
+                    propmtInput={propmtInput}
+                    setPropmtInput={setPropmtInput}
                 />
             )}
         </div>

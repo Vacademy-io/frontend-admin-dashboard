@@ -1,7 +1,5 @@
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { FormProvider, useFieldArray, UseFormReturn } from "react-hook-form";
 import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { getPPTViewTitle } from "@/routes/assessment/question-papers/-utils/helper";
@@ -18,44 +16,34 @@ import useInstituteLogoStore from "@/components/common/layout-container/sidebar/
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 
+// Infer the form type from the schema
+type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
+
 interface GenerateCompleteAssessmentProps {
+    form: UseFormReturn<GenerateCompleteAssessmentFormType>;
     openCompleteAssessmentDialog: boolean;
     setOpenCompleteAssessmentDialog: React.Dispatch<React.SetStateAction<boolean>>;
     assessmentData: AIAssessmentResponseInterface | null;
     handleGenerateQuestionsForAssessment: () => void;
+    propmtInput: string;
+    setPropmtInput: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const GenerateCompleteAssessment = ({
+    form,
     openCompleteAssessmentDialog,
     setOpenCompleteAssessmentDialog,
     assessmentData,
     handleGenerateQuestionsForAssessment,
+    propmtInput,
+    setPropmtInput,
 }: GenerateCompleteAssessmentProps) => {
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
         assessmentData?.questions,
     );
-    const [propmtInput, setPropmtInput] = useState("");
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
-        defaultValues: {
-            questionPaperId: "1",
-            isFavourite: false,
-            title: "",
-            createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
-            fileUpload: undefined,
-            questions: [],
-        },
-    });
 
     const { getValues } = form;
 
@@ -79,8 +67,6 @@ const GenerateCompleteAssessment = ({
             questions: transformQuestionsData,
         });
     }, []);
-
-    console.log("openCompleteAssessmentDialog", openCompleteAssessmentDialog);
 
     return (
         <Dialog open={openCompleteAssessmentDialog} onOpenChange={setOpenCompleteAssessmentDialog}>
