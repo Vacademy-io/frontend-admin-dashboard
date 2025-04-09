@@ -14,9 +14,10 @@ export interface FilterProps {
     };
     onFilterChange?: (values: string[]) => void;
     clearFilters?: boolean;
+    id: FilterId;
 }
 
-type FilterId = "session" | "batch" | "statuses" | "gender" | "session_expiry_days";
+export type FilterId = "session" | "batch" | "statuses" | "gender" | "session_expiry_days";
 
 export interface FilterConfig {
     id: FilterId; // Change this line

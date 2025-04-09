@@ -29,6 +29,7 @@ import { useSearch } from "@tanstack/react-router";
 import { Route } from "@/routes/students/students-list";
 import { useUsersCredentials } from "../../../-services/usersCredentials";
 import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
+import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -80,6 +81,7 @@ export const StudentsListSection = () => {
         handleSort,
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters);
+    const { selectedFilterList, setSelectedFilterList } = useStudentFiltersContext();
 
     const getUserCredentialsMutation = useUsersCredentials();
 
@@ -159,7 +161,8 @@ export const StudentsListSection = () => {
             const details = getDetailsFromPackageSessionId({
                 packageSessionId: search.package_session_id,
             });
-            const batchName = details?.level.level_name + " " + details?.package_dto.package_name;
+            const batchName =
+                (details?.level.level_name || "") + (details?.package_dto.package_name || "");
             setColumnFilters((prev) => [
                 ...prev,
                 {
@@ -178,6 +181,16 @@ export const StudentsListSection = () => {
                 name: details?.session.session_name || "",
             };
             handleSessionChange(session);
+            setSelectedFilterList((prev) => {
+                const newState = {
+                    ...prev,
+                    session: [session.name],
+                    batch: [batchName],
+                };
+                console.log("New state:", newState);
+                return newState;
+            });
+            console.log("selectedFilterList from students-list-section: ", selectedFilterList);
         }
     }, [search, instituteDetails]);
 
