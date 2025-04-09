@@ -27,6 +27,8 @@ interface GenerateCompleteAssessmentProps {
     handleGenerateQuestionsForAssessment: () => void;
     propmtInput: string;
     setPropmtInput: React.Dispatch<React.SetStateAction<string>>;
+    isMoreQuestionsDialog: boolean;
+    setIsMoreQuestionsDialog: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const GenerateCompleteAssessment = ({
@@ -37,8 +39,9 @@ const GenerateCompleteAssessment = ({
     handleGenerateQuestionsForAssessment,
     propmtInput,
     setPropmtInput,
+    isMoreQuestionsDialog,
+    setIsMoreQuestionsDialog,
 }: GenerateCompleteAssessmentProps) => {
-    const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
         assessmentData?.questions,

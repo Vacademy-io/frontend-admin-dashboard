@@ -40,6 +40,7 @@ const GenerateAIAssessmentComponent = () => {
     });
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
+    const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
 
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -133,6 +134,7 @@ const GenerateAIAssessmentComponent = () => {
                 clearPolling();
                 setOpenCompleteAssessmentDialog(true);
                 setPropmtInput("");
+                setIsMoreQuestionsDialog(false);
                 return;
             }
 
@@ -382,6 +384,8 @@ const GenerateAIAssessmentComponent = () => {
                     handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
                     propmtInput={propmtInput}
                     setPropmtInput={setPropmtInput}
+                    isMoreQuestionsDialog={isMoreQuestionsDialog}
+                    setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
                 />
             )}
         </div>
