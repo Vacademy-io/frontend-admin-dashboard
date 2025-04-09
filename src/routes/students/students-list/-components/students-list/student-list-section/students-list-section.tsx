@@ -1,5 +1,5 @@
 // StudentListSection.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { GetFilterData } from "@/routes/students/students-list/-constants/all-filters";
@@ -35,7 +35,27 @@ export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { getCourseFromPackage } = useInstituteDetailsStore();
+    const sidebarRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                sidebarRef.current &&
+                !sidebarRef.current.contains(event.target as Node) &&
+                isSidebarOpen
+            ) {
+                setIsSidebarOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isSidebarOpen]);
+
     useEffect(() => {
         const courseList = getCourseFromPackage();
         if (courseList.length === 0) {
@@ -244,6 +264,8 @@ export const StudentsListSection = () => {
                                 <SidebarProvider
                                     style={{ ["--sidebar-width" as string]: "565px" }}
                                     defaultOpen={false}
+                                    open={isSidebarOpen}
+                                    onOpenChange={setIsSidebarOpen}
                                 >
                                     <MyTable<StudentTable>
                                         data={studentTableData}
@@ -256,7 +278,9 @@ export const StudentsListSection = () => {
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
                                     />
-                                    <StudentSidebar />
+                                    <div ref={sidebarRef}>
+                                        <StudentSidebar />
+                                    </div>
                                 </SidebarProvider>
                             </div>
                         </div>
