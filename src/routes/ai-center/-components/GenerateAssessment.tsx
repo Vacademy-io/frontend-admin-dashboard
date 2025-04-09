@@ -53,52 +53,100 @@ const GenerateAIAssessmentComponent = () => {
     /* Generate Assessment Complete */
     const MAX_POLL_ATTEMPTS = 10;
     const pollingCountRef = useRef(0);
-    const pollingIntervalIdRef = useRef<NodeJS.Timeout | null>(null);
+    const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+    const pendingRef = useRef(false);
 
     const clearPolling = () => {
-        if (pollingIntervalIdRef.current) {
-            clearInterval(pollingIntervalIdRef.current);
-            pollingIntervalIdRef.current = null;
+        if (pollingTimeoutIdRef.current) {
+            clearTimeout(pollingTimeoutIdRef.current);
+            pollingTimeoutIdRef.current = null;
         }
     };
 
     const generateAssessmentMutation = useMutation({
         mutationFn: ({ pdfId }: { pdfId: string }) => handleGenerateAssessmentQuestions(pdfId),
         onSuccess: (response) => {
-            // ✅ Save data
-            setAssessmentData(response);
+            console.log("API response:", response);
 
-            // ✅ If response is done (adjust condition based on real response structure)
-            if (response?.status === 200 || response?.completed) {
-                clearPolling();
-            } else {
-                pollingCountRef.current += 1;
-                if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
-                    clearPolling();
-                }
+            // Check if response indicates pending state
+            if (response?.status === "pending") {
+                console.log("Assessment generation is pending");
+                pendingRef.current = true;
+                // Don't schedule next poll - we'll wait for an error to resume
+                return;
             }
+
+            // Reset pending state if response is no longer pending
+            pendingRef.current = false;
+
+            // If we have complete data, we're done
+            if (response?.status === "completed" || response?.questions) {
+                console.log("Assessment generation completed");
+                setAssessmentData(response);
+                clearPolling();
+                return;
+            }
+
+            // Otherwise schedule next poll
+            scheduleNextPoll();
         },
-        onError: () => {
+        onError: (error) => {
+            console.log("Error in API call:", error);
+
+            // If we were in a pending state, resume polling on error
+            if (pendingRef.current) {
+                console.log("Resuming polling after pending state");
+                pendingRef.current = false;
+                scheduleNextPoll();
+                return;
+            }
+
+            // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                console.log("Max polling attempts reached");
                 clearPolling();
+                return;
             }
+
+            // Schedule next poll on error (if not max attempts)
+            scheduleNextPoll();
         },
     });
 
+    const scheduleNextPoll = () => {
+        clearPolling(); // Clear any existing timeout
+
+        // Only schedule next poll if not in pending state
+        if (!pendingRef.current) {
+            console.log("Scheduling next poll in 10 seconds");
+            pollingTimeoutIdRef.current = setTimeout(() => {
+                pollGenerateAssessment();
+            }, 10000);
+        }
+    };
+
     const pollGenerateAssessment = () => {
+        // Don't call API if in pending state
+        if (pendingRef.current) {
+            console.log("Skipping poll - in pending state");
+            return;
+        }
+
+        console.log("Polling API for assessment generation status");
         generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId });
     };
 
     const handleGenerateQuestionsForAssessment = () => {
-        if (!uploadedFilePDFId || pollingIntervalIdRef.current) return;
+        if (!uploadedFilePDFId) return;
 
+        console.log("Starting assessment generation");
+        clearPolling();
         pollingCountRef.current = 0;
-        pollGenerateAssessment(); // first call immediately
+        pendingRef.current = false;
 
-        pollingIntervalIdRef.current = setInterval(() => {
-            pollGenerateAssessment();
-        }, 10000);
+        // Make initial call
+        pollGenerateAssessment();
     };
 
     useEffect(() => {
@@ -109,52 +157,111 @@ const GenerateAIAssessmentComponent = () => {
 
     /* Generate Assessment Pagewise */
     const convertPollingCountRef = useRef(0);
-    const convertPollingIntervalIdRef = useRef<NodeJS.Timeout | null>(null);
+    const convertPollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
     const MAX_CONVERT_ATTEMPTS = 10;
+    const convertPendingRef = useRef(false);
 
     const handleConvertPDFToHTMLMutation = useMutation({
         mutationFn: ({ pdfId }: { pdfId: string }) => handleConvertPDFToHTML(pdfId),
         onSuccess: async (response) => {
-            if (response) {
-                stopConvertPolling();
-                const questionsData = await handleGetQuestionsFromHTMLUrl(response.html);
-                console.log("✅ Questions Data:", questionsData);
-            } else {
-                console.log("ℹ️ Still polling, status:", response?.status);
+            console.log("Convert API response:", response);
+
+            // Check if response indicates pending state
+            if (response?.status === "pending") {
+                console.log("ℹ️ Conversion is pending");
+                convertPendingRef.current = true;
+                // Don't schedule next poll - we'll wait for an error to resume
+                return;
             }
+
+            // Reset pending state
+            convertPendingRef.current = false;
+
+            // If conversion is complete and we have HTML data
+            if (response?.html) {
+                console.log("✅ Conversion complete, processing HTML");
+                stopConvertPolling();
+
+                try {
+                    const questionsData = await handleGetQuestionsFromHTMLUrl(response.html);
+                    console.log("✅ Questions Data:", questionsData);
+                } catch (error) {
+                    console.error("⛔️ Error processing HTML:", error);
+                }
+
+                return;
+            }
+
+            // If response exists but no HTML yet, schedule next poll
+            scheduleNextConvertPoll();
         },
         onError: (error: unknown) => {
             console.error("⛔️ Convert Error:", error);
+
+            // If we were in a pending state, resume polling on error
+            if (convertPendingRef.current) {
+                console.log("Resuming polling after pending state");
+                convertPendingRef.current = false;
+                scheduleNextConvertPoll();
+                return;
+            }
+
+            // Increment count and check max attempts
+            convertPollingCountRef.current += 1;
+            if (convertPollingCountRef.current >= MAX_CONVERT_ATTEMPTS) {
+                console.log("Max conversion polling attempts reached");
+                stopConvertPolling();
+                return;
+            }
+
+            // Schedule next poll if not max attempts yet
+            scheduleNextConvertPoll();
         },
     });
 
     const stopConvertPolling = () => {
-        if (convertPollingIntervalIdRef.current) {
-            clearInterval(convertPollingIntervalIdRef.current);
-            convertPollingIntervalIdRef.current = null;
+        if (convertPollingTimeoutIdRef.current) {
+            clearTimeout(convertPollingTimeoutIdRef.current);
+            convertPollingTimeoutIdRef.current = null;
+        }
+    };
+
+    const scheduleNextConvertPoll = () => {
+        stopConvertPolling(); // Clear any existing timeout
+
+        // Only schedule next poll if not in pending state
+        if (!convertPendingRef.current) {
+            console.log("Scheduling next conversion poll in 10 seconds");
+            convertPollingTimeoutIdRef.current = setTimeout(() => {
+                pollConvertPDFToHTML();
+            }, 10000);
         }
     };
 
     const pollConvertPDFToHTML = () => {
-        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
-        convertPollingCountRef.current += 1;
-        if (convertPollingCountRef.current >= MAX_CONVERT_ATTEMPTS) {
-            stopConvertPolling();
+        // Don't call API if in pending state
+        if (convertPendingRef.current) {
+            console.log("Skipping conversion poll - in pending state");
+            return;
         }
+
+        console.log("Polling API for PDF to HTML conversion status");
+        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
     };
 
     const handleConvertPDFToHTMLFn = () => {
-        if (!uploadedFilePDFId || convertPollingIntervalIdRef.current) return;
+        if (!uploadedFilePDFId) return;
 
+        console.log("Starting PDF to HTML conversion");
+        stopConvertPolling();
         convertPollingCountRef.current = 0;
-        pollConvertPDFToHTML(); // immediate call
+        convertPendingRef.current = false;
 
-        convertPollingIntervalIdRef.current = setInterval(() => {
-            pollConvertPDFToHTML();
-        }, 10000);
+        // Make initial call
+        pollConvertPDFToHTML();
     };
 
-    // Cleanup interval on component unmount
+    // Cleanup on component unmount
     useEffect(() => {
         return () => {
             stopConvertPolling();
