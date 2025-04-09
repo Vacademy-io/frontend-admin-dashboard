@@ -42,7 +42,10 @@ export const OverViewData = ({
         },
         {
             heading: `Location Details`,
-            content: [`State: ${selectedStudent.region}`, `City: ${selectedStudent.city}`],
+            content: [
+                `State: ${selectedStudent.region != null ? selectedStudent.region : "N/A"} `,
+                `City: ${selectedStudent.city != null ? selectedStudent.city : "N/A"}`,
+            ],
         },
         {
             heading: `Parent/Guardian's Details`,

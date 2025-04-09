@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { StudentFilterRequest } from "@/types/student-table-types";
 import { useStudentList } from "@/routes/students/students-list/-services/getStudentTable";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { useStudentSidebar } from "../-context/selected-student-sidebar-context";
 
 export const useStudentTable = (
     appliedFilters: StudentFilterRequest,
@@ -11,6 +12,7 @@ export const useStudentTable = (
     const [page, setPage] = useState(0);
     const pageSize = 10;
     const [sortColumns, setSortColumns] = useState<Record<string, string>>({});
+    const { selectedStudent, setSelectedStudent } = useStudentSidebar();
 
     let localAppliedFilters = appliedFilters;
     const { instituteDetails } = useInstituteDetailsStore();
@@ -37,6 +39,19 @@ export const useStudentTable = (
         error,
         refetch,
     } = useStudentList(localAppliedFilters, page, pageSize);
+
+    useEffect(() => {
+        if (selectedStudent) {
+            const student = studentTableData?.content.find(
+                (student) => student.user_id === selectedStudent.user_id,
+            );
+            if (student) {
+                setSelectedStudent(student);
+            } else {
+                setSelectedStudent(null);
+            }
+        }
+    }, [studentTableData]);
 
     useEffect(() => {
         // Only refetch if there are actual filters applied

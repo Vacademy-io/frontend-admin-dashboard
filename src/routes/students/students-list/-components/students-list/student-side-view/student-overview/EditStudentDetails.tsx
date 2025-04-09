@@ -4,7 +4,6 @@ import { MyDropdown } from "@/components/common/students/enroll-manually/dropdow
 import { MyInput } from "@/components/design-system/input";
 import PhoneInputField from "@/components/design-system/phone-input-field";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
@@ -16,10 +15,12 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 import { TokenKey } from "@/constants/auth/tokens";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { useEditStudentDetails } from "@/routes/students/students-list/-services/editStudentDetails";
+import { StudentTable } from "@/types/student-table-types";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 const EditStudentDetailsFormSchema = z.object({
     user_id: z.string().min(1, "This field is required"),
-    email: z.string().email(),
+    email: z.string().email("Invalid email address"),
     full_name: z.string().min(1, "This field is required"),
     contact_number: z.string().min(1, "This field is required"),
     gender: z.string().min(1, "This field is required"),
@@ -30,14 +31,37 @@ const EditStudentDetailsFormSchema = z.object({
     father_name: z.string().optional(),
     mother_name: z.string().optional(),
     parents_mobile_number: z.string().optional(),
-    parents_email: z.string().email(),
+    parents_email: z.string().email("Invalid email address"),
     face_file_id: z.string().optional(),
 });
 
 export type EditStudentDetailsFormValues = z.infer<typeof EditStudentDetailsFormSchema>;
 
-export const EditStudentDetails = () => {
-    const { selectedStudent } = useStudentSidebar();
+export const EditStudentDetails = ({
+    selectedStudent,
+}: {
+    selectedStudent: StudentTable | null;
+}) => {
+    useEffect(() => {
+        if (selectedStudent) {
+            form.reset({
+                user_id: selectedStudent?.user_id || "",
+                email: selectedStudent?.email || "",
+                full_name: selectedStudent?.full_name || "",
+                contact_number: selectedStudent?.mobile_number || "",
+                gender: selectedStudent?.gender || "",
+                address_line: selectedStudent?.address_line || "",
+                state: selectedStudent?.region || "",
+                pin_code: selectedStudent?.pin_code || "",
+                institute_name: selectedStudent?.linked_institute_name || "",
+                father_name: selectedStudent?.father_name || "",
+                mother_name: selectedStudent?.mother_name || "",
+                parents_mobile_number: selectedStudent?.parents_mobile_number || "",
+                parents_email: selectedStudent?.parents_email || "",
+                face_file_id: selectedStudent?.face_file_id || "",
+            });
+        }
+    }, [selectedStudent]);
     const form = useForm<z.infer<typeof EditStudentDetailsFormSchema>>({
         resolver: zodResolver(EditStudentDetailsFormSchema),
         defaultValues: {
@@ -85,13 +109,19 @@ export const EditStudentDetails = () => {
     const editStudentDetailsMutation = useEditStudentDetails();
     const [openDialog, setOpenDialog] = useState(false);
     const handleDialogChange = () => {
+        if (openDialog) {
+            setFaceUrl(null);
+            form.reset();
+        }
         setOpenDialog(!openDialog);
     };
     useEffect(() => {
         const fetchFaceUrl = async () => {
             if (selectedStudent?.face_file_id) {
+                setIsUploading(true);
                 const url = await getPublicUrl(selectedStudent?.face_file_id);
                 setFaceUrl(url);
+                setIsUploading(false);
             }
         };
         fetchFaceUrl();
@@ -155,7 +185,7 @@ export const EditStudentDetails = () => {
             heading="Edit Student Details"
             open={openDialog}
             onOpenChange={handleDialogChange}
-            dialogWidth="w-[50vw]"
+            dialogWidth="w-[35vw]"
         >
             <FormProvider {...form}>
                 <form
@@ -163,57 +193,65 @@ export const EditStudentDetails = () => {
                     onSubmit={(e) => {
                         form.handleSubmit(onSubmit)(e);
                     }}
-                    className="flex max-h-[80vh] w-full flex-col items-center gap-4 overflow-y-scroll"
+                    className="flex max-h-[80vh] w-full flex-col items-center gap-4"
                 >
-                    <div className="flex w-full flex-col items-center">
-                        <div className="relative items-center justify-center rounded-full">
-                            {faceUrl ? (
-                                <img
-                                    src={faceUrl}
-                                    alt="Profile"
-                                    className="h-[300px] w-[300px] rounded-full object-cover"
-                                />
-                            ) : (
-                                <div className="flex h-[320px] w-[320px] items-center justify-center rounded-full bg-neutral-100 object-cover">
-                                    <EnrollFormUploadImage />
+                    <div className="flex w-full flex-col items-center gap-2">
+                        {isUploading ? (
+                            <DashboardLoader />
+                        ) : (
+                            <div className="flex flex-col items-center justify-center gap-2">
+                                <div className="relative flex items-center justify-center rounded-full">
+                                    {faceUrl ? (
+                                        <img
+                                            src={faceUrl}
+                                            alt="Profile"
+                                            className="h-[300px] w-[300px] rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex h-[320px] w-[320px] items-center justify-center rounded-full bg-neutral-100 object-cover">
+                                            <EnrollFormUploadImage />
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                        <FileUploadComponent
-                            fileInputRef={fileInputRef}
-                            onFileSubmit={handleFileSubmit}
-                            control={form.control}
-                            name="face_file_id"
-                            acceptedFileTypes="image/*"
-                        />
-                        <div className="w-full items-center">
-                            <MyButton
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={isUploading || isUploadingFile}
-                                buttonType="secondary"
-                                layoutVariant="default"
-                                scale="large"
-                                className=""
-                                type="button"
-                            >
-                                Upload Image
-                            </MyButton>
-                        </div>
+                                <FileUploadComponent
+                                    fileInputRef={fileInputRef}
+                                    onFileSubmit={handleFileSubmit}
+                                    control={form.control}
+                                    name="face_file_id"
+                                    acceptedFileTypes="image/*"
+                                />
+                                <div className="flex w-full items-center justify-center">
+                                    <MyButton
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disable={isUploading || isUploadingFile}
+                                        buttonType="secondary"
+                                        layoutVariant="default"
+                                        scale="large"
+                                        className=""
+                                        type="button"
+                                    >
+                                        Upload Image
+                                    </MyButton>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <FormField
                         control={form.control}
-                        name="email"
+                        name="full_name"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
-                                        inputPlaceholder="Email"
-                                        className="w-[352px]"
+                                        inputPlaceholder="Full Name"
+                                        className="w-full"
                                         required={true}
+                                        label="Full Name"
+                                        error={form.formState.errors.full_name?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -222,17 +260,19 @@ export const EditStudentDetails = () => {
 
                     <FormField
                         control={form.control}
-                        name="full_name"
+                        name="email"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
-                                        inputPlaceholder="Full Name"
-                                        className="w-[352px]"
+                                        inputPlaceholder="Email"
+                                        className="w-full"
                                         required={true}
+                                        label="Email"
+                                        error={form.formState.errors.email?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -243,17 +283,22 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="contact_number"
                         render={() => (
-                            <FormItem>
-                                <FormControl>
-                                    <PhoneInputField
-                                        label="Mobile Number"
-                                        placeholder="123 456 7890"
-                                        name="mobileNumber"
-                                        control={form.control}
-                                        country="in"
-                                        required={true}
-                                        value={form.getValues("contact_number")}
-                                    />
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
+                                    <div className="flex flex-col gap-1">
+                                        <PhoneInputField
+                                            label="Mobile Number"
+                                            placeholder="123 456 7890"
+                                            name="mobileNumber"
+                                            control={form.control}
+                                            country="in"
+                                            required={true}
+                                            value={form.getValues("contact_number")}
+                                        />
+                                        <p className="text-subtitle text-danger-600">
+                                            {form.formState.errors.contact_number?.message}
+                                        </p>
+                                    </div>
                                 </FormControl>
                             </FormItem>
                         )}
@@ -288,14 +333,16 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="address_line"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
                                         inputPlaceholder="Address Line"
-                                        className="w-[352px]"
+                                        className="w-full"
+                                        label="Address Line"
+                                        error={form.formState.errors.address_line?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -306,14 +353,16 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="state"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
                                         inputPlaceholder="State"
-                                        className="w-[352px]"
+                                        className="w-full"
+                                        label="State"
+                                        error={form.formState.errors.state?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -324,8 +373,8 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="pin_code"
                         render={({ field: { onChange, value, ...field } }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         inputType="number"
                                         label="Pincode"
@@ -335,6 +384,7 @@ export const EditStudentDetails = () => {
                                         size="large"
                                         className="w-full"
                                         {...field}
+                                        error={form.formState.errors.pin_code?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -345,14 +395,16 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="institute_name"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
                                         inputPlaceholder="Institute Name"
-                                        className="w-[352px]"
+                                        className="w-full"
+                                        label="Institute Name"
+                                        error={form.formState.errors.institute_name?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -363,14 +415,16 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="father_name"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
                                         inputPlaceholder="Father Name"
-                                        className="w-[352px]"
+                                        className="w-full"
+                                        label="Father Name"
+                                        error={form.formState.errors.father_name?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -381,14 +435,16 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="mother_name"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="text"
                                         inputPlaceholder="Mother Name"
-                                        className="w-[352px]"
+                                        className="w-full"
+                                        label="Mother Name"
+                                        error={form.formState.errors.mother_name?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -399,17 +455,22 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="parents_mobile_number"
                         render={() => (
-                            <FormItem>
+                            <FormItem className="w-full">
                                 <FormControl>
-                                    <PhoneInputField
-                                        label="Parents Mobile Number"
-                                        placeholder="123 456 7890"
-                                        name="mobileNumber"
-                                        control={form.control}
-                                        country="in"
-                                        required={true}
-                                        value={form.getValues("parents_mobile_number")}
-                                    />
+                                    <div className="flex flex-col gap-1">
+                                        <PhoneInputField
+                                            label="Parents Mobile Number"
+                                            placeholder="123 456 7890"
+                                            name="mobileNumber"
+                                            control={form.control}
+                                            country="in"
+                                            required={false}
+                                            value={form.getValues("parents_mobile_number")}
+                                        />
+                                        <p className="text-subtitle text-danger-600">
+                                            {form.formState.errors.parents_mobile_number?.message}
+                                        </p>
+                                    </div>
                                 </FormControl>
                             </FormItem>
                         )}
@@ -419,14 +480,16 @@ export const EditStudentDetails = () => {
                         control={form.control}
                         name="parents_email"
                         render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
+                            <FormItem className="w-full">
+                                <FormControl className="w-full">
                                     <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         inputType="email"
                                         inputPlaceholder="Parents Email"
-                                        className="w-[352px]"
+                                        className="w-full"
+                                        label="Parents Email"
+                                        error={form.formState.errors.parents_email?.message}
                                     />
                                 </FormControl>
                             </FormItem>
