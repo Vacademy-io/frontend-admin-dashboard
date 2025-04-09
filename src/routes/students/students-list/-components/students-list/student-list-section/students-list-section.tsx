@@ -67,6 +67,7 @@ export const StudentsListSection = () => {
         handleClearSearch,
         setAppliedFilters,
         handleSessionChange,
+        setColumnFilters,
     } = useStudentFilters();
     const filters = GetFilterData(currentSession);
 
@@ -158,13 +159,30 @@ export const StudentsListSection = () => {
         0,
     );
 
-    const { instituteDetails } = useInstituteDetailsStore();
+    const { instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const search = useSearch({ from: Route.id });
 
     useEffect(() => {
         if (search.batch && search.package_session_id) {
             console.log("batch to filter: ", search.batch);
             console.log("package session id to filter: ", search.package_session_id);
+            const details = getDetailsFromPackageSessionId({
+                packageSessionId: search.package_session_id,
+            });
+            const batchName = details?.level.level_name + " " + details?.package_dto.package_name;
+            setColumnFilters((prev) => [
+                ...prev,
+                {
+                    id: "batch",
+                    value: [batchName],
+                },
+            ]);
+            setAppliedFilters((prev) => ({
+                ...prev,
+                package_session_ids: search.package_session_id
+                    ? [search.package_session_id]
+                    : undefined,
+            }));
         }
     }, [search, instituteDetails]);
 

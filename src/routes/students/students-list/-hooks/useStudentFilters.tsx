@@ -169,5 +169,6 @@ export const useStudentFilters = () => {
         handleClearSearch,
         setAppliedFilters,
         handleSessionChange,
+        setColumnFilters,
     };
 };
