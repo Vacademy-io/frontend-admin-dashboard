@@ -12,13 +12,10 @@ export const useUsersCredentials = () => {
         }: {
             userIds: string[];
         }): Promise<StudentCredentialsType[]> => {
-            console.log("Calling USERS_CREDENTIALS API with userIds:", userIds);
             const response = await authenticatedAxiosInstance.post(`${USERS_CREDENTIALS}`, userIds);
-            console.log("API Response:", response.data);
             return response.data;
         },
         onSuccess: (data) => {
-            console.log("Mutation onSuccess called with data:", data);
             if (Array.isArray(data)) {
                 data.forEach((credential) => {
                     if (credential && credential.user_id) {
