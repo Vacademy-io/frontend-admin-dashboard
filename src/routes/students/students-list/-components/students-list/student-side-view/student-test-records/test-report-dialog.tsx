@@ -8,7 +8,6 @@ import { convertToLocalDateTime, extractDateTime } from "@/constants/helper";
 import { ResponseBreakdownComponent } from "./response-breakdown-component";
 import { MarksBreakdownComponent } from "./marks-breakdown-component";
 import { Crown } from "@/svgs";
-import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusChips } from "@/components/design-system/chips";
@@ -19,13 +18,14 @@ import { Clock } from "phosphor-react";
 import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
 import { toast } from "sonner";
 import { handleGetStudentReportExportPDF } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
+import { Steps } from "@/types/assessments/assessment-data-type";
 
 interface TestReportDialogProps {
     isOpen: boolean;
     onClose: () => void;
     testReport: AssessmentTestReport;
     studentReport: AssessmentReportStudentInterface;
-    examType: string | undefined;
+    assessmentDetails: Steps;
 }
 
 export const TestReportDialog = ({
@@ -33,16 +33,9 @@ export const TestReportDialog = ({
     onClose,
     testReport,
     studentReport,
-    examType,
+    assessmentDetails,
 }: TestReportDialogProps) => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-    const { data: assessmentDetails } = useSuspenseQuery(
-        getAssessmentDetails({
-            assessmentId: studentReport.assessment_id,
-            instituteId: instituteDetails?.id,
-            type: examType,
-        }),
-    );
     const sectionsInfo = assessmentDetails[1]?.saved_data.sections?.map((section) => ({
         name: section.name,
         id: section.id,
