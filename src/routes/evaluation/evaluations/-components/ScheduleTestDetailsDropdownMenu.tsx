@@ -140,7 +140,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-            
+
                     <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={(e) => {
@@ -189,7 +189,6 @@ export function ScheduleTestDetailsDropdownPrevious({
         setIsDeleteAssessmentDialog(true);
     };
 
-
     return (
         <>
             <DropdownMenu>
@@ -210,7 +209,7 @@ export function ScheduleTestDetailsDropdownPrevious({
                     >
                         View Assessment Details
                     </DropdownMenuItem>
-               
+
                     <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={(e) => {

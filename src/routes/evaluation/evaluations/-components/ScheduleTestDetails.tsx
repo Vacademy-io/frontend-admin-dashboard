@@ -9,11 +9,11 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { ScheduleTestMainDropdownComponent } from "./ScheduleTestDetailsDropdownMenu";
-import { getBatchNamesByIds } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
+import { getBatchNamesByIds } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -184,7 +184,6 @@ const ScheduleTestDetails = ({
                 }
                 className="-mt-3 w-full border"
             />
-           
         </div>
     );
 };

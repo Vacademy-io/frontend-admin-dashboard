@@ -22,10 +22,10 @@ const ScheduleTestLists: React.FC<ScheduleTestListsProps> = ({
                 <>
                     {tab.data.content.map((item, index) => (
                         <ScheduleTestDetails
-                        key={index}
-                        scheduleTestContent={item}
-                        selectedTab={selectedTab}
-                        handleRefetchData={handleRefetchData}
+                            key={index}
+                            scheduleTestContent={item}
+                            selectedTab={selectedTab}
+                            handleRefetchData={handleRefetchData}
                         />
                     ))}
                     <MyPagination

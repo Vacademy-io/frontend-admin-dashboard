@@ -24,7 +24,7 @@ import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtili
 import { TokenKey } from "@/constants/auth/tokens";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
-import { useRefetchStoreAssessment } from "@/routes/assessment/assessment-list/-global-store/refetch-store"
+import { useRefetchStoreAssessment } from "@/routes/assessment/assessment-list/-global-store/refetch-store";
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
     batch_ids: MyFilterOption[];
@@ -50,7 +50,7 @@ export const ScheduleTestMainComponent = () => {
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
-    const { AssessmentTypeData, ModeData,EvaluationTypeData } = useFilterDataForAssesmentInitData(initAssessmentData);
+    const { AssessmentTypeData, ModeData } = useFilterDataForAssesmentInitData(initAssessmentData);
     const { getCourseFromPackage } = useInstituteDetailsStore();
     const setHandleRefetchDataAssessment = useRefetchStoreAssessment(
         (state) => state.setHandleRefetchDataAssessment,
@@ -69,10 +69,12 @@ export const ScheduleTestMainComponent = () => {
             assessment_statuses: [],
             assessment_modes: [],
             access_statuses: [],
-            evaluation_types: [{
-                id:"MANUAL",
-                name:"MANUAL"
-            }],
+            evaluation_types: [
+                {
+                    id: "MANUAL",
+                    name: "MANUAL",
+                },
+            ],
         });
 
     const [scheduleTestTabsData, setScheduleTestTabsData] = useState<ScheduleTestTab[]>([
@@ -195,10 +197,12 @@ export const ScheduleTestMainComponent = () => {
             assessment_statuses: [],
             assessment_modes: [],
             access_statuses: [],
-            evaluation_types: [{
-                id:"MANUAL",
-                name:"MANUAL"
-            }],
+            evaluation_types: [
+                {
+                    id: "MANUAL",
+                    name: "MANUAL",
+                },
+            ],
         });
         setSearchText("");
         getFilteredData.mutate({
@@ -216,9 +220,9 @@ export const ScheduleTestMainComponent = () => {
                 institute_ids: [initData?.id || ""],
                 evaluation_types: [
                     {
-                        id:"MANUAL",
-                        name:"MANUAL"
-                    }
+                        id: "MANUAL",
+                        name: "MANUAL",
+                    },
                 ],
                 assessment_statuses: [
                     {
@@ -251,13 +255,13 @@ export const ScheduleTestMainComponent = () => {
                         tab.value === "liveTests" ? { ...tab, data: data } : tab,
                     ),
                 );
-            } else  {
+            } else {
                 setScheduleTestTabsData((prevTabs) =>
                     prevTabs.map((tab) =>
                         tab.value === "previousTests" ? { ...tab, data: data } : tab,
                     ),
                 );
-            } 
+            }
         },
         onError: (error: unknown) => {
             throw error;
@@ -347,10 +351,12 @@ export const ScheduleTestMainComponent = () => {
                 get_live_assessments: true,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
-                evaluation_types: [{
-                    id:"MANUAL",
-                    name:"MANUAL"
-                }],
+                evaluation_types: [
+                    {
+                        id: "MANUAL",
+                        name: "MANUAL",
+                    },
+                ],
             });
 
             const fetchUpcomingTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {

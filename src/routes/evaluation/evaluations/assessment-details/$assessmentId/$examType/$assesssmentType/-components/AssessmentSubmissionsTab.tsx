@@ -1,26 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 
 import { useEffect, useState } from "react";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import {
-    getAllColumnsForTable,
-    getAllColumnsForTableWidth,
-    getAssessmentSubmissionsFilteredDataStudentData,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
 import { Route } from "..";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { getInstituteId } from "@/constants/helper";
-import {
-    getAdminParticipants,
-    handleGetAssessmentTotalMarksData,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
 import { MyPagination } from "@/components/design-system/pagination";
-import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise, Export, WarningCircle } from "phosphor-react";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
@@ -30,10 +17,19 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import AssessmentSubmissionsFilterButtons from "./AssessmentSubmissionsFilterButtons";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { StudentSidebarContext } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
-import { BulkActions } from "./bulk-actions/bulk-actions";
-import { AssessmentSubmissionsStudentTable } from "./AssessmentSubmissionsStudentTable";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ParticipantSidebar } from "@/routes/evaluation/evaluations/-components/ParticipantSidebar";
+import { StudentTable } from "@/types/student-table-types";
+import {
+    getAllColumnsForTable,
+    getAllColumnsForTableWidth,
+    getAssessmentSubmissionsFilteredDataStudentData,
+} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
+import {
+    getAdminParticipants,
+    handleGetAssessmentTotalMarksData,
+} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
+import { BulkActions } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/bulk-actions/bulk-actions";
+import { AssessmentSubmissionsStudentTable } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/AssessmentSubmissionsStudentTable";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -54,7 +50,6 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         handleGetAssessmentTotalMarksData({ assessmentId }),
     );
     const [selectedParticipantsTab, setSelectedParticipantsTab] = useState("internal");
-    const [selectedTab, setSelectedTab] = useState("Attempted");
     const [batchSelectionTab, setBatchSelectionTab] = useState("batch");
     const [page, setPage] = useState(0);
     const [selectedStudent, setSelectedStudent] = useState<StudentTable | null>(null);
@@ -84,10 +79,6 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         (count, pageSelection) => count + Object.keys(pageSelection).length,
         0,
     );
-
-    const [attemptedCount, setAttemptedCount] = useState(0);
-    const [ongoingCount, setOngoingCount] = useState(0);
-    const [pendingCount, setPendingCount] = useState(0);
 
     const getParticipantsListData = useMutation({
         mutationFn: ({
@@ -157,57 +148,6 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         Ongoing: getAllColumnsForTableWidth(type, selectedParticipantsTab).Ongoing,
     };
 
-    const handleAttemptedTab = (value: string) => {
-        setSelectedTab(value);
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "batch") {
-            getParticipantsListData.mutate({
-                assessmentId,
-                instituteId,
-                pageNo: page,
-                pageSize: 10,
-                selectedFilter: {
-                    ...selectedFilter,
-                    registration_source: "BATCH_PREVIEW_REGISTRATION",
-                    attempt_type: [
-                        value === "Attempted" ? "ENDED" : value === "Pending" ? "PENDING" : "LIVE",
-                    ],
-                },
-            });
-        }
-
-        if (selectedParticipantsTab === "internal" && batchSelectionTab === "individual") {
-            getParticipantsListData.mutate({
-                assessmentId,
-                instituteId,
-                pageNo: page,
-                pageSize: 10,
-                selectedFilter: {
-                    ...selectedFilter,
-                    registration_source: "ADMIN_PRE_REGISTRATION",
-                    attempt_type: [
-                        value === "Attempted" ? "ENDED" : value === "Pending" ? "PENDING" : "LIVE",
-                    ],
-                },
-            });
-        }
-
-        if (selectedParticipantsTab === "external") {
-            getParticipantsListData.mutate({
-                assessmentId,
-                instituteId,
-                pageNo: page,
-                pageSize: 10,
-                selectedFilter: {
-                    ...selectedFilter,
-                    registration_source: "OPEN_REGISTRATION",
-                    attempt_type: [
-                        value === "Attempted" ? "ENDED" : value === "Pending" ? "PENDING" : "LIVE",
-                    ],
-                },
-            });
-        }
-    };
-
     const handleParticipantsTab = (value: string) => {
         setSelectedParticipantsTab(value);
         if (value === "internal" && batchSelectionTab === "batch") {
@@ -219,13 +159,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "BATCH_PREVIEW_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -239,13 +173,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "ADMIN_PRE_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -259,13 +187,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "OPEN_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -282,13 +204,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "BATCH_PREVIEW_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -302,13 +218,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "ADMIN_PRE_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -322,13 +232,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "OPEN_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -345,13 +249,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "BATCH_PREVIEW_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -365,13 +263,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "ADMIN_PRE_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -385,13 +277,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "OPEN_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -407,13 +293,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "BATCH_PREVIEW_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -427,13 +307,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "ADMIN_PRE_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -447,13 +321,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "OPEN_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -471,13 +339,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "BATCH_PREVIEW_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -491,13 +353,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "ADMIN_PRE_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -511,13 +367,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 selectedFilter: {
                     ...selectedFilter,
                     registration_source: "OPEN_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -550,13 +400,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     ...selectedFilter,
                     name: searchValue,
                     registration_source: "ADMIN_PRE_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -571,13 +415,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     ...selectedFilter,
                     name: searchValue,
                     registration_source: "OPEN_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -608,13 +446,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     name: "",
                     batches: [],
                     registration_source: "BATCH_PREVIEW_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -630,13 +462,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     name: "",
                     batches: [],
                     registration_source: "ADMIN_PRE_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -652,13 +478,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     name: "",
                     batches: [],
                     registration_source: "OPEN_REGISTRATION",
-                    attempt_type: [
-                        selectedTab === "Attempted"
-                            ? "ENDED"
-                            : selectedTab === "Pending"
-                              ? "PENDING"
-                              : "LIVE",
-                    ],
+                    attempt_type: [],
                 },
             });
         }
@@ -670,7 +490,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                 setIsParticipantsLoading(true);
 
                 try {
-                    const [attemptedData, ongoingData, pendingData] = await Promise.all([
+                    const [attemptedData] = await Promise.all([
                         getAdminParticipants(assessmentId, instituteId, page, 10, selectedFilter),
                         getAdminParticipants(assessmentId, instituteId, page, 10, {
                             ...selectedFilter,
@@ -683,9 +503,6 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     ]);
 
                     setParticipantsData(attemptedData);
-                    setAttemptedCount(attemptedData.content.length);
-                    setOngoingCount(ongoingData.content.length);
-                    setPendingCount(pendingData.content.length);
                 } catch (error) {
                     console.log(error);
                 } finally {
@@ -711,10 +528,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
 
     return (
         <StudentSidebarContext.Provider value={{ selectedStudent, setSelectedStudent }}>
-            <div
-                className="flex w-full flex-col gap-4"
-            >
-               
+            <div className="flex w-full flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <Tabs
                         value={selectedParticipantsTab}
@@ -825,48 +639,49 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 </TabsTrigger>
                             </TabsList>
                         </Tabs>
-                        
                     </div>
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
-                    
-                        <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
-                            <AssessmentSubmissionsStudentTable
-                                data={{
-                                    content: getAssessmentSubmissionsFilteredDataStudentData(
-                                        participantsData.content,
-                                        type,
-                                        "Attempted",
-                                        initData?.batches_for_sessions,
-                                        totalMarks.total_achievable_marks,
-                                    ),
-                                    total_pages: participantsData.total_pages,
-                                    page_no: page,
-                                    page_size: 10,
-                                    total_elements: participantsData.total_elements,
-                                    last: participantsData.last,
-                                }}
-                                columns={
-                                    getAssessmentColumn[
-                                        "Attempted" as keyof typeof getAssessmentColumn
-                                    ] || []
-                                }
-                                columnWidths={
-                                    getAssessmentColumnWidth[
-                                        "Attempted" as keyof typeof getAssessmentColumnWidth
-                                    ] || []
-                                }
-                                rowSelection={currentPageSelection}
-                                onRowSelectionChange={handleRowSelectionChange}
-                                currentPage={page}
-                            />
-                            <ParticipantSidebar assessmentId={assessmentId} examType={examType}/>
-                        </SidebarProvider>
-                 
+                    <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
+                        <AssessmentSubmissionsStudentTable
+                            data={{
+                                content: getAssessmentSubmissionsFilteredDataStudentData(
+                                    participantsData.content,
+                                    type,
+                                    "Attempted",
+                                    // @ts-expect-error : //TODO: Fix this type error
+                                    initData?.batches_for_sessions,
+                                    totalMarks.total_achievable_marks,
+                                ),
+                                total_pages: participantsData.total_pages,
+                                page_no: page,
+                                page_size: 10,
+                                total_elements: participantsData.total_elements,
+                                last: participantsData.last,
+                            }}
+                            // @ts-expect-error : //TODO: Fix this type error
+                            columns={
+                                getAssessmentColumn[
+                                    "Attempted" as keyof typeof getAssessmentColumn
+                                ] || []
+                            }
+                            columnWidths={
+                                getAssessmentColumnWidth[
+                                    "Attempted" as keyof typeof getAssessmentColumnWidth
+                                ] || []
+                            }
+                            rowSelection={currentPageSelection}
+                            onRowSelectionChange={handleRowSelectionChange}
+                            currentPage={page}
+                        />
+                        <ParticipantSidebar assessmentId={assessmentId} examType={examType} />
+                    </SidebarProvider>
+
                     <div className="flex justify-between">
                         <BulkActions
                             selectedCount={totalSelectedCount}
                             selectedStudentIds={getSelectedStudentIds()}
+                            // @ts-expect-error : //TODO: Fix this type error
                             selectedStudents={getSelectedStudents()}
                             onReset={handleResetSelections}
                             selectedTab={"Attempted"}
@@ -878,7 +693,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                         />
                     </div>
                 </div>
-          </div>
+            </div>
         </StudentSidebarContext.Provider>
     );
 };
