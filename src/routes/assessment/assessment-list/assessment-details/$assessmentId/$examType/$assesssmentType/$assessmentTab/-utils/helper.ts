@@ -82,7 +82,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
                             .time,
                         duration: (student.duration / 60).toFixed(2) + " min",
-                        score: `${student.score.toFixed(2)} / ${totalMarks}`,
+                        score: `${student.score ? student.score.toFixed(2) : 0} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
@@ -121,7 +121,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
                             .time,
                         duration: (student.duration / 60).toFixed(2) + " min",
-                        score: `${student.score.toFixed(2)} / ${totalMarks}`,
+                        score: `${student.score ? student.score.toFixed(2) : 0} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
@@ -215,7 +215,7 @@ export const getAssessmentStep3ParticipantsListWithBatchName = (
 export const getAssessmentStep3ParticipantsListIndividualStudents = (
     studentsListData: Step3ParticipantsListIndiviudalStudentInterface[],
 ) => {
-    return studentsListData.map((student) => {
+    return studentsListData?.map((student) => {
         return {
             id: student.userId,
             full_name: student.participantName,

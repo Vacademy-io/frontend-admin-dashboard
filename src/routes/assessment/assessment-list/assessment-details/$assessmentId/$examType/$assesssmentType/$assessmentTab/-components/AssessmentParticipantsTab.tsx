@@ -10,7 +10,7 @@ import { getAssessmentDetails } from "@/routes/assessment/create-assessment/$ass
 import {
     copyToClipboard,
     handleDownloadQRCode,
-    transformBatchData,
+    transformBatchDataEdit,
 } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper";
 import { getBatchDetails } from "../-utils/helper";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
@@ -21,7 +21,7 @@ const AssessmentParticipantsTab = () => {
     const { assessmentId, examType } = Route.useParams();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { batches_for_sessions } = instituteDetails || {};
-    const transformedBatches = transformBatchData(batches_for_sessions || []);
+    const transformedBatches = transformBatchDataEdit(batches_for_sessions || []);
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId,

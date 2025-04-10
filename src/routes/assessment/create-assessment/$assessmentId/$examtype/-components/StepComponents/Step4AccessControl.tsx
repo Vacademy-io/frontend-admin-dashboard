@@ -571,6 +571,10 @@ const AccessControlCards = ({
 
             // Refetch data to update the user list
             handleRefetchData();
+            toast.success("Invitation for this user has been cancelled successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             throw error;
@@ -650,56 +654,64 @@ const AccessControlCards = ({
                                 Add
                             </MyButton>
                         </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-0 overflow-y-auto !p-0">
+                        <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col overflow-hidden !p-0">
+                            {/* Header */}
                             <h1 className="sticky top-0 z-10 rounded-t-lg bg-primary-50 p-4 text-primary-500">
                                 Add User
                             </h1>
-                            <div className="flex items-center justify-between p-6 !pb-0">
-                                <div className="flex items-center gap-6">
-                                    <ScheduleTestFilters
-                                        label="Role Type"
-                                        data={RoleType}
-                                        selectedItems={selectedFilter["roles"] || []}
-                                        onSelectionChange={(items) =>
-                                            handleFilterChange("roles", items)
-                                        }
-                                    />
-                                    <RoleTypeFilterButtons
-                                        selectedQuestionPaperFilters={selectedFilter}
-                                        handleSubmitFilters={handleSubmitFilters}
-                                        handleResetFilters={handleResetFilters}
-                                    />
+
+                            {/* Scrollable Middle Section */}
+                            <div className="flex grow flex-col gap-6 overflow-y-auto px-6 pb-6 pt-0">
+                                {/* Filters */}
+                                <div className="flex items-center justify-between pt-6">
+                                    <div className="flex items-center gap-6">
+                                        <ScheduleTestFilters
+                                            label="Role Type"
+                                            data={RoleType}
+                                            selectedItems={selectedFilter["roles"] || []}
+                                            onSelectionChange={(items) =>
+                                                handleFilterChange("roles", items)
+                                            }
+                                        />
+                                        <RoleTypeFilterButtons
+                                            selectedQuestionPaperFilters={selectedFilter}
+                                            handleSubmitFilters={handleSubmitFilters}
+                                            handleResetFilters={handleResetFilters}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={isSelectAllChecked}
+                                            onCheckedChange={handleSelectAll}
+                                        />
+                                        <span className="font-thin">Select All</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox
-                                        checked={isSelectAllChecked}
-                                        onCheckedChange={handleSelectAll}
-                                    />
-                                    <span className="font-thin">Select All</span>
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-6 p-6">
-                                {existingInstituteUsersData?.map((user) => {
-                                    const isSelected = selectedUsers.includes(user.userId);
-                                    return (
-                                        <div
-                                            key={user.userId}
-                                            className="flex items-center justify-between gap-4"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <Checkbox
-                                                    checked={isSelected}
-                                                    onCheckedChange={() =>
-                                                        handleUserSelect(user.userId)
-                                                    }
-                                                />
-                                                {user.status !== "INVITED" && <RoleTypeUserIcon />}
-                                                <div className="flex flex-col gap-2">
-                                                    <div className="flex items-center gap-4">
-                                                        <p>{user.name}</p>
+
+                                {/* User List */}
+                                <div className="flex flex-col gap-6">
+                                    {existingInstituteUsersData?.map((user) => {
+                                        const isSelected = selectedUsers.includes(user.userId);
+                                        return (
+                                            <div
+                                                key={user.userId}
+                                                className="flex items-center justify-between gap-4"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <Checkbox
+                                                        checked={isSelected}
+                                                        onCheckedChange={() =>
+                                                            handleUserSelect(user.userId)
+                                                        }
+                                                    />
+                                                    {user.status !== "INVITED" && (
+                                                        <RoleTypeUserIcon />
+                                                    )}
+                                                    <div className="flex flex-col gap-2">
                                                         <div className="flex items-center gap-4">
-                                                            {user.roles.map((role) => {
-                                                                return (
+                                                            <p>{user.name}</p>
+                                                            <div className="flex items-center gap-4">
+                                                                {user.roles.map((role) => (
                                                                     <Badge
                                                                         key={role.roleId}
                                                                         className={`whitespace-nowrap rounded-lg border border-neutral-300 ${
@@ -717,75 +729,79 @@ const AccessControlCards = ({
                                                                     >
                                                                         {role.roleName}
                                                                     </Badge>
-                                                                );
-                                                            })}
+                                                                ))}
+                                                            </div>
                                                         </div>
+                                                        <p className="text-xs">{user.email}</p>
                                                     </div>
-                                                    <p className="text-xs">{user.email}</p>
                                                 </div>
-                                            </div>
-                                            {user.status === "INVITED" && (
-                                                <Dialog>
-                                                    <DialogTrigger className="text-sm font-semibold text-primary-500">
-                                                        Cancel Invitation
-                                                    </DialogTrigger>
-                                                    <DialogContent className="flex w-[500px] flex-col p-0">
-                                                        <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
+
+                                                {/* Cancel Invitation Dialog */}
+                                                {user.status === "INVITED" && (
+                                                    <Dialog>
+                                                        <DialogTrigger className="text-sm font-semibold text-primary-500">
                                                             Cancel Invitation
-                                                        </h1>
-                                                        <div className="flex flex-col gap-4 p-4 pt-3">
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="text-danger-600">
-                                                                    Attention
-                                                                </span>
-                                                                <Info
-                                                                    size={18}
-                                                                    className="text-danger-600"
-                                                                />
-                                                            </div>
-                                                            <h1 className="-mt-2 font-thin">
-                                                                Are you sure you want to cancel
-                                                                invitation for
-                                                                <span className="text-primary-500">
-                                                                    &nbsp;{user.name}
-                                                                </span>
-                                                                ?
+                                                        </DialogTrigger>
+                                                        <DialogContent className="flex w-[500px] flex-col p-0">
+                                                            <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
+                                                                Cancel Invitation
                                                             </h1>
-                                                            <div className="mt-2 flex justify-end">
-                                                                <MyButton
-                                                                    type="button"
-                                                                    scale="large"
-                                                                    buttonType="primary"
-                                                                    onClick={() =>
-                                                                        handlCancelInviteUser(
-                                                                            user.userId,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Yes
-                                                                </MyButton>
+                                                            <div className="flex flex-col gap-4 p-4 pt-3">
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-danger-600">
+                                                                        Attention
+                                                                    </span>
+                                                                    <Info
+                                                                        size={18}
+                                                                        className="text-danger-600"
+                                                                    />
+                                                                </div>
+                                                                <h1 className="-mt-2 font-thin">
+                                                                    Are you sure you want to cancel
+                                                                    invitation for
+                                                                    <span className="text-primary-500">
+                                                                        &nbsp;{user.name}
+                                                                    </span>
+                                                                    ?
+                                                                </h1>
+                                                                <div className="mt-2 flex justify-end">
+                                                                    <MyButton
+                                                                        type="button"
+                                                                        scale="large"
+                                                                        buttonType="primary"
+                                                                        onClick={() =>
+                                                                            handlCancelInviteUser(
+                                                                                user.userId,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        Yes
+                                                                    </MyButton>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </DialogContent>
-                                                </Dialog>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                            <div className="sticky bottom-0 left-0 flex items-center justify-between bg-white p-6">
+
+                            {/* Footer */}
+                            <footer className="sticky bottom-0 left-0 z-10 flex items-center justify-between bg-white p-6">
                                 <Step4InviteUsers refetchData={handleRefetchData} />
                                 <MyButton
                                     type="button"
                                     scale="large"
                                     buttonType="primary"
                                     layoutVariant="default"
-                                    className="mb-6"
+                                    className="mb-0"
                                     onClick={handleDone}
                                 >
                                     Done
                                 </MyButton>
-                            </div>
+                            </footer>
                         </DialogContent>
                     </Dialog>
                 </div>

@@ -16,6 +16,8 @@ import { AssessmentDetailsSearchComponent } from "@/routes/assessment/assessment
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { AssessmentReportStudentInterface } from "@/types/assessments/assessment-overview";
+import { getAssessmentDetailsData } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services";
+import { Steps } from "@/types/assessments/assessment-data-type";
 export interface StudentReportFilterInterface {
     name: string;
     status: string[];
@@ -25,18 +27,26 @@ export interface StudentReportFilterInterface {
 export const StudentTestRecord = ({
     selectedTab,
     examType,
+    isStudentList = false,
 }: {
     selectedTab: string | undefined;
     examType: string | undefined;
+    isStudentList?: boolean;
 }) => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
 
     const [searchText, setSearchText] = useState("");
     const [selectedFilter] = useState<StudentReportFilterInterface>({
         name: "",
-        status: [
-            selectedTab === "Attempted" ? "ENDED" : selectedTab === "Pending" ? "PENDING" : "LIVE",
-        ],
+        status: isStudentList
+            ? (selectedTab ?? "").split(",")
+            : [
+                  selectedTab === "Attempted"
+                      ? "ENDED"
+                      : selectedTab === "Pending"
+                        ? "PENDING"
+                        : "LIVE",
+              ],
         sort_columns: {},
     });
     const { selectedStudent } = useStudentSidebar();
@@ -55,6 +65,7 @@ export const StudentTestRecord = ({
     const [studentReportData, setStudentReportData] = useState(data);
 
     const [selectedTest, setSelectedTest] = useState(null);
+    const [assessmentDetails, setAssessmentDetails] = useState<Steps | null>(null);
 
     const handlePageChange = (newPage: number) => {
         setPageNo(newPage);
@@ -77,15 +88,30 @@ export const StudentTestRecord = ({
             attemptId: string;
             instituteId: string | undefined;
         }) => viewStudentReport(assessmentId, attemptId, instituteId),
-        onSuccess: (data) => {
+        onSuccess: async (data, { assessmentId }) => {
             setSelectedTest(data);
+            const assessData = await getAssessmentDetailsData({
+                assessmentId: assessmentId,
+                instituteId: instituteDetails?.id,
+                type: examType,
+            });
+            setAssessmentDetails(assessData);
         },
         onError: (error: unknown) => {
             throw error;
         },
     });
 
-    const handleViewReport = (assessmentId: string, attemptId: string) => {
+    const [selectedStudentReport, setSelectedStudentReport] =
+        useState<AssessmentReportStudentInterface | null>(null);
+
+    const handleViewReport = (
+        assessmentId: string,
+        attemptId: string,
+        studentReport: AssessmentReportStudentInterface,
+    ) => {
+        setSelectedTest(null);
+        setSelectedStudentReport(studentReport);
         viewStudentTestReportMutation.mutate({
             assessmentId,
             attemptId,
@@ -223,19 +249,23 @@ export const StudentTestRecord = ({
                                                     handleViewReport(
                                                         studentReport.assessment_id,
                                                         studentReport.attempt_id,
+                                                        studentReport,
                                                     )
                                                 }
                                             >
                                                 View Report
                                             </MyButton>
                                         </div>
-                                        {selectedTest && (
+                                        {selectedTest && selectedStudentReport && (
                                             <TestReportDialog
                                                 isOpen={!!selectedTest}
-                                                onClose={() => setSelectedTest(null)}
+                                                onClose={() => {
+                                                    setSelectedTest(null);
+                                                    setSelectedStudentReport(null);
+                                                }}
                                                 testReport={selectedTest}
-                                                studentReport={studentReport}
-                                                examType={examType}
+                                                studentReport={selectedStudentReport}
+                                                assessmentDetails={assessmentDetails!}
                                             />
                                         )}
                                     </div>

@@ -6,7 +6,7 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart";
 import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise, Export } from "phosphor-react";
+import { ArrowCounterClockwise } from "phosphor-react";
 import AssessmentDetailsRankMarkTable from "./QuestionsRankMarkTable";
 import { getInstituteId } from "@/constants/helper";
 import { Route } from "..";
@@ -14,10 +14,15 @@ import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import {
     getOverviewDetials,
     handleGetOverviewData,
+    handleGetStudentRankMarkExportCSV,
+    handleGetStudentRankMarkExportPDF,
 } from "../-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { AssessmentOverviewMarksRankInterface } from "@/types/assessment-overview";
 import { useState } from "react";
+import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
+import { toast } from "sonner";
+import Papa from "papaparse";
 
 const chartConfig = {
     mark: {
@@ -44,6 +49,7 @@ export function AssessmentDetailsMarkRankGraph({
                     left: 12,
                     right: 12,
                     bottom: 50,
+                    top: 12,
                 }}
             >
                 <CartesianGrid vertical={false} />
@@ -120,21 +126,99 @@ export function QuestionsMarkRankGraph() {
         });
     };
 
+    const getExportRankMarkDataPDF = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+        }) => handleGetStudentRankMarkExportPDF(assessmentId, instituteId),
+        onSuccess: async (response) => {
+            const date = new Date();
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `pdf_student_rank_mark_report_${date.toLocaleString()}.pdf`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Student rank mark data for PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const getExportRankMarkDataCSV = useMutation({
+        mutationFn: ({
+            assessmentId,
+            instituteId,
+        }: {
+            assessmentId: string;
+            instituteId: string | undefined;
+        }) => handleGetStudentRankMarkExportCSV(assessmentId, instituteId),
+        onSuccess: (data) => {
+            const date = new Date();
+            const parsedData = Papa.parse(data, {
+                download: false,
+                header: true,
+                skipEmptyLines: true,
+            }).data;
+
+            const csv = Papa.unparse(parsedData);
+
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `csv_student_rank_mark_report_${date.toLocaleString()}.csv`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the created URL object
+            URL.revokeObjectURL(url);
+            toast.success("Student rank mark data for CSV exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getExportRankMarkDataPDF.mutate({
+            assessmentId,
+            instituteId,
+        });
+    };
+    const handleExportCSV = () => {
+        getExportRankMarkDataCSV.mutate({
+            assessmentId,
+            instituteId,
+        });
+    };
+
     if (isLoading) return <DashboardLoader />;
     return (
         <div className="flex flex-col">
             <div className="flex items-center justify-between">
                 <h1>Marks-Rank Graph</h1>
                 <div className="flex items-center gap-6">
-                    <MyButton
-                        type="button"
-                        scale="large"
-                        buttonType="secondary"
-                        className="font-medium"
-                    >
-                        <Export size={32} />
-                        Export
-                    </MyButton>
+                    <ExportDialogPDFCSV
+                        handleExportPDF={handleExportPDF}
+                        handleExportCSV={handleExportCSV}
+                        isPDFLoading={getExportRankMarkDataPDF.status === "pending" ? true : false}
+                        isCSVLoading={getExportRankMarkDataCSV.status === "pending" ? true : false}
+                    />
                     <MyButton
                         type="button"
                         scale="large"

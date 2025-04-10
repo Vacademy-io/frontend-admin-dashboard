@@ -19,11 +19,12 @@ import { Row } from "@tanstack/react-table";
 import { createEditableBulkUploadColumns } from "./bulk-upload-columns";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { StatusColumnRenderer } from "./status-column-rendered";
+import { ErrorDetailsDialog } from "./error-details-dialog";
 
 interface EditableBulkUploadTableProps {
     headers: Header[];
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
-    statusColumnRenderer?: (props: { row: Row<SchemaFields> }) => JSX.Element;
 }
 
 interface RowWithError extends SchemaFields {
@@ -46,7 +47,7 @@ export const validateCellValue = (
     if (header.optional && (!value || value.trim() === "")) {
         return null;
     }
-
+    // const absoluteRowIndex = rowIndex + (currentPage || 0) * (ITEMS_PER_PAGE || 10);
     // Check if required field is missing
     if (!header.optional && (!value || value.trim() === "")) {
         return {
@@ -191,35 +192,46 @@ export const getUploadStats = (responseData: SchemaFields[]) => {
     };
 };
 
-export function EditableBulkUploadTable({
-    headers,
-    onEdit,
-    statusColumnRenderer,
-}: EditableBulkUploadTableProps) {
+export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadTableProps) {
     const { csvData, csvErrors, setIsEditing, isEditing, setCsvData } = useBulkUploadStore();
     const [page, setPage] = useState(0);
     const [searchInput, setSearchInput] = useState("");
     const [searchFilter, setSearchFilter] = useState("");
-
     const [editCell, setEditCell] = useState<{ rowIndex: number; columnId: string } | null>(null);
     const { setCsvErrors } = useBulkUploadStore();
+    const [showErrorDialog, setShowErrorDialog] = useState(false);
+    const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
 
-    const handleCellEdit = (rowIndex: number, columnId: string, value: string) => {
+    const handleCellEdit = (
+        rowIndex: number,
+        columnId: string,
+        value: string,
+        currentPage: number,
+        ITEMS_PER_PAGE: number,
+    ) => {
         if (!csvData) return;
 
         // Create a new data array with the updated value
         const newData = [...csvData];
-        newData[rowIndex] = { ...newData[rowIndex], [columnId]: value };
+        newData[rowIndex + currentPage * ITEMS_PER_PAGE] = {
+            ...newData[rowIndex + currentPage * ITEMS_PER_PAGE],
+            [columnId]: value,
+        };
 
         // Update the data
         setCsvData(newData);
 
         // Find the header for this column to use in validation
+        // const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
         const header = headers.find((h) => h.column_name === columnId);
         if (header) {
             // Remove old errors for this specific cell
             const updatedErrors = csvErrors.filter(
-                (error) => !(error.path[0] === rowIndex && error.path[1] === columnId),
+                (error) =>
+                    !(
+                        error.path[0] === rowIndex + currentPage * ITEMS_PER_PAGE &&
+                        error.path[1] === columnId
+                    ),
             );
 
             // Validate the new value
@@ -237,6 +249,26 @@ export function EditableBulkUploadTable({
         setEditCell(null);
     };
 
+    const statusColumnRenderer = React.useCallback(
+        ({ row }: { row: Row<SchemaFields> }) => {
+            return (
+                <StatusColumnRenderer
+                    row={row}
+                    csvErrors={csvErrors}
+                    csvData={csvData}
+                    currentPage={page}
+                    ITEMS_PER_PAGE={ITEMS_PER_PAGE}
+                />
+            );
+        },
+        [csvErrors, csvData, page],
+    );
+
+    const handleViewErrors = (rowIndex: number) => {
+        setSelectedRowIndex(rowIndex);
+        setShowErrorDialog(true);
+    };
+
     const columns = useMemo(() => {
         return createEditableBulkUploadColumns({
             csvErrors,
@@ -246,13 +278,17 @@ export function EditableBulkUploadTable({
             isEditing,
             onCellClick: (rowIndex, columnId) => {
                 if (isEditing) {
+                    console.log("cell needs to be edited now");
                     setEditCell({ rowIndex, columnId });
                 }
             },
             editCell,
             handleCellEdit,
+            onViewErrors: handleViewErrors,
+            currentPage: page,
+            ITEMS_PER_PAGE: ITEMS_PER_PAGE,
         });
-    }, [csvErrors, headers, statusColumnRenderer, isEditing, editCell, csvData]);
+    }, [csvErrors, headers, statusColumnRenderer, isEditing, editCell, csvData, handleCellEdit]);
 
     const filteredData = useMemo(() => {
         if (!csvData) return [];
@@ -349,7 +385,7 @@ export function EditableBulkUploadTable({
     return paginatedData.content.length === 0 ? (
         <p className="w-full text-center text-subtitle text-primary-500">No uploaded data found!</p>
     ) : (
-        <div className="no-scrollbar relative flex flex-col gap-6 overflow-y-scroll px-6">
+        <div className="no-scrollbar flex flex-col gap-6 overflow-y-scroll px-6">
             <div className="no-scrollbar flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <StudentSearchBox
@@ -425,6 +461,23 @@ export function EditableBulkUploadTable({
                 currentPage={page}
                 totalPages={paginatedData.total_pages}
                 onPageChange={(newPage) => setPage(newPage)}
+            />
+
+            <ErrorDetailsDialog
+                isOpen={showErrorDialog}
+                onClose={() => setShowErrorDialog(!showErrorDialog)}
+                errors={
+                    selectedRowIndex !== null
+                        ? csvErrors.filter(
+                              (error) => error.path[0] === selectedRowIndex + page * ITEMS_PER_PAGE,
+                          )
+                        : []
+                }
+                rowData={
+                    selectedRowIndex !== null
+                        ? csvData?.[selectedRowIndex + page * ITEMS_PER_PAGE] || {}
+                        : {}
+                }
             />
         </div>
     );

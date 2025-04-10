@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StudentSidebarContext } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { StudentTable } from "@/types/student-table-types";
-import { ArrowCounterClockwise, Export } from "phosphor-react";
+import { ArrowCounterClockwise } from "phosphor-react";
 import { useEffect, useState } from "react";
 import {
     getAllColumnsForTableQuestionWise,
@@ -17,7 +17,11 @@ import {
 } from "../-utils/helper";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { getParticipantsListQuestionwise } from "../-services/assessment-details-services";
+import {
+    getParticipantsListQuestionwise,
+    handleGetRespondentExportCSV,
+    handleGetRespondentExportPDF,
+} from "../-services/assessment-details-services";
 import { ScheduleTestFilters } from "@/routes/assessment/assessment-list/-components/ScheduleTestFilters";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
@@ -30,6 +34,8 @@ import {
     SelectedFilterQuestionWise,
     StudentQuestionwiseContent,
 } from "@/types/assessments/student-questionwise-status";
+import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
+import Papa from "papaparse";
 
 const QuestionAssessmentStatus = ({
     assessmentId,
@@ -239,6 +245,119 @@ const QuestionAssessmentStatus = ({
         });
     };
 
+    const getRespondentDataPDF = useMutation({
+        mutationFn: ({
+            instituteId,
+            sectionId,
+            questionId,
+            assessmentId,
+            selectedFilter,
+        }: {
+            instituteId: string | undefined;
+            sectionId: string;
+            questionId: string;
+            assessmentId: string;
+            selectedFilter: SelectedFilterQuestionWise;
+        }) =>
+            handleGetRespondentExportPDF(
+                instituteId,
+                sectionId,
+                questionId,
+                assessmentId,
+                selectedFilter,
+            ),
+        onSuccess: async (response) => {
+            const date = new Date();
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `pdf_student_respondent_list_${date.toLocaleString()}.pdf`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Student respondent list data for PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const getRespondentDataCSV = useMutation({
+        mutationFn: ({
+            instituteId,
+            sectionId,
+            questionId,
+            assessmentId,
+            selectedFilter,
+        }: {
+            instituteId: string | undefined;
+            sectionId: string;
+            questionId: string;
+            assessmentId: string;
+            selectedFilter: SelectedFilterQuestionWise;
+        }) =>
+            handleGetRespondentExportCSV(
+                instituteId,
+                sectionId,
+                questionId,
+                assessmentId,
+                selectedFilter,
+            ),
+        onSuccess: (data) => {
+            const date = new Date();
+            const parsedData = Papa.parse(data, {
+                download: false,
+                header: true,
+                skipEmptyLines: true,
+            }).data;
+
+            const csv = Papa.unparse(parsedData);
+
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `csv_student_respondent_list_${date.toLocaleString()}.csv`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the created URL object
+            URL.revokeObjectURL(url);
+            toast.success("Student respondent list data for CSV exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getRespondentDataPDF.mutate({
+            instituteId: initData?.id,
+            sectionId,
+            questionId,
+            assessmentId,
+            selectedFilter,
+        });
+    };
+    const handleExportCSV = () => {
+        getRespondentDataCSV.mutate({
+            instituteId: initData?.id,
+            sectionId,
+            questionId,
+            assessmentId,
+            selectedFilter,
+        });
+    };
+
     useEffect(() => {
         setIsLoading(true);
         const timer = setTimeout(() => {
@@ -303,15 +422,16 @@ const QuestionAssessmentStatus = ({
                             />
                         </div>
                         <div className="flex items-center gap-6">
-                            <MyButton
-                                type="button"
-                                scale="large"
-                                buttonType="secondary"
-                                className="font-medium"
-                            >
-                                <Export size={32} />
-                                Export
-                            </MyButton>
+                            <ExportDialogPDFCSV
+                                handleExportPDF={handleExportPDF}
+                                handleExportCSV={handleExportCSV}
+                                isPDFLoading={
+                                    getRespondentDataPDF.status === "pending" ? true : false
+                                }
+                                isCSVLoading={
+                                    getRespondentDataCSV.status === "pending" ? true : false
+                                }
+                            />
                             <MyButton
                                 type="button"
                                 scale="large"

@@ -6,7 +6,6 @@ import {
     Step3StudentDetailInterface,
     Steps,
 } from "@/types/assessments/assessment-data-type";
-import { BatchData } from "@/types/assessments/batch-details";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
 import { AdaptiveMarkingQuestion } from "@/types/assessments/basic-details-type";
 import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questions";
@@ -23,6 +22,8 @@ import { z } from "zod";
 import sectionDetailsSchema from "./section-details-schema";
 import { convertCustomFields } from "../-services/assessment-services";
 import testAccessSchema from "./add-participants-schema";
+import { CourseWithSessionsType } from "@/stores/study-library/use-study-library-store";
+import { BatchData } from "@/types/assessments/batch-details";
 
 interface Role {
     roleId: string;
@@ -159,7 +160,36 @@ export const copyToClipboard = async (text: string) => {
     }
 };
 
-export function transformBatchData(data: BatchData[]) {
+export function transformBatchData(data: BatchData[], sessionId: string) {
+    const batchDetails: Record<string, { name: string; id: string }[]> = {};
+
+    data.forEach((item) => {
+        // Extract level name, package name, and ID
+        const levelName = item.level.level_name;
+        const packageName = item.package_dto.package_name;
+        const packageId = item.id;
+        const selectedSessionId = item.session.id;
+        if (selectedSessionId !== sessionId) return;
+
+        // Create the batch key
+        const batchKey = `${packageName}`;
+
+        // Initialize the batch key if not present
+        if (!batchDetails[batchKey]) {
+            batchDetails[batchKey] = [];
+        }
+
+        // Add the package details (name and id) to the batch key
+        batchDetails[batchKey]!.push({
+            name: `${levelName}`,
+            id: packageId || "",
+        });
+    });
+
+    return batchDetails;
+}
+
+export function transformAllBatchData(data: BatchData[]) {
     const batchDetails: Record<string, { name: string; id: string }[]> = {};
 
     data.forEach((item) => {
@@ -169,7 +199,7 @@ export function transformBatchData(data: BatchData[]) {
         const packageId = item.id;
 
         // Create the batch key
-        const batchKey = `${levelName} Year/Class`;
+        const batchKey = `${packageName}`;
 
         // Initialize the batch key if not present
         if (!batchDetails[batchKey]) {
@@ -178,12 +208,69 @@ export function transformBatchData(data: BatchData[]) {
 
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
-            name: `${levelName} ${packageName}`,
+            name: `${levelName}`,
             id: packageId || "",
         });
     });
 
     return batchDetails;
+}
+
+export function transformBatchDataEdit(data: BatchData[]) {
+    const batchDetails: Record<string, { name: string; id: string }[]> = {};
+
+    data.forEach((item) => {
+        // Extract level name, package name, and ID
+        const levelName = item.level.level_name;
+        const packageName = item.package_dto.package_name;
+        const packageId = item.id;
+
+        // Create the batch key
+        const batchKey = `${packageName}`;
+
+        // Initialize the batch key if not present
+        if (!batchDetails[batchKey]) {
+            batchDetails[batchKey] = [];
+        }
+
+        // Add the package details (name and id) to the batch key
+        batchDetails[batchKey]!.push({
+            name: `${packageName} - ${levelName}`,
+            id: packageId || "",
+        });
+    });
+
+    return batchDetails;
+}
+
+export function filterLevelDetailsByIds(
+    data: CourseWithSessionsType[],
+    allowedIds: string[] | undefined,
+) {
+    return data.map((courseBlock) => ({
+        ...courseBlock,
+        sessions: courseBlock.sessions.map((session) => ({
+            ...session,
+            level_with_details: session.level_with_details.filter(
+                (level) => allowedIds?.includes(level.id),
+            ),
+        })),
+    }));
+}
+
+export function getAllSessions(data: BatchData[]): { id: string; name: string }[] {
+    const sessionMap = new Map<string, string>();
+
+    data.forEach((item) => {
+        const sessionId = item.session.id;
+        const sessionName = item.session.session_name;
+
+        if (!sessionMap.has(sessionId)) {
+            sessionMap.set(sessionId, sessionName);
+        }
+    });
+
+    return Array.from(sessionMap.entries()).map(([id, name]) => ({ id, name }));
 }
 
 export const convertToUTC = (dateString: string) => {
