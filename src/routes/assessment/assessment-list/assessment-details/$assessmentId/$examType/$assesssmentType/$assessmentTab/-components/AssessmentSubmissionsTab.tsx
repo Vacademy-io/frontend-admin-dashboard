@@ -769,6 +769,16 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         });
     };
 
+    console.log(
+        getAssessmentSubmissionsFilteredDataStudentData(
+            participantsData.content,
+            type,
+            selectedTab,
+            initData?.batches_for_sessions,
+            totalMarks.total_achievable_marks,
+        ),
+    );
+
     useEffect(() => {
         const timer = setTimeout(() => {
             const fetchAllParticipants = async () => {

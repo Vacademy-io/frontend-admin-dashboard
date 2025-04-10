@@ -75,6 +75,10 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
+                        package_session_id: getBatchNameById(
+                            batches_for_sessions,
+                            student.batch_id,
+                        ),
                         attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .date,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
@@ -97,6 +101,10 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
+                        package_session_id: getBatchNameById(
+                            batches_for_sessions,
+                            student.batch_id,
+                        ),
                     };
                 }
                 return {};
