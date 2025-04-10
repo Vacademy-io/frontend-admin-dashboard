@@ -169,10 +169,10 @@ export function QuestionComponent({
                 }}
             >
                 <Resizable
-                    size={{ width: initialSize.width, height: initialSize.height }}
+                    size={{ width: initialSize?.width, height: initialSize?.height }}
                     onResizeStop={(e, direction, ref, d) => {
-                        const newWidth = initialSize.width + d.width;
-                        const newHeight = initialSize.height + d.height;
+                        const newWidth = initialSize?.width + d.width;
+                        const newHeight = initialSize?.height + d.height;
                         saveImageDimensions(imageUrl, { width: newWidth, height: newHeight });
                     }}
                     lockAspectRatio={aspectRatios[imageUrl] || true}
@@ -223,7 +223,7 @@ export function QuestionComponent({
                             </button>
 
                             <div className="absolute -top-7 left-0 z-10 rounded bg-primary-200 px-2 py-0.5 text-xs shadow-md">
-                                {Math.round(initialSize.width)} × {Math.round(initialSize.height)}
+                                {Math.round(initialSize?.width)} × {Math.round(initialSize?.height)}
                             </div>
                         </>
                     )}
