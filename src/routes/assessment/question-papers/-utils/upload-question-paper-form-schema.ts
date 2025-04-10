@@ -58,32 +58,12 @@ export const uploadQuestionPaperFormSchema = z.object({
                     min: z.string(),
                 }),
                 questionMark: z.string(),
-                imageDetails: z
-                    .array(
-                        z.object({
-                            imageId: z.string().optional(),
-                            imageName: z.string().min(1, "Image name is required"),
-                            imageTitle: z.string().optional(),
-                            imageFile: z.string().min(1, "Image file is required"),
-                            isDeleted: z.boolean().optional(),
-                        }),
-                    )
-                    .optional(),
                 singleChoiceOptions: z
                     .array(
                         z.object({
                             id: z.string().optional(),
                             name: z.string().optional(),
                             isSelected: z.boolean().optional(),
-                            image: z
-                                .object({
-                                    imageId: z.string().optional(),
-                                    imageName: z.string().optional(),
-                                    imageTitle: z.string().optional(),
-                                    imageFile: z.string().optional(),
-                                    isDeleted: z.boolean().optional(),
-                                })
-                                .optional(),
                         }),
                     )
                     .optional(),
@@ -93,18 +73,15 @@ export const uploadQuestionPaperFormSchema = z.object({
                             id: z.string().optional(),
                             name: z.string().optional(),
                             isSelected: z.boolean().optional(),
-                            image: z
-                                .object({
-                                    imageId: z.string().optional(),
-                                    imageName: z.string().optional(),
-                                    imageTitle: z.string().optional(),
-                                    imageFile: z.string().optional(),
-                                    isDeleted: z.boolean().optional(),
-                                })
-                                .optional(),
                         }),
                     )
                     .optional(),
+                parentRichTextContent: z.union([z.string(), z.null()]).optional(),
+                decimals: z.number().optional(),
+                numericType: z.string().optional(),
+                validAnswers: z.union([z.array(z.number()), z.null()]).optional(),
+                questionResponseType: z.union([z.string(), z.null()]).optional(),
+                subjectiveAnswerText: z.string().optional(),
             })
             .superRefine((question, ctx) => {
                 // Validate based on question type
@@ -142,12 +119,10 @@ export const uploadQuestionPaperFormSchema = z.object({
                     }
 
                     question.singleChoiceOptions.forEach((opt, index) => {
-                        if (!opt?.name?.trim() && (!opt.image || !opt.image.imageName?.trim())) {
+                        if (!opt?.name?.trim()) {
                             ctx.addIssue({
                                 code: z.ZodIssueCode.custom,
-                                message: `Option ${
-                                    index + 1
-                                } must have either a name or an imageName`,
+                                message: `Option ${index + 1} is required`,
                                 path: ["singleChoiceOptions", index, "name"],
                             });
                         }
@@ -186,15 +161,34 @@ export const uploadQuestionPaperFormSchema = z.object({
                     }
 
                     question.multipleChoiceOptions.forEach((opt, index) => {
-                        if (!opt.name?.trim() && (!opt.image || !opt.image.imageName?.trim())) {
+                        if (!opt.name?.trim()) {
                             ctx.addIssue({
                                 code: z.ZodIssueCode.custom,
-                                message: `Option ${
-                                    index + 1
-                                } must have either a name or an imageName`,
+                                message: `Option ${index + 1} is required`,
                                 path: ["multipleChoiceOptions", index, "name"],
                             });
                         }
+                    });
+                }
+
+                const { numericType, validAnswers } = question;
+
+                if (!validAnswers || !Array.isArray(validAnswers)) return;
+                const typeChecks: Record<string, (n: number) => boolean> = {
+                    SINGLE_DIGIT_NON_NEGATIVE_INTEGER: (n) =>
+                        Number.isInteger(n) && n >= 0 && n <= 9,
+                    INTEGER: (n) => Number.isInteger(n),
+                    POSITIVE_INTEGER: (n) => Number.isInteger(n) && n > 0,
+                    DECIMAL: (n) => typeof n === "number",
+                };
+
+                const check = numericType ? typeChecks[numericType] : undefined;
+
+                if (check && !validAnswers.every(check)) {
+                    ctx.addIssue({
+                        path: ["validAnswers"],
+                        code: z.ZodIssueCode.custom,
+                        message: `Not correct answer type is entered ${numericType}`,
                     });
                 }
             }),

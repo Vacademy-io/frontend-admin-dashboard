@@ -38,6 +38,7 @@ html {
         --chart-3: 197 37% 24%;
         --chart-4: 43 74% 66%;
         --chart-5: 27 87% 67%;
+        --chart-6: 32 88% 83%;
 
         /* ========= CUSTOM COLORS ========= */
 
@@ -187,6 +188,10 @@ html {
 
     .dialog-no-close-icon button[data-dialog-close] {
         display: none;
+    }
+
+    .dialog-height {
+        height: calc(100vh - 80px);
     }
 }
 

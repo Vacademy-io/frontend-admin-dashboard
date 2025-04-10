@@ -22,7 +22,7 @@ export default function SessionHeader() {
             ...processedData,
             levels: processedData.levels.map((level) => ({
                 id: level.level_dto.id,
-                new_level: level.level_dto.new_level,
+                new_level: level.level_dto.new_level === true,
                 level_name: level.level_dto.level_name,
                 duration_in_days: level.level_dto.duration_in_days,
                 thumbnail_file_id: level.level_dto.thumbnail_file_id,

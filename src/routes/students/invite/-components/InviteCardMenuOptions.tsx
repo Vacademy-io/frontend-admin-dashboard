@@ -1,14 +1,20 @@
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { MyButton } from "@/components/design-system/button";
 import { DotsThree } from "phosphor-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { InviteLinkType } from "../-types/invite-link-types";
 import { InviteForm } from "../-schema/InviteFormSchema";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
 import { useUpdateInviteLinkStatus } from "../-services/update-invite-link-status";
 import { toast } from "sonner";
-
+import { useInviteForm } from "../-hooks/useInviteForm";
+import { useGetInviteDetails } from "../-services/get-invite-details";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import responseDataToFormData from "../-utils/responseDataToFormData";
+import { useInviteFormContext } from "../-context/useInviteFormContext";
+import { useUpdateInvite } from "../-services/update-invite";
+import formDataToRequestData from "../-utils/formDataToRequestData";
 interface InviteCardMenuOptionsProps {
     invite: InviteLinkType;
     onEdit: (updatedInvite: InviteForm) => void;
@@ -18,13 +24,13 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
     const dropdownList = ["edit", "delete"];
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const { form } = useInviteForm();
+    const { form: contextForm } = useInviteFormContext();
+    const { getValues, reset } = form;
+    const { reset: resetContext } = contextForm;
     const updateInviteStatusMutation = useUpdateInviteLinkStatus();
-
-    const handleSelect = (value: string) => {
-        if (value == "delete") setOpenDeleteDialog(true);
-        else setOpenEditDialog(true);
-    };
-
+    const { data, isLoading, isError } = useGetInviteDetails({ learnerInvitationId: invite.id });
+    const updateInviteMutation = useUpdateInvite();
     const onDeleteInvite = async (invite: InviteLinkType) => {
         try {
             await updateInviteStatusMutation.mutateAsync({
@@ -39,48 +45,59 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
             toast.error("failed to delete the invite link!");
         }
     };
+    const formSubmitRef = useRef<() => void>(() => {});
 
     const submitButton = (
-        <div className="flex-end flex w-full items-center">
+        <div
+            className="flex-end flex w-full items-center"
+            onClick={() => {
+                formSubmitRef.current();
+            }}
+        >
             <MyButton>Save Changes</MyButton>
         </div>
     );
 
-    const dummyInviteData: InviteForm = {
-        inviteLink: "Test link",
-        activeStatus: true,
-        custom_fields: [
-            {
-                id: 0,
-                type: "textfield",
-                name: "Full Name",
-                oldKey: true,
-                isRequired: true,
-            },
-            {
-                id: 1,
-                type: "textfield",
-                name: "Email",
-                oldKey: true,
-                isRequired: true,
-            },
-            {
-                id: 2,
-                type: "textfield",
-                name: "Phone Number",
-                oldKey: true,
-                isRequired: true,
-            },
-        ],
-        batches: {
-            maxCourses: 0,
-            courseSelectionMode: "institute",
-            preSelectedCourses: [],
-            learnerChoiceCourses: [],
-        },
-        studentExpiryDays: 200,
-        inviteeEmail: "shristi@gmail.com",
-        inviteeEmails: [],
+    const handleOpenEditDialog = () => {
+        if (openEditDialog == true) {
+            reset();
+            resetContext();
+        }
+        setOpenEditDialog(!openEditDialog);
+    };
+
+    if (isLoading) return <DashboardLoader />;
+
+    const handleSelect = (value: string) => {
+        if (value == "delete") setOpenDeleteDialog(true);
+        else {
+            if (isError) {
+                toast.error("Error fetching invite details");
+            }
+            if (data) {
+                console.log("data: ", data);
+                const formData = responseDataToFormData(data);
+                reset(formData);
+                resetContext(formData);
+
+                console.log("formdata: ", getValues());
+                setOpenEditDialog(true);
+            }
+        }
+    };
+
+    const onUpdateInvite = async (inviteData: InviteForm) => {
+        console.log("insite update invite");
+        try {
+            const requestFormat = formDataToRequestData(inviteData, invite.id);
+            await updateInviteMutation.mutateAsync({
+                requestBody: requestFormat.learner_invitation,
+            });
+            toast.success("Invite edited successfully!");
+            handleOpenEditDialog();
+        } catch {
+            toast.error("Failed to edit the invite");
+        }
     };
 
     return (
@@ -90,11 +107,17 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                     <DotsThree />
                 </MyButton>
             </MyDropdown>
+
             <CreateInviteDialog
-                initialValues={dummyInviteData}
+                initialValues={getValues()}
                 open={openEditDialog}
-                onOpenChange={() => setOpenEditDialog(!openEditDialog)}
+                onOpenChange={handleOpenEditDialog}
                 submitButton={submitButton}
+                submitForm={(fn: () => void) => {
+                    formSubmitRef.current = fn;
+                }}
+                onCreateInvite={onUpdateInvite}
+                isEditing={true}
             />
             <MyDialog
                 open={openDeleteDialog}

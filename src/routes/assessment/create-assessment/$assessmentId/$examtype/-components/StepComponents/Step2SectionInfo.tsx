@@ -36,10 +36,7 @@ import sectionDetailsSchema from "../../-utils/section-details-schema";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { Route } from "../..";
 import { useQuestionsForSection } from "../../-hooks/getQuestionsDataForSection";
-import {
-    calculateAveragePenalty,
-    parseHtmlToString,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
+import { calculateAveragePenalty } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -59,7 +56,6 @@ export const Step2SectionInfo = ({
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
@@ -306,8 +302,6 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                currentQuestionImageIndex={currentQuestionImageIndex}
-                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -343,8 +337,6 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                currentQuestionImageIndex={currentQuestionImageIndex}
-                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -362,7 +354,7 @@ export const Step2SectionInfo = ({
                                 Choose Saved Paper
                             </MyButton>
                         </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                        <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
                             <div className="flex h-14 w-full items-center justify-between rounded-md bg-primary-50">
                                 <h1 className="rounded-sm p-4 font-bold text-primary-500">
                                     Choose Saved Question Paper From List
@@ -381,8 +373,6 @@ export const Step2SectionInfo = ({
                                     sectionsForm={form}
                                     currentQuestionIndex={currentQuestionIndex}
                                     setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                    currentQuestionImageIndex={currentQuestionImageIndex}
-                                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                 />
                             </div>
                         </DialogContent>
@@ -596,12 +586,23 @@ export const Step2SectionInfo = ({
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (
+                                                        !/[0-9.]/.test(charCode) ||
+                                                        (charCode === "." &&
+                                                            field.value.includes("."))
+                                                    ) {
+                                                        e.preventDefault(); // Prevent non-numeric and multiple decimals
+                                                    }
+                                                }}
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
-                                                        /[^0-9]/g,
+                                                        /[^0-9.]/g,
                                                         "",
-                                                    ); // Remove non-numeric characters
-                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                    ); // Allow numbers and decimal
+                                                    if (inputValue.split(".").length > 2) return; // Prevent multiple decimals
+                                                    field.onChange(inputValue);
                                                 }}
                                                 size="large"
                                                 {...field}
@@ -643,16 +644,22 @@ export const Step2SectionInfo = ({
                                                     input={field.value}
                                                     onKeyPress={(e) => {
                                                         const charCode = e.key;
-                                                        if (!/[0-9]/.test(charCode)) {
-                                                            e.preventDefault(); // Prevent non-numeric input
+                                                        if (
+                                                            !/[0-9.]/.test(charCode) ||
+                                                            (charCode === "." &&
+                                                                field.value.includes("."))
+                                                        ) {
+                                                            e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                         }
                                                     }}
                                                     onChangeFunction={(e) => {
                                                         const inputValue = e.target.value.replace(
-                                                            /[^0-9]/g,
+                                                            /[^0-9.]/g,
                                                             "",
-                                                        ); // Remove non-numeric characters
-                                                        field.onChange(inputValue); // Call onChange with the sanitized value
+                                                        ); // Allow numbers and decimal
+                                                        if (inputValue.split(".").length > 2)
+                                                            return; // Prevent multiple decimals
+                                                        field.onChange(inputValue);
                                                     }}
                                                     size="large"
                                                     {...field}
@@ -678,13 +685,12 @@ export const Step2SectionInfo = ({
                                 )}
                             />
                         </div>
-
                         <FormField
                             control={form.control}
                             name={`section.${index}.partial_marking`}
                             render={({ field }) => (
                                 <FormItem className="flex w-1/2 items-center justify-between">
-                                    <FormLabel>
+                                    <FormLabel className="font-normal">
                                         Partial Marking
                                         {getStepKey({
                                             assessmentDetails,
@@ -703,6 +709,7 @@ export const Step2SectionInfo = ({
                                 </FormItem>
                             )}
                         />
+                        {/* will be adding it later
                         <div className="flex w-1/2 items-center justify-between">
                             <div className="flex w-52 items-center justify-between gap-4">
                                 <h1>Cut off Marks</h1>
@@ -722,20 +729,26 @@ export const Step2SectionInfo = ({
                                                     }
                                                     onKeyPress={(e) => {
                                                         const charCode = e.key;
-                                                        if (!/[0-9]/.test(charCode)) {
-                                                            e.preventDefault(); // Prevent non-numeric input
+                                                        if (
+                                                            !/[0-9.]/.test(charCode) ||
+                                                            (charCode === "." &&
+                                                                field.value.includes("."))
+                                                        ) {
+                                                            e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                         }
+                                                    }}
+                                                    onChangeFunction={(e) => {
+                                                        const inputValue = e.target.value.replace(
+                                                            /[^0-9.]/g,
+                                                            "",
+                                                        ); // Allow numbers and decimal
+                                                        if (inputValue.split(".").length > 2)
+                                                            return; // Prevent multiple decimals
+                                                        field.onChange(inputValue);
                                                     }}
                                                     inputType="text"
                                                     inputPlaceholder="00"
                                                     input={field.value}
-                                                    onChangeFunction={(e) => {
-                                                        const inputValue = e.target.value.replace(
-                                                            /[^0-9]/g,
-                                                            "",
-                                                        );
-                                                        field.onChange(inputValue);
-                                                    }}
                                                     size="large"
                                                     {...field}
                                                     className="mr-2 w-11"
@@ -759,7 +772,7 @@ export const Step2SectionInfo = ({
                                     </FormItem>
                                 )}
                             />
-                        </div>
+                        </div> */}
                     </div>
                 )}
                 {examtype !== "SURVEY" && (
@@ -768,8 +781,8 @@ export const Step2SectionInfo = ({
                         name={`section.${index}.problem_randomization`}
                         render={({ field }) => (
                             <FormItem className="flex w-1/2 items-center justify-between">
-                                <FormLabel>
-                                    Problem Randamization
+                                <FormLabel className="font-normal">
+                                    Problem Randomization
                                     {getStepKey({
                                         assessmentDetails,
                                         currentStep,
@@ -811,9 +824,11 @@ export const Step2SectionInfo = ({
                                             return (
                                                 <TableRow key={idx}>
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>
-                                                        {parseHtmlToString(question.questionName)}
-                                                    </TableCell>
+                                                    <TableCell
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: question.questionName || "",
+                                                        }}
+                                                    />
                                                     <TableCell>{question.questionType}</TableCell>
                                                     <TableCell>
                                                         <FormField

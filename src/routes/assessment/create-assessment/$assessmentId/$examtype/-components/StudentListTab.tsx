@@ -27,7 +27,7 @@ import { useTestAccessStore } from "../-utils/zustand-global-states/step3-adding
 import { Route } from "..";
 import { Step3ParticipantsListIndiviudalStudentInterface } from "@/types/assessments/student-questionwise-status";
 import { getInstituteId } from "@/constants/helper";
-import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-services/assessment-details-services";
+import { handleGetIndividualStudentList } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 

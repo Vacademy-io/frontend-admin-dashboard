@@ -71,7 +71,7 @@ export function LineChartComponent({ chartData }: { chartData: DailyLearnerTimeS
                     <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                     <Line
                         dataKey="avg_daily_time_minutes"
-                        type="natural"
+                        type="monotone"
                         stroke="var(--color-desktop)"
                         strokeWidth={2}
                         dot={{

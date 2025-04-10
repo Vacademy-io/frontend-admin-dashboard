@@ -28,6 +28,8 @@ import {
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import dayjs from "dayjs";
 import { MyPagination } from "@/components/design-system/pagination";
+import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
+import { usePacageDetails } from "../../-store/usePacageDetails";
 
 const formSchema = z
     .object({
@@ -63,11 +65,6 @@ interface LeaderBoardData {
     full_name: string;
 }
 
-export const formatToTwoDecimalPlaces = (value: string): string => {
-    const num = parseFloat(value);
-    return isNaN(num) ? "0.00" : num.toFixed(2);
-};
-
 export default function TimelineReports() {
     const {
         getCourseFromPackage,
@@ -75,7 +72,7 @@ export default function TimelineReports() {
         getLevelsFromPackage2,
         getPackageSessionId,
     } = useInstituteDetailsStore();
-
+    const { setPacageSessionId, pacageSessionId } = usePacageDetails();
     const courseList = getCourseFromPackage();
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
@@ -93,7 +90,6 @@ export default function TimelineReports() {
         handleSubmit,
         setValue,
         watch,
-        trigger,
         formState: { errors },
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -108,19 +104,29 @@ export default function TimelineReports() {
 
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
+    const selectedLevel = watch("level");
     const startDate = watch("startDate");
     const endDate = watch("endDate");
 
     useEffect(() => {
         if (selectedCourse) {
             setSessionList(getSessionFromPackage({ courseId: selectedCourse }));
-            setValue("session", "select level");
-            setValue("level", "select level");
+            setValue("session", "");
         } else {
             setSessionList([]);
-            setLevelList([]);
         }
     }, [selectedCourse]);
+
+    useEffect(() => {
+        if (selectedSession === "") {
+            setValue("level", "");
+            setLevelList([]);
+        } else if (selectedCourse && selectedSession) {
+            setLevelList(
+                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
+            );
+        }
+    }, [selectedSession]);
     useEffect(() => {
         if (sessionList?.length === 1 && sessionList[0]?.id === "DEFAULT") {
             setValue("session", "DEFAULT");
@@ -135,14 +141,28 @@ export default function TimelineReports() {
     }, [sessionList]);
 
     useEffect(() => {
-        if (selectedCourse && selectedSession) {
-            setLevelList(
-                getLevelsFromPackage2({ courseId: selectedCourse, sessionId: selectedSession }),
-            );
-        } else {
-            setLevelList([]);
-        }
-    }, [selectedSession]);
+        leaderboardMutation.mutate(
+            {
+                body: {
+                    start_date: startDate,
+                    end_date: endDate,
+                    package_session_id: pacageSessionId,
+                },
+                param: { pageNo: currPage, pageSize: 10 },
+            },
+            {
+                onSuccess: (data) => {
+                    setTotalPage(data.totalPages);
+                    setleaderboardData(data.content);
+                    setLoading(false);
+                },
+                onError: (error) => {
+                    console.error("Error:", error);
+                    setLoading(false);
+                },
+            },
+        );
+    }, [currPage]);
 
     const onSubmit = (data: FormValues) => {
         setLoading(true);
@@ -171,15 +191,20 @@ export default function TimelineReports() {
         );
         leaderboardMutation.mutate(
             {
-                start_date: data.startDate,
-                end_date: data.endDate,
-                // package_session_id: "aec81215-33b6-4af7-9b7e-ebee99e9d18b",
-                package_session_id:
-                    getPackageSessionId({
-                        courseId: data.course,
-                        sessionId: data.session,
-                        levelId: data.level,
-                    }) || "",
+                body: {
+                    start_date: data.startDate,
+                    end_date: data.endDate,
+                    package_session_id:
+                        getPackageSessionId({
+                            courseId: data.course,
+                            sessionId: data.session,
+                            levelId: data.level,
+                        }) || "",
+                },
+                param: {
+                    pageNo: currPage,
+                    pageSize: 10,
+                },
             },
             {
                 onSuccess: (data) => {
@@ -193,6 +218,13 @@ export default function TimelineReports() {
                 },
             },
         );
+        setPacageSessionId(
+            getPackageSessionId({
+                courseId: data.course,
+                sessionId: data.session,
+                levelId: data.level,
+            }) || "",
+        );
         // api call
     };
 
@@ -201,7 +233,16 @@ export default function TimelineReports() {
 
         return data.map((item) => ({
             date: dayjs(item.activity_date).format("DD/MM/YYYY"),
-            timeSpent: formatToTwoDecimalPlaces(item.avg_daily_time_minutes.toString()), // Convert number to string
+            timeSpent: convertMinutesToTimeFormat(item.avg_daily_time_minutes),
+        }));
+    };
+
+    const convertChartData = (data: DailyLearnerTimeSpent[] | undefined) => {
+        if (!data) return []; // Return an empty array if data is undefined
+
+        return data.map((item) => ({
+            activity_date: item.activity_date,
+            avg_daily_time_minutes: item.avg_daily_time_minutes / 60,
         }));
     };
 
@@ -209,9 +250,9 @@ export default function TimelineReports() {
         return data.map((item) => ({
             rank: item.rank.toString(),
             name: item.full_name,
-            score: formatToTwoDecimalPlaces(item.avg_concentration.toString()),
-            average: formatToTwoDecimalPlaces(item.daily_avg_time.toString()),
-            totalTime: formatToTwoDecimalPlaces(item.total_time.toString()),
+            score: `${formatToTwoDecimalPlaces(item.avg_concentration.toString())} %`,
+            average: convertMinutesToTimeFormat(item.daily_avg_time),
+            totalTime: convertMinutesToTimeFormat(item.total_time),
         }));
     };
 
@@ -250,7 +291,6 @@ export default function TimelineReports() {
                         <Select
                             onValueChange={(value) => {
                                 setValue("course", value);
-                                trigger("course");
                             }}
                             {...register("course")}
                             defaultValue=""
@@ -277,9 +317,9 @@ export default function TimelineReports() {
                                 // value={watch("session") === "" ? null : watch("session")}
                                 onValueChange={(value) => {
                                     setValue("session", value);
-                                    trigger("session");
                                 }}
                                 defaultValue=""
+                                value={selectedSession}
                                 disabled={!sessionList.length}
                             >
                                 <SelectTrigger className="h-[40px] w-[320px]">
@@ -304,9 +344,9 @@ export default function TimelineReports() {
                             <Select
                                 onValueChange={(value) => {
                                     setValue("level", value);
-                                    trigger("level");
                                 }}
                                 defaultValue=""
+                                value={selectedLevel}
                                 disabled={!levelList.length}
                             >
                                 <SelectTrigger className="h-[40px] w-[320px]">
@@ -378,19 +418,23 @@ export default function TimelineReports() {
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">Course Completed by batch</div>
-                            <div>{reportData?.percentage_course_completed}</div>
+                            <div>{`${reportData?.percentage_course_completed} %`}</div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">
                                 Daily Time spent by batch (Avg)
                             </div>
-                            <div>{reportData?.avg_time_spent_in_minutes}</div>
+                            <div>
+                                {convertMinutesToTimeFormat(reportData?.avg_time_spent_in_minutes)}
+                            </div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">
                                 Concentration score of batch (Avg)
                             </div>
-                            <div>{reportData?.percentage_concentration_score || 0}</div>
+                            <div>{`${formatToTwoDecimalPlaces(
+                                reportData?.percentage_concentration_score || 0,
+                            )} %`}</div>
                         </div>
                     </div>
                     <div className="flex flex-col gap-6">
@@ -398,7 +442,9 @@ export default function TimelineReports() {
                             Concentration score of batch (Avg)
                         </div>
                         <div className="flex h-[570px] w-full flex-row gap-6">
-                            <LineChartComponent chartData={reportData.daily_time_spent} />
+                            <LineChartComponent
+                                chartData={convertChartData(reportData.daily_time_spent)}
+                            />
                             <div className="h-full w-[30%]">
                                 <MyTable
                                     data={tableData}

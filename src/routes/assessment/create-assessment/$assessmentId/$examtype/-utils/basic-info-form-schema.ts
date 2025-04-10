@@ -3,7 +3,7 @@ import { z } from "zod";
 export const BasicInfoFormSchema = z.object({
     status: z.string(),
     testCreation: z.object({
-        assessmentName: z.string().min(1, "assessName is required"),
+        assessmentName: z.string().min(1, "Assessment name is required"),
         subject: z.string(),
         assessmentInstructions: z.string(),
         liveDateRange: z

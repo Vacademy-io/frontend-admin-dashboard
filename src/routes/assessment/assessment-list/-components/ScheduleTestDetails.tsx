@@ -1,7 +1,6 @@
 import { TestContent } from "@/types/assessments/schedule-test-list";
 import { MyButton } from "@/components/design-system/button";
 import { Badge } from "@/components/ui/badge";
-import { ReverseProgressBar } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { DotIcon, DotIconOffline } from "@/svgs";
 import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from "phosphor-react";
@@ -17,10 +16,10 @@ import {
 } from "../../create-assessment/$assessmentId/$examtype/-utils/helper";
 import { ScheduleTestMainDropdownComponent } from "./ScheduleTestDetailsDropdownMenu";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
-import { getBatchNamesByIds } from "../assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { getBatchNamesByIds } from "../assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -41,11 +40,12 @@ const ScheduleTestDetails = ({
     const handleNavigateAssessment = (assessmentId: string) => {
         if (!isDialogOpen) {
             navigate({
-                to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+                to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab",
                 params: {
                     assessmentId: assessmentId,
                     examType: scheduleTestContent.play_mode,
                     assesssmentType: scheduleTestContent.assessment_visibility,
+                    assessmentTab: selectedTab,
                 },
             });
         }
@@ -176,21 +176,6 @@ const ScheduleTestDetails = ({
                     <p>Total Participants: {scheduleTestContent.user_registrations}</p>
                 </div>
             </div>
-            <div className="flex items-center justify-between gap-8 text-sm text-neutral-500">
-                <p>Attempted by: </p>
-                <p>Pending: </p>
-            </div>
-            <ReverseProgressBar
-                value={
-                    scheduleTestContent.expected_participants &&
-                    scheduleTestContent.user_registrations
-                        ? (scheduleTestContent.user_registrations /
-                              scheduleTestContent.expected_participants) *
-                          100
-                        : 0 // Default value if `expected_participants` or `user_registrations` is missing
-                }
-                className="-mt-3 w-full border"
-            />
             <div className="flex justify-between">
                 <div className="flex items-center gap-2 text-sm text-neutral-500">
                     <h1 className="!font-normal text-black">Join Link:</h1>

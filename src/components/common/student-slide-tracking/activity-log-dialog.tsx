@@ -11,7 +11,7 @@ import { useContentStore } from "@/routes/study-library/courses/levels/subjects/
 import { useQuery } from "@tanstack/react-query";
 import {
     getUserVideoSlideActivityLogs,
-    getUserVideoDocActivityLogs,
+    getUserDocActivityLogs,
 } from "@/services/study-library/slide-operations/user-slide-activity-logs";
 import { ActivityContent } from "@/types/study-library/user-slide-activity-response-type";
 import { StudentTable } from "@/types/student-table-types";
@@ -43,7 +43,7 @@ export const ActivityLogDialog = ({
                   pageNo: page,
                   pageSize: pageSize,
               })
-            : getUserVideoDocActivityLogs({
+            : getUserDocActivityLogs({
                   userId,
                   slideId,
                   pageNo: page,
@@ -81,6 +81,7 @@ export const ActivityLogDialog = ({
             lastPageRead: item.percentage_watched,
             videos: item.videos,
             documents: item.documents,
+            concentrationScore: item.concentration_score,
         }));
 
         return {
@@ -104,24 +105,28 @@ export const ActivityLogDialog = ({
                     </div>
                 </DialogHeader>
 
-                <div className="no-scrollbar mt-6 overflow-x-scroll">
-                    <MyTable
-                        data={tableData}
-                        columns={activityLogColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
-                        currentPage={page}
-                    />
-
-                    <div className="mt-6">
-                        <MyPagination
+                {tableData.content.length == 0 ? (
+                    <p className="text-primary-500">No activity found</p>
+                ) : (
+                    <div className="no-scrollbar mt-6 overflow-x-scroll">
+                        <MyTable
+                            data={tableData}
+                            columns={activityLogColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            columnWidths={ACTIVITY_LOG_COLUMN_WIDTHS}
                             currentPage={page}
-                            totalPages={tableData.total_pages}
-                            onPageChange={handlePageChange}
                         />
+
+                        <div className="mt-6">
+                            <MyPagination
+                                currentPage={page}
+                                totalPages={tableData.total_pages}
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
             </DialogContent>
         </Dialog>
     );
