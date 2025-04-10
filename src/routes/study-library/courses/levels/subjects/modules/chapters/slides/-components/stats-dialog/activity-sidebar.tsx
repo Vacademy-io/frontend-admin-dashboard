@@ -73,10 +73,7 @@ export const ActivityStatsSidebar = () => {
 
         const transformedContent = activityStats.content.map((item: UserActivity) => ({
             id: item.userId, // Using userId as id
-            user_id: item.userId,
             full_name: item.fullName,
-            institute_enrollment_id: "EN" + Math.random().toString(36).substr(2, 8), // Dummy data
-            username: "user_" + item.userId.substring(0, 6), // Dummy data
             time_spent: formatTimeSpent(item.totalTimeSpent), // You'll need to implement this
             last_active: new Date(item.lastActive).toLocaleString(),
         }));

@@ -256,7 +256,9 @@ export function DashboardComponent() {
                                 <CardDescription className="flex items-center gap-4 py-6">
                                     <div className="flex items-center gap-2">
                                         <span>Courses</span>
-                                        <span className="text-primary-500">{data.batch_count}</span>
+                                        <span className="text-primary-500">
+                                            {data.course_count}
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span>Level</span>

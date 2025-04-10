@@ -4,7 +4,7 @@ import { MyButton } from "../../button";
 import { DotsThree } from "@phosphor-icons/react";
 import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
 import { StudentTable } from "@/types/student-table-types";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
 
 const getMenuOptions = (status?: string) => {
@@ -21,7 +21,7 @@ const getMenuOptions = (status?: string) => {
     //     "Terminate Registration",
     //     "Delete Student",
     // ];
-    return ["Change Batch", "Terminate Registration"];
+    return ["Change Batch", "Terminate Registration", "Re-register for Next Session"];
 };
 
 export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
@@ -37,10 +37,8 @@ export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
     const menuOptions = getMenuOptions(student.status);
 
     const handleMenuOptionsChange = (value: string) => {
-        console.log("Selected option:", value);
         switch (value) {
             case "Re-enroll Student":
-                console.log("Setting showReEnrollDialog to true");
                 setShowReEnrollDialog(true);
                 break;
             case "Change Batch":
@@ -64,11 +62,6 @@ export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
                 break;
         }
     };
-
-    // This useEffect will help debug when the state changes
-    useEffect(() => {
-        console.log("showReEnrollDialog state changed to:", showReEnrollDialog);
-    }, [showReEnrollDialog]);
 
     return (
         <>

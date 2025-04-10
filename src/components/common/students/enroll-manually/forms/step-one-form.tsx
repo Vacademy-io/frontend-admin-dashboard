@@ -17,6 +17,7 @@ import { MyButton } from "@/components/design-system/button";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { StudentTable } from "@/types/student-table-types";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const StepOneForm = ({
     initialValues,
@@ -50,6 +51,25 @@ export const StepOneForm = ({
         },
     });
 
+    const { watch, getValues } = form;
+
+    useEffect(() => {
+        async function setProfilePicture() {
+            const fileId = getValues("profilePicture");
+            if (fileId) {
+                const publicUrl = await getPublicUrl(fileId);
+                setStepOneData({
+                    profilePicture: fileId,
+                    profilePictureUrl: publicUrl,
+                });
+                form.reset({
+                    profilePicture: fileId,
+                });
+            }
+        }
+        setProfilePicture();
+    }, [watch("profilePicture")]);
+
     const handleFileSubmit = async (file: File) => {
         try {
             setIsUploading(true);
@@ -66,6 +86,9 @@ export const StepOneForm = ({
                 setStepOneData({
                     profilePicture: fileId,
                     profilePictureUrl: publicUrl,
+                });
+                form.reset({
+                    profilePicture: fileId,
                 });
             }
         } catch (error) {
@@ -112,39 +135,47 @@ export const StepOneForm = ({
                             className="flex flex-col items-center justify-between gap-2"
                         >
                             <div className="flex flex-col">
-                                <div className="relative items-center justify-center rounded-full">
-                                    {stepOneData?.profilePictureUrl ? (
-                                        <img
-                                            src={stepOneData.profilePictureUrl}
-                                            alt="Profile"
-                                            className="h-[300px] w-[300px] rounded-full object-cover"
-                                        />
-                                    ) : (
+                                {isUploading ? (
+                                    <div className="flex h-[300px] w-[300px] items-center justify-center rounded-full bg-neutral-100">
+                                        <DashboardLoader />
+                                    </div>
+                                ) : stepOneData?.profilePictureUrl ? (
+                                    <img
+                                        src={stepOneData.profilePictureUrl}
+                                        alt="Profile"
+                                        className="h-[300px] w-[300px] rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="relative items-center justify-center rounded-full">
                                         <div className="flex h-[320px] w-[320px] items-center justify-center rounded-full bg-neutral-100 object-cover">
                                             <EnrollFormUploadImage />
                                         </div>
-                                    )}
-                                </div>
-                                <FileUploadComponent
-                                    fileInputRef={fileInputRef}
-                                    onFileSubmit={handleFileSubmit}
-                                    control={form.control}
-                                    name="profilePicture"
-                                    acceptedFileTypes="image/*" // Optional - remove this line to accept all files
-                                />
-                                <div className="">
-                                    <MyButton
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={isUploading || isUploadingFile}
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        scale="large"
-                                        className=""
-                                        type="button"
-                                    >
-                                        Upload Image
-                                    </MyButton>
-                                </div>
+                                    </div>
+                                )}
+                                {!isUploading && (
+                                    <>
+                                        <FileUploadComponent
+                                            fileInputRef={fileInputRef}
+                                            onFileSubmit={handleFileSubmit}
+                                            control={form.control}
+                                            name="profilePicture"
+                                            acceptedFileTypes="image/*" // Optional - remove this line to accept all files
+                                        />
+                                        <div className="">
+                                            <MyButton
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={isUploading || isUploadingFile}
+                                                buttonType="secondary"
+                                                layoutVariant="default"
+                                                scale="large"
+                                                className=""
+                                                type="button"
+                                            >
+                                                Upload Image
+                                            </MyButton>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </FormItemWrapper>
                     </form>

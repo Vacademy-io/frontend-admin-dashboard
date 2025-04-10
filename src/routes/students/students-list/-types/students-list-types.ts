@@ -1,5 +1,8 @@
+import {
+    DropdownItemType,
+    DropdownValueType,
+} from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 import { StudentFilterRequest } from "@/types/student-table-types";
-
 export interface StudentListSectionProps {
     filter?: string;
 }
@@ -11,9 +14,10 @@ export interface FilterProps {
     };
     onFilterChange?: (values: string[]) => void;
     clearFilters?: boolean;
+    id: FilterId;
 }
 
-type FilterId = "session" | "batch" | "statuses" | "gender" | "session_expiry_days";
+export type FilterId = "session" | "batch" | "statuses" | "gender" | "session_expiry_days";
 
 export interface FilterConfig {
     id: FilterId; // Change this line
@@ -22,7 +26,8 @@ export interface FilterConfig {
 }
 
 export interface StudentFiltersProps {
-    currentSession: string;
+    currentSession: DropdownItemType;
+    sessionList: DropdownItemType[];
     sessions?: string[];
     filters: FilterConfig[];
     searchInput: string;
@@ -30,7 +35,7 @@ export interface StudentFiltersProps {
     columnFilters: { id: string; value: string[] }[];
     clearFilters: boolean;
     getActiveFiltersState: () => boolean;
-    onSessionChange: (session: string) => void;
+    onSessionChange: (value: DropdownValueType) => void;
     onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onSearchEnter: () => void;
     onClearSearch: () => void;
