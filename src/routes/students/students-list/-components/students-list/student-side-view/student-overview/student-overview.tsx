@@ -21,7 +21,6 @@ export const StudentOverview = () => {
 
     useEffect(() => {
         if (selectedStudent) {
-            console.log("selectedStudent", selectedStudent.full_name);
             const credentials = getCredentials(selectedStudent.user_id);
             setPassword(credentials?.password || "password not found");
         }
@@ -42,7 +41,6 @@ export const StudentOverview = () => {
         // Calculate days until expiry
         if (selectedStudent?.expiry_date) {
             const expiryDate = new Date(selectedStudent.expiry_date);
-            console.log("expiry date: ", expiryDate);
             const currentDate = new Date();
 
             // Calculate the difference in milliseconds
@@ -60,7 +58,7 @@ export const StudentOverview = () => {
 
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
-            <EditStudentDetails />
+            <EditStudentDetails selectedStudent={selectedStudent} />
             <SidebarMenuItem className="flex w-full flex-col gap-2">
                 <div className="flex gap-2">
                     <div className="text-subtitle font-semibold">Session Expiry (Days)</div>

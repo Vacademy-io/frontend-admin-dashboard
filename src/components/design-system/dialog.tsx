@@ -40,7 +40,7 @@ export const MyDialog = ({
                         {heading}
                     </DialogHeader>
                 </DialogTitle>
-                <DialogDescription asChild className="no-scrollbar flex-1 overflow-y-scroll">
+                <DialogDescription asChild className="flex-1 overflow-y-scroll">
                     <div className="p-3">{children || content}</div>
                 </DialogDescription>
                 {footer && (
