@@ -31,7 +31,7 @@ export function ScheduleTestDetailsDropdownLive({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -106,7 +106,7 @@ export function ScheduleTestDetailsDropdownUpcoming({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -175,7 +175,7 @@ export function ScheduleTestDetailsDropdownPrevious({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
@@ -246,7 +246,7 @@ export function ScheduleTestDetailsDropdowDrafts({
     const navigate = useNavigate();
     const handleNavigateAssessment = (assessmentId: string) => {
         navigate({
-            to: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType",
+            to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
             params: {
                 assessmentId: assessmentId,
                 examType: scheduleTestContent.play_mode,
