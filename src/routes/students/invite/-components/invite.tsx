@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
 import { InviteForm } from "../-schema/InviteFormSchema";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
 import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
@@ -28,7 +28,12 @@ export const Invite = () => {
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const { form } = useInviteFormContext();
-    const { setValue } = form;
+    const { setValue, watch } = form;
+    const [disableCreateInviteButton, setDisableCreateInviteButton] = useState<boolean>(true);
+
+    const handleDisableCreateInviteButton = (value: boolean) => {
+        setDisableCreateInviteButton(value);
+    };
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
@@ -61,9 +66,19 @@ export const Invite = () => {
         </MyButton>
     );
 
+    useEffect(() => {
+        console.log(
+            "values: ",
+            watch("batches.preSelectedCourses"),
+            watch("batches.learnerChoiceCourses"),
+        );
+    }, [watch("batches.preSelectedCourses"), watch("batches.learnerChoiceCourses")]);
+
     const inviteSubmitButton = (
         <div className="flex w-full items-center justify-end">
-            <MyButton onClick={() => formSubmitRef.current()}>Create</MyButton>
+            <MyButton onClick={() => formSubmitRef.current()} disable={disableCreateInviteButton}>
+                Create
+            </MyButton>
         </div>
     );
 
@@ -100,7 +115,7 @@ export const Invite = () => {
                 preSelectedCourses: [],
                 learnerChoiceCourses: [],
             });
-            // setOpenCreateInviteDialog(false);
+            setOpenCreateInviteDialog(false);
         } catch {
             toast.error("failed to create invitation");
         }
@@ -121,6 +136,7 @@ export const Invite = () => {
                     onOpenChange={onOpenChangeCreateInviteDialog}
                     inviteLink={inviteLink}
                     setInviteLink={setInviteLink}
+                    handleDisableCreateInviteButton={handleDisableCreateInviteButton}
                 />
             </div>
             <div className="flex w-full flex-col gap-10">
