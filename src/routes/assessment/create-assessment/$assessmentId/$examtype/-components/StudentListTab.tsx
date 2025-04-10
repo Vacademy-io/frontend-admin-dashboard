@@ -79,6 +79,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         handleClearSearch,
         setAppliedFilters,
         handleSessionChange,
+        sessionList,
     } = useStudentFilters();
 
     const {
@@ -290,6 +291,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
                     page={page}
                     pageSize={10}
                     isAssessment={isAssessment}
+                    sessionList={sessionList}
                 />
                 <div className="max-w-full">
                     <MyTable<StudentTable>

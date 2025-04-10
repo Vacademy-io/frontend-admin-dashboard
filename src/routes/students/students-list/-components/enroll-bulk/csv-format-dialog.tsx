@@ -78,7 +78,7 @@ export const CSVFormatDialog = ({
 
     return (
         <MyDialog
-            heading="Download Template"
+            heading="Choose CSV Format"
             dialogWidth="w-full"
             open={openDialog}
             onOpenChange={handleOpenChange}

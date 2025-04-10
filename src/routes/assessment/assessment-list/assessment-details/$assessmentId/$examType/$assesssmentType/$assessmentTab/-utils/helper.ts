@@ -75,6 +75,10 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
+                        package_session_id: getBatchNameById(
+                            batches_for_sessions,
+                            student.batch_id,
+                        ),
                         attempt_date: extractDateTime(convertToLocalDateTime(student.attempt_date))
                             .date,
                         start_time: extractDateTime(convertToLocalDateTime(student.attempt_date))
@@ -82,7 +86,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
                             .time,
                         duration: (student.duration / 60).toFixed(2) + " min",
-                        score: `${student.score.toFixed(2)} / ${totalMarks}`,
+                        score: `${student.score ? student.score.toFixed(2) : 0} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
@@ -97,6 +101,10 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
+                        package_session_id: getBatchNameById(
+                            batches_for_sessions,
+                            student.batch_id,
+                        ),
                     };
                 }
                 return {};
@@ -121,7 +129,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         end_time: extractDateTime(convertToLocalDateTime(student.end_time || ""))
                             .time,
                         duration: (student.duration / 60).toFixed(2) + " min",
-                        score: `${student.score.toFixed(2)} / ${totalMarks}`,
+                        score: `${student.score ? student.score.toFixed(2) : 0} / ${totalMarks}`,
                     };
                 } else if (selectedTab === "Ongoing") {
                     return {
@@ -215,7 +223,7 @@ export const getAssessmentStep3ParticipantsListWithBatchName = (
 export const getAssessmentStep3ParticipantsListIndividualStudents = (
     studentsListData: Step3ParticipantsListIndiviudalStudentInterface[],
 ) => {
-    return studentsListData.map((student) => {
+    return studentsListData?.map((student) => {
         return {
             id: student.userId,
             full_name: student.participantName,

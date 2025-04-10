@@ -106,6 +106,17 @@ export const validateCsvData = (
                 const processedData = results.data.map((row, rowIndex) => {
                     const processedRow: SchemaFields = { ...row };
 
+                    // Check if row is empty (all fields are empty)
+                    const isRowEmpty = headers.every((header) => {
+                        const value = row[header.column_name];
+                        return !value || (typeof value === "string" && value.trim() === "");
+                    });
+
+                    // Skip validation for empty rows
+                    if (isRowEmpty) {
+                        return processedRow;
+                    }
+
                     // Validate each field according to its type and constraints
                     headers.forEach((header) => {
                         const fieldName = header.column_name;

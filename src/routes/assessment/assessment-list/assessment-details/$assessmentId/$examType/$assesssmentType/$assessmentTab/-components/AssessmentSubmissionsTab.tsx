@@ -17,10 +17,12 @@ import { getInstituteId } from "@/constants/helper";
 import {
     getAdminParticipants,
     handleGetAssessmentTotalMarksData,
+    handleGetSubmissionsExportCSV,
+    handleGetSubmissionsExportPDF,
 } from "../-services/assessment-details-services";
 import { MyPagination } from "@/components/design-system/pagination";
 import { MyButton } from "@/components/design-system/button";
-import { ArrowCounterClockwise, Export } from "phosphor-react";
+import { ArrowCounterClockwise } from "phosphor-react";
 import { AssessmentDetailsSearchComponent } from "./SearchComponent";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useFilterDataForAssesment } from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
@@ -37,6 +39,8 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import AssessmentGlobalLevelRevaluateAssessment from "./assessment-global-level-revaluate/assessment-global-level-revaluate-assessment";
 import { AssessmentGlobalLevelRevaluateQuestionWise } from "./assessment-global-level-revaluate/assessment-global-level-revaluate-question-wise";
 import { AssessmentGlobalLevelReleaseResultAssessment } from "./assessment-global-level-revaluate/assessment-global-level-release-result-assessment";
+import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
+import Papa from "papaparse";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -678,6 +682,103 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         }
     };
 
+    const getStudentSubmissionsDataPDF = useMutation({
+        mutationFn: ({
+            instituteId,
+            assessmentId,
+            selectedFilter,
+        }: {
+            instituteId: string | undefined;
+            assessmentId: string;
+            selectedFilter: SelectedSubmissionsFilterInterface;
+        }) => handleGetSubmissionsExportPDF(instituteId, assessmentId, selectedFilter),
+        onSuccess: async (response) => {
+            const date = new Date();
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `pdf_student_submissions_list_${date.toLocaleString()}.pdf`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Student submissions list data for PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const getStudentSubmissionsDataCSV = useMutation({
+        mutationFn: ({
+            instituteId,
+            assessmentId,
+            selectedFilter,
+        }: {
+            instituteId: string | undefined;
+            assessmentId: string;
+            selectedFilter: SelectedSubmissionsFilterInterface;
+        }) => handleGetSubmissionsExportCSV(instituteId, assessmentId, selectedFilter),
+        onSuccess: (data) => {
+            const date = new Date();
+            const parsedData = Papa.parse(data, {
+                download: false,
+                header: true,
+                skipEmptyLines: true,
+            }).data;
+
+            const csv = Papa.unparse(parsedData);
+
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+                "download",
+                `csv_student_submissions_list_${date.toLocaleString()}.csv`,
+            );
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the created URL object
+            URL.revokeObjectURL(url);
+            toast.success("Student submissions list data for CSV exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getStudentSubmissionsDataPDF.mutate({
+            instituteId: initData?.id,
+            assessmentId,
+            selectedFilter,
+        });
+    };
+    const handleExportCSV = () => {
+        getStudentSubmissionsDataCSV.mutate({
+            instituteId: initData?.id,
+            assessmentId,
+            selectedFilter,
+        });
+    };
+
+    console.log(
+        getAssessmentSubmissionsFilteredDataStudentData(
+            participantsData.content,
+            type,
+            selectedTab,
+            initData?.batches_for_sessions,
+            totalMarks.total_achievable_marks,
+        ),
+    );
+
     useEffect(() => {
         const timer = setTimeout(() => {
             const fetchAllParticipants = async () => {
@@ -800,15 +901,16 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                         </TabsTrigger>
                     </TabsList>
                     <div className="flex items-center gap-6">
-                        <MyButton
-                            type="button"
-                            scale="large"
-                            buttonType="secondary"
-                            className="font-medium"
-                        >
-                            <Export size={32} />
-                            Export
-                        </MyButton>
+                        <ExportDialogPDFCSV
+                            handleExportPDF={handleExportPDF}
+                            handleExportCSV={handleExportCSV}
+                            isPDFLoading={
+                                getStudentSubmissionsDataPDF.status === "pending" ? true : false
+                            }
+                            isCSVLoading={
+                                getStudentSubmissionsDataCSV.status === "pending" ? true : false
+                            }
+                        />
                         <MyButton
                             type="button"
                             scale="large"
