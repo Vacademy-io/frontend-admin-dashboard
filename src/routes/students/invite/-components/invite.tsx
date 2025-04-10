@@ -17,6 +17,8 @@ import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import createInviteLink from "../-utils/createInviteLink";
 import { useInviteFormContext } from "../-context/useInviteFormContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { MyDialog } from "@/components/design-system/dialog";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -30,6 +32,7 @@ export const Invite = () => {
     const { form } = useInviteFormContext();
     const { setValue, watch } = form;
     const [disableCreateInviteButton, setDisableCreateInviteButton] = useState<boolean>(true);
+    const [openInvitationLinkDialog, setOpenInvitationLinkDialog] = useState<boolean>(false);
 
     const handleDisableCreateInviteButton = (value: boolean) => {
         setDisableCreateInviteButton(value);
@@ -116,6 +119,7 @@ export const Invite = () => {
                 learnerChoiceCourses: [],
             });
             setOpenCreateInviteDialog(false);
+            setOpenInvitationLinkDialog(true);
         } catch {
             toast.error("failed to create invitation");
         }
@@ -166,9 +170,33 @@ export const Invite = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <p className="text-body font-semibold">Invite Link: </p>
-                                    <p className="text-subtitle underline">{`${createInviteLink(
-                                        obj.invite_code,
-                                    ).slice(0, 40)}..`}</p>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <a
+                                                    href={createInviteLink(obj.invite_code)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-subtitle underline hover:text-primary-500"
+                                                >
+                                                    {`${createInviteLink(obj.invite_code).slice(
+                                                        0,
+                                                        40,
+                                                    )}..`}
+                                                </a>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:text-primary-500">
+                                                <a
+                                                    href={createInviteLink(obj.invite_code)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {createInviteLink(obj.invite_code)}
+                                                </a>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+
                                     <div className="flex items-center gap-2">
                                         <MyButton
                                             buttonType="secondary"
@@ -197,6 +225,41 @@ export const Invite = () => {
                     </div>
                 )}
             </div>
+
+            <MyDialog
+                heading="Invitation Link"
+                open={openInvitationLinkDialog}
+                onOpenChange={setOpenInvitationLinkDialog}
+                footer={
+                    <div className="flex w-full items-center justify-between">
+                        <MyButton buttonType="secondary">Review Invitation</MyButton>
+                        <MyButton onClick={() => setOpenInvitationLinkDialog(false)}>
+                            Close
+                        </MyButton>
+                    </div>
+                }
+                dialogWidth="w-[50vw] overflow-x-hidden"
+            >
+                <div className="flex w-fit items-center gap-4 overflow-x-hidden">
+                    <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
+                        {inviteLink}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <MyButton
+                            buttonType="secondary"
+                            scale="medium"
+                            layoutVariant="icon"
+                            onClick={() => inviteLink && handleCopyClick(inviteLink)}
+                            type="button"
+                        >
+                            <Copy />
+                        </MyButton>
+                        {copySuccess === inviteLink && (
+                            <span className="text-caption text-primary-500">Copied!</span>
+                        )}
+                    </div>
+                </div>
+            </MyDialog>
         </div>
     );
 };

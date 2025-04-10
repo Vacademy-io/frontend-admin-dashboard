@@ -178,6 +178,7 @@ export const CreateInviteDialog = ({
                         try {
                             onCreateInvite && onCreateInvite(data);
                             // Other success handling
+                            form.reset();
                         } catch {
                             toast.error("error updating/creating invite");
                         }
@@ -504,6 +505,12 @@ export const CreateInviteDialog = ({
                                                         inputType="email"
                                                         input={field.value || ""}
                                                         onChangeFunction={field.onChange}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                handleAddEmail();
+                                                            }
+                                                        }}
                                                         className="w-full"
                                                         // required={true}
                                                         error={
