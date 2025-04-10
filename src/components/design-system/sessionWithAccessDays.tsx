@@ -5,10 +5,14 @@ import { Badge } from "../ui/badge";
 import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { type Control } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import { MyDialog } from "./dialog";
+import { MyButton } from "./button";
+import { Input } from "../ui/input";
 
 interface Option {
     id: string;
     name: string;
+    days: number;
 }
 
 interface SessionWithAccessDaysProps {
@@ -22,6 +26,11 @@ interface SessionWithAccessDaysProps {
     control: any; // eslint-disable-line
 }
 
+interface SelectedOption {
+    id: string;
+    days: number;
+}
+
 export function SessionWithAccessDays({
     form,
     label,
@@ -32,13 +41,39 @@ export function SessionWithAccessDays({
     control,
     className,
 }: SessionWithAccessDaysProps) {
-    const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+    const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [selectedOptionForDays, setSelectedOptionForDays] = useState<Option | null>(null);
+    const [accessDays, setAccessDays] = useState<string>("");
 
-    const toggleSelection = (id: string) => {
-        setSelectedOptions((prev) =>
-            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-        );
+    const toggleSelection = (option: Option) => {
+        if (selectedOptions.some((item) => item.id === option.id)) {
+            setSelectedOptions((prev) => prev.filter((item) => item.id !== option.id));
+        } else {
+            setSelectedOptionForDays(option);
+            setAccessDays("");
+        }
+    };
+
+    const handleSetAccessDays = () => {
+        if (selectedOptionForDays && accessDays) {
+            const days = parseInt(accessDays);
+            if (!isNaN(days) && days > 0) {
+                setSelectedOptions((prev) => {
+                    const existingIndex = prev.findIndex(
+                        (item) => item.id === selectedOptionForDays.id,
+                    );
+                    if (existingIndex >= 0) {
+                        const newOptions = [...prev];
+                        newOptions[existingIndex] = { id: selectedOptionForDays.id, days };
+                        return newOptions;
+                    }
+                    return [...prev, { id: selectedOptionForDays.id, days }];
+                });
+                setSelectedOptionForDays(null);
+                setAccessDays("");
+            }
+        }
     };
 
     useEffect(() => {
@@ -75,12 +110,12 @@ export function SessionWithAccessDays({
                                                 <div
                                                     key={option.id}
                                                     className="flex w-80 cursor-pointer justify-between rounded-lg p-2 hover:bg-neutral-100"
-                                                    onClick={() => toggleSelection(option.id)}
+                                                    onClick={() => toggleSelection(option)}
                                                 >
                                                     <label className="text-sm">{option.name}</label>
-                                                    {selectedOptions.includes(option.id) && (
-                                                        <Check size={18} />
-                                                    )}
+                                                    {selectedOptions.some(
+                                                        (item) => item.id === option.id,
+                                                    ) && <Check size={18} />}
                                                 </div>
                                             ))}
                                         </PopoverContent>
@@ -88,11 +123,11 @@ export function SessionWithAccessDays({
                                 </FormControl>
                             </FormItem>
                             <div className="mt-4 flex flex-wrap justify-start gap-4">
-                                {selectedOptions.map((id) => {
-                                    const option = options.find((opt) => opt.id === id);
+                                {selectedOptions.map((selected) => {
+                                    const option = options.find((opt) => opt.id === selected.id);
                                     return (
-                                        <Badge key={id} className="bg-[#F4F9FF] px-2 py-1">
-                                            {option?.name}
+                                        <Badge key={selected.id} className="bg-[#F4F9FF] px-2 py-1">
+                                            {option?.name} ({selected.days} days)
                                         </Badge>
                                     );
                                 })}
@@ -101,6 +136,40 @@ export function SessionWithAccessDays({
                     );
                 }}
             />
+
+            <MyDialog
+                open={!!selectedOptionForDays}
+                onOpenChange={(open) => !open && setSelectedOptionForDays(null)}
+                heading="Set Access Days"
+                dialogWidth="w-[400px]"
+            >
+                <div className="flex flex-col gap-4 p-4">
+                    <div className="text-sm">
+                        Set access days for: {selectedOptionForDays?.name}
+                    </div>
+                    <Input
+                        type="number"
+                        min="1"
+                        value={accessDays}
+                        onChange={(e) => setAccessDays(e.target.value)}
+                        placeholder="Enter number of days"
+                    />
+                    <div className="flex items-center justify-between">
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => setSelectedOptionForDays(null)}
+                        >
+                            Cancel
+                        </MyButton>
+                        <MyButton
+                            onClick={handleSetAccessDays}
+                            disabled={!accessDays || parseInt(accessDays) <= 0}
+                        >
+                            Set Days
+                        </MyButton>
+                    </div>
+                </div>
+            </MyDialog>
         </>
     );
 }

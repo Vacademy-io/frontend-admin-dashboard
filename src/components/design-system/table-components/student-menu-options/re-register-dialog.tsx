@@ -6,11 +6,18 @@ import { MyButton } from "../../button";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { SessionWithAccessDays } from "../../sessionWithAccessDays";
 import { useForm, FormProvider } from "react-hook-form";
-import { Plus } from "phosphor-react";
 import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
-import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
 import { useAddSession } from "@/services/study-library/session-management/addSession";
+import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
 import { toast } from "sonner";
+import { ArrowUpRight, Plus } from "phosphor-react";
+import { useRouter } from "@tanstack/react-router";
+import {
+    ReRegisterStudentRequestType,
+    useReRegisterStudent,
+} from "@/routes/students/students-list/-services/reRegisterStudent";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 interface ReRegisterDialogProps {
     trigger: ReactNode;
@@ -21,26 +28,33 @@ interface ReRegisterDialogProps {
 interface Package {
     id: string;
     name: string;
+    days: number;
+}
+
+interface SelectedPackage {
+    id: string;
+    days: number;
 }
 
 export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDialogProps) => {
-    const { selectedStudent, closeAllDialogs } = useDialogStore();
+    const { selectedStudent, bulkActionInfo, isBulkAction, closeAllDialogs } = useDialogStore();
     const [packageSessionId, setPackageSessionId] = useState<string | null>(null);
     const { instituteDetails } = useInstituteDetailsStore();
-    const [course, setCourse] = useState<Package | undefined>();
     const [packages, setPackages] = useState<Package[]>([]);
-    const form = useForm();
+    const form = useForm({
+        defaultValues: {
+            selectedPackages: [] as SelectedPackage[],
+        },
+    });
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const [disableAddButton, setDisableAddButton] = useState(true);
     const formSubmitRef = useRef(() => {});
     const addSessionMutation = useAddSession();
-
-    const handleReRegister = () => {
-        const selectedPackageIds = form.getValues("selectedPackages") || [];
-        // TODO: Implement re-registration logic with selectedPackageIds
-        console.log(selectedPackageIds);
-        closeAllDialogs();
-    };
+    const reRegisterMutation = useReRegisterStudent();
+    const router = useRouter();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const data = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
     useEffect(() => {
         if (selectedStudent) {
@@ -55,24 +69,50 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
             );
 
             if (filteredBatch) {
-                setCourse({
-                    id: filteredBatch.package_dto.id,
-                    name: filteredBatch.package_dto.package_name,
-                });
-                const mappedPackages = instituteDetails.batches_for_sessions.filter(
-                    (batch) =>
-                        batch.package_dto.id === filteredBatch.package_dto.id &&
-                        batch.id !== packageSessionId,
-                );
-                setPackages(
-                    mappedPackages.map((batch) => ({
-                        id: batch.id,
-                        name: `${batch.level.level_name} ${batch.session.session_name}`,
-                    })),
-                );
+                const mappedPackages = instituteDetails.batches_for_sessions
+                    .filter(
+                        (batch) =>
+                            batch.id !== packageSessionId &&
+                            batch.package_dto.id === filteredBatch.package_dto.id,
+                    )
+                    .map((mappedBatch) => ({
+                        id: mappedBatch.id,
+                        name: `${mappedBatch.level.level_name} ${mappedBatch.session.session_name}`,
+                        days: 0,
+                    }));
+                setPackages(mappedPackages);
             }
         }
     }, [instituteDetails, packageSessionId]);
+
+    const handleReRegister = async () => {
+        const selectedPackages = form.getValues("selectedPackages") || [];
+        console.log("Selected packages with days:", selectedPackages);
+        // TODO: Implement re-registration logic with selectedPackages
+
+        const values = form.getValues("selectedPackages");
+        const userIds =
+            isBulkAction && bulkActionInfo?.selectedStudents
+                ? bulkActionInfo?.selectedStudents.map((student) => student.user_id)
+                : [selectedStudent?.user_id || ""];
+        const request: ReRegisterStudentRequestType = {
+            user_ids: userIds,
+            institute_id: INSTITUTE_ID || "",
+            learner_batch_register_infos: values.map((value) => ({
+                package_session_id: value.id,
+                access_days: value.days,
+            })),
+            access_days: 0,
+        };
+        try {
+            await reRegisterMutation.mutateAsync({ request: request });
+            toast.success("Student re-registered successfully");
+            closeAllDialogs();
+        } catch {
+            toast.error("Failed to re-register student");
+        }
+    };
+
     const handleOpenAddSessionDialog = () => {
         setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
     };
@@ -137,6 +177,18 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
             },
         );
     };
+
+    const handleUpdateExistingSessions = () => {
+        router.navigate({
+            to: "/study-library/session",
+        });
+    };
+
+    const heading =
+        isBulkAction && bulkActionInfo?.selectedStudents
+            ? `Re-register for Next Session for ${bulkActionInfo?.selectedStudents.length} students`
+            : `Re-register for Next Session for ${selectedStudent?.full_name}`;
+
     if (!selectedStudent || !instituteDetails) {
         return null;
     }
@@ -144,40 +196,51 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
     return (
         <MyDialog
             trigger={trigger}
-            heading="Re-register for Next Session"
+            heading={heading}
             dialogWidth="w-[500px]"
             open={open}
             onOpenChange={onOpenChange}
             footer={dialogFooter}
         >
-            <FormProvider {...form}>
-                <div className="flex flex-col gap-4">
-                    <h1>Course: {course?.name}</h1>
-                    {packages.length > 0 && (
-                        <SessionWithAccessDays
-                            form={form}
-                            control={form.control}
-                            name="selectedPackages"
-                            label="Select Packages"
-                            options={packages}
-                            required={true}
+            {open && (
+                <div>
+                    <FormProvider {...form}>
+                        <div className="flex flex-col gap-4 p-4">
+                            <SessionWithAccessDays
+                                form={form}
+                                control={form.control}
+                                name="selectedPackages"
+                                label="Select Sessions"
+                                options={packages}
+                                required={true}
+                            />
+                        </div>
+                    </FormProvider>
+                    <div className="flex items-center justify-between">
+                        <AddSessionDialog
+                            isAddSessionDiaogOpen={isAddSessionDiaogOpen}
+                            handleOpenAddSessionDialog={handleOpenAddSessionDialog}
+                            handleSubmit={handleAddSession}
+                            trigger={
+                                <MyButton buttonType="text" className="text-primary-500">
+                                    <Plus /> Add New Session
+                                </MyButton>
+                            }
+                            submitButton={submitButton}
+                            setDisableAddButton={setDisableAddButton}
+                            submitFn={submitFn}
                         />
-                    )}
+                        <MyButton
+                            buttonType="text"
+                            className="text-primary-500"
+                            onClick={handleUpdateExistingSessions}
+                        >
+                            Update existing sessions
+                            <ArrowUpRight className="-ml-2" />
+                        </MyButton>
+                    </div>
                 </div>
-            </FormProvider>
-            <AddSessionDialog
-                isAddSessionDiaogOpen={isAddSessionDiaogOpen}
-                handleOpenAddSessionDialog={handleOpenAddSessionDialog}
-                handleSubmit={handleAddSession}
-                trigger={
-                    <MyButton buttonType="text" className="text-primary-500">
-                        <Plus /> Add Session
-                    </MyButton>
-                }
-                submitButton={submitButton}
-                setDisableAddButton={setDisableAddButton}
-                submitFn={submitFn}
-            />
+            )}
         </MyDialog>
     );
 };
