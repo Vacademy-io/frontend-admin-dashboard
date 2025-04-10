@@ -178,7 +178,17 @@ export const StudentsListSection = () => {
                                     defaultOpen={false}
                                 >
                                     <MyTable<StudentTable>
-                                        data={studentTableData}
+                                        data={{
+                                            content: studentTableData.content.map((student) => ({
+                                                ...student,
+                                                id: student.user_id,
+                                            })),
+                                            total_pages: studentTableData.total_pages,
+                                            page_no: studentTableData.page_no,
+                                            page_size: studentTableData.page_size,
+                                            total_elements: studentTableData.total_elements,
+                                            last: studentTableData.last,
+                                        }}
                                         columns={myColumns}
                                         isLoading={loadingData}
                                         error={loadingError}
@@ -188,7 +198,7 @@ export const StudentsListSection = () => {
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
                                     />
-                                    <StudentSidebar />
+                                    <StudentSidebar selectedTab={"Attempted"} examType={"EXAM"} />
                                 </SidebarProvider>
                             </div>
                         </div>
