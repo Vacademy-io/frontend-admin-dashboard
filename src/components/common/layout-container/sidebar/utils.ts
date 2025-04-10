@@ -72,6 +72,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
         id: "evaluation-centre",
         subItems: [
             {
+                subItem: "Evaluations",
+                subItemLink: "/evaluation/evaluations",
+            },
+            {
                 subItem: "Evaluation tool",
                 subItemLink: "/evaluation/evaluation-tool",
             },

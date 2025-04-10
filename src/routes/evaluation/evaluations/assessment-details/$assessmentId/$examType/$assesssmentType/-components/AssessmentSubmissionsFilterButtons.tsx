@@ -1,42 +1,20 @@
 import { MyButton } from "@/components/design-system/button";
-import { SelectedQuestionPaperFilters } from "./ScheduleTestMainComponent";
+import { SelectedSubmissionsFilterInterface } from "./AssessmentSubmissionsTab";
 
 interface ScheduleTestFilterButtonsProps {
-    selectedQuestionPaperFilters: SelectedQuestionPaperFilters;
+    selectedQuestionPaperFilters: SelectedSubmissionsFilterInterface;
     handleSubmitFilters: () => void;
     handleResetFilters: () => void;
 }
 
-const ScheduleTestFilterButtons = ({
+const AssessmentSubmissionsFilterButtons = ({
     selectedQuestionPaperFilters,
     handleSubmitFilters,
     handleResetFilters,
 }: ScheduleTestFilterButtonsProps) => {
     const isButtonEnabled = () => {
-        const {
-            name,
-            batch_ids,
-            subjects_ids,
-            tag_ids,
-            assessment_statuses,
-            assessment_modes,
-            access_statuses,
-            evaluation_types,
-        } = selectedQuestionPaperFilters;
-
-        // Check if 'name' is a string and call trim on it, otherwise check if it's an array
-        const isNameValid = typeof name === "string" ? name.trim() !== "" : name.length > 0;
-
-        return (
-            isNameValid ||
-            batch_ids?.length > 0 ||
-            subjects_ids?.length > 0 ||
-            tag_ids?.length > 0 ||
-            assessment_statuses?.length > 0 ||
-            assessment_modes?.length > 0 ||
-            access_statuses?.length > 0 ||
-            evaluation_types?.length > 0
-        );
+        const { name, batches } = selectedQuestionPaperFilters;
+        return name || batches?.length > 0;
     };
     return (
         <>
@@ -66,4 +44,4 @@ const ScheduleTestFilterButtons = ({
     );
 };
 
-export default ScheduleTestFilterButtons;
+export default AssessmentSubmissionsFilterButtons;

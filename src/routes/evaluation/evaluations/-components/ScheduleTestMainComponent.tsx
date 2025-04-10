@@ -7,10 +7,9 @@ import { ScheduleTestFilters } from "./ScheduleTestFilters";
 import {
     useFilterDataForAssesment,
     useFilterDataForAssesmentInitData,
-} from "../-utils.ts/useFiltersData";
+} from "@/routes/assessment/assessment-list/-utils.ts/useFiltersData";
 import { ScheduleTestSearchComponent } from "./ScheduleTestSearchComponent";
 import { MyFilterOption } from "@/types/assessments/my-filter";
-import { ScheduleTestHeaderDescription } from "./ScheduleTestHeaderDescription";
 import ScheduleTestTabList from "./ScheduleTestTabList";
 import ScheduleTestFilterButtons from "./ScheduleTestFilterButtons";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
@@ -18,17 +17,14 @@ import ScheduleTestLists from "./ScheduleTestLists";
 import {
     getAssessmentListWithFilters,
     getInitAssessmentDetails,
-} from "../-services/assessment-services";
+} from "@/routes/assessment/assessment-list/-services/assessment-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { ScheduleTestTab } from "@/types/assessments/assessment-list";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
-import { useRefetchStoreAssessment } from "../-global-store/refetch-store";
-import { Route } from "..";
-import { useNavigate } from "@tanstack/react-router";
-
+import { useRefetchStoreAssessment } from "@/routes/assessment/assessment-list/-global-store/refetch-store";
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
     batch_ids: MyFilterOption[];
@@ -45,19 +41,16 @@ export interface SelectedQuestionPaperFilters {
 }
 
 export const ScheduleTestMainComponent = () => {
-    const navigate = useNavigate();
-    const searchParams = Route.useSearch();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const [isOpen, setIsOpen] = useState(false);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
     const { setNavHeading } = useNavHeadingStore();
-    const [selectedTab, setSelectedTab] = useState(searchParams.selectedTab ?? "liveTests");
+    const [selectedTab, setSelectedTab] = useState("liveTests");
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
-    const { AssessmentTypeData, ModeData, EvaluationTypeData } =
-        useFilterDataForAssesmentInitData(initAssessmentData);
+    const { AssessmentTypeData, ModeData } = useFilterDataForAssesmentInitData(initAssessmentData);
     const { getCourseFromPackage } = useInstituteDetailsStore();
     const setHandleRefetchDataAssessment = useRefetchStoreAssessment(
         (state) => state.setHandleRefetchDataAssessment,
@@ -76,7 +69,12 @@ export const ScheduleTestMainComponent = () => {
             assessment_statuses: [],
             assessment_modes: [],
             access_statuses: [],
-            evaluation_types: [],
+            evaluation_types: [
+                {
+                    id: "MANUAL",
+                    name: "MANUAL",
+                },
+            ],
         });
 
     const [scheduleTestTabsData, setScheduleTestTabsData] = useState<ScheduleTestTab[]>([
@@ -199,7 +197,12 @@ export const ScheduleTestMainComponent = () => {
             assessment_statuses: [],
             assessment_modes: [],
             access_statuses: [],
-            evaluation_types: [],
+            evaluation_types: [
+                {
+                    id: "MANUAL",
+                    name: "MANUAL",
+                },
+            ],
         });
         setSearchText("");
         getFilteredData.mutate({
@@ -215,7 +218,12 @@ export const ScheduleTestMainComponent = () => {
                 get_passed_assessments: selectedTab === "previousTests" ? true : false,
                 get_upcoming_assessments: selectedTab === "upcomingTests" ? true : false,
                 institute_ids: [initData?.id || ""],
-                evaluation_types: [],
+                evaluation_types: [
+                    {
+                        id: "MANUAL",
+                        name: "MANUAL",
+                    },
+                ],
                 assessment_statuses: [
                     {
                         id: "0",
@@ -247,22 +255,10 @@ export const ScheduleTestMainComponent = () => {
                         tab.value === "liveTests" ? { ...tab, data: data } : tab,
                     ),
                 );
-            } else if (selectedTab === "upcomingTests") {
-                setScheduleTestTabsData((prevTabs) =>
-                    prevTabs.map((tab) =>
-                        tab.value === "upcomingTests" ? { ...tab, data: data } : tab,
-                    ),
-                );
-            } else if (selectedTab === "previousTests") {
-                setScheduleTestTabsData((prevTabs) =>
-                    prevTabs.map((tab) =>
-                        tab.value === "previousTests" ? { ...tab, data: data } : tab,
-                    ),
-                );
             } else {
                 setScheduleTestTabsData((prevTabs) =>
                     prevTabs.map((tab) =>
-                        tab.value === "draftTests" ? { ...tab, data: data } : tab,
+                        tab.value === "previousTests" ? { ...tab, data: data } : tab,
                     ),
                 );
             }
@@ -355,7 +351,12 @@ export const ScheduleTestMainComponent = () => {
                 get_live_assessments: true,
                 get_passed_assessments: false,
                 get_upcoming_assessments: false,
-                evaluation_types: [],
+                evaluation_types: [
+                    {
+                        id: "MANUAL",
+                        name: "MANUAL",
+                    },
+                ],
             });
 
             const fetchUpcomingTests = getAssessmentListWithFilters(pageNo, 10, INSTITUTE_ID, {
@@ -435,15 +436,6 @@ export const ScheduleTestMainComponent = () => {
         }
     }, []);
 
-    useEffect(() => {
-        navigate({
-            to: "/assessment/assessment-list",
-            search: {
-                selectedTab: selectedTab,
-            },
-        });
-    }, [selectedTab]);
-
     // Define the handleRefetchData function here
     useEffect(() => {
         setHandleRefetchDataAssessment(handleRefetchData);
@@ -453,13 +445,12 @@ export const ScheduleTestMainComponent = () => {
     return (
         <>
             <Helmet>
-                <title>Schedule Tests</title>
+                <title>Evaluate Tests</title>
                 <meta
                     name="description"
                     content="This page shows the list of all the schedules tests and also an assessment can be scheduled here."
                 />
             </Helmet>
-            <ScheduleTestHeaderDescription />
             <div className="flex flex-col gap-4">
                 <Tabs value={selectedTab} onValueChange={setSelectedTab}>
                     <ScheduleTestTabList
@@ -502,16 +493,6 @@ export const ScheduleTestMainComponent = () => {
                                 }
                                 onSelectionChange={(items) =>
                                     handleFilterChange("access_statuses", items)
-                                }
-                            />
-                            <ScheduleTestFilters
-                                label="Evaluation"
-                                data={EvaluationTypeData}
-                                selectedItems={
-                                    selectedQuestionPaperFilters["evaluation_types"] || []
-                                }
-                                onSelectionChange={(items) =>
-                                    handleFilterChange("evaluation_types", items)
                                 }
                             />
                             <ScheduleTestFilterButtons
