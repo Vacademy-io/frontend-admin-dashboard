@@ -19,9 +19,11 @@ import { getPublicUrl } from "@/services/upload_file";
 export const StudentSidebar = ({
     selectedTab,
     examType,
+    isStudentList,
 }: {
     selectedTab?: string;
     examType?: string;
+    isStudentList?: boolean;
 }) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
@@ -141,7 +143,11 @@ export const StudentSidebar = ({
                     {category == "overview" && <StudentOverview />}
                     {category == "learningProgress" && <StudentLearningProgress />}
                     {category == "testRecord" && (
-                        <StudentTestRecord selectedTab={selectedTab} examType={examType} />
+                        <StudentTestRecord
+                            selectedTab={selectedTab}
+                            examType={examType}
+                            isStudentList={isStudentList}
+                        />
                     )}
                 </SidebarMenu>
             </SidebarContent>

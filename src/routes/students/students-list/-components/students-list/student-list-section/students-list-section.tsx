@@ -198,7 +198,11 @@ export const StudentsListSection = () => {
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
                                     />
-                                    <StudentSidebar selectedTab={"Attempted"} examType={"EXAM"} />
+                                    <StudentSidebar
+                                        selectedTab={"ENDED,PENDING,LIVE"}
+                                        examType={"EXAM"}
+                                        isStudentList={true}
+                                    />
                                 </SidebarProvider>
                             </div>
                         </div>

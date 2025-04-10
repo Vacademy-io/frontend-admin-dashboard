@@ -27,18 +27,26 @@ export interface StudentReportFilterInterface {
 export const StudentTestRecord = ({
     selectedTab,
     examType,
+    isStudentList = false,
 }: {
     selectedTab: string | undefined;
     examType: string | undefined;
+    isStudentList?: boolean;
 }) => {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
 
     const [searchText, setSearchText] = useState("");
     const [selectedFilter] = useState<StudentReportFilterInterface>({
         name: "",
-        status: [
-            selectedTab === "Attempted" ? "ENDED" : selectedTab === "Pending" ? "PENDING" : "LIVE",
-        ],
+        status: isStudentList
+            ? (selectedTab ?? "").split(",")
+            : [
+                  selectedTab === "Attempted"
+                      ? "ENDED"
+                      : selectedTab === "Pending"
+                        ? "PENDING"
+                        : "LIVE",
+              ],
         sort_columns: {},
     });
     const { selectedStudent } = useStudentSidebar();
