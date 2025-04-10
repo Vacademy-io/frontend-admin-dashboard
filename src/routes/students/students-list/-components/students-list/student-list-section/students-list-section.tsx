@@ -252,7 +252,11 @@ export const StudentsListSection = () => {
                     totalElements={studentTableData?.total_elements || 0}
                     sessionList={sessionList}
                 />
-                {!studentTableData || studentTableData.content.length == 0 ? (
+                {loadingData ? (
+                    <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
+                        <DashboardLoader />
+                    </div>
+                ) : !studentTableData || studentTableData.content.length == 0 ? (
                     <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
                         <EmptyStudentListImage />
                         <p>No student data available</p>

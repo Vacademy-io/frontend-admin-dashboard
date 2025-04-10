@@ -21,7 +21,7 @@ const getMenuOptions = (status?: string) => {
     //     "Terminate Registration",
     //     "Delete Student",
     // ];
-    return ["Change Batch", "Terminate Registration"];
+    return ["Change Batch", "Terminate Registration", "Re-register for Next Session"];
 };
 
 export const StudentMenuOptions = ({ student }: { student: StudentTable }) => {
