@@ -56,7 +56,8 @@ export const ScheduleTestMainComponent = () => {
     const { data: initData } = useSuspenseQuery(useInstituteQuery());
     const { data: initAssessmentData } = useSuspenseQuery(getInitAssessmentDetails(initData?.id));
     const { BatchesFilterData, SubjectFilterData } = useFilterDataForAssesment(initData);
-    const { AssessmentTypeData, ModeData,EvaluationTypeData } = useFilterDataForAssesmentInitData(initAssessmentData);
+    const { AssessmentTypeData, ModeData, EvaluationTypeData } =
+        useFilterDataForAssesmentInitData(initAssessmentData);
     const { getCourseFromPackage } = useInstituteDetailsStore();
     const setHandleRefetchDataAssessment = useRefetchStoreAssessment(
         (state) => state.setHandleRefetchDataAssessment,
