@@ -14,15 +14,13 @@ import {
     OnChangeFn,
     ColumnDef,
 } from "@tanstack/react-table";
-import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-reattempt-dialog";
-import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-revaluate-assessment-dialog";
-import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-release-result";
-import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-components/assessment-menu-options-attempted-bulk/provide-revaluate-questionwise-dialog";
 import { ColumnWidthConfig } from "@/components/design-system/utils/constants/table-layout";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useSubmissionsBulkActionsDialogStoreAttempted } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreAttempted";
-import { useSubmissionsBulkActionsDialogStoreOngoing } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStoreOngoing";
-import { useSubmissionsBulkActionsDialogStorePending } from "./bulk-actions-zustand-store/useSubmissionsBulkActionsDialogStorePending";
+import { ProvideRevaluateQuestionWiseDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-revaluate-questionwise-dialog";
+import { ProvideRevaluateAssessmentDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-revaluate-assessment-dialog";
+import { ProvideReleaseResultDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-release-result";
+import { ProvideReattemptDialog } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/assessment-menu-options-attempted-bulk/provide-reattempt-dialog";
 
 const headerTextCss = "p-3 border-r border-neutral-300";
 const cellCommonCss = "p-3";
@@ -91,18 +89,6 @@ export function AssessmentSubmissionsStudentTable<T>({
         isReleaseResult,
         closeAllDialogs,
     } = useSubmissionsBulkActionsDialogStoreAttempted();
-
-    const {
-        increaseAssessmentTime,
-        closeSubmission,
-        closeAllDialogs: closeAllDialogsOngoing,
-    } = useSubmissionsBulkActionsDialogStoreOngoing();
-
-    const {
-        sendReminder,
-        removeParticipants,
-        closeAllDialogs: closeAllDialogsPending,
-    } = useSubmissionsBulkActionsDialogStorePending();
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading data</div>;
