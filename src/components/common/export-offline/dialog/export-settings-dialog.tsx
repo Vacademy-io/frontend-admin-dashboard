@@ -58,7 +58,7 @@ export function ExportSettingsDialog({ open, onOpenChange }: ExportSettingsDialo
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+            <DialogContent className="max-h-[90vh] w-[60%] max-w-2xl overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Export Settings</DialogTitle>
                 </DialogHeader>
