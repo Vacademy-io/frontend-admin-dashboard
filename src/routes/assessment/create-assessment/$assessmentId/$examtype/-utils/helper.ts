@@ -235,7 +235,7 @@ export function transformBatchDataEdit(data: BatchData[]) {
 
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
-            name: `${levelName}`,
+            name: `${packageName} - ${levelName}`,
             id: packageId || "",
         });
     });
