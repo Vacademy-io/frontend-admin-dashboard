@@ -2,25 +2,64 @@ import { useState, useEffect, useCallback } from "react";
 import { StudentFilterRequest } from "@/types/student-table-types";
 import { usePackageSessionIds } from "./getPackageSessionId";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useGetSessions } from "./useFilters";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
+import {
+    DropdownItemType,
+    DropdownValueType,
+} from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 
 export const useStudentFilters = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
-    const sessions = useGetSessions();
-    const [currentSession, setCurrentSession] = useState(sessions[0] || "");
+    const { getAllSessions, instituteDetails } = useInstituteDetailsStore();
+    const { selectedSession, setSelectedSession } = useSelectedSessionStore();
     const [columnFilters, setColumnFilters] = useState<{ id: string; value: string[] }[]>([]);
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchFilter, setSearchFilter] = useState("");
     const [clearFilters, setClearFilters] = useState<boolean>(false);
+    const [sessionList, setSessionList] = useState<DropdownItemType[]>(
+        getAllSessions().map((session) => ({
+            id: session.id,
+            name: session.session_name,
+        })),
+    );
+    const [currentSession, setCurrentSession] = useState<DropdownItemType>(() => {
+        const defaultSession = sessionList[0] || { id: "", name: "" };
+        return selectedSession && sessionList.find((session) => session.id === selectedSession.id)
+            ? { id: selectedSession.id, name: selectedSession.session_name }
+            : defaultSession;
+    });
 
-    const { instituteDetails } = useInstituteDetailsStore();
+    useEffect(() => {
+        setSessionList(
+            getAllSessions().map((session) => ({
+                id: session.id,
+                name: session.session_name,
+            })),
+        );
+        if (currentSession && sessionList.includes(currentSession)) {
+            const session = getAllSessions().find((session) => session.id === currentSession.id);
+            if (session) {
+                setSelectedSession(session);
+            }
+        } else {
+            const defaultSession = sessionList[0] || { id: "", name: "" };
+            const newSession = selectedSession
+                ? { id: selectedSession.id, name: selectedSession.session_name }
+                : defaultSession;
+            setCurrentSession(newSession);
+            const session = getAllSessions().find((session) => session.id === newSession.id);
+            if (session) {
+                setSelectedSession(session);
+            }
+        }
+    }, [instituteDetails]);
 
     const currentPackageSessionIds = usePackageSessionIds(
-        currentSession,
+        currentSession.name,
         columnFilters.find((filter) => filter.id === "batch")?.value,
     );
 
@@ -50,14 +89,16 @@ export const useStudentFilters = () => {
         }
     }, [columnFilters.length]);
 
-    const handleSessionChange = (session: string) => {
-        setCurrentSession(session);
-        setColumnFilters((prev) => prev.filter((f) => f.id !== "batch"));
-
-        setAppliedFilters((prev) => ({
-            ...prev,
-            package_session_ids: [], // Initially set empty array
-        }));
+    const handleSessionChange = (value: DropdownValueType) => {
+        if (value && typeof value === "object" && "id" in value && "name" in value) {
+            setCurrentSession(value as DropdownItemType);
+            const session = getAllSessions().find(
+                (session) => session.id === (value as DropdownItemType).id,
+            );
+            if (session) {
+                setSelectedSession(session);
+            }
+        }
     };
 
     const handleFilterChange = (filterId: string, values: string[]) => {
@@ -160,6 +201,7 @@ export const useStudentFilters = () => {
         searchInput,
         searchFilter,
         currentSession,
+        sessionList,
         getActiveFiltersState,
         handleFilterChange,
         handleFilterClick,
@@ -169,5 +211,6 @@ export const useStudentFilters = () => {
         handleClearSearch,
         setAppliedFilters,
         handleSessionChange,
+        setColumnFilters,
     };
 };

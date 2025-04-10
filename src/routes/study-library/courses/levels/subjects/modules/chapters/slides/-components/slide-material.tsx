@@ -99,6 +99,7 @@ export const SlideMaterial = ({
                 });
                 return;
             } else {
+                if (activeItem.document_type == "DOC") await SaveDraft();
                 await addUpdateDocumentSlide({
                     id: activeItem?.slide_id || "",
                     title: heading,
@@ -110,8 +111,8 @@ export const SlideMaterial = ({
                         type: activeItem.document_type,
                         data:
                             activeItem.status == "PUBLISHED"
-                                ? activeItem.document_data
-                                : activeItem.published_data,
+                                ? activeItem.published_data
+                                : activeItem.document_data,
                         title: heading,
                         cover_file_id: activeItem.document_cover_file_id || "",
                         total_pages: 0,

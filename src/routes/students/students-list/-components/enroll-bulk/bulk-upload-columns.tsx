@@ -7,7 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Header } from "@/routes/students/students-list/-schemas/student-bulk-enroll/csv-bulk-init";
 import { Row } from "@tanstack/react-table";
-import { CheckCircle, Warning } from "@phosphor-icons/react";
+import { CheckCircle } from "@phosphor-icons/react";
 import { MyButton } from "@/components/design-system/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Warning } from "phosphor-react";
 
 // Define the type for statusColumnRenderer properly
 type StatusColumnRenderer = (props: { row: Row<SchemaFields> }) => JSX.Element;
@@ -29,7 +30,16 @@ interface EditableBulkUploadColumnsProps {
     isEditing: boolean;
     onCellClick: (rowIndex: number, columnId: string) => void;
     editCell: { rowIndex: number; columnId: string } | null;
-    handleCellEdit: (rowIndex: number, columnId: string, value: string) => void;
+    handleCellEdit: (
+        rowIndex: number,
+        columnId: string,
+        value: string,
+        currentPage: number,
+        ITEMS_PER_PAGE: number,
+    ) => void;
+    onViewErrors?: (rowIndex: number) => void;
+    currentPage: number;
+    ITEMS_PER_PAGE: number;
 }
 
 // Create editable bulk upload columns
@@ -42,6 +52,9 @@ export const createEditableBulkUploadColumns = ({
     onCellClick,
     editCell,
     handleCellEdit,
+    onViewErrors,
+    currentPage,
+    ITEMS_PER_PAGE,
 }: EditableBulkUploadColumnsProps): Array<ColumnDef<SchemaFields>> => {
     const columns: Array<ColumnDef<SchemaFields>> = [];
 
@@ -61,7 +74,9 @@ export const createEditableBulkUploadColumns = ({
                 const rowIndex = props.row.index;
 
                 // Check if there are any errors for this row
-                const rowErrors = csvErrors.filter((error) => error.path[0] === rowIndex);
+                const rowErrors = csvErrors.filter(
+                    (error) => error.path[0] === rowIndex + currentPage * ITEMS_PER_PAGE,
+                );
                 const hasErrors = rowErrors.length > 0;
 
                 if (!hasErrors) {
@@ -74,8 +89,13 @@ export const createEditableBulkUploadColumns = ({
 
                 return (
                     <div className="flex justify-center">
-                        <MyButton buttonType="primary" scale="small" layoutVariant="default">
-                            Check errors
+                        <MyButton
+                            buttonType="primary"
+                            scale="small"
+                            layoutVariant="default"
+                            onClick={() => onViewErrors?.(rowIndex)}
+                        >
+                            Errors ({rowErrors.length})
                         </MyButton>
                     </div>
                 );
@@ -112,8 +132,13 @@ export const createEditableBulkUploadColumns = ({
 
                     return (
                         <div className="flex justify-center">
-                            <MyButton buttonType="primary" scale="small" layoutVariant="default">
-                                Check errors
+                            <MyButton
+                                buttonType="primary"
+                                scale="small"
+                                layoutVariant="default"
+                                onClick={() => onViewErrors?.(rowIndex)}
+                            >
+                                Errors ({rowErrors.length})
                             </MyButton>
                         </div>
                     );
@@ -141,9 +166,11 @@ export const createEditableBulkUploadColumns = ({
                 cell: ({ getValue, row, column }) => {
                     const rowIndex = row.index;
                     const columnId = column.id;
+                    // const absoluteRowIndex = rowIndex + currentPage * ITEMS_PER_PAGE;
                     const error = csvErrors.find(
                         (error) =>
-                            error.path[0] === rowIndex && error.path[1] === header.column_name,
+                            error.path[0] === rowIndex + currentPage * ITEMS_PER_PAGE &&
+                            error.path[1] === header.column_name,
                     );
                     const value = getValue() as string;
                     const isCurrentlyEditing =
@@ -157,10 +184,16 @@ export const createEditableBulkUploadColumns = ({
                                 <Select
                                     defaultValue={value}
                                     onValueChange={(newValue) =>
-                                        handleCellEdit(rowIndex, columnId, newValue)
+                                        handleCellEdit(
+                                            rowIndex,
+                                            columnId,
+                                            newValue,
+                                            currentPage,
+                                            ITEMS_PER_PAGE,
+                                        )
                                     }
                                 >
-                                    <SelectTrigger>
+                                    <SelectTrigger className={error ? "border-danger-500" : ""}>
                                         <SelectValue placeholder="Select an option" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -179,44 +212,61 @@ export const createEditableBulkUploadColumns = ({
                             <Input
                                 autoFocus
                                 defaultValue={value}
+                                className={cn(error ? "border-danger-500" : "")}
                                 onChange={(e) => e.stopPropagation()}
-                                onBlur={(e) => handleCellEdit(rowIndex, columnId, e.target.value)}
+                                onBlur={(e) =>
+                                    handleCellEdit(
+                                        rowIndex,
+                                        columnId,
+                                        e.target.value,
+                                        currentPage,
+                                        ITEMS_PER_PAGE,
+                                    )
+                                }
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") {
                                         handleCellEdit(
                                             rowIndex,
                                             columnId,
                                             (e.target as HTMLInputElement).value,
+                                            currentPage,
+                                            ITEMS_PER_PAGE,
                                         );
                                     }
                                 }}
-                                onClick={(e) => e.stopPropagation()}
                             />
                         );
                     }
 
-                    // Otherwise, render the cell normally with double-click support
+                    // Render non-editable cell
                     return (
                         <div
                             className={cn(
-                                "relative py-2",
-                                error && "bg-danger-50",
-                                isEditing && "cursor-pointer hover:bg-primary-50",
+                                `cursor-pointer truncate px-4 py-2 ${
+                                    error ? "rounded-lg border border-danger-600" : "border-none"
+                                }`,
                             )}
-                            onDoubleClick={() => isEditing && onCellClick(rowIndex, columnId)}
+                            onClick={() => {
+                                if (isEditing) {
+                                    onCellClick(rowIndex, columnId);
+                                }
+                            }}
+                            onDoubleClick={() => {
+                                if (isEditing) {
+                                    onCellClick(rowIndex, columnId);
+                                }
+                            }}
                         >
-                            <div
-                                className={cn(
-                                    "max-w-[180px] overflow-hidden overflow-ellipsis whitespace-nowrap",
-                                    error &&
-                                        "border-b border-dashed border-danger-500 text-danger-700",
-                                )}
+                            <p
+                                className={`flex items-center gap-1 truncate ${
+                                    error ? "text-danger-500" : "text-neutral-500"
+                                } ${isEditing ? "bg-white-100" : "bg-none"}`}
                             >
-                                {value}
-                                {error && (
-                                    <Warning className="ml-1 inline h-4 w-4 text-danger-500" />
-                                )}
-                            </div>
+                                {value || ""}{" "}
+                                <span className={`${error ? "visible" : "hidden"}`}>
+                                    <Warning />
+                                </span>
+                            </p>
                         </div>
                     );
                 },

@@ -5,9 +5,8 @@ import { useStudentSidebar } from "@/routes/students/students-list/-context/sele
 import { useEffect, useState } from "react";
 import { OverViewData, OverviewDetailsType } from "./overview";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { useStudentCredentails } from "@/services/student-list-section/getStudentCredentails";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { EditStudentDetails } from "./EditStudentDetails";
+import { useStudentCredentialsStore } from "@/stores/students/students-list/useStudentCredentialsStore";
 
 export const StudentOverview = () => {
     const { selectedStudent } = useStudentSidebar();
@@ -15,29 +14,17 @@ export const StudentOverview = () => {
     const [daysUntilExpiry, setDaysUntilExpiry] = useState<number>(0);
 
     const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
-
-    const {
-        data: StudentCredentails,
-        isLoading: loadingCredentials,
-        isError: errorCredentials,
-    } = useStudentCredentails({ userId: selectedStudent?.user_id || "" });
-
+    const { getCredentials } = useStudentCredentialsStore();
     const [password, setPassword] = useState(
-        errorCredentials
-            ? "Error fetching password"
-            : StudentCredentails
-              ? StudentCredentails.password
-              : "password not found",
+        getCredentials(selectedStudent?.user_id || "")?.password || "password not found",
     );
 
     useEffect(() => {
-        const newPassword = errorCredentials
-            ? "Error fetching password"
-            : StudentCredentails
-              ? StudentCredentails.password
-              : "password not found";
-        setPassword(newPassword);
-    }, [StudentCredentails]);
+        if (selectedStudent) {
+            const credentials = getCredentials(selectedStudent.user_id);
+            setPassword(credentials?.password || "password not found");
+        }
+    }, [selectedStudent]);
 
     useEffect(() => {
         const details = getDetailsFromPackageSessionId({
@@ -54,7 +41,6 @@ export const StudentOverview = () => {
         // Calculate days until expiry
         if (selectedStudent?.expiry_date) {
             const expiryDate = new Date(selectedStudent.expiry_date);
-            console.log("expiry date: ", expiryDate);
             const currentDate = new Date();
 
             // Calculate the difference in milliseconds
@@ -68,19 +54,11 @@ export const StudentOverview = () => {
         } else {
             setDaysUntilExpiry(0);
         }
-    }, [selectedStudent, instituteDetails]);
-
-    if (loadingCredentials) {
-        return (
-            <div className="flex h-full items-center justify-center">
-                <DashboardLoader />
-            </div>
-        );
-    }
+    }, [selectedStudent, instituteDetails, password]);
 
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
-            <EditStudentDetails />
+            <EditStudentDetails selectedStudent={selectedStudent} />
             <SidebarMenuItem className="flex w-full flex-col gap-2">
                 <div className="flex gap-2">
                     <div className="text-subtitle font-semibold">Session Expiry (Days)</div>

@@ -96,30 +96,15 @@ export const FilterChips = ({
     label,
     filterList,
     selectedFilters,
-    setSelectedFilters,
     disabled,
     clearFilters,
+    handleSelect,
+    handleClearFilters,
 }: FilterChipsProps) => {
     const isSelected = (option: string | number) => selectedFilters.includes(String(option));
 
-    const handleSelect = (option: string | number) => {
-        if (setSelectedFilters) {
-            if (isSelected(option)) {
-                setSelectedFilters((prev) => prev.filter((item) => item !== String(option)));
-            } else {
-                setSelectedFilters((prev) => [...prev, String(option)]);
-            }
-        }
-    };
-
-    const handleClearFilters = () => {
-        if (setSelectedFilters) {
-            setSelectedFilters([]);
-        }
-    };
-
     useEffect(() => {
-        if (clearFilters) handleClearFilters();
+        if (clearFilters) handleClearFilters && handleClearFilters();
     }, [clearFilters]);
 
     return (
@@ -181,7 +166,7 @@ export const FilterChips = ({
                             {filterList?.map((option) => (
                                 <CommandItem
                                     key={String(option)}
-                                    onSelect={() => handleSelect(option)}
+                                    onSelect={() => handleSelect && handleSelect(option)}
                                 >
                                     <div
                                         className={cn(

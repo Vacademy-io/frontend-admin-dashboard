@@ -43,7 +43,7 @@ export function AddingParticipantsTab({
     form: UseFormReturn<TestAccessFormType>;
     totalBatches: BatchData;
     selectedSection: string;
-    setSelectedSection: React.Dispatch<React.SetStateAction<string>>;
+    setSelectedSection: React.Dispatch<React.SetStateAction<string | undefined>>;
     sectionsInfo: SectionInfoInterface[];
 }) {
     const [selectedTab, setSelectedTab] = useState(
@@ -133,7 +133,7 @@ const Step3BatchList = ({
     form: UseFormReturn<TestAccessFormType>;
     totalBatches: BatchData;
     selectedSection: string;
-    setSelectedSection: React.Dispatch<React.SetStateAction<string>>;
+    setSelectedSection: React.Dispatch<React.SetStateAction<string | undefined>>;
     sectionsInfo: SectionInfoInterface[];
 }) => {
     const params = Route.useParams();
@@ -186,7 +186,7 @@ const Step3BatchList = ({
     // Ensure form value updates immediately
     useEffect(() => {
         setValue("select_batch.batch_details", checkedState);
-    }, [checkedState, setValue]);
+    }, [checkedState, setValue, selectedSection]);
 
     return (
         <div className="flex flex-col gap-4">

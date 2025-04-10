@@ -38,6 +38,7 @@ export interface ActivityContent {
     videos: Video[];
     documents: Document[];
     new_activity: boolean;
+    concentration_score: string | null;
 }
 
 export interface ActivityResponse {
