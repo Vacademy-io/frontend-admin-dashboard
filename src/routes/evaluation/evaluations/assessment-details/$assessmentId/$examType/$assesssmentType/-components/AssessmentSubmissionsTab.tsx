@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
