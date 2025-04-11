@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
     handleConvertPDFToHTML,
     handleGenerateAssessmentQuestions,
-    handleGetQuestionsFromHTMLUrl,
+    // handleGetQuestionsFromHTMLUrl,
     handleStartProcessUploadedFile,
 } from "../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
@@ -22,6 +22,7 @@ import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complet
 import { zodResolver } from "@hookform/resolvers/zod";
 import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
 import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
+import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
 const GenerateAIAssessmentComponent = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
@@ -41,6 +42,8 @@ const GenerateAIAssessmentComponent = () => {
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
+    const [htmlData, setHtmlData] = useState(null);
+    const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
 
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -209,11 +212,8 @@ const GenerateAIAssessmentComponent = () => {
     const handleConvertPDFToHTMLMutation = useMutation({
         mutationFn: ({ pdfId }: { pdfId: string }) => handleConvertPDFToHTML(pdfId),
         onSuccess: async (response) => {
-            console.log("Convert API response:", response);
-
             // Check if response indicates pending state
             if (response?.status === "pending") {
-                console.log("ℹ️ Conversion is pending");
                 convertPendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
@@ -224,15 +224,15 @@ const GenerateAIAssessmentComponent = () => {
 
             // If conversion is complete and we have HTML data
             if (response?.html) {
-                console.log("✅ Conversion complete, processing HTML");
                 stopConvertPolling();
-
-                try {
-                    const questionsData = await handleGetQuestionsFromHTMLUrl(response.html);
-                    console.log("✅ Questions Data:", questionsData);
-                } catch (error) {
-                    console.error("⛔️ Error processing HTML:", error);
-                }
+                setHtmlData(response?.html);
+                setOpenPageWiseAssessmentDialog(true);
+                // try {
+                //     const questionsData = await handleGetQuestionsFromHTMLUrl(response.html, "");
+                //     console.log("✅ Questions Data:", questionsData);
+                // } catch (error) {
+                //     console.error("⛔️ Error processing HTML:", error);
+                // }
 
                 return;
             }
@@ -286,18 +286,13 @@ const GenerateAIAssessmentComponent = () => {
     const pollConvertPDFToHTML = () => {
         // Don't call API if in pending state
         if (convertPendingRef.current) {
-            console.log("Skipping conversion poll - in pending state");
             return;
         }
-
-        console.log("Polling API for PDF to HTML conversion status");
         handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
     };
 
     const handleConvertPDFToHTMLFn = () => {
         if (!uploadedFilePDFId) return;
-
-        console.log("Starting PDF to HTML conversion");
         stopConvertPolling();
         convertPollingCountRef.current = 0;
         convertPendingRef.current = false;
@@ -388,6 +383,11 @@ const GenerateAIAssessmentComponent = () => {
                     setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
                 />
             )}
+            <GeneratePageWiseAssessment
+                openPageWiseAssessmentDialog={openPageWiseAssessmentDialog}
+                setOpenPageWiseAssessmentDialog={setOpenPageWiseAssessmentDialog}
+                htmlData={htmlData}
+            />
         </div>
     );
 };

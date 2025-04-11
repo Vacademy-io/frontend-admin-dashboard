@@ -40,9 +40,12 @@ export const handleConvertPDFToHTML = async (pdfId: string) => {
     return response?.data;
 };
 
-export const handleGetQuestionsFromHTMLUrl = async (html: string) => {
+export const handleGetQuestionsFromHTMLUrl = async (html: string, userPrompt: string) => {
     const response = await axios({
         method: "POST",
+        params: {
+            userPrompt,
+        },
         url: GET_QUESTIONS_URL_FROM_HTML_AI_URL,
         data: { html: html },
     });
