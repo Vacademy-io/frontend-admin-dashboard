@@ -1,122 +1,16 @@
-import {
-    BatchDetails,
-    CustomField,
-    InviteForm,
-    LearnerChoiceCourse,
-    LearnerChoiceSession,
-    LevelField,
-    PreSelectedCourse,
-    PreSelectedSession,
-} from "../-schema/InviteFormSchema";
+import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
+import { BatchDetails, CustomField, InviteForm } from "../-schema/InviteFormSchema";
 import {
     BatchOptionJsonType,
     CustomFieldType,
-    InviteLevelType,
     LearnerChoicePackagesType,
-    LearnerChoiceSessionType,
     LearnerInvitationType,
     PreSelectedPackagesType,
-    PreSelectedSessionType,
 } from "../-types/create-invitation-types";
 
-export const responseToFormLevel = (responseLevel: InviteLevelType): LevelField => {
-    const formLevel: LevelField = {
-        id: responseLevel.id,
-        name: responseLevel.name,
-        packageSessionId: responseLevel.package_session_id || "",
-    };
-    return formLevel;
-};
-
-export const responseToFormLearnerChoiceSession = (
-    responseLearnerChoiceSession: LearnerChoiceSessionType,
-): LearnerChoiceSession => {
-    const learnerChoiceLevels = responseLearnerChoiceSession.learner_choice_levels.map((level) =>
-        responseToFormLevel(level),
-    );
-    const formLearnerChoiceSession: LearnerChoiceSession = {
-        id: responseLearnerChoiceSession.id,
-        name: responseLearnerChoiceSession.name,
-        maxLevels: responseLearnerChoiceSession.max_selectable_levels,
-        levelSelectionMode: "student",
-        learnerChoiceLevels: learnerChoiceLevels,
-    };
-    return formLearnerChoiceSession;
-};
-
-export const responseToFormPreSelectedSession = (
-    responsePreSelectedSession: PreSelectedSessionType,
-): PreSelectedSession => {
-    const preSelectedLevels = responsePreSelectedSession.pre_selected_levels.map((level) =>
-        responseToFormLevel(level),
-    );
-    const learnerChoiceLevels = responsePreSelectedSession.learner_choice_levels.map((level) =>
-        responseToFormLevel(level),
-    );
-    const formPreSelectedSession: PreSelectedSession = {
-        id: responsePreSelectedSession.id,
-        name: responsePreSelectedSession.name,
-        maxLevels: responsePreSelectedSession.max_selectable_levels,
-        levelSelectionMode: responsePreSelectedSession.institute_assigned ? "institute" : "student",
-        learnerChoiceLevels: learnerChoiceLevels,
-        preSelectedLevels: preSelectedLevels,
-    };
-    return formPreSelectedSession;
-};
-
-export const responseToFormLearnerChoiceCourse = (
-    responseLearnerChoiceCourse: LearnerChoicePackagesType,
-): LearnerChoiceCourse => {
-    const learnerChoiceSessions = responseLearnerChoiceCourse.learner_choice_sessions.map(
-        (session) => responseToFormLearnerChoiceSession(session),
-    );
-    const formLearnerChoiceCourse: LearnerChoiceCourse = {
-        id: responseLearnerChoiceCourse.id,
-        name: responseLearnerChoiceCourse.name,
-        maxSessions: responseLearnerChoiceCourse.max_selectable_sessions,
-        sessionSelectionMode: "student",
-        learnerChoiceSessions: learnerChoiceSessions,
-    };
-    return formLearnerChoiceCourse;
-};
-
-export const responseToFormPreSelectedCourse = (
-    responsePreSelectedCourse: PreSelectedPackagesType,
-): PreSelectedCourse => {
-    const learnerChoiceSessions = responsePreSelectedCourse.learner_choice_sessions.map((session) =>
-        responseToFormLearnerChoiceSession(session),
-    );
-    const preSelectedSessions = responsePreSelectedCourse.pre_selected_session_dtos.map((session) =>
-        responseToFormPreSelectedSession(session),
-    );
-    const formPreSelectedCourse: PreSelectedCourse = {
-        id: responsePreSelectedCourse.id,
-        name: responsePreSelectedCourse.name,
-        maxSessions: responsePreSelectedCourse.max_selectable_sessions,
-        sessionSelectionMode: responsePreSelectedCourse.institute_assigned
-            ? "institute"
-            : "student",
-        learnerChoiceSessions: learnerChoiceSessions,
-        preSelectedSessions: preSelectedSessions,
-    };
-    return formPreSelectedCourse;
-};
-
-export const responseToFormBatch = (responseBatch: BatchOptionJsonType): BatchDetails => {
-    // const preSelectedCourse = responseBatch.pre_selected_packages.map((course) =>
-    //     responseToFormPreSelectedCourse(course),
-    // );
-    // const learnerChoiceCourse = responseBatch.learner_choice_packages.map((course) =>
-    //     responseToFormLearnerChoiceCourse(course),
-    // );
-    const batchFormData: BatchDetails = {
-        maxCourses: responseBatch.max_selectable_packages,
-        courseSelectionMode: responseBatch.institute_assigned ? "institute" : "student",
-        preSelectedCourses: [],
-        learnerChoiceCourses: [],
-    };
-    return batchFormData;
-};
+type GetDetailsFromPackageSessionId = (params: {
+    packageSessionId: string;
+}) => BatchForSessionType | null;
 
 export const responseToFormCustomField = (responseCustomField: CustomFieldType): CustomField => {
     const options = responseCustomField.comma_separated_options.split(",");
@@ -137,13 +31,78 @@ export const responseToFormCustomField = (responseCustomField: CustomFieldType):
     return formCustomField;
 };
 
-export default function responseDataToFormData(data: LearnerInvitationType): InviteForm {
+export const responseToFormPreSelectedCourses = (
+    responsePreSelectedCourses: PreSelectedPackagesType[],
+    getDetailsFromPackageSessionId: GetDetailsFromPackageSessionId,
+): BatchForSessionType[] => {
+    const psIds: string[] = [];
+    responsePreSelectedCourses.forEach((course) => {
+        course.pre_selected_session_dtos.forEach((session) => {
+            session.pre_selected_levels.forEach((level) => {
+                if (level.package_session_id) {
+                    psIds.push(level.package_session_id);
+                }
+            });
+        });
+    });
+
+    const formPreSelectedCourses: BatchForSessionType[] = psIds
+        .map((psId) => getDetailsFromPackageSessionId({ packageSessionId: psId }))
+        .filter((item): item is BatchForSessionType => item !== null);
+
+    return formPreSelectedCourses;
+};
+
+export const responseToFormLearnerChoiceCourses = (
+    responseLearnerChoiceCourses: LearnerChoicePackagesType[],
+    getDetailsFromPackageSessionId: GetDetailsFromPackageSessionId,
+): BatchForSessionType[] => {
+    const psIds: string[] = [];
+    responseLearnerChoiceCourses.forEach((course) => {
+        course.learner_choice_sessions.forEach((session) => {
+            session.learner_choice_levels.forEach((level) => {
+                if (level.package_session_id) {
+                    psIds.push(level.package_session_id);
+                }
+            });
+        });
+    });
+
+    const formLearnerChoiceCourses: BatchForSessionType[] = psIds
+        .map((psId) => getDetailsFromPackageSessionId({ packageSessionId: psId }))
+        .filter((item): item is BatchForSessionType => item !== null);
+
+    return formLearnerChoiceCourses;
+};
+
+export const responseToFormBatch = (
+    responseBatch: BatchOptionJsonType,
+    getDetailsFromPackageSessionId: GetDetailsFromPackageSessionId,
+): BatchDetails => {
+    const formBatch: BatchDetails = {
+        maxCourses: responseBatch.max_selectable_packages,
+        courseSelectionMode: responseBatch.institute_assigned ? "institute" : "student",
+        preSelectedCourses: responseToFormPreSelectedCourses(
+            responseBatch.pre_selected_packages,
+            getDetailsFromPackageSessionId,
+        ),
+        learnerChoiceCourses: responseToFormLearnerChoiceCourses(
+            responseBatch.learner_choice_packages,
+            getDetailsFromPackageSessionId,
+        ),
+    };
+    return formBatch;
+};
+
+export default function responseDataToFormData(
+    data: LearnerInvitationType,
+    getDetailsFromPackageSessionId: GetDetailsFromPackageSessionId,
+): InviteForm {
     const responseBatch: BatchOptionJsonType = JSON.parse(data.batch_options_json);
-    const formBatch: BatchDetails = responseToFormBatch(responseBatch);
+    const formBatch = responseToFormBatch(responseBatch, getDetailsFromPackageSessionId);
     const CustomFields: CustomField[] = data.custom_fields.map((customField) =>
         responseToFormCustomField(customField),
     );
-    // const inviteeEmails = data.emails_to_send_invitation.map((email, index)=>({ value: email, id: index.toString()}))
 
     // Convert expiry_date to Date format and calculate remaining days
     const expiryDate = new Date(data.expiry_date);
@@ -152,11 +111,11 @@ export default function responseDataToFormData(data: LearnerInvitationType): Inv
     const daysRemaining = Math.max(0, Math.ceil(timeDifference / (1000 * 60 * 60 * 24)));
 
     const formData: InviteForm = {
-        inviteLink: data.name,
+        inviteLink: data.name || "",
         activeStatus: data.status === "ACTIVE",
         custom_fields: CustomFields,
         batches: formBatch,
-        studentExpiryDays: daysRemaining, // Use calculated value
+        studentExpiryDays: daysRemaining,
         inviteeEmails: [{ id: "", value: "abc@gmail.com" }],
         inviteeEmail: "",
     };
