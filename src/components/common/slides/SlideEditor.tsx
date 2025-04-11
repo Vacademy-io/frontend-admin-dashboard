@@ -30,7 +30,7 @@ const sameElements = (elements1: any[], elements2: any[]) =>
     elements1.every((el, index) => sameElement(el, elements2[index]));
 
 export const SlideEditor = ({ slide, editMode, onSlideChange }: Props) => {
-    const [initialElements, setInitialElements] = useState(slide.elements);
+    const [initialElements, setInitialElements] = useState(slide?.elements);
 
     const onChange = (elements: any[]) => {
         if (!sameElements(elements, initialElements)) {

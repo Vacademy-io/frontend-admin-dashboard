@@ -15,6 +15,13 @@ import { SlideType } from "./constant/slideType";
 import { createNewSlide } from "./utils/util";
 import html2canvas from 'html2canvas';
 import PptxGenJS from 'pptxgenjs';
+import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
+import { QuizeSlide } from "./slidesTypes/QuizSlides";
+import { useForm } from "react-hook-form";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+
+
 
 const saveSlidesInLocalStorage = (slides: Slide[]) => {
     localStorage.setItem("slides", JSON.stringify(slides));
@@ -26,6 +33,7 @@ const getSlidesFromLocalStorage = (): Slide[] => {
 };
 
 export default function SlidesEditor() {
+
     const [editMode, setEditMode] = useState(true);
     const [slides, setSlides] = useState<Slide[]>([]);
     const [currentSlide, setCurrentSlide] = useState<string | undefined>(undefined);
@@ -48,7 +56,7 @@ export default function SlidesEditor() {
     const getSlide = (id: string) => slides.find((s) => s.id === id);
 
     const updateSlide = (id: string, elements: any[]) => {
-        console.log(elements , 'elements')
+        // console.log(elements , 'elements')
         const newSlides = slides.map((slide) =>
             slide.id === id ? { ...slide, elements: elements.filter((e) => !e.isDeleted) } : slide,
         );
@@ -245,10 +253,30 @@ export default function SlidesEditor() {
         }
     };
 
+
+    const SlideRenderer = ({ type, currentSlide  , questionType }) => {
+        switch (type) {
+          case SlideType.Quiz:
+             return <QuizeSlide formdata={getSlide(currentSlide)! }  className={"flex flex-col"} questionType={type} />
+         case SlideType.Feedback:
+             return <QuizeSlide formdata={getSlide(currentSlide)! }  className={"flex flex-col"} questionType={type} />
+          default:
+            return <SlideEditor
+            editMode={editMode}
+            slide={getSlide(currentSlide)!}
+            onSlideChange={(elements) =>
+                updateSlide(currentSlide, elements)
+            }
+            key={currentSlide}
+        />
+        }
+      };
+      
+
     return (
         <div className="flex h-screen w-full bg-white">
-            <div className="flex size-full flex-col rounded-xl bg-primary-100">
-                <div className="flex justify-end gap-2 rounded-md bg-primary-200 p-1 mb-1 h-32">
+            <div className="flex size-full flex-col rounded-xl bg-base-white">
+                <div className="flex justify-end gap-2 rounded-md bg-primary-200 p-1 mb-1 min-h-32">
                     <Button 
                         variant="destructive" 
                         onClick={takeScreenshot}
@@ -278,7 +306,7 @@ export default function SlidesEditor() {
                 </div>
 
                 <div 
-                    className="slide-container flex  gap-4"
+                    className="slide-container flex  gap-4 bg-primary-100"
                     style={{ position: 'relative' }}
                 >
                     {slides.map((slide, index) => (
@@ -301,46 +329,24 @@ export default function SlidesEditor() {
                                 onDeleteSlide={deleteSlide}
                                 onExport={exportFile}
                                 onImport={importFile}
+                                onReorderSlides={(slides : Slide[])=>{
+                                  setSlides(slides)
+                                }}
                             />
                         </div>
                     ))}
-                    <div className="flex flex-1 flex-col">
+                    <div className="flex flex-1 flex-col bg-white">
                         <div className="relative flex-1 rounded-xl border-2 border-primary-300">
                             {!editMode && (
                                 <div className="absolute inset-0 z-10 rounded-lg bg-black/50" />
                             )}
-                            {currentSlide !== undefined ? (
-                                <SlideEditor
-                                    editMode={editMode}
-                                    slide={getSlide(currentSlide)!}
-                                    onSlideChange={(elements) =>
-                                        updateSlide(currentSlide, elements)
-                                    }
-                                    key={currentSlide}
+                              <SlideRenderer
+                                  currentSlide={currentSlide}
+                                  type={getSlide(currentSlide)?.type}
                                 />
-                            ) : (
-                                <div className="flex h-full items-center justify-center">
-                                    Excalidraw
-                                </div>
-                            )}
                         </div>
 
-                        {/* <div className="mt-4 flex justify-center gap-2">
-                            <Button
-                                disabled={isFirstSlide}
-                                onClick={goToPreviousSlide}
-                                className="gap-2 bg-primary-400"
-                            >
-                                ←
-                            </Button>
-                            <Button
-                                disabled={isLastSlide}
-                                onClick={goToNextSlide}
-                                className="gap-2 bg-primary-400"
-                            >
-                                →
-                            </Button>
-                        </div> */}
+                       
                     </div>
                 </div>
             </div>
