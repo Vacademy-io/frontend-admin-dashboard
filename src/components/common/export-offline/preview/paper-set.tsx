@@ -238,6 +238,9 @@ export function PaperSet({ sections, setNumber, settings, instructions }: PaperS
                                 questionNumber={questionIndex + 1}
                                 showMarks={settings.showMarksPerQuestion}
                                 showCheckboxes={settings.showCheckboxesBeforeOptions}
+                                answerSpacing={
+                                    settings.answerSpacings?.[question.question_id] || 10
+                                }
                             />
                         </div>,
                     );
@@ -266,6 +269,9 @@ export function PaperSet({ sections, setNumber, settings, instructions }: PaperS
                                     questionNumber={questionIndex + 1}
                                     showMarks={settings.showMarksPerQuestion}
                                     showCheckboxes={settings.showCheckboxesBeforeOptions}
+                                    answerSpacing={
+                                        settings.answerSpacings?.[question.question_id] || 10
+                                    }
                                 />
                             </div>,
                         );
@@ -323,6 +329,9 @@ export function PaperSet({ sections, setNumber, settings, instructions }: PaperS
                                     questionNumber={questionIndex + 1}
                                     showMarks={settings.showMarksPerQuestion}
                                     showCheckboxes={settings.showCheckboxesBeforeOptions}
+                                    answerSpacing={
+                                        settings.answerSpacings?.[question.question_id] || 10
+                                    }
                                 />
                             </div>,
                         );
