@@ -1,12 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { LearnerInvitationType } from "../-types/create-invitation-types";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { GET_INVITE_DETAILS } from "@/constants/urls";
 
-export const useGetInviteDetails = ({ learnerInvitationId }: { learnerInvitationId: string }) => {
-    return useQuery({
-        queryKey: ["getInviteDetails", learnerInvitationId],
-        queryFn: async () => {
+export const useGetInviteDetails = () => {
+    return useMutation({
+        mutationFn: async ({ learnerInvitationId }: { learnerInvitationId: string }) => {
             const response = await authenticatedAxiosInstance.get(
                 `${GET_INVITE_DETAILS}?learnerInvitationId=${learnerInvitationId}`,
             );

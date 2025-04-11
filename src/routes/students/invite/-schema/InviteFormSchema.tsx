@@ -21,40 +21,6 @@ const levelSchema = z.object({
     packageSessionId: z.string(),
 });
 
-const learnerChoiceSessionSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    maxLevels: z.number(),
-    levelSelectionMode: selectionModeSchema,
-    learnerChoiceLevels: z.array(levelSchema),
-});
-
-const preSelectedSessionSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    maxLevels: z.number(),
-    levelSelectionMode: selectionModeSchema,
-    learnerChoiceLevels: z.array(levelSchema),
-    preSelectedLevels: z.array(levelSchema),
-});
-
-const learnerChoiceCoursesSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    maxSessions: z.number(),
-    sessionSelectionMode: selectionModeSchema,
-    learnerChoiceSessions: z.array(learnerChoiceSessionSchema),
-});
-
-const preSelectedCoursesSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    maxSessions: z.number(),
-    sessionSelectionMode: selectionModeSchema,
-    learnerChoiceSessions: z.array(learnerChoiceSessionSchema),
-    preSelectedSessions: z.array(preSelectedSessionSchema),
-});
-
 const batchSchema = z.object({
     maxCourses: z.number(),
     courseSelectionMode: selectionModeSchema,
@@ -94,10 +60,6 @@ export type InviteForm = z.infer<typeof inviteFormSchema>;
 export type SelectionMode = z.infer<typeof selectionModeSchema>;
 export type BatchField = z.infer<typeof dropdownItemSchema>;
 export type LevelField = z.infer<typeof levelSchema>;
-export type PreSelectedSession = z.infer<typeof preSelectedSessionSchema>;
-export type LearnerChoiceSession = z.infer<typeof learnerChoiceSessionSchema>;
-export type PreSelectedCourse = z.infer<typeof preSelectedCoursesSchema>;
-export type LearnerChoiceCourse = z.infer<typeof learnerChoiceCoursesSchema>;
 export type BatchDetails = z.infer<typeof batchSchema>;
 export type CustomField = z.infer<typeof customFieldSchema>;
 
@@ -137,3 +99,42 @@ export const defaultFormValues: Partial<InviteForm> = {
     inviteeEmail: "",
     inviteeEmails: [],
 };
+
+const learnerChoiceSessionSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxLevels: z.number(),
+    levelSelectionMode: selectionModeSchema,
+    learnerChoiceLevels: z.array(levelSchema),
+});
+
+const preSelectedSessionSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxLevels: z.number(),
+    levelSelectionMode: selectionModeSchema,
+    learnerChoiceLevels: z.array(levelSchema),
+    preSelectedLevels: z.array(levelSchema),
+});
+
+const learnerChoiceCoursesSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxSessions: z.number(),
+    sessionSelectionMode: selectionModeSchema,
+    learnerChoiceSessions: z.array(learnerChoiceSessionSchema),
+});
+
+const preSelectedCoursesSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    maxSessions: z.number(),
+    sessionSelectionMode: selectionModeSchema,
+    learnerChoiceSessions: z.array(learnerChoiceSessionSchema),
+    preSelectedSessions: z.array(preSelectedSessionSchema),
+});
+
+export type PreSelectedSession = z.infer<typeof preSelectedSessionSchema>;
+export type LearnerChoiceSession = z.infer<typeof learnerChoiceSessionSchema>;
+export type PreSelectedCourse = z.infer<typeof preSelectedCoursesSchema>;
+export type LearnerChoiceCourse = z.infer<typeof learnerChoiceCoursesSchema>;
