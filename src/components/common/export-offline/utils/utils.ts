@@ -14,52 +14,57 @@ export function extractImagesFromHtml(html: string) {
  * @param htmlString The HTML string to process
  * @returns An array of content items (text or image)
  */
-export const processHtmlString = (htmlString: string) => {
-    // Create a temporary div to parse the HTML
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = htmlString;
+export function processHtmlString(html: string | undefined) {
+    if (!html) return [{ type: "text", content: "" }];
 
-    // Array to store processed content
-    const processedContent: Array<{ type: "text" | "image"; content: string }> = [];
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const result: { type: string; content: string }[] = [];
 
-    // Iterate through child nodes
-    tempDiv.childNodes.forEach((node) => {
+    // Helper function to process nodes recursively
+    function processNode(node: Node) {
         if (node.nodeType === Node.TEXT_NODE) {
-            // Process text nodes
-            const trimmedText = node.textContent?.trim();
-            if (trimmedText) {
-                processedContent.push({
-                    type: "text",
-                    content: trimmedText,
-                });
+            const text = node.textContent?.trim();
+            if (text) {
+                result.push({ type: "text", content: text });
             }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const element = node as HTMLElement;
+            const element = node as Element;
 
-            // Process image nodes
-            if (element.tagName.toLowerCase() === "img") {
+            // Handle images
+            if (element.tagName === "IMG") {
                 const src = element.getAttribute("src");
                 if (src) {
-                    processedContent.push({
-                        type: "image",
-                        content: src,
-                    });
+                    result.push({ type: "image", content: src });
                 }
-            } else {
-                // Process other elements' text content
-                const text = element.textContent?.trim();
-                if (text) {
-                    processedContent.push({
-                        type: "text",
-                        content: text,
-                    });
+            }
+            // Handle KaTeX/math formula spans
+            else if (
+                element.classList.contains("ql-formula") ||
+                element.querySelector(".katex, .katex-html, .katex-mathml")
+            ) {
+                // Preserve the entire formula HTML
+                result.push({
+                    type: "formula",
+                    content: element.outerHTML,
+                });
+            }
+            // Process children recursively for other elements
+            else {
+                for (const child of Array.from(element.childNodes)) {
+                    processNode(child);
                 }
             }
         }
-    });
+    }
 
-    return processedContent;
-};
+    // Process all body children
+    for (const child of Array.from(doc.body.childNodes)) {
+        processNode(child);
+    }
+
+    return result;
+}
 
 export function makeid() {
     let text = "";

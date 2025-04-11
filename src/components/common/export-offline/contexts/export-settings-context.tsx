@@ -38,6 +38,8 @@ export interface ExportSettings {
     customLetterheadImage?: string;
     showFirstPageInstructions: boolean;
     customImageSizes: { [imageUrl: string]: { width: number; height: number } };
+    answerSpacings: { [questionId: string]: number };
+    maintainImageAspectRatio: boolean;
 }
 
 const defaultSettings: ExportSettings = {
@@ -67,6 +69,8 @@ const defaultSettings: ExportSettings = {
     customLetterheadImage: undefined,
     showFirstPageInstructions: true,
     customImageSizes: {},
+    answerSpacings: {},
+    maintainImageAspectRatio: true,
 };
 
 const ExportSettingsContext = createContext<{
