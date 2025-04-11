@@ -34,6 +34,7 @@ import { Route as EvaluationEvaluationToolIndexImport } from "./routes/evaluatio
 import { Route as CommunityQuestionPaperIndexImport } from "./routes/community/question-paper/index"
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index"
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index"
+import { Route as StudyLibraryPresentAddIndexImport } from "./routes/study-library/present/add/index"
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index"
 import { Route as AssessmentExportAssessmentIdIndexImport } from "./routes/assessment/export/$assessmentId/index"
 import { Route as StudyLibraryCoursesLevelsSubjectsIndexImport } from "./routes/study-library/courses/levels/subjects/index"
@@ -187,6 +188,13 @@ const AssessmentAssessmentListIndexRoute =
   AssessmentAssessmentListIndexImport.update({
     id: "/assessment/assessment-list/",
     path: "/assessment/assessment-list/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const StudyLibraryPresentAddIndexRoute =
+  StudyLibraryPresentAddIndexImport.update({
+    id: "/study-library/present/add/",
+    path: "/study-library/present/add/",
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -427,6 +435,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof StudyLibraryCoursesLevelsIndexImport
       parentRoute: typeof rootRoute
     }
+    "/study-library/present/add/": {
+      id: "/study-library/present/add/"
+      path: "/study-library/present/add"
+      fullPath: "/study-library/present/add"
+      preLoaderRoute: typeof StudyLibraryPresentAddIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/assessment/create-assessment/$assessmentId/$examtype/": {
       id: "/assessment/create-assessment/$assessmentId/$examtype/"
       path: "/assessment/create-assessment/$assessmentId/$examtype"
@@ -500,6 +515,7 @@ export interface FileRoutesByFullPath {
   "/study-library/session": typeof StudyLibrarySessionIndexRoute
   "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
   "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
+  "/study-library/present/add": typeof StudyLibraryPresentAddIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/courses/levels/subjects": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
   "/study-library/courses/levels/subjects/modules": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute
@@ -534,6 +550,7 @@ export interface FileRoutesByTo {
   "/study-library/session": typeof StudyLibrarySessionIndexRoute
   "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
   "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
+  "/study-library/present/add": typeof StudyLibraryPresentAddIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/courses/levels/subjects": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
   "/study-library/courses/levels/subjects/modules": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute
@@ -569,6 +586,7 @@ export interface FileRoutesById {
   "/study-library/session/": typeof StudyLibrarySessionIndexRoute
   "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute
   "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute
+  "/study-library/present/add/": typeof StudyLibraryPresentAddIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/courses/levels/subjects/": typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
   "/study-library/courses/levels/subjects/modules/": typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute
@@ -605,6 +623,7 @@ export interface FileRouteTypes {
     | "/study-library/session"
     | "/assessment/export/$assessmentId"
     | "/study-library/courses/levels"
+    | "/study-library/present/add"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/study-library/courses/levels/subjects"
     | "/study-library/courses/levels/subjects/modules"
@@ -638,6 +657,7 @@ export interface FileRouteTypes {
     | "/study-library/session"
     | "/assessment/export/$assessmentId"
     | "/study-library/courses/levels"
+    | "/study-library/present/add"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/study-library/courses/levels/subjects"
     | "/study-library/courses/levels/subjects/modules"
@@ -671,6 +691,7 @@ export interface FileRouteTypes {
     | "/study-library/session/"
     | "/assessment/export/$assessmentId/"
     | "/study-library/courses/levels/"
+    | "/study-library/present/add/"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
     | "/study-library/courses/levels/subjects/"
     | "/study-library/courses/levels/subjects/modules/"
@@ -706,6 +727,7 @@ export interface RootRouteChildren {
   StudyLibrarySessionIndexRoute: typeof StudyLibrarySessionIndexRoute
   AssessmentExportAssessmentIdIndexRoute: typeof AssessmentExportAssessmentIdIndexRoute
   StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute
+  StudyLibraryPresentAddIndexRoute: typeof StudyLibraryPresentAddIndexRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   StudyLibraryCoursesLevelsSubjectsIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsIndexRoute
   StudyLibraryCoursesLevelsSubjectsModulesIndexRoute: typeof StudyLibraryCoursesLevelsSubjectsModulesIndexRoute
@@ -741,6 +763,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssessmentExportAssessmentIdIndexRoute:
     AssessmentExportAssessmentIdIndexRoute,
   StudyLibraryCoursesLevelsIndexRoute: StudyLibraryCoursesLevelsIndexRoute,
+  StudyLibraryPresentAddIndexRoute: StudyLibraryPresentAddIndexRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
   StudyLibraryCoursesLevelsSubjectsIndexRoute:
@@ -790,6 +813,7 @@ export const routeTree = rootRoute
         "/study-library/session/",
         "/assessment/export/$assessmentId/",
         "/study-library/courses/levels/",
+        "/study-library/present/add/",
         "/assessment/create-assessment/$assessmentId/$examtype/",
         "/study-library/courses/levels/subjects/",
         "/study-library/courses/levels/subjects/modules/",
@@ -872,6 +896,9 @@ export const routeTree = rootRoute
     },
     "/study-library/courses/levels/": {
       "filePath": "study-library/courses/levels/index.tsx"
+    },
+    "/study-library/present/add/": {
+      "filePath": "study-library/present/add/index.tsx"
     },
     "/assessment/create-assessment/$assessmentId/$examtype/": {
       "filePath": "assessment/create-assessment/$assessmentId/$examtype/index.tsx"
