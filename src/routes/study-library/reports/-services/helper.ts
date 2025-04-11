@@ -66,7 +66,8 @@ export const transformToChartData = (report: LearnersReportResponse): ChartDataT
     return Array.from(chartDataMap.values());
 };
 
-export const formatToTwoDecimalPlaces = (value: string | number): string => {
+export const formatToTwoDecimalPlaces = (value: string | number | undefined | null): string => {
+    if (!value) return "0.00";
     if (typeof value === "number") {
         return isNaN(value) ? "0.00" : value.toFixed(2);
     }
@@ -83,3 +84,16 @@ export function convertMinutesToTimeFormat(totalMinutes: number): string {
     else if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
     else return `${minutes}m ${seconds}s`;
 }
+export const convertCommaSeparatedToArray = (input: string | null | undefined): string[] => {
+    if (!input) {
+        return []; // Return an empty array if input is null, empty, or undefined
+    }
+    return input
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item !== "");
+};
+
+export const arrayToCommaSeparatedString = (arr: string[]): string | null => {
+    return arr.length === 0 ? null : arr.join(", ");
+};

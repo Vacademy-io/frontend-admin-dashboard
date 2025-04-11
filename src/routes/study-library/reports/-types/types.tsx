@@ -281,3 +281,60 @@ export const SLIDES_WIDTH: Record<keyof SlidesColumnType, string> = {
     concentration_score: "w-[150px]",
     time_spent: "w-[150px]",
 };
+
+interface ProgressReportSetting {
+    daily: boolean;
+    weekly: boolean;
+    monthly: boolean;
+}
+
+export interface RoleSetting {
+    comma_separated_communication_types: string;
+    learner_progress_report: ProgressReportSetting;
+    batch_progress_report: ProgressReportSetting;
+    comma_separated_email_ids: string | null;
+    comma_separated_mobile_number: string | null;
+}
+
+export interface InstituteSettingResponse {
+    learner_setting: RoleSetting;
+    parent_setting: RoleSetting;
+}
+
+export enum RoleSettingEnum {
+    LEARNER = "learner_setting",
+    PARENT = "parent_setting",
+}
+
+export enum CommunicationTypeEnum {
+    EMAIL = "EMAIL",
+    WHATSAPP = "WHATSAPP",
+}
+
+export enum ReportDurationEnum {
+    DAILY = "daily",
+    WEEKLY = "weekly",
+    MONTHLY = "monthly",
+}
+
+export enum ReportTypeEnum {
+    LEARNER_PROGRESS = "learner_progress_report",
+    BATCH_PROGRESS = "batch_progress_report",
+}
+
+export enum commaSeperatedType {
+    EMAIL = "comma_separated_email_ids",
+    MOBILE = "comma_separated_mobile_number",
+}
+
+export interface MultipleInputProps {
+    itemsList: string[];
+    onListChange: (
+        role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT,
+        commaSeperatedType: commaSeperatedType,
+        updatedList: string[],
+    ) => void;
+    inputType: "email" | "mobile";
+    role: RoleSettingEnum.LEARNER | RoleSettingEnum.PARENT;
+    commaSeperatedType: commaSeperatedType;
+}
