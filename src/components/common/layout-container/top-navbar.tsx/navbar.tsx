@@ -83,8 +83,8 @@ export function Navbar() {
                         <DropdownMenuContent>
                             {/* <DropdownMenuItem className="cursor-pointer">
                                 View Profile Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
+                            </DropdownMenuItem> */}
+                            {/* <DropdownMenuItem className="cursor-pointer">
                                 View Institute Details
                             </DropdownMenuItem> */}
                             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
