@@ -31,7 +31,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
     const updateInviteMutation = useUpdateInvite();
     const getInviteDetailsMutation = useGetInviteDetails();
     const formSubmitRef = useRef<() => void>(() => {});
-    const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
+    const { getDetailsFromPackageSessionId, getPackageSessionId } = useInstituteDetailsStore();
 
     const onDeleteInvite = async (invite: InviteLinkType) => {
         try {
@@ -74,7 +74,9 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                 const data = await getInviteDetailsMutation.mutateAsync({
                     learnerInvitationId: invite.id,
                 });
+                console.log("data", JSON.parse(data.batch_options_json));
                 const formData = responseDataToFormData(data, getDetailsFromPackageSessionId);
+                console.log("formData", formData);
                 setInitialValues(formData);
                 resetContext(formData);
                 setOpenEditDialog(true);
@@ -87,7 +89,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
     const onUpdateInvite = async (inviteData: InviteForm) => {
         console.log("insite update invite");
         try {
-            const requestFormat = formDataToRequestData(inviteData, invite.id);
+            const requestFormat = formDataToRequestData(inviteData, getPackageSessionId, invite.id);
             await updateInviteMutation.mutateAsync({
                 requestBody: requestFormat.learner_invitation,
             });

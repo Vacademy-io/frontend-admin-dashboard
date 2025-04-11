@@ -19,6 +19,7 @@ import createInviteLink from "../-utils/createInviteLink";
 import { useInviteFormContext } from "../-context/useInviteFormContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MyDialog } from "@/components/design-system/dialog";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export const Invite = () => {
     const { setValue, watch } = form;
     const [disableCreateInviteButton, setDisableCreateInviteButton] = useState<boolean>(true);
     const [openInvitationLinkDialog, setOpenInvitationLinkDialog] = useState<boolean>(false);
+    const { getPackageSessionId } = useInstituteDetailsStore();
 
     const handleDisableCreateInviteButton = (value: boolean) => {
         setDisableCreateInviteButton(value);
@@ -105,7 +107,7 @@ export const Invite = () => {
     };
 
     const onCreateInvite = async (invite: InviteForm) => {
-        const requestData = formDataToRequestData(invite);
+        const requestData = formDataToRequestData(invite, getPackageSessionId);
         try {
             const { data: responseData }: { data: CreateInvitationRequestType } =
                 await createInviteMutation.mutateAsync({ requestBody: requestData });
