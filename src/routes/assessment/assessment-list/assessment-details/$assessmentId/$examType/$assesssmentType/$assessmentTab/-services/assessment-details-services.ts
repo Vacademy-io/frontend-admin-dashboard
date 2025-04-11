@@ -645,7 +645,7 @@ export const handleGetIndividualStudentList = ({
     };
 };
 
-export const getAttemptData = async (attemptId:string) => {
+export const getAttemptData = async (attemptId: string) => {
     const response = await authenticatedAxiosInstance({
         method: "GET",
         url: `${GET_ATTEMPT_DATA}`,
@@ -656,24 +656,23 @@ export const getAttemptData = async (attemptId:string) => {
     return response?.data;
 };
 
-export const getAttemptDetails = (attemptId:string) => {
+export const getAttemptDetails = (attemptId: string) => {
     return {
         queryKey: ["GET_ASSESSMENT_DETAILS", attemptId],
         queryFn: () => getAttemptData(attemptId),
         staleTime: 60 * 60 * 1000,
         enabled: !!attemptId,
     };
-}
+};
 
-export const handleUpdateAttempt = async (attemptId:string,fileId:string) => {
+export const handleUpdateAttempt = async (attemptId: string, fileId: string) => {
     const response = await authenticatedAxiosInstance({
-        method:"POST",
-        url:UPDATE_ATTEMPT,
-        params:{
+        method: "POST",
+        url: UPDATE_ATTEMPT,
+        params: {
             attemptId,
-            fileId
-        }
-    })
+            fileId,
+        },
+    });
     return response?.data;
-
 };

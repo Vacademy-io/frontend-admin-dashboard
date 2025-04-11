@@ -50,7 +50,7 @@ export interface StudentTable {
     institute_id: string;
     expiry_date: number;
     face_file_id: string;
-    attempt_id?:string;
+    attempt_id?: string;
 }
 
 export interface StudentListResponse {

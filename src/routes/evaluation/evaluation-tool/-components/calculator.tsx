@@ -118,9 +118,9 @@ export default function Calculator({
         <MyDialog heading="Calculator" open={open} onOpenChange={onOpenChange}>
             <div className="mx-auto flex size-3/4 flex-col overflow-hidden rounded-2xl bg-slate-50">
                 {/* Display */}
-                <div className="flex h-1/4 items-end justify-end bg-slate-100 p-6 text-black relative">
+                <div className="relative flex h-1/4 items-end justify-end bg-slate-100 p-6 text-black">
                     {operator && (
-                        <div className="absolute top-2 left-2 text-[22px] text-gray-500">
+                        <div className="absolute left-2 top-2 text-[22px] text-gray-500">
                             {operator}
                         </div>
                     )}
