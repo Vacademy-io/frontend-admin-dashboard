@@ -330,6 +330,21 @@ export const handlePostStep4Data = async (
     instituteId: string | undefined,
     type: string | undefined,
 ) => {
+    //Currently implementated only for evaluation setting
+    const assess_setting = {
+        institute_id: instituteId,
+        assessment_id: assessmentId,
+        type: "manual",
+        users: data.evaluation_process.map((user) => {
+            return {
+                user_id: user.userId,
+                name: user.name,
+                email: user.email,
+                role: user.roles[0]?.roleName,
+            };
+        }),
+    };
+
     const addedData = {
         assessment_creation_access: {
             batch_ids: [],
@@ -350,6 +365,7 @@ export const handlePostStep4Data = async (
             batch_ids: [],
             roles: [],
             user_ids: data.evaluation_process.map((user) => user.userId),
+            assess_setting: JSON.stringify(assess_setting),
         },
     };
     const response = await authenticatedAxiosInstance({
