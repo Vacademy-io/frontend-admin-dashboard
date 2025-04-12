@@ -60,7 +60,7 @@ export const fetchUserDocSlideLogs = async (
     return response.data;
 };
 
-export const getUserVideoDocActivityLogs = ({
+export const getUserDocActivityLogs = ({
     userId,
     slideId,
     pageNo,

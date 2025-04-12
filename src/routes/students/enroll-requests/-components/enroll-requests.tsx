@@ -1,8 +1,15 @@
 import { LearnerEnrollRequestType } from "../-types/enroll-request-types";
 import { EmptyRequestPage } from "@/assets/svgs";
 import { RequestCard } from "./request-card";
+import { useGetEnrollRequests } from "../-services/get-enroll-requests";
+import { TokenKey } from "@/constants/auth/tokens";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const EnrollRequests = () => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const data: LearnerEnrollRequestType[] = [
         {
             invite_link: "https://forms.gle/example123",
@@ -72,9 +79,27 @@ export const EnrollRequests = () => {
         },
     ];
 
+    const {
+        data: requestData,
+        isLoading,
+        isError,
+    } = useGetEnrollRequests({
+        instituteId: INSTITUTE_ID || "",
+        pageNo: 0,
+        pageSize: 10,
+        filterRequest: {
+            status: ["ACTIVE", "INACTIVE"],
+            name: "",
+        },
+    });
+
+    if (isLoading) return <DashboardLoader />;
+
+    if (isError) return <p>Error fetching enroll requests</p>;
+
     return (
         <div className="flex w-full flex-col gap-10 text-neutral-600">
-            {data.length == 0 ? (
+            {requestData == undefined || requestData == null || requestData.content.length == 0 ? (
                 <div className="flex h-[70vh] w-full flex-col items-center justify-center gap-2 text-title">
                     <EmptyRequestPage />
                     <p className="font-semibold">No Enrollment Requests Yet!</p>

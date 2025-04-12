@@ -1,12 +1,12 @@
 import { SidebarMenuItem } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { MyButton } from "@/components/design-system/button";
-import { PencilSimpleLine } from "@phosphor-icons/react";
 import { ProgressBar } from "@/components/design-system/progress-bar";
 import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { useEffect, useState } from "react";
 import { OverViewData, OverviewDetailsType } from "./overview";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { EditStudentDetails } from "./EditStudentDetails";
+import { useStudentCredentialsStore } from "@/stores/students/students-list/useStudentCredentialsStore";
 
 export const StudentOverview = () => {
     const { selectedStudent } = useStudentSidebar();
@@ -14,19 +14,33 @@ export const StudentOverview = () => {
     const [daysUntilExpiry, setDaysUntilExpiry] = useState<number>(0);
 
     const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
+    const { getCredentials } = useStudentCredentialsStore();
+    const [password, setPassword] = useState(
+        getCredentials(selectedStudent?.user_id || "")?.password || "password not found",
+    );
+
+    useEffect(() => {
+        if (selectedStudent) {
+            const credentials = getCredentials(selectedStudent.user_id);
+            setPassword(credentials?.password || "password not found");
+        }
+    }, [selectedStudent]);
 
     useEffect(() => {
         const details = getDetailsFromPackageSessionId({
             packageSessionId: selectedStudent?.package_session_id || "",
         });
         setOverviewData(
-            OverViewData({ selectedStudent: selectedStudent, packageSessionDetails: details }),
+            OverViewData({
+                selectedStudent: selectedStudent,
+                packageSessionDetails: details,
+                password: password,
+            }),
         );
 
         // Calculate days until expiry
         if (selectedStudent?.expiry_date) {
             const expiryDate = new Date(selectedStudent.expiry_date);
-            console.log("expiry date: ", expiryDate);
             const currentDate = new Date();
 
             // Calculate the difference in milliseconds
@@ -40,10 +54,11 @@ export const StudentOverview = () => {
         } else {
             setDaysUntilExpiry(0);
         }
-    }, [selectedStudent, instituteDetails]);
+    }, [selectedStudent, instituteDetails, password]);
 
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
+            <EditStudentDetails selectedStudent={selectedStudent} />
             <SidebarMenuItem className="flex w-full flex-col gap-2">
                 <div className="flex gap-2">
                     <div className="text-subtitle font-semibold">Session Expiry (Days)</div>
@@ -81,14 +96,11 @@ export const StudentOverview = () => {
                                         ) : (
                                             <p className="py-4 text-center text-subtitle">
                                                 {" "}
-                                                Student details not available
+                                                S tudent details not available
                                             </p>
                                         )}
                                     </div>
                                 </div>
-                                <MyButton buttonType="secondary" scale="small" layoutVariant="icon">
-                                    <PencilSimpleLine size={14} />
-                                </MyButton>
                             </div>
                             <Separator />
                         </div>

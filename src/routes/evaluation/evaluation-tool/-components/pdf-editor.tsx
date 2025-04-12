@@ -5,10 +5,20 @@ import { Document, Page, pdfjs } from "react-pdf";
 import { Canvas } from "fabric";
 import { Upload, Download, ChevronLeft, ChevronRight, AlertCircle, RefreshCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialog, AlertDialogDescription } from "@/components/ui/alert-dialog";
+import {
+    AlertDialog,
+    AlertDialogDescription,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MagnifyingGlassMinus, MagnifyingGlassPlus } from "phosphor-react";
+import { MagnifyingGlassMinus, MagnifyingGlassPlus, X } from "phosphor-react";
 import { PDFDocument } from "pdf-lib";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -20,12 +30,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ColorPicker } from "@/components/ui/color-picker";
 import useCanvasTools from "../-hooks/tools";
 import useFabric from "../-hooks/canvas";
+import Dropzone, { useDropzone } from "react-dropzone";
+import { ImportFileImage } from "@/assets/svgs";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { toast } from "sonner";
+import { ProgressBar } from "@/components/design-system/progress-bar";
+import { SlNote } from "react-icons/sl";
+import Evaluation from "./evaluation";
+import { useRouter } from "@tanstack/react-router";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs`;
 
-const PDFEvaluator = () => {
+const PDFEvaluator = ({ file }: { file?: File }) => {
     // File states
-    const [pdfFile, setPdfFile] = useState<File | null>(null);
+    const [pdfFile, setPdfFile] = useState<File | null>(file);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [error, setError] = useState("");
 
@@ -36,6 +54,13 @@ const PDFEvaluator = () => {
     const [pagesVisited, setPagesVisited] = useState<number[]>([]);
     const [docLoaded, setDocLoaded] = useState(false);
     const [prevPageNumber, setPrevPageNumber] = useState(1);
+    const [loadingDoc, setLoadingDoc] = useState(true);
+    const [progress, setProgress] = useState<number>(0);
+    const [dimensions, setDimensions] = useState({
+        width: 600,
+        height: 800,
+    });
+    const router = useRouter();
 
     // Canvas states
     const [fabricCanvas, setFabricCanvas] = useState<Canvas | null>(null);
@@ -52,6 +77,9 @@ const PDFEvaluator = () => {
     // Zoom state
     const [zoomLevel, setZoomLevel] = useState(1);
 
+    // Evaluation panel state
+    const [showEvaluationPanel, setShowEvaluationPanel] = useState(false);
+
     // Refs
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const canvasRef = useRef(null);
@@ -60,32 +88,26 @@ const PDFEvaluator = () => {
 
     const [openCalc, setOpenCalc] = useState(false);
 
-    // File handling functions
-    const validateFile = (file: File) => {
-        setError("");
-        if (!file) {
-            setError("No file selected");
-            return false;
-        }
-        if (file.type !== "application/pdf") {
-            setError("Please upload a PDF file");
-            return false;
-        }
-        if (file.size > 20 * 1024 * 1024) {
-            setError("File size should be less than 20MB");
-            return false;
-        }
-        return true;
-    };
+    const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop: (acceptedFiles) => handleFile(acceptedFiles[0]),
+        accept: {
+            "application/pdf": [".pdf"],
+        },
+        maxFiles: 1,
+        onDropRejected: (errors) => {
+            console.log(errors);
+            setError("Invalid file type. Please upload a PDF file.");
+        },
+    });
 
     const handleFile = (file: File) => {
-        if (validateFile(file)) {
-            setPdfFile(file);
-            const fileUrl = URL.createObjectURL(file);
-            setPdfUrl(fileUrl);
-            setPageNumber(1);
-            setAnnotations({});
-        }
+        setPdfFile(file);
+        const fileUrl = URL.createObjectURL(file);
+        setPdfUrl(fileUrl);
+        setPageNumber(1);
+        setAnnotations({});
     };
 
     const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
@@ -114,18 +136,20 @@ const PDFEvaluator = () => {
 
             window.addEventListener("resize", handleResize);
             setFabricCanvas(canvas);
+
             return () => {
                 window.removeEventListener("resize", handleResize);
                 canvas.dispose();
             };
         }
         return;
-    }, [pdfFile]);
+    }, [pdfFile, loadingDoc]);
 
     useEffect(() => {
         setTimeout(() => {
             loadPDF();
-        }, 1000);
+            setLoadingDoc(false);
+        }, 50);
     }, [fabricCanvas]);
 
     // Save annotations when changing pages
@@ -155,6 +179,39 @@ const PDFEvaluator = () => {
         }
     }, [pageNumber]);
 
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            const message =
+                "Changes you made may not be saved. Are you sure you want to leave this page?";
+            e.returnValue = message;
+            return message;
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = router.subscribe("onBeforeNavigate", (event) => {
+            if (pdfFile) {
+                const confirmMessage =
+                    "Changes you made may not be saved. Are you sure you want to leave this page?";
+
+                if (!window.confirm(confirmMessage)) {
+                    event.preventDefault();
+                }
+            }
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [annotations, router]);
+
     // PDF navigation
     const changePage = (offset: number) => {
         setPageNumber((prevPageNumber) => {
@@ -180,7 +237,6 @@ const PDFEvaluator = () => {
     // New download function using html2canvas
     const downloadAnnotatedPDF = async () => {
         if (!pdfFile) return;
-
         try {
             // Save current page annotations first
             if (fabricCanvas) {
@@ -296,26 +352,70 @@ const PDFEvaluator = () => {
     };
 
     async function loadPDF() {
+        if (!loadingDoc || !pdfUrl) return;
         const abc = document.querySelector(".react-pdf__Document");
 
         const width = abc?.clientWidth || 600;
         const height = abc?.clientHeight || 800;
 
-        // Set canvas dimensions based on orientation
-        if (width > height) {
-            // Landscape orientation
-            fabricCanvas?.setWidth(width);
-            fabricCanvas?.setHeight(height); // Adjust height as needed
-        } else {
-            // Portrait orientation
-            fabricCanvas?.setWidth(width);
-            fabricCanvas?.setHeight(height);
-        }
+        fabricCanvas?.setWidth(width);
+        fabricCanvas?.setHeight(height);
 
-        // Continue with loading the PDF content onto the canvas...
+        setDimensions({ width, height });
     }
 
-    if (!pdfFile) {
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Check if text is currently selected
+            const isTextSelected = window.getSelection()?.toString().trim() !== "";
+
+            // Check if the active element is an input, textarea, or has contenteditable attribute
+            const isInputFocused =
+                document.activeElement?.tagName.toLowerCase() === "input" ||
+                document.activeElement?.getAttribute("contenteditable") === "true";
+
+            // Check if the active canvas object is a text object with an active cursor
+            const isTextObjectActive =
+                fabricCanvas?.getActiveObject()?.type === "i-text" &&
+                (fabricCanvas?.getActiveObject() as fabric.IText)?.isEditing;
+
+            // Only proceed with delete if none of the above conditions are true
+            if (
+                (event.key === "Delete" || event.key === "Backspace") &&
+                fabricCanvas &&
+                !isTextSelected &&
+                !isInputFocused &&
+                !isTextObjectActive
+            ) {
+                event.preventDefault();
+                canvasUtils.deleteSelectedShape();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [fabricCanvas, canvasUtils]);
+
+    const handleSubmit = () => {
+        // Close the dialog
+        setIsSubmitDialogOpen(false);
+
+        // Show success toast
+        toast.success("Evaluation Submitted", {
+            description: "The answer sheet evaluation has been completed and submitted.",
+            duration: 3000,
+        });
+        router.navigate({ to: "/evaluation/evaluations" });
+        // Go back to last route
+
+        // TODO: Add actual submission logic here
+        // For example, sending evaluation data to backend
+    };
+
+    if (!pdfFile && !pdfUrl) {
         return (
             <div className="flex h-full flex-col items-center justify-center gap-y-4">
                 <Card className="w-1/2 text-3xl font-semibold">
@@ -323,34 +423,31 @@ const PDFEvaluator = () => {
                         <CardTitle>Upload your answer sheet</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div
-                            className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors`}
-                        >
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileInput}
-                                accept=".pdf"
-                                className="hidden"
-                            />
-                            <Upload className={`mx-auto mb-4 size-12`} />
-                            <div className="flex flex-col items-center gap-2">
-                                <Button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="rounded-md bg-primary-500 px-4 py-2 text-white hover:bg-primary-500"
-                                >
-                                    Select PDF File
-                                </Button>
-                                <p className="text-sm text-gray-500">
-                                    Drag & drop a PDF file here or click to select
-                                </p>
-                                {error && (
-                                    <AlertDialog>
-                                        <AlertCircle className="size-4" />
-                                        <AlertDialogDescription>{error}</AlertDialogDescription>
-                                    </AlertDialog>
-                                )}
+                        <div className="flex w-full flex-col items-center gap-2">
+                            <div
+                                {...getRootProps()}
+                                className={`w-full cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${
+                                    isDragActive ? "bg-primary-50" : "bg-white"
+                                } transition-colors duration-200 ease-in-out`}
+                            >
+                                <input {...getInputProps()} />
+                                <div className="flex flex-col items-center justify-center gap-4">
+                                    <ImportFileImage />
+
+                                    <p className="text-center text-base text-neutral-600">
+                                        Drag and drop a PDF file here, or click to select one
+                                    </p>
+                                </div>
                             </div>
+
+                            {error && (
+                                <AlertDialog>
+                                    <AlertCircle className="size-6 text-red-400" />
+                                    <AlertDialogDescription className="text-red-500">
+                                        {error}
+                                    </AlertDialogDescription>
+                                </AlertDialog>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -360,7 +457,7 @@ const PDFEvaluator = () => {
 
     return (
         <div className="flex h-full w-full justify-between">
-            <div className="gap- flex w-full justify-center gap-2">
+            <div className="gap- relative flex w-full justify-center gap-2">
                 {/* Loading overlay */}
                 {isLoading && <LoadingOverlay />}
 
@@ -368,7 +465,7 @@ const PDFEvaluator = () => {
                     {/* Toolbar */}
                     <Card className="sticky top-[72px] z-10 max-h-fit max-w-20 overflow-y-scroll">
                         <CardHeader>
-                            <CardTitle className="text-center">Tools</CardTitle>
+                            <CardTitle className="text-wrap text-center"> Tools</CardTitle>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-2 px-1 py-2">
                             <div className="flex flex-col items-center gap-y-2">
@@ -434,6 +531,35 @@ const PDFEvaluator = () => {
                                 >
                                     <RefreshCcw className="size-4" />
                                 </Button>
+                                <AlertDialog
+                                    open={isSubmitDialogOpen}
+                                    onOpenChange={setIsSubmitDialogOpen}
+                                >
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            onClick={() => setIsSubmitDialogOpen(true)}
+                                            className="w-fit"
+                                            disabled={isLoading}
+                                        >
+                                            Submit
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Are you sure you want to submit this evaluation?
+                                                This action cannot be undone.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleSubmit}>
+                                                Continue
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                         </CardContent>
                     </Card>
@@ -507,55 +633,101 @@ const PDFEvaluator = () => {
                                 <Button onClick={handleResetZoom} className="" disabled={isLoading}>
                                     <TbZoomReset size={25} />
                                 </Button>
+                                <Button
+                                    onClick={() => setShowEvaluationPanel(!showEvaluationPanel)}
+                                    className={`w-fit ${
+                                        showEvaluationPanel ? "bg-primary-500 text-white" : ""
+                                    }`}
+                                >
+                                    <SlNote className="size-4" />
+                                </Button>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="flex justify-center bg-slate-100 pt-4">
-                        <div ref={pdfViewerRef} className="relative">
+                        {loadingDoc ? (
+                            <DashboardLoader />
+                        ) : (
                             <div
+                                ref={pdfViewerRef}
+                                className="relative"
                                 style={{
-                                    // overflowY: "auto",
-                                    // overflowX: "auto",
-                                    maxHeight: "fit-content",
-                                    // width: "600px",
+                                    width: dimensions.width,
+                                    height: dimensions.height,
                                 }}
                             >
                                 <div
-                                    ref={canvasContainerRef}
-                                    className="relative flex justify-center rounded-lg"
                                     style={{
-                                        transform: `scale(${zoomLevel})`,
-                                        transformOrigin: "top left",
+                                        // overflowY: "auto",
+                                        // overflowX: "auto",
+                                        maxHeight: "fit-content",
+                                        // width: "600px",
                                     }}
                                 >
-                                    <Document
-                                        file={pdfUrl}
-                                        onLoadSuccess={({ numPages }) => {
-                                            setNumPages(numPages);
-                                            setDocLoaded(true);
+                                    <div
+                                        ref={canvasContainerRef}
+                                        className="relative flex justify-center rounded-lg"
+                                        style={{
+                                            transform: `scale(${zoomLevel})`,
+                                            transformOrigin: "top left",
                                         }}
-                                        onLoadError={(error) => console.log(error)}
-                                        className="absolute min-w-fit"
                                     >
-                                        <Page
-                                            pageNumber={pageNumber}
-                                            scale={scale}
-                                            renderTextLayer={false}
-                                            renderAnnotationLayer={false}
-                                            className="max-h-fit shadow-lg"
+                                        <ProgressBar progress={progress} />
+                                        <Document
+                                            file={pdfUrl || file}
+                                            onLoadSuccess={({ numPages }) => {
+                                                setNumPages(numPages);
+                                                setDocLoaded(true);
+                                            }}
+                                            onLoadProgress={({ loaded, total }) => {
+                                                setProgress((loaded / total) * 100);
+                                            }}
+                                            onLoadError={(error) => console.log(error)}
+                                            className="absolute min-w-fit"
+                                        >
+                                            <Page
+                                                pageNumber={pageNumber}
+                                                scale={scale}
+                                                renderTextLayer={false}
+                                                renderAnnotationLayer={false}
+                                                className="max-h-fit shadow-lg"
+                                            />
+                                        </Document>
+
+                                        <canvas
+                                            ref={canvasRef}
+                                            className="absolute left-0 top-0 z-10"
                                         />
-                                    </Document>
-                                    <canvas
-                                        ref={canvasRef}
-                                        className="absolute left-0 top-0 z-10"
-                                    />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </CardContent>
                 </Card>
+
+                {/* Evaluation Panel */}
+                {showEvaluationPanel && (
+                    <div className="fixed right-0 top-[72px] z-50 h-[calc(100%-72px)] w-1/4 overflow-y-auto bg-white shadow-lg">
+                        <div className="p-4">
+                            <div className="mb-4 flex items-center justify-between">
+                                <h2 className="text-xl font-bold">Evaluation Panel</h2>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setShowEvaluationPanel(false)}
+                                    className="hover:bg-gray-100"
+                                >
+                                    <X className="size-5" />
+                                </Button>
+                            </div>
+                            <Evaluation
+                                totalPages={numPages}
+                                pagesVisited={pagesVisited}
+                                currentPage={pageNumber}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
-            {/* {docLoaded && <Evaluation totalPages={numPages} pagesVisited={pagesVisited} />} */}
             {openCalc && <Calculator open={openCalc} onOpenChange={setOpenCalc} />}
         </div>
     );

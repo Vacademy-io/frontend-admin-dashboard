@@ -44,6 +44,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: "Session",
                 subItemLink: "/study-library/session",
             },
+            {
+                subItem: "Reports",
+                subItemLink: "/study-library/reports",
+            },
         ],
     },
     {
@@ -54,7 +58,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
         subItems: [
             {
                 subItem: "Assessment List",
-                subItemLink: "/assessment/assessment-list",
+                subItemLink: "/assessment/assessment-list?selectedTab=liveTests",
             },
             {
                 subItem: "Question Papers",
@@ -67,6 +71,10 @@ export const SidebarItemsData: SidebarItemsType[] = [
         title: "Evaluation Centre",
         id: "evaluation-centre",
         subItems: [
+            {
+                subItem: "Evaluations",
+                subItemLink: "/evaluation/evaluations",
+            },
             {
                 subItem: "Evaluation tool",
                 subItemLink: "/evaluation/evaluation-tool",

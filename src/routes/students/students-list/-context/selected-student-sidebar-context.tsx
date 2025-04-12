@@ -1,6 +1,5 @@
 import { createContext, useContext } from "react";
 import { StudentTable } from "@/types/student-table-types";
-
 interface StudentSidebarContextType {
     selectedStudent: StudentTable | null;
     setSelectedStudent: (student: StudentTable | null) => void;

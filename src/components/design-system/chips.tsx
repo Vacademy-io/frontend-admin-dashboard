@@ -96,30 +96,15 @@ export const FilterChips = ({
     label,
     filterList,
     selectedFilters,
-    setSelectedFilters,
     disabled,
     clearFilters,
+    handleSelect,
+    handleClearFilters,
 }: FilterChipsProps) => {
     const isSelected = (option: string | number) => selectedFilters.includes(String(option));
 
-    const handleSelect = (option: string | number) => {
-        if (setSelectedFilters) {
-            if (isSelected(option)) {
-                setSelectedFilters((prev) => prev.filter((item) => item !== String(option)));
-            } else {
-                setSelectedFilters((prev) => [...prev, String(option)]);
-            }
-        }
-    };
-
-    const handleClearFilters = () => {
-        if (setSelectedFilters) {
-            setSelectedFilters([]);
-        }
-    };
-
     useEffect(() => {
-        if (clearFilters) handleClearFilters();
+        if (clearFilters) handleClearFilters && handleClearFilters();
     }, [clearFilters]);
 
     return (
@@ -181,7 +166,7 @@ export const FilterChips = ({
                             {filterList?.map((option) => (
                                 <CommandItem
                                     key={String(option)}
-                                    onSelect={() => handleSelect(option)}
+                                    onSelect={() => handleSelect && handleSelect(option)}
                                 >
                                     <div
                                         className={cn(
@@ -220,7 +205,7 @@ export const StatusChips = ({
     className,
     showIcon = true,
 }: {
-    status: ActivityStatus | "ACTIVE" | "TEMINATED" | "INACTIVE";
+    status: ActivityStatus | "ACTIVE" | "TERMINATED" | "INACTIVE" | "EVALUATED";
     children?: ReactNode;
     className?: string;
     showIcon?: boolean;
@@ -237,7 +222,7 @@ export const StatusChips = ({
 
     return (
         <ChipsWrapper className={cn(statusData.color.bg, "")}>
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
                 {showIcon && (
                     <StatusIcon
                         className={cn(statusData.color.icon, "size-[18px]")}

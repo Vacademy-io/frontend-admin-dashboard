@@ -25,29 +25,26 @@ export interface MyQuestion {
         hrs: string;
         min: string;
     };
-    imageDetails?: MyImageDetail[]; // Optional array of image details
     singleChoiceOptions: MySingleChoiceOption[]; // Array of single choice options
     multipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
-}
-
-export interface MyImageDetail {
-    imageId?: string; // Optional string
-    imageName: string; // Required string, must have at least 1 character
-    imageTitle?: string; // Optional string
-    imageFile: string; // Required string
-    isDeleted?: boolean; // Optional boolean
+    validAnswers?: number[];
+    decimals?: number;
+    numericType?: string;
+    parentRichTextContent?: string | null;
+    subjectiveAnswerText?: string;
+    // optionsJson: string | null; //Array for numerical answers
 }
 
 export interface MySingleChoiceOption {
+    id?: string;
     name?: string; // Optional string
     isSelected?: boolean; // Optional boolean
-    image: MyImage; // Required image object
 }
 
 export interface MyMultipleChoiceOption {
+    id?: string;
     name?: string; // Optional string
     isSelected?: boolean; // Optional boolean
-    image: MyImage; // Required image object
 }
 
 export interface MyImage {

@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
-import { InviteFormType } from "../-schema/InviteFormSchema";
+import { InviteForm } from "../-schema/InviteFormSchema";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
@@ -16,6 +16,7 @@ import { usePaginationState } from "@/hooks/pagination";
 import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import createInviteLink from "../-utils/createInviteLink";
+import { useInviteFormContext } from "../-context/useInviteFormContext";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -26,16 +27,14 @@ export const Invite = () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+    const { form } = useInviteFormContext();
+    const { setValue } = form;
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
         initialPageSize: 5,
     });
 
-    // const [filterRequest, setFilterRequest] = useState<InviteFilterRequest>({
-    //     status: ["ACTIVE", "INACTIVE"],
-    //     name: ""
-    // })
     const filterRequest = {
         status: ["ACTIVE", "INACTIVE"],
         name: "",
@@ -63,11 +62,8 @@ export const Invite = () => {
     );
 
     const inviteSubmitButton = (
-        <div
-            className="flex w-full items-center justify-end"
-            onClick={() => formSubmitRef.current()}
-        >
-            <MyButton>Create</MyButton>
+        <div className="flex w-full items-center justify-end">
+            <MyButton onClick={() => formSubmitRef.current()}>Create</MyButton>
         </div>
     );
 
@@ -86,11 +82,11 @@ export const Invite = () => {
             });
     };
 
-    const onEditInvite = (updatedInvite: InviteFormType) => {
+    const onEditInvite = (updatedInvite: InviteForm) => {
         console.log(updatedInvite);
     };
 
-    const onCreateInvite = async (invite: InviteFormType) => {
+    const onCreateInvite = async (invite: InviteForm) => {
         const requestData = formDataToRequestData(invite);
         try {
             const { data: responseData }: { data: CreateInvitationRequestType } =
@@ -98,6 +94,12 @@ export const Invite = () => {
             toast.success("invitation created");
             const link = createInviteLink(responseData?.learner_invitation?.invite_code || "");
             setInviteLink(link);
+            setValue("batches", {
+                maxCourses: 0,
+                courseSelectionMode: "institute",
+                preSelectedCourses: [],
+                learnerChoiceCourses: [],
+            });
             // setOpenCreateInviteDialog(false);
         } catch {
             toast.error("failed to create invitation");
@@ -118,6 +120,7 @@ export const Invite = () => {
                     open={openCreateInviteDialog}
                     onOpenChange={onOpenChangeCreateInviteDialog}
                     inviteLink={inviteLink}
+                    setInviteLink={setInviteLink}
                 />
             </div>
             <div className="flex w-full flex-col gap-10">
@@ -125,7 +128,7 @@ export const Invite = () => {
                     <p>Error fetching invitation links</p>
                 ) : isLoading ? (
                     <DashboardLoader />
-                ) : !inviteList || !inviteList.content ? (
+                ) : !inviteList || !inviteList.content || inviteList?.content.length == 0 ? (
                     <div className="flex h-[70vh] w-full flex-col items-center justify-center gap-2">
                         <EmptyInvitePage />
                         <p>No invite link has been created yet!</p>

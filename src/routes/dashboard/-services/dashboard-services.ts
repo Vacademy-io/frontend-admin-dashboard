@@ -1,6 +1,7 @@
 import {
     ADD_USER_ROLES_URL,
     DELETE_DISABLE_USER_URL,
+    GET_DASHBOARD_ASSESSMENT_COUNT_URL,
     GET_DASHBOARD_URL,
     GET_INSTITUTE_USERS,
     INVITE_USERS_URL,
@@ -24,11 +25,33 @@ export const fetchInstituteDashboardDetails = async (instituteId: string | undef
     return response.data;
 };
 
+export const fetchAssessmentsCountDetailsForInstitute = async (instituteId: string | undefined) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: GET_DASHBOARD_ASSESSMENT_COUNT_URL,
+        params: {
+            instituteId,
+        },
+    });
+    return response.data;
+};
+
 export const getInstituteDashboardData = (instituteId: string | undefined) => {
     return {
         queryKey: ["GET_INSTITUTE_DASHBOARD_DATA", instituteId],
         queryFn: async () => {
             const data = await fetchInstituteDashboardDetails(instituteId);
+            return data;
+        },
+        staleTime: 3600000,
+    };
+};
+
+export const getAssessmentsCountsData = (instituteId: string | undefined) => {
+    return {
+        queryKey: ["GET_ASSESSMENT_COUNT_DATA", instituteId],
+        queryFn: async () => {
+            const data = await fetchAssessmentsCountDetailsForInstitute(instituteId);
             return data;
         },
         staleTime: 3600000,
@@ -51,6 +74,20 @@ export const fetchInstituteDashboardUsers = async (
         },
     });
     return response.data;
+};
+
+export const handleGetInstituteUsersForAccessControl = (
+    instituteId: string | undefined,
+    selectedFilter: RoleTypeSelectedFilter,
+) => {
+    return {
+        queryKey: ["GET_INSTITUTE_USERS_FOR_ACCESS_CONTROL", instituteId, selectedFilter],
+        queryFn: async () => {
+            const data = await fetchInstituteDashboardUsers(instituteId, selectedFilter);
+            return data;
+        },
+        staleTime: 3600000,
+    };
 };
 
 export const handleInviteUsers = async (

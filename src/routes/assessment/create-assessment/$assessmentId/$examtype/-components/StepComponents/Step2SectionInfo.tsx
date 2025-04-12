@@ -36,10 +36,7 @@ import sectionDetailsSchema from "../../-utils/section-details-schema";
 import { useSavedAssessmentStore } from "../../-utils/global-states";
 import { Route } from "../..";
 import { useQuestionsForSection } from "../../-hooks/getQuestionsDataForSection";
-import {
-    calculateAveragePenalty,
-    parseHtmlToString,
-} from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/helper";
+import { calculateAveragePenalty } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -59,7 +56,6 @@ export const Step2SectionInfo = ({
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [currentQuestionImageIndex, setCurrentQuestionImageIndex] = useState(0);
     const { data: assessmentDetails, isLoading } = useSuspenseQuery(
         getAssessmentDetails({
             assessmentId: assessmentId !== "defaultId" ? assessmentId : savedAssessmentId,
@@ -306,8 +302,6 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                currentQuestionImageIndex={currentQuestionImageIndex}
-                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -343,8 +337,6 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                currentQuestionImageIndex={currentQuestionImageIndex}
-                                setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -362,7 +354,7 @@ export const Step2SectionInfo = ({
                                 Choose Saved Paper
                             </MyButton>
                         </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col items-start !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                        <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
                             <div className="flex h-14 w-full items-center justify-between rounded-md bg-primary-50">
                                 <h1 className="rounded-sm p-4 font-bold text-primary-500">
                                     Choose Saved Question Paper From List
@@ -381,8 +373,6 @@ export const Step2SectionInfo = ({
                                     sectionsForm={form}
                                     currentQuestionIndex={currentQuestionIndex}
                                     setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                    currentQuestionImageIndex={currentQuestionImageIndex}
-                                    setCurrentQuestionImageIndex={setCurrentQuestionImageIndex}
                                 />
                             </div>
                         </DialogContent>
@@ -567,92 +557,128 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
-                <div id="marking-scheme" className="flex flex-col gap-8">
-                    <div className="flex items-center gap-4 text-sm font-thin" id="marking-scheme">
-                        <div className="flex flex-col font-normal">
-                            <h1>
-                                Marks Per Question
-                                {getStepKey({
-                                    assessmentDetails,
-                                    currentStep,
-                                    key: "marks_per_question",
-                                }) === "REQUIRED" && (
-                                    <span className="text-subtitle text-danger-600">*</span>
-                                )}
-                            </h1>
-                            <h1>(Default)</h1>
-                        </div>
-                        <FormField
-                            control={control}
-                            name={`section.${index}.marks_per_question`}
-                            render={({ field: { ...field } }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            inputType="text"
-                                            inputPlaceholder="00"
-                                            input={field.value}
-                                            onChangeFunction={(e) => {
-                                                const inputValue = e.target.value.replace(
-                                                    /[^0-9]/g,
-                                                    "",
-                                                ); // Remove non-numeric characters
-                                                field.onChange(inputValue); // Call onChange with the sanitized value
-                                            }}
-                                            size="large"
-                                            {...field}
-                                            className="ml-3 w-11"
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <div className="flex w-1/2 items-center justify-between">
-                        <div className="flex w-52 items-center justify-between gap-4">
-                            <h1>
-                                Negative Marking
-                                {getStepKey({
-                                    assessmentDetails,
-                                    currentStep,
-                                    key: "negative_marking",
-                                }) === "REQUIRED" && (
-                                    <span className="text-subtitle text-danger-600">*</span>
-                                )}
-                            </h1>
+                {examtype !== "SURVEY" && (
+                    <div id="marking-scheme" className="flex flex-col gap-8">
+                        <div
+                            className="flex items-center gap-4 text-sm font-thin"
+                            id="marking-scheme"
+                        >
+                            <div className="flex flex-col font-normal">
+                                <h1>
+                                    Marks Per Question
+                                    {getStepKey({
+                                        assessmentDetails,
+                                        currentStep,
+                                        key: "marks_per_question",
+                                    }) === "REQUIRED" && (
+                                        <span className="text-subtitle text-danger-600">*</span>
+                                    )}
+                                </h1>
+                                <h1>(Default)</h1>
+                            </div>
                             <FormField
                                 control={control}
-                                name={`section.${index}.negative_marking.value`}
+                                name={`section.${index}.marks_per_question`}
                                 render={({ field: { ...field } }) => (
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
-                                                disabled={
-                                                    form.getValues(
-                                                        `section.${index}.negative_marking.checked`,
-                                                    )
-                                                        ? false
-                                                        : true
-                                                }
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
                                                 onKeyPress={(e) => {
                                                     const charCode = e.key;
-                                                    if (!/[0-9]/.test(charCode)) {
-                                                        e.preventDefault(); // Prevent non-numeric input
+                                                    if (
+                                                        !/[0-9.]/.test(charCode) ||
+                                                        (charCode === "." &&
+                                                            field.value.includes("."))
+                                                    ) {
+                                                        e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                     }
                                                 }}
                                                 onChangeFunction={(e) => {
                                                     const inputValue = e.target.value.replace(
-                                                        /[^0-9]/g,
+                                                        /[^0-9.]/g,
                                                         "",
-                                                    ); // Remove non-numeric characters
-                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                    ); // Allow numbers and decimal
+                                                    if (inputValue.split(".").length > 2) return; // Prevent multiple decimals
+                                                    field.onChange(inputValue);
                                                 }}
                                                 size="large"
                                                 {...field}
-                                                className="mr-2 w-11"
+                                                className="ml-3 w-11"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="flex w-1/2 items-center justify-between">
+                            <div className="flex w-52 items-center justify-between gap-4">
+                                <h1>
+                                    Negative Marking
+                                    {getStepKey({
+                                        assessmentDetails,
+                                        currentStep,
+                                        key: "negative_marking",
+                                    }) === "REQUIRED" && (
+                                        <span className="text-subtitle text-danger-600">*</span>
+                                    )}
+                                </h1>
+                                <FormField
+                                    control={control}
+                                    name={`section.${index}.negative_marking.value`}
+                                    render={({ field: { ...field } }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <MyInput
+                                                    disabled={
+                                                        form.getValues(
+                                                            `section.${index}.negative_marking.checked`,
+                                                        )
+                                                            ? false
+                                                            : true
+                                                    }
+                                                    inputType="text"
+                                                    inputPlaceholder="00"
+                                                    input={field.value}
+                                                    onKeyPress={(e) => {
+                                                        const charCode = e.key;
+                                                        if (
+                                                            !/[0-9.]/.test(charCode) ||
+                                                            (charCode === "." &&
+                                                                field.value.includes("."))
+                                                        ) {
+                                                            e.preventDefault(); // Prevent non-numeric and multiple decimals
+                                                        }
+                                                    }}
+                                                    onChangeFunction={(e) => {
+                                                        const inputValue = e.target.value.replace(
+                                                            /[^0-9.]/g,
+                                                            "",
+                                                        ); // Allow numbers and decimal
+                                                        if (inputValue.split(".").length > 2)
+                                                            return; // Prevent multiple decimals
+                                                        field.onChange(inputValue);
+                                                    }}
+                                                    size="large"
+                                                    {...field}
+                                                    className="mr-2 w-11"
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <FormField
+                                control={control}
+                                name={`section.${index}.negative_marking.checked`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -660,10 +686,20 @@ export const Step2SectionInfo = ({
                             />
                         </div>
                         <FormField
-                            control={control}
-                            name={`section.${index}.negative_marking.checked`}
+                            control={form.control}
+                            name={`section.${index}.partial_marking`}
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="flex w-1/2 items-center justify-between">
+                                    <FormLabel className="font-normal">
+                                        Partial Marking
+                                        {getStepKey({
+                                            assessmentDetails,
+                                            currentStep,
+                                            key: "partial_marking",
+                                        }) === "REQUIRED" && (
+                                            <span className="text-subtitle text-danger-600">*</span>
+                                        )}
+                                    </FormLabel>
                                     <FormControl>
                                         <Switch
                                             checked={field.value}
@@ -673,19 +709,84 @@ export const Step2SectionInfo = ({
                                 </FormItem>
                             )}
                         />
+                        {/* will be adding it later
+                        <div className="flex w-1/2 items-center justify-between">
+                            <div className="flex w-52 items-center justify-between gap-4">
+                                <h1>Cut off Marks</h1>
+                                <FormField
+                                    control={control}
+                                    name={`section.${index}.cutoff_marks.value`}
+                                    render={({ field: { ...field } }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <MyInput
+                                                    disabled={
+                                                        form.getValues(
+                                                            `section.${index}.cutoff_marks.checked`,
+                                                        )
+                                                            ? false
+                                                            : true
+                                                    }
+                                                    onKeyPress={(e) => {
+                                                        const charCode = e.key;
+                                                        if (
+                                                            !/[0-9.]/.test(charCode) ||
+                                                            (charCode === "." &&
+                                                                field.value.includes("."))
+                                                        ) {
+                                                            e.preventDefault(); // Prevent non-numeric and multiple decimals
+                                                        }
+                                                    }}
+                                                    onChangeFunction={(e) => {
+                                                        const inputValue = e.target.value.replace(
+                                                            /[^0-9.]/g,
+                                                            "",
+                                                        ); // Allow numbers and decimal
+                                                        if (inputValue.split(".").length > 2)
+                                                            return; // Prevent multiple decimals
+                                                        field.onChange(inputValue);
+                                                    }}
+                                                    inputType="text"
+                                                    inputPlaceholder="00"
+                                                    input={field.value}
+                                                    size="large"
+                                                    {...field}
+                                                    className="mr-2 w-11"
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <FormField
+                                control={control}
+                                name={`section.${index}.cutoff_marks.checked`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div> */}
                     </div>
-
+                )}
+                {examtype !== "SURVEY" && (
                     <FormField
                         control={form.control}
-                        name={`section.${index}.partial_marking`}
+                        name={`section.${index}.problem_randomization`}
                         render={({ field }) => (
                             <FormItem className="flex w-1/2 items-center justify-between">
-                                <FormLabel>
-                                    Partial Marking
+                                <FormLabel className="font-normal">
+                                    Problem Randomization
                                     {getStepKey({
                                         assessmentDetails,
                                         currentStep,
-                                        key: "partial_marking",
+                                        key: "problem_randomization",
                                     }) === "REQUIRED" && (
                                         <span className="text-subtitle text-danger-600">*</span>
                                     )}
@@ -699,86 +800,7 @@ export const Step2SectionInfo = ({
                             </FormItem>
                         )}
                     />
-                    <div className="flex w-1/2 items-center justify-between">
-                        <div className="flex w-52 items-center justify-between gap-4">
-                            <h1>Cut off Marks</h1>
-                            <FormField
-                                control={control}
-                                name={`section.${index}.cutoff_marks.value`}
-                                render={({ field: { ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                disabled={
-                                                    form.getValues(
-                                                        `section.${index}.cutoff_marks.checked`,
-                                                    )
-                                                        ? false
-                                                        : true
-                                                }
-                                                onKeyPress={(e) => {
-                                                    const charCode = e.key;
-                                                    if (!/[0-9]/.test(charCode)) {
-                                                        e.preventDefault(); // Prevent non-numeric input
-                                                    }
-                                                }}
-                                                inputType="text"
-                                                inputPlaceholder="00"
-                                                input={field.value}
-                                                onChangeFunction={(e) => {
-                                                    const inputValue = e.target.value.replace(
-                                                        /[^0-9]/g,
-                                                        "",
-                                                    );
-                                                    field.onChange(inputValue);
-                                                }}
-                                                size="large"
-                                                {...field}
-                                                className="mr-2 w-11"
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <FormField
-                            control={control}
-                            name={`section.${index}.cutoff_marks.checked`}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                </div>
-
-                <FormField
-                    control={form.control}
-                    name={`section.${index}.problem_randomization`}
-                    render={({ field }) => (
-                        <FormItem className="flex w-1/2 items-center justify-between">
-                            <FormLabel>
-                                Problem Randamization
-                                {getStepKey({
-                                    assessmentDetails,
-                                    currentStep,
-                                    key: "problem_randomization",
-                                }) === "REQUIRED" && (
-                                    <span className="text-subtitle text-danger-600">*</span>
-                                )}
-                            </FormLabel>
-                            <FormControl>
-                                <Switch checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
+                )}
                 {Boolean(allSections?.[index]?.adaptive_marking_for_each_question?.length) && (
                     <div>
                         <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
@@ -802,9 +824,11 @@ export const Step2SectionInfo = ({
                                             return (
                                                 <TableRow key={idx}>
                                                     <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell>
-                                                        {parseHtmlToString(question.questionName)}
-                                                    </TableCell>
+                                                    <TableCell
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: question.questionName || "",
+                                                        }}
+                                                    />
                                                     <TableCell>{question.questionType}</TableCell>
                                                     <TableCell>
                                                         <FormField
@@ -916,18 +940,21 @@ export const Step2SectionInfo = ({
                         </Table>
                     </div>
                 )}
-                {(watch(`section.${index}.marks_per_question`) ||
-                    watch(`section.${index}.total_marks`)) && (
-                    <div className="flex items-center justify-end gap-1">
-                        <span>Total Marks</span>
-                        <span>:</span>
-                        <h1>
-                            {calculateTotalMarks(
-                                getValues(`section.${index}.adaptive_marking_for_each_question`),
-                            )}
-                        </h1>
-                    </div>
-                )}
+                {examtype !== "SURVEY" &&
+                    (watch(`section.${index}.marks_per_question`) ||
+                        watch(`section.${index}.total_marks`)) && (
+                        <div className="flex items-center justify-end gap-1">
+                            <span>Total Marks</span>
+                            <span>:</span>
+                            <h1>
+                                {calculateTotalMarks(
+                                    getValues(
+                                        `section.${index}.adaptive_marking_for_each_question`,
+                                    ),
+                                )}
+                            </h1>
+                        </div>
+                    )}
             </AccordionContent>
         </AccordionItem>
     );

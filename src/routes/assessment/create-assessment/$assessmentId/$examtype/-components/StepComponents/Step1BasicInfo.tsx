@@ -32,23 +32,45 @@ import { useParams } from "@tanstack/react-router";
 import useIntroJsTour, { Step } from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { createAssesmentSteps } from "@/constants/intro/steps";
+import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
+import { useTestAccessStore } from "../../-utils/zustand-global-states/step3-adding-participants";
+import { useAccessControlStore } from "../../-utils/zustand-global-states/step4-access-control";
 
 export function convertDateFormat(dateStr: string) {
     const date = new Date(dateStr);
-    const isoString = date.toISOString();
-    return isoString.slice(0, 16); // Extracts the "YYYY-MM-DDTHH:mm" part
+
+    // Format it properly for datetime-local input
+    return date.toISOString().slice(0, 16);
 }
 
 const heading = (
     <div className="flex items-center gap-4">
-        <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
+        <CaretLeft
+            onClick={() => {
+                useBasicInfoStore.getState().reset();
+                useSectionDetailsStore.getState().reset();
+                useTestAccessStore.getState().reset();
+                useAccessControlStore.getState().reset();
+                window.history.back();
+            }}
+            className="cursor-pointer"
+        />
         <h1 className="text-lg">Create Assessment</h1>
     </div>
 );
 
 const headingUpdate = (
     <div className="flex items-center gap-4">
-        <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
+        <CaretLeft
+            onClick={() => {
+                useBasicInfoStore.getState().reset();
+                useSectionDetailsStore.getState().reset();
+                useTestAccessStore.getState().reset();
+                useAccessControlStore.getState().reset();
+                window.history.back();
+            }}
+            className="cursor-pointer"
+        />
         <h1 className="text-lg">Update Assessment</h1>
     </div>
 );
@@ -89,7 +111,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 },
             },
             assessmentPreview: {
-                checked: storeDataStep1.assessmentPreview?.checked || false, // Default to true
+                checked: storeDataStep1.assessmentPreview?.checked || true, // Default to true
                 previewTimeLimit:
                     storeDataStep1.assessmentPreview?.previewTimeLimit || timeLimit[0], // Default preview time
             },
@@ -97,9 +119,9 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             submissionType: storeDataStep1.submissionType || "",
             durationDistribution: storeDataStep1.durationDistribution || "",
             evaluationType: storeDataStep1.evaluationType || "",
-            switchSections: storeDataStep1.switchSections || false, // Default to false
-            raiseReattemptRequest: storeDataStep1.raiseReattemptRequest || false, // Default to true
-            raiseTimeIncreaseRequest: storeDataStep1.raiseTimeIncreaseRequest || false, // Default to false
+            switchSections: storeDataStep1.switchSections || true, // Default to false
+            raiseReattemptRequest: storeDataStep1.raiseReattemptRequest || true, // Default to true
+            raiseTimeIncreaseRequest: storeDataStep1.raiseTimeIncreaseRequest || true, // Default to false
         },
         mode: "onChange", // Validate as user types
     });
@@ -114,7 +136,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     // Determine if all fields are filled
     const isFormValid1 =
-        examType === "EXAM" || examType === "SURVEY"
+        (examType === "EXAM" || examType === "SURVEY") && assessmentId === "defaultId"
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
               !!liveDateRangeEndDate &&
@@ -123,7 +145,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
             : !!assessmentName && Object.entries(form.formState.errors).length === 0;
 
     const isFormValid2 =
-        examType === "EXAM" || examType === "SURVEY"
+        (examType === "EXAM" || examType === "SURVEY") && assessmentId === "defaultId"
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
               !!liveDateRangeEndDate &&
@@ -260,12 +282,11 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 durationDistribution:
                     assessmentDetails[currentStep]?.saved_data?.duration_distribution || "",
                 evaluationType: assessmentDetails[currentStep]?.saved_data?.evaluation_type || "",
-                switchSections:
-                    assessmentDetails[currentStep]?.saved_data?.can_switch_section || false, // Default to false
+                switchSections: assessmentDetails[currentStep]?.saved_data?.can_switch_section, // Default to false
                 raiseReattemptRequest:
-                    assessmentDetails[currentStep]?.saved_data?.reattempt_consent || false, // Default to true
+                    assessmentDetails[currentStep]?.saved_data?.reattempt_consent, // Default to true
                 raiseTimeIncreaseRequest:
-                    assessmentDetails[currentStep]?.saved_data?.add_time_consent || false, // Default to false
+                    assessmentDetails[currentStep]?.saved_data?.add_time_consent, // Default to false
             });
         }
     }, []);
@@ -597,6 +618,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 )}
                             />
                         )}
+                        {/* will be adding this later
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -660,7 +682,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     </FormItem>
                                 )}
                             />
-                        )}
+                        )} */}
                     </div>
                 </div>
             </form>

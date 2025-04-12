@@ -16,7 +16,7 @@ export interface SubmissionStudentData {
     registration_id: string;
     student_name: string;
     attempt_date: string;
-    and_time: string | null;
+    end_time: string | null;
     score: number;
     attempt_id: string;
     user_id: string;

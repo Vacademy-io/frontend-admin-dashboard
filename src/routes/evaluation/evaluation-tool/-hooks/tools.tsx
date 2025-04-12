@@ -12,43 +12,63 @@ const useCanvasTools = (fabricCanvas: Canvas | null) => {
             icon: FaPen,
             label: "Pen",
             color: "text-blue-600",
-            action: () => canvasUtils.addPenTool("black"),
+            action: () => {
+                canvasUtils.addPenTool("black");
+            },
         },
         {
             icon: Check,
             label: "Tick",
             color: "text-green-600",
-            action: () => canvasUtils.addSymbol("✓", "green"),
+            action: () => {
+                canvasUtils.disableDrawingMode();
+                canvasUtils.addSymbol("✓", "green");
+            },
         },
         {
             icon: X,
             label: "Cross",
             color: "text-red-600",
-            action: () => canvasUtils.addSymbol("✗", "red"),
+            action: () => {
+                canvasUtils.disableDrawingMode();
+                canvasUtils.addSymbol("✗", "red");
+            },
         },
         {
             icon: Type,
             label: "Text",
             color: "text-black",
-            action: canvasUtils.addTextBox,
+            action: () => {
+                canvasUtils.disableDrawingMode();
+                canvasUtils.addTextBox();
+            },
         },
         {
             icon: Rectangle,
             label: "Box",
             color: "text-black",
-            action: canvasUtils.addRectangle,
+            action: () => {
+                canvasUtils.disableDrawingMode();
+                canvasUtils.addRectangle();
+            },
         },
         {
             icon: Circle,
             label: "Circle",
             color: "text-black",
-            action: canvasUtils.addCircle,
+            action: () => {
+                canvasUtils.disableDrawingMode();
+                canvasUtils.addCircle();
+            },
         },
         {
             icon: Trash2,
             label: "Delete",
             color: "text-red-600",
-            action: canvasUtils.deleteSelectedShape,
+            action: () => {
+                canvasUtils.disableDrawingMode();
+                canvasUtils.deleteSelectedShape();
+            },
         },
     ];
 
@@ -59,8 +79,12 @@ const useCanvasTools = (fabricCanvas: Canvas | null) => {
         })),
         { value: "1/2", action: () => canvasUtils.addNumber("1/2") },
         { value: "3/4", action: () => canvasUtils.addNumber("3/4") },
+        { value: "0.25", action: () => canvasUtils.addNumber("0.25") },
         { value: "0.5", action: () => canvasUtils.addNumber("0.5") },
         { value: "0.75", action: () => canvasUtils.addNumber("0.75") },
+        { value: "/", action: () => canvasUtils.addNumber("/") },
+        { value: "-", action: () => canvasUtils.addNumber("-") },
+        { value: ".", action: () => canvasUtils.addNumber(".") },
     ];
 
     return { tools, numbers };

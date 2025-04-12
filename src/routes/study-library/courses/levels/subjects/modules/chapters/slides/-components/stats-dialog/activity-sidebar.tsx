@@ -73,10 +73,7 @@ export const ActivityStatsSidebar = () => {
 
         const transformedContent = activityStats.content.map((item: UserActivity) => ({
             id: item.userId, // Using userId as id
-            user_id: item.userId,
             full_name: item.fullName,
-            institute_enrollment_id: "EN" + Math.random().toString(36).substr(2, 8), // Dummy data
-            username: "user_" + item.userId.substring(0, 6), // Dummy data
             time_spent: formatTimeSpent(item.totalTimeSpent), // You'll need to implement this
             last_active: new Date(item.lastActive).toLocaleString(),
         }));
@@ -159,24 +156,28 @@ export const ActivityStatsSidebar = () => {
                     </div>
                     <div className="no-scrollbar flex w-full flex-col gap-10 overflow-y-scroll">
                         <div className="flex w-full flex-col gap-6 p-6">
-                            <div>
-                                <MyTable<ActivityStatsColumnsType>
-                                    data={tableData}
-                                    columns={ActivityStatsColumns}
-                                    isLoading={isLoading}
-                                    error={error}
-                                    columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
-                                    currentPage={page}
-                                />
-
-                                <div className="mt-6">
-                                    <MyPagination
+                            {tableData.content.length == 0 ? (
+                                <p className="text-primary-500">No student activity found</p>
+                            ) : (
+                                <div>
+                                    <MyTable<ActivityStatsColumnsType>
+                                        data={tableData}
+                                        columns={ActivityStatsColumns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        columnWidths={ACTIVITY_STATS_COLUMN_WIDTHS}
                                         currentPage={page}
-                                        totalPages={tableData.total_pages}
-                                        onPageChange={handlePageChange}
                                     />
+
+                                    <div className="mt-6">
+                                        <MyPagination
+                                            currentPage={page}
+                                            totalPages={tableData.total_pages}
+                                            onPageChange={handlePageChange}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                     <ActivityLogDialog />

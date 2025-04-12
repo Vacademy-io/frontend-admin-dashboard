@@ -1,5 +1,11 @@
-import { Steps } from "@/types/assessments/assessment-data-type";
-import { BatchData } from "@/types/assessments/batch-details";
+import {
+    ConvertedCustomField,
+    CustomFieldStep3,
+    NotificationStep3,
+    RegistrationFormField,
+    Step3StudentDetailInterface,
+    Steps,
+} from "@/types/assessments/assessment-data-type";
 import { useBasicInfoStore } from "./zustand-global-states/step1-basic-info";
 import { AdaptiveMarkingQuestion } from "@/types/assessments/basic-details-type";
 import { useSectionDetailsStore } from "./zustand-global-states/step2-add-questions";
@@ -14,6 +20,10 @@ import {
 } from "@/types/assessments/assessment-steps";
 import { z } from "zod";
 import sectionDetailsSchema from "./section-details-schema";
+import { convertCustomFields } from "../-services/assessment-services";
+import testAccessSchema from "./add-participants-schema";
+import { CourseWithSessionsType } from "@/stores/study-library/use-study-library-store";
+import { BatchData } from "@/types/assessments/batch-details";
 
 interface Role {
     roleId: string;
@@ -150,7 +160,36 @@ export const copyToClipboard = async (text: string) => {
     }
 };
 
-export function transformBatchData(data: BatchData[]) {
+export function transformBatchData(data: BatchData[], sessionId: string) {
+    const batchDetails: Record<string, { name: string; id: string }[]> = {};
+
+    data.forEach((item) => {
+        // Extract level name, package name, and ID
+        const levelName = item.level.level_name;
+        const packageName = item.package_dto.package_name;
+        const packageId = item.id;
+        const selectedSessionId = item.session.id;
+        if (selectedSessionId !== sessionId) return;
+
+        // Create the batch key
+        const batchKey = `${packageName}`;
+
+        // Initialize the batch key if not present
+        if (!batchDetails[batchKey]) {
+            batchDetails[batchKey] = [];
+        }
+
+        // Add the package details (name and id) to the batch key
+        batchDetails[batchKey]!.push({
+            name: `${levelName}`,
+            id: packageId || "",
+        });
+    });
+
+    return batchDetails;
+}
+
+export function transformAllBatchData(data: BatchData[]) {
     const batchDetails: Record<string, { name: string; id: string }[]> = {};
 
     data.forEach((item) => {
@@ -160,7 +199,7 @@ export function transformBatchData(data: BatchData[]) {
         const packageId = item.id;
 
         // Create the batch key
-        const batchKey = `${levelName} Year/Class`;
+        const batchKey = `${packageName}`;
 
         // Initialize the batch key if not present
         if (!batchDetails[batchKey]) {
@@ -169,12 +208,69 @@ export function transformBatchData(data: BatchData[]) {
 
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
-            name: `${levelName} ${packageName}`,
+            name: `${levelName}`,
             id: packageId || "",
         });
     });
 
     return batchDetails;
+}
+
+export function transformBatchDataEdit(data: BatchData[]) {
+    const batchDetails: Record<string, { name: string; id: string }[]> = {};
+
+    data.forEach((item) => {
+        // Extract level name, package name, and ID
+        const levelName = item.level.level_name;
+        const packageName = item.package_dto.package_name;
+        const packageId = item.id;
+
+        // Create the batch key
+        const batchKey = `${packageName}`;
+
+        // Initialize the batch key if not present
+        if (!batchDetails[batchKey]) {
+            batchDetails[batchKey] = [];
+        }
+
+        // Add the package details (name and id) to the batch key
+        batchDetails[batchKey]!.push({
+            name: `${packageName} - ${levelName}`,
+            id: packageId || "",
+        });
+    });
+
+    return batchDetails;
+}
+
+export function filterLevelDetailsByIds(
+    data: CourseWithSessionsType[],
+    allowedIds: string[] | undefined,
+) {
+    return data.map((courseBlock) => ({
+        ...courseBlock,
+        sessions: courseBlock.sessions.map((session) => ({
+            ...session,
+            level_with_details: session.level_with_details.filter(
+                (level) => allowedIds?.includes(level.id),
+            ),
+        })),
+    }));
+}
+
+export function getAllSessions(data: BatchData[]): { id: string; name: string }[] {
+    const sessionMap = new Map<string, string>();
+
+    data.forEach((item) => {
+        const sessionId = item.session.id;
+        const sessionName = item.session.session_name;
+
+        if (!sessionMap.has(sessionId)) {
+            sessionMap.set(sessionId, sessionName);
+        }
+    });
+
+    return Array.from(sessionMap.entries()).map(([id, name]) => ({ id, name }));
 }
 
 export const convertToUTC = (dateString: string) => {
@@ -509,3 +605,258 @@ export function calculateTotalTime(testData: z.infer<typeof sectionDetailsSchema
         Number(testData?.testDuration?.entireTestDuration?.testDuration?.min)
     );
 }
+
+export function convertToCustomFieldsData(data: RegistrationFormField[] | undefined) {
+    if (!data) return [];
+    return data?.map((field) => ({
+        id: field.id,
+        type: field.field_type,
+        name: field.field_name,
+        oldKey:
+            field.field_key === "full_name" ||
+            field.field_key === "phone_number" ||
+            field.field_key === "email"
+                ? true
+                : false,
+        isRequired: field.is_mandatory,
+        key: field.field_key,
+        ...(field.field_type === "dropdown" && {
+            options: field.comma_separated_options.split(",").map((value, index) => ({
+                id: String(index),
+                value: value.trim(),
+                disabled: false,
+            })),
+        }),
+    }));
+}
+
+export function getCustomFieldsWhileEditStep3(assessmentDetails: Steps) {
+    const defaultFields = [
+        {
+            id: "0",
+            type: "textfield",
+            name: "Full Name",
+            oldKey: true,
+            isRequired: true,
+            key: "full_name",
+        },
+        {
+            id: "1",
+            type: "textfield",
+            name: "Email",
+            oldKey: true,
+            isRequired: true,
+            key: "email",
+        },
+        {
+            id: "2",
+            type: "textfield",
+            name: "Phone Number",
+            oldKey: true,
+            isRequired: true,
+            key: "phone_number",
+        },
+    ];
+
+    const registrationFields = assessmentDetails[2]?.saved_data?.registration_form_fields ?? [];
+
+    // Extract field names from registrationFields
+    const existingFieldNames = new Set(registrationFields.map((field) => field.field_name));
+
+    // Check if all three fields exist
+    const hasAllDefaults = ["Full Name", "Email", "Phone Number"].every((field) =>
+        existingFieldNames.has(field),
+    );
+
+    return hasAllDefaults
+        ? convertToCustomFieldsData(registrationFields)
+        : [...defaultFields, ...convertToCustomFieldsData(registrationFields)];
+}
+
+export const convertToCustomFieldSchema = (field: CustomFieldStep3): ConvertedCustomField => {
+    return {
+        id: field.id,
+        name: field.name,
+        type: field.type,
+        default_value: "", // Provide a default value, if necessary
+        description: "", // Provide a description, if necessary
+        is_mandatory: field.isRequired,
+        key: field.key, // Use the ID as the key
+        comma_separated_options: field.options
+            ? field.options.map((opt) => opt.value).join(",")
+            : "", // Join options for dropdowns
+    };
+};
+
+export const convertDataToStep3 = (
+    oldData: TestAccessFormType | null,
+    newData: z.infer<typeof testAccessSchema>,
+) => {
+    const convertedData: {
+        closed_test: boolean;
+        open_test_details: {
+            registration_start_date: string;
+            registration_end_date: string;
+            instructions_html: string;
+            registration_form_details: {
+                added_custom_added_fields: ConvertedCustomField[];
+                updated_custom_added_fields: ConvertedCustomField[];
+                removed_custom_added_fields: ConvertedCustomField[];
+            };
+        };
+        added_pre_register_batches_details: string[];
+        deleted_pre_register_batches_details: string[];
+        added_pre_register_students_details: Step3StudentDetailInterface[];
+        deleted_pre_register_students_details: Step3StudentDetailInterface[];
+        updated_join_link: string;
+        notify_student: Record<string, boolean | number>;
+        notify_parent: Record<string, boolean | number>;
+    } = {
+        closed_test: false,
+        open_test_details: {
+            registration_start_date: "",
+            registration_end_date: "",
+            instructions_html: "",
+            registration_form_details: {
+                added_custom_added_fields: [],
+                updated_custom_added_fields: [],
+                removed_custom_added_fields: [],
+            },
+        },
+        added_pre_register_batches_details: [],
+        deleted_pre_register_batches_details: [],
+        added_pre_register_students_details: [],
+        deleted_pre_register_students_details: [],
+        updated_join_link: "",
+        notify_student: {},
+        notify_parent: {},
+    };
+
+    if (oldData === null) return convertedData;
+
+    // Compare closed_test
+    if (newData?.closed_test !== oldData.closed_test) {
+        convertedData.closed_test = newData?.closed_test ?? false;
+    }
+
+    // Compare open_test
+    if (
+        newData?.open_test.checked !== oldData.open_test.checked ||
+        newData?.open_test.start_date !== oldData.open_test.start_date ||
+        newData?.open_test.end_date !== oldData.open_test.end_date ||
+        newData?.open_test.instructions !== oldData.open_test.instructions
+    ) {
+        convertedData.open_test_details = {
+            registration_start_date: newData?.open_test.start_date + ":00.000Z" || "",
+            registration_end_date: newData?.open_test.end_date + ":00.000Z" || "",
+            instructions_html: newData?.open_test.instructions || "",
+            registration_form_details: {
+                added_custom_added_fields: [],
+                removed_custom_added_fields: [],
+                updated_custom_added_fields: [],
+            },
+        };
+    }
+
+    //Adding disabled false if type of field is dropdown
+    newData.open_test.custom_fields =
+        newData?.open_test.custom_fields.map((field) => {
+            if (field.type === "dropdown" && Array.isArray(field.options)) {
+                return {
+                    ...field,
+                    options: field.options.map((option) => ({
+                        ...option,
+                        disabled: false,
+                    })),
+                };
+            }
+            return field;
+        }) || [];
+
+    // Compare custom_fields
+    const oldCustomFields = oldData.open_test.custom_fields.reduce<
+        Record<string, (typeof oldData.open_test.custom_fields)[number]>
+    >((acc, field) => {
+        acc[field.id] = field;
+        return acc;
+    }, {});
+
+    newData.open_test.custom_fields.forEach((field: CustomFieldStep3) => {
+        if (!oldCustomFields[field.id]) {
+            convertedData.open_test_details.registration_form_details.added_custom_added_fields.push(
+                convertToCustomFieldSchema(field),
+            );
+        } else {
+            const oldField = oldCustomFields[field.id];
+            if (JSON.stringify(field) !== JSON.stringify(oldField)) {
+                convertedData.open_test_details.registration_form_details.updated_custom_added_fields.push(
+                    convertToCustomFieldSchema(field),
+                );
+            }
+            delete oldCustomFields[field.id];
+        }
+    });
+
+    convertedData.open_test_details.registration_form_details.removed_custom_added_fields =
+        Object.values(oldCustomFields).length > 0
+            ? convertCustomFields(Object.values(oldCustomFields))
+            : [];
+
+    // Compare batch details
+    const oldBatches = Object.values(oldData.select_batch.batch_details).flat();
+    const newBatches = Object.values(newData.select_batch.batch_details).flat();
+
+    convertedData.deleted_pre_register_batches_details = oldBatches.filter(
+        (id) => !newBatches.includes(id),
+    );
+
+    convertedData.added_pre_register_batches_details = newBatches.filter(
+        (id) => !oldBatches.includes(id),
+    );
+
+    // Compare student details
+    const oldUserIds = new Set(
+        oldData.select_individually.student_details.map((student) => student.user_id),
+    );
+    const newUserIds = new Set(
+        newData?.select_individually.student_details.map((student) => student.user_id),
+    );
+
+    // Students present in newData but not in oldData (Added)
+    convertedData.added_pre_register_students_details =
+        newData?.select_individually.student_details.filter(
+            (student) => !oldUserIds.has(student.user_id),
+        );
+
+    // Students present in oldData but not in newData (Deleted)
+    convertedData.deleted_pre_register_students_details =
+        oldData.select_individually.student_details.filter(
+            (student) => !newUserIds.has(student.user_id),
+        );
+
+    // Compare join_link
+    if (newData?.join_link !== oldData.join_link) {
+        convertedData.updated_join_link = newData?.join_link ?? "";
+    }
+
+    // Compare notification settings
+    const compareNotification = (newNotif: NotificationStep3) => {
+        return {
+            when_assessment_created: newNotif.when_assessment_created,
+            show_leaderboard: newData?.show_leaderboard,
+            before_assessment_goes_live: newNotif.before_assessment_goes_live.value
+                ? parseInt(newNotif.before_assessment_goes_live.value)
+                : 0,
+            when_assessment_live: newNotif.when_assessment_live,
+            when_assessment_report_generated: newNotif.when_assessment_report_generated,
+        };
+    };
+
+    const studentNotifications = compareNotification(newData?.notify_student);
+    const parentNotifications = compareNotification(newData?.notify_parent);
+
+    convertedData.notify_student = studentNotifications;
+
+    convertedData.notify_parent = parentNotifications;
+    return convertedData;
+};

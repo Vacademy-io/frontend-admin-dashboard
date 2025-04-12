@@ -29,10 +29,11 @@ export interface Slide {
     status: "PUBLISHED" | "DRAFT" | "DELETED" | "UNSYNC";
     published_data: string;
     published_url: string;
+    last_sync_date: string | null;
 }
 
 interface VideoSlidePayload {
-    id?: string;
+    id?: string | null;
     title: string;
     description: string | null;
     image_file_id: string | null;
@@ -52,7 +53,7 @@ interface VideoSlidePayload {
 }
 
 interface DocumentSlidePayload {
-    id: string;
+    id: string | null;
     title: string;
     image_file_id: string;
     description: string | null;
@@ -117,6 +118,8 @@ export const useSlides = (chapterId: string) => {
             queryClient.invalidateQueries({ queryKey: ["slides"] });
             queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SLIDES_PROGRESS"] });
         },
     });
 
@@ -132,6 +135,8 @@ export const useSlides = (chapterId: string) => {
             queryClient.invalidateQueries({ queryKey: ["slides"] });
             queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SLIDES_PROGRESS"] });
         },
     });
 
@@ -145,6 +150,8 @@ export const useSlides = (chapterId: string) => {
             queryClient.invalidateQueries({ queryKey: ["slides"] });
             queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SLIDES_PROGRESS"] });
         },
     });
 
@@ -159,6 +166,8 @@ export const useSlides = (chapterId: string) => {
             queryClient.invalidateQueries({ queryKey: ["slides"] });
             queryClient.invalidateQueries({ queryKey: ["GET_MODULES_WITH_CHAPTERS"] });
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SLIDES_PROGRESS"] });
         },
     });
 

@@ -68,7 +68,7 @@ export const ChapterSidebarAddButton = () => {
                     const slideId = crypto.randomUUID();
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
-                        title: "New Document",
+                        title: "New Doc",
                         image_file_id: "",
                         description: "",
                         slide_order: null,

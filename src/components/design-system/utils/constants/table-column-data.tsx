@@ -49,12 +49,12 @@ const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
 const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
     const { setSelectedStudent } = useStudentSidebar();
 
+    const handleClick = async () => {
+        setSelectedStudent(row.original);
+    };
+
     return (
-        <SidebarTrigger
-            onClick={() => {
-                setSelectedStudent(row.original);
-            }}
-        >
+        <SidebarTrigger onClick={handleClick}>
             <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
         </SidebarTrigger>
     );
@@ -190,15 +190,11 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                 return <></>;
             }
             const expiryDate = new Date(row.original.expiry_date);
-            console.log("expiryDate: ", expiryDate);
             const today = new Date();
-            console.log("today: ", today);
 
             // Use getTime() to get timestamps in milliseconds
             const diffTime = expiryDate.getTime() - today.getTime();
-            console.log("time diff: ", diffTime);
             const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            console.log("daysLeft: ", daysLeft);
 
             return (
                 <div
@@ -275,6 +271,10 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
         header: "Duration",
     },
     {
+        accessorKey: "concentrationScore",
+        header: "Concentration Score",
+    },
+    {
         accessorKey: "lastPageRead",
         header: () => <LastPageReadHeader />,
     },
@@ -317,14 +317,6 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     {
         accessorKey: "full_name",
         header: "Student Name",
-    },
-    {
-        accessorKey: "institute_enrollment_id",
-        header: "Enrollment Number",
-    },
-    {
-        accessorKey: "username",
-        header: "User Name",
     },
     {
         accessorKey: "time_spent",
