@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { Copy, Plus } from "phosphor-react";
 import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
 import { InviteForm } from "../-schema/InviteFormSchema";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { EmptyInvitePage } from "@/assets/svgs";
 import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
@@ -17,6 +17,9 @@ import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import createInviteLink from "../-utils/createInviteLink";
 import { useInviteFormContext } from "../-context/useInviteFormContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { MyDialog } from "@/components/design-system/dialog";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 export const Invite = () => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
@@ -28,7 +31,14 @@ export const Invite = () => {
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const { form } = useInviteFormContext();
-    const { setValue } = form;
+    const { setValue, watch } = form;
+    const [disableCreateInviteButton, setDisableCreateInviteButton] = useState<boolean>(true);
+    const [openInvitationLinkDialog, setOpenInvitationLinkDialog] = useState<boolean>(false);
+    const { getPackageSessionId } = useInstituteDetailsStore();
+
+    const handleDisableCreateInviteButton = (value: boolean) => {
+        setDisableCreateInviteButton(value);
+    };
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
@@ -61,9 +71,19 @@ export const Invite = () => {
         </MyButton>
     );
 
+    useEffect(() => {
+        console.log(
+            "values: ",
+            watch("batches.preSelectedCourses"),
+            watch("batches.learnerChoiceCourses"),
+        );
+    }, [watch("batches.preSelectedCourses"), watch("batches.learnerChoiceCourses")]);
+
     const inviteSubmitButton = (
         <div className="flex w-full items-center justify-end">
-            <MyButton onClick={() => formSubmitRef.current()}>Create</MyButton>
+            <MyButton onClick={() => formSubmitRef.current()} disable={disableCreateInviteButton}>
+                Create
+            </MyButton>
         </div>
     );
 
@@ -87,7 +107,7 @@ export const Invite = () => {
     };
 
     const onCreateInvite = async (invite: InviteForm) => {
-        const requestData = formDataToRequestData(invite);
+        const requestData = formDataToRequestData(invite, getPackageSessionId);
         try {
             const { data: responseData }: { data: CreateInvitationRequestType } =
                 await createInviteMutation.mutateAsync({ requestBody: requestData });
@@ -100,7 +120,8 @@ export const Invite = () => {
                 preSelectedCourses: [],
                 learnerChoiceCourses: [],
             });
-            // setOpenCreateInviteDialog(false);
+            setOpenCreateInviteDialog(false);
+            setOpenInvitationLinkDialog(true);
         } catch {
             toast.error("failed to create invitation");
         }
@@ -121,6 +142,7 @@ export const Invite = () => {
                     onOpenChange={onOpenChangeCreateInviteDialog}
                     inviteLink={inviteLink}
                     setInviteLink={setInviteLink}
+                    handleDisableCreateInviteButton={handleDisableCreateInviteButton}
                 />
             </div>
             <div className="flex w-full flex-col gap-10">
@@ -150,9 +172,33 @@ export const Invite = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <p className="text-body font-semibold">Invite Link: </p>
-                                    <p className="text-subtitle underline">{`${createInviteLink(
-                                        obj.invite_code,
-                                    ).slice(0, 40)}..`}</p>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <a
+                                                    href={createInviteLink(obj.invite_code)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-subtitle underline hover:text-primary-500"
+                                                >
+                                                    {`${createInviteLink(obj.invite_code).slice(
+                                                        0,
+                                                        40,
+                                                    )}..`}
+                                                </a>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:text-primary-500">
+                                                <a
+                                                    href={createInviteLink(obj.invite_code)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {createInviteLink(obj.invite_code)}
+                                                </a>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+
                                     <div className="flex items-center gap-2">
                                         <MyButton
                                             buttonType="secondary"
@@ -181,6 +227,41 @@ export const Invite = () => {
                     </div>
                 )}
             </div>
+
+            <MyDialog
+                heading="Invitation Link"
+                open={openInvitationLinkDialog}
+                onOpenChange={setOpenInvitationLinkDialog}
+                footer={
+                    <div className="flex w-full items-center justify-between">
+                        <MyButton buttonType="secondary">Review Invitation</MyButton>
+                        <MyButton onClick={() => setOpenInvitationLinkDialog(false)}>
+                            Close
+                        </MyButton>
+                    </div>
+                }
+                dialogWidth="w-[50vw] overflow-x-hidden"
+            >
+                <div className="flex w-fit items-center gap-4 overflow-x-hidden">
+                    <p className="w-[50%] overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-neutral-300 p-2 text-neutral-500">
+                        {inviteLink}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <MyButton
+                            buttonType="secondary"
+                            scale="medium"
+                            layoutVariant="icon"
+                            onClick={() => inviteLink && handleCopyClick(inviteLink)}
+                            type="button"
+                        >
+                            <Copy />
+                        </MyButton>
+                        {copySuccess === inviteLink && (
+                            <span className="text-caption text-primary-500">Copied!</span>
+                        )}
+                    </div>
+                </div>
+            </MyDialog>
         </div>
     );
 };
