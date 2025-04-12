@@ -25,11 +25,11 @@ export const LayoutContainer = ({
 }) => {
     const { open } = useSidebar();
     return (
-        <div className={`flex w-full ${open ? "gap-12" : "gap-16"}`}>
+        <div className={`flex h-screen w-full ${open ? "gap-12" : "gap-16"}`}>
             <div>
                 <MySidebar sidebarComponent={sidebarComponent} />
             </div>
-            <div className="flex flex-1 flex-row">
+            <div className="flex h-full flex-1 flex-row">
                 {internalSideBar && (
                     <InternalSideBar sideBarList={sideBarList} sideBarData={sideBarData} />
                 )}

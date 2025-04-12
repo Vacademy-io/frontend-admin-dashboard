@@ -19,10 +19,6 @@ export const InternalSideBar = ({
     const searchValue = searchParams[searchKey as keyof typeof searchParams];
     const [activeItem, setActiveItem] = useState<string>(searchValue as string);
 
-    console.log(searchValue);
-    console.log("state var ", activeItem);
-    console.log(sideBarList);
-
     const handleClick = (id: string) => {
         setActiveItem(id);
         navigate({
