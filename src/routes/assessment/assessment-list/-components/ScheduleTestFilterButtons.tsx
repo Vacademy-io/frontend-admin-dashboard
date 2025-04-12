@@ -21,6 +21,7 @@ const ScheduleTestFilterButtons = ({
             assessment_statuses,
             assessment_modes,
             access_statuses,
+            evaluation_types,
         } = selectedQuestionPaperFilters;
 
         // Check if 'name' is a string and call trim on it, otherwise check if it's an array
@@ -33,7 +34,8 @@ const ScheduleTestFilterButtons = ({
             tag_ids?.length > 0 ||
             assessment_statuses?.length > 0 ||
             assessment_modes?.length > 0 ||
-            access_statuses?.length > 0
+            access_statuses?.length > 0 ||
+            evaluation_types?.length > 0
         );
     };
     return (

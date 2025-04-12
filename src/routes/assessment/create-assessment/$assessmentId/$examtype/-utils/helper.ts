@@ -172,7 +172,7 @@ export function transformBatchData(data: BatchData[], sessionId: string) {
         if (selectedSessionId !== sessionId) return;
 
         // Create the batch key
-        const batchKey = `${levelName}`;
+        const batchKey = `${packageName}`;
 
         // Initialize the batch key if not present
         if (!batchDetails[batchKey]) {
@@ -181,7 +181,7 @@ export function transformBatchData(data: BatchData[], sessionId: string) {
 
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
-            name: `${levelName} - ${packageName}`,
+            name: `${levelName}`,
             id: packageId || "",
         });
     });
@@ -199,7 +199,7 @@ export function transformAllBatchData(data: BatchData[]) {
         const packageId = item.id;
 
         // Create the batch key
-        const batchKey = `${levelName}`;
+        const batchKey = `${packageName}`;
 
         // Initialize the batch key if not present
         if (!batchDetails[batchKey]) {
@@ -208,7 +208,7 @@ export function transformAllBatchData(data: BatchData[]) {
 
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
-            name: `${levelName} - ${packageName}`,
+            name: `${levelName}`,
             id: packageId || "",
         });
     });
@@ -226,7 +226,7 @@ export function transformBatchDataEdit(data: BatchData[]) {
         const packageId = item.id;
 
         // Create the batch key
-        const batchKey = `${levelName}`;
+        const batchKey = `${packageName}`;
 
         // Initialize the batch key if not present
         if (!batchDetails[batchKey]) {
@@ -235,7 +235,7 @@ export function transformBatchDataEdit(data: BatchData[]) {
 
         // Add the package details (name and id) to the batch key
         batchDetails[batchKey]!.push({
-            name: `${levelName} - ${packageName}`,
+            name: `${packageName} - ${levelName}`,
             id: packageId || "",
         });
     });

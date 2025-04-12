@@ -272,7 +272,17 @@ export const StudentsListSection = () => {
                                     onOpenChange={setIsSidebarOpen}
                                 >
                                     <MyTable<StudentTable>
-                                        data={studentTableData}
+                                        data={{
+                                            content: studentTableData.content.map((student) => ({
+                                                ...student,
+                                                id: student.user_id,
+                                            })),
+                                            total_pages: studentTableData.total_pages,
+                                            page_no: studentTableData.page_no,
+                                            page_size: studentTableData.page_size,
+                                            total_elements: studentTableData.total_elements,
+                                            last: studentTableData.last,
+                                        }}
                                         columns={myColumns}
                                         isLoading={loadingData}
                                         error={loadingError}
@@ -283,7 +293,11 @@ export const StudentsListSection = () => {
                                         currentPage={page}
                                     />
                                     <div ref={sidebarRef}>
-                                        <StudentSidebar />
+                                        <StudentSidebar
+                                            selectedTab={"ENDED,PENDING,LIVE"}
+                                            examType={"EXAM"}
+                                            isStudentList={true}
+                                        />
                                     </div>
                                 </SidebarProvider>
                             </div>
