@@ -20,7 +20,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
 import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
 import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
 const GenerateAIAssessmentComponent = () => {
@@ -46,7 +45,7 @@ const GenerateAIAssessmentComponent = () => {
     const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
 
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        resolver: zodResolver(generateCompleteAssessmentFormSchema),
         mode: "onChange",
         defaultValues: {
             questionPaperId: "1",
@@ -183,8 +182,6 @@ const GenerateAIAssessmentComponent = () => {
         }
         generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
     };
-
-    console.log(assessmentData);
 
     const handleGenerateQuestionsForAssessment = () => {
         if (!uploadedFilePDFId) return;

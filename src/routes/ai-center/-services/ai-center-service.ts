@@ -2,6 +2,7 @@ import {
     CONVERT_PDF_TO_HTML_AI_URL,
     GENERATE_QUESTIONS_FROM_FILE_AI_URL,
     GET_QUESTIONS_URL_FROM_HTML_AI_URL,
+    HTML_TO_QUESTIONS_FROM_FILE_AI_URL,
     START_PROCESSING_FILE_AI_URL,
 } from "@/constants/urls";
 import axios from "axios";
@@ -25,6 +26,21 @@ export const handleGenerateAssessmentQuestions = async (pdfId: string, userPromp
             pdfId,
             userPrompt,
         },
+    });
+    return response?.data;
+};
+
+export const handleGenerateAssessmentQuestionsPageWise = async (
+    html: string,
+    userPrompt: string,
+) => {
+    const response = await axios({
+        method: "POST",
+        url: HTML_TO_QUESTIONS_FROM_FILE_AI_URL,
+        params: {
+            userPrompt,
+        },
+        data: { html: html },
     });
     return response?.data;
 };
