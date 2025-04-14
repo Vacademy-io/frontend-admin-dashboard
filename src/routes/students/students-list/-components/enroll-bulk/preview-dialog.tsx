@@ -71,7 +71,7 @@ export const PreviewDialog: React.FC<PreviewDialogProps> = ({
                     layoutVariant="default"
                     onClick={handleClose}
                 >
-                    {uploadCompleted ? "Close" : "Go Back"}
+                    {uploadCompleted ? "Close" : "Done"}
                 </MyButton>
             </div>
         </footer>

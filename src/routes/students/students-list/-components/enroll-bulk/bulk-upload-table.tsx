@@ -392,7 +392,7 @@ export function EditableBulkUploadTable({
         <p className="w-full text-center text-subtitle text-primary-500">No uploaded data found!</p>
     ) : (
         <div className="flex flex-col gap-6 pr-10">
-            <div className="fixed top-[55px] z-50 flex w-[78vw] items-center justify-between bg-white py-2">
+            <div className="fixed top-[55px] z-50 flex w-[78vw] items-center justify-between border-b border-b-neutral-300 bg-white py-2">
                 <div className="flex items-center gap-2">
                     <StudentSearchBox
                         searchInput={searchInput}
@@ -464,7 +464,7 @@ export function EditableBulkUploadTable({
                             ...headers.reduce(
                                 (acc, header) => ({
                                     ...acc,
-                                    [header.column_name]: "w-[280px]",
+                                    [header.column_name]: "min-w-[220px]",
                                 }),
                                 {},
                             ),
