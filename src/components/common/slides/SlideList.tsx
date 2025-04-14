@@ -22,6 +22,7 @@ import {
   FileQuestion,
   MessageSquare,
   Presentation,
+  Trash2,
 } from "lucide-react"
 import type { Slide } from "./types"
 import type { SlideType } from "./constant/slideType"
@@ -32,10 +33,10 @@ interface SlideListProps {
   slides: Slide[]
   currentSlide: string | undefined
   onSlideChange: (id: string) => void
-  onAddSlide: (type?: SlideType) => void
+  onAddSlide: (type: SlideType) => void
   onMoveSlideUp: () => void
   onMoveSlideDown: () => void
-  onDeleteSlide: () => void
+  onDeleteSlide: (id: string) => void // Changed to accept slide ID
   onExport: () => void
   onImport: (event: React.ChangeEvent<HTMLInputElement>) => void
   onReorderSlides: (newSlides: Slide[]) => void
@@ -152,10 +153,10 @@ export default function SlideList({
         </div>
 
         <div className="flex-1">
-        <ScrollArea className="h-[72vh] rounded-md  overflow-auto">
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="slides">
-              {(provided) => (
+          <ScrollArea className="h-[72vh] rounded-md overflow-auto">
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="slides">
+                {(provided) => (
                   <ul
                     ref={provided.innerRef}
                     {...provided.droppableProps}
@@ -172,24 +173,34 @@ export default function SlideList({
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             className={cn(
-                              "relative rounded-md border-2 transition-all",
+                              "group relative rounded-md border-2 transition-all",
                               snapshot.isDragging
                                 ? "bg-green-100 shadow-lg border-primary-400"
                                 : "bg-white",
                               slide.id === currentSlide
                                 ? "border-primary-400"
-                                : "border-transparent"
+                                : "border-transparent hover:border-gray-200"
                             )}
                             onClick={() => onSlideChange(slide.id)}
                           >
                             <SlideTypePreview type={slide.type} />
-                            <div className="flex items-center gap-2 p-2">
+                            <div className="flex items-center justify-between p-2">
                               <div
                                 {...provided.dragHandleProps}
                                 className="cursor-grab hover:bg-gray-100 p-1 rounded"
                               >
                                 <GripVertical className="h-4 w-4 text-gray-500" />
                               </div>
+                              <button
+                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-50 hover:text-red-500"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onDeleteSlide(slide.id)
+                                }}
+                                title="Delete slide"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </div>
                           </li>
                         )}
@@ -197,10 +208,9 @@ export default function SlideList({
                     ))}
                     {provided.placeholder}
                   </ul>
-             
-              )}
-            </Droppable>
-          </DragDropContext>
+                )}
+              </Droppable>
+            </DragDropContext>
           </ScrollArea>
         </div>
       </div>

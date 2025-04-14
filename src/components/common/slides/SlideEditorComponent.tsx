@@ -10,18 +10,11 @@ import type { Slide } from "./types";
 import { Button } from "@/components/ui/button";
 import { ListStart, Settings, FileDown } from "lucide-react";
 import SlideList from "./SlideList";
-import { fullMediaSlide, textMediaSlide, textSlide, titleSlide, videoSlide, webEmbedSlide } from "./constant/textSlide";
 import { SlideType } from "./constant/slideType";
 import { createNewSlide } from "./utils/util";
 import html2canvas from 'html2canvas';
 import PptxGenJS from 'pptxgenjs';
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { QuizeSlide } from "./slidesTypes/QuizSlides";
-import { useForm } from "react-hook-form";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-
-
 
 const saveSlidesInLocalStorage = (slides: Slide[]) => {
     localStorage.setItem("slides", JSON.stringify(slides));
@@ -32,8 +25,36 @@ const getSlidesFromLocalStorage = (): Slide[] => {
     return json ? JSON.parse(json) : null;
 };
 
-export default function SlidesEditor() {
+interface SlideRendererProps {
+    type: SlideType;
+    currentSlide: string;
+    editMode: boolean;
+    getSlide: (id: string) => Slide | undefined;
+    updateSlide: (id: string, elements: any[]) => void;
+}
 
+const SlideRenderer = ({ type, currentSlide, editMode, getSlide, updateSlide }: SlideRendererProps) => {
+    const slide = getSlide(currentSlide);
+    
+    if (!slide) return null;
+
+    switch (type) {
+        case SlideType.Quiz:
+        case SlideType.Feedback:
+            return <QuizeSlide formdata={slide} className={"flex flex-col"} questionType={type} />;
+        default:
+            return (
+                <SlideEditor
+                    editMode={editMode}
+                    slide={slide}
+                    onSlideChange={(elements) => updateSlide(currentSlide, elements)}
+                    key={currentSlide}
+                />
+            );
+    }
+};
+
+export default function SlidesEditor() {
     const [editMode, setEditMode] = useState(true);
     const [slides, setSlides] = useState<Slide[]>([]);
     const [currentSlide, setCurrentSlide] = useState<string | undefined>(undefined);
@@ -56,7 +77,6 @@ export default function SlidesEditor() {
     const getSlide = (id: string) => slides.find((s) => s.id === id);
 
     const updateSlide = (id: string, elements: any[]) => {
-        // console.log(elements , 'elements')
         const newSlides = slides.map((slide) =>
             slide.id === id ? { ...slide, elements: elements.filter((e) => !e.isDeleted) } : slide,
         );
@@ -161,7 +181,6 @@ export default function SlidesEditor() {
 
     const takeScreenshot = async () => {
         try {
-            // Find the slide container to capture
             const slideContainer = document.querySelector('.excalidraw__canvas');
             
             if (!slideContainer) {
@@ -169,49 +188,38 @@ export default function SlidesEditor() {
                 return;
             }
 
-            // Use html2canvas to generate the screenshot
             const canvas = await html2canvas(slideContainer as HTMLElement, {
-                useCORS: true, // Handle cross-origin images
-                scale: 2, // Increase resolution
-                logging: false, // Disable logging
-                allowTaint: true, // Allow drawing images from different origins
+                useCORS: true,
+                scale: 2,
+                logging: false,
+                allowTaint: true,
             });
 
-            // Convert canvas to blob
             canvas.toBlob((blob) => {
                 if (!blob) {
                     console.error('Failed to create blob');
                     return;
                 }
 
-                // Create a link element to trigger download
                 const link = document.createElement('a');
                 link.download = `slide_screenshot_${new Date().toISOString()}.png`;
                 link.href = URL.createObjectURL(blob);
                 link.click();
-
-                // Clean up
                 URL.revokeObjectURL(link.href);
             });
         } catch (error) {
             console.error('Screenshot failed:', error);
-            // Optional: show user-friendly error toast
         }
     };
 
-    // Function to export slides to PowerPoint
     const exportToPowerPoint = async () => {
         try {
-            // Create a new PowerPoint presentation
             const pptx = new PptxGenJS();
             
-            // Iterate through slides and add them to the presentation
             for (const slide of slides) {
-                // Create a new slide in the presentation
                 const pptxSlide = pptx.addSlide();
                 
                 try {
-                    // Find the specific slide container for this slide
                     const slideContainer = document.querySelector(`.excalidraw__canvas`);
                     
                     if (!slideContainer) {
@@ -219,7 +227,6 @@ export default function SlidesEditor() {
                         continue;
                     }
 
-                    // Use html2canvas to convert slide to image
                     const canvas = await html2canvas(slideContainer as HTMLElement, {
                         useCORS: true,
                         scale: 2,
@@ -227,51 +234,27 @@ export default function SlidesEditor() {
                         allowTaint: true,
                     });
 
-                    // Convert canvas to data URL
                     const imageData = canvas.toDataURL('image/png');
 
-                    // Add the image to the PowerPoint slide
                     pptxSlide.addImage({
                         data: imageData,
                         x: 0.5,
                         y: 0.5,
-                        w: 9, // Adjust width as needed
-                        h: 5.5, // Adjust height as needed
+                        w: 9,
+                        h: 5.5,
                     });
                 } catch (slideError) {
                     console.error(`Error processing slide ${slide.id}:`, slideError);
                 }
             }
 
-            // Save the PowerPoint file
             pptx.writeFile({
                 fileName: `Presentation_${new Date().toISOString().replace(/:/g, '-')}.pptx`
             });
         } catch (error) {
             console.error('PowerPoint export failed:', error);
-            // Optional: show user-friendly error toast
         }
     };
-
-
-    const SlideRenderer = ({ type, currentSlide  , questionType }) => {
-        switch (type) {
-          case SlideType.Quiz:
-             return <QuizeSlide formdata={getSlide(currentSlide)! }  className={"flex flex-col"} questionType={type} />
-         case SlideType.Feedback:
-             return <QuizeSlide formdata={getSlide(currentSlide)! }  className={"flex flex-col"} questionType={type} />
-          default:
-            return <SlideEditor
-            editMode={editMode}
-            slide={getSlide(currentSlide)!}
-            onSlideChange={(elements) =>
-                updateSlide(currentSlide, elements)
-            }
-            key={currentSlide}
-        />
-        }
-      };
-      
 
     return (
         <div className="flex h-screen w-full bg-white">
@@ -305,20 +288,12 @@ export default function SlidesEditor() {
                     </Button>
                 </div>
 
-                <div 
-                    className="slide-container flex  gap-4 bg-primary-100"
-                    style={{ position: 'relative' }}
-                >
-                    {slides.map((slide, index) => (
-                        <div 
-                            key={slide.id} 
-                            className={`slide-${slide.id}`}
-                            style={{ 
-                                display: slide.id === currentSlide ? 'block' : 'none',
-                               
-                                height: '100%'
-                            }}
-                        >
+                <div className="slide-container flex gap-4 bg-primary-100" style={{ position: 'relative' }}>
+                    {currentSlide && (
+                        <div className={`slide-${currentSlide}`} style={{ 
+                            display: 'block',
+                            height: '100%'
+                        }}>
                             <SlideList
                                 slides={slides}
                                 currentSlide={currentSlide}
@@ -329,24 +304,27 @@ export default function SlidesEditor() {
                                 onDeleteSlide={deleteSlide}
                                 onExport={exportFile}
                                 onImport={importFile}
-                                onReorderSlides={(slides : Slide[])=>{
-                                  setSlides(slides)
+                                onReorderSlides={(slides: Slide[]) => {
+                                    setSlides(slides);
                                 }}
                             />
                         </div>
-                    ))}
+                    )}
                     <div className="flex flex-1 flex-col bg-white">
                         <div className="relative flex-1 rounded-xl border-2 border-primary-300">
                             {!editMode && (
                                 <div className="absolute inset-0 z-10 rounded-lg bg-black/50" />
                             )}
-                              <SlideRenderer
-                                  currentSlide={currentSlide}
-                                  type={getSlide(currentSlide)?.type}
+                            {currentSlide && (
+                                <SlideRenderer
+                                    currentSlide={currentSlide}
+                                    type={getSlide(currentSlide)?.type || SlideType.Title}
+                                    editMode={editMode}
+                                    getSlide={getSlide}
+                                    updateSlide={updateSlide}
                                 />
+                            )}
                         </div>
-
-                       
                     </div>
                 </div>
             </div>
