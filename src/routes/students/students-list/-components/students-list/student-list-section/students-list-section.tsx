@@ -30,6 +30,8 @@ import { Route } from "@/routes/students/students-list";
 import { useUsersCredentials } from "../../../-services/usersCredentials";
 import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
+import { ShareCredentialsDialog } from "./bulk-actions/share-credentials-dialog";
+import { IndividualShareCredentialsDialog } from "./bulk-actions/individual-share-credentials-dialog";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -348,6 +350,8 @@ export const StudentsListSection = () => {
                 )}
             </div>
             <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" />
+            <ShareCredentialsDialog />
+            <IndividualShareCredentialsDialog />
         </section>
     );
 };

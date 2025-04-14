@@ -8,8 +8,7 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { EditStudentDetails } from "./EditStudentDetails";
 import { useStudentCredentialsStore } from "@/stores/students/students-list/useStudentCredentialsStore";
 import { MyButton } from "@/components/design-system/button";
-import { useShareCredentials } from "@/routes/students/students-list/-services/share-credentials";
-import { toast } from "sonner";
+import { useDialogStore } from "@/routes/students/students-list/-hooks/useDialogStore";
 
 export const StudentOverview = () => {
     const { selectedStudent } = useStudentSidebar();
@@ -21,16 +20,7 @@ export const StudentOverview = () => {
     const [password, setPassword] = useState(
         getCredentials(selectedStudent?.user_id || "")?.password || "password not found",
     );
-    const shareCredentailsMutation = useShareCredentials();
-
-    const handleShareCredentials = () => {
-        try {
-            shareCredentailsMutation.mutateAsync({ userIds: [selectedStudent?.user_id || ""] });
-            toast.success("Credentials shared successfully");
-        } catch {
-            toast.error("Failed to share credentials");
-        }
-    };
+    const { openIndividualShareCredentialsDialog } = useDialogStore();
 
     useEffect(() => {
         if (selectedStudent) {
@@ -121,7 +111,10 @@ export const StudentOverview = () => {
                                     <MyButton
                                         buttonType="secondary"
                                         scale="large"
-                                        onClick={handleShareCredentials}
+                                        onClick={() =>
+                                            selectedStudent &&
+                                            openIndividualShareCredentialsDialog(selectedStudent)
+                                        }
                                     >
                                         Share Credentials
                                     </MyButton>
