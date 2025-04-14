@@ -5,6 +5,8 @@ import { BulkActionInfo } from "@/routes/students/students-list/-types/bulk-acti
 import { StudentTable } from "@/types/student-table-types";
 import { ReactNode } from "react";
 import { BulkActionDropdownList } from "@/routes/students/students-list/-constants/bulk-actions-menu-options";
+import { useShareCredentials } from "@/routes/students/students-list/-services/share-credentials";
+import { toast } from "sonner";
 
 interface BulkActionsMenuProps {
     selectedCount: number;
@@ -16,11 +18,12 @@ interface BulkActionsMenuProps {
 export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuProps) => {
     const {
         openBulkChangeBatchDialog,
-        openBulkExtendSessionDialog,
         openBulkReRegisterDialog,
         openBulkTerminateRegistrationDialog,
         openBulkDeleteDialog,
     } = useDialogStore();
+
+    const shareCredentialsMutation = useShareCredentials();
 
     const handleMenuOptionsChange = (value: string) => {
         const validStudents = selectedStudents.filter(
@@ -42,9 +45,6 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
             case "Change Batch":
                 openBulkChangeBatchDialog(bulkActionInfo);
                 break;
-            case "Extend Session":
-                openBulkExtendSessionDialog(bulkActionInfo);
-                break;
             case "Re-register for Next Session":
                 openBulkReRegisterDialog(bulkActionInfo);
                 break;
@@ -53,6 +53,16 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
                 break;
             case "Delete":
                 openBulkDeleteDialog(bulkActionInfo);
+                break;
+            case "Share Credentials":
+                try {
+                    shareCredentialsMutation.mutateAsync({
+                        userIds: validStudents.map((student) => student.user_id),
+                    });
+                    toast.success("Credentials shared successfully");
+                } catch {
+                    toast.error("Failed to share credentials");
+                }
                 break;
         }
     };
