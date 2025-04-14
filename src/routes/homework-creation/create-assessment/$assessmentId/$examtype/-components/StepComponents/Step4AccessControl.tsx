@@ -129,7 +129,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 });
                 handleCompleteCurrentStep();
                 navigate({
-                    to: "/assessment/assessment-list",
+                    to: "/homework-creation/assessment-list",
                     params: {
                         selectedTab: "liveTests",
                     },

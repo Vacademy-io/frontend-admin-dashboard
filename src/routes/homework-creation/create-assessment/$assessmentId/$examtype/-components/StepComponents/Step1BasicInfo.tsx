@@ -312,35 +312,32 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 </div>
                 <Separator className="my-4" />
                 <div className="flex flex-col gap-6">
-                    <div className="flex w-full items-start justify-start gap-4">
-                        <div className="" id={"assessment-details"}>
-                            <FormField
-                                control={control}
-                                name="testCreation.assessmentName"
-                                render={({ field: { ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                inputPlaceholder="Add Title"
-                                                input={field.value}
-                                                labelStyle="font-thin"
-                                                onChangeFunction={field.onChange}
-                                                error={
-                                                    form.formState.errors.testCreation
-                                                        ?.assessmentName?.message
-                                                }
-                                                required={true}
-                                                size="large"
-                                                label="Assessment Name"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-
+                    <div className="flex w-full items-start gap-4">
+                        <FormField
+                            control={control}
+                            name="testCreation.assessmentName"
+                            render={({ field: { ...field } }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MyInput
+                                            inputType="text"
+                                            inputPlaceholder="Add Title"
+                                            input={field.value}
+                                            labelStyle="font-thin"
+                                            onChangeFunction={field.onChange}
+                                            error={
+                                                form.formState.errors.testCreation?.assessmentName
+                                                    ?.message
+                                            }
+                                            required={true}
+                                            size="large"
+                                            label="Assessment Name"
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
                         {getStepKey({
                             assessmentDetails,
                             currentStep,
@@ -356,7 +353,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     _id: index,
                                 }))}
                                 control={form.control}
-                                className="mt-3 w-56 font-thin"
+                                className="w-56 font-thin mt-2"
                                 required={
                                     getStepKey({
                                         assessmentDetails,

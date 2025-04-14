@@ -1,5 +1,6 @@
 import { House, Users, BookOpen, Scroll, Globe, FileMagnifyingGlass } from "@phosphor-icons/react";
 import { SidebarItemsType } from "../../../../types/layout-container/layout-container-types";
+import { Notebook } from "phosphor-react";
 
 export const SidebarItemsData: SidebarItemsType[] = [
     {
@@ -51,6 +52,12 @@ export const SidebarItemsData: SidebarItemsType[] = [
         ],
     },
     {
+        icon: Notebook,
+        id: "Homework Creation",
+        title: "Homework Creation",
+        to: "/homework-creation/assessment-list?selectedTab=liveTests",
+    },
+    {
         icon: Scroll,
         title: "Assessment Centre",
         id: "assessment-centre",
@@ -81,7 +88,6 @@ export const SidebarItemsData: SidebarItemsType[] = [
             },
         ],
     },
-
     {
         icon: Globe,
         id: "Community Centre",
