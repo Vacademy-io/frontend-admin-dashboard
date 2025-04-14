@@ -1,6 +1,6 @@
 import { House, Users, BookOpen, Scroll, Globe, FileMagnifyingGlass } from "@phosphor-icons/react";
 import { SidebarItemsType } from "../../../../types/layout-container/layout-container-types";
-import { Notebook } from "phosphor-react";
+import { NotePencil } from "phosphor-react";
 
 export const SidebarItemsData: SidebarItemsType[] = [
     {
@@ -52,9 +52,9 @@ export const SidebarItemsData: SidebarItemsType[] = [
         ],
     },
     {
-        icon: Notebook,
+        icon: NotePencil,
         id: "Homework Creation",
-        title: "Homework Creation",
+        title: "Homework",
         to: "/homework-creation/assessment-list?selectedTab=liveTests",
     },
     {
