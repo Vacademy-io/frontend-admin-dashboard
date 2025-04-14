@@ -30,7 +30,6 @@ import { Route } from "@/routes/students/students-list";
 import { useUsersCredentials } from "../../../-services/usersCredentials";
 import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
-import { useStudentSidebar } from "../../../-context/selected-student-sidebar-context";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -221,8 +220,6 @@ export const StudentsListSection = () => {
         }
     }, [search, instituteDetails]);
 
-    const { setSelectedStudent, selectedStudent } = useStudentSidebar();
-
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
 
@@ -290,20 +287,20 @@ export const StudentsListSection = () => {
                                         rowSelection={currentPageSelection}
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
-                                        onRowClick={(student) => {
-                                            console.log("clicked student: ", student.user_id);
-                                            console.log(
-                                                "selectedStudent: ",
-                                                selectedStudent?.user_id,
-                                            );
-                                            console.log("isSidebarOpen: ", isSidebarOpen);
-                                            if (selectedStudent?.user_id === student.user_id) {
-                                                setIsSidebarOpen((prev) => !prev);
-                                            } else {
-                                                setSelectedStudent(student);
-                                                setIsSidebarOpen(true);
-                                            }
-                                        }}
+                                        // onRowClick={(student) => {
+                                        //     console.log("clicked student: ", student.user_id);
+                                        //     console.log(
+                                        //         "selectedStudent: ",
+                                        //         selectedStudent?.user_id,
+                                        //     );
+                                        //     console.log("isSidebarOpen: ", isSidebarOpen);
+                                        //     if (selectedStudent?.user_id === student.user_id) {
+                                        //         setIsSidebarOpen((prev) => !prev);
+                                        //     } else {
+                                        //         setSelectedStudent(student);
+                                        //         setIsSidebarOpen(true);
+                                        //     }
+                                        // }}
                                     />
                                     <div>
                                         <StudentSidebar
