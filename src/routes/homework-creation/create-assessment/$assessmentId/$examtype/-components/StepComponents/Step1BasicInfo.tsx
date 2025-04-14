@@ -71,7 +71,7 @@ const headingUpdate = (
             }}
             className="cursor-pointer"
         />
-        <h1 className="text-lg">Update Assessment</h1>
+        <h1 className="text-lg">Update Homework</h1>
     </div>
 );
 
