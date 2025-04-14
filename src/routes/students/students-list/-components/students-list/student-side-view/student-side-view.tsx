@@ -45,7 +45,6 @@ export const StudentSidebar = ({
     }, [state]);
 
     useEffect(() => {
-        console.log("inside useEffect");
         const fetchImageUrl = async () => {
             if (selectedStudent?.face_file_id) {
                 console.log("inside if");

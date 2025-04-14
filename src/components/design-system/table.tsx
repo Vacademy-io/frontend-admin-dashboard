@@ -49,6 +49,7 @@ interface MyTableProps<T> {
     scrollable?: boolean;
     className?: string;
     tableState?: { columnVisibility: VisibilityState };
+    onRowClick?: (row: T) => void;
 }
 
 export function MyTable<T>({
@@ -63,6 +64,7 @@ export function MyTable<T>({
     scrollable = false,
     className = "",
     tableState,
+    onRowClick,
 }: MyTableProps<T>) {
     const table = useReactTable({
         data: data?.content || [],
@@ -136,7 +138,16 @@ export function MyTable<T>({
                     </TableHeader>
                     <TableBody>
                         {table.getRowModel().rows.map((row) => (
-                            <TableRow key={row.id} className="hover:bg-white">
+                            <TableRow
+                                key={row.id}
+                                className="cursor-pointer hover:bg-white"
+                                onClick={(e) => {
+                                    // Prevent opening sidebar on double click
+                                    if (e.detail === 1 && onRowClick) {
+                                        onRowClick(row.original);
+                                    }
+                                }}
+                            >
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell
                                         key={cell.id}

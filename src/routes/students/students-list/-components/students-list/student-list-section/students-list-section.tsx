@@ -30,6 +30,7 @@ import { Route } from "@/routes/students/students-list";
 import { useUsersCredentials } from "../../../-services/usersCredentials";
 import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
+import { useStudentSidebar } from "../../../-context/selected-student-sidebar-context";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -37,13 +38,13 @@ export const StudentsListSection = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { getCourseFromPackage } = useInstituteDetailsStore();
-    const sidebarRef = useRef<HTMLDivElement>(null);
+    const tableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
-                sidebarRef.current &&
-                !sidebarRef.current.contains(event.target as Node) &&
+                tableRef.current &&
+                !tableRef.current.contains(event.target as Node) &&
                 isSidebarOpen
             ) {
                 setIsSidebarOpen(false);
@@ -220,9 +221,7 @@ export const StudentsListSection = () => {
         }
     }, [search, instituteDetails]);
 
-    useEffect(() => {
-        console.log("appliedFilters from students-list-section: ", appliedFilters);
-    }, [appliedFilters]);
+    const { setSelectedStudent, selectedStudent } = useStudentSidebar();
 
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
@@ -264,7 +263,7 @@ export const StudentsListSection = () => {
                 ) : (
                     <div className="flex flex-col gap-5">
                         <div className="h-auto max-w-full">
-                            <div className="max-w-full">
+                            <div className="max-w-full" ref={tableRef}>
                                 <SidebarProvider
                                     style={{ ["--sidebar-width" as string]: "565px" }}
                                     defaultOpen={false}
@@ -291,8 +290,22 @@ export const StudentsListSection = () => {
                                         rowSelection={currentPageSelection}
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
+                                        onRowClick={(student) => {
+                                            console.log("clicked student: ", student.user_id);
+                                            console.log(
+                                                "selectedStudent: ",
+                                                selectedStudent?.user_id,
+                                            );
+                                            console.log("isSidebarOpen: ", isSidebarOpen);
+                                            if (selectedStudent?.user_id === student.user_id) {
+                                                setIsSidebarOpen((prev) => !prev);
+                                            } else {
+                                                setSelectedStudent(student);
+                                                setIsSidebarOpen(true);
+                                            }
+                                        }}
                                     />
-                                    <div ref={sidebarRef}>
+                                    <div>
                                         <StudentSidebar
                                             selectedTab={"ENDED,PENDING,LIVE"}
                                             examType={"EXAM"}
