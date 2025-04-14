@@ -136,7 +136,7 @@ export function DashboardComponent() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>Complete your institute profile</CardTitle>
-                            <EditDashboardProfileComponent />
+                            <EditDashboardProfileComponent isEdit={false} />
                         </div>
                         <CardDescription className="flex items-center gap-2">
                             <CompletionStatusComponent

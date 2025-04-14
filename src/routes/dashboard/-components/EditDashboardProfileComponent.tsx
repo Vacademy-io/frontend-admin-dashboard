@@ -24,7 +24,7 @@ import { handleUpdateInstituteDashboard } from "../-services/dashboard-services"
 
 type FormValues = z.infer<typeof editDashboardProfileSchema>;
 
-const EditDashboardProfileComponent = () => {
+const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
     const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
@@ -137,16 +137,28 @@ const EditDashboardProfileComponent = () => {
         <>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger>
-                    <MyButton
-                        type="submit"
-                        scale="medium"
-                        buttonType="secondary"
-                        layoutVariant="default"
-                        className="text-sm"
-                    >
-                        <Plus size={32} />
-                        Add Details
-                    </MyButton>
+                    {isEdit ? (
+                        <MyButton
+                            type="submit"
+                            scale="large"
+                            buttonType="secondary"
+                            layoutVariant="default"
+                            className="text-sm"
+                        >
+                            Edit Institute
+                        </MyButton>
+                    ) : (
+                        <MyButton
+                            type="submit"
+                            scale="medium"
+                            buttonType="secondary"
+                            layoutVariant="default"
+                            className="text-sm"
+                        >
+                            <Plus size={32} />
+                            Add Details
+                        </MyButton>
+                    )}
                 </DialogTrigger>
                 <DialogContent className="flex h-4/5 w-1/3 flex-col overflow-auto p-0">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
