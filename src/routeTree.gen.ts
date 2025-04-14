@@ -15,7 +15,6 @@ import { Route as StudyLibraryIndexImport } from "./routes/study-library/index"
 import { Route as StudentsIndexImport } from "./routes/students/index"
 import { Route as SignupIndexImport } from "./routes/signup/index"
 import { Route as LoginIndexImport } from "./routes/login/index"
-import { Route as HomeworkCreationIndexImport } from "./routes/homework-creation/index"
 import { Route as EvaluationIndexImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexImport } from "./routes/community/index"
@@ -72,12 +71,6 @@ const SignupIndexRoute = SignupIndexImport.update({
 const LoginIndexRoute = LoginIndexImport.update({
   id: "/login/",
   path: "/login/",
-  getParentRoute: () => rootRoute,
-} as any)
-
-const HomeworkCreationIndexRoute = HomeworkCreationIndexImport.update({
-  id: "/homework-creation/",
-  path: "/homework-creation/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -333,13 +326,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof EvaluationIndexImport
       parentRoute: typeof rootRoute
     }
-    "/homework-creation/": {
-      id: "/homework-creation/"
-      path: "/homework-creation"
-      fullPath: "/homework-creation"
-      preLoaderRoute: typeof HomeworkCreationIndexImport
-      parentRoute: typeof rootRoute
-    }
     "/login/": {
       id: "/login/"
       path: "/login"
@@ -574,7 +560,6 @@ export interface FileRoutesByFullPath {
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
-  "/homework-creation": typeof HomeworkCreationIndexRoute
   "/login": typeof LoginIndexRoute
   "/signup": typeof SignupIndexRoute
   "/students": typeof StudentsIndexRoute
@@ -614,7 +599,6 @@ export interface FileRoutesByTo {
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
-  "/homework-creation": typeof HomeworkCreationIndexRoute
   "/login": typeof LoginIndexRoute
   "/signup": typeof SignupIndexRoute
   "/students": typeof StudentsIndexRoute
@@ -655,7 +639,6 @@ export interface FileRoutesById {
   "/community/": typeof CommunityIndexRoute
   "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
-  "/homework-creation/": typeof HomeworkCreationIndexRoute
   "/login/": typeof LoginIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/students/": typeof StudentsIndexRoute
@@ -697,7 +680,6 @@ export interface FileRouteTypes {
     | "/community"
     | "/dashboard"
     | "/evaluation"
-    | "/homework-creation"
     | "/login"
     | "/signup"
     | "/students"
@@ -736,7 +718,6 @@ export interface FileRouteTypes {
     | "/community"
     | "/dashboard"
     | "/evaluation"
-    | "/homework-creation"
     | "/login"
     | "/signup"
     | "/students"
@@ -775,7 +756,6 @@ export interface FileRouteTypes {
     | "/community/"
     | "/dashboard/"
     | "/evaluation/"
-    | "/homework-creation/"
     | "/login/"
     | "/signup/"
     | "/students/"
@@ -816,7 +796,6 @@ export interface RootRouteChildren {
   CommunityIndexRoute: typeof CommunityIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   EvaluationIndexRoute: typeof EvaluationIndexRoute
-  HomeworkCreationIndexRoute: typeof HomeworkCreationIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudentsIndexRoute: typeof StudentsIndexRoute
@@ -856,7 +835,6 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityIndexRoute: CommunityIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   EvaluationIndexRoute: EvaluationIndexRoute,
-  HomeworkCreationIndexRoute: HomeworkCreationIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudentsIndexRoute: StudentsIndexRoute,
@@ -917,7 +895,6 @@ export const routeTree = rootRoute
         "/community/",
         "/dashboard/",
         "/evaluation/",
-        "/homework-creation/",
         "/login/",
         "/signup/",
         "/students/",
@@ -963,9 +940,6 @@ export const routeTree = rootRoute
     },
     "/evaluation/": {
       "filePath": "evaluation/index.tsx"
-    },
-    "/homework-creation/": {
-      "filePath": "homework-creation/index.tsx"
     },
     "/login/": {
       "filePath": "login/index.tsx"
