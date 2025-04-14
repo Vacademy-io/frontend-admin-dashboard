@@ -9,16 +9,25 @@ import { editDashboardProfileSchema } from "../-utils/edit-dashboard-profile-sch
 import { OnboardingFrame } from "@/svgs";
 import { FileUploadComponent } from "@/components/design-system/file-upload";
 import { UploadFileInS3Public } from "@/routes/signup/-services/signup-services";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getInstituteId } from "@/constants/helper";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
 import { InstituteType } from "@/constants/dummy-data";
 import { Separator } from "@/components/ui/separator";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { getPublicUrl } from "@/services/upload_file";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { handleUpdateInstituteDashboard } from "../-services/dashboard-services";
 
 type FormValues = z.infer<typeof editDashboardProfileSchema>;
 
 const EditDashboardProfileComponent = () => {
+    const queryClient = useQueryClient();
+    const [open, setOpen] = useState(false);
+    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const instituteId = getInstituteId();
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,6 +49,8 @@ const EditDashboardProfileComponent = () => {
         },
         mode: "onChange",
     });
+
+    const { handleSubmit } = form;
     const handleFileSubmit = async (file: File) => {
         try {
             setIsUploading(true);
@@ -60,13 +71,71 @@ const EditDashboardProfileComponent = () => {
         }
     };
 
+    const handleSubmitEditDataMutation = useMutation({
+        mutationFn: ({
+            data,
+            instituteId,
+        }: {
+            data: z.infer<typeof editDashboardProfileSchema>;
+            instituteId: string | undefined;
+        }) => handleUpdateInstituteDashboard(data, instituteId),
+        onSuccess: () => {
+            toast.success("Your details has been updated successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
+            setOpen(false);
+            queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error.message, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
+        },
+    });
+
     function onSubmit(values: FormValues) {
-        console.log(values);
+        handleSubmitEditDataMutation.mutate({
+            data: values,
+            instituteId: instituteDetails?.id,
+        });
     }
+
+    const onInvalid = (err: unknown) => {
+        console.log(err);
+    };
+
+    useEffect(() => {
+        const resetFormWithUrl = async () => {
+            const publicUrl = await getPublicUrl(instituteDetails?.institute_logo_file_id);
+            form.reset({
+                instituteProfilePictureUrl: publicUrl,
+                instituteProfilePictureId: instituteDetails?.institute_logo_file_id ?? undefined,
+                instituteName: instituteDetails?.institute_name,
+                instituteType: instituteDetails?.type,
+                instituteEmail: instituteDetails?.email,
+                institutePhoneNumber: instituteDetails?.phone,
+                instituteWebsite: instituteDetails?.website_url,
+                instituteAddress: instituteDetails?.address,
+                instituteCountry: instituteDetails?.country,
+                instituteState: instituteDetails?.state,
+                instituteCity: instituteDetails?.city,
+                institutePinCode: instituteDetails?.pin_code,
+            });
+        };
+
+        resetFormWithUrl();
+    }, [instituteDetails]);
 
     return (
         <>
-            <Dialog>
+            <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger>
                     <MyButton
                         type="submit"
@@ -79,9 +148,9 @@ const EditDashboardProfileComponent = () => {
                         Add Details
                     </MyButton>
                 </DialogTrigger>
-                <DialogContent className="flex h-4/5 flex-col overflow-auto p-0">
-                    <h1 className="rounded-t-lg bg-primary-50 p-4 text-primary-500">
-                        Edit Institute Profile
+                <DialogContent className="flex h-4/5 w-1/3 flex-col overflow-auto p-0">
+                    <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                        Edit Institute
                     </h1>
                     <FormProvider {...form}>
                         <form>
@@ -156,16 +225,7 @@ const EditDashboardProfileComponent = () => {
                                         required
                                     />
                                     <Separator />
-                                    <MyButton
-                                        type="button"
-                                        scale="large"
-                                        buttonType="primary"
-                                        layoutVariant="default"
-                                        onClick={form.handleSubmit(onSubmit)}
-                                        className="mt-4"
-                                    >
-                                        Save Changes
-                                    </MyButton>
+                                    <h1>Contact Information</h1>
                                     <FormField
                                         control={form.control}
                                         name="instituteEmail"
@@ -241,6 +301,148 @@ const EditDashboardProfileComponent = () => {
                                             </FormItem>
                                         )}
                                     />
+                                    <Separator />
+                                    <h1>Location Details</h1>
+                                    <FormField
+                                        control={form.control}
+                                        name="instituteAddress"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text"
+                                                        inputPlaceholder="Address line 1"
+                                                        input={value}
+                                                        onChangeFunction={onChange}
+                                                        required={true}
+                                                        error={
+                                                            form.formState.errors.instituteAddress
+                                                                ?.message
+                                                        }
+                                                        size="large"
+                                                        label="Address"
+                                                        className="w-full"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="instituteCountry"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text"
+                                                        inputPlaceholder="Select Country"
+                                                        input={value}
+                                                        onChangeFunction={onChange}
+                                                        required={true}
+                                                        error={
+                                                            form.formState.errors.instituteCountry
+                                                                ?.message
+                                                        }
+                                                        size="large"
+                                                        label="Country"
+                                                        className="w-full"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <div className="flex flex-wrap items-start justify-between gap-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="instituteState"
+                                            render={({ field: { onChange, value, ...field } }) => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <MyInput
+                                                            inputType="text"
+                                                            inputPlaceholder="Select State"
+                                                            input={value}
+                                                            onChangeFunction={onChange}
+                                                            required={true}
+                                                            error={
+                                                                form.formState.errors.instituteState
+                                                                    ?.message
+                                                            }
+                                                            className="w-auto"
+                                                            size="large"
+                                                            label="State"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="instituteCity"
+                                            render={({ field: { onChange, value, ...field } }) => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <MyInput
+                                                            inputType="text"
+                                                            inputPlaceholder="Select City/Village"
+                                                            input={value}
+                                                            onChangeFunction={onChange}
+                                                            required={true}
+                                                            error={
+                                                                form.formState.errors.instituteCity
+                                                                    ?.message
+                                                            }
+                                                            size="large"
+                                                            className="w-auto"
+                                                            label="City/Village"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                    <FormField
+                                        control={form.control}
+                                        name="institutePinCode"
+                                        render={({ field: { onChange, value, ...field } }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <MyInput
+                                                        inputType="text"
+                                                        inputPlaceholder="Enter Pincode"
+                                                        input={value}
+                                                        onChangeFunction={onChange}
+                                                        required={true}
+                                                        error={
+                                                            form.formState.errors.institutePinCode
+                                                                ?.message
+                                                        }
+                                                        size="large"
+                                                        label="Pincode"
+                                                        className="w-full"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <div className="flex justify-end">
+                                        <MyButton
+                                            type="submit"
+                                            scale="large"
+                                            buttonType="secondary"
+                                            layoutVariant="default"
+                                            className="mt-4 text-sm"
+                                            onClick={handleSubmit(onSubmit, onInvalid)}
+                                            disable={Object.keys(form.formState.errors).length > 0}
+                                        >
+                                            Save Changes
+                                        </MyButton>
+                                    </div>
                                 </div>
                             </div>
                         </form>
