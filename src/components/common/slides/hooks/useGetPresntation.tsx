@@ -1,98 +1,129 @@
+/* eslint-disable */
+// @ts-nocheck
 import { TokenKey } from "@/constants/auth/tokens";
 import { GET_BATCH_LIST } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
-import { batchesWithStudents } from "@/routes/students/manage-batches/-types/manage-batches-types";
 import { useQuery } from "@tanstack/react-query";
+import { Presentation } from "../types";
 
 
-// Sample presentation data
-export interface Presentation {
-  id: string
-  title: string
-  description: string
-  createdAt: string
-  status: "draft" | "published" | "archived"
-  slides: number
-  lastEdited?: string
-  category?: string
-}
 
 
-const samplePresentations: Presentation[] = [
-  {
-    id: "1",
-    title: "Introduction to React",
-    description:
-      "A comprehensive overview of React fundamentals and best practices for beginners and intermediate developers.",
-    createdAt: "2023-10-15",
-    status: "published",
-    slides: 24,
-    lastEdited: "2023-12-10",
-    category: "Development",
-  },
-  {
-    id: "2",
-    title: "Advanced JavaScript Concepts",
-    description: "Deep dive into closures, prototypes, and asynchronous programming patterns in modern JavaScript.",
-    createdAt: "2023-11-02",
-    status: "published",
-    slides: 18,
-    lastEdited: "2024-01-05",
-    category: "Development",
-  },
-  {
-    id: "3",
-    title: "UI/UX Design Principles",
-    description:
-      "Learn the core principles of effective user interface design and how to create engaging user experiences.",
-    createdAt: "2023-12-05",
-    status: "published",
-    slides: 32,
-    lastEdited: "2024-02-15",
-    category: "Design",
-  },
-  {
-    id: "4",
-    title: "Data Structures & Algorithms",
-    description:
-      "Essential algorithms and data structures for technical interviews and practical programming applications.",
-    createdAt: "2024-01-10",
-    status: "published",
-    slides: 42,
-    lastEdited: "2024-03-01",
-    category: "Computer Science",
-  },
-  {
-    id: "5",
-    title: "Machine Learning Fundamentals",
-    description: "Introduction to key machine learning concepts, algorithms, and practical applications with Python.",
-    createdAt: "2024-02-20",
-    status: "published",
-    slides: 36,
-    lastEdited: "2024-03-15",
-    category: "Data Science",
-  },
-  {
-    id: "6",
-    title: "Cloud Computing Architecture",
-    description:
-      "Overview of modern cloud infrastructure, services, and deployment strategies for scalable applications.",
-    createdAt: "2024-03-05",
-    status: "published",
-    slides: 28,
-    lastEdited: "2024-03-20",
-    category: "Infrastructure",
-  },
-]
+  const initialPresentations: Presentation[] = [
+    {
+      id: "e281d727-08b7-487c-9662-d0e0eaa19700",
+      title: "Introduction to Web Development",
+      description: "A beginner-friendly presentation on the fundamentals of web development.",
+      cover_file_id: "9d3443a4-9810-461c-8dc0-434ae2899a7",
+      status: "published",
+      createdAt: new Date().toISOString(),
+      added_slides: [
+        {
+          id: "b93aa606-3f47-4201-ac18-0a8143d103bb",
+          presentation_id: null,
+          title: "What is Web Development?",
+          source_id: null,
+          source: "excalidraw",
+          status: null,
+          interaction_status: "",
+          slide_order: 1,
+          default_time: 60,
+          content: "9d3443a4-9810-461c-8dc0-434ae2899a58",
+          created_at: null,
+          updated_at: null,
+          added_question: null,
+          updated_question: null,
+        },
+        {
+          id: "4ec37e2a-eac2-4c1a-aa14-d2a0c44eff49",
+          presentation_id: null,
+          title: "What is Web Development?",
+          source_id: "2cf93897-61cd-4573-a1a6-50f23c57d875",
+          source: "question",
+          status: null,
+          interaction_status: "",
+          slide_order: 2,
+          default_time: 60,
+          content: "Web development refers to the creation of websites and web applications.",
+          created_at: null,
+          updated_at: null,
+          added_question: {
+            id: "2cf93897-61cd-4573-a1a6-50f23c57d875",
+          },
+          updated_question: null,
+        },
+      ],
+    },
+    {
+      id: "e281d727-08b7-487c-9662-d0e0eaa19701",
+      title: "Introduction to Java",
+      description: "A beginner-friendly presentation on the fundamentals of Java.",
+      cover_file_id: "9d3443a4-9810-461c-8dc0-434ae2899a7",
+      status: "published",
+      createdAt: new Date().toISOString(),
+      added_slides: [
+        {
+          id: "b93aa606-3f47-4201-ac18-0a8143d103bsb",
+          presentation_id: null,
+          title: "What is Web Development?",
+          source_id: null,
+          source: "excalidraw",
+          status: null,
+          interaction_status: "",
+          slide_order: 1,
+          default_time: 60,
+          content: "9d3443a4-9810-461c-8dc0-434ae2899a58",
+          created_at: null,
+          updated_at: null,
+          added_question: null,
+          updated_question: null,
+        },
+        {
+          id: "b93aa606-3f47-4201-ac18-0a8143d103bb",
+          presentation_id: null,
+          title: "What is Web Development?",
+          source_id: null,
+          source: "excalidraw",
+          status: null,
+          interaction_status: "",
+          slide_order: 1,
+          default_time: 60,
+          content: "9d3443a4-9810-461c-8dc0-434ae2899a58",
+          created_at: null,
+          updated_at: null,
+          added_question: null,
+          updated_question: null,
+        },
+        {
+          id: "4ec37e2a-eac2-4c1a-aa14-d2a0c44eff49",
+          presentation_id: null,
+          title: "What is Web Development?",
+          source_id: "2cf93897-61cd-4573-a1a6-50f23c57d875",
+          source: "question",
+          status: null,
+          interaction_status: "",
+          slide_order: 2,
+          default_time: 60,
+          content: "Web development refers to the creation of websites and web applications.",
+          created_at: null,
+          updated_at: null,
+          added_question: {
+            id: "2cf93897-61cd-4573-a1a6-50f23c57d875",
+          },
+          updated_question: null,
+        },
+      ],
+    },
+  ]
 
-export const fetchPresntation = async ({ sessionId }: { sessionId: string }) => {
+
+export const fetchPresntation = async () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const response = await authenticatedAxiosInstance.get(GET_BATCH_LIST, {
         params: {
-            sessionId: sessionId,
             instituteId: INSTITUTE_ID,
         },
     });
@@ -104,9 +135,10 @@ export const useGetPresntation = () => {
         queryKey: ["GET_PRESNTATIONS"],
         queryFn:  () => {
             // const response = fetchPresntation({ sessionId: sessionId });
-            return samplePresentations;
+            return initialPresentations;
         },
         staleTime: 3600000,
        
     });
 };
+
