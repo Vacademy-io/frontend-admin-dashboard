@@ -43,7 +43,7 @@ export const ScheduleTestHeaderDescription = () => {
                     Comprehensive Test Management
                 </h1>
                 <p className="text-neutral-600">
-                    Effortlessly monitor and manage all assessments with a comprehensive view of
+                    Effortlessly monitor and manage all homeworks with a comprehensive view of
                     ongoing, upcoming, and past exams. Gain easy access to each test&rsquo;s
                     details, schedule, and status, ensuring organized oversight of the entire
                     testing process from start to finish.
