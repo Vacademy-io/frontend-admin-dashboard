@@ -26,6 +26,7 @@ import { TokenKey } from "@/constants/auth/tokens";
 import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
 import RoleTypeComponent from "./-components/RoleTypeComponent";
 import useLocalStorage from "@/hooks/use-local-storage";
+import EditDashboardProfileComponent from "./-components/EditDashboardProfileComponent";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -135,16 +136,7 @@ export function DashboardComponent() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>Complete your institute profile</CardTitle>
-                            <MyButton
-                                type="submit"
-                                scale="medium"
-                                buttonType="secondary"
-                                layoutVariant="default"
-                                className="text-sm"
-                            >
-                                <Plus size={32} />
-                                Add Details
-                            </MyButton>
+                            <EditDashboardProfileComponent isEdit={false} />
                         </div>
                         <CardDescription className="flex items-center gap-2">
                             <CompletionStatusComponent
