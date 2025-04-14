@@ -49,6 +49,8 @@ interface MyTableProps<T> {
     scrollable?: boolean;
     className?: string;
     tableState?: { columnVisibility: VisibilityState };
+    onCellClick?: (row: T, column: ColumnDef<T>) => void;
+    onHeaderClick?: () => void;
 }
 
 export function MyTable<T>({
@@ -63,6 +65,8 @@ export function MyTable<T>({
     scrollable = false,
     className = "",
     tableState,
+    onCellClick,
+    onHeaderClick,
 }: MyTableProps<T>) {
     const table = useReactTable({
         data: data?.content || [],
@@ -124,11 +128,21 @@ export function MyTable<T>({
                                             className={`${headerTextCss} overflow-visible bg-primary-100 text-subtitle font-semibold text-neutral-600 ${
                                                 columnWidths?.[header.column.id] || ""
                                             }`}
+                                            style={{
+                                                width: columnWidths?.[header.id] || "auto",
+                                            }}
+                                            onClick={() => {
+                                                if (onHeaderClick) {
+                                                    onHeaderClick();
+                                                }
+                                            }}
                                         >
-                                            {flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext(),
-                                            )}
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                      header.column.columnDef.header,
+                                                      header.getContext(),
+                                                  )}
                                         </TableHead>
                                     ))}
                                 </TableRow>
@@ -143,6 +157,11 @@ export function MyTable<T>({
                                         className={`${cellCommonCss} z-10 bg-white text-body font-regular text-neutral-600 ${
                                             columnWidths?.[cell.column.id] || ""
                                         }`}
+                                        onClick={() => {
+                                            if (onCellClick) {
+                                                onCellClick(row.original, cell.column.columnDef);
+                                            }
+                                        }}
                                     >
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </TableCell>
