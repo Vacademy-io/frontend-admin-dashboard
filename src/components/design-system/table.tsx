@@ -142,9 +142,10 @@ export function MyTable<T>({
                                 key={row.id}
                                 className="cursor-pointer hover:bg-white"
                                 onClick={(e) => {
-                                    // Prevent opening sidebar on double click
-                                    if (e.detail === 1 && onRowClick) {
-                                        onRowClick(row.original);
+                                    if (e.detail === 1) {
+                                        if (onRowClick) {
+                                            onRowClick(row.original);
+                                        }
                                     }
                                 }}
                             >

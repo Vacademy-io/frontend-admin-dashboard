@@ -412,7 +412,7 @@ export function EditableBulkUploadTable({
                         </Label>
                     </div>
                     {isEditing && (
-                        <div className="text-sm text-primary-500">Double click on cell to edit</div>
+                        <div className="text-sm text-primary-500">Click on cell to edit</div>
                     )}
                 </div>
                 <div className="flex items-center gap-4">
