@@ -13,7 +13,7 @@ import { StudentTable } from "@/types/student-table-types";
 import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
 import { STUDENT_LIST_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
 import { BulkActions } from "./bulk-actions/bulk-actions";
-import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
+import { ColumnDef, OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
@@ -30,20 +30,23 @@ import { Route } from "@/routes/students/students-list";
 import { useUsersCredentials } from "../../../-services/usersCredentials";
 import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
+import { ShareCredentialsDialog } from "./bulk-actions/share-credentials-dialog";
+import { IndividualShareCredentialsDialog } from "./bulk-actions/individual-share-credentials-dialog";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState<StudentTable | null>(null);
     const { getCourseFromPackage } = useInstituteDetailsStore();
-    const sidebarRef = useRef<HTMLDivElement>(null);
+    const tableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
-                sidebarRef.current &&
-                !sidebarRef.current.contains(event.target as Node) &&
+                tableRef.current &&
+                !tableRef.current.contains(event.target as Node) &&
                 isSidebarOpen
             ) {
                 setIsSidebarOpen(false);
@@ -220,9 +223,27 @@ export const StudentsListSection = () => {
         }
     }, [search, instituteDetails]);
 
-    useEffect(() => {
-        console.log("appliedFilters from students-list-section: ", appliedFilters);
-    }, [appliedFilters]);
+    const handleCellClick = (
+        student: StudentTable | null,
+        column: ColumnDef<StudentTable> | null,
+        isHeader: boolean = false,
+    ) => {
+        if (isHeader) {
+            setIsSidebarOpen(false);
+            setSelectedStudent(null);
+            return;
+        }
+
+        if (!student) return;
+
+        if (selectedStudent?.user_id === student.user_id) {
+            setIsSidebarOpen(false);
+            setSelectedStudent(null);
+        } else {
+            setSelectedStudent(student);
+            setIsSidebarOpen(true);
+        }
+    };
 
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
@@ -264,7 +285,7 @@ export const StudentsListSection = () => {
                 ) : (
                     <div className="flex flex-col gap-5">
                         <div className="h-auto max-w-full">
-                            <div className="max-w-full">
+                            <div className="max-w-full" ref={tableRef}>
                                 <SidebarProvider
                                     style={{ ["--sidebar-width" as string]: "565px" }}
                                     defaultOpen={false}
@@ -291,12 +312,22 @@ export const StudentsListSection = () => {
                                         rowSelection={currentPageSelection}
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
+                                        onCellClick={(row, column) => {
+                                            if (
+                                                column.id !== "checkbox" &&
+                                                column.id !== "options"
+                                            ) {
+                                                handleCellClick(row, column);
+                                            }
+                                        }}
+                                        onHeaderClick={() => handleCellClick(null, null, true)}
                                     />
-                                    <div ref={sidebarRef}>
+                                    <div>
                                         <StudentSidebar
                                             selectedTab={"ENDED,PENDING,LIVE"}
                                             examType={"EXAM"}
                                             isStudentList={true}
+                                            selectedStudent={selectedStudent}
                                         />
                                     </div>
                                 </SidebarProvider>
@@ -319,6 +350,8 @@ export const StudentsListSection = () => {
                 )}
             </div>
             <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" />
+            <ShareCredentialsDialog />
+            <IndividualShareCredentialsDialog />
         </section>
     );
 };
