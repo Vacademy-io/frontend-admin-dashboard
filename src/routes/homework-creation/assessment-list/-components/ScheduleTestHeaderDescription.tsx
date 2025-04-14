@@ -57,7 +57,7 @@ export const ScheduleTestHeaderDescription = () => {
                 onClick={() => handleRedirectRoute("EXAM")}
             >
                 <CalendarBlank size={32} />
-                Create Assessment
+                Create Homework
             </MyButton>
         </div>
     );

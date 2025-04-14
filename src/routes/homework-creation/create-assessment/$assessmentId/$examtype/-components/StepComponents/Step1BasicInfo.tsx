@@ -55,7 +55,7 @@ const heading = (
             }}
             className="cursor-pointer"
         />
-        <h1 className="text-lg">Create Assessment</h1>
+        <h1 className="text-lg">Create Homework</h1>
     </div>
 );
 

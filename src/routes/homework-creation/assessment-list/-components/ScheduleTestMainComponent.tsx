@@ -425,7 +425,7 @@ export const ScheduleTestMainComponent = () => {
     }, []);
 
     useEffect(() => {
-        setNavHeading(<h1 className="text-lg">Assessments List</h1>);
+        setNavHeading(<h1 className="text-lg">Homework Creation List</h1>);
     }, []);
 
     useEffect(() => {
