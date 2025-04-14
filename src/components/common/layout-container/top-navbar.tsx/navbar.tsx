@@ -102,71 +102,69 @@ export function Navbar() {
                                 <SheetTrigger className="px-2 py-2 text-sm hover:rounded-sm hover:bg-gray-100">
                                     View Institute Details
                                 </SheetTrigger>
-                                <SheetContent className="max-h-screen overflow-y-auto bg-primary-50 p-3">
-                                    <SheetHeader>
-                                        <SheetTitle className="text-primary-500">
-                                            Institute Details
-                                        </SheetTitle>
-                                        <div className="flex flex-col gap-8">
-                                            <div className="flex flex-col items-center justify-center gap-4">
-                                                {instituteLogo !== "" && (
-                                                    <img
-                                                        src={instituteLogo}
-                                                        alt="logo"
-                                                        className="size-48 rounded-full"
-                                                    />
-                                                )}
-                                                <h1>{instituteDetails?.institute_name}</h1>
-                                                <div className="flex items-center gap-2">
-                                                    <h1>Institute Type</h1>
-                                                    <p className="rounded-lg border px-2 py-1 text-sm text-neutral-600">
-                                                        {instituteDetails?.type}
-                                                    </p>
-                                                </div>
-                                                <EditDashboardProfileComponent isEdit={true}/>
-                                            </div>
-                                            <Separator />
-                                            <div className="flex flex-col gap-2">
-                                                <h1>Contact Information</h1>
-                                                <p className="text-sm text-neutral-600">
-                                                    <span>Institute Email:&nbsp;</span>
-                                                    <span>{instituteDetails?.email}</span>
-                                                </p>
-                                                <p className="text-sm text-neutral-600">
-                                                    <span>Institute Mobile:&nbsp;</span>
-                                                    <span>{instituteDetails?.phone}</span>
-                                                </p>
-                                                <p className="text-sm text-neutral-600">
-                                                    <span>Institute Website:&nbsp;</span>
-                                                    <span>{instituteDetails?.website_url}</span>
+                                <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
+                                    <SheetTitle className="text-primary-500">
+                                        Institute Details
+                                    </SheetTitle>
+                                    <div className="flex flex-col gap-8">
+                                        <div className="flex flex-col items-center justify-center gap-4">
+                                            {instituteLogo !== "" && (
+                                                <img
+                                                    src={instituteLogo}
+                                                    alt="logo"
+                                                    className="size-48 rounded-full"
+                                                />
+                                            )}
+                                            <h1>{instituteDetails?.institute_name}</h1>
+                                            <div className="flex items-center gap-2">
+                                                <h1>Institute Type</h1>
+                                                <p className="rounded-lg border px-2 py-1 text-sm text-neutral-600">
+                                                    {instituteDetails?.type}
                                                 </p>
                                             </div>
-                                            <Separator />
-                                            <div className="flex flex-col gap-2">
-                                                <h1>Location Details</h1>
-                                                <p className="text-sm text-neutral-600">
-                                                    <span>Address:&nbsp;</span>
-                                                    <span>{instituteDetails?.address}</span>
-                                                </p>
-                                                <p className="text-sm text-neutral-600">
-                                                    <span>City/Village:&nbsp;</span>
-                                                    <span>{instituteDetails?.city}</span>
-                                                </p>
-                                                <p className="text-sm text-neutral-600">
-                                                    <span>State:&nbsp;</span>
-                                                    <span>{instituteDetails?.state}</span>
-                                                </p>
-                                                <p className="text-sm text-neutral-600">
-                                                    <span>Country:&nbsp;</span>
-                                                    <span>{instituteDetails?.country}</span>
-                                                </p>
-                                                <p className="text-sm text-neutral-600">
-                                                    <span>Pincode:&nbsp;</span>
-                                                    <span>{instituteDetails?.pin_code}</span>
-                                                </p>
-                                            </div>
+                                            <EditDashboardProfileComponent isEdit={true} />
                                         </div>
-                                    </SheetHeader>
+                                        <Separator />
+                                        <div className="flex flex-col gap-2">
+                                            <h1>Contact Information</h1>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>Institute Email:&nbsp;</span>
+                                                <span>{instituteDetails?.email}</span>
+                                            </p>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>Institute Mobile:&nbsp;</span>
+                                                <span>{instituteDetails?.phone}</span>
+                                            </p>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>Institute Website:&nbsp;</span>
+                                                <span>{instituteDetails?.website_url}</span>
+                                            </p>
+                                        </div>
+                                        <Separator />
+                                        <div className="flex flex-col gap-2">
+                                            <h1>Location Details</h1>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>Address:&nbsp;</span>
+                                                <span>{instituteDetails?.address}</span>
+                                            </p>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>City/Village:&nbsp;</span>
+                                                <span>{instituteDetails?.city}</span>
+                                            </p>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>State:&nbsp;</span>
+                                                <span>{instituteDetails?.state}</span>
+                                            </p>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>Country:&nbsp;</span>
+                                                <span>{instituteDetails?.country}</span>
+                                            </p>
+                                            <p className="text-sm text-neutral-600">
+                                                <span>Pincode:&nbsp;</span>
+                                                <span>{instituteDetails?.pin_code}</span>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </SheetContent>
                             </Sheet>
                             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
