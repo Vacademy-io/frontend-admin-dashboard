@@ -153,7 +153,7 @@ export default function SlideList({
         </div>
 
         <div className="flex-1">
-          <ScrollArea className="h-[72vh] rounded-md overflow-auto">
+          <ScrollArea className="h-[70vh] rounded-md overflow-auto">
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="slides">
                 {(provided) => (
@@ -173,7 +173,7 @@ export default function SlideList({
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             className={cn(
-                              "group relative rounded-md border-2 transition-all",
+                              "group relative rounded-md border-2 transition-all cursor-pointer",
                               snapshot.isDragging
                                 ? "bg-green-100 shadow-lg border-primary-400"
                                 : "bg-white",

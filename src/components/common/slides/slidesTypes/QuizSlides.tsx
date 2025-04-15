@@ -1,5 +1,5 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
 import {
   Form,
   FormControl,
@@ -11,57 +11,53 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
 import { SlideType } from "../constant/slideType";
+import { useSlideStore } from "@/stores/Slides/useSlideStore";
+
 export const QuizeSlide = ({
   formdata,
   questionType,
   className,
+  currentSlideId
 }: {
   formdata: any;
-  questionType:SlideType;
+  questionType: SlideType;
   className?: string;
+  currentSlideId: string;
 }) => {
-  const [currentQuestionIndex] = useState(0);
+  const { updateQuizeSlide } = useSlideStore();
 
   const form = useForm({
-    defaultValues: {
-      questions: [formdata],
-      answersType: "Answer:",
-      optionsType: "",
-      questionsType: "",
-    },
+    defaultValues: formdata,
   });
 
-  const { control, getValues, setValue } = form;
-  const allQuestions = getValues("questions");
-  const option1 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.0`);
-  const option2 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.1`);
-  const option3 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.2`);
-  const option4 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.3`);
-  const optionsType = getValues("optionsType");
-  const answersType = getValues("answersType");
+  const { control, getValues, setValue, watch } = form;
+  const options = getValues("singleChoiceOptions") ?? [];
+  const optionsType = "";
+  const answersType = "Answers:";
 
+  const formValues = form.getValues();
+  const questionName = watch("questionName");
+const singleChoiceOptions = watch("singleChoiceOptions");
+const feedbackAnswer = watch("feedbackAnswer");
+
+useEffect(() => {
+  updateQuizeSlide(currentSlideId, formValues);
+}, [questionName, singleChoiceOptions, feedbackAnswer, currentSlideId,]);
   const handleOptionChange = (optionIndex: number) => {
-    const options = [0, 1, 2, 3];
     const isCurrentlySelected = getValues(
-      `questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`
+      `singleChoiceOptions.${optionIndex}.isSelected`
     );
 
-    options.forEach((option) => {
-      setValue(
-        `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
-        option === optionIndex ? !isCurrentlySelected : false,
-        { shouldDirty: true, shouldValidate: true }
-      );
+    const updatedOptions = options.map((option: any, index: number) => ({
+      ...option,
+      isSelected: index === optionIndex ? !isCurrentlySelected : false,
+    }));
+
+    setValue("singleChoiceOptions", updatedOptions, { 
+      shouldDirty: true, 
+      shouldValidate: true 
     });
   };
-
-  if (allQuestions.length === 0) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <h1>Please add a question to show question details</h1>
-      </div>
-    );
-  }
 
   return (
     <Form {...form}>
@@ -71,7 +67,7 @@ export const QuizeSlide = ({
           <span>Question</span>
           <FormField
             control={control}
-            name={`questions.${currentQuestionIndex}.questionName`}
+            name="questionName"
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormControl>
@@ -91,7 +87,7 @@ export const QuizeSlide = ({
             {/* Options */}
             <span className="mt-6">{answersType}</span>
             <div className="flex w-full grow flex-wrap gap-8 mt-2">
-              {[option1, option2, option3, option4].map((opt, idx) => (
+              {options.map((opt: any, idx: number) => (
                 <div
                   key={idx}
                   className={`flex w-2/5 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
@@ -110,7 +106,7 @@ export const QuizeSlide = ({
                     </div>
                     <FormField
                       control={control}
-                      name={`questions.${currentQuestionIndex}.singleChoiceOptions.${idx}.name`}
+                      name={`singleChoiceOptions.${idx}.name`}
                       render={({ field }) => (
                         <FormItem className="w-full">
                           <FormControl>
@@ -127,7 +123,7 @@ export const QuizeSlide = ({
                   <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                     <FormField
                       control={control}
-                      name={`questions.${currentQuestionIndex}.singleChoiceOptions.${idx}.isSelected`}
+                      name={`singleChoiceOptions.${idx}.isSelected`}
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
@@ -156,12 +152,11 @@ export const QuizeSlide = ({
           <div className="mt-6 w-full">
             <FormField
               control={control}
-              name={`questions.${currentQuestionIndex}.feedbackAnswer`}
+              name="feedbackAnswer"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl>
                     <MainViewQuillEditor
-                     
                       value={field.value}
                       onChange={field.onChange}
                     />

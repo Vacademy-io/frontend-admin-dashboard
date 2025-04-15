@@ -18,16 +18,9 @@ export const createNewSlide = (type: SlideType): Slide => {
                 return {type : type, id: String(Math.random()), elements: fullMediaSlide };
             case SlideType.Quiz:
                  return {type : type, id: String(Math.random()), elements:  {
-                    id: "",
-                    questionId: "",
                     questionName: "",
                     explanation: "",
-                    questionType: "MCQS",
-                    questionPenalty: "",
-                    questionDuration: {
-                        hrs: "",
-                        min: "",
-                    },
+                    questionType:SlideType.Quiz,
                     questionMark: "",
                     imageDetails: [],
                     singleChoiceOptions: [
@@ -76,65 +69,12 @@ export const createNewSlide = (type: SlideType): Slide => {
                             },
                         },
                     ],
-                    multipleChoiceOptions: [
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                        {
-                            name: "",
-                            isSelected: false,
-                            image: {
-                                imageId: "",
-                                imageName: "",
-                                imageTitle: "",
-                                imageFile: "",
-                                isDeleted: false,
-                            },
-                        },
-                    ],
                 }};
           case SlideType.Feedback:
                     return {type : type, id: String(Math.random()), elements:  {
-                       id: "",
-                       questionId: "",
                        questionName: "",
                        explanation: "",
-                       questionType: "MCQS",
-                       questionPenalty: "",
-                       questionDuration: {
-                           hrs: "",
-                           min: "",
-                       },
+                       questionType: SlideType.Feedback,
                        questionMark: "",
                        imageDetails: [],
                        singleChoiceOptions: [
@@ -183,52 +123,7 @@ export const createNewSlide = (type: SlideType): Slide => {
                                },
                            },
                        ],
-                       multipleChoiceOptions: [
-                           {
-                               name: "",
-                               isSelected: false,
-                               image: {
-                                   imageId: "",
-                                   imageName: "",
-                                   imageTitle: "",
-                                   imageFile: "",
-                                   isDeleted: false,
-                               },
-                           },
-                           {
-                               name: "",
-                               isSelected: false,
-                               image: {
-                                   imageId: "",
-                                   imageName: "",
-                                   imageTitle: "",
-                                   imageFile: "",
-                                   isDeleted: false,
-                               },
-                           },
-                           {
-                               name: "",
-                               isSelected: false,
-                               image: {
-                                   imageId: "",
-                                   imageName: "",
-                                   imageTitle: "",
-                                   imageFile: "",
-                                   isDeleted: false,
-                               },
-                           },
-                           {
-                               name: "",
-                               isSelected: false,
-                               image: {
-                                   imageId: "",
-                                   imageName: "",
-                                   imageTitle: "",
-                                   imageFile: "",
-                                   isDeleted: false,
-                               },
-                           },
-                       ],
+                  
                    }};
             default:
                 return {type : type, id: String(Math.random()), elements: [] };
