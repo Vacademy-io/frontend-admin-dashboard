@@ -72,7 +72,6 @@ export const UploadResultsTable = ({
             "ENROLLMENT_NUMBER",
             "MOBILE_NUMBER",
             "EMAIL",
-            "INSTITUTE_ID",
             "STATUS",
         ];
 
