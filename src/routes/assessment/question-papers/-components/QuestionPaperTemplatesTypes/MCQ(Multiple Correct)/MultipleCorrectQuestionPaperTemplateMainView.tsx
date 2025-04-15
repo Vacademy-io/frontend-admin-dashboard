@@ -28,24 +28,6 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
     const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
 
-    const handleOptionChange = (optionIndex: number) => {
-        const options = [0, 1, 2, 3];
-
-        // Check current state of the selected option
-        const isCurrentlySelected = getValues(
-            `questions.${currentQuestionIndex}.multipleChoiceOptions.${optionIndex}.isSelected`,
-        );
-
-        options.forEach((option) => {
-            setValue(
-                `questions.${currentQuestionIndex}.multipleChoiceOptions.${option}.isSelected`,
-                option === optionIndex ? !isCurrentlySelected : false,
-                { shouldDirty: true, shouldValidate: true },
-            );
-        });
-        form.trigger(`questions.${currentQuestionIndex}.multipleChoiceOptions`);
-    };
-
     if (allQuestions.length === 0) {
         return (
             <div className="flex h-screen w-full items-center justify-center">
@@ -149,7 +131,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(0)}
+                                                onCheckedChange={field.onChange}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -200,7 +182,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(1)}
+                                                onCheckedChange={field.onChange}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -253,7 +235,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(2)}
+                                                onCheckedChange={field.onChange}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
@@ -304,7 +286,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(3)}
+                                                onCheckedChange={field.onChange}
                                                 className={`mt-1 size-5 border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
