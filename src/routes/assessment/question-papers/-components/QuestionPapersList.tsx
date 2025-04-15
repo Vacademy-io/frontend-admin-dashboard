@@ -28,6 +28,7 @@ import { UseFormReturn } from "react-hook-form";
 import { Dispatch, SetStateAction } from "react";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
@@ -150,13 +151,20 @@ export const QuestionPapersList = ({
         handleGetQuestionPaperData.mutate({ id });
     };
 
+    if (index !== undefined && handleGetQuestionPaperData.status === "pending")
+        return <DashboardLoader />;
+
     return (
         <div className="mt-5 flex flex-col gap-5">
             {questionPaperList?.content?.map((questionsData, idx) => (
                 <div
                     key={idx}
                     className="flex flex-col gap-2 rounded-xl border-[1.5px] bg-neutral-50 p-4"
-                    onClick={() => handleGetQuestionPaperDataById(questionsData)}
+                    onClick={
+                        index !== undefined
+                            ? () => handleGetQuestionPaperDataById(questionsData)
+                            : undefined
+                    }
                 >
                     <div className="flex items-center justify-between">
                         <h1 className="font-medium">{questionsData.title}</h1>
