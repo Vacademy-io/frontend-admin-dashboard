@@ -173,6 +173,35 @@ export const createEditableBulkUploadColumns = ({
 
                     // Render editable cell if in edit mode
                     if (isEditing && isCurrentlyEditing) {
+                        // For gender type fields, render a dropdown
+                        if (header.type === "gender") {
+                            return (
+                                <Select
+                                    defaultValue={value?.toUpperCase()}
+                                    onValueChange={(newValue) =>
+                                        handleCellEdit(
+                                            rowIndex,
+                                            columnId,
+                                            newValue,
+                                            currentPage,
+                                            ITEMS_PER_PAGE,
+                                        )
+                                    }
+                                >
+                                    <SelectTrigger className={error ? "border-danger-500" : ""}>
+                                        <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {["MALE", "FEMALE", "OTHERS"].map((option) => (
+                                            <SelectItem key={option} value={option}>
+                                                {option}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            );
+                        }
+
                         // For enum type fields, render a dropdown
                         if (header.type === "enum" && header.options && header.options.length > 0) {
                             return (
