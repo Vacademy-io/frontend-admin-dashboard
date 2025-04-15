@@ -14,6 +14,7 @@ import { useRef, useState } from "react";
 import { AddSessionDataType } from "./session-operations/add-session/add-session-form";
 import { useEditSession } from "@/services/study-library/session-management/editSession";
 import { toast } from "sonner";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface SessionCardProps {
     data: SessionData;
@@ -22,6 +23,7 @@ interface SessionCardProps {
 export function SessionCard({ data }: SessionCardProps) {
     const [disableAddButton, setDisableAddButton] = useState(true);
     const editSessionMutation = useEditSession();
+    const { getPackageSessionId } = useInstituteDetailsStore();
 
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const handleOpenAddSessionDialog = () => {
@@ -30,32 +32,45 @@ export function SessionCard({ data }: SessionCardProps) {
 
     const handleEditSession = (sessionData: AddSessionDataType) => {
         // Get all the selected package_session_ids from the form
-        const visiblePackageSessionIds = sessionData.levels
-            .filter((level) => level.level_dto.package_id) // Filter out any null values
-            .map((level) => level.level_dto.package_id)
-            .join(",");
-
-        // Get all package_session_ids from the original data
         const allPackageSessionIds: string[] = [];
-        data.packages.forEach((packageItem) => {
-            packageItem.level.forEach((level) => {
-                if (level.package_session_id) {
-                    allPackageSessionIds.push(level.package_session_id);
-                }
+        data.packages.forEach((pkg) => {
+            pkg.level.forEach((level) => {
+                allPackageSessionIds.push(level.package_session_id);
             });
         });
 
-        // Find package_session_ids that are in the original data but not in the form data
-        const hiddenPackageSessionIds = allPackageSessionIds
-            .filter((id) => !sessionData.levels.some((level) => level.level_dto.package_id === id))
-            .join(",");
+        const visibleLevels = sessionData.levels.filter((level) => {
+            const pksId = getPackageSessionId({
+                courseId: level.level_dto.package_id || "",
+                sessionId: sessionData.id || "",
+                levelId: level.level_dto.id || "",
+            });
+            return allPackageSessionIds.includes(pksId || "");
+        });
+
+        const visiblePackageSessionIds = visibleLevels.map((level) => {
+            return (
+                getPackageSessionId({
+                    courseId: level.level_dto.package_id || "",
+                    sessionId: sessionData.id || "",
+                    levelId: level.level_dto.id || "",
+                }) || ""
+            );
+        });
+
+        const hiddenPackageSessionIds = allPackageSessionIds.filter((pksId) => {
+            return !visiblePackageSessionIds.includes(pksId || "");
+        });
+
+        const commaSeparatedVisiblePackageSessionIds = visiblePackageSessionIds.join(",");
+        const commaSeparatedHiddenPackageSessionIds = hiddenPackageSessionIds.join(",");
 
         const requestData = {
-            comma_separated_hidden_package_session_ids: hiddenPackageSessionIds,
+            comma_separated_hidden_package_session_ids: commaSeparatedHiddenPackageSessionIds,
             session_name: sessionData.session_name,
             start_date: sessionData.start_date,
             status: sessionData.status,
-            comma_separated_visible_package_session_ids: visiblePackageSessionIds,
+            comma_separated_visible_package_session_ids: commaSeparatedVisiblePackageSessionIds,
         };
 
         editSessionMutation.mutate(

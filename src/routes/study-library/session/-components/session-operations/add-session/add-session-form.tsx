@@ -33,9 +33,6 @@ const formSchema = z.object({
                 thumbnail_file_id: z.string().nullable(),
                 package_id: z.string(), // Moved package_id into level_dto
             }),
-            // package_session_id: z.string().nullable(),
-            // package_session_status: z.string().nullable(),
-            // start_date: z.string().nullable(),
         }),
     ),
 });
