@@ -54,7 +54,7 @@ export const UploadResultsTable = ({
 
     // Get all unique columns from data
     const getDisplayColumns = () => {
-        const excludeColumns = ["STATUS_MESSAGE", "ERROR"];
+        const excludeColumns = ["ERROR", "PACKAGE_SESSION", "INSTITUTE_ID"];
         const allColumns = new Set<string>();
 
         data.forEach((row) => {
