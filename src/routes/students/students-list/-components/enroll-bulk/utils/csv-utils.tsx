@@ -122,6 +122,11 @@ export const validateCsvData = (
                         const fieldName = header.column_name;
                         const value = row[fieldName] as string;
 
+                        // Convert gender values to uppercase during initial load
+                        if (header.type === "gender" && value) {
+                            processedRow[fieldName] = value.toUpperCase();
+                        }
+
                         // Determine if field is optional based on both schema and user settings
                         const isOptional =
                             header.optional ||
@@ -151,6 +156,26 @@ export const validateCsvData = (
 
                         // If field has a value, validate according to type
                         if (value) {
+                            if (header.type === "gender") {
+                                const upperCaseValue = value.toUpperCase();
+                                const validOptions = header.options ||
+                                    header.sample_values || ["MALE", "FEMALE", "OTHERS"];
+                                if (validOptions && !validOptions.includes(upperCaseValue)) {
+                                    allErrors.push({
+                                        path: [rowIndex, fieldName],
+                                        message: `Invalid value for ${fieldName.replace(
+                                            /_/g,
+                                            " ",
+                                        )}`,
+                                        resolution: `Value must be one of: ${validOptions.join(
+                                            ", ",
+                                        )}`,
+                                        currentVal: value,
+                                        format: validOptions.join(", "),
+                                    });
+                                }
+                            }
+
                             // Enum validation
                             if (
                                 header.type === "enum" &&
