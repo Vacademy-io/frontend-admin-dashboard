@@ -362,7 +362,6 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
                 subjectiveAnswerText = JSON.parse(item.auto_evaluation_json)?.data?.answer?.content;
             }
         }
-        console.log(item.parent_rich_text);
         const baseQuestion: MyQuestion = {
             id: item.id || "",
             questionId: item.id || item.preview_id || undefined,
