@@ -5,16 +5,32 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Settings, Trash2 } from "lucide-react";
-import { Upload } from "phosphor-react";
+import { ArrowSquareOut, Upload } from "phosphor-react";
 import { Toaster as Sonner } from "sonner";
 import { PaperSetQuestions } from "./PaperSetQuestions";
 import { ExportHandlerQuestionPaper } from "./ExportHandlerQuestionPaper";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 const ExportQuestionPaper = ({ questionPaperId }: { questionPaperId: string }) => {
     return (
-        <ExportSettingsProvider>
-            <PreviewWithSettings questionPaperId={questionPaperId} />
-        </ExportSettingsProvider>
+        <Dialog>
+            <DialogTrigger>
+                <ArrowSquareOut />
+            </DialogTrigger>
+            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none !p-0">
+                <ExportSettingsProvider>
+                    <PreviewWithSettings questionPaperId={questionPaperId} />
+                </ExportSettingsProvider>
+            </DialogContent>
+        </Dialog>
     );
 };
 
@@ -76,6 +92,11 @@ function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
                         />
                         {settings.showInstitutionLetterhead && (
                             <div className="flex items-center gap-2">
+                                <DialogClose>
+                                    <Button variant="outline" className="mr-2">
+                                        Close
+                                    </Button>
+                                </DialogClose>
                                 <Button
                                     variant="outline"
                                     onClick={() =>

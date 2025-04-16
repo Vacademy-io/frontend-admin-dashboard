@@ -191,14 +191,6 @@ export const QuestionPapersList = ({
                                             : "text-gray-300"
                                     }`}
                                 />
-
-                                <Dialog>
-                                    <DialogTrigger>Open</DialogTrigger>
-                                    <DialogContent>
-                                        <ExportQuestionPaper questionPaperId={questionsData.id} />
-                                    </DialogContent>
-                                </Dialog>
-
                                 <DropdownMenu>
                                     <DropdownMenuTrigger>
                                         <Button
@@ -226,13 +218,9 @@ export const QuestionPapersList = ({
                                         >
                                             Delete Question Paper
                                         </DropdownMenuItem>
-                                        {/* <DropdownMenuItem>
-                                            <ExportQuestionPaper
-                                                questionPaperId={questionsData.id}
-                                            />
-                                        </DropdownMenuItem> */}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+                                <ExportQuestionPaper questionPaperId={questionsData.id} />
                             </div>
                         )}
                     </div>
