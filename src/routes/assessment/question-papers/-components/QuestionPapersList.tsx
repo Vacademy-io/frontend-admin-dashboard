@@ -29,6 +29,15 @@ import { Dispatch, SetStateAction } from "react";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import ExportQuestionPaper from "./export-question-paper/ExportQuestionPaper";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
@@ -182,7 +191,6 @@ export const QuestionPapersList = ({
                                             : "text-gray-300"
                                     }`}
                                 />
-
                                 <DropdownMenu>
                                     <DropdownMenuTrigger>
                                         <Button
@@ -212,6 +220,7 @@ export const QuestionPapersList = ({
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+                                <ExportQuestionPaper questionPaperId={questionsData.id} />
                             </div>
                         )}
                     </div>
