@@ -15,7 +15,11 @@ import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/ge
 import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 
-export const GenerateQuestionsFromAudio = () => {
+export const GenerateQuestionsFromAudio = ({
+    handleLoader,
+}: {
+    handleLoader: (value: boolean) => void;
+}) => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const [isUploading, setIsUploading] = useState(false);
@@ -33,6 +37,7 @@ export const GenerateQuestionsFromAudio = () => {
         classes: [],
         questions: [],
     });
+
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
         mode: "onChange",
@@ -52,6 +57,12 @@ export const GenerateQuestionsFromAudio = () => {
         },
     });
 
+    /* Generate Assessment Complete */
+    const MAX_POLL_ATTEMPTS = 10;
+    const pollingCountRef = useRef(0);
+    const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+    const pendingRef = useRef(false);
+
     const handleUploadClick = () => {
         fileInputRef.current?.click();
     };
@@ -59,6 +70,7 @@ export const GenerateQuestionsFromAudio = () => {
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            handleLoader(true);
             const fileId = await uploadFile({
                 file,
                 setIsUploading,
@@ -68,64 +80,42 @@ export const GenerateQuestionsFromAudio = () => {
             });
             if (fileId) {
                 const response = await handleStartProcessUploadedAudioFile(fileId);
+                console.log("response", response);
                 if (response) {
                     setUploadedAudioId(response.pdf_id);
-                    handleCallApi();
+                    await handleCallApi(response.pdf_id);
                 }
             }
             event.target.value = "";
         }
     };
 
-    /* Generate Assessment Complete */
-    const MAX_POLL_ATTEMPTS = 10;
-    const pollingCountRef = useRef(0);
-    const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-    const pendingRef = useRef(false);
-
-    const clearPolling = () => {
-        if (pollingTimeoutIdRef.current) {
-            clearTimeout(pollingTimeoutIdRef.current);
-            pollingTimeoutIdRef.current = null;
-        }
-    };
-
-    const pollGenerateQuestionsFromAudio = () => {
-        if (pendingRef.current) {
-            return;
-        }
-
-        getQuestionsFromAudioMutation.mutate({
-            audioId: uploadedAudioId,
-            numQuestions: 10,
-            prompt: "",
-            difficulty: "Medium",
-            language: "English",
-        });
-    };
-
-    const handleCallApi = async () => {
-        console.log("uploadedAudioId", uploadedAudioId);
-        if (!uploadedAudioId) return;
+    const handleCallApi = async (audioId?: string) => {
+        const idToUse = audioId || uploadedAudioId;
+        console.log("idToUse", idToUse);
+        if (!idToUse) return;
+        console.log("inside call api function");
 
         clearPolling();
         pollingCountRef.current = 0;
         pendingRef.current = false;
 
         // Make initial call
-        pollGenerateQuestionsFromAudio();
+        pollGenerateQuestionsFromAudio(idToUse);
     };
 
-    const scheduleNextPoll = () => {
-        clearPolling(); // Clear any existing timeout
-
-        // Only schedule next poll if not in pending state
-        if (!pendingRef.current) {
-            console.log("Scheduling next poll in 10 seconds");
-            pollingTimeoutIdRef.current = setTimeout(() => {
-                pollGenerateQuestionsFromAudio();
-            }, 10000);
+    const pollGenerateQuestionsFromAudio = (audioId: string) => {
+        if (pendingRef.current) {
+            return;
         }
+        handleLoader(true);
+        getQuestionsFromAudioMutation.mutate({
+            audioId: audioId,
+            numQuestions: 10,
+            prompt: "",
+            difficulty: "Medium",
+            language: "English",
+        });
     };
 
     const getQuestionsFromAudioMutation = useMutation({
@@ -177,6 +167,7 @@ export const GenerateQuestionsFromAudio = () => {
                 setOpenCompleteAssessmentDialog(true);
                 setPropmtInput("");
                 setIsMoreQuestionsDialog(false);
+                handleLoader(false);
                 return;
             }
 
@@ -195,6 +186,7 @@ export const GenerateQuestionsFromAudio = () => {
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
                 clearPolling();
+                handleLoader(false);
                 return;
             }
 
@@ -202,6 +194,25 @@ export const GenerateQuestionsFromAudio = () => {
             scheduleNextPoll();
         },
     });
+
+    const clearPolling = () => {
+        if (pollingTimeoutIdRef.current) {
+            clearTimeout(pollingTimeoutIdRef.current);
+            pollingTimeoutIdRef.current = null;
+        }
+    };
+
+    const scheduleNextPoll = () => {
+        clearPolling(); // Clear any existing timeout
+
+        // Only schedule next poll if not in pending state
+        if (!pendingRef.current) {
+            console.log("Scheduling next poll in 10 seconds");
+            pollingTimeoutIdRef.current = setTimeout(() => {
+                pollGenerateQuestionsFromAudio(uploadedAudioId);
+            }, 10000);
+        }
+    };
 
     useEffect(() => {
         return () => {
