@@ -15,6 +15,7 @@ import { MyButton } from "@/components/design-system/button";
 import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
+import ExportQuestionPaperAI from "../export-ai-question-paper/ExportQuestionPaperAI";
 
 // Infer the form type from the schema
 type GeneratePageWiseAssessmentQuestionsDialog = z.infer<
@@ -151,15 +152,9 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                     >
                                         Cancel
                                     </MyButton>
-                                    <MyButton
-                                        type="button"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="mr-4 text-sm"
-                                    >
-                                        Export PDF
-                                    </MyButton>
+                                    <ExportQuestionPaperAI
+                                        responseQuestionsData={assessmentData?.questions}
+                                    />
                                 </div>
                             </div>
                             <div className="flex w-full">
