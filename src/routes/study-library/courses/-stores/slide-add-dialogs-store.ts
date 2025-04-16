@@ -5,6 +5,7 @@ interface DialogState {
     isPdfDialogOpen: boolean;
     isDocUploadDialogOpen: boolean;
     isVideoDialogOpen: boolean;
+    isQuestionDialogOpen: boolean;
 
     // Dialog actions
     openPdfDialog: () => void;
@@ -19,6 +20,9 @@ interface DialogState {
     closeVideoDialog: () => void;
     toggleVideoDialog: () => void;
 
+    openQuestionDialog: () => void;
+    closeQuestionDialog: () => void;
+    toggleQuestionDialog: () => void;
     // Reset all dialog states
     resetDialogs: () => void;
 }
@@ -28,6 +32,7 @@ export const useDialogStore = create<DialogState>((set) => ({
     isPdfDialogOpen: false,
     isDocUploadDialogOpen: false,
     isVideoDialogOpen: false,
+    isQuestionDialogOpen: false,
 
     // PDF Dialog actions
     openPdfDialog: () => set({ isPdfDialogOpen: true }),
@@ -44,6 +49,12 @@ export const useDialogStore = create<DialogState>((set) => ({
     openVideoDialog: () => set({ isVideoDialogOpen: true }),
     closeVideoDialog: () => set({ isVideoDialogOpen: false }),
     toggleVideoDialog: () => set((state) => ({ isVideoDialogOpen: !state.isVideoDialogOpen })),
+
+    // Question Dialog actions
+    openQuestionDialog: () => set({ isQuestionDialogOpen: true }),
+    closeQuestionDialog: () => set({ isQuestionDialogOpen: false }),
+    toggleQuestionDialog: () =>
+        set((state) => ({ isQuestionDialogOpen: !state.isQuestionDialogOpen })),
 
     // Reset all dialogs
     resetDialogs: () =>

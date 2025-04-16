@@ -6,6 +6,7 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { AddVideoDialog } from "./add-video-dialog";
 import { AddDocDialog } from "./add-doc-dialog";
 import { AddPdfDialog } from "./add-pdf-dialog";
+import { AddQuestionDialog } from "./add-question-dialog";
 import { useRouter } from "@tanstack/react-router";
 import { useSlides } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import { formatHTMLString } from "../slide-material";
@@ -24,12 +25,15 @@ export const ChapterSidebarAddButton = () => {
         isPdfDialogOpen,
         isDocUploadDialogOpen,
         isVideoDialogOpen,
+        isQuestionDialogOpen,
         openPdfDialog,
         closePdfDialog,
         openDocUploadDialog,
         closeDocUploadDialog,
         openVideoDialog,
         closeVideoDialog,
+        openQuestionDialog,
+        closeQuestionDialog,
     } = useDialogStore();
 
     const dropdownList = [
@@ -52,6 +56,11 @@ export const ChapterSidebarAddButton = () => {
             value: "video",
             icon: <YoutubeLogo className="size-4" />,
         },
+        {
+            label: "Question",
+            value: "question",
+            icon: <YoutubeLogo className="size-4" />,
+        },
     ];
 
     const handleSelect = async (value: string) => {
@@ -61,6 +70,9 @@ export const ChapterSidebarAddButton = () => {
                 break;
             case "upload-doc":
                 openDocUploadDialog(); // Use store action instead of setState
+                break;
+            case "question":
+                openQuestionDialog(); // use sore action instead of setState
                 break;
             case "create-doc": {
                 try {
@@ -149,6 +161,17 @@ export const ChapterSidebarAddButton = () => {
                 onOpenChange={closeVideoDialog} // Pass the action function directly
             >
                 <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
+            </MyDialog>
+
+            {/* Question Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Upload Video"
+                dialogWidth="min-w-[400px]"
+                open={isQuestionDialogOpen}
+                onOpenChange={closeQuestionDialog} // Pass the action function directly
+            >
+                <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
             </MyDialog>
         </>
     );
