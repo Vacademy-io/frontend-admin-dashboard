@@ -6,18 +6,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Settings, Trash2 } from "lucide-react";
 import { ArrowSquareOut, Upload } from "phosphor-react";
-import { Toaster as Sonner } from "sonner";
 import { PaperSetQuestions } from "./PaperSetQuestions";
 import { ExportHandlerQuestionPaper } from "./ExportHandlerQuestionPaper";
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ExportQuestionPaperSettingsDialog } from "./export-question-paper-dialog/export-question-paper-setting-dialog";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { handleGetQuestionPaperById } from "../../-utils/question-paper-services";
+import { convertQuestionsToExportSchema } from "../../-utils/helper";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 const ExportQuestionPaper = ({ questionPaperId }: { questionPaperId: string }) => {
     return (
@@ -35,6 +31,14 @@ const ExportQuestionPaper = ({ questionPaperId }: { questionPaperId: string }) =
 };
 
 function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
+    const { data: questionsData, isLoading } = useSuspenseQuery(
+        handleGetQuestionPaperById(questionPaperId),
+    );
+
+    // @ts-expect-error : Object is possibly 'undefined'
+    const convertedQuestions: Question[] = convertQuestionsToExportSchema(
+        questionsData.question_dtolist,
+    );
     const [showSettings, setShowSettings] = useState(false);
     const { settings, updateSettings } = useExportSettings();
 
@@ -69,6 +73,8 @@ function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
             customLetterheadImage: undefined,
         });
     };
+
+    if(isLoading) return <DashboardLoader/>
 
     return (
         <div className="min-h-screen w-full bg-slate-50/50" style={{ boxSizing: "border-box" }}>
@@ -125,6 +131,14 @@ function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
                     </div>
                 </div>
             </div>
+
+            {showSettings && (
+                <ExportQuestionPaperSettingsDialog
+                    open={showSettings}
+                    onOpenChange={setShowSettings}
+                    questionsData={convertedQuestions}
+                />
+            )}
 
             <div className="container mx-auto py-4">
                 <PaperSetQuestions questionPaperId={questionPaperId} settings={settings} />

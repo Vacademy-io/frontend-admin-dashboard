@@ -7,7 +7,6 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { CircleNotch } from "phosphor-react";
 import { PaperSetQuestions } from "./PaperSetQuestions";
-import { Question } from "@/components/common/export-offline/types/question";
 import { ExportSettings } from "@/components/common/export-offline/contexts/export-settings-context";
 
 interface ExportHandlerProps {
