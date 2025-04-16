@@ -419,6 +419,28 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
     });
 };
 
+export const convertQuestionsToExportSchema = (rawQuestions: QuestionResponse[]) => {
+    return rawQuestions.map((q, idx) => ({
+        question_id: q.id,
+        question: {
+            id: q.text.id,
+            type: q.text.type,
+            content: q.text.content,
+        },
+        options_with_explanation: q.options.map((opt) => ({
+            id: opt.id,
+            text: {
+                content: opt.text.content,
+            },
+        })),
+        marking_json: q.auto_evaluation_json,
+        question_type: q.question_type,
+        section_id: q.section_id ?? "",
+        question_duration: q.default_question_time_mins ?? 1, // default to 1 if null
+        question_order: idx + 1,
+    }));
+};
+
 export const handleRefetchData = (
     getFilteredFavouriteData: ReturnType<typeof useMutation>,
     getFilteredActiveData: ReturnType<typeof useMutation>,

@@ -39,7 +39,6 @@ function RouteComponent() {
     }, []);
 
     if (isAssessmentDetailsLoading) return <DashboardLoader />;
-    console.log(assessmentDetails[1]?.saved_data?.sections);
     return (
         <PreviewAndExport
             assessmentId={assessmentId}

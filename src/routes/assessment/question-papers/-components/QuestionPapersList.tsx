@@ -29,6 +29,15 @@ import { Dispatch, SetStateAction } from "react";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import ExportQuestionPaper from "./export-question-paper/ExportQuestionPaper";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
@@ -183,6 +192,13 @@ export const QuestionPapersList = ({
                                     }`}
                                 />
 
+                                <Dialog>
+                                    <DialogTrigger>Open</DialogTrigger>
+                                    <DialogContent>
+                                        <ExportQuestionPaper questionPaperId={questionsData.id} />
+                                    </DialogContent>
+                                </Dialog>
+
                                 <DropdownMenu>
                                     <DropdownMenuTrigger>
                                         <Button
@@ -210,6 +226,11 @@ export const QuestionPapersList = ({
                                         >
                                             Delete Question Paper
                                         </DropdownMenuItem>
+                                        {/* <DropdownMenuItem>
+                                            <ExportQuestionPaper
+                                                questionPaperId={questionsData.id}
+                                            />
+                                        </DropdownMenuItem> */}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
