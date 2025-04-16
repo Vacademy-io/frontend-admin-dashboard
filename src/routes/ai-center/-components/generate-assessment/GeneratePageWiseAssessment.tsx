@@ -2,15 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import ReactQuill from "react-quill";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
-import { convertSVGsToBase64, transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
+import { convertSVGsToBase64, transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
+import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import GeneratePageWiseAssessmentQuestionsDialog from "./GeneratePageWiseAssessmentQuestionsDialog";
 import { useMutation } from "@tanstack/react-query";
-import { handleGenerateAssessmentQuestionsPageWise } from "../-services/ai-center-service";
+import { handleGenerateAssessmentQuestionsPageWise } from "../../-services/ai-center-service";
 
 interface GeneratePageWiseAssessmentProps {
     openPageWiseAssessmentDialog: boolean;
