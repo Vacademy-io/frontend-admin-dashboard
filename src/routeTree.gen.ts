@@ -19,6 +19,7 @@ import { Route as EvaluationIndexImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexImport } from "./routes/community/index"
 import { Route as AssessmentIndexImport } from "./routes/assessment/index"
+import { Route as AiCenterIndexImport } from "./routes/ai-center/index"
 import { Route as StudyLibrarySessionIndexImport } from "./routes/study-library/session/index"
 import { Route as StudyLibraryReportsIndexImport } from "./routes/study-library/reports/index"
 import { Route as StudyLibraryCoursesIndexImport } from "./routes/study-library/courses/index"
@@ -95,6 +96,12 @@ const CommunityIndexRoute = CommunityIndexImport.update({
 const AssessmentIndexRoute = AssessmentIndexImport.update({
   id: "/assessment/",
   path: "/assessment/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AiCenterIndexRoute = AiCenterIndexImport.update({
+  id: "/ai-center/",
+  path: "/ai-center/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -298,6 +305,13 @@ const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTy
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
+    "/ai-center/": {
+      id: "/ai-center/"
+      path: "/ai-center"
+      fullPath: "/ai-center"
+      preLoaderRoute: typeof AiCenterIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/assessment/": {
       id: "/assessment/"
       path: "/assessment"
@@ -556,6 +570,7 @@ declare module "@tanstack/react-router" {
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
+  "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
@@ -595,6 +610,7 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
+  "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
@@ -635,6 +651,7 @@ export interface FileRoutesByTo {
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  "/ai-center/": typeof AiCenterIndexRoute
   "/assessment/": typeof AssessmentIndexRoute
   "/community/": typeof CommunityIndexRoute
   "/dashboard/": typeof DashboardIndexRoute
@@ -676,6 +693,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | "/ai-center"
     | "/assessment"
     | "/community"
     | "/dashboard"
@@ -714,6 +732,7 @@ export interface FileRouteTypes {
     | "/study-library/courses/levels/subjects/modules/chapters/slides"
   fileRoutesByTo: FileRoutesByTo
   to:
+    | "/ai-center"
     | "/assessment"
     | "/community"
     | "/dashboard"
@@ -752,6 +771,7 @@ export interface FileRouteTypes {
     | "/study-library/courses/levels/subjects/modules/chapters/slides"
   id:
     | "__root__"
+    | "/ai-center/"
     | "/assessment/"
     | "/community/"
     | "/dashboard/"
@@ -792,6 +812,7 @@ export interface FileRouteTypes {
 }
 
 export interface RootRouteChildren {
+  AiCenterIndexRoute: typeof AiCenterIndexRoute
   AssessmentIndexRoute: typeof AssessmentIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -831,6 +852,7 @@ export interface RootRouteChildren {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  AiCenterIndexRoute: AiCenterIndexRoute,
   AssessmentIndexRoute: AssessmentIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -891,6 +913,7 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/ai-center/",
         "/assessment/",
         "/community/",
         "/dashboard/",
@@ -928,6 +951,9 @@ export const routeTree = rootRoute
         "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
         "/study-library/courses/levels/subjects/modules/chapters/slides/"
       ]
+    },
+    "/ai-center/": {
+      "filePath": "ai-center/index.tsx"
     },
     "/assessment/": {
       "filePath": "assessment/index.tsx"

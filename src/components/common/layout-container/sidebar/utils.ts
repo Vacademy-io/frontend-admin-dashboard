@@ -1,4 +1,12 @@
-import { House, Users, BookOpen, Scroll, Globe, FileMagnifyingGlass } from "@phosphor-icons/react";
+import {
+    House,
+    Users,
+    BookOpen,
+    Scroll,
+    Globe,
+    FileMagnifyingGlass,
+    HeadCircuit,
+} from "@phosphor-icons/react";
 import { SidebarItemsType } from "../../../../types/layout-container/layout-container-types";
 import { NotePencil } from "phosphor-react";
 
@@ -93,5 +101,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
         id: "Community Centre",
         title: "Community Centre",
         to: "/community",
+    },
+    {
+        icon: HeadCircuit,
+        title: "AI Features",
+        id: "dashboard",
+        to: "/ai-center",
     },
 ];
