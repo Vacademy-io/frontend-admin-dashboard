@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import GenerateAIAssessmentComponent from "./-components/generate-assessment/GenerateAssessment";
 import { GenerateQuestionsFromAudio } from "./-components/generate-questions-from-audio/GenerateQuestionsFromAudio";
 import GenerateAiQuestionPaperComponent from "./-components/generate-question/GenerateQuestionPaper";
+import GenerateAiQuestionFromImageComponent from "./-components/generate-question-from-image/GenerateQuestionPaper";
 
 export const Route = createFileRoute("/ai-center/")({
     component: () => (
@@ -18,6 +19,7 @@ function RouteComponent() {
             <GenerateAIAssessmentComponent />
             <GenerateQuestionsFromAudio />
             <GenerateAiQuestionPaperComponent />
+            <GenerateAiQuestionFromImageComponent />
         </div>
     );
 }

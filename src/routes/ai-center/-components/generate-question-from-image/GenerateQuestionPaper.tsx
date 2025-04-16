@@ -8,21 +8,22 @@ import {
     handleStartProcessUploadedFile,
 } from "../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
-import { questionsCompleteResponseData } from "../../-dummy-files/dummy-data";
 import { GenerateCard } from "../GenerateCard";
+import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
+import { questionsCompleteResponseData } from "../../-dummy-files/dummy-data";
 
-const GenerateAiQuestionPaperComponent = () => {
+const GenerateAiQuestionFromImageComponent = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    // const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: "",
@@ -36,10 +37,9 @@ const GenerateAiQuestionPaperComponent = () => {
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
-    const [htmlData, setHtmlData] = useState(null);
-    console.log(htmlData);
-    const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
-    console.log(openPageWiseAssessmentDialog);
+    // const [htmlData, setHtmlData] = useState(null);
+    // const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
+
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
         mode: "onChange",
@@ -58,6 +58,10 @@ const GenerateAiQuestionPaperComponent = () => {
             questions: [],
         },
     });
+
+    // const handleOpenAssessmentDialog = (open: boolean) => {
+    //     setOpenAssessmentDialog(open);
+    // };
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -218,20 +222,20 @@ const GenerateAiQuestionPaperComponent = () => {
             // Reset pending state
             convertPendingRef.current = false;
 
-            // If conversion is complete and we have HTML data
-            if (response?.html) {
-                stopConvertPolling();
-                setHtmlData(response?.html);
-                setOpenPageWiseAssessmentDialog(true);
-                // try {
-                //     const questionsData = await handleGetQuestionsFromHTMLUrl(response.html, "");
-                //     console.log("✅ Questions Data:", questionsData);
-                // } catch (error) {
-                //     console.error("⛔️ Error processing HTML:", error);
-                // }
+            // // If conversion is complete and we have HTML data
+            // if (response?.html) {
+            //     stopConvertPolling();
+            //     setHtmlData(response?.html);
+            //     setOpenPageWiseAssessmentDialog(true);
+            //     // try {
+            //     //     const questionsData = await handleGetQuestionsFromHTMLUrl(response.html, "");
+            //     //     console.log("✅ Questions Data:", questionsData);
+            //     // } catch (error) {
+            //     //     console.error("⛔️ Error processing HTML:", error);
+            //     // }
 
-                return;
-            }
+            //     return;
+            // }
 
             // If response exists but no HTML yet, schedule next poll
             scheduleNextConvertPoll();
@@ -287,7 +291,6 @@ const GenerateAiQuestionPaperComponent = () => {
         handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
     };
 
-    console.log(assessmentData);
     // Cleanup on component unmount
     useEffect(() => {
         return () => {
@@ -301,9 +304,9 @@ const GenerateAiQuestionPaperComponent = () => {
                 isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Generate Question"
-                cardDescription="Upload PDF/DOCX/PPT"
-                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                cardTitle="Generate Question From Image"
+                cardDescription="Upload JPG/JPEG/PNG"
+                inputFormat=".jpg,.jpeg,.png"
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
@@ -322,4 +325,4 @@ const GenerateAiQuestionPaperComponent = () => {
     );
 };
 
-export default GenerateAiQuestionPaperComponent;
+export default GenerateAiQuestionFromImageComponent;
