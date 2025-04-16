@@ -5,13 +5,13 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Settings, Trash2 } from "lucide-react";
-import { ArrowSquareOut, Upload } from "phosphor-react";
+import { Upload } from "phosphor-react";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ExportHandlerQuestionPaperAI } from "./ExportHandlerQuestionPaperAI";
-import { ExportQuestionPaperSettingsDialogAI } from "./export-question-paper-dialog/export-question-paper-setting-dialog-AI";
 import { PaperSetQuestionsAI } from "./PaperSetQuestionsAI";
 import { convertQuestionsToExportSchema } from "@/routes/assessment/question-papers/-utils/helper";
 import { MyButton } from "@/components/design-system/button";
+import { ExportQuestionPaperSettingsDialogAI } from "./export-question-paper-dialog-ai/export-question-paper-setting-dialog-ai";
 
 const ExportQuestionPaperAI = ({ responseQuestionsData }: { responseQuestionsData: any }) => {
     return (
