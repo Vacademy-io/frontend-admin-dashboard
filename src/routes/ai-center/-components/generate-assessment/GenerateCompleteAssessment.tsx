@@ -15,6 +15,7 @@ import { MyButton } from "@/components/design-system/button";
 import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 // Infer the form type from the schema
 type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
@@ -24,11 +25,19 @@ interface GenerateCompleteAssessmentProps {
     openCompleteAssessmentDialog: boolean;
     setOpenCompleteAssessmentDialog: React.Dispatch<React.SetStateAction<boolean>>;
     assessmentData: AIAssessmentResponseInterface | null;
-    handleGenerateQuestionsForAssessment: () => void;
+    handleGenerateQuestionsForAssessment: (audioId?: string) => void;
     propmtInput: string;
     setPropmtInput: React.Dispatch<React.SetStateAction<string>>;
     isMoreQuestionsDialog: boolean;
     setIsMoreQuestionsDialog: React.Dispatch<React.SetStateAction<boolean>>;
+    numQuestions?: number | null;
+    setNumQuestions?: React.Dispatch<React.SetStateAction<number | null>>;
+    difficulty?: string | null;
+    setDifficulty?: React.Dispatch<React.SetStateAction<string | null>>;
+    language?: string | null;
+    setLanguage?: React.Dispatch<React.SetStateAction<string | null>>;
+    audioId?: string;
+    loader?: boolean;
 }
 
 const GenerateCompleteAssessment = ({
@@ -41,6 +50,14 @@ const GenerateCompleteAssessment = ({
     setPropmtInput,
     isMoreQuestionsDialog,
     setIsMoreQuestionsDialog,
+    numQuestions,
+    setNumQuestions,
+    difficulty,
+    setDifficulty,
+    language,
+    setLanguage,
+    audioId,
+    loader,
 }: GenerateCompleteAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
@@ -71,7 +88,11 @@ const GenerateCompleteAssessment = ({
         });
     }, []);
 
-    return (
+    return loader ? (
+        <div className="h-screen w-screen">
+            <DashboardLoader />{" "}
+        </div>
+    ) : (
         <Dialog open={openCompleteAssessmentDialog} onOpenChange={setOpenCompleteAssessmentDialog}>
             <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
                 <FormProvider {...form}>
@@ -113,13 +134,42 @@ const GenerateCompleteAssessment = ({
                                                 value={propmtInput}
                                                 onChange={(e) => setPropmtInput(e.target.value)}
                                             />
+                                            {setNumQuestions && (
+                                                <Input
+                                                    type=""
+                                                    placeholder="Enter number of questions to generate"
+                                                    value={numQuestions || ""}
+                                                    onChange={(e) =>
+                                                        setNumQuestions(Number(e.target.value))
+                                                    }
+                                                />
+                                            )}
+                                            {setDifficulty && (
+                                                <Input
+                                                    placeholder="Enter difficulty level [Easy, Medium, Hard]"
+                                                    value={difficulty || ""}
+                                                    onChange={(e) => setDifficulty(e.target.value)}
+                                                />
+                                            )}
+                                            {setLanguage && (
+                                                <Input
+                                                    placeholder="Enter language [English, Hindi, etc.]"
+                                                    value={language || ""}
+                                                    onChange={(e) => setLanguage(e.target.value)}
+                                                />
+                                            )}
+
                                             <MyButton
                                                 type="button"
                                                 scale="medium"
                                                 buttonType="primary"
                                                 layoutVariant="default"
                                                 className="mr-4 text-sm"
-                                                onClick={handleGenerateQuestionsForAssessment}
+                                                onClick={() =>
+                                                    handleGenerateQuestionsForAssessment(
+                                                        audioId || "",
+                                                    )
+                                                }
                                             >
                                                 Generate Questions
                                             </MyButton>
@@ -132,7 +182,12 @@ const GenerateCompleteAssessment = ({
                                     buttonType="secondary"
                                     layoutVariant="default"
                                     className="mr-4 text-sm"
-                                    onClick={() => setOpenCompleteAssessmentDialog(false)}
+                                    onClick={() => {
+                                        setNumQuestions && setNumQuestions(null);
+                                        setDifficulty && setDifficulty(null);
+                                        setLanguage && setLanguage(null);
+                                        setOpenCompleteAssessmentDialog(false);
+                                    }}
                                 >
                                     Cancel
                                 </MyButton>

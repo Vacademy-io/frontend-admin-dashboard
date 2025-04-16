@@ -15,6 +15,7 @@ import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/ge
 import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+
 export const GenerateQuestionsFromAudio = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
@@ -33,6 +34,10 @@ export const GenerateQuestionsFromAudio = () => {
         classes: [],
         questions: [],
     });
+    const [numQuestions, setNumQuestions] = useState<number | null>(null);
+    const [difficulty, setDifficulty] = useState<string | null>(null);
+    const [language, setLanguage] = useState<string | null>(null);
+    const [audioId, setAudioId] = useState<string | undefined>();
 
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
@@ -82,7 +87,7 @@ export const GenerateQuestionsFromAudio = () => {
                 const response = await handleStartProcessUploadedAudioFile(fileId);
                 console.log("response", response);
                 if (response) {
-                    console.log("response.pdf_id", response.pdf_id);
+                    setAudioId(response.pdf_id);
                     await handleCallApi(response.pdf_id);
                 }
             }
@@ -111,10 +116,10 @@ export const GenerateQuestionsFromAudio = () => {
         handleLoader(true);
         getQuestionsFromAudioMutation.mutate({
             audioId: audioId,
-            numQuestions: 10,
-            prompt: "",
-            difficulty: "Medium",
-            language: "English",
+            numQuestions: numQuestions,
+            prompt: propmtInput,
+            difficulty: difficulty,
+            language: language,
         });
     };
 
@@ -167,6 +172,9 @@ export const GenerateQuestionsFromAudio = () => {
                 setOpenCompleteAssessmentDialog(true);
                 setPropmtInput("");
                 setIsMoreQuestionsDialog(false);
+                setNumQuestions(null);
+                setDifficulty(null);
+                setLanguage(null);
                 handleLoader(false);
                 return;
             }
@@ -186,6 +194,9 @@ export const GenerateQuestionsFromAudio = () => {
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
                 clearPolling();
+                setNumQuestions(null);
+                setDifficulty(null);
+                setLanguage(null);
                 handleLoader(false);
                 return;
             }
@@ -248,6 +259,14 @@ export const GenerateQuestionsFromAudio = () => {
                     setPropmtInput={setPropmtInput}
                     isMoreQuestionsDialog={isMoreQuestionsDialog}
                     setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
+                    numQuestions={numQuestions}
+                    setNumQuestions={setNumQuestions}
+                    difficulty={difficulty}
+                    setDifficulty={setDifficulty}
+                    language={language}
+                    setLanguage={setLanguage}
+                    audioId={audioId}
+                    loader={loader}
                 />
             )}
         </div>
