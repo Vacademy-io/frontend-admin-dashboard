@@ -65,10 +65,11 @@ export const AddSessionForm = ({
         }
 
         // Filter the packageWithLevels to only include packages present in initialValues
-        return packageWithLevels.filter((pkg) =>
-            initialValues.packages.some(
-                (initialPkg) => initialPkg.package_dto.id === pkg.package_dto.id,
-            ),
+        return packageWithLevels.filter(
+            (pkg) =>
+                initialValues?.packages.some(
+                    (initialPkg) => initialPkg.package_dto.id === pkg.package_dto.id,
+                ),
         );
     };
 

@@ -31,6 +31,7 @@ export function SessionCard({ data }: SessionCardProps) {
     };
 
     const handleEditSession = (sessionData: AddSessionDataType) => {
+        console.log("sessionData", sessionData);
         // Get all the selected package_session_ids from the form
         const allPackageSessionIds: string[] = [];
         data.packages.forEach((pkg) => {
@@ -38,17 +39,9 @@ export function SessionCard({ data }: SessionCardProps) {
                 allPackageSessionIds.push(level.package_session_id);
             });
         });
+        console.log("allPackageSessionIds", allPackageSessionIds);
 
-        const visibleLevels = sessionData.levels.filter((level) => {
-            const pksId = getPackageSessionId({
-                courseId: level.level_dto.package_id || "",
-                sessionId: sessionData.id || "",
-                levelId: level.level_dto.id || "",
-            });
-            return allPackageSessionIds.includes(pksId || "");
-        });
-
-        const visiblePackageSessionIds = visibleLevels.map((level) => {
+        const visiblePackageSessionIds = sessionData.levels.map((level) => {
             return (
                 getPackageSessionId({
                     courseId: level.level_dto.package_id || "",
@@ -59,11 +52,16 @@ export function SessionCard({ data }: SessionCardProps) {
         });
 
         const hiddenPackageSessionIds = allPackageSessionIds.filter((pksId) => {
-            return !visiblePackageSessionIds.includes(pksId || "");
+            return !visiblePackageSessionIds.includes(pksId);
         });
 
         const commaSeparatedVisiblePackageSessionIds = visiblePackageSessionIds.join(",");
         const commaSeparatedHiddenPackageSessionIds = hiddenPackageSessionIds.join(",");
+        console.log(
+            "commaSeparatedVisiblePackageSessionIds",
+            commaSeparatedVisiblePackageSessionIds,
+        );
+        console.log("commaSeparatedHiddenPackageSessionIds", commaSeparatedHiddenPackageSessionIds);
 
         const requestData = {
             comma_separated_hidden_package_session_ids: commaSeparatedHiddenPackageSessionIds,
