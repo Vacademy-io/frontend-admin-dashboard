@@ -1,5 +1,5 @@
 // StudentListSection.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { GetFilterData } from "@/routes/students/students-list/-constants/all-filters";
@@ -13,7 +13,7 @@ import { StudentTable } from "@/types/student-table-types";
 import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
 import { STUDENT_LIST_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
 import { BulkActions } from "./bulk-actions/bulk-actions";
-import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
+import { ColumnDef, OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
@@ -28,13 +28,37 @@ import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 import { useSearch } from "@tanstack/react-router";
 import { Route } from "@/routes/students/students-list";
 import { useUsersCredentials } from "../../../-services/usersCredentials";
-import { useStudentCredentialsStore } from "@/stores/students/students-list/useStudentCredentialsStore";
+import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
+import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
+import { ShareCredentialsDialog } from "./bulk-actions/share-credentials-dialog";
+import { IndividualShareCredentialsDialog } from "./bulk-actions/individual-share-credentials-dialog";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState<StudentTable | null>(null);
     const { getCourseFromPackage } = useInstituteDetailsStore();
+    const tableRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                tableRef.current &&
+                !tableRef.current.contains(event.target as Node) &&
+                isSidebarOpen
+            ) {
+                setIsSidebarOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isSidebarOpen]);
+
     useEffect(() => {
         const courseList = getCourseFromPackage();
         if (courseList.length === 0) {
@@ -58,6 +82,7 @@ export const StudentsListSection = () => {
         searchInput,
         searchFilter,
         currentSession,
+        sessionList,
         getActiveFiltersState,
         handleFilterChange,
         handleFilterClick,
@@ -67,8 +92,11 @@ export const StudentsListSection = () => {
         handleClearSearch,
         setAppliedFilters,
         handleSessionChange,
+        setColumnFilters,
     } = useStudentFilters();
-    const filters = GetFilterData(currentSession);
+    const filters = GetFilterData(currentSession.name);
+
+    const search = useSearch({ from: Route.id });
 
     const {
         studentTableData,
@@ -77,36 +105,32 @@ export const StudentsListSection = () => {
         page,
         handleSort,
         handlePageChange,
-    } = useStudentTable(appliedFilters, setAppliedFilters);
+    } = useStudentTable(
+        appliedFilters,
+        setAppliedFilters,
+        search.package_session_id ? [search.package_session_id] : null,
+    );
+    const { selectedFilterList, setSelectedFilterList } = useStudentFiltersContext();
 
     const getUserCredentialsMutation = useUsersCredentials();
-    const { credentialsMap } = useStudentCredentialsStore();
 
     async function getCredentials() {
-        const ids = studentTableData?.content.map((student) => student.user_id);
-        console.log("Fetching credentials for IDs:", ids);
+        const ids = studentTableData?.content.map((student: StudentTable) => student.user_id);
         if (!ids || ids.length === 0) {
-            console.log("No student IDs available yet");
             return;
         }
         const credentials = await getUserCredentialsMutation.mutateAsync({ userIds: ids || [] });
-        console.log("Received credentials:", credentials);
         return credentials;
     }
 
     useEffect(() => {
         async function fetchCredentials() {
-            console.log("studentTableData changed:", studentTableData);
             if (studentTableData?.content && studentTableData.content.length > 0) {
                 await getCredentials();
             }
         }
         fetchCredentials();
     }, [studentTableData]);
-
-    useEffect(() => {
-        console.log("credentialsMap updated:", credentialsMap);
-    }, [credentialsMap]);
 
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
     useEffect(() => {
@@ -158,15 +182,68 @@ export const StudentsListSection = () => {
         0,
     );
 
-    const { instituteDetails } = useInstituteDetailsStore();
-    const search = useSearch({ from: Route.id });
+    const { instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
 
     useEffect(() => {
         if (search.batch && search.package_session_id) {
-            console.log("batch to filter: ", search.batch);
-            console.log("package session id to filter: ", search.package_session_id);
+            const details = getDetailsFromPackageSessionId({
+                packageSessionId: search.package_session_id,
+            });
+            const batchName =
+                (details?.level.level_name || "") + (details?.package_dto.package_name || "");
+            console.log("batchName: ", batchName);
+            setColumnFilters((prev) => [
+                ...prev,
+                {
+                    id: "batch",
+                    value: [batchName],
+                },
+            ]);
+            setAppliedFilters((prev) => ({
+                ...prev,
+                package_session_ids: search.package_session_id
+                    ? [search.package_session_id]
+                    : undefined,
+            }));
+            const session: DropdownItemType = {
+                id: details?.session.id || "",
+                name: details?.session.session_name || "",
+            };
+            handleSessionChange(session);
+            setSelectedFilterList((prev) => {
+                const newState = {
+                    ...prev,
+                    session: [session.name],
+                    batch: [batchName],
+                };
+                console.log("New state:", newState);
+                return newState;
+            });
+            console.log("selectedFilterList from students-list-section: ", selectedFilterList);
         }
     }, [search, instituteDetails]);
+
+    const handleCellClick = (
+        student: StudentTable | null,
+        column: ColumnDef<StudentTable> | null,
+        isHeader: boolean = false,
+    ) => {
+        if (isHeader) {
+            setIsSidebarOpen(false);
+            setSelectedStudent(null);
+            return;
+        }
+
+        if (!student) return;
+
+        if (selectedStudent?.user_id === student.user_id) {
+            setIsSidebarOpen(false);
+            setSelectedStudent(null);
+        } else {
+            setSelectedStudent(student);
+            setIsSidebarOpen(true);
+        }
+    };
 
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
@@ -194,8 +271,13 @@ export const StudentsListSection = () => {
                     page={page}
                     pageSize={10}
                     totalElements={studentTableData?.total_elements || 0}
+                    sessionList={sessionList}
                 />
-                {!studentTableData || studentTableData.content.length == 0 ? (
+                {loadingData ? (
+                    <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
+                        <DashboardLoader />
+                    </div>
+                ) : !studentTableData || studentTableData.content.length == 0 ? (
                     <div className="flex w-full flex-col items-center gap-3 text-neutral-600">
                         <EmptyStudentListImage />
                         <p>No student data available</p>
@@ -203,13 +285,25 @@ export const StudentsListSection = () => {
                 ) : (
                     <div className="flex flex-col gap-5">
                         <div className="h-auto max-w-full">
-                            <div className="max-w-full">
+                            <div className="max-w-full" ref={tableRef}>
                                 <SidebarProvider
                                     style={{ ["--sidebar-width" as string]: "565px" }}
                                     defaultOpen={false}
+                                    open={isSidebarOpen}
+                                    onOpenChange={setIsSidebarOpen}
                                 >
                                     <MyTable<StudentTable>
-                                        data={studentTableData}
+                                        data={{
+                                            content: studentTableData.content.map((student) => ({
+                                                ...student,
+                                                id: student.user_id,
+                                            })),
+                                            total_pages: studentTableData.total_pages,
+                                            page_no: studentTableData.page_no,
+                                            page_size: studentTableData.page_size,
+                                            total_elements: studentTableData.total_elements,
+                                            last: studentTableData.last,
+                                        }}
                                         columns={myColumns}
                                         isLoading={loadingData}
                                         error={loadingError}
@@ -218,8 +312,24 @@ export const StudentsListSection = () => {
                                         rowSelection={currentPageSelection}
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
+                                        onCellClick={(row, column) => {
+                                            if (
+                                                column.id !== "checkbox" &&
+                                                column.id !== "options"
+                                            ) {
+                                                handleCellClick(row, column);
+                                            }
+                                        }}
+                                        onHeaderClick={() => handleCellClick(null, null, true)}
                                     />
-                                    <StudentSidebar />
+                                    <div>
+                                        <StudentSidebar
+                                            selectedTab={"ENDED,PENDING,LIVE"}
+                                            examType={"EXAM"}
+                                            isStudentList={true}
+                                            selectedStudent={selectedStudent}
+                                        />
+                                    </div>
                                 </SidebarProvider>
                             </div>
                         </div>
@@ -240,6 +350,8 @@ export const StudentsListSection = () => {
                 )}
             </div>
             <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" />
+            <ShareCredentialsDialog />
+            <IndividualShareCredentialsDialog />
         </section>
     );
 };

@@ -40,11 +40,11 @@ export const MyDialog = ({
                         {heading}
                     </DialogHeader>
                 </DialogTitle>
-                <DialogDescription asChild className="no-scrollbar flex-1 overflow-y-scroll">
+                <DialogDescription asChild className="m-0 overflow-x-hidden overflow-y-scroll p-0">
                     <div className="p-3">{children || content}</div>
                 </DialogDescription>
                 {footer && (
-                    <DialogFooter className="sticky top-0 z-10 w-full rounded-b-lg border-t border-t-neutral-300 bg-white px-4 py-4">
+                    <DialogFooter className="sticky top-0 z-10 w-full rounded-b-lg border-t border-t-neutral-300 bg-white p-2">
                         {footer}
                     </DialogFooter>
                 )}

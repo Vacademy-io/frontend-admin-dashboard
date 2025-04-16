@@ -7,6 +7,7 @@
 // ];
 export const BulkActionDropdownList = [
     "Change Batch",
-    // "Re-register for Next Session",
+    "Re-register for Next Session",
     "Terminate Registration",
+    "Share Credentials",
 ];

@@ -99,6 +99,7 @@ export const SlideMaterial = ({
                 });
                 return;
             } else {
+                if (activeItem.document_type == "DOC") await SaveDraft();
                 await addUpdateDocumentSlide({
                     id: activeItem?.slide_id || "",
                     title: heading,
@@ -110,8 +111,8 @@ export const SlideMaterial = ({
                         type: activeItem.document_type,
                         data:
                             activeItem.status == "PUBLISHED"
-                                ? activeItem.document_data
-                                : activeItem.published_data,
+                                ? activeItem.published_data
+                                : activeItem.document_data,
                         title: heading,
                         cover_file_id: activeItem.document_cover_file_id || "",
                         total_pages: 0,
@@ -168,43 +169,49 @@ export const SlideMaterial = ({
                 (activeItem.status == "PUBLISHED"
                     ? activeItem.published_url
                     : activeItem.video_url) || "";
-            if (videoURL.includes("drive")) {
-                if (videoURL.includes("drive")) {
-                    const videoId = videoURL.match(/\/d\/(.+?)\//)?.[1];
-                    const embedUrl = videoId
-                        ? `https://drive.google.com/file/d/${videoId}/preview`
-                        : null;
+            // TODO : add drive video upload functionality when drive video is handled at the students portal side
+            // if (videoURL.includes("drive")) {
+            //     if (videoURL.includes("drive")) {
+            //         const videoId = videoURL.match(/\/d\/(.+?)\//)?.[1];
+            //         const embedUrl = videoId
+            //             ? `https://drive.google.com/file/d/${videoId}/preview`
+            //             : null;
 
-                    console.log(embedUrl);
+            //         console.log(embedUrl);
 
-                    setContent(
-                        embedUrl ? (
-                            <div
-                                key={`video-${activeItem.slide_id}`}
-                                className="relative max-h-[80vh] w-full"
-                            >
-                                <div className="relative aspect-[16/9] max-h-[80vh] w-full">
-                                    <iframe
-                                        key={`drive-video-${activeItem.slide_id}`}
-                                        src={embedUrl}
-                                        className="absolute inset-0 h-full w-full"
-                                        allow="autoplay"
-                                        allowFullScreen
-                                    />
-                                </div>
-                            </div>
-                        ) : (
-                            <div>Unable to load the video. Ensure it is publicly accessible.</div>
-                        ),
-                    );
-                }
-            } else {
-                setContent(
-                    <div key={`video-${activeItem.slide_id}`} className="size-full">
-                        <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
-                    </div>,
-                );
-            }
+            //         setContent(
+            //             embedUrl ? (
+            //                 <div
+            //                     key={`video-${activeItem.slide_id}`}
+            //                     className="relative max-h-[80vh] w-full"
+            //                 >
+            //                     <div className="relative aspect-[16/9] max-h-[80vh] w-full">
+            //                         <iframe
+            //                             key={`drive-video-${activeItem.slide_id}`}
+            //                             src={embedUrl}
+            //                             className="absolute inset-0 h-full w-full"
+            //                             allow="autoplay"
+            //                             allowFullScreen
+            //                         />
+            //                     </div>
+            //                 </div>
+            //             ) : (
+            //                 <div>Unable to load the video. Ensure it is publicly accessible.</div>
+            //             ),
+            //         );
+            //     }
+            // } else {
+            //     setContent(
+            //         <div key={`video-${activeItem.slide_id}`} className="size-full">
+            //             <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
+            //         </div>,
+            //     );
+            // }
+            setContent(
+                <div key={`video-${activeItem.slide_id}`} className="size-full">
+                    <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
+                </div>,
+            );
             return;
         } else if (activeItem.source_type == "DOCUMENT" && activeItem.document_type == "PDF") {
             const url = await getPublicUrl(

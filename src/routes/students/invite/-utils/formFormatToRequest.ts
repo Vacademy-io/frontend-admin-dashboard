@@ -11,6 +11,11 @@ export function createBatchOptions(
     data: BatchForSessionType[],
     selectionMode: "institute" | "student" | "both",
     maxValue: number,
+    getPackageSessionId: (params: {
+        courseId: string;
+        sessionId: string;
+        levelId: string;
+    }) => string | null,
 ): BatchOptionJsonType {
     const result: BatchOptionJsonType = {
         institute_assigned: selectionMode === "institute",
@@ -67,10 +72,15 @@ export function createBatchOptions(
 
                 // Process levels within this session
                 sessionItems.forEach((item) => {
+                    const packageSessionId = getPackageSessionId({
+                        courseId: item.package_dto.id,
+                        sessionId: item.session.id,
+                        levelId: item.level.id,
+                    });
                     sessionObj.pre_selected_levels.push({
                         id: item.level.id,
                         name: item.level.level_name,
-                        package_session_id: null,
+                        package_session_id: packageSessionId,
                     });
                 });
 
@@ -112,10 +122,15 @@ export function createBatchOptions(
 
                 // Process levels within this session
                 sessionItems.forEach((item) => {
+                    const packageSessionId = getPackageSessionId({
+                        courseId: item.package_dto.id,
+                        sessionId: item.session.id,
+                        levelId: item.level.id,
+                    });
                     sessionObj.learner_choice_levels.push({
                         id: item.level.id,
                         name: item.level.level_name,
-                        package_session_id: null,
+                        package_session_id: packageSessionId,
                     });
                 });
 

@@ -7,6 +7,8 @@ import { OverViewData, OverviewDetailsType } from "./overview";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { EditStudentDetails } from "./EditStudentDetails";
 import { useStudentCredentialsStore } from "@/stores/students/students-list/useStudentCredentialsStore";
+import { MyButton } from "@/components/design-system/button";
+import { useDialogStore } from "@/routes/students/students-list/-hooks/useDialogStore";
 
 export const StudentOverview = () => {
     const { selectedStudent } = useStudentSidebar();
@@ -18,10 +20,10 @@ export const StudentOverview = () => {
     const [password, setPassword] = useState(
         getCredentials(selectedStudent?.user_id || "")?.password || "password not found",
     );
+    const { openIndividualShareCredentialsDialog } = useDialogStore();
 
     useEffect(() => {
         if (selectedStudent) {
-            console.log("selectedStudent", selectedStudent.full_name);
             const credentials = getCredentials(selectedStudent.user_id);
             setPassword(credentials?.password || "password not found");
         }
@@ -42,7 +44,6 @@ export const StudentOverview = () => {
         // Calculate days until expiry
         if (selectedStudent?.expiry_date) {
             const expiryDate = new Date(selectedStudent.expiry_date);
-            console.log("expiry date: ", expiryDate);
             const currentDate = new Date();
 
             // Calculate the difference in milliseconds
@@ -60,7 +61,7 @@ export const StudentOverview = () => {
 
     return (
         <div className="flex flex-col gap-10 text-neutral-600">
-            <EditStudentDetails />
+            <EditStudentDetails selectedStudent={selectedStudent} />
             <SidebarMenuItem className="flex w-full flex-col gap-2">
                 <div className="flex gap-2">
                     <div className="text-subtitle font-semibold">Session Expiry (Days)</div>
@@ -83,26 +84,41 @@ export const StudentOverview = () => {
                     overviewData?.map((studentDetail, key) => (
                         <div key={key} className="flex flex-col gap-10">
                             <div className="flex justify-between">
-                                <div className="flex flex-col gap-2">
-                                    <div className="text-subtitle font-semibold text-neutral-600">
-                                        {studentDetail.heading}
-                                    </div>
+                                <div className="flex justify-between">
                                     <div className="flex flex-col gap-2">
-                                        {studentDetail.content &&
-                                        studentDetail.content.length > 0 ? (
-                                            studentDetail.content.map((obj, key2) => (
-                                                <div className="text-body" key={key2}>
-                                                    {obj}
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="py-4 text-center text-subtitle">
-                                                {" "}
-                                                S tudent details not available
-                                            </p>
-                                        )}
+                                        <div className="text-subtitle font-semibold text-neutral-600">
+                                            {studentDetail.heading}
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            {studentDetail.content &&
+                                            studentDetail.content.length > 0 ? (
+                                                studentDetail.content.map((obj, key2) => (
+                                                    <div className="text-body" key={key2}>
+                                                        {obj}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="py-4 text-center text-subtitle">
+                                                    {" "}
+                                                    Student details not available
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
+                                {key === 0 && (
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="large"
+                                        onClick={() =>
+                                            selectedStudent &&
+                                            openIndividualShareCredentialsDialog(selectedStudent)
+                                        }
+                                    >
+                                        Share Credentials
+                                    </MyButton>
+                                )}
                             </div>
                             <Separator />
                         </div>

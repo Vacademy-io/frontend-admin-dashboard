@@ -228,37 +228,6 @@ export const UploadCSVButton = ({
         }
     };
 
-    // const processApiResponse = (response: ApiResponse | string): SchemaFields[] => {
-    //     // Handle different response formats
-    //     if (typeof response !== "string" && response.data && Array.isArray(response.data)) {
-    //         return response.data as SchemaFields[];
-    //     }
-
-    //     // If response is a string or has data as string
-    //     const responseText =
-    //         typeof response === "string"
-    //             ? response
-    //             : response && typeof response.data === "string"
-    //               ? response.data
-    //               : "";
-
-    //     if (responseText) {
-    //         return parseApiResponse(responseText);
-    //     }
-
-    //     return [];
-    // };
-
-    // const generateUploadMessage = (stats: ReturnType<typeof getUploadStats>): string => {
-    //     if (stats.allSuccessful) {
-    //         return "File uploaded successfully";
-    //     } else if (stats.partialSuccess) {
-    //         return `File uploaded, ${stats.failed} entries are not uploaded due to errors`;
-    //     } else {
-    //         return "File upload failed due to errors in entries";
-    //     }
-    // };
-
     const uploadCsv = async () => {
         if (!csvData || !fileState.file) return;
 
@@ -315,7 +284,7 @@ export const UploadCSVButton = ({
             return;
         }
 
-        // No errors, proceed with upload
+        // No errors, proceed with
         uploadCsv();
     };
 

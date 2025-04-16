@@ -4,7 +4,7 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { useEffect, useState } from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MyButton } from "@/components/design-system/button";
-import { Plus } from "phosphor-react";
+import { ArrowSquareOut, Plus } from "phosphor-react";
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from "@/svgs";
 import { Badge } from "@/components/ui/badge";
 import { CompletionStatusComponent } from "./-components/CompletionStatusComponent";
@@ -26,6 +26,7 @@ import { TokenKey } from "@/constants/auth/tokens";
 import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
 import RoleTypeComponent from "./-components/RoleTypeComponent";
 import useLocalStorage from "@/hooks/use-local-storage";
+import EditDashboardProfileComponent from "./-components/EditDashboardProfileComponent";
 
 export const Route = createFileRoute("/dashboard/")({
     component: () => (
@@ -135,16 +136,7 @@ export function DashboardComponent() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>Complete your institute profile</CardTitle>
-                            <MyButton
-                                type="submit"
-                                scale="medium"
-                                buttonType="secondary"
-                                layoutVariant="default"
-                                className="text-sm"
-                            >
-                                <Plus size={32} />
-                                Add Details
-                            </MyButton>
+                            <EditDashboardProfileComponent isEdit={false} />
                         </div>
                         <CardDescription className="flex items-center gap-2">
                             <CompletionStatusComponent
@@ -211,12 +203,32 @@ export function DashboardComponent() {
                                     </MyButton>
                                 </div>
                                 <CardDescription className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <span>Batches</span>
+                                    <div
+                                        className="flex cursor-pointer items-center gap-1"
+                                        onClick={() =>
+                                            navigate({
+                                                to: "/students/manage-batches",
+                                            })
+                                        }
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            <span>Batches</span>
+                                            <ArrowSquareOut />
+                                        </div>
                                         <span className="text-primary-500">{data.batch_count}</span>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span>Students</span>
+                                    <div
+                                        className="flex cursor-pointer items-center gap-1"
+                                        onClick={() =>
+                                            navigate({
+                                                to: "/students/students-list",
+                                            })
+                                        }
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            <span>Students</span>
+                                            <ArrowSquareOut />
+                                        </div>
                                         <span className="text-primary-500">
                                             {data.student_count}
                                         </span>
@@ -254,9 +266,21 @@ export function DashboardComponent() {
                                     </MyButton>
                                 </div>
                                 <CardDescription className="flex items-center gap-4 py-6">
-                                    <div className="flex items-center gap-2">
-                                        <span>Courses</span>
-                                        <span className="text-primary-500">{data.batch_count}</span>
+                                    <div className="flex cursor-pointer items-center gap-1">
+                                        <div
+                                            className="flex items-center gap-1"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: "/study-library/courses",
+                                                })
+                                            }
+                                        >
+                                            <span>Courses</span>
+                                            <ArrowSquareOut />
+                                        </div>
+                                        <span className="text-primary-500">
+                                            {data.course_count}
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span>Level</span>
@@ -350,7 +374,7 @@ export function DashboardComponent() {
                                     </div>
                                     <CardDescription className="flex items-center gap-4 py-6">
                                         <div
-                                            className="flex cursor-pointer items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-1"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/assessment/assessment-list",
@@ -358,13 +382,16 @@ export function DashboardComponent() {
                                                 })
                                             }
                                         >
-                                            <span>Live</span>
+                                            <div className="flex items-center gap-1">
+                                                <span>Live</span>
+                                                <ArrowSquareOut />
+                                            </div>
                                             <span className="text-primary-500">
                                                 {assessmentCount?.live_count}
                                             </span>
                                         </div>
                                         <div
-                                            className="flex cursor-pointer items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-1"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/assessment/assessment-list",
@@ -372,13 +399,16 @@ export function DashboardComponent() {
                                                 })
                                             }
                                         >
-                                            <span>Upcoming</span>
+                                            <div className="flex items-center gap-1">
+                                                <span>Upcoming</span>
+                                                <ArrowSquareOut />
+                                            </div>
                                             <span className="text-primary-500">
                                                 {assessmentCount?.upcoming_count}
                                             </span>
                                         </div>
                                         <div
-                                            className="flex cursor-pointer items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-1"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/assessment/assessment-list",
@@ -386,13 +416,16 @@ export function DashboardComponent() {
                                                 })
                                             }
                                         >
-                                            <span>Previous</span>
+                                            <div className="flex items-center gap-1">
+                                                <span>Previous</span>
+                                                <ArrowSquareOut />
+                                            </div>
                                             <span className="text-primary-500">
                                                 {assessmentCount?.previous_count}
                                             </span>
                                         </div>
                                         <div
-                                            className="flex cursor-pointer items-center gap-2"
+                                            className="flex cursor-pointer items-center gap-1"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/assessment/assessment-list",
@@ -400,7 +433,10 @@ export function DashboardComponent() {
                                                 })
                                             }
                                         >
-                                            <span>Drafts</span>
+                                            <div className="flex items-center gap-1">
+                                                <span>Drafts</span>
+                                                <ArrowSquareOut />
+                                            </div>
                                             <span className="text-primary-500">
                                                 {assessmentCount?.draft_count}
                                             </span>

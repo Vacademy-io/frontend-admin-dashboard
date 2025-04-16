@@ -271,6 +271,10 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
         header: "Duration",
     },
     {
+        accessorKey: "concentrationScore",
+        header: "Concentration Score",
+    },
+    {
         accessorKey: "lastPageRead",
         header: () => <LastPageReadHeader />,
     },
@@ -313,14 +317,6 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     {
         accessorKey: "full_name",
         header: "Student Name",
-    },
-    {
-        accessorKey: "institute_enrollment_id",
-        header: "Enrollment Number",
-    },
-    {
-        accessorKey: "username",
-        header: "User Name",
     },
     {
         accessorKey: "time_spent",

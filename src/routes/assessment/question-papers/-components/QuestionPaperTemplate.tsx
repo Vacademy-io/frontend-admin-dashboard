@@ -49,6 +49,7 @@ export function QuestionPaperTemplate({
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperTemplateProps) {
+    const [isQuestionPaperTemplateDialog, setIsQuestionPaperTemplateDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const { handleRefetchData } = useRefetchStore();
     const queryClient = useQueryClient();
@@ -125,6 +126,7 @@ export function QuestionPaperTemplate({
         });
         setCurrentQuestionIndex(0);
         setAddQuestionDialogBox(false);
+        form.trigger();
     };
 
     // Function to handle page navigation by question number
@@ -204,8 +206,17 @@ export function QuestionPaperTemplate({
         handleMutationViewQuestionPaper.mutate({ questionPaperId });
     };
 
+    const handleTriggerForm = () => {
+        form.trigger();
+        if (Object.values(form.formState.errors).length > 0) return;
+        setIsQuestionPaperTemplateDialog(false);
+    };
+    
     return (
-        <Dialog>
+        <Dialog
+            open={isQuestionPaperTemplateDialog}
+            onOpenChange={setIsQuestionPaperTemplateDialog}
+        >
             <DialogTrigger>
                 {isViewMode ? (
                     <Button
@@ -263,23 +274,21 @@ export function QuestionPaperTemplate({
                                 <QuestionPaperEditDialog form={form} />
                             </div>
                             <div className="flex items-center gap-4">
-                                <DialogClose>
-                                    <Button
-                                        type="submit"
-                                        variant="outline"
-                                        className="w-44 bg-transparent shadow-none hover:bg-transparent"
-                                        onClick={
-                                            isViewMode
-                                                ? () =>
-                                                      handleSaveClick(
-                                                          form.getValues() as MyQuestionPaperFormInterface,
-                                                      )
-                                                : undefined
-                                        }
-                                    >
-                                        Save
-                                    </Button>
-                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    className="w-44 bg-transparent shadow-none hover:bg-transparent"
+                                    onClick={
+                                        isViewMode
+                                            ? () =>
+                                                  handleSaveClick(
+                                                      form.getValues() as MyQuestionPaperFormInterface,
+                                                  )
+                                            : handleTriggerForm
+                                    }
+                                >
+                                    Save
+                                </Button>
                                 <DialogClose>
                                     <Button
                                         type="submit"

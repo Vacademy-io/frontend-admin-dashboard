@@ -202,7 +202,7 @@ export const EnrollBulkDialog = () => {
                                 type="button"
                                 onClick={handleDoneClick}
                             >
-                                Done
+                                Enroll
                             </MyButton>
                         </div>
                     </form>
