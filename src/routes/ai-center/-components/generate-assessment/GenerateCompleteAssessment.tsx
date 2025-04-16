@@ -16,6 +16,7 @@ import useInstituteLogoStore from "@/components/common/layout-container/sidebar/
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import ExportQuestionPaperAI from "../export-ai-question-paper/ExportQuestionPaperAI";
 
 // Infer the form type from the schema
 type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
@@ -182,6 +183,11 @@ const GenerateCompleteAssessment = ({
                                                 >
                                                     Generate Questions
                                                 </MyButton>
+                                                <ExportQuestionPaperAI
+                                                    responseQuestionsData={
+                                                        assessmentData?.questions
+                                                    }
+                                                />
                                             </div>
                                         </DialogContent>
                                     </Dialog>
@@ -200,15 +206,9 @@ const GenerateCompleteAssessment = ({
                                     >
                                         Cancel
                                     </MyButton>
-                                    <MyButton
-                                        type="button"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="mr-4 text-sm"
-                                    >
-                                        Export PDF
-                                    </MyButton>
+                                    <ExportQuestionPaperAI
+                                        responseQuestionsData={assessmentData?.questions}
+                                    />
                                 </div>
                             </div>
                             <div className="flex w-full">

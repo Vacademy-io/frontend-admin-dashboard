@@ -14,7 +14,7 @@ export const Route = createFileRoute("/ai-center/")({
 
 function RouteComponent() {
     return (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="flex gap-4 flex-wrap">
             <GenerateAIAssessmentComponent />
             <GenerateQuestionsFromAudio />
             <GenerateAiQuestionPaperComponent />
