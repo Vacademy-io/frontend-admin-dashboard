@@ -2,8 +2,6 @@ import { LayoutContainer } from "@/components/common/layout-container/layout-con
 import { createFileRoute } from "@tanstack/react-router";
 import GenerateAIAssessmentComponent from "./-components/generate-assessment/GenerateAssessment";
 import { GenerateQuestionsFromAudio } from "./-components/generate-questions-from-audio/GenerateQuestionsFromAudio";
-import { useState } from "react";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const Route = createFileRoute("/ai-center/")({
     component: () => (
@@ -14,16 +12,10 @@ export const Route = createFileRoute("/ai-center/")({
 });
 
 function RouteComponent() {
-    const [loader, setLoader] = useState(false);
-    const handleLoader = (value: boolean) => {
-        setLoader(value);
-    };
-    return loader ? (
-        <DashboardLoader />
-    ) : (
+    return (
         <div className="flex items-center justify-start gap-8">
             <GenerateAIAssessmentComponent />
-            <GenerateQuestionsFromAudio handleLoader={handleLoader} />
+            <GenerateQuestionsFromAudio />
         </div>
     );
 }
