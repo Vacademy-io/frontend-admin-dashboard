@@ -158,6 +158,11 @@ export const fetchCustomFields = (data: InviteForm): CustomFieldType[] => {
 
 export default function formDataToRequestData(
     data: InviteForm,
+    getPackageSessionId: (params: {
+        courseId: string;
+        sessionId: string;
+        levelId: string;
+    }) => string | null,
     id?: string,
 ): CreateInvitationRequestType {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -172,6 +177,7 @@ export default function formDataToRequestData(
         batches,
         data.batches.courseSelectionMode,
         data.batches.maxCourses,
+        getPackageSessionId,
     );
 
     const request: CreateInvitationRequestType = {

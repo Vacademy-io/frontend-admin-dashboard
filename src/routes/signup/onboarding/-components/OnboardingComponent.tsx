@@ -28,7 +28,7 @@ export function OnboardingComponent() {
         }
     };
     return (
-        <div className="flex w-full">
+        <div className="flex w-full h-screen">
             <div className="flex w-1/2 flex-col items-center justify-center bg-primary-50">
                 <div>
                     <div className="flex items-center">

@@ -17,7 +17,8 @@
         "plugin:@typescript-eslint/recommended",
         "plugin:prettier/recommended",
         "plugin:tailwindcss/recommended",
-        "plugin:@tanstack/eslint-plugin-query/recommended"
+        "plugin:@tanstack/eslint-plugin-query/recommended",
+        "plugin:storybook/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {

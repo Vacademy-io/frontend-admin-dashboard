@@ -645,6 +645,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
                         <AssessmentSubmissionsStudentTable
                             data={{
+                                // @ts-expect-error : //TODO: Fix this type error
                                 content: getAssessmentSubmissionsFilteredDataStudentData(
                                     participantsData.content,
                                     type,

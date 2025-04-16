@@ -9,17 +9,20 @@ import { Question } from "../types/question";
 import { Resizable } from "re-resizable";
 import { RefreshCw } from "lucide-react";
 
+// Add answerSpacing parameter to your props
 interface QuestionComponentProps {
     question: Question;
     questionNumber: number;
     showMarks?: boolean;
     showCheckboxes?: boolean;
+    answerSpacing?: number; // Added this
 }
 
 export function QuestionComponent({
     question,
     showMarks = true,
     showCheckboxes = false,
+    answerSpacing, // Added this
 }: QuestionComponentProps) {
     const { settings, updateSettings } = useExportSettings();
     const marks = JSON.parse(question.marking_json)?.data?.totalMark || 0;
@@ -171,13 +174,17 @@ export function QuestionComponent({
                 <Resizable
                     size={{ width: initialSize?.width, height: initialSize?.height }}
                     onResizeStop={(e, direction, ref, d) => {
-                        const newWidth = initialSize?.width ?? 0 + d.width;
-                        const newHeight = initialSize?.height ?? 0 + d.height;
+                        const newWidth = initialSize?.width ? initialSize.width + d.width : d.width;
+                        const newHeight = initialSize?.height
+                            ? initialSize.height + d.height
+                            : d.height;
                         saveImageDimensions(imageUrl, { width: newWidth, height: newHeight });
                     }}
-                    lockAspectRatio={aspectRatios[imageUrl] || true}
-                    maxWidth={600}
-                    maxHeight={600}
+                    lockAspectRatio={
+                        settings.maintainImageAspectRatio ? aspectRatios[imageUrl] || true : false
+                    }
+                    maxWidth={450}
+                    maxHeight={450}
                     className={`${isSelected ? "ring-2 ring-primary-500" : ""}`}
                     handleStyles={{
                         right: {
@@ -190,17 +197,39 @@ export function QuestionComponent({
                             cursor: "ew-resize",
                             visibility: isSelected ? "visible" : "hidden",
                         },
+                        bottom: {
+                            width: "40px",
+                            height: "6px",
+                            bottom: "-3px",
+                            left: "calc(50% - 20px)",
+                            background: "#3b82f6",
+                            borderRadius: "3px",
+                            cursor: "ns-resize",
+                            visibility: isSelected ? "visible" : "hidden",
+                        },
+                        bottomRight: {
+                            width: "12px",
+                            height: "12px",
+                            bottom: "-6px",
+                            right: "-6px",
+                            background: "#3b82f6",
+                            borderRadius: "50%",
+                            cursor: "nwse-resize",
+                            visibility: isSelected ? "visible" : "hidden",
+                        },
                     }}
                     handleClasses={{
                         right: "data-html2canvas-ignore",
+                        bottom: "data-html2canvas-ignore",
+                        bottomRight: "data-html2canvas-ignore",
                     }}
                     enable={{
                         top: false,
                         right: isSelected,
-                        bottom: false,
+                        bottom: isSelected,
                         left: false,
                         topRight: false,
-                        bottomRight: false,
+                        bottomRight: isSelected,
                         bottomLeft: false,
                         topLeft: false,
                     }}
@@ -208,7 +237,7 @@ export function QuestionComponent({
                     <img
                         src={base64Images[imageUrl] || imageUrl}
                         alt={`Question image ${index + 1}`}
-                        className="size-full object-contain"
+                        className="size-full"
                         onLoad={handleImageLoad}
                     />
 
@@ -241,13 +270,23 @@ export function QuestionComponent({
                         {question.question_order}
                         {")"}.
                         <p>
-                            {processHtmlString(question.question.content).map((item, index) =>
-                                item.type === "text" ? (
-                                    <span key={index}>{item.content}</span>
-                                ) : (
-                                    renderImage(item.content, index)
-                                ),
-                            )}
+                            {processHtmlString(question.question.content).map((item, index) => {
+                                if (item.type === "text") {
+                                    return <span key={index}>{item.content}</span>;
+                                } else if (item.type === "image") {
+                                    return renderImage(item.content, index);
+                                } else if (item.type === "formula") {
+                                    // Use dangerouslySetInnerHTML for formula elements
+                                    return (
+                                        <span
+                                            key={`formula-${index}`}
+                                            className="inline-block align-middle"
+                                            dangerouslySetInnerHTML={{ __html: item.content }}
+                                        />
+                                    );
+                                }
+                                return null;
+                            })}
                         </p>
                     </p>
                     <p>{}</p>
@@ -266,24 +305,52 @@ export function QuestionComponent({
                         <Label className="">
                             {String.fromCharCode(97 + index)}
                             {")"}.{" "}
-                            {processHtmlString(option.text.content).map((item, index) =>
-                                item.type === "text" ? (
-                                    <span key={item.content.slice(0, 10) + index} id="text-content">
-                                        {item.content}
-                                    </span>
-                                ) : (
-                                    <img
-                                        key={index}
-                                        src={base64Images[item.content] || item.content}
-                                        alt={`Question image ${index + 1}`}
-                                        className=""
-                                    />
-                                ),
-                            )}
+                            {processHtmlString(option.text.content).map((item, index) => {
+                                if (item.type === "text") {
+                                    return (
+                                        <span
+                                            key={item.content.slice(0, 10) + index}
+                                            id="text-content"
+                                        >
+                                            {item.content}
+                                        </span>
+                                    );
+                                } else if (item.type === "image") {
+                                    return (
+                                        <img
+                                            key={index}
+                                            src={base64Images[item.content] || item.content}
+                                            alt={`Question image ${index + 1}`}
+                                            className=""
+                                        />
+                                    );
+                                } else if (item.type === "formula") {
+                                    return (
+                                        <span
+                                            key={`formula-${index}`}
+                                            className="inline-block align-middle"
+                                            dangerouslySetInnerHTML={{ __html: item.content }}
+                                        />
+                                    );
+                                }
+                                return null;
+                            })}
                         </Label>
                     </div>
                 ))}
             </div>
+
+            {/* Add this for answer spacing */}
+            {(question.question_type === "LONG_ANSWER" ||
+                question.question_type === "ONE_WORD" ||
+                question.question_type === "NUMERIC") &&
+                answerSpacing &&
+                answerSpacing > 0 && (
+                    <div
+                        className="mt-1 border-b border-dashed border-gray-200"
+                        style={{ height: `${answerSpacing}mm` }}
+                    />
+                )}
         </div>
     );
 }
