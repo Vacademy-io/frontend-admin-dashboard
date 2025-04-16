@@ -2,6 +2,7 @@ import { LayoutContainer } from "@/components/common/layout-container/layout-con
 import { createFileRoute } from "@tanstack/react-router";
 import GenerateAIAssessmentComponent from "./-components/generate-assessment/GenerateAssessment";
 import { GenerateQuestionsFromAudio } from "./-components/generate-questions-from-audio/GenerateQuestionsFromAudio";
+import GenerateAiQuestionPaperComponent from "./-components/generate-question/GenerateQuestionPaper";
 
 export const Route = createFileRoute("/ai-center/")({
     component: () => (
@@ -13,9 +14,10 @@ export const Route = createFileRoute("/ai-center/")({
 
 function RouteComponent() {
     return (
-        <div className="flex items-center justify-start gap-8">
+        <div className="grid grid-cols-3 gap-4">
             <GenerateAIAssessmentComponent />
             <GenerateQuestionsFromAudio />
+            <GenerateAiQuestionPaperComponent />
         </div>
     );
 }
