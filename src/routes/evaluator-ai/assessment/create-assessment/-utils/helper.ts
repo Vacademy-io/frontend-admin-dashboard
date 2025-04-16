@@ -8,9 +8,6 @@ interface QuestionAndMarking {
     marking_json?: string | undefined;
     question_duration_in_min?: number | undefined;
     question_order?: number | undefined;
-    is_added: boolean;
-    is_deleted: boolean;
-    is_updated: boolean;
 }
 
 interface Section {
@@ -162,18 +159,12 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
                     if (isChanged) {
                         updatedQuestionAndMarking.push({
                             ...newQuestion,
-                            is_added: false,
-                            is_updated: true,
-                            is_deleted: false,
                         });
                     }
                 } else {
                     // Question exists in oldData but not in newData (deleted)
                     updatedQuestionAndMarking.push({
                         ...oldQuestion,
-                        is_added: false,
-                        is_updated: false,
-                        is_deleted: true,
                     });
                 }
             });
@@ -183,9 +174,6 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
                 if (!oldQuestionsMap.has(questionId)) {
                     updatedQuestionAndMarking.push({
                         ...newQuestion,
-                        is_added: true,
-                        is_updated: false,
-                        is_deleted: false,
                     });
                 }
             });

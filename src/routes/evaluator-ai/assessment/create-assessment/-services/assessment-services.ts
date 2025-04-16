@@ -1,10 +1,8 @@
-import { GET_ASSESSMENT_URL, STEP1_ASSESSMENT_URL, STEP2_ASSESSMENT_URL } from "@/constants/urls";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { ADD_QUESTIONS_URL, CREATE_ASSESSMENT_URL, GET_ASSESSMENT_URL } from "@/constants/urls";
 import { ConvertedCustomField, CustomFields } from "@/types/assessments/assessment-data-type";
 import { z } from "zod";
 import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-sechma";
-import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/assessment-details-interface";
 import { classifySections, convertStep2Data } from "../-utils/helper";
 import { ApiResponse } from "../-hooks/getQuestionsDataForSection";
 import axios from "axios";
@@ -35,9 +33,9 @@ export const getAssessmentDetails = ({
 };
 
 export const handlePostStep1Data = async (data: z.infer<typeof BasicInfoFormSchema>) => {
-    const response = await authenticatedAxiosInstance({
+    const response = await axios({
         method: "POST",
-        url: STEP1_ASSESSMENT_URL,
+        url: CREATE_ASSESSMENT_URL,
         data: data,
         params: {},
     });
@@ -48,8 +46,6 @@ export const handlePostStep2Data = async (
     oldData: z.infer<typeof sectionDetailsSchema>,
     data: z.infer<typeof sectionDetailsSchema>,
     assessmentId: string | null,
-    instituteId: string | undefined,
-    type: string | undefined,
 ) => {
     const convertedOldData = convertStep2Data(oldData);
     const convertedNewData = convertStep2Data(data);
@@ -60,39 +56,12 @@ export const handlePostStep2Data = async (
         updated_sections: classifiedSections.updated_sections,
         deleted_sections: classifiedSections.deleted_sections,
     };
-    const response = await authenticatedAxiosInstance({
+    const response = await axios({
         method: "POST",
-        url: STEP2_ASSESSMENT_URL,
+        url: ADD_QUESTIONS_URL,
         data: convertedData,
         params: {
             assessmentId,
-            instituteId,
-            type,
-        },
-    });
-    return response?.data;
-};
-
-export const handlePostAssessmentPreview = async (
-    data: AssessmentPreviewSectionsInterface,
-    assessmentId: string | null,
-    instituteId: string | undefined,
-    type: string | undefined,
-) => {
-    const convertedData = {
-        test_duration: data.test_duration,
-        added_sections: data.added_sections,
-        updated_sections: data.updated_sections,
-        deleted_sections: data.deleted_sections,
-    };
-    const response = await authenticatedAxiosInstance({
-        method: "POST",
-        url: STEP2_ASSESSMENT_URL,
-        data: convertedData,
-        params: {
-            assessmentId,
-            instituteId,
-            type,
         },
     });
     return response?.data;

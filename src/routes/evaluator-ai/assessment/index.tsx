@@ -27,17 +27,20 @@ function RouteComponent() {
         <Dialog>
             <DialogTrigger asChild>
                 <MyButton
-                    className="w-1/3 ml-auto"
+                    className="ml-auto w-1/3"
                     onClick={() => navigate({ to: "/evaluator-ai/assessment/create-assessment" })}
                 >
                     Create Assessment
                 </MyButton>
             </DialogTrigger>
             <DialogContent className="mx-auto">
-                <div className="p-2 bg-gray-100 rounded-md w-4/5 flex flex-col items-center mx-auto text-center">
+                <div className="mx-auto flex w-4/5 flex-col items-center rounded-md bg-gray-100 p-2 text-center">
                     <Examination />
                     <h2 className="text-lg font-semibold">Create Assessment</h2>
-                    <p>A Fixed assessment that goes live for specific schedule, simulating real exam conditions.</p>
+                    <p>
+                        A Fixed assessment that goes live for specific schedule, simulating real
+                        exam conditions.
+                    </p>
                 </div>
             </DialogContent>
         </Dialog>
