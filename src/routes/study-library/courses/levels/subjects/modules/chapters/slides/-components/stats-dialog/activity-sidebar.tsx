@@ -76,6 +76,7 @@ export const ActivityStatsSidebar = () => {
             full_name: item.fullName,
             time_spent: formatTimeSpent(item.totalTimeSpent), // You'll need to implement this
             last_active: new Date(item.lastActive).toLocaleString(),
+            user_id: item.userId,
         }));
 
         return {
