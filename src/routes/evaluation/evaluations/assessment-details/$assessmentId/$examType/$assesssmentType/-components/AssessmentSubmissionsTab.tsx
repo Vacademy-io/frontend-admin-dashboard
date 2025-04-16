@@ -675,7 +675,9 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                             onRowSelectionChange={handleRowSelectionChange}
                             currentPage={page}
                         />
-                        <ParticipantSidebar assessmentId={assessmentId} examType={examType} />
+                        {selectedStudent && (
+                            <ParticipantSidebar assessmentId={assessmentId} examType={examType} />
+                        )}
                     </SidebarProvider>
 
                     <div className="flex justify-between">

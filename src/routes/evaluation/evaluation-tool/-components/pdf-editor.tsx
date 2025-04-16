@@ -3,7 +3,15 @@
 import { useState, useEffect, useRef, ChangeEvent, Fragment } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Canvas } from "fabric";
-import { Upload, Download, ChevronLeft, ChevronRight, AlertCircle, RefreshCcw } from "lucide-react";
+import {
+    Upload,
+    Download,
+    ChevronLeft,
+    ChevronRight,
+    AlertCircle,
+    RefreshCcw,
+    Loader2,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     AlertDialog,
@@ -23,7 +31,7 @@ import { PDFDocument } from "pdf-lib";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { FaCalculator, FaPen } from "react-icons/fa6";
-import { TbZoomReset } from "react-icons/tb";
+import { TbNumbers, TbZoomReset } from "react-icons/tb";
 import Calculator from "./calculator";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -37,11 +45,43 @@ import { toast } from "sonner";
 import { ProgressBar } from "@/components/design-system/progress-bar";
 import { SlNote } from "react-icons/sl";
 import Evaluation from "./evaluation";
-import { useRouter } from "@tanstack/react-router";
+import { useParams, useRouter } from "@tanstack/react-router";
+import { useTimerStore } from "@/stores/evaluation/timer-store";
+import { submitEvlauationMarks } from "../../evaluations/-services/evaluation-service";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
+import { useFileUpload } from "@/hooks/use-file-upload";
+import { getPublicUrl } from "@/services/upload_file";
+import { cn } from "@/lib/utils";
+import { MyButton } from "@/components/design-system/button";
+import { PiSidebarSimpleFill } from "react-icons/pi";
+import { PiSidebarSimpleLight } from "react-icons/pi";
+import { useMarksStore } from "@/stores/evaluation/marks-store";
+import { LoadingOverlay, UploadingOverlay } from "./Overlay";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.mjs`;
 
-const PDFEvaluator = ({ file }: { file?: File }) => {
+interface PDFEvaluatorProps {
+    isFreeTool: boolean;
+    file?: File;
+    questionData?: any;
+    fileId?: string;
+    attemptId?: string;
+    assessmentId?: string;
+    instituteId?: string;
+}
+
+const PDFEvaluator = ({
+    isFreeTool = true,
+    file,
+    fileId,
+    questionData,
+    assessmentId,
+    attemptId,
+    instituteId,
+}: PDFEvaluatorProps) => {
     // File states
     const [pdfFile, setPdfFile] = useState<File | null>(file);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -56,12 +96,16 @@ const PDFEvaluator = ({ file }: { file?: File }) => {
     const [prevPageNumber, setPrevPageNumber] = useState(1);
     const [loadingDoc, setLoadingDoc] = useState(true);
     const [progress, setProgress] = useState<number>(0);
+    const [uploadingProgress, setUploadingProgress] = useState<number>(0);
     const [dimensions, setDimensions] = useState({
         width: 600,
         height: 800,
     });
     const router = useRouter();
-
+    const { startTimer, stopTimer, currentTime, startTimestamp } = useTimerStore();
+    const { marksData, resetMarks } = useMarksStore();
+    const { uploadFile, isUploading: isUploadingFile } = useFileUpload();
+    const [isUploading, setIsUploading] = useState<boolean>(false);
     // Canvas states
     const [fabricCanvas, setFabricCanvas] = useState<Canvas | null>(null);
     const [annotations, setAnnotations] = useState<{ [key: number]: any }>({});
@@ -85,8 +129,10 @@ const PDFEvaluator = ({ file }: { file?: File }) => {
     const canvasRef = useRef(null);
     const canvasContainerRef = useRef<HTMLDivElement | null>(null);
     const pdfViewerRef = useRef<HTMLDivElement | null>(null);
+    const toolbarRef = useRef<HTMLDivElement | null>(null);
 
     const [openCalc, setOpenCalc] = useState(false);
+    const [isToolbarOpen, setIsToolbarOpen] = useState(true);
 
     const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
 
@@ -212,6 +258,14 @@ const PDFEvaluator = ({ file }: { file?: File }) => {
         };
     }, [annotations, router]);
 
+    useEffect(() => {
+        startTimer();
+
+        return () => {
+            stopTimer();
+        };
+    }, [startTimer, stopTimer]);
+
     // PDF navigation
     const changePage = (offset: number) => {
         setPageNumber((prevPageNumber) => {
@@ -325,19 +379,51 @@ const PDFEvaluator = ({ file }: { file?: File }) => {
         }
     };
 
-    // Loading overlay component
-    const LoadingOverlay = () => (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="flex w-72 flex-col items-center gap-y-2 rounded-lg bg-white p-6 shadow-lg">
-                <h1 className="text-lg font-medium">Generating PDF</h1>
-                <p className="text-gray-500">This may take a moment...</p>
-                <Progress value={(pageNumber / numPages) * 100} className="h-2" />
-                <h3 className="text-lg font-medium">
-                    Done ({pageNumber} of {numPages})
-                </h3>
-            </div>
-        </div>
-    );
+    const generateAnnotatedPDF = async (): Promise<Blob> => {
+        if (!pdfFile) throw new Error("No PDF file available for annotation.");
+
+        const pdfDoc = await PDFDocument.load(await pdfFile.arrayBuffer());
+        const outputPdf = new jsPDF({
+            orientation: fabricCanvas?.width > fabricCanvas?.height ? "landscape" : "portrait",
+            unit: "pt",
+        });
+
+        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+            setPageNumber(pageNum);
+
+            // Wait for page rendering and annotations to load
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
+            if (pdfViewerRef.current) {
+                const canvas = await html2canvas(pdfViewerRef.current, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: null,
+                    logging: false,
+                });
+
+                if (pageNum > 1) {
+                    outputPdf.addPage();
+                }
+
+                const imgData = canvas.toDataURL("image/png", 1);
+                outputPdf.addImage(
+                    imgData,
+                    "PNG",
+                    0,
+                    0,
+                    outputPdf.internal.pageSize.getWidth(),
+                    outputPdf.internal.pageSize.getHeight(),
+                    undefined,
+                    "FAST",
+                );
+            }
+        }
+
+        // Return the PDF as a Blob
+        return outputPdf.output("blob");
+    };
 
     const handleZoomIn = () => {
         setZoomLevel((prevZoom) => Math.min(prevZoom + 0.1, 3)); // Max zoom level of 3
@@ -399,16 +485,71 @@ const PDFEvaluator = ({ file }: { file?: File }) => {
         };
     }, [fabricCanvas, canvasUtils]);
 
-    const handleSubmit = () => {
-        // Close the dialog
-        setIsSubmitDialogOpen(false);
+    const handleSubmit = async () => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const tokenData = getTokenDecodedData(accessToken);
+        setIsLoading(true);
+
+        try {
+            const annotatedPdfBlob = await generateAnnotatedPDF();
+            setIsLoading(false);
+            setIsUploading(true);
+            setUploadingProgress(0);
+            const progressInterval = setInterval(() => {
+                setUploadingProgress((prev) => Math.min(prev + Math.random() * 10, 90));
+            }, 200);
+            const evaluatedFileId = await uploadFile({
+                file: new File([annotatedPdfBlob], `evaluated-${file?.name}`),
+                setIsUploading,
+                userId: "your-user-id",
+                source: instituteId,
+                sourceId: "EVALUATIONS",
+            });
+            const data_json = {
+                timeTakenInSeconds: currentTime(),
+                attemptId,
+                evaluationStartTime: startTimestamp,
+                evaluatedFileId,
+                setId: "",
+                assessmentId,
+                evaluatorUserId: tokenData?.user,
+            };
+            console.log(fileId);
+            const payload = {
+                set_id: "",
+                file_id: fileId,
+                data_json: JSON.stringify(data_json),
+                request: marksData,
+            };
+            if (evaluatedFileId) {
+                const publicUrl = await getPublicUrl(evaluatedFileId);
+                console.log(publicUrl);
+
+                const response = await submitEvlauationMarks(
+                    assessmentId,
+                    instituteId,
+                    attemptId,
+                    payload,
+                );
+                console.log(response);
+                resetMarks();
+                toast.success("Evaluation Submitted", {
+                    description: "The answer sheet evaluation has been completed and submitted.",
+                    duration: 3000,
+                });
+                setIsUploading(false);
+                clearInterval(progressInterval);
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Error submitting evaluation");
+            setUploadingProgress(0);
+            setIsUploading(false);
+        }
 
         // Show success toast
-        toast.success("Evaluation Submitted", {
-            description: "The answer sheet evaluation has been completed and submitted.",
-            duration: 3000,
-        });
-        router.navigate({ to: "/evaluation/evaluations" });
+
+        // router.navigate({ to: "/evaluation/evaluations" });
         // Go back to last route
 
         // TODO: Add actual submission logic here
@@ -457,253 +598,303 @@ const PDFEvaluator = ({ file }: { file?: File }) => {
 
     return (
         <div className="flex h-full w-full justify-between">
-            <div className="gap- relative flex w-full justify-center gap-2">
+            <div className="relative flex w-full justify-center gap-2">
                 {/* Loading overlay */}
-                {isLoading && <LoadingOverlay />}
+                {isLoading && <LoadingOverlay numPages={numPages} pageNumber={pageNumber} />}
+                {isUploading && <UploadingOverlay progress={uploadingProgress} />}
 
-                <div className="flex">
-                    {/* Toolbar */}
-                    <Card className="sticky top-[72px] z-10 max-h-fit max-w-20 overflow-y-scroll">
-                        <CardHeader>
-                            <CardTitle className="text-wrap text-center"> Tools</CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex flex-col gap-2 px-1 py-2">
-                            <div className="flex flex-col items-center gap-y-2">
-                                {tools.map((tool, index) => {
-                                    // if (tool.label === "Pen") return null;
-                                    return (
-                                        <Button
-                                            key={index}
-                                            onClick={
-                                                tool.label === "Pen"
-                                                    ? () => canvasUtils.addPenTool("black")
-                                                    : tool.action
-                                            }
-                                            className="w-fit"
-                                            disabled={isLoading}
-                                        >
-                                            <tool.icon className={tool.color} />
-                                        </Button>
-                                    );
-                                })}
-                                <Button onClick={() => setOpenCalc(true)}>
-                                    <FaCalculator className="size-4 text-red-500" />
-                                </Button>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button variant="outline" className="">
-                                            Marks
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-64 p-2" side="right">
-                                        <div className="grid grid-cols-5 gap-2">
-                                            {numbers.map(({ value, action }) => (
-                                                <Button
-                                                    key={value}
-                                                    onClick={action}
-                                                    value={value.toString()}
-                                                    disabled={isLoading}
-                                                    className="text-base"
-                                                >
-                                                    {value}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                                <Button
-                                    onClick={downloadAnnotatedPDF}
-                                    className="hover:bg-primary-600 w-fit bg-primary-400 text-white"
-                                    disabled={isLoading}
-                                >
-                                    <Download className="size-4" />
-                                </Button>
-                                <Button
-                                    onClick={() => {
-                                        if (
-                                            confirm(
-                                                "Are you sure you want to reupload? This will reset all your annotations.",
-                                            )
-                                        ) {
-                                            window.location.reload();
-                                        }
-                                    }}
-                                >
-                                    <RefreshCcw className="size-4" />
-                                </Button>
-                                <AlertDialog
-                                    open={isSubmitDialogOpen}
-                                    onOpenChange={setIsSubmitDialogOpen}
-                                >
-                                    <AlertDialogTrigger asChild>
-                                        <Button
-                                            onClick={() => setIsSubmitDialogOpen(true)}
-                                            className="w-fit"
-                                            disabled={isLoading}
-                                        >
-                                            Submit
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Are you sure you want to submit this evaluation?
-                                                This action cannot be undone.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleSubmit}>
-                                                Continue
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-                {/* PDF Viewer */}
-                <Card className="w-full">
-                    <CardHeader className="sticky top-[72px] z-10 rounded-md bg-white py-1 shadow-md">
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Answer Sheet Evaluation</CardTitle>
+                {/* Toolbar */}
 
-                            <div className="flex items-center gap-x-2">
-                                {canvasUtils.isDrawingMode && (
-                                    <>
-                                        <ColorPicker
-                                            onChange={canvasUtils.addPenTool}
-                                            value={canvasUtils.penColor}
-                                            className="size-6 rounded-full p-0"
-                                        />
-                                        <Button onClick={canvasUtils.clearCanvas}>Clear</Button>
-                                        <Button onClick={canvasUtils.disableDrawingMode}>
-                                            Exit
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => changePage(-1)}
-                                    disabled={pageNumber <= 1 || isLoading}
-                                    className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
-                                >
-                                    <ChevronLeft className="size-5" />
-                                </button>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="number"
-                                        value={jumpPage}
-                                        onChange={(e) => setJumpPage(Number(e.target.value))}
-                                        placeholder="Jump to page"
-                                        className="w-16 rounded border p-1"
-                                        disabled={isLoading}
-                                    />
+                <Card
+                    className={cn(
+                        "sticky top-[72px] z-10 max-h-fit overflow-y-scroll transition-transform duration-300",
+                        isToolbarOpen ? "translate-x-0" : "-translate-x-[120%]",
+                    )}
+                    ref={toolbarRef}
+                >
+                    <CardHeader>
+                        <CardTitle className="text-wrap text-center">Tools</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-2 px-1 py-2">
+                        <div className="flex flex-col items-center gap-y-2">
+                            {tools.map((tool, index) => {
+                                // if (tool.label === "Pen") return null;
+                                return (
                                     <Button
-                                        onClick={handleJumpPage}
-                                        variant={"secondary"}
-                                        size={"sm"}
+                                        variant="outline"
+                                        key={index}
+                                        onClick={
+                                            tool.label === "Pen"
+                                                ? () => canvasUtils.addPenTool("black")
+                                                : tool.action
+                                        }
+                                        className="w-fit"
                                         disabled={isLoading}
                                     >
-                                        Go
+                                        <tool.icon className={tool.color} />
                                     </Button>
-                                </div>
-                                <span>
-                                    Page {pageNumber} of {numPages || "--"}
-                                </span>
-                                <button
-                                    onClick={() => changePage(1)}
-                                    disabled={pageNumber >= numPages || isLoading}
-                                    className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
-                                >
-                                    <ChevronRight className="size-5" />
-                                </button>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button onClick={handleZoomIn} className="" disabled={isLoading}>
-                                    <MagnifyingGlassPlus size={20} />
-                                </Button>
-                                <Button onClick={handleZoomOut} className="" disabled={isLoading}>
-                                    <MagnifyingGlassMinus size={20} />
-                                </Button>
-                                <Button onClick={handleResetZoom} className="" disabled={isLoading}>
-                                    <TbZoomReset size={25} />
-                                </Button>
-                                <Button
-                                    onClick={() => setShowEvaluationPanel(!showEvaluationPanel)}
-                                    className={`w-fit ${
-                                        showEvaluationPanel ? "bg-primary-500 text-white" : ""
-                                    }`}
-                                >
-                                    <SlNote className="size-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex justify-center bg-slate-100 pt-4">
-                        {loadingDoc ? (
-                            <DashboardLoader />
-                        ) : (
-                            <div
-                                ref={pdfViewerRef}
-                                className="relative"
-                                style={{
-                                    width: dimensions.width,
-                                    height: dimensions.height,
+                                );
+                            })}
+                            <Button onClick={() => setOpenCalc(true)} variant="outline">
+                                <FaCalculator className="size-4 text-red-500" />
+                            </Button>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="">
+                                        <TbNumbers />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-64 p-2" side="right">
+                                    <div className="grid grid-cols-5 gap-2">
+                                        {numbers.map(({ value, action }) => (
+                                            <MyButton
+                                                key={value}
+                                                scale="small"
+                                                layoutVariant="floating"
+                                                buttonType="text"
+                                                onClick={action}
+                                                value={value.toString()}
+                                                disabled={isLoading}
+                                                className="border border-primary-400 text-base hover:bg-primary-300"
+                                            >
+                                                {value}
+                                            </MyButton>
+                                        ))}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            <Button
+                                onClick={downloadAnnotatedPDF}
+                                className="hover:bg-primary-600 w-fit bg-primary-400 text-white"
+                                disabled={isLoading}
+                            >
+                                <Download className="size-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    if (
+                                        confirm(
+                                            "Are you sure you want to reupload? This will reset all your annotations.",
+                                        )
+                                    ) {
+                                        window.location.reload();
+                                    }
                                 }}
                             >
+                                <RefreshCcw className="size-4" />
+                            </Button>
+                            <AlertDialog
+                                open={isSubmitDialogOpen}
+                                onOpenChange={setIsSubmitDialogOpen}
+                            >
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        onClick={() => setIsSubmitDialogOpen(true)}
+                                        className={cn("w-fit", isFreeTool && "hidden")}
+                                        disabled={isLoading || isFreeTool}
+                                        variant="outline"
+                                    >
+                                        Submit
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Are you sure you want to submit this evaluation? This
+                                            action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleSubmit}>
+                                            {(isUploading || isUploadingFile) && (
+                                                <Loader2 className="size-6 animate-spin text-primary-500" />
+                                            )}
+                                            Continue
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* PDF Viewer */}
+                <div
+                    className={`flex-1 transition-all duration-300`}
+                    style={{
+                        marginLeft: isToolbarOpen ? `0` : `-${toolbarRef?.current?.clientWidth}px`,
+                    }}
+                >
+                    <Card className="w-full">
+                        <CardHeader className="sticky top-[72px] z-10 rounded-md bg-white py-1 shadow-md">
+                            <div className="flex items-center justify-between">
+                                <Button
+                                    onClick={() => setIsToolbarOpen(!isToolbarOpen)}
+                                    variant={"outline"}
+                                    size={"icon"}
+                                    className=""
+                                >
+                                    {isToolbarOpen ? (
+                                        <PiSidebarSimpleLight className="size-5" />
+                                    ) : (
+                                        <PiSidebarSimpleFill className="size-5" />
+                                    )}
+                                </Button>
+                                <CardTitle>Answer Sheet Evaluation</CardTitle>
+
+                                <div className="flex items-center gap-x-2">
+                                    {canvasUtils.isDrawingMode && (
+                                        <>
+                                            <ColorPicker
+                                                onChange={canvasUtils.addPenTool}
+                                                value={canvasUtils.penColor}
+                                                className="size-6 rounded-full p-0"
+                                            />
+                                            <Button onClick={canvasUtils.clearCanvas}>Clear</Button>
+                                            <Button onClick={canvasUtils.disableDrawingMode}>
+                                                Exit
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => changePage(-1)}
+                                        disabled={pageNumber <= 1 || isLoading}
+                                        className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
+                                    >
+                                        <ChevronLeft className="size-5" />
+                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            type="number"
+                                            value={jumpPage}
+                                            onChange={(e) => setJumpPage(Number(e.target.value))}
+                                            placeholder="Jump to page"
+                                            className="w-16 rounded border p-1"
+                                            disabled={isLoading}
+                                        />
+                                        <Button
+                                            onClick={handleJumpPage}
+                                            variant={"secondary"}
+                                            size={"sm"}
+                                            disabled={isLoading}
+                                        >
+                                            Go
+                                        </Button>
+                                    </div>
+                                    <span>
+                                        Page {pageNumber} of {numPages || "--"}
+                                    </span>
+                                    <button
+                                        onClick={() => changePage(1)}
+                                        disabled={pageNumber >= numPages || isLoading}
+                                        className="rounded-full p-2 hover:bg-gray-100 disabled:opacity-50"
+                                    >
+                                        <ChevronRight className="size-5" />
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        onClick={handleZoomIn}
+                                        className=""
+                                        disabled={isLoading}
+                                    >
+                                        <MagnifyingGlassPlus size={20} />
+                                    </Button>
+                                    <Button
+                                        onClick={handleZoomOut}
+                                        className=""
+                                        disabled={isLoading}
+                                    >
+                                        <MagnifyingGlassMinus size={20} />
+                                    </Button>
+                                    <Button
+                                        onClick={handleResetZoom}
+                                        className=""
+                                        disabled={isLoading}
+                                    >
+                                        <TbZoomReset size={25} />
+                                    </Button>
+                                    <Button
+                                        onClick={() => setShowEvaluationPanel(!showEvaluationPanel)}
+                                        className={cn("w-fit", isFreeTool && "hidden")}
+                                    >
+                                        Set Marks
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent
+                            className={cn(
+                                "flex bg-slate-100 pt-4",
+                                isFreeTool ? "justify-center" : "justify-start",
+                            )}
+                        >
+                            {loadingDoc ? (
+                                <DashboardLoader />
+                            ) : (
                                 <div
+                                    ref={pdfViewerRef}
+                                    className="relative"
                                     style={{
-                                        // overflowY: "auto",
-                                        // overflowX: "auto",
-                                        maxHeight: "fit-content",
-                                        // width: "600px",
+                                        width: dimensions.width,
+                                        height: dimensions.height,
                                     }}
                                 >
                                     <div
-                                        ref={canvasContainerRef}
-                                        className="relative flex justify-center rounded-lg"
                                         style={{
-                                            transform: `scale(${zoomLevel})`,
-                                            transformOrigin: "top left",
+                                            // overflowY: "auto",
+                                            // overflowX: "auto",
+                                            maxHeight: "fit-content",
+                                            // width: "600px",
                                         }}
                                     >
-                                        <ProgressBar progress={progress} />
-                                        <Document
-                                            file={pdfUrl || file}
-                                            onLoadSuccess={({ numPages }) => {
-                                                setNumPages(numPages);
-                                                setDocLoaded(true);
+                                        <div
+                                            ref={canvasContainerRef}
+                                            className="relative flex justify-start rounded-lg"
+                                            style={{
+                                                transform: `scale(${zoomLevel})`,
+                                                transformOrigin: "top left",
                                             }}
-                                            onLoadProgress={({ loaded, total }) => {
-                                                setProgress((loaded / total) * 100);
-                                            }}
-                                            onLoadError={(error) => console.log(error)}
-                                            className="absolute min-w-fit"
                                         >
-                                            <Page
-                                                pageNumber={pageNumber}
-                                                scale={scale}
-                                                renderTextLayer={false}
-                                                renderAnnotationLayer={false}
-                                                className="max-h-fit shadow-lg"
-                                            />
-                                        </Document>
+                                            <ProgressBar progress={progress} />
+                                            <Document
+                                                file={pdfUrl || file}
+                                                onLoadSuccess={({ numPages }) => {
+                                                    setNumPages(numPages);
+                                                    setDocLoaded(true);
+                                                }}
+                                                onLoadProgress={({ loaded, total }) => {
+                                                    setProgress((loaded / total) * 100);
+                                                }}
+                                                onLoadError={(error) => console.log(error)}
+                                                className="absolute min-w-fit"
+                                            >
+                                                <Page
+                                                    pageNumber={pageNumber}
+                                                    scale={scale}
+                                                    renderTextLayer={false}
+                                                    renderAnnotationLayer={false}
+                                                    className="max-h-fit shadow-lg"
+                                                />
+                                            </Document>
 
-                                        <canvas
-                                            ref={canvasRef}
-                                            className="absolute left-0 top-0 z-10"
-                                        />
+                                            <canvas
+                                                ref={canvasRef}
+                                                className="absolute left-0 top-0 z-10"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {/* Evaluation Panel */}
                 {showEvaluationPanel && (
@@ -723,6 +914,7 @@ const PDFEvaluator = ({ file }: { file?: File }) => {
                                 totalPages={numPages}
                                 pagesVisited={pagesVisited}
                                 currentPage={pageNumber}
+                                questionData={questionData}
                             />
                         </div>
                     </div>
