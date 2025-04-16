@@ -8,12 +8,7 @@ import {
     handleStartProcessUploadedFile,
 } from "../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MyButton } from "@/components/design-system/button";
-import { UploadSimple } from "phosphor-react";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { Input } from "@/components/ui/input";
-import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
+import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -21,6 +16,7 @@ import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-comp
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { questionsCompleteResponseData } from "../../-dummy-files/dummy-data";
+import { GenerateCard } from "../GenerateCard";
 
 const GenerateAiQuestionPaperComponent = () => {
     const instituteId = getInstituteId();
@@ -299,38 +295,15 @@ const GenerateAiQuestionPaperComponent = () => {
     }, []);
     return (
         <div className="flex items-center justify-start gap-8">
-            <Card className="w-[300px] cursor-pointer bg-primary-50">
-                <CardHeader>
-                    <CardTitle>Generate Question Paper</CardTitle>
-                    <CardDescription>Upload PDF/DOCX/PPT</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <MyButton
-                        type="button"
-                        scale="medium"
-                        buttonType="primary"
-                        layoutVariant="default"
-                        className="w-full text-sm"
-                        onClick={handleUploadClick}
-                    >
-                        {isUploading ? (
-                            <DashboardLoader size={20} color="#ffffff" />
-                        ) : (
-                            <>
-                                <UploadSimple size={32} />
-                                Upload
-                            </>
-                        )}
-                    </MyButton>
-                    <Input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        className="hidden"
-                        accept=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                    />
-                </CardContent>
-            </Card>
+            <GenerateCard
+                handleUploadClick={handleUploadClick}
+                isUploading={isUploading}
+                fileInputRef={fileInputRef}
+                handleFileChange={handleFileChange}
+                cardTitle="Generate Question"
+                cardDescription="Upload PDF/DOCX/PPT"
+                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+            />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
                     form={form}

@@ -6,22 +6,19 @@ import {
     handleGenerateAssessmentQuestions,
     // handleGetQuestionsFromHTMLUrl,
     handleStartProcessUploadedFile,
-} from "../-services/ai-center-service";
+} from "../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MyButton } from "@/components/design-system/button";
-import { UploadSimple } from "phosphor-react";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import GenerateCompleteAssessment from "./GenerateCompleteAssessment";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
+import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
+import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
+import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
+import { GenerateCard } from "../GenerateCard";
+
 const GenerateAIAssessmentComponent = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
@@ -62,6 +59,10 @@ const GenerateAIAssessmentComponent = () => {
             questions: [],
         },
     });
+
+    const handleOpenAssessmentDialog = (open: boolean) => {
+        setOpenAssessmentDialog(open);
+    };
 
     const handleUploadClick = () => {
         fileInputRef.current?.click();
@@ -306,67 +307,21 @@ const GenerateAIAssessmentComponent = () => {
     }, []);
     return (
         <div className="flex items-center justify-start gap-8">
-            <Card className="w-[300px] cursor-pointer bg-primary-50">
-                <CardHeader>
-                    <CardTitle>Generate Assessment</CardTitle>
-                    <CardDescription>Upload PDF/DOCX/PPT</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <MyButton
-                        type="button"
-                        scale="medium"
-                        buttonType="primary"
-                        layoutVariant="default"
-                        className="w-full text-sm"
-                        onClick={handleUploadClick}
-                    >
-                        {isUploading ? (
-                            <DashboardLoader size={20} color="#ffffff" />
-                        ) : (
-                            <>
-                                <UploadSimple size={32} />
-                                Upload
-                            </>
-                        )}
-                    </MyButton>
-                    <Input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        className="hidden"
-                        accept=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                    />
-                </CardContent>
-            </Card>
-            <Dialog open={openAssessmentDialog} onOpenChange={setOpenAssessmentDialog}>
-                <DialogContent className="p-0">
-                    <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
-                        Generate Assessment
-                    </h1>
-                    <div className="my-4 flex flex-col items-center justify-center gap-4">
-                        <MyButton
-                            type="submit"
-                            scale="medium"
-                            buttonType="secondary"
-                            layoutVariant="default"
-                            className="w-48 text-sm"
-                            onClick={handleGenerateQuestionsForAssessment}
-                        >
-                            Generate Complete File
-                        </MyButton>
-                        <MyButton
-                            type="submit"
-                            scale="medium"
-                            buttonType="secondary"
-                            layoutVariant="default"
-                            className="w-48 text-sm"
-                            onClick={handleConvertPDFToHTMLFn}
-                        >
-                            Generate Page Wise
-                        </MyButton>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <GenerateCard
+                handleUploadClick={handleUploadClick}
+                isUploading={isUploading}
+                fileInputRef={fileInputRef}
+                handleFileChange={handleFileChange}
+                cardTitle="Generate Assessment"
+                cardDescription="Upload PDF/DOCX/PPT"
+                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+            />
+            <GenerateAssessmentDialog
+                open={openAssessmentDialog}
+                handleOpen={handleOpenAssessmentDialog}
+                handleGenerateCompleteFile={handleGenerateQuestionsForAssessment}
+                handleGeneratePageWise={handleConvertPDFToHTMLFn}
+            />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
                     form={form}
