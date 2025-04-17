@@ -268,11 +268,15 @@ export const GenerateQuestionsFromText = () => {
                     openCompleteAssessmentDialog={openCompleteAssessmentDialog}
                     setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
                     assessmentData={assessmentData}
+                    handleSubmitSuccessForText={handleSubmitSuccess}
                     handleGenerateQuestionsForAssessment={() => {}}
                     propmtInput={propmtInput}
                     setPropmtInput={setPropmtInput}
                     isMoreQuestionsDialog={false}
                     setIsMoreQuestionsDialog={() => {}}
+                    submitButtonForText={submitButton}
+                    handleDisableSubmitBtn={handleDisableSubmitBtn}
+                    submitFormFn={submitFormFn}
                 />
             )}
         </div>

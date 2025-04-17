@@ -24,6 +24,7 @@ export const QuestionsFromTextDialog = ({
     submitButton,
     handleDisableSubmitBtn,
     submitForm,
+    trigger,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -31,6 +32,7 @@ export const QuestionsFromTextDialog = ({
     submitButton: JSX.Element;
     handleDisableSubmitBtn: (value: boolean) => void;
     submitForm: (submitFn: () => void) => void;
+    trigger?: JSX.Element;
 }) => {
     const form = useForm<QuestionsFromTextData>({
         resolver: zodResolver(formSchema),
@@ -84,6 +86,7 @@ export const QuestionsFromTextDialog = ({
             open={open}
             onOpenChange={onOpenChange}
             footer={submitButton}
+            trigger={trigger || undefined}
         >
             <FormProvider {...form}>
                 <form
