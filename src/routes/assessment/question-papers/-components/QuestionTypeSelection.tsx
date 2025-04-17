@@ -2,7 +2,7 @@ import {
     MCQS,
     MCQM,
     Numerical,
-    // TrueFalse,
+    TrueFalse,
     // Match,
     LongAnswer,
     SingleWord,
@@ -88,7 +88,11 @@ export function QuestionTypeSelection({
                         text="Numerical"
                         type={QuestionTypeList.NUMERIC}
                     ></QuestionType>
-                    {/* <QuestionType icon={<TrueFalse />} text="True False"></QuestionType> */}
+                    <QuestionType
+                        type={QuestionTypeList.TRUE_FALSE}
+                        icon={<TrueFalse />}
+                        text="True False"
+                    ></QuestionType>
                 </div>
                 <div className="border"></div>
                 <div className="flex flex-col gap-4">

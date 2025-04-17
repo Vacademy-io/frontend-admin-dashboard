@@ -49,7 +49,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
         subject_id: data.subject, // Assuming there's no direct mapping for subject_id
         questions: data?.questions?.map((question) => {
             const options =
-                question.questionType === QuestionType.MCQS
+                question.questionType === QuestionType.MCQS || QuestionType.TRUE_FALSE
                     ? // ||
                       // question.questionType === QuestionType.CMCQS
                       question.singleChoiceOptions.map((opt, idx) => ({
@@ -93,7 +93,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
 
             // Extract correct option indices as strings
             const correctOptionIds = (
-                question.questionType === QuestionType.MCQS
+                question.questionType === QuestionType.MCQS || QuestionType.TRUE_FALSE
                     ? // ||
                       // question.questionType === QuestionType.CMCQS
                       question.singleChoiceOptions
@@ -489,6 +489,13 @@ function getEvaluationJSON(
     subjectiveAnswerText?: string,
 ): string {
     switch (question.questionType) {
+        case "TRUE_FALSE":
+            return JSON.stringify({
+                type: "TRUE_FALSE",
+                data: {
+                    correctOptionIds,
+                },
+            });
         case "MCQS":
             return JSON.stringify({
                 type: "MCQS",

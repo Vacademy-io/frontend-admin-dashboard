@@ -2,9 +2,7 @@ import { getInstituteId } from "@/constants/helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useEffect, useRef, useState } from "react";
 import {
-    handleConvertPDFToHTML,
-    handleGenerateAssessmentQuestions,
-    // handleGetQuestionsFromHTMLUrl,
+    handleSortQuestionsPDF,
     handleStartProcessUploadedFile,
 } from "../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
@@ -15,14 +13,13 @@ import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-comp
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { GenerateCard } from "../GenerateCard";
-import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
+import SortTopicQuestionsPreview from "./SortTopicQuestionsPreview";
 
-const GenerateAiQuestionFromImageComponent = () => {
+const SortTopicQuestions = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    // const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: "",
@@ -36,8 +33,6 @@ const GenerateAiQuestionFromImageComponent = () => {
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
-    // const [htmlData, setHtmlData] = useState(null);
-    // const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
 
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
@@ -98,7 +93,7 @@ const GenerateAiQuestionFromImageComponent = () => {
 
     const generateAssessmentMutation = useMutation({
         mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) =>
-            handleGenerateAssessmentQuestions(pdfId, userPrompt),
+            handleSortQuestionsPDF(pdfId, userPrompt),
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -178,15 +173,15 @@ const GenerateAiQuestionFromImageComponent = () => {
         generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
     };
 
-    const handleGenerateQuestionsForAssessment = (fileId?: string) => {
-        if (!fileId && !uploadedFilePDFId) return;
+    const handleGenerateQuestionsForAssessment = (pdfId = uploadedFilePDFId) => {
+        if (!uploadedFilePDFId) return;
 
         clearPolling();
         pollingCountRef.current = 0;
         pendingRef.current = false;
 
-        // Make initial call
-        pollGenerateAssessment();
+        // Use pdfId in your mutation call
+        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: propmtInput });
     };
 
     useEffect(() => {
@@ -195,100 +190,12 @@ const GenerateAiQuestionFromImageComponent = () => {
         };
     }, []);
 
-    /* Generate Assessment Pagewise */
-    const convertPollingCountRef = useRef(0);
-    const convertPollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-    const MAX_CONVERT_ATTEMPTS = 10;
-    const convertPendingRef = useRef(false);
-
-    const handleConvertPDFToHTMLMutation = useMutation({
-        mutationFn: ({ pdfId }: { pdfId: string }) => handleConvertPDFToHTML(pdfId),
-        onSuccess: async (response) => {
-            // Check if response indicates pending state
-            if (response?.status === "pending") {
-                convertPendingRef.current = true;
-                // Don't schedule next poll - we'll wait for an error to resume
-                return;
-            }
-
-            // Reset pending state
-            convertPendingRef.current = false;
-
-            // // If conversion is complete and we have HTML data
-            // if (response?.html) {
-            //     stopConvertPolling();
-            //     setHtmlData(response?.html);
-            //     setOpenPageWiseAssessmentDialog(true);
-            //     // try {
-            //     //     const questionsData = await handleGetQuestionsFromHTMLUrl(response.html, "");
-            //     //     console.log("✅ Questions Data:", questionsData);
-            //     // } catch (error) {
-            //     //     console.error("⛔️ Error processing HTML:", error);
-            //     // }
-
-            //     return;
-            // }
-
-            // If response exists but no HTML yet, schedule next poll
-            scheduleNextConvertPoll();
-        },
-        onError: (error: unknown) => {
-            console.error("⛔️ Convert Error:", error);
-
-            // If we were in a pending state, resume polling on error
-            if (convertPendingRef.current) {
-                console.log("Resuming polling after pending state");
-                convertPendingRef.current = false;
-                scheduleNextConvertPoll();
-                return;
-            }
-
-            // Increment count and check max attempts
-            convertPollingCountRef.current += 1;
-            if (convertPollingCountRef.current >= MAX_CONVERT_ATTEMPTS) {
-                console.log("Max conversion polling attempts reached");
-                stopConvertPolling();
-                return;
-            }
-
-            // Schedule next poll if not max attempts yet
-            scheduleNextConvertPoll();
-        },
-    });
-
-    const stopConvertPolling = () => {
-        if (convertPollingTimeoutIdRef.current) {
-            clearTimeout(convertPollingTimeoutIdRef.current);
-            convertPollingTimeoutIdRef.current = null;
-        }
-    };
-
-    const scheduleNextConvertPoll = () => {
-        stopConvertPolling(); // Clear any existing timeout
-
-        // Only schedule next poll if not in pending state
-        if (!convertPendingRef.current) {
-            console.log("Scheduling next conversion poll in 10 seconds");
-            convertPollingTimeoutIdRef.current = setTimeout(() => {
-                pollConvertPDFToHTML();
-            }, 10000);
-        }
-    };
-
-    const pollConvertPDFToHTML = () => {
-        // Don't call API if in pending state
-        if (convertPendingRef.current) {
-            return;
-        }
-        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
-    };
-
-    // Cleanup on component unmount
     useEffect(() => {
-        return () => {
-            stopConvertPolling();
-        };
-    }, []);
+        if (uploadedFilePDFId) {
+            handleGenerateQuestionsForAssessment(uploadedFilePDFId);
+        }
+    }, [uploadedFilePDFId]);
+
     return (
         <div className="flex items-center justify-start gap-8">
             <GenerateCard
@@ -296,12 +203,12 @@ const GenerateAiQuestionFromImageComponent = () => {
                 isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Extract Questions from Image"
-                cardDescription="Upload JPG/JPEG/PNG"
-                inputFormat=".jpg,.jpeg,.png"
+                cardTitle="Sort topics of each question from PDF"
+                cardDescription="Upload PDF/DOCX/PPT"
+                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
             />
             {assessmentData.questions.length > 0 && (
-                <GenerateCompleteAssessment
+                <SortTopicQuestionsPreview
                     form={form}
                     openCompleteAssessmentDialog={openCompleteAssessmentDialog}
                     setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
@@ -317,4 +224,4 @@ const GenerateAiQuestionFromImageComponent = () => {
     );
 };
 
-export default GenerateAiQuestionFromImageComponent;
+export default SortTopicQuestions;
