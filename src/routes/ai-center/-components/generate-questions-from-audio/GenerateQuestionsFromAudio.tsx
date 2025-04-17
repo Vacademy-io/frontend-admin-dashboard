@@ -78,7 +78,6 @@ export const GenerateQuestionsFromAudio = () => {
             });
             if (fileId) {
                 const response = await handleStartProcessUploadedAudioFile(fileId);
-                console.log("response", response);
                 if (response) {
                     setAudioId(response.pdf_id);
                     await handleCallApi(response.pdf_id);
@@ -90,9 +89,7 @@ export const GenerateQuestionsFromAudio = () => {
 
     const handleCallApi = async (audioId?: string) => {
         const idToUse = audioId;
-        console.log("idToUse", idToUse);
         if (!idToUse) return;
-        console.log("inside call api function");
 
         clearPolling();
         pollingCountRef.current = 0;
@@ -104,6 +101,7 @@ export const GenerateQuestionsFromAudio = () => {
 
     const pollGenerateQuestionsFromAudio = (audioId: string) => {
         if (pendingRef.current) {
+            setIsUploading(true);
             return;
         }
         getQuestionsFromAudioMutation.mutate({
@@ -135,6 +133,7 @@ export const GenerateQuestionsFromAudio = () => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
                 pendingRef.current = true;
+                setIsUploading(true);
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
             }
@@ -144,6 +143,7 @@ export const GenerateQuestionsFromAudio = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
+                setIsUploading(false);
                 setAssessmentData((prev) => ({
                     ...prev,
                     questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
@@ -174,6 +174,7 @@ export const GenerateQuestionsFromAudio = () => {
             scheduleNextPoll(variables.audioId);
         },
         onError: (error, variables) => {
+            setIsUploading(false);
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
                 pendingRef.current = false;
@@ -198,6 +199,7 @@ export const GenerateQuestionsFromAudio = () => {
 
     const clearPolling = () => {
         if (pollingTimeoutIdRef.current) {
+            setIsUploading(false);
             clearTimeout(pollingTimeoutIdRef.current);
             pollingTimeoutIdRef.current = null;
         }
@@ -208,7 +210,7 @@ export const GenerateQuestionsFromAudio = () => {
 
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
-            console.log("Scheduling next poll in 10 seconds");
+            setIsUploading(true);
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateQuestionsFromAudio(audioId);
             }, 10000);
