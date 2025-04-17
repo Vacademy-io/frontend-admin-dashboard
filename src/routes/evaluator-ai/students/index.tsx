@@ -18,7 +18,7 @@ function RouteComponent() {
         setNavHeading(<h1 className="text-lg">Students</h1>);
     }, []);
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-24">
+        <main className="flex min-h-screen scroll-mt-10 flex-col">
             <StudentEnrollmentDialog />
         </main>
     );
