@@ -1,6 +1,7 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -87,6 +88,7 @@ export const QuestionsFromTextDialog = ({
             onOpenChange={onOpenChange}
             footer={submitButton}
             trigger={trigger || undefined}
+            dialogWidth="min-w-[500px]"
         >
             <FormProvider {...form}>
                 <form
@@ -102,7 +104,7 @@ export const QuestionsFromTextDialog = ({
                         render={({ field }) => (
                             <FormItem>
                                 <FormControl>
-                                    <MyInput
+                                    {/* <MyInput
                                         input={field.value}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
                                         label="Text"
@@ -110,6 +112,12 @@ export const QuestionsFromTextDialog = ({
                                         inputType="text"
                                         inputPlaceholder="Enter text"
                                         className="w-[352px]"
+                                    /> */}
+                                    <Textarea
+                                        placeholder="Enter text"
+                                        className="h-[100px] w-full"
+                                        value={field.value}
+                                        onChange={(e) => field.onChange(e.target.value)}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -135,7 +143,7 @@ export const QuestionsFromTextDialog = ({
                                         required={true}
                                         inputType="number"
                                         inputPlaceholder="Enter number of questions"
-                                        className="w-[352px]"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
@@ -154,7 +162,7 @@ export const QuestionsFromTextDialog = ({
                                         required={true}
                                         inputType="text"
                                         inputPlaceholder="Enter class level"
-                                        className="w-[352px]"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
@@ -173,7 +181,7 @@ export const QuestionsFromTextDialog = ({
                                         required={true}
                                         inputType="text"
                                         inputPlaceholder="Enter topics"
-                                        className="w-[352px]"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
@@ -192,7 +200,7 @@ export const QuestionsFromTextDialog = ({
                                         required={true}
                                         inputType="text"
                                         inputPlaceholder="Enter question type"
-                                        className="w-[352px]"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
@@ -211,7 +219,7 @@ export const QuestionsFromTextDialog = ({
                                         required={true}
                                         inputType="text"
                                         inputPlaceholder="Enter question language"
-                                        className="w-[352px]"
+                                        className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
