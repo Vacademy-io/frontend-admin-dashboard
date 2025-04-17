@@ -18,7 +18,7 @@ import { Question } from "phosphor-react";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
 
-export const MySidebar = () => {
+export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
 
     return (
@@ -53,16 +53,18 @@ export const MySidebar = () => {
                         state == "expanded" ? "items-stretch" : "items-center"
                     }`}
                 >
-                    {SidebarItemsData.map((obj, key) => (
-                        <SidebarMenuItem key={key} id={obj.id}>
-                            <SidebarItem
-                                icon={obj.icon}
-                                subItems={obj.subItems}
-                                title={obj.title}
-                                to={obj.to}
-                            />
-                        </SidebarMenuItem>
-                    ))}
+                    {sidebarComponent
+                        ? sidebarComponent
+                        : SidebarItemsData.map((obj, key) => (
+                              <SidebarMenuItem key={key} id={obj.id}>
+                                  <SidebarItem
+                                      icon={obj.icon}
+                                      subItems={obj.subItems}
+                                      title={obj.title}
+                                      to={obj.to}
+                                  />
+                              </SidebarMenuItem>
+                          ))}
                 </SidebarMenu>
                 <div
                     className={cn(

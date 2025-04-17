@@ -9,16 +9,18 @@ export const LayoutContainer = ({
     children,
     className,
     intrnalMargin = true,
+    sidebarComponent,
 }: {
     children?: React.ReactNode;
     className?: string;
     intrnalMargin?: boolean;
+    sidebarComponent?: React.ReactNode;
 }) => {
     const { open } = useSidebar();
     return (
         <div className={`flex w-full ${open ? "gap-12" : "gap-16"}`}>
             <div>
-                <MySidebar />
+                <MySidebar sidebarComponent={sidebarComponent} />
             </div>
             <div className="flex w-full flex-1 flex-col text-neutral-600">
                 <Navbar />
