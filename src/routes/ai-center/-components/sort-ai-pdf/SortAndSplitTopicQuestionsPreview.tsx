@@ -26,7 +26,7 @@ interface GenerateCompleteAssessmentProps {
     openCompleteAssessmentDialog: boolean;
     setOpenCompleteAssessmentDialog: React.Dispatch<React.SetStateAction<boolean>>;
     assessmentData: AIAssessmentResponseInterface | null;
-    handleGenerateQuestionsForAssessment: (audioId?: string) => void;
+    handleGenerateQuestionsForAssessment: (pdfId: string, propmtInput: string) => void;
     propmtInput: string;
     setPropmtInput: React.Dispatch<React.SetStateAction<string>>;
     isMoreQuestionsDialog: boolean;
@@ -37,11 +37,11 @@ interface GenerateCompleteAssessmentProps {
     setDifficulty?: React.Dispatch<React.SetStateAction<string | null>>;
     language?: string | null;
     setLanguage?: React.Dispatch<React.SetStateAction<string | null>>;
-    audioId?: string;
+    pdfId?: string;
     loader?: boolean;
 }
 
-const GenerateCompleteAssessment = ({
+const SortAndSplitTopicQuestionsPreview = ({
     form,
     openCompleteAssessmentDialog,
     setOpenCompleteAssessmentDialog,
@@ -57,7 +57,7 @@ const GenerateCompleteAssessment = ({
     setDifficulty,
     language,
     setLanguage,
-    audioId,
+    pdfId,
     loader,
 }: GenerateCompleteAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
@@ -177,7 +177,8 @@ const GenerateCompleteAssessment = ({
                                                     className="mr-4 text-sm"
                                                     onClick={() =>
                                                         handleGenerateQuestionsForAssessment(
-                                                            audioId || "",
+                                                            pdfId ?? "",
+                                                            propmtInput,
                                                         )
                                                     }
                                                 >
@@ -311,4 +312,4 @@ const GenerateCompleteAssessment = ({
     );
 };
 
-export default GenerateCompleteAssessment;
+export default SortAndSplitTopicQuestionsPreview;
