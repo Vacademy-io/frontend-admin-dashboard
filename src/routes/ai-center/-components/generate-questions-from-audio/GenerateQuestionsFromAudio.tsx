@@ -14,7 +14,6 @@ import { z } from "zod";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const GenerateQuestionsFromAudio = () => {
     const instituteId = getInstituteId();
@@ -24,7 +23,6 @@ export const GenerateQuestionsFromAudio = () => {
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
-    const [loader, setLoader] = useState(false);
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: "",
         tags: [],
@@ -58,10 +56,6 @@ export const GenerateQuestionsFromAudio = () => {
         },
     });
 
-    const handleLoader = (value: boolean) => {
-        setLoader(value);
-    };
-
     /* Generate Assessment Complete */
     const MAX_POLL_ATTEMPTS = 10;
     const pollingCountRef = useRef(0);
@@ -75,7 +69,6 @@ export const GenerateQuestionsFromAudio = () => {
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            handleLoader(true);
             const fileId = await uploadFile({
                 file,
                 setIsUploading,
@@ -113,7 +106,6 @@ export const GenerateQuestionsFromAudio = () => {
         if (pendingRef.current) {
             return;
         }
-        handleLoader(true);
         getQuestionsFromAudioMutation.mutate({
             audioId: audioId,
             numQuestions: numQuestions,
@@ -175,7 +167,6 @@ export const GenerateQuestionsFromAudio = () => {
                 setNumQuestions(null);
                 setDifficulty(null);
                 setLanguage(null);
-                handleLoader(false);
                 return;
             }
 
@@ -197,7 +188,6 @@ export const GenerateQuestionsFromAudio = () => {
                 setNumQuestions(null);
                 setDifficulty(null);
                 setLanguage(null);
-                handleLoader(false);
                 return;
             }
 
@@ -233,21 +223,15 @@ export const GenerateQuestionsFromAudio = () => {
 
     return (
         <div>
-            {loader ? (
-                <div className="h-fit w-fit">
-                    <DashboardLoader height="50px" className="w-[200px]" />
-                </div>
-            ) : (
-                <GenerateCard
-                    handleUploadClick={handleUploadClick}
-                    isUploading={isUploading}
-                    fileInputRef={fileInputRef}
-                    handleFileChange={handleFileChange}
-                    cardTitle="Generate Questions From Audio"
-                    cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
-                    inputFormat=".mp3,.wav,.flac,.aac,.m4a"
-                />
-            )}
+            <GenerateCard
+                handleUploadClick={handleUploadClick}
+                isUploading={isUploading}
+                fileInputRef={fileInputRef}
+                handleFileChange={handleFileChange}
+                cardTitle="Generate Questions From Audio"
+                cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
+                inputFormat=".mp3,.wav,.flac,.aac,.m4a"
+            />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
                     form={form}
@@ -266,7 +250,6 @@ export const GenerateQuestionsFromAudio = () => {
                     language={language}
                     setLanguage={setLanguage}
                     audioId={audioId}
-                    loader={loader}
                 />
             )}
         </div>

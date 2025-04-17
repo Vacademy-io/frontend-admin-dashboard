@@ -15,7 +15,6 @@ import { MyButton } from "@/components/design-system/button";
 import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
 import ExportQuestionPaperAI from "../export-ai-question-paper/ExportQuestionPaperAI";
 
 // Infer the form type from the schema
@@ -38,7 +37,6 @@ interface GenerateCompleteAssessmentProps {
     language?: string | null;
     setLanguage?: React.Dispatch<React.SetStateAction<string | null>>;
     audioId?: string;
-    loader?: boolean;
 }
 
 const GenerateCompleteAssessment = ({
@@ -58,7 +56,6 @@ const GenerateCompleteAssessment = ({
     language,
     setLanguage,
     audioId,
-    loader,
 }: GenerateCompleteAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
@@ -91,11 +88,6 @@ const GenerateCompleteAssessment = ({
 
     return (
         <>
-            {loader && (
-                <div className="absolute">
-                    <DashboardLoader />{" "}
-                </div>
-            )}
             <Dialog
                 open={openCompleteAssessmentDialog}
                 onOpenChange={setOpenCompleteAssessmentDialog}
