@@ -164,3 +164,4 @@ export const SHARE_CREDENTIALS = `${BASE_URL}/auth-service/v1/user-operation/sen
 
 export const PROCESS_AUDIO_FILE = `${BASE_URL}/media-service/ai/get-question-audio/audio-parser/start-process-audio-file-id`;
 export const GET_QUESTIONS_FROM_AUDIO = `${BASE_URL}/media-service/ai/get-question-audio/audio-parser/audio-to-questions`;
+export const GET_QUESTIONS_FROM_TEXT = `${BASE_URL}/media-service/ai/get-question/from-text`;

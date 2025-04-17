@@ -4,6 +4,7 @@ import GenerateAIAssessmentComponent from "./-components/generate-assessment/Gen
 import { GenerateQuestionsFromAudio } from "./-components/generate-questions-from-audio/GenerateQuestionsFromAudio";
 import GenerateAiQuestionPaperComponent from "./-components/generate-question/GenerateQuestionPaper";
 import GenerateAiQuestionFromImageComponent from "./-components/generate-question-from-image/GenerateQuestionPaper";
+import { GenerateQuestionsFromText } from "./-components/generate-questions-from-text/GenerateQuestionsFromText";
 
 export const Route = createFileRoute("/ai-center/")({
     component: () => (
@@ -15,11 +16,12 @@ export const Route = createFileRoute("/ai-center/")({
 
 function RouteComponent() {
     return (
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex flex-wrap gap-4">
             <GenerateAIAssessmentComponent />
             <GenerateQuestionsFromAudio />
             <GenerateAiQuestionPaperComponent />
             <GenerateAiQuestionFromImageComponent />
+            <GenerateQuestionsFromText />
         </div>
     );
 }
