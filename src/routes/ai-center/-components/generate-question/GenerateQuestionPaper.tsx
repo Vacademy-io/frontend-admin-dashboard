@@ -35,10 +35,8 @@ const GenerateAiQuestionPaperComponent = () => {
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
-    const [htmlData, setHtmlData] = useState(null);
-    console.log(htmlData);
-    const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
-    console.log(openPageWiseAssessmentDialog);
+    // const [htmlData, setHtmlData] = useState(null);
+    // const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
         mode: "onChange",
@@ -75,8 +73,9 @@ const GenerateAiQuestionPaperComponent = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
+                    console.log("response ", response);
                     setUploadedFilePDFId(response.pdf_id);
-                    handleGenerateQuestionsForAssessment();
+                    handleGenerateQuestionsForAssessment(response.pdf_id);
                 }
             }
             event.target.value = "";
@@ -178,8 +177,9 @@ const GenerateAiQuestionPaperComponent = () => {
         generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
     };
 
-    const handleGenerateQuestionsForAssessment = () => {
-        if (!uploadedFilePDFId) return;
+    const handleGenerateQuestionsForAssessment = (fileId?: string) => {
+        console.log("here ", uploadedFilePDFId);
+        if (!fileId && !uploadedFilePDFId) return;
 
         clearPolling();
         pollingCountRef.current = 0;
@@ -217,8 +217,7 @@ const GenerateAiQuestionPaperComponent = () => {
             // If conversion is complete and we have HTML data
             if (response?.html) {
                 stopConvertPolling();
-                setHtmlData(response?.html);
-                setOpenPageWiseAssessmentDialog(true);
+                // setHtmlData(response?.html);
                 // try {
                 //     const questionsData = await handleGetQuestionsFromHTMLUrl(response.html, "");
                 //     console.log("✅ Questions Data:", questionsData);
