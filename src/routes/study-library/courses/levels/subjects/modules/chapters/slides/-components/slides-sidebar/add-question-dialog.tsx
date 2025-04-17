@@ -1,5 +1,12 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -8,6 +15,8 @@ import { useSlides } from "@/routes/study-library/courses/levels/subjects/module
 import { toast } from "sonner";
 import { Route } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
+
+const questionType = ["MCQS", "MCQM", "Subjective"];
 
 const formSchema = z.object({
     questionType: z
@@ -77,31 +86,32 @@ export const AddQuestionDialog = ({
         },
     });
 
+    const { setValue, register } = form;
+
     return (
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(handleSubmit)}
                 className="flex w-full flex-col gap-6 text-neutral-600"
             >
-                <FormField
-                    control={form.control}
-                    name="questionType"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                                <MyInput
-                                    label="Question Type"
-                                    required={true}
-                                    input={field.value}
-                                    inputType="text"
-                                    inputPlaceholder="Select Your Question Type"
-                                    onChangeFunction={field.onChange}
-                                    className="w-full"
-                                />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
+                <Select
+                    onValueChange={(value) => {
+                        setValue("questionType", value);
+                    }}
+                    {...register("questionType")}
+                    defaultValue=""
+                >
+                    <SelectTrigger className="h-[40px] w-[320px]">
+                        <SelectValue placeholder="Select Your Question Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {questionType.map((questionType) => (
+                            <SelectItem key={questionType} value={questionType}>
+                                {questionType}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <FormField
                     control={form.control}
                     name="questionName"
