@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UploadSimple } from "phosphor-react";
-import { QuestionsFromTextData, QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
+import { QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
 import { useRef, useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { handleGetQuestionsFromText } from "../../-services/ai-center-service";
@@ -13,6 +13,17 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+
+const formSchema = z.object({
+    text: z.string().min(1),
+    num: z.number().min(1),
+    class_level: z.string().min(1),
+    topics: z.string().min(1),
+    question_type: z.string().min(1),
+    question_language: z.string().min(1),
+});
+
+export type QuestionsFromTextData = z.infer<typeof formSchema>;
 
 export const GenerateQuestionsFromText = () => {
     const [open, setOpen] = useState(false);
@@ -47,6 +58,17 @@ export const GenerateQuestionsFromText = () => {
             explanationsType: "",
             fileUpload: undefined,
             questions: [],
+        },
+    });
+    const dialogForm = useForm<QuestionsFromTextData>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            text: "",
+            num: undefined,
+            class_level: "",
+            topics: "",
+            question_type: "",
+            question_language: "",
         },
     });
 
@@ -123,6 +145,9 @@ export const GenerateQuestionsFromText = () => {
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
                 setIsUploading(false);
+                dialogForm.reset();
+                handleOpenChange(false);
+                setIsMoreQuestionsDialog(false);
                 setAssessmentData((prev) => ({
                     ...prev,
                     questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
@@ -262,6 +287,7 @@ export const GenerateQuestionsFromText = () => {
                 submitButton={submitButton}
                 handleDisableSubmitBtn={handleDisableSubmitBtn}
                 submitForm={submitFormFn}
+                form={dialogForm}
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
@@ -278,6 +304,7 @@ export const GenerateQuestionsFromText = () => {
                     submitButtonForText={submitButton}
                     handleDisableSubmitBtn={handleDisableSubmitBtn}
                     submitFormFn={submitFormFn}
+                    dialogForm={dialogForm}
                 />
             )}
         </div>

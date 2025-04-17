@@ -16,10 +16,8 @@ import useInstituteLogoStore from "@/components/common/layout-container/sidebar/
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
-import {
-    QuestionsFromTextData,
-    QuestionsFromTextDialog,
-} from "./generate-questions-from-text/QuestionsFromTextDialog";
+import { QuestionsFromTextDialog } from "./generate-questions-from-text/QuestionsFromTextDialog";
+import { QuestionsFromTextData } from "./generate-questions-from-text/GenerateQuestionsFromText";
 
 // Infer the form type from the schema
 type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
@@ -46,6 +44,7 @@ interface GenerateCompleteAssessmentProps {
     submitButtonForText?: JSX.Element;
     handleDisableSubmitBtn?: (value: boolean) => void;
     submitFormFn?: (submitFn: () => void) => void;
+    dialogForm?: UseFormReturn<QuestionsFromTextData>;
 }
 
 const GenerateCompleteAssessment = ({
@@ -69,6 +68,7 @@ const GenerateCompleteAssessment = ({
     handleSubmitSuccessForText,
     handleDisableSubmitBtn,
     submitFormFn,
+    dialogForm,
 }: GenerateCompleteAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
@@ -122,8 +122,10 @@ const GenerateCompleteAssessment = ({
                                 <div className="flex items-center gap-4">
                                     {submitFormFn &&
                                     handleSubmitSuccessForText &&
-                                    handleDisableSubmitBtn ? (
+                                    handleDisableSubmitBtn &&
+                                    dialogForm ? (
                                         <QuestionsFromTextDialog
+                                            form={dialogForm}
                                             open={isMoreQuestionsDialog}
                                             onOpenChange={setIsMoreQuestionsDialog}
                                             trigger={
@@ -134,7 +136,6 @@ const GenerateCompleteAssessment = ({
                                                     layoutVariant="default"
                                                     className="mr-4 text-sm"
                                                     onClick={() => {
-                                                        console.log("clicked");
                                                         setIsMoreQuestionsDialog(true);
                                                     }}
                                                 >

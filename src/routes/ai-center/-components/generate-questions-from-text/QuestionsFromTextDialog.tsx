@@ -2,21 +2,9 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import * as z from "zod";
-
-const formSchema = z.object({
-    text: z.string().min(1),
-    num: z.number().min(1),
-    class_level: z.string().min(1),
-    topics: z.string().min(1),
-    question_type: z.string().min(1),
-    question_language: z.string().min(1),
-});
-
-export type QuestionsFromTextData = z.infer<typeof formSchema>;
+import { FormProvider, UseFormReturn } from "react-hook-form";
+import { QuestionsFromTextData } from "./GenerateQuestionsFromText";
 
 export const QuestionsFromTextDialog = ({
     open,
@@ -26,6 +14,7 @@ export const QuestionsFromTextDialog = ({
     handleDisableSubmitBtn,
     submitForm,
     trigger,
+    form,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -34,18 +23,15 @@ export const QuestionsFromTextDialog = ({
     handleDisableSubmitBtn: (value: boolean) => void;
     submitForm: (submitFn: () => void) => void;
     trigger?: JSX.Element;
+    form: UseFormReturn<{
+        text: string;
+        num: number;
+        class_level: string;
+        topics: string;
+        question_type: string;
+        question_language: string;
+    }>;
 }) => {
-    const form = useForm<QuestionsFromTextData>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            text: "",
-            num: undefined,
-            class_level: "",
-            topics: "",
-            question_type: "",
-            question_language: "",
-        },
-    });
     const { watch, getValues } = form;
     useEffect(() => {
         const values = getValues();
