@@ -76,7 +76,7 @@ const GenerateAiQuestionFromImageComponent = () => {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
                     setUploadedFilePDFId(response.pdf_id);
-                    handleGenerateQuestionsForAssessment();
+                    handleGenerateQuestionsForAssessment(response.pdf_id);
                 }
             }
             event.target.value = "";
@@ -178,8 +178,8 @@ const GenerateAiQuestionFromImageComponent = () => {
         generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
     };
 
-    const handleGenerateQuestionsForAssessment = () => {
-        if (!uploadedFilePDFId) return;
+    const handleGenerateQuestionsForAssessment = (fileId?: string) => {
+        if (!fileId && !uploadedFilePDFId) return;
 
         clearPolling();
         pollingCountRef.current = 0;
