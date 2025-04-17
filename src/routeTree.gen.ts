@@ -41,6 +41,7 @@ import { Route as CommunityQuestionPaperIndexImport } from "./routes/community/q
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index"
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index"
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index"
+import { Route as EvaluatorAiEvaluationStudentSummaryIndexImport } from "./routes/evaluator-ai/evaluation/student-summary/index"
 import { Route as EvaluatorAiAssessmentCreateAssessmentIndexImport } from "./routes/evaluator-ai/assessment/create-assessment/index"
 import { Route as AssessmentExportAssessmentIdIndexImport } from "./routes/assessment/export/$assessmentId/index"
 import { Route as StudyLibraryCoursesLevelsSubjectsIndexImport } from "./routes/study-library/courses/levels/subjects/index"
@@ -248,6 +249,13 @@ const StudyLibraryCoursesLevelsIndexRoute =
   StudyLibraryCoursesLevelsIndexImport.update({
     id: "/study-library/courses/levels/",
     path: "/study-library/courses/levels/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const EvaluatorAiEvaluationStudentSummaryIndexRoute =
+  EvaluatorAiEvaluationStudentSummaryIndexImport.update({
+    id: "/evaluator-ai/evaluation/student-summary/",
+    path: "/evaluator-ai/evaluation/student-summary/",
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -562,6 +570,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexImport
       parentRoute: typeof rootRoute
     }
+    "/evaluator-ai/evaluation/student-summary/": {
+      id: "/evaluator-ai/evaluation/student-summary/"
+      path: "/evaluator-ai/evaluation/student-summary"
+      fullPath: "/evaluator-ai/evaluation/student-summary"
+      preLoaderRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/study-library/courses/levels/": {
       id: "/study-library/courses/levels/"
       path: "/study-library/courses/levels"
@@ -676,6 +691,7 @@ export interface FileRoutesByFullPath {
   "/study-library/session": typeof StudyLibrarySessionIndexRoute
   "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
   "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
@@ -721,6 +737,7 @@ export interface FileRoutesByTo {
   "/study-library/session": typeof StudyLibrarySessionIndexRoute
   "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
   "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
@@ -767,6 +784,7 @@ export interface FileRoutesById {
   "/study-library/session/": typeof StudyLibrarySessionIndexRoute
   "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute
   "/evaluator-ai/assessment/create-assessment/": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  "/evaluator-ai/evaluation/student-summary/": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype/": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
@@ -814,6 +832,7 @@ export interface FileRouteTypes {
     | "/study-library/session"
     | "/assessment/export/$assessmentId"
     | "/evaluator-ai/assessment/create-assessment"
+    | "/evaluator-ai/evaluation/student-summary"
     | "/study-library/courses/levels"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
@@ -858,6 +877,7 @@ export interface FileRouteTypes {
     | "/study-library/session"
     | "/assessment/export/$assessmentId"
     | "/evaluator-ai/assessment/create-assessment"
+    | "/evaluator-ai/evaluation/student-summary"
     | "/study-library/courses/levels"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
@@ -902,6 +922,7 @@ export interface FileRouteTypes {
     | "/study-library/session/"
     | "/assessment/export/$assessmentId/"
     | "/evaluator-ai/assessment/create-assessment/"
+    | "/evaluator-ai/evaluation/student-summary/"
     | "/study-library/courses/levels/"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
     | "/homework-creation/create-assessment/$assessmentId/$examtype/"
@@ -948,6 +969,7 @@ export interface RootRouteChildren {
   StudyLibrarySessionIndexRoute: typeof StudyLibrarySessionIndexRoute
   AssessmentExportAssessmentIdIndexRoute: typeof AssessmentExportAssessmentIdIndexRoute
   EvaluatorAiAssessmentCreateAssessmentIndexRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  EvaluatorAiEvaluationStudentSummaryIndexRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
@@ -996,6 +1018,8 @@ const rootRouteChildren: RootRouteChildren = {
     AssessmentExportAssessmentIdIndexRoute,
   EvaluatorAiAssessmentCreateAssessmentIndexRoute:
     EvaluatorAiAssessmentCreateAssessmentIndexRoute,
+  EvaluatorAiEvaluationStudentSummaryIndexRoute:
+    EvaluatorAiEvaluationStudentSummaryIndexRoute,
   StudyLibraryCoursesLevelsIndexRoute: StudyLibraryCoursesLevelsIndexRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
@@ -1060,6 +1084,7 @@ export const routeTree = rootRoute
         "/study-library/session/",
         "/assessment/export/$assessmentId/",
         "/evaluator-ai/assessment/create-assessment/",
+        "/evaluator-ai/evaluation/student-summary/",
         "/study-library/courses/levels/",
         "/assessment/create-assessment/$assessmentId/$examtype/",
         "/homework-creation/create-assessment/$assessmentId/$examtype/",
@@ -1165,6 +1190,9 @@ export const routeTree = rootRoute
     },
     "/evaluator-ai/assessment/create-assessment/": {
       "filePath": "evaluator-ai/assessment/create-assessment/index.tsx"
+    },
+    "/evaluator-ai/evaluation/student-summary/": {
+      "filePath": "evaluator-ai/evaluation/student-summary/index.tsx"
     },
     "/study-library/courses/levels/": {
       "filePath": "study-library/courses/levels/index.tsx"
