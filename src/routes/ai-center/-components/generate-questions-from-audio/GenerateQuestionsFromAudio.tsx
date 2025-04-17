@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
+import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 
 export const GenerateQuestionsFromAudio = () => {

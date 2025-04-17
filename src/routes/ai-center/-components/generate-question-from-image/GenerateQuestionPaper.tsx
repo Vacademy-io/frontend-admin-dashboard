@@ -15,7 +15,7 @@ import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-comp
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { GenerateCard } from "../GenerateCard";
-import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
+import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
 import { questionsCompleteResponseData } from "../../-dummy-files/dummy-data";
 
 const GenerateAiQuestionFromImageComponent = () => {

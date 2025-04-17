@@ -1,6 +1,6 @@
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyInput } from "@/components/design-system/input";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef } from "react";
@@ -92,9 +92,7 @@ export const QuestionsFromTextDialog = ({
         >
             <FormProvider {...form}>
                 <form
-                    onSubmit={form.handleSubmit(onSubmitSuccess, (errors) => {
-                        console.log("Form errors:", errors);
-                    })}
+                    onSubmit={form.handleSubmit(onSubmitSuccess)}
                     className="flex flex-col gap-4"
                     ref={formRef}
                 >
@@ -104,21 +102,17 @@ export const QuestionsFromTextDialog = ({
                         render={({ field }) => (
                             <FormItem>
                                 <FormControl>
-                                    {/* <MyInput
-                                        input={field.value}
-                                        onChangeFunction={(e) => field.onChange(e.target.value)}
-                                        label="Text"
-                                        required={true}
-                                        inputType="text"
-                                        inputPlaceholder="Enter text"
-                                        className="w-[352px]"
-                                    /> */}
-                                    <Textarea
-                                        placeholder="Enter text"
-                                        className="h-[100px] w-full"
-                                        value={field.value}
-                                        onChange={(e) => field.onChange(e.target.value)}
-                                    />
+                                    <div className="flex flex-col gap-2">
+                                        <FormLabel>
+                                            Text <span className="text-red-500">*</span>
+                                        </FormLabel>
+                                        <Textarea
+                                            placeholder="Enter text"
+                                            className="h-[100px] w-full"
+                                            value={field.value}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                        />
+                                    </div>
                                 </FormControl>
                             </FormItem>
                         )}

@@ -11,7 +11,7 @@ import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/ge
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
+import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 export const GenerateQuestionsFromText = () => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FormProvider, useFieldArray, UseFormReturn } from "react-hook-form";
-import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
+import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { getPPTViewTitle } from "@/routes/assessment/question-papers/-utils/helper";
 import { QuestionType } from "@/constants/dummy-data";
@@ -9,17 +9,17 @@ import { PPTComponentFactory } from "@/routes/assessment/question-papers/-compon
 import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
+import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import ExportQuestionPaperAI from "../export-ai-question-paper/ExportQuestionPaperAI";
+import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
 import {
     QuestionsFromTextData,
     QuestionsFromTextDialog,
-} from "../generate-questions-from-text/QuestionsFromTextDialog";
+} from "./generate-questions-from-text/QuestionsFromTextDialog";
 
 // Infer the form type from the schema
 type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
@@ -219,11 +219,11 @@ const GenerateCompleteAssessment = ({
                                                     >
                                                         Generate Questions
                                                     </MyButton>
-                                                    <ExportQuestionPaperAI
+                                                    {/* <ExportQuestionPaperAI
                                                         responseQuestionsData={
                                                             assessmentData?.questions
                                                         }
-                                                    />
+                                                    /> */}
                                                 </div>
                                             </DialogContent>
                                         </Dialog>

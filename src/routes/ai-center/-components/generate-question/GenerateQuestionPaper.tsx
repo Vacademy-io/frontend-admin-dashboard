@@ -8,7 +8,7 @@ import {
     handleStartProcessUploadedFile,
 } from "../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
+import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
