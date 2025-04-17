@@ -96,6 +96,8 @@ export const GenerateQuestionsFromText = () => {
             question_type: string;
             question_language: string;
         }) => {
+            console.log("inside get questions from text mutation");
+            setIsUploading(true);
             return handleGetQuestionsFromText(
                 data.text,
                 data.num,
@@ -136,6 +138,7 @@ export const GenerateQuestionsFromText = () => {
                     questions: transformQuestionsData,
                 });
                 form.trigger();
+                handleOpenChange(false);
                 clearPolling();
                 setOpenCompleteAssessmentDialog(true);
                 setPropmtInput("");
@@ -164,6 +167,7 @@ export const GenerateQuestionsFromText = () => {
             // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                handleOpenChange(false);
                 clearPolling();
                 return;
             }
@@ -201,9 +205,15 @@ export const GenerateQuestionsFromText = () => {
 
     const submitButton = (
         <div className="flex w-full items-center justify-center">
-            <MyButton disable={disableSubmitBtn} onClick={() => formSubmitRef.current()}>
-                Generate Questions
-            </MyButton>
+            {isUploading ? (
+                <MyButton>
+                    <DashboardLoader height="60px" size={20} color="#ffffff" />
+                </MyButton>
+            ) : (
+                <MyButton disable={disableSubmitBtn} onClick={() => formSubmitRef.current()}>
+                    Generate Questions
+                </MyButton>
+            )}
         </div>
     );
 
@@ -219,23 +229,29 @@ export const GenerateQuestionsFromText = () => {
                     <CardDescription>Add text content</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <MyButton
-                        type="button"
-                        scale="medium"
-                        buttonType="primary"
-                        layoutVariant="default"
-                        className="w-full text-sm"
-                        onClick={handleUploadClick}
-                    >
-                        {isUploading ? (
+                    {isUploading ? (
+                        <MyButton
+                            type="button"
+                            scale="medium"
+                            buttonType="primary"
+                            layoutVariant="default"
+                            className="w-full text-sm"
+                        >
                             <DashboardLoader size={20} color="#ffffff" />
-                        ) : (
-                            <>
-                                <UploadSimple size={32} />
-                                Upload
-                            </>
-                        )}
-                    </MyButton>
+                        </MyButton>
+                    ) : (
+                        <MyButton
+                            type="button"
+                            scale="medium"
+                            buttonType="primary"
+                            layoutVariant="default"
+                            className="w-full text-sm"
+                            onClick={handleUploadClick}
+                        >
+                            <UploadSimple size={32} />
+                            Upload
+                        </MyButton>
+                    )}
                 </CardContent>
             </Card>
             <QuestionsFromTextDialog
