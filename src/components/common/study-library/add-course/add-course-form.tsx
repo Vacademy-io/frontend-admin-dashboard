@@ -59,6 +59,7 @@ const formSchema = z.object({
     thumbnail_file_id: z.string().optional(),
     contain_levels: z.boolean().optional(),
     status: z.string().optional(),
+    new_course: z.boolean().optional(),
     sessions: z
         .array(
             z.object({
@@ -178,6 +179,7 @@ export const AddCourseForm = ({
             thumbnail_file_id: initialValues?.thumbnail_file_id || fileId,
             contain_levels: initialValues?.contain_levels || true,
             status: initialValues?.status || "ACTIVE",
+            new_course: initialValues?.new_course || true,
             sessions: [], // Changed from levels to sessions
         },
     });

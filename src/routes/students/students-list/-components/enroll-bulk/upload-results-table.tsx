@@ -6,6 +6,7 @@ import { MyButton } from "@/components/design-system/button";
 import { MyTable } from "@/components/design-system/table";
 import { ColumnDef } from "@tanstack/react-table";
 import { MyPagination } from "@/components/design-system/pagination";
+import { formatReadableDate } from "@/utils/formatReadableData";
 
 interface UploadResultsTableProps {
     data: SchemaFields[];
@@ -54,7 +55,7 @@ export const UploadResultsTable = ({
 
     // Get all unique columns from data
     const getDisplayColumns = () => {
-        const excludeColumns = ["STATUS_MESSAGE", "ERROR"];
+        const excludeColumns = ["ERROR", "PACKAGE_SESSION", "INSTITUTE_ID"];
         const allColumns = new Set<string>();
 
         data.forEach((row) => {
@@ -72,7 +73,6 @@ export const UploadResultsTable = ({
             "ENROLLMENT_NUMBER",
             "MOBILE_NUMBER",
             "EMAIL",
-            "INSTITUTE_ID",
             "STATUS",
         ];
 
@@ -122,6 +122,15 @@ export const UploadResultsTable = ({
                                 ) : (
                                     <X className="h-6 w-6 text-danger-500" weight="bold" />
                                 )}
+                            </div>
+                        );
+                    }
+
+                    // Format date values
+                    if (column === "ENROLLMENT_DATE" || column === "DATE_OF_BIRTH") {
+                        return (
+                            <div className="max-w-[180px] overflow-hidden overflow-ellipsis whitespace-nowrap">
+                                {value ? formatReadableDate(value.toString()) : ""}
                             </div>
                         );
                     }

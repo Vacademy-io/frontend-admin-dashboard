@@ -200,6 +200,11 @@ const GeneratePageWiseAssessment = ({
     const handleGenerateQuestionsForAssessment = () => {
         if (!htmlData) return;
 
+        // Prevent double API calls by checking if polling is already in progress
+        if (pollingTimeoutIdRef.current) {
+            return;
+        }
+
         clearPolling();
         pollingCountRef.current = 0;
         pendingRef.current = false;
