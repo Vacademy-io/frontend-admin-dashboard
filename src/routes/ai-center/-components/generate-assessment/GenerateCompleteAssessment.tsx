@@ -120,9 +120,9 @@ const GenerateCompleteAssessment = ({
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    {handleSubmitSuccessForText &&
-                                    handleDisableSubmitBtn &&
-                                    submitFormFn ? (
+                                    {submitFormFn &&
+                                    handleSubmitSuccessForText &&
+                                    handleDisableSubmitBtn ? (
                                         <QuestionsFromTextDialog
                                             open={isMoreQuestionsDialog}
                                             onOpenChange={setIsMoreQuestionsDialog}
@@ -133,6 +133,10 @@ const GenerateCompleteAssessment = ({
                                                     buttonType="secondary"
                                                     layoutVariant="default"
                                                     className="mr-4 text-sm"
+                                                    onClick={() => {
+                                                        console.log("clicked");
+                                                        setIsMoreQuestionsDialog(true);
+                                                    }}
                                                 >
                                                     Generate
                                                 </MyButton>

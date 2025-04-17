@@ -17,6 +17,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 export const GenerateQuestionsFromText = () => {
     const [open, setOpen] = useState(false);
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
+    const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [disableSubmitBtn, setDisableSubmitBtn] = useState(true);
@@ -272,8 +273,8 @@ export const GenerateQuestionsFromText = () => {
                     handleGenerateQuestionsForAssessment={() => {}}
                     propmtInput={propmtInput}
                     setPropmtInput={setPropmtInput}
-                    isMoreQuestionsDialog={false}
-                    setIsMoreQuestionsDialog={() => {}}
+                    isMoreQuestionsDialog={isMoreQuestionsDialog}
+                    setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
                     submitButtonForText={submitButton}
                     handleDisableSubmitBtn={handleDisableSubmitBtn}
                     submitFormFn={submitFormFn}
