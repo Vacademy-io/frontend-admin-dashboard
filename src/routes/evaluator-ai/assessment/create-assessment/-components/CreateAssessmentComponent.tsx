@@ -76,7 +76,7 @@ const CreateAssessmentComponent = () => {
             id: "add-question",
         },
     ];
-    const [currentStep, setCurrentStep] = useState(1);
+    const [currentStep, setCurrentStep] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([false, false, false, false]);
     const completeCurrentStep = () => {
         setCompletedSteps((prev) => {

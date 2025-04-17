@@ -32,11 +32,33 @@ export const getAssessmentDetails = ({
     };
 };
 
+
 export const handlePostStep1Data = async (data: z.infer<typeof BasicInfoFormSchema>) => {
+    const transformedData = {
+        status: data.status,
+        test_creation: {
+            assessment_name: data.testCreation.assessmentName,
+            subject_id: data.testCreation.subject,
+            assessment_instructions_html: data.testCreation.assessmentInstructions,
+        },
+        test_boundation: {
+            start_date: data.testCreation.liveDateRange.startDate,
+            end_date: data.testCreation.liveDateRange.endDate,
+        },
+        assessment_preview_time: data.assessmentPreview.checked
+            ? parseInt(data.assessmentPreview.previewTimeLimit)
+            : 0,
+        default_reattempt_count: data.reattemptCount,
+        switch_sections: data.switchSections,
+        evaluation_type: data.evaluationType,
+        submission_type: data.submissionType,
+        raise_reattempt_request: data.raiseReattemptRequest,
+        raise_time_increase_request: data.raiseTimeIncreaseRequest,
+    };
     const response = await axios({
         method: "POST",
         url: CREATE_ASSESSMENT_URL,
-        data: data,
+        data: transformedData,
         params: {},
     });
     return response?.data;

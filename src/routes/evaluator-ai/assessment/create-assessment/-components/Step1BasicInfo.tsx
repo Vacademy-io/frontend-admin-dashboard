@@ -29,12 +29,13 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 subject: "",
                 assessmentInstructions: "",
                 liveDateRange: {
-                    startDate: "", // Default start date
-                    endDate: "", // Default end date
+                    startDate: "2025-04-16T10:00:00Z",
+    endDate: "2025-04-20T18:00:00Z" // Default end date
                 },
             },
             assessmentPreview: {
                 checked: true, // Default to true, // Default preview time
+                previewTimeLimit: "1 min"
             },
             reattemptCount: "1",
             submissionType: "",
