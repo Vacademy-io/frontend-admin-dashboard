@@ -19,7 +19,7 @@ interface Student {
 
 export default function StudentEvaluationTable({ data }: { data: Student[] }) {
     const router = useRouter()
-    const [students, setStudents] = useState<Student[]>(data)
+ 
 
     return (
         <div className="container mx-auto py-6">
@@ -42,7 +42,7 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {students.map((student) => (
+                        {data.map((student) => (
                             <TableRow key={student.id} className="hover:bg-muted/30">
                                 <TableCell>{student.name}</TableCell>
                                 <TableCell>{student.enrollmentId}</TableCell>

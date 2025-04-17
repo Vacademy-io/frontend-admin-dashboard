@@ -243,104 +243,107 @@ export function StudentEnrollmentDialog() {
     };
 
     return (
-        <div className="mx-auto w-full max-w-4xl">
-            <MyDialog
-                heading={isEditMode ? "Edit Student" : "Student Enrollment"}
-                open={open}
-                onOpenChange={(newOpen) => {
-                    if (!newOpen) {
-                        resetForm();
+        <div className="w-full">
+            <div className="flex items-center justify-between">
+                <h1 className="text-xl font-semibold">Student List</h1>
+
+                <MyDialog
+                    heading={isEditMode ? "Edit Student" : "Student Enrollment"}
+                    open={open}
+                    onOpenChange={(newOpen) => {
+                        if (!newOpen) {
+                            resetForm();
+                        }
+                        setOpen(newOpen);
+                    }}
+                    trigger={
+                        <MyButton
+                            type="button"
+                            scale="medium"
+                            buttonType="primary"
+                            className="font-medium"
+                        >
+                            Enroll Student
+                        </MyButton>
                     }
-                    setOpen(newOpen);
-                }}
-                trigger={
-                    <MyButton
-                        type="button"
-                        scale="medium"
-                        buttonType="primary"
-                        className="font-medium"
-                    >
-                        Enroll Student
-                    </MyButton>
-                }
-            >
-                <form onSubmit={handleSubmit}>
-                    <div className="flex flex-col gap-4 py-4">
-                        <div className="flex flex-col items-start gap-2">
-                            <Label htmlFor="name">Name</Label>
-                            <Input
-                                id="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Student name"
-                                required
-                            />
-                        </div>
-                        <div className="flex flex-col items-start gap-2">
-                            <Label htmlFor="enrollId">Enrollment ID</Label>
-                            <Input
-                                id="enrollId"
-                                value={enrollId}
-                                onChange={(e) => setEnrollId(e.target.value)}
-                                placeholder="Enrollment ID"
-                                required
-                            />
-                        </div>
-                        <div className="flex flex-col items-start gap-2">
-                            <Label htmlFor="file">
-                                {isEditMode && pdfId
-                                    ? "Replace Response (Optional)"
-                                    : "Upload Response"}
-                            </Label>
-                            <div className="w-full space-y-2">
-                                {isEditMode && pdfId && (
-                                    <div className="text-sm">Current PDF ID: {pdfId}</div>
-                                )}
+                >
+                    <form onSubmit={handleSubmit}>
+                        <div className="flex flex-col gap-4 py-4">
+                            <div className="flex flex-col items-start gap-2">
+                                <Label htmlFor="name">Name</Label>
                                 <Input
-                                    id="file"
-                                    type="file"
-                                    onChange={handleFileChange}
-                                    accept=".pdf"
-                                    required={!isEditMode || !pdfId}
+                                    id="name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Student name"
+                                    required
                                 />
-                                {file && !pdfId && (
-                                    <MyButton
-                                        type="button"
-                                        buttonType="secondary"
-                                        onClick={handleFileUpload}
-                                        disabled={isUploading}
-                                        size="sm"
-                                    >
-                                        {isUploading ? (
-                                            <>
-                                                <Loader2 className="mr-2 size-4 animate-spin" />
-                                                Uploading...
-                                            </>
-                                        ) : (
-                                            "Upload File"
-                                        )}
-                                    </MyButton>
-                                )}
+                            </div>
+                            <div className="flex flex-col items-start gap-2">
+                                <Label htmlFor="enrollId">Enrollment ID</Label>
+                                <Input
+                                    id="enrollId"
+                                    value={enrollId}
+                                    onChange={(e) => setEnrollId(e.target.value)}
+                                    placeholder="Enrollment ID"
+                                    required
+                                />
+                            </div>
+                            <div className="flex flex-col items-start gap-2">
+                                <Label htmlFor="file">
+                                    {isEditMode && pdfId
+                                        ? "Replace Response (Optional)"
+                                        : "Upload Response"}
+                                </Label>
+                                <div className="w-full space-y-2">
+                                    {isEditMode && pdfId && (
+                                        <div className="text-sm">Current PDF ID: {pdfId}</div>
+                                    )}
+                                    <Input
+                                        id="file"
+                                        type="file"
+                                        onChange={handleFileChange}
+                                        accept=".pdf"
+                                        required={!isEditMode || !pdfId}
+                                    />
+                                    {file && !pdfId && (
+                                        <MyButton
+                                            type="button"
+                                            buttonType="secondary"
+                                            onClick={handleFileUpload}
+                                            disabled={isUploading}
+                                            size="sm"
+                                        >
+                                            {isUploading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 size-4 animate-spin" />
+                                                    Uploading...
+                                                </>
+                                            ) : (
+                                                "Upload File"
+                                            )}
+                                        </MyButton>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <DialogFooter>
-                        <MyButton
-                            layoutVariant="default"
-                            type="submit"
-                            className={cn(
-                                !name || !enrollId || !pdfId
-                                    ? "pointer-events-none opacity-50"
-                                    : "cursor-pointer",
-                            )}
-                            disabled={!name || !enrollId || !pdfId}
-                        >
-                            {isEditMode ? "Update" : "Enroll"}
-                        </MyButton>
-                    </DialogFooter>
-                </form>
-            </MyDialog>
-
+                        <DialogFooter>
+                            <MyButton
+                                layoutVariant="default"
+                                type="submit"
+                                className={cn(
+                                    !name || !enrollId || !pdfId
+                                        ? "pointer-events-none opacity-50"
+                                        : "cursor-pointer",
+                                )}
+                                disabled={!name || !enrollId || !pdfId}
+                            >
+                                {isEditMode ? "Update" : "Enroll"}
+                            </MyButton>
+                        </DialogFooter>
+                    </form>
+                </MyDialog>
+            </div>
             {/* Table displaying all enrolled students */}
             <div className="mt-6 rounded-md border">
                 <div className="overflow-hidden">

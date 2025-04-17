@@ -11,6 +11,7 @@ import { type StudentData } from "./select-students";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { EVALUATION_TOOL_EVALUATE_ASSESSMENT, EVALUATION_TOOL_STATUS } from "@/constants/urls";
 import { parseEvaluationResults ,transformEvaluationData } from "../-utils/utils";
+import axios from "axios";
 
 const evaluatedStudentData = JSON.parse(localStorage.getItem("evaluatedStudentData") || "[]");
 const studentData = JSON.parse(localStorage.getItem("students") || "[]");
@@ -82,6 +83,7 @@ const ShimmerLoadingTable = () => {
 
 export const EvaluatedStudents = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const[evaluatedData , setEvaluatedData] = useState(evaluatedStudentData)
 
     const { isLoading, setLoading } = useLoaderStore();
 
@@ -99,11 +101,13 @@ export const EvaluatedStudents = () => {
 
     const handleStudentSubmit = async (students: StudentData[], selectedAssessment: string) => {
         try {
+         
+
             setLoading(true);
             const data = transformStudentData(students);
 
             // First API call to start evaluation
-            const evaluateResponse = await authenticatedAxiosInstance<TaskResponse>({
+            const evaluateResponse = await axios<TaskResponse>({
                 method: "POST",
                 url: EVALUATION_TOOL_EVALUATE_ASSESSMENT,
                 data: data,
@@ -122,13 +126,11 @@ export const EvaluatedStudents = () => {
             const pollStatus = async (): Promise<TaskResponse> => {
                 while (true) {
                     try {
-                        const statusResponse = await authenticatedAxiosInstance<TaskResponse>({
+                        const statusResponse = await axios<TaskResponse>({
                             method: "GET",
                             url: `${EVALUATION_TOOL_STATUS}/${taskId}`,
                             data: null,
-
                         });
-
                         // Check if task is completed
                         if (statusResponse.data.status === "COMPLETED" ||
                             statusResponse.data.status === "FAILED") {
@@ -147,8 +149,9 @@ export const EvaluatedStudents = () => {
                 const parsedResults = parseEvaluationResults(finalStatus);
                 const students = transformEvaluationData(parsedResults);
                 localStorage.setItem("evaluatedStudentData", JSON.stringify(students));
+                setEvaluatedData(students);
 
-                toast.success(`Successfully evaluated ${students.length} student(s) with ${selectedAssessment}`);
+                toast.success(`Successfully evaluated ${students.length} students`);
             } else {
                 toast.error(`Evaluation failed for ${selectedAssessment}`);
             }
@@ -165,12 +168,12 @@ export const EvaluatedStudents = () => {
                 <h1 className="mb-8 text-xl font-bold items-center">Evaluated Student List</h1>
                 <Button variant={"destructive"} onClick={() => { setIsDialogOpen(true) }}>Evaluat Student</Button>
             </div>
-            {(!isLoading && evaluatedStudentData.length > 0) && <StudentEvaluationTable data={evaluatedStudentData} />}
+            {(!isLoading && evaluatedData.length > 0) && <StudentEvaluationTable data={evaluatedData} />}
 
 
             {isLoading && <ShimmerLoadingTable />}
           
-            {!isLoading && evaluatedStudentData.length == 0 && <Card className="border-dashed border-2 bg-muted/30 w-[75vw] mt-8">
+            {!isLoading && evaluatedData.length == 0 && <Card className="border-dashed border-2 bg-muted/30 w-[75vw] mt-8">
                 <CardHeader className="flex flex-row items-center justify-center pb-2">
                     <UserX className="h-12 w-12 text-muted-foreground opacity-50" />
                 </CardHeader>
