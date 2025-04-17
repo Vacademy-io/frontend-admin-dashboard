@@ -6,7 +6,7 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Edit, FileIcon as FilePresentation, Plus, Search, Trash2 } from "lucide-react"
+import { Edit, FileIcon as FilePresentation, Loader2, Plus, Search, Trash2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useRouter } from "@tanstack/react-router"
@@ -47,7 +47,7 @@ export default function ManagePresentation() {
 
   useEffect(() => {
     setNavHeading("Manage Presentation")
-  }, [setNavHeading])
+  }, [])
 
   const getStatusColor = (status = "draft") => {
     switch (status) {
@@ -66,7 +66,14 @@ export default function ManagePresentation() {
     setPresentations(data ??[])
   }, [data])
 
-
+  
+  if(isLoading) {
+    return (
+      <div className="flex items-center justify-center h-1/2">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-8 text-neutral-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -108,9 +115,8 @@ export default function ManagePresentation() {
                 <div className="flex justify-between items-center gap-4">
                   <CardTitle>{presentation.title}</CardTitle>
                   <div className="flex-1">
-                    <Badge className={cn("mb-2 font-normal", getStatusColor(presentation.status))}>
-                      {(presentation.status || "Draft").charAt(0).toUpperCase() +
-                        (presentation.status || "draft").slice(1)}
+                    <Badge className={cn("mb-2 font-normal", getStatusColor("published"))}>
+                    Published
                     </Badge>
                   </div>
                 </div>
@@ -121,7 +127,7 @@ export default function ManagePresentation() {
                 </p>
                 <div className="flex items-center gap-2 mt-3">
                   <Badge variant="outline" className="bg-neutral-50 text-xs font-normal">
-                    {presentation.added_slides.length} slides
+                    {2} slides
                   </Badge>
                   {presentation.updated_at && (
                     <Badge variant="outline" className="bg-neutral-50 text-xs font-normal">

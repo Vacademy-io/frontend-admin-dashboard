@@ -139,3 +139,9 @@ export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-crede
 export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;
 export const USERS_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/internal/users-credential`;
 export const EXPORT_ACCOUNT_DETAILS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/basic-details-csv`;
+
+
+
+//slides endpoints
+
+export const GET_PRESENTATION_LIST = `${BASE_URL}/community-service/presentation/get-all-presentation`;
