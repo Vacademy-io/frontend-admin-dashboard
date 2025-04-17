@@ -45,7 +45,11 @@ export interface Student {
 
 export function parseEvaluationResults(data: ApiResponse): EvaluationResult[] {
   try {
-    const parsed = JSON.parse(data.response);
+    const cleaned = data.response
+    .replace(/^```json\s*/i, '') // remove starting ```json
+    .replace(/```$/, '')         // remove ending ```
+    .trim();
+    const parsed = JSON.parse(cleaned);
     return parsed.evaluation_results as EvaluationResult[];
   } catch (error) {
     console.error("Failed to parse evaluation results:", error);
