@@ -26,6 +26,8 @@ function RouteComponent() {
             <GenerateQuestionsFromText />
             <SortAndSplitTopicQuestions />
             <SortTopicQuestions />
+            <SortAndSplitTopicQuestions />
+            <SortTopicQuestions />
         </div>
     );
 }
