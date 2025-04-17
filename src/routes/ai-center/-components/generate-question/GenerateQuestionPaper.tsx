@@ -15,7 +15,6 @@ import { z } from "zod";
 import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
-import { questionsCompleteResponseData } from "../../-dummy-files/dummy-data";
 import { GenerateCard } from "../GenerateCard";
 
 const GenerateAiQuestionPaperComponent = () => {
@@ -76,11 +75,8 @@ const GenerateAiQuestionPaperComponent = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    // setOpenAssessmentDialog(true);
-                    setAssessmentData(questionsCompleteResponseData);
-                    setOpenCompleteAssessmentDialog(true);
-                    // handleGenerateQuestionsForAssessment();
                     setUploadedFilePDFId(response.pdf_id);
+                    handleGenerateQuestionsForAssessment();
                 }
             }
             event.target.value = "";
@@ -301,7 +297,7 @@ const GenerateAiQuestionPaperComponent = () => {
                 isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Generate Question"
+                cardTitle="Extract Question"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
             />
