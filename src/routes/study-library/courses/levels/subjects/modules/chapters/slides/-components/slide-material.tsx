@@ -156,6 +156,7 @@ export const SlideMaterial = ({
     };
 
     const loadContent = async () => {
+        console.log(activeItem);
         if (activeItem == null) {
             setContent(
                 <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">

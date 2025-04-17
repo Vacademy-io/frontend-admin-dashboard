@@ -16,20 +16,16 @@ import { toast } from "sonner";
 import { Route } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/index";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 
-const questionType = ["MCQS", "MCQM", "Subjective"];
+const questionType = [
+    { type: "MCQS", label: "Single Correct Multiple Choice" },
+    { type: "MCQM", label: "Multiple Correct Multiple Choice" },
+    { type: "LONG_ANSWER", label: "Subjective" },
+    { type: "TRUE_FALSE", label: "True / False" },
+    { type: "NUMERIC", label: "Numeric" },
+];
 
 const formSchema = z.object({
-    questionType: z
-        .string()
-        .min(1, "URL is required")
-        .url("Please enter a valid URL")
-        .refine(
-            (url) => url.includes("youtube.com") || url.includes("youtu.be"),
-            // url.includes("drive.google.com"),
-            {
-                message: "Please enter a valid YouTube URL",
-            },
-        ),
+    questionType: z.string().min(1, "Question Type is Required"),
     questionName: z.string().min(1, "File name is required"),
 });
 
@@ -101,16 +97,21 @@ export const AddQuestionDialog = ({
                     {...register("questionType")}
                     defaultValue=""
                 >
-                    <SelectTrigger className="h-[40px] w-[320px]">
-                        <SelectValue placeholder="Select Your Question Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {questionType.map((questionType) => (
-                            <SelectItem key={questionType} value={questionType}>
-                                {questionType}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
+                    <div>
+                        <div>
+                            Question Type <span className="text-red-500">*</span>
+                        </div>
+                        <SelectTrigger className="h-[40px] w-full">
+                            <SelectValue placeholder="Select Your Question Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {questionType.map((questionType) => (
+                                <SelectItem key={questionType.type} value={questionType.type}>
+                                    {questionType.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </div>
                 </Select>
                 <FormField
                     control={form.control}
