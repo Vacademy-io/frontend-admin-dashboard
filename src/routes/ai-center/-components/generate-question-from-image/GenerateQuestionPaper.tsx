@@ -58,10 +58,6 @@ const GenerateAiQuestionFromImageComponent = () => {
         },
     });
 
-    // const handleOpenAssessmentDialog = (open: boolean) => {
-    //     setOpenAssessmentDialog(open);
-    // };
-
     const handleUploadClick = () => {
         fileInputRef.current?.click();
     };
@@ -79,9 +75,6 @@ const GenerateAiQuestionFromImageComponent = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    // setOpenAssessmentDialog(true);
-                    // setAssessmentData(questionsCompleteResponseData);
-                    // setOpenCompleteAssessmentDialog(true);
                     setUploadedFilePDFId(response.pdf_id);
                     handleGenerateQuestionsForAssessment();
                 }
@@ -303,7 +296,7 @@ const GenerateAiQuestionFromImageComponent = () => {
                 isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Generate Question From Image"
+                cardTitle="Extract Questions from Image"
                 cardDescription="Upload JPG/JPEG/PNG"
                 inputFormat=".jpg,.jpeg,.png"
             />
