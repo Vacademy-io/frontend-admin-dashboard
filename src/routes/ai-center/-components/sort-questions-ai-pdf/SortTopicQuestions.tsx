@@ -2,7 +2,7 @@ import { getInstituteId } from "@/constants/helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useEffect, useRef, useState } from "react";
 import {
-    handleSortSplitPDF,
+    handleSortQuestionsPDF,
     handleStartProcessUploadedFile,
 } from "../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
@@ -13,9 +13,9 @@ import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-comp
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { GenerateCard } from "../GenerateCard";
-import SortAndSplitTopicQuestionsPreview from "./SortAndSplitTopicQuestionsPreview";
+import SortTopicQuestionsPreview from "./SortTopicQuestionsPreview";
 
-const SortAndSplitTopicQuestions = () => {
+const SortTopicQuestions = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -93,7 +93,7 @@ const SortAndSplitTopicQuestions = () => {
 
     const generateAssessmentMutation = useMutation({
         mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) =>
-            handleSortSplitPDF(pdfId, userPrompt),
+            handleSortQuestionsPDF(pdfId, userPrompt),
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -203,12 +203,12 @@ const SortAndSplitTopicQuestions = () => {
                 isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Sort and split topic questions from PDF"
+                cardTitle="Sort topics of each question from PDF"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
             />
             {assessmentData.questions.length > 0 && (
-                <SortAndSplitTopicQuestionsPreview
+                <SortTopicQuestionsPreview
                     form={form}
                     openCompleteAssessmentDialog={openCompleteAssessmentDialog}
                     setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
@@ -224,4 +224,4 @@ const SortAndSplitTopicQuestions = () => {
     );
 };
 
-export default SortAndSplitTopicQuestions;
+export default SortTopicQuestions;

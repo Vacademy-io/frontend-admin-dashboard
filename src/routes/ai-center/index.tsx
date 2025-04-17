@@ -5,6 +5,7 @@ import { GenerateQuestionsFromAudio } from "./-components/generate-questions-fro
 import GenerateAiQuestionPaperComponent from "./-components/generate-question/GenerateQuestionPaper";
 import GenerateAiQuestionFromImageComponent from "./-components/generate-question-from-image/GenerateQuestionPaper";
 import SortAndSplitTopicQuestions from "./-components/sort-split-ai-pdf/SortAndSplitTopicQuestions";
+import SortTopicQuestions from "./-components/sort-questions-ai-pdf/SortTopicQuestions";
 
 export const Route = createFileRoute("/ai-center/")({
     component: () => (
@@ -22,6 +23,7 @@ function RouteComponent() {
             <GenerateAiQuestionPaperComponent />
             <GenerateAiQuestionFromImageComponent />
             <SortAndSplitTopicQuestions />
+            <SortTopicQuestions/>
         </div>
     );
 }
