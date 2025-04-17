@@ -67,7 +67,7 @@ function RouteComponent() {
                           </span>
                         </div>
                         <button
-                          className="bg-primary-500 px-2 py-1 text-white rounded-md ml-auto"
+                          className="bg-red-500 px-2 py-1 text-white rounded-sm ml-auto"
                           onClick={() => {
                             const updatedAssessments = assessments.filter(a => a.assessmentId !== assessment.assessmentId);
                             setAssessments(updatedAssessments);
