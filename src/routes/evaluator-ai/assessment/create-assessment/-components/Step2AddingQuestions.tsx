@@ -7,24 +7,25 @@ import { Separator } from "@/components/ui/separator";
 import { Plus } from "phosphor-react";
 import { Accordion } from "@/components/ui/accordion";
 import { StepContentProps } from "@/types/assessments/step-content-props";
-import { handlePostStep2Data } from "../-services/assessment-services";
-import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Step2SectionInfo from "./Step2SectionInfo";
 import { toast } from "sonner";
-import { AxiosError } from "axios";
-// import { useSectionDetailsStore } from "../../-utils/zustand-global-states/step2-add-questions";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
+import axios from "axios";
+import { transformFormData } from "../-utils/transformFormData";
+import { ADD_QUESTIONS_URL } from "@/constants/urls";
+import { useSavedAssessmentStore } from "@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states";
+import { useNavigate } from "@tanstack/react-router";
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
     currentStep,
     handleCompleteCurrentStep,
-    completedSteps,
 }) => {
     // const storeDataStep2 = useSectionDetailsStore((state) => state);
-    console.log(completedSteps);
+    const navigate = useNavigate();
+    const { savedAssessmentId, saveAssessmentName, setSavedAssessmentId, setSavedAssessmentName } =
+        useSavedAssessmentStore();
     const form = useForm<SectionFormType>({
         resolver: zodResolver(sectionDetailsSchema),
         defaultValues: {
@@ -70,48 +71,45 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     const oldData = useRef(getValues());
     const allSections = getValues("section");
 
-    const handleSubmitStep2Form = useMutation({
-        mutationFn: ({
-            oldData,
-            data,
-            assessmentId,
-            instituteId,
-            type,
-        }: {
-            oldData: z.infer<typeof sectionDetailsSchema>;
-            data: z.infer<typeof sectionDetailsSchema>;
-            assessmentId: string | null;
-            instituteId: string | undefined;
-            type: string | undefined;
-        }) => handlePostStep2Data(oldData, data, assessmentId, instituteId, type),
-        onSuccess: async () => {
-            toast.success("Step 2 data has been saved successfully!", {
-                className: "success-toast",
-                duration: 2000,
+    const onSubmit = async (data: z.infer<typeof sectionDetailsSchema>) => {
+        try {
+            const response = await axios({
+                method: "POST",
+                url: ADD_QUESTIONS_URL,
+                data: transformFormData(data),
+                params: {
+                    assessmentId: savedAssessmentId,
+                },
             });
-            handleCompleteCurrentStep();
-        },
-        onError: (error: unknown) => {
-            if (error instanceof AxiosError) {
-                toast.error(error.message, {
-                    className: "error-toast",
+            if (response.status === 200) {
+                const existingAssessments = JSON.parse(localStorage.getItem("assessments") || "[]");
+                // Add new student
+                existingAssessments.push({
+                    assessmentId: savedAssessmentId,
+                    title: saveAssessmentName,
+                });
+
+                localStorage.setItem("assessments", JSON.stringify(existingAssessments));
+
+                setSavedAssessmentId("");
+                setSavedAssessmentName("");
+                toast.success("Your assessment has been saved successfully!", {
+                    className: "success-toast",
                     duration: 2000,
                 });
-            } else {
-                // Handle non-Axios errors if necessary
-                console.error("Unexpected error:", error);
+                handleCompleteCurrentStep();
+                navigate({
+                    to: "/evaluator-ai/assessment",
+                });
             }
-        },
-    });
-
-    const onSubmit = (data: z.infer<typeof sectionDetailsSchema>) => {
-        handleSubmitStep2Form.mutate({
-            oldData: oldData.current,
-            data: data,
-            assessmentId: "defaultId",
-            instituteId: "",
-            type: "EXAM",
-        });
+        } catch (error) {
+            toast.error("Error saving assessment", {
+                className: "error-toast",
+                duration: 2000,
+            });
+            console.error("Error saving assessment:", error);
+        }
+        console.log(oldData.current);
     };
 
     const onInvalid = (err: unknown) => {
@@ -155,8 +153,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             adaptive_marking_for_each_question: [],
         });
     };
-
-    if (handleSubmitStep2Form.status === "pending") return <DashboardLoader />;
 
     return (
         <FormProvider {...form}>

@@ -36,6 +36,14 @@ const sectionDetailsSchema = z.object({
                     questionId: z.string().optional(),
                     questionName: z.string(),
                     questionMark: z.string(),
+                    criteria: z
+                        .array(
+                            z.object({
+                                name: z.string(),
+                                marks: z.number(),
+                            }),
+                        )
+                        .optional(),
                 }),
             ),
         }),

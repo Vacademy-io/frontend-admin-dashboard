@@ -206,3 +206,14 @@ export function classifySections(oldSectionData: Section[], newSectionData: Sect
 
     return { added_sections, updated_sections, deleted_sections };
 }
+
+export const isQuillContentEmpty = (content: string) => {
+    if (!content) return true;
+
+    // Check for common Quill empty patterns
+    if (content === "<p><br></p>" || content === "<p></p>") return true;
+
+    // Strip all HTML tags and check if there's any text content left
+    const textOnly = content.replace(/<[^>]*>/g, "").trim();
+    return textOnly.length === 0;
+};

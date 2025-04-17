@@ -19,7 +19,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     handleCompleteCurrentStep,
     completedSteps,
 }) => {
-    const { setSavedAssessmentId } = useSavedAssessmentStore();
+    const { setSavedAssessmentId, setSavedAssessmentName } = useSavedAssessmentStore();
     const form = useForm<z.infer<typeof BasicInfoFormSchema>>({
         resolver: zodResolver(BasicInfoFormSchema),
         defaultValues: {
@@ -30,12 +30,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 assessmentInstructions: "",
                 liveDateRange: {
                     startDate: "2025-04-16T10:00:00Z",
-    endDate: "2025-04-20T18:00:00Z" // Default end date
+                    endDate: "2025-04-20T18:00:00Z", // Default end date
                 },
             },
             assessmentPreview: {
                 checked: true, // Default to true, // Default preview time
-                previewTimeLimit: "1 min"
+                previewTimeLimit: "1 min",
             },
             reattemptCount: "1",
             submissionType: "",
@@ -48,14 +48,16 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
         mode: "onChange", // Validate as user types
     });
 
-    const { handleSubmit, control } = form;
+    const { handleSubmit, control, getValues } = form;
 
     // We will use this function only to save the data
     const handleSubmitStep1Form = useMutation({
         mutationFn: ({ data }: { data: z.infer<typeof BasicInfoFormSchema> }) =>
             handlePostStep1Data(data),
         onSuccess: async (data) => {
-            setSavedAssessmentId(data.assessment_id);
+            console.log(data);
+            setSavedAssessmentId(data);
+            setSavedAssessmentName(getValues("testCreation.assessmentName"));
             toast.success("Step 1 data has been saved successfully!", {
                 className: "success-toast",
                 duration: 2000,

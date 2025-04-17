@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import useDialogStore from "@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close";
 import { MyButton } from "@/components/design-system/button";
-import { QuestionPaperUpload } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { calculateTotalMarks } from "../-utils/helper";
 import { MyInput } from "@/components/design-system/input";
@@ -23,11 +22,21 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import sectionDetailsSchema from "../-utils/section-details-sechma";
-import { useQuestionsForSection } from "../-hooks/getQuestionsDataForSection";
+import { QuestionPaperUpload } from "./AddQuestion/QuestionPaperUpload";
+import { CriteriaDialog } from "./CriteriaDialog";
+import { useAdaptiveMarkingStore } from "../-hooks/sectionData";
+import { useAdaptiveMarkingSync } from "../-hooks/useAdaptiveMarkingSync";
+
+// Add this near the top of the file with other type definitions
+type CriteriaStateType = {
+    criteria: Array<{
+        name: string;
+        marks: number;
+    }>;
+}[];
 
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
@@ -44,14 +53,16 @@ export const Step2SectionInfo = ({
 }) => {
     const [enableSectionName, setEnableSectionName] = useState(true);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-
-    console.log(currentStep, oldData);
-    // get the assessmentId from the savedStore after successfull submisstion of step 1
-    const adaptiveMarking = useQuestionsForSection(
-        "c7d9a324-5b29-4b5e-b089-9611640ee727",
-        form.getValues(`section.${index}.sectionId`),
-    );
-
+    const {
+        updateQuestionMark,
+        addCriteria,
+        removeCriteria,
+        getQuestionMark,
+        getQuestionCriteria,
+        getSectionMarks,
+        getSectionQuestions,
+    } = useAdaptiveMarkingStore();
+    useAdaptiveMarkingSync(form, index);
     const {
         isManualQuestionPaperDialogOpen,
         isUploadFromDeviceDialogOpen,
@@ -60,7 +71,6 @@ export const Step2SectionInfo = ({
     } = useDialogStore();
 
     const { setValue, getValues, control, watch } = form;
-    const allSections = getValues("section");
 
     const { remove } = useFieldArray({
         control,
@@ -90,15 +100,6 @@ export const Step2SectionInfo = ({
             calculateTotalMarks(getValues(`section.${index}.adaptive_marking_for_each_question`)),
         );
     }, [watch(`section.${index}.marks_per_question`)]);
-
-    useEffect(() => {
-        setValue(
-            `section.${index}.adaptive_marking_for_each_question`,
-            adaptiveMarking.adaptiveMarking,
-        );
-    }, [watch(`section.${index}`)]);
-
-    if (adaptiveMarking.isLoading) return <DashboardLoader />;
 
     return (
         <AccordionItem value={`section-${index}`} key={index}>
@@ -219,7 +220,52 @@ export const Step2SectionInfo = ({
                     </AlertDialog>
                 </div>
 
-                {Boolean(allSections?.[index]?.adaptive_marking_for_each_question?.length) && (
+                <div className="flex items-center gap-4 text-sm font-thin" id="marking-scheme">
+                    <div className="flex flex-col font-normal">
+                        <h1>
+                            Marks Per Question
+                            <span className="text-subtitle text-danger-600">*</span>
+                        </h1>
+                        <h1>(Default)</h1>
+                    </div>
+                    <FormField
+                        control={control}
+                        name={`section.${index}.marks_per_question`}
+                        render={({ field: { ...field } }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <MyInput
+                                        inputType="text"
+                                        inputPlaceholder="00"
+                                        input={field.value}
+                                        onKeyPress={(e) => {
+                                            const charCode = e.key;
+                                            if (
+                                                !/[0-9.]/.test(charCode) ||
+                                                (charCode === "." && field.value.includes("."))
+                                            ) {
+                                                e.preventDefault(); // Prevent non-numeric and multiple decimals
+                                            }
+                                        }}
+                                        onChangeFunction={(e) => {
+                                            const inputValue = e.target.value.replace(
+                                                /[^0-9.]/g,
+                                                "",
+                                            ); // Allow numbers and decimal
+                                            if (inputValue.split(".").length > 2) return; // Prevent multiple decimals
+                                            field.onChange(inputValue);
+                                        }}
+                                        size="large"
+                                        {...field}
+                                        className="ml-3 w-11"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                {Boolean(getSectionQuestions(index)?.length) && (
                     <div>
                         <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
                         <Table>
@@ -228,45 +274,56 @@ export const Step2SectionInfo = ({
                                     <TableHead>Q.No.</TableHead>
                                     <TableHead>Question</TableHead>
                                     <TableHead>Marks</TableHead>
+                                    <TableHead>Criteria</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-neutral-50">
-                                {allSections[index] &&
-                                    allSections[index]?.adaptive_marking_for_each_question?.map(
-                                        (question, idx) => {
-                                            return (
-                                                <TableRow key={idx}>
-                                                    <TableCell>{idx + 1}</TableCell>
-                                                    <TableCell
-                                                        dangerouslySetInnerHTML={{
-                                                            __html: question.questionName || "",
-                                                        }}
+                                {getSectionQuestions(index) &&
+                                    getSectionQuestions(index)?.map((question, idx) => {
+                                        return (
+                                            <TableRow key={idx}>
+                                                <TableCell>{idx + 1}</TableCell>
+                                                <TableCell
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: question.questionName || "",
+                                                    }}
+                                                />
+                                                <TableCell>
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="00"
+                                                        className="w-11"
+                                                        value={getQuestionMark(index, idx)}
+                                                        onChange={(e) =>
+                                                            updateQuestionMark(
+                                                                index,
+                                                                idx,
+                                                                e.target.value,
+                                                            )
+                                                        }
                                                     />
-                                                    <TableCell>
-                                                        <FormField
-                                                            control={control}
-                                                            name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionMark`}
-                                                            render={({ field: { ...field } }) => (
-                                                                <FormItem>
-                                                                    <FormControl>
-                                                                        <Input
-                                                                            type="text"
-                                                                            placeholder="00"
-                                                                            className="w-11"
-                                                                            value={field.value}
-                                                                            onChange={
-                                                                                field.onChange
-                                                                            }
-                                                                        />
-                                                                    </FormControl>
-                                                                </FormItem>
-                                                            )}
-                                                        />
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        },
-                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <CriteriaDialog
+                                                        marks={Number(getQuestionMark(index, idx))}
+                                                        onAddCriteria={(criteria) => {
+                                                            addCriteria(index, idx, criteria);
+                                                        }}
+                                                        onRemoveCriteria={(criteriaName) => {
+                                                            removeCriteria(
+                                                                index,
+                                                                idx,
+                                                                criteriaName,
+                                                            );
+                                                        }}
+                                                        selectedCriteria={
+                                                            getQuestionCriteria(index, idx) || []
+                                                        }
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                             </TableBody>
                         </Table>
                     </div>
@@ -276,11 +333,7 @@ export const Step2SectionInfo = ({
                     <div className="flex items-center justify-end gap-1">
                         <span>Total Marks</span>
                         <span>:</span>
-                        <h1>
-                            {calculateTotalMarks(
-                                getValues(`section.${index}.adaptive_marking_for_each_question`),
-                            )}
-                        </h1>
+                        <h1>{getSectionMarks(index)}</h1>
                     </div>
                 )}
             </AccordionContent>
