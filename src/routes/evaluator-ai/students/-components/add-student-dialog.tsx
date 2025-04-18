@@ -243,9 +243,9 @@ export function StudentEnrollmentDialog() {
     };
 
     return (
-        <div className="mx-auto w-full max-w-4xl">
-            <div className="flex justify-between">
-                <h1 className="mb-4 text-3xl font-bold">Student List</h1>
+        <div className="w-full">
+            <div className="flex items-center justify-between">
+                <h1 className="text-xl font-semibold">Student List</h1>
 
                 <MyDialog
                     heading={isEditMode ? "Edit Student" : "Student Enrollment"}
