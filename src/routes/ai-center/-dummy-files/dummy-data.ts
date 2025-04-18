@@ -36,7 +36,7 @@ export const questionsCompleteResponseData = {
                     text: {
                         id: null,
                         type: "HTML",
-                        content: "",
+                        content: "first option",
                     },
                     media_id: null,
                     option_order: null,
@@ -51,7 +51,7 @@ export const questionsCompleteResponseData = {
                     text: {
                         id: null,
                         type: "HTML",
-                        content: "",
+                        content: "second option",
                     },
                     media_id: null,
                     option_order: null,
@@ -66,7 +66,7 @@ export const questionsCompleteResponseData = {
                     text: {
                         id: null,
                         type: "HTML",
-                        content: "",
+                        content: "third option",
                     },
                     media_id: null,
                     option_order: null,
@@ -81,7 +81,7 @@ export const questionsCompleteResponseData = {
                     text: {
                         id: null,
                         type: "HTML",
-                        content: "",
+                        content: "fourth option",
                     },
                     media_id: null,
                     option_order: null,

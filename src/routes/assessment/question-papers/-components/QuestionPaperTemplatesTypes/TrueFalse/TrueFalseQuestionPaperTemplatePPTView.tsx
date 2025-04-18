@@ -14,7 +14,7 @@ import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
 
-export const SingleCorrectQuestionPaperTemplatePPTView = ({
+export const TrueFalseQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
     setCurrentQuestionIndex,
@@ -29,8 +29,6 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
     const allQuestions = getValues("questions") || [];
     const option1 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${0}`);
     const option2 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${1}`);
-    const option3 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${2}`);
-    const option4 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${3}`);
 
     const handleDeleteSlide = () => {
         // If this is the last question, decrease the current question index
@@ -152,78 +150,6 @@ export const SingleCorrectQuestionPaperTemplatePPTView = ({
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={() => handleOptionChange(1)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option3?.isSelected ? "border border-primary-300 bg-primary-50" : ""
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(2)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
-                                                    field.value
-                                                        ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
-                                                        : "" // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option4?.isSelected ? "border border-primary-300 bg-primary-50" : ""
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(3)}
                                                 className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
                                                     field.value
                                                         ? "border-none bg-green-500 text-white" // Blue background and red tick when checked
