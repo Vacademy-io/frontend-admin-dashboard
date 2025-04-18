@@ -21,6 +21,7 @@ import { getPublicUrl } from "@/services/upload_file";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { handleUpdateInstituteDashboard } from "../-services/dashboard-services";
+import PhoneInputField from "@/components/design-system/phone-input-field";
 
 type FormValues = z.infer<typeof editDashboardProfileSchema>;
 
@@ -160,309 +161,322 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                         </MyButton>
                     )}
                 </DialogTrigger>
-                <DialogContent className="flex h-4/5 w-1/3 flex-col p-0">
+                <DialogContent className="flex h-4/5 w-1/3 flex-col p-0 [&>button>svg]:size-5 [&>button>svg]:text-neutral-600">
                     <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                         Edit Institute
                     </h1>
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex h-full flex-1 flex-col">
                         <FormProvider {...form}>
-                            <form>
-                                <div className="flex flex-col items-center justify-center gap-8">
-                                    <div className="relative">
-                                        {form.getValues("instituteProfilePictureUrl") ? (
-                                            <img
-                                                src={form.getValues("instituteProfilePictureUrl")}
-                                                alt="logo"
-                                                className="size-52 rounded-full"
-                                            />
-                                        ) : (
-                                            <div className="rounded-full object-cover">
-                                                <OnboardingFrame className="mt-4" />
-                                            </div>
-                                        )}
-                                        <FileUploadComponent
-                                            fileInputRef={fileInputRef}
-                                            onFileSubmit={handleFileSubmit}
-                                            control={form.control}
-                                            name="instituteProfilePictureId"
-                                            acceptedFileTypes="image/*" // Optional - remove this line to accept all files
-                                        />
-                                        <MyButton
-                                            type="button"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            disabled={isUploading}
-                                            buttonType="secondary"
-                                            layoutVariant="icon"
-                                            scale="small"
-                                            className="absolute bottom-0 right-0 bg-white"
-                                        >
-                                            <PencilSimpleLine />
-                                        </MyButton>
-                                    </div>
-                                    <div className="flex w-full flex-col gap-4 p-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="instituteName"
-                                            render={({ field: { onChange, value, ...field } }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <MyInput
-                                                            inputType="text"
-                                                            inputPlaceholder="Institute Name"
-                                                            input={value}
-                                                            onChangeFunction={onChange}
-                                                            required={true}
-                                                            error={
-                                                                form.formState.errors.instituteName
-                                                                    ?.message
-                                                            }
-                                                            size="large"
-                                                            label="Institute Name"
-                                                            className="w-full"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
+                            <form
+                                className="flex h-[86%] flex-col"
+                                onSubmit={handleSubmit(onSubmit, onInvalid)}
+                            >
+                                {/* Scrollable form content */}
+                                <div className="flex-1 overflow-y-auto p-4">
+                                    <div className="flex flex-col items-center justify-center gap-8">
+                                        {/* Profile Picture Upload */}
+                                        <div className="relative">
+                                            {form.getValues("instituteProfilePictureUrl") ? (
+                                                <img
+                                                    src={form.getValues(
+                                                        "instituteProfilePictureUrl",
+                                                    )}
+                                                    alt="logo"
+                                                    className="size-52 rounded-full"
+                                                />
+                                            ) : (
+                                                <div className="rounded-full object-cover">
+                                                    <OnboardingFrame className="mt-4" />
+                                                </div>
                                             )}
-                                        />
-                                        <SelectField
-                                            label="Institute Type"
-                                            name="instituteType"
-                                            options={InstituteType.map((option, index) => ({
-                                                value: option,
-                                                label: option,
-                                                _id: index,
-                                            }))}
-                                            control={form.control}
-                                            className="w-full"
-                                            required
-                                        />
-                                        <Separator />
-                                        <h1>Contact Information</h1>
-                                        <FormField
-                                            control={form.control}
-                                            name="instituteEmail"
-                                            render={({ field: { onChange, value, ...field } }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <MyInput
-                                                            inputType="text"
-                                                            inputPlaceholder="Institute Email"
-                                                            input={value}
-                                                            onChangeFunction={onChange}
-                                                            required={true}
-                                                            error={
-                                                                form.formState.errors.instituteEmail
-                                                                    ?.message
-                                                            }
-                                                            size="large"
-                                                            label="Institute Email"
-                                                            className="w-full"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="institutePhoneNumber"
-                                            render={({ field: { onChange, value, ...field } }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <MyInput
-                                                            inputType="text"
-                                                            inputPlaceholder="Institute Phone Number"
-                                                            input={value}
-                                                            onChangeFunction={onChange}
-                                                            required={true}
-                                                            error={
-                                                                form.formState.errors
-                                                                    .institutePhoneNumber?.message
-                                                            }
-                                                            size="large"
-                                                            label="Institute Phone Number"
-                                                            className="w-full"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="instituteWebsite"
-                                            render={({ field: { onChange, value, ...field } }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <MyInput
-                                                            inputType="text"
-                                                            inputPlaceholder="Institute Website"
-                                                            input={value}
-                                                            onChangeFunction={onChange}
-                                                            required={true}
-                                                            error={
-                                                                form.formState.errors
-                                                                    .instituteWebsite?.message
-                                                            }
-                                                            size="large"
-                                                            label="Institute Website"
-                                                            className="w-full"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <Separator />
-                                        <h1>Location Details</h1>
-                                        <FormField
-                                            control={form.control}
-                                            name="instituteAddress"
-                                            render={({ field: { onChange, value, ...field } }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <MyInput
-                                                            inputType="text"
-                                                            inputPlaceholder="Address line 1"
-                                                            input={value}
-                                                            onChangeFunction={onChange}
-                                                            required={true}
-                                                            error={
-                                                                form.formState.errors
-                                                                    .instituteAddress?.message
-                                                            }
-                                                            size="large"
-                                                            label="Address"
-                                                            className="w-full"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="instituteCountry"
-                                            render={({ field: { onChange, value, ...field } }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <MyInput
-                                                            inputType="text"
-                                                            inputPlaceholder="Select Country"
-                                                            input={value}
-                                                            onChangeFunction={onChange}
-                                                            required={true}
-                                                            error={
-                                                                form.formState.errors
-                                                                    .instituteCountry?.message
-                                                            }
-                                                            size="large"
-                                                            label="Country"
-                                                            className="w-full"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <div className="flex flex-wrap items-start justify-between gap-4">
-                                            <FormField
+                                            <FileUploadComponent
+                                                fileInputRef={fileInputRef}
+                                                onFileSubmit={handleFileSubmit}
                                                 control={form.control}
-                                                name="instituteState"
-                                                render={({
-                                                    field: { onChange, value, ...field },
-                                                }) => (
-                                                    <FormItem>
-                                                        <FormControl>
-                                                            <MyInput
-                                                                inputType="text"
-                                                                inputPlaceholder="Select State"
-                                                                input={value}
-                                                                onChangeFunction={onChange}
-                                                                required={true}
-                                                                error={
-                                                                    form.formState.errors
-                                                                        .instituteState?.message
-                                                                }
-                                                                className="w-auto"
-                                                                size="large"
-                                                                label="State"
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                    </FormItem>
-                                                )}
+                                                name="instituteProfilePictureId"
+                                                acceptedFileTypes="image/*"
                                             />
-                                            <FormField
-                                                control={form.control}
-                                                name="instituteCity"
-                                                render={({
-                                                    field: { onChange, value, ...field },
-                                                }) => (
-                                                    <FormItem>
-                                                        <FormControl>
-                                                            <MyInput
-                                                                inputType="text"
-                                                                inputPlaceholder="Select City/Village"
-                                                                input={value}
-                                                                onChangeFunction={onChange}
-                                                                required={true}
-                                                                error={
-                                                                    form.formState.errors
-                                                                        .instituteCity?.message
-                                                                }
-                                                                size="large"
-                                                                className="w-auto"
-                                                                label="City/Village"
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </div>
-                                        <FormField
-                                            control={form.control}
-                                            name="institutePinCode"
-                                            render={({ field: { onChange, value, ...field } }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <MyInput
-                                                            inputType="text"
-                                                            inputPlaceholder="Enter Pincode"
-                                                            input={value}
-                                                            onChangeFunction={onChange}
-                                                            required={true}
-                                                            error={
-                                                                form.formState.errors
-                                                                    .institutePinCode?.message
-                                                            }
-                                                            size="large"
-                                                            label="Pincode"
-                                                            className="w-full"
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <div className="flex justify-end">
                                             <MyButton
-                                                type="submit"
-                                                scale="large"
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={isUploading}
                                                 buttonType="secondary"
-                                                layoutVariant="default"
-                                                className="mt-4 text-sm"
-                                                onClick={handleSubmit(onSubmit, onInvalid)}
-                                                disable={
-                                                    Object.keys(form.formState.errors).length > 0
-                                                }
+                                                layoutVariant="icon"
+                                                scale="small"
+                                                className="absolute bottom-0 right-0 bg-white"
                                             >
-                                                Save Changes
+                                                <PencilSimpleLine />
                                             </MyButton>
                                         </div>
+
+                                        {/* Form Fields */}
+                                        <div className="flex w-full flex-col gap-4">
+                                            {/* instituteName */}
+                                            <FormField
+                                                control={form.control}
+                                                name="instituteName"
+                                                render={({
+                                                    field: { onChange, value, ...field },
+                                                }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType="text"
+                                                                inputPlaceholder="Institute Name"
+                                                                input={value}
+                                                                onChangeFunction={onChange}
+                                                                required={true}
+                                                                error={
+                                                                    form.formState.errors
+                                                                        .instituteName?.message
+                                                                }
+                                                                size="large"
+                                                                label="Institute Name"
+                                                                className="w-full"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <SelectField
+                                                label="Institute Type"
+                                                name="instituteType"
+                                                options={InstituteType.map((option, index) => ({
+                                                    value: option,
+                                                    label: option,
+                                                    _id: index,
+                                                }))}
+                                                control={form.control}
+                                                className="w-full"
+                                                required
+                                            />
+
+                                            <Separator />
+                                            <h1>Contact Information</h1>
+
+                                            <FormField
+                                                control={form.control}
+                                                name="instituteEmail"
+                                                render={({
+                                                    field: { onChange, value, ...field },
+                                                }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType="text"
+                                                                inputPlaceholder="Institute Email"
+                                                                input={value}
+                                                                onChangeFunction={onChange}
+                                                                error={
+                                                                    form.formState.errors
+                                                                        .instituteEmail?.message
+                                                                }
+                                                                size="large"
+                                                                label="Institute Email"
+                                                                className="w-full"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="institutePhoneNumber"
+                                                render={({ field: { value } }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <PhoneInputField
+                                                                label="Institute Phone Number"
+                                                                placeholder="123 456 7890"
+                                                                name="institutePhoneNumber"
+                                                                control={form.control}
+                                                                country="in"
+                                                                required={false}
+                                                                value={value}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="instituteWebsite"
+                                                render={({
+                                                    field: { onChange, value, ...field },
+                                                }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType="text"
+                                                                inputPlaceholder="Institute Website"
+                                                                input={value}
+                                                                onChangeFunction={onChange}
+                                                                error={
+                                                                    form.formState.errors
+                                                                        .instituteWebsite?.message
+                                                                }
+                                                                size="large"
+                                                                label="Institute Website"
+                                                                className="w-full"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <Separator />
+                                            <h1>Location Details</h1>
+
+                                            <FormField
+                                                control={form.control}
+                                                name="instituteAddress"
+                                                render={({
+                                                    field: { onChange, value, ...field },
+                                                }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType="text"
+                                                                inputPlaceholder="Address line 1"
+                                                                input={value}
+                                                                onChangeFunction={onChange}
+                                                                error={
+                                                                    form.formState.errors
+                                                                        .instituteAddress?.message
+                                                                }
+                                                                size="large"
+                                                                label="Address"
+                                                                className="w-full"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <div className="flex flex-wrap items-start justify-between gap-4">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="instituteCity"
+                                                    render={({
+                                                        field: { onChange, value, ...field },
+                                                    }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <MyInput
+                                                                    inputType="text"
+                                                                    inputPlaceholder="Select City/Village"
+                                                                    input={value}
+                                                                    onChangeFunction={onChange}
+                                                                    error={
+                                                                        form.formState.errors
+                                                                            .instituteCity?.message
+                                                                    }
+                                                                    size="large"
+                                                                    className="w-auto"
+                                                                    label="City/Village"
+                                                                    {...field}
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name="instituteState"
+                                                    render={({
+                                                        field: { onChange, value, ...field },
+                                                    }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <MyInput
+                                                                    inputType="text"
+                                                                    inputPlaceholder="Select State"
+                                                                    input={value}
+                                                                    onChangeFunction={onChange}
+                                                                    error={
+                                                                        form.formState.errors
+                                                                            .instituteState?.message
+                                                                    }
+                                                                    className="w-auto"
+                                                                    size="large"
+                                                                    label="State"
+                                                                    {...field}
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                            <FormField
+                                                control={form.control}
+                                                name="instituteCountry"
+                                                render={({
+                                                    field: { onChange, value, ...field },
+                                                }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType="text"
+                                                                inputPlaceholder="Select Country"
+                                                                input={value}
+                                                                onChangeFunction={onChange}
+                                                                error={
+                                                                    form.formState.errors
+                                                                        .instituteCountry?.message
+                                                                }
+                                                                size="large"
+                                                                label="Country"
+                                                                className="w-full"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="institutePinCode"
+                                                render={({
+                                                    field: { onChange, value, ...field },
+                                                }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType="text"
+                                                                inputPlaceholder="Enter Pincode"
+                                                                input={value}
+                                                                onChangeFunction={onChange}
+                                                                error={
+                                                                    form.formState.errors
+                                                                        .institutePinCode?.message
+                                                                }
+                                                                size="large"
+                                                                label="Pincode"
+                                                                className="w-full"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
                                     </div>
+                                </div>
+
+                                {/* Fixed Save Changes button */}
+                                <div className="flex justify-end bg-white p-4 pb-0">
+                                    <MyButton
+                                        type="submit"
+                                        scale="large"
+                                        buttonType="secondary"
+                                        layoutVariant="default"
+                                        disable={Object.keys(form.formState.errors).length > 0}
+                                    >
+                                        Save Changes
+                                    </MyButton>
                                 </div>
                             </form>
                         </FormProvider>
