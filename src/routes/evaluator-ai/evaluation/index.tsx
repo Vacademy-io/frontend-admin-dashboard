@@ -15,7 +15,7 @@ export const Route = createFileRoute("/evaluator-ai/evaluation/")({
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     useEffect(() => {
-        setNavHeading(<h1 className="text-lg">Evaluat Students</h1>);
+        setNavHeading(<h1 className="text-lg">Evaluate Students</h1>);
     }, []);
-    return <EvaluatedStudents/>
+    return <EvaluatedStudents />;
 }

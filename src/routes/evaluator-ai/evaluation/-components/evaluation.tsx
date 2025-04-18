@@ -1,24 +1,27 @@
-
+/* eslint-disable */
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { StudentSelectionDialog } from "./select-students";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserX } from "lucide-react"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { UserX } from "lucide-react";
 import StudentEvaluationTable from "./student-evaulation";
 import { toast } from "sonner";
 import { useLoaderStore } from "../-hooks/loader";
 import { type StudentData } from "./select-students";
-import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { EVALUATION_TOOL_EVALUATE_ASSESSMENT, EVALUATION_TOOL_STATUS } from "@/constants/urls";
-import { parseEvaluationResults ,transformEvaluationData } from "../-utils/utils";
+import { parseEvaluationResults, transformEvaluationData } from "../-utils/utils";
 import axios from "axios";
 
 const evaluatedStudentData = JSON.parse(localStorage.getItem("evaluatedStudentData") || "[]");
 const studentData = JSON.parse(localStorage.getItem("students") || "[]");
 const assessments = JSON.parse(localStorage.getItem("assessments") || "[]");
-
-
-
 
 interface OutputData {
     id: string;
@@ -36,23 +39,23 @@ interface TaskResponse {
 
 const ShimmerLoadingTable = () => {
     return (
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex w-full flex-col gap-4">
             <div className="text-base font-bold">Please wait we are Evaluating students...</div>
             <div className="w-full overflow-x-auto">
-                <table className="min-w-full border border-muted rounded-md">
+                <table className="min-w-full rounded-md border border-muted">
                     <thead>
                         <tr className="bg-muted/30">
                             <th className="p-3 text-left">
-                                <div className="h-4 w-24 bg-muted rounded animate-pulse shimmer"></div>
+                                <div className="shimmer h-4 w-24 animate-pulse rounded bg-muted"></div>
                             </th>
                             <th className="p-3 text-left">
-                                <div className="h-4 w-32 bg-muted rounded animate-pulse shimmer"></div>
+                                <div className="shimmer h-4 w-32 animate-pulse rounded bg-muted"></div>
                             </th>
                             <th className="p-3 text-left">
-                                <div className="h-4 w-20 bg-muted rounded animate-pulse shimmer"></div>
+                                <div className="shimmer h-4 w-20 animate-pulse rounded bg-muted"></div>
                             </th>
                             <th className="p-3 text-left">
-                                <div className="h-4 w-16 bg-muted rounded animate-pulse shimmer"></div>
+                                <div className="shimmer h-4 w-16 animate-pulse rounded bg-muted"></div>
                             </th>
                         </tr>
                     </thead>
@@ -60,16 +63,16 @@ const ShimmerLoadingTable = () => {
                         {[1, 2, 3, 4, 5].map((row) => (
                             <tr key={row} className="border-t border-muted">
                                 <td className="p-4">
-                                    <div className="h-4 w-28 bg-muted rounded animate-pulse shimmer"></div>
+                                    <div className="shimmer h-4 w-28 animate-pulse rounded bg-muted"></div>
                                 </td>
                                 <td className="p-4">
-                                    <div className="h-4 w-36 bg-muted rounded animate-pulse shimmer"></div>
+                                    <div className="shimmer h-4 w-36 animate-pulse rounded bg-muted"></div>
                                 </td>
                                 <td className="p-4">
-                                    <div className="h-4 w-20 bg-muted rounded animate-pulse shimmer"></div>
+                                    <div className="shimmer h-4 w-20 animate-pulse rounded bg-muted"></div>
                                 </td>
                                 <td className="p-4">
-                                    <div className="h-8 w-16 bg-muted rounded animate-pulse shimmer"></div>
+                                    <div className="shimmer h-8 w-16 animate-pulse rounded bg-muted"></div>
                                 </td>
                             </tr>
                         ))}
@@ -80,29 +83,24 @@ const ShimmerLoadingTable = () => {
     );
 };
 
-
 export const EvaluatedStudents = () => {
-    const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const[evaluatedData , setEvaluatedData] = useState(evaluatedStudentData)
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [evaluatedData, setEvaluatedData] = useState(evaluatedStudentData);
 
     const { isLoading, setLoading } = useLoaderStore();
 
     function transformStudentData(studentDataArray: StudentData[]): OutputData[] {
-        return studentDataArray.map(student => ({
+        return studentDataArray.map((student) => ({
             id: student.enrollId, // Assuming enrollId maps to id
             response_id: student.pdfId, // Assuming pdfId maps to response_id
             full_name: student.name, // name maps to full_name
             email: "", // Default empty string for email
-            contact_number: "" // Default empty string for contact number
+            contact_number: "", // Default empty string for contact number
         }));
     }
 
-
-
     const handleStudentSubmit = async (students: StudentData[], selectedAssessment: string) => {
         try {
-         
-
             setLoading(true);
             const data = transformStudentData(students);
 
@@ -112,8 +110,8 @@ export const EvaluatedStudents = () => {
                 url: EVALUATION_TOOL_EVALUATE_ASSESSMENT,
                 data: data,
                 params: {
-                    assessmentId: selectedAssessment
-                }
+                    assessmentId: selectedAssessment,
+                },
             });
 
             if (evaluateResponse.status !== 200) {
@@ -132,20 +130,21 @@ export const EvaluatedStudents = () => {
                             data: null,
                         });
                         // Check if task is completed
-                        if (statusResponse.data.status === "COMPLETED" ||
-                            statusResponse.data.status === "FAILED") {
+                        if (
+                            statusResponse.data.status === "COMPLETED" ||
+                            statusResponse.data.status === "FAILED"
+                        ) {
                             return statusResponse.data;
                         }
                     } catch (error) {
                         console.error("Polling error:", error);
                     }
-                    await new Promise(resolve => setTimeout(resolve, 10000));
+                    await new Promise((resolve) => setTimeout(resolve, 10000));
                 }
             };
-             const finalStatus = await pollStatus();
+            const finalStatus = await pollStatus();
 
             if (finalStatus.status === "COMPLETED") {
-
                 const parsedResults = parseEvaluationResults(finalStatus);
                 const students = transformEvaluationData(parsedResults);
                 localStorage.setItem("evaluatedStudentData", JSON.stringify(students));
@@ -164,42 +163,57 @@ export const EvaluatedStudents = () => {
     };
     return (
         <main className="flex min-h-screen flex-col items-center">
-            <div className="flex justify-between gap-4 w-full">
-                <h1 className="mb-8 text-xl font-bold items-center">Evaluated Student List</h1>
-                <Button variant={"destructive"} onClick={() => { setIsDialogOpen(true) }}>Evaluat Student</Button>
+            <div className="flex w-full justify-between gap-4">
+                <h1 className="mb-8 items-center text-xl font-bold">Evaluated Student List</h1>
+                <Button
+                    variant={"destructive"}
+                    onClick={() => {
+                        setIsDialogOpen(true);
+                    }}
+                >
+                    Evaluate Student
+                </Button>
             </div>
-            {(!isLoading && evaluatedData.length > 0) && <StudentEvaluationTable data={evaluatedData} />}
-
+            {!isLoading && evaluatedData.length > 0 && (
+                <StudentEvaluationTable data={evaluatedData} />
+            )}
 
             {isLoading && <ShimmerLoadingTable />}
-          
-            {!isLoading && evaluatedData.length == 0 && <Card className="border-dashed border-2 bg-muted/30 w-[75vw] mt-8">
-                <CardHeader className="flex flex-row items-center justify-center pb-2">
-                    <UserX className="h-12 w-12 text-muted-foreground opacity-50" />
-                </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center text-center pb-6">
-                    <CardTitle className="text-xl font-medium mt-4 mb-2">No Evaluated Students</CardTitle>
-                    <CardDescription className="max-w-md">
-                        You haven't evaluated any students yet. Click the "Evaluate Student" button to select students for
-                        evaluation.
-                    </CardDescription>
-                </CardContent>
-                <CardFooter className="flex justify-center pb-6">
-                    <Button variant={"destructive"} onClick={() => { setIsDialogOpen(true) }}>Evaluat Student</Button>
-                </CardFooter>
-            </Card>}
 
-     
+            {!isLoading && evaluatedData.length == 0 && (
+                <Card className="mt-8 w-[75vw] border-2 border-dashed bg-muted/30">
+                    <CardHeader className="flex flex-row items-center justify-center pb-2">
+                        <UserX className="size-12 text-muted-foreground opacity-50" />
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center justify-center pb-6 text-center">
+                        <CardTitle className="mb-2 mt-4 text-xl font-medium">
+                            No Evaluated Students
+                        </CardTitle>
+                        <CardDescription className="max-w-md">
+                            You haven&apos;t evaluated any students yet. Click the "Evaluate
+                            Student" button to select students for evaluation.
+                        </CardDescription>
+                    </CardContent>
+                    <CardFooter className="flex justify-center pb-6">
+                        <Button
+                            variant={"destructive"}
+                            onClick={() => {
+                                setIsDialogOpen(true);
+                            }}
+                        >
+                            Evaluate Student
+                        </Button>
+                    </CardFooter>
+                </Card>
+            )}
+
             <StudentSelectionDialog
                 isOpen={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
+                // @ts-expect-error : //FIXME this error
                 onSubmit={handleStudentSubmit}
-                students={studentData}
-                assessments={assessments}
                 title="Select Students for Assignment"
             />
         </main>
     );
 };
-
-

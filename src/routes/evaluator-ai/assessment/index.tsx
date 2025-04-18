@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { Examination } from "@/svgs";
 import { useNavigate } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 
 interface assessment {
     assessmentId: string;
@@ -29,16 +30,15 @@ function RouteComponent() {
         setNavHeading(<h1 className="text-lg">Assessment</h1>);
         const storedData = localStorage.getItem("assessments");
         if (storedData) {
-          try {
-            const parsed = JSON.parse(storedData);
-            setAssessments(parsed);
-            console.log("Parsed assessment:", parsed);
-          } catch (err) {
-            console.error("Error parsing assessment:", err);
-          }
+            try {
+                const parsed = JSON.parse(storedData);
+                setAssessments(parsed);
+                console.log("Parsed assessment:", parsed);
+            } catch (err) {
+                console.error("Error parsing assessment:", err);
+            }
         }
     }, []);
-
 
     return (
         <Dialog>
@@ -52,41 +52,51 @@ function RouteComponent() {
             </DialogTrigger>
             <div className="mt-4">
                 {assessments.length > 0 ? (
-                  <div className="space-y-5">
-                    {assessments.map((assessment) => (
-                      <div
-                        key={assessment.assessmentId}
-                        className="p-4 bg-white border rounded-md shadow-sm hover:shadow-md transition flex flex-col"
-                      >
-                        <div>
-                          <h3 className="text-base font-semibold text-gray-800">
-                            {assessment.title}
-                          </h3>
-                          <span className="text-xs text-gray-500">
-                            Assessment ID: {assessment.assessmentId}
-                          </span>
-                        </div>
-                        <button
-                          className="bg-red-500 px-2 py-1 text-white rounded-sm ml-auto"
-                          onClick={() => {
-                            const updatedAssessments = assessments.filter(a => a.assessmentId !== assessment.assessmentId);
-                            setAssessments(updatedAssessments);
-                            localStorage.setItem("assessments", JSON.stringify(updatedAssessments));
-                          }}
-                        >
-                          Delete Test
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                    <div className="space-y-5">
+                        {assessments.map((assessment) => (
+                            <div
+                                key={assessment.assessmentId}
+                                className="flex flex-col rounded-md border bg-white p-4 shadow-sm transition hover:shadow-md"
+                            >
+                                <div>
+                                    <h3 className="text-base font-semibold text-gray-800">
+                                        {assessment.title}
+                                    </h3>
+                                    <span className="text-xs text-gray-500">
+                                        Assessment ID: {assessment.assessmentId}
+                                    </span>
+                                </div>
+                                <Button
+                                    className="ml-auto"
+                                    variant={"destructive"}
+                                    onClick={() => {
+                                        const updatedAssessments = assessments.filter(
+                                            (a) => a.assessmentId !== assessment.assessmentId,
+                                        );
+                                        setAssessments(updatedAssessments);
+                                        localStorage.setItem(
+                                            "assessments",
+                                            JSON.stringify(updatedAssessments),
+                                        );
+                                    }}
+                                >
+                                    Delete
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
                 ) : (
-                  <div className="text-center text-gray-500 py-10">
-                    <Examination className="mx-auto mb-4 w-12 h-12 text-gray-400" />
-                    <p className="mb-2">No assessments available</p>
-                    <MyButton onClick={() => navigate({ to: "/evaluator-ai/assessment/create-assessment" })}>
-                      Create New Assessment
-                    </MyButton>
-                  </div>
+                    <div className="py-10 text-center text-gray-500">
+                        <Examination className="mx-auto mb-4 size-12 text-gray-400" />
+                        <p className="mb-2">No assessments available</p>
+                        <MyButton
+                            onClick={() =>
+                                navigate({ to: "/evaluator-ai/assessment/create-assessment" })
+                            }
+                        >
+                            Create New Assessment
+                        </MyButton>
+                    </div>
                 )}
             </div>
             <DialogContent className="mx-auto">
