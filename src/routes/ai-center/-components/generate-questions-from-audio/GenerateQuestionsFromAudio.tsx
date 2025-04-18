@@ -14,11 +14,12 @@ import { z } from "zod";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
+import { useAICenter } from "../../-contexts/useAICenterContext";
 
 export const GenerateQuestionsFromAudio = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
-    const [isUploading, setIsUploading] = useState(false);
+    const { setLoader, key, setKey } = useAICenter();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
@@ -63,15 +64,24 @@ export const GenerateQuestionsFromAudio = () => {
     const pendingRef = useRef(false);
 
     const handleUploadClick = () => {
+        setKey("audio");
         fileInputRef.current?.click();
     };
+
+    const [fileUploading, setFileUploading] = useState(false);
+
+    useEffect(() => {
+        if (key === "audio") {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             const fileId = await uploadFile({
                 file,
-                setIsUploading,
+                setIsUploading: setFileUploading,
                 userId: "your-user-id",
                 source: instituteId,
                 sourceId: "STUDENTS",
@@ -101,7 +111,6 @@ export const GenerateQuestionsFromAudio = () => {
 
     const pollGenerateQuestionsFromAudio = (audioId: string) => {
         if (pendingRef.current) {
-            setIsUploading(true);
             return;
         }
         getQuestionsFromAudioMutation.mutate({
@@ -127,13 +136,14 @@ export const GenerateQuestionsFromAudio = () => {
             difficulty: string | null;
             language: string | null;
         }) => {
+            setLoader(true);
+            setKey("audio");
             return handleGetQuestionsFromAudio(audioId, numQuestions, prompt, difficulty, language);
         },
         onSuccess: (response, variables) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
                 pendingRef.current = true;
-                setIsUploading(true);
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
             }
@@ -143,7 +153,8 @@ export const GenerateQuestionsFromAudio = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
-                setIsUploading(false);
+                setLoader(false);
+                setKey(null);
                 setAssessmentData((prev) => ({
                     ...prev,
                     questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
@@ -174,7 +185,6 @@ export const GenerateQuestionsFromAudio = () => {
             scheduleNextPoll(variables.audioId);
         },
         onError: (error, variables) => {
-            setIsUploading(false);
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
                 pendingRef.current = false;
@@ -185,6 +195,8 @@ export const GenerateQuestionsFromAudio = () => {
             // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                setLoader(false);
+                setKey(null);
                 clearPolling();
                 setNumQuestions(null);
                 setDifficulty(null);
@@ -199,18 +211,22 @@ export const GenerateQuestionsFromAudio = () => {
 
     const clearPolling = () => {
         if (pollingTimeoutIdRef.current) {
-            setIsUploading(false);
+            setLoader(false);
+            setKey(null);
             clearTimeout(pollingTimeoutIdRef.current);
             pollingTimeoutIdRef.current = null;
         }
     };
 
     const scheduleNextPoll = (audioId: string) => {
+        setLoader(false);
+        setKey(null);
         clearPolling(); // Clear any existing timeout
 
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
-            setIsUploading(true);
+            setLoader(true);
+            setKey("audio");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateQuestionsFromAudio(audioId);
             }, 10000);
@@ -227,12 +243,12 @@ export const GenerateQuestionsFromAudio = () => {
         <div>
             <GenerateCard
                 handleUploadClick={handleUploadClick}
-                isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
                 cardTitle="Generate Questions From Audio"
                 cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
                 inputFormat=".mp3,.wav,.flac,.aac,.m4a"
+                keyProp="audio"
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
@@ -252,6 +268,7 @@ export const GenerateQuestionsFromAudio = () => {
                     language={language}
                     setLanguage={setLanguage}
                     audioId={audioId}
+                    keyProp="audio"
                 />
             )}
         </div>

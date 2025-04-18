@@ -13,6 +13,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { useAICenter } from "../../-contexts/useAICenterContext";
 
 const formSchema = z.object({
     text: z.string().min(1),
@@ -30,7 +31,6 @@ export const GenerateQuestionsFromText = () => {
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
-    const [isUploading, setIsUploading] = useState(false);
     const [disableSubmitBtn, setDisableSubmitBtn] = useState(true);
     const formSubmitRef = useRef(() => {});
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
@@ -71,6 +71,7 @@ export const GenerateQuestionsFromText = () => {
             question_language: "",
         },
     });
+    const { key: keyContext, loader, setLoader, setKey } = useAICenter();
 
     const handleDisableSubmitBtn = (value: boolean) => {
         setDisableSubmitBtn(value);
@@ -97,7 +98,6 @@ export const GenerateQuestionsFromText = () => {
 
     const pollGenerateQuestionsFromText = (data: QuestionsFromTextData) => {
         if (pendingRef.current) {
-            setIsUploading(true);
             return;
         }
         getQuestionsFromTextMutation.mutate({
@@ -119,8 +119,8 @@ export const GenerateQuestionsFromText = () => {
             question_type: string;
             question_language: string;
         }) => {
-            console.log("inside get questions from text mutation");
-            setIsUploading(true);
+            setLoader(true);
+            setKey("text");
             return handleGetQuestionsFromText(
                 data.text,
                 data.num,
@@ -134,7 +134,6 @@ export const GenerateQuestionsFromText = () => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
                 pendingRef.current = true;
-                setIsUploading(true);
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
             }
@@ -144,7 +143,8 @@ export const GenerateQuestionsFromText = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
-                setIsUploading(false);
+                setLoader(false);
+                setKey(null);
                 dialogForm.reset();
                 handleOpenChange(false);
                 setIsMoreQuestionsDialog(false);
@@ -182,7 +182,6 @@ export const GenerateQuestionsFromText = () => {
             });
         },
         onError: (error, variables) => {
-            setIsUploading(false);
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
                 pendingRef.current = false;
@@ -193,6 +192,8 @@ export const GenerateQuestionsFromText = () => {
             // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                setLoader(false);
+                setKey(null);
                 handleOpenChange(false);
                 clearPolling();
                 return;
@@ -205,18 +206,22 @@ export const GenerateQuestionsFromText = () => {
 
     const clearPolling = () => {
         if (pollingTimeoutIdRef.current) {
-            setIsUploading(false);
+            setLoader(false);
+            setKey(null);
             clearTimeout(pollingTimeoutIdRef.current);
             pollingTimeoutIdRef.current = null;
         }
     };
 
     const scheduleNextPoll = (data: QuestionsFromTextData) => {
+        setLoader(false);
+        setKey(null);
         clearPolling(); // Clear any existing timeout
 
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
-            setIsUploading(true);
+            setLoader(true);
+            setKey("text");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateQuestionsFromText(data);
             }, 10000);
@@ -231,7 +236,7 @@ export const GenerateQuestionsFromText = () => {
 
     const submitButton = (
         <div className="flex w-full items-center justify-center">
-            {isUploading ? (
+            {loader ? (
                 <MyButton>
                     <DashboardLoader height="60px" size={20} color="#ffffff" />
                 </MyButton>
@@ -249,13 +254,13 @@ export const GenerateQuestionsFromText = () => {
 
     return (
         <div>
-            <Card className="w-[300px] cursor-pointer bg-primary-50">
+            <Card className="w-full cursor-pointer bg-primary-50">
                 <CardHeader>
                     <CardTitle>Generate Questions From Text</CardTitle>
                     <CardDescription>Add text content</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {isUploading ? (
+                    {loader && keyContext == "text" ? (
                         <MyButton
                             type="button"
                             scale="medium"
@@ -273,6 +278,7 @@ export const GenerateQuestionsFromText = () => {
                             layoutVariant="default"
                             className="w-full text-sm"
                             onClick={handleUploadClick}
+                            disable={loader && keyContext != "text" && keyContext != ""}
                         >
                             <UploadSimple size={32} />
                             Upload
@@ -305,6 +311,7 @@ export const GenerateQuestionsFromText = () => {
                     handleDisableSubmitBtn={handleDisableSubmitBtn}
                     submitFormFn={submitFormFn}
                     dialogForm={dialogForm}
+                    keyProp="text"
                 />
             )}
         </div>

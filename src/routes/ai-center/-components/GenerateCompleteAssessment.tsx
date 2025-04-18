@@ -18,7 +18,8 @@ import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/ge
 import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
 import { QuestionsFromTextDialog } from "./generate-questions-from-text/QuestionsFromTextDialog";
 import { QuestionsFromTextData } from "./generate-questions-from-text/GenerateQuestionsFromText";
-
+import { useAICenter } from "../-contexts/useAICenterContext";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 // Infer the form type from the schema
 type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
 
@@ -45,6 +46,7 @@ interface GenerateCompleteAssessmentProps {
     handleDisableSubmitBtn?: (value: boolean) => void;
     submitFormFn?: (submitFn: () => void) => void;
     dialogForm?: UseFormReturn<QuestionsFromTextData>;
+    keyProp: string | null;
 }
 
 const GenerateCompleteAssessment = ({
@@ -69,12 +71,14 @@ const GenerateCompleteAssessment = ({
     handleDisableSubmitBtn,
     submitFormFn,
     dialogForm,
+    keyProp,
 }: GenerateCompleteAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
         assessmentData?.questions,
     );
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const { loader, key: keyContext } = useAICenter();
 
     const { getValues } = form;
 
@@ -205,21 +209,35 @@ const GenerateCompleteAssessment = ({
                                                             }
                                                         />
                                                     )}
-
-                                                    <MyButton
-                                                        type="button"
-                                                        scale="medium"
-                                                        buttonType="primary"
-                                                        layoutVariant="default"
-                                                        className="mr-4 text-sm"
-                                                        onClick={() =>
-                                                            handleGenerateQuestionsForAssessment(
-                                                                audioId || "",
-                                                            )
-                                                        }
-                                                    >
-                                                        Generate Questions
-                                                    </MyButton>
+                                                    {loader && keyContext == keyProp ? (
+                                                        <MyButton
+                                                            type="button"
+                                                            scale="medium"
+                                                            buttonType="primary"
+                                                            layoutVariant="default"
+                                                            className="mr-4 text-sm"
+                                                        >
+                                                            <DashboardLoader
+                                                                size={20}
+                                                                color="#ffffff"
+                                                            />
+                                                        </MyButton>
+                                                    ) : (
+                                                        <MyButton
+                                                            type="button"
+                                                            scale="medium"
+                                                            buttonType="primary"
+                                                            layoutVariant="default"
+                                                            className="mr-4 text-sm"
+                                                            onClick={() =>
+                                                                handleGenerateQuestionsForAssessment(
+                                                                    audioId || "",
+                                                                )
+                                                            }
+                                                        >
+                                                            Generate Questions
+                                                        </MyButton>
+                                                    )}
                                                     {/* <ExportQuestionPaperAI
                                                         responseQuestionsData={
                                                             assessmentData?.questions
