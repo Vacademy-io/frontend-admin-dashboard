@@ -369,61 +369,7 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                     </FormItem>
                                                 )}
                                             />
-                                            <FormField
-                                                control={form.control}
-                                                name="instituteCountry"
-                                                render={({
-                                                    field: { onChange, value, ...field },
-                                                }) => (
-                                                    <FormItem>
-                                                        <FormControl>
-                                                            <MyInput
-                                                                inputType="text"
-                                                                inputPlaceholder="Select Country"
-                                                                input={value}
-                                                                onChangeFunction={onChange}
-                                                                required={true}
-                                                                error={
-                                                                    form.formState.errors
-                                                                        .instituteCountry?.message
-                                                                }
-                                                                size="large"
-                                                                label="Country"
-                                                                className="w-full"
-                                                                {...field}
-                                                            />
-                                                        </FormControl>
-                                                    </FormItem>
-                                                )}
-                                            />
                                             <div className="flex flex-wrap items-start justify-between gap-4">
-                                                <FormField
-                                                    control={form.control}
-                                                    name="instituteState"
-                                                    render={({
-                                                        field: { onChange, value, ...field },
-                                                    }) => (
-                                                        <FormItem>
-                                                            <FormControl>
-                                                                <MyInput
-                                                                    inputType="text"
-                                                                    inputPlaceholder="Select State"
-                                                                    input={value}
-                                                                    onChangeFunction={onChange}
-                                                                    required={true}
-                                                                    error={
-                                                                        form.formState.errors
-                                                                            .instituteState?.message
-                                                                    }
-                                                                    className="w-auto"
-                                                                    size="large"
-                                                                    label="State"
-                                                                    {...field}
-                                                                />
-                                                            </FormControl>
-                                                        </FormItem>
-                                                    )}
-                                                />
                                                 <FormField
                                                     control={form.control}
                                                     name="instituteCity"
@@ -451,7 +397,62 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                         </FormItem>
                                                     )}
                                                 />
+                                                <FormField
+                                                    control={form.control}
+                                                    name="instituteState"
+                                                    render={({
+                                                        field: { onChange, value, ...field },
+                                                    }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <MyInput
+                                                                    inputType="text"
+                                                                    inputPlaceholder="Select State"
+                                                                    input={value}
+                                                                    onChangeFunction={onChange}
+                                                                    required={true}
+                                                                    error={
+                                                                        form.formState.errors
+                                                                            .instituteState?.message
+                                                                    }
+                                                                    className="w-auto"
+                                                                    size="large"
+                                                                    label="State"
+                                                                    {...field}
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
                                             </div>
+                                            <FormField
+                                                control={form.control}
+                                                name="instituteCountry"
+                                                render={({
+                                                    field: { onChange, value, ...field },
+                                                }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType="text"
+                                                                inputPlaceholder="Select Country"
+                                                                input={value}
+                                                                onChangeFunction={onChange}
+                                                                required={true}
+                                                                error={
+                                                                    form.formState.errors
+                                                                        .instituteCountry?.message
+                                                                }
+                                                                size="large"
+                                                                label="Country"
+                                                                className="w-full"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+
                                             <FormField
                                                 control={form.control}
                                                 name="institutePinCode"
