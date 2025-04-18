@@ -54,9 +54,7 @@ export const SlideMaterial = ({
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [heading, setHeading] = useState(
-        activeItem?.document_title || activeItem?.video_title || "",
-    );
+    const [heading, setHeading] = useState(activeItem?.slide_title || "");
     const router = useRouter();
     const [content, setContent] = useState<JSX.Element | null>(null);
 
@@ -65,7 +63,6 @@ export const SlideMaterial = ({
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
     const { addUpdateVideoSlide } = useSlides(chapterId || "");
-
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
     };
@@ -233,6 +230,8 @@ export const SlideMaterial = ({
                 setContent(<div>Error loading document content</div>);
             }
             return;
+        } else if (activeItem.source_type == "QUESTION") {
+            setContent(<div>Question type slide</div>);
         }
 
         return;
@@ -368,7 +367,7 @@ export const SlideMaterial = ({
     }, [items]);
 
     useEffect(() => {
-        setHeading(activeItem?.document_title || activeItem?.video_title || "");
+        setHeading(activeItem?.slide_title || "");
         loadContent();
     }, [activeItem]);
 

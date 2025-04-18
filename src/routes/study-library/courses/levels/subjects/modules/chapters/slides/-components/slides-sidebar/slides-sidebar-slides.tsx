@@ -2,7 +2,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { truncateString } from "@/lib/reusable/truncateString";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
-import { DotsSixVertical, FileDoc, FilePdf, PlayCircle } from "@phosphor-icons/react";
+import { DotsSixVertical, FileDoc, FilePdf, PlayCircle, Question } from "@phosphor-icons/react";
 import { ReactNode, useEffect } from "react";
 import {
     Slide,
@@ -77,6 +77,7 @@ export const ChapterSidebarSlides = ({
     });
 
     useEffect(() => {
+        console.log(slides);
         if (slides?.length) {
             form.reset({ slides });
             setItems(slides);
@@ -98,17 +99,18 @@ export const ChapterSidebarSlides = ({
     }, [slides, slideId]);
 
     const getIcon = (slide: Slide): ReactNode => {
-        const type =
-            slide.published_url != null || slide.video_url != null ? "VIDEO" : slide.document_type;
+        const type = slide?.source_type === "DOCUMENT" ? slide?.document_type : slide?.source_type;
         switch (type) {
             case "PDF":
                 return <FilePdf className="size-6" />;
-            case "VIDEO":
-                return <PlayCircle className="size-6" />;
             case "DOC":
                 return <FileDoc className="size-6" />;
             case "DOCX":
                 return <FileDoc className="size-6" />;
+            case "VIDEO":
+                return <PlayCircle className="size-6" />;
+            case "QUESTION":
+                return <Question className="size-6" />;
             default:
                 return <></>;
         }
@@ -170,6 +172,7 @@ export const ChapterSidebarSlides = ({
                                                         {truncateString(
                                                             slide.document_title ||
                                                                 slide.video_title ||
+                                                                slide.slide_title ||
                                                                 "",
                                                             12,
                                                         )}
