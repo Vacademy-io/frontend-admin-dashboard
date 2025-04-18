@@ -1,8 +1,21 @@
+import { Button } from "@/components/ui/button";
+import { usePDF } from "react-to-pdf";
 export default function EvaluationSummary() {
+    const { toPDF, targetRef } = usePDF({ filename: "report.pdf" });
     return (
-        <div className="mx-auto w-[95vw] space-y-6 bg-white p-4">
+        <div className="mx-auto w-[95vw] space-y-6 bg-white p-4" ref={targetRef}>
             {/* Header */}
-            <h1 className="text-base font-bold text-gray-800">Evaluation Summary</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-base font-bold text-gray-800">Evaluation Summary</h1>
+                <Button
+                    variant={"outline"}
+                    onClick={() => {
+                        toPDF();
+                    }}
+                >
+                    Export Report
+                </Button>
+            </div>
 
             {/* Student Information */}
             <div className="rounded-md border border-[#e6e3d8]">

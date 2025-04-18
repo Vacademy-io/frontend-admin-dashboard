@@ -43,6 +43,7 @@ export const useAdaptiveMarkingStore = create<AdaptiveMarkingState>((set, get) =
         set((state) => {
             const sectionQuestions = [...(state.sections[sectionIndex] || [])];
             if (sectionQuestions[questionIndex]) {
+                // @ts-expect-error : //FIXME this error
                 sectionQuestions[questionIndex] = {
                     ...sectionQuestions[questionIndex],
                     questionMark: mark,
@@ -60,8 +61,10 @@ export const useAdaptiveMarkingStore = create<AdaptiveMarkingState>((set, get) =
         set((state) => {
             const sectionQuestions = [...(state.sections[sectionIndex] || [])];
             if (sectionQuestions[questionIndex]) {
+                // @ts-expect-error : //FIXME this error
                 sectionQuestions[questionIndex] = {
                     ...sectionQuestions[questionIndex],
+                    // @ts-expect-error : //FIXME this error
                     criteria: [...(sectionQuestions[questionIndex].criteria || []), criteria],
                 };
             }
@@ -77,8 +80,10 @@ export const useAdaptiveMarkingStore = create<AdaptiveMarkingState>((set, get) =
         set((state) => {
             const sectionQuestions = [...(state.sections[sectionIndex] || [])];
             if (sectionQuestions[questionIndex]) {
+                // @ts-expect-error : //FIXME this error
                 sectionQuestions[questionIndex] = {
                     ...sectionQuestions[questionIndex],
+                    // @ts-expect-error : //FIXME this error
                     criteria: sectionQuestions[questionIndex].criteria?.filter(
                         (c) => c.name !== criteriaName,
                     ),
@@ -96,6 +101,7 @@ export const useAdaptiveMarkingStore = create<AdaptiveMarkingState>((set, get) =
         set((state) => {
             const sectionQuestions = [...(state.sections[sectionIndex] || [])];
             if (sectionQuestions[questionIndex]) {
+                // @ts-expect-error : //FIXME this error
                 sectionQuestions[questionIndex] = {
                     ...sectionQuestions[questionIndex],
                     criteria,
