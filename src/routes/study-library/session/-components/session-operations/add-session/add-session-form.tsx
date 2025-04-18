@@ -65,12 +65,14 @@ export const AddSessionForm = ({
         }
 
         // Filter the packageWithLevels to only include packages present in initialValues
-        return packageWithLevels.filter(
+        const packages = packageWithLevels.filter(
             (pkg) =>
                 initialValues?.packages.some(
                     (initialPkg) => initialPkg.package_dto.id === pkg.package_dto.id,
                 ),
         );
+        console.log("packages", packages);
+        return packages;
     };
 
     const getFilteredLevelsForPackage = (packageId: string) => {
