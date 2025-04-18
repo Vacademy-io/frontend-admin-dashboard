@@ -361,7 +361,7 @@ export function StudentEnrollmentDialog() {
                                 </TableHead>
                                 <TableHead className="sticky left-12 z-10 bg-primary-50">
                                     Student Name
-                                </TableHead>
+                            </TableHead>
                                 <TableHead>Enrollment ID</TableHead>
                                 <TableHead>PDF ID</TableHead>
                                 <TableHead>File ID</TableHead>
