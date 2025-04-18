@@ -251,8 +251,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                 required
                                             />
 
-                                            {/* ... rest of your form fields, no changes needed ... */}
-
                                             <Separator />
                                             <h1>Contact Information</h1>
 
@@ -269,7 +267,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 inputPlaceholder="Institute Email"
                                                                 input={value}
                                                                 onChangeFunction={onChange}
-                                                                required={true}
                                                                 error={
                                                                     form.formState.errors
                                                                         .instituteEmail?.message
@@ -296,7 +293,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 inputPlaceholder="Institute Phone Number"
                                                                 input={value}
                                                                 onChangeFunction={onChange}
-                                                                required={true}
                                                                 error={
                                                                     form.formState.errors
                                                                         .institutePhoneNumber
@@ -324,7 +320,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 inputPlaceholder="Institute Website"
                                                                 input={value}
                                                                 onChangeFunction={onChange}
-                                                                required={true}
                                                                 error={
                                                                     form.formState.errors
                                                                         .instituteWebsite?.message
@@ -355,7 +350,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 inputPlaceholder="Address line 1"
                                                                 input={value}
                                                                 onChangeFunction={onChange}
-                                                                required={true}
                                                                 error={
                                                                     form.formState.errors
                                                                         .instituteAddress?.message
@@ -383,7 +377,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                     inputPlaceholder="Select City/Village"
                                                                     input={value}
                                                                     onChangeFunction={onChange}
-                                                                    required={true}
                                                                     error={
                                                                         form.formState.errors
                                                                             .instituteCity?.message
@@ -410,7 +403,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                     inputPlaceholder="Select State"
                                                                     input={value}
                                                                     onChangeFunction={onChange}
-                                                                    required={true}
                                                                     error={
                                                                         form.formState.errors
                                                                             .instituteState?.message
@@ -438,7 +430,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 inputPlaceholder="Select Country"
                                                                 input={value}
                                                                 onChangeFunction={onChange}
-                                                                required={true}
                                                                 error={
                                                                     form.formState.errors
                                                                         .instituteCountry?.message
@@ -452,7 +443,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                     </FormItem>
                                                 )}
                                             />
-
                                             <FormField
                                                 control={form.control}
                                                 name="institutePinCode"
@@ -466,7 +456,6 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 inputPlaceholder="Enter Pincode"
                                                                 input={value}
                                                                 onChangeFunction={onChange}
-                                                                required={true}
                                                                 error={
                                                                     form.formState.errors
                                                                         .institutePinCode?.message
