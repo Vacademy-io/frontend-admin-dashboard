@@ -81,7 +81,7 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                                         }}
                                     >
                                         <span className="cursor-pointer text-orange-500 hover:underline">
-                                            Preview
+                                            Details
                                         </span>
                                     </Button>
                                 </TableCell>
