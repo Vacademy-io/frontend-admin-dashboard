@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useNavigate } from "@tanstack/react-router";
 import { setAuthorizationCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
+import { Link2Icon } from "lucide-react";
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -72,6 +73,10 @@ export function LoginForm() {
 
     const handleNavigateSignup = () => {
         navigate({ to: "/signup" });
+    };
+
+    const handleNavigateAiEvaluator = () => {
+        navigate({ to: "/evaluator-ai" });
     };
 
     return (
@@ -153,6 +158,15 @@ export function LoginForm() {
                                     onClick={handleNavigateSignup}
                                 >
                                     Create One
+                                </span>
+                            </p>
+                            <p className="text-caption font-regular text-primary-500">
+                                <span
+                                    className="cursor-pointer text-primary-500"
+                                    onClick={handleNavigateAiEvaluator}
+                                >
+                                    <Link2Icon className="mr-1 inline size-4" />
+                                    Try Our AI Evaluator Tool
                                 </span>
                             </p>
                         </div>
