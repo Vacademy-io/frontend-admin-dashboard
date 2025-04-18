@@ -395,7 +395,15 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                       .length > 0
                                                       ? false
                                                       : true;
-                                              if (examType === "SURVEY") return false;
+                                              if (examType === "SURVEY")
+                                                  return isQuestionPaperMissing;
+                                              if (examType === "PRACTICE") {
+                                                  // Return true if any of the above conditions are true
+                                                  return (
+                                                      isQuestionPaperMissing ||
+                                                      isMarksPerQuestionMissing
+                                                  );
+                                              }
 
                                               // Return true if any of the above conditions are true
                                               return (
@@ -413,7 +421,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                 {assessmentId !== "defaultId" ? "Update" : "Next"}
                             </MyButton>
                         </div>
-                        {examType !== "SURVEY" && (
+                        {(examType === "EXAM" || examType === "MOCK") && (
                             <>
                                 <Separator className="my-4" />
                                 <div id="duration-settings">

@@ -15,10 +15,8 @@ const formSchema = z.object({
         .min(1, "URL is required")
         .url("Please enter a valid URL")
         .refine(
-            (url) =>
-                url.includes("youtube.com") ||
-                url.includes("youtu.be") ||
-                url.includes("drive.google.com"),
+            (url) => url.includes("youtube.com") || url.includes("youtu.be"),
+            // url.includes("drive.google.com"),
             {
                 message: "Please enter a valid YouTube URL",
             },
@@ -96,7 +94,7 @@ export const AddVideoDialog = ({
                                     required={true}
                                     input={field.value}
                                     inputType="text"
-                                    inputPlaceholder="Enter YouTube/Google-Drive video URL here"
+                                    inputPlaceholder="Enter YouTube video URL here"
                                     onChangeFunction={field.onChange}
                                     className="w-full"
                                 />

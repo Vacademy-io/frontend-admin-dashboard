@@ -78,6 +78,14 @@ export const getQuestionPaperById = async (questionPaperId: string | undefined) 
     }
 };
 
+export const handleGetQuestionPaperById = (questionPaperId: string | undefined) => {
+    return {
+        queryKey: ["GET_QUESTION_PAPER_BY_ID", questionPaperId],
+        queryFn: () => getQuestionPaperById(questionPaperId),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
 export const getQuestionPaperDataWithFilters = async (
     pageNo: number,
     pageSize: number,

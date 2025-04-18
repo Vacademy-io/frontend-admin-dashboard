@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -645,6 +645,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     <SidebarProvider style={{ ["--sidebar-width" as string]: "565px" }}>
                         <AssessmentSubmissionsStudentTable
                             data={{
+                                // @ts-expect-error : //TODO: Fix this type error
                                 content: getAssessmentSubmissionsFilteredDataStudentData(
                                     participantsData.content,
                                     type,

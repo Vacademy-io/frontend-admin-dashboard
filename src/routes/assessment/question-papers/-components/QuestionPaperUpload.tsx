@@ -484,7 +484,7 @@ export const QuestionPaperUpload = ({
                                         questionPaperId={questionPaperId}
                                         isViewMode={false}
                                         isManualCreated={isManualCreated}
-                                        buttonText="Create"
+                                        buttonText="Add Questions"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
                                     />

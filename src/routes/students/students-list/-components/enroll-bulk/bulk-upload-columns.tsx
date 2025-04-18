@@ -17,7 +17,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Warning } from "phosphor-react";
 
 // Define the type for statusColumnRenderer properly
 type StatusColumnRenderer = (props: { row: Row<SchemaFields> }) => JSX.Element;
@@ -149,14 +148,9 @@ export const createEditableBulkUploadColumns = ({
                 accessorKey: header.column_name,
                 header: () => {
                     return (
-                        <div className="flex flex-col">
+                        <div className="flex items-center">
                             <span>{header.column_name.replace(/_/g, " ")}</span>
-                            {!header.optional && (
-                                <span className="text-xs text-danger-500">*Required</span>
-                            )}
-                            {header.type === "enum" && header.options && (
-                                <span className="text-xs text-neutral-500">(Select one)</span>
-                            )}
+                            {!header.optional && <span className="text-xs text-danger-500">*</span>}
                             {header.type === "date" && header.format && (
                                 <span className="text-xs text-neutral-500">({header.format})</span>
                             )}
@@ -178,6 +172,35 @@ export const createEditableBulkUploadColumns = ({
 
                     // Render editable cell if in edit mode
                     if (isEditing && isCurrentlyEditing) {
+                        // For gender type fields, render a dropdown
+                        if (header.type === "gender") {
+                            return (
+                                <Select
+                                    defaultValue={value?.toUpperCase()}
+                                    onValueChange={(newValue) =>
+                                        handleCellEdit(
+                                            rowIndex,
+                                            columnId,
+                                            newValue,
+                                            currentPage,
+                                            ITEMS_PER_PAGE,
+                                        )
+                                    }
+                                >
+                                    <SelectTrigger className={error ? "border-danger-500" : ""}>
+                                        <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {["MALE", "FEMALE", "OTHERS"].map((option) => (
+                                            <SelectItem key={option} value={option}>
+                                                {option}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            );
+                        }
+
                         // For enum type fields, render a dropdown
                         if (header.type === "enum" && header.options && header.options.length > 0) {
                             return (
@@ -242,31 +265,13 @@ export const createEditableBulkUploadColumns = ({
                     return (
                         <div
                             className={cn(
-                                `cursor-pointer truncate px-4 py-2 ${
-                                    error ? "rounded-lg border border-danger-600" : "border-none"
-                                }`,
+                                "cursor-pointer truncate",
+                                error ? "text-danger-500" : "text-neutral-900",
+                                isEditing && "hover:bg-neutral-100",
                             )}
-                            onClick={() => {
-                                if (isEditing) {
-                                    onCellClick(rowIndex, columnId);
-                                }
-                            }}
-                            onDoubleClick={() => {
-                                if (isEditing) {
-                                    onCellClick(rowIndex, columnId);
-                                }
-                            }}
+                            onClick={() => onCellClick(rowIndex, columnId)}
                         >
-                            <p
-                                className={`flex items-center gap-1 truncate ${
-                                    error ? "text-danger-500" : "text-neutral-500"
-                                } ${isEditing ? "bg-white-100" : "bg-none"}`}
-                            >
-                                {value || ""}{" "}
-                                <span className={`${error ? "visible" : "hidden"}`}>
-                                    <Warning />
-                                </span>
-                            </p>
+                            {header.type === "gender" && value ? value.toUpperCase() : value}
                         </div>
                     );
                 },
