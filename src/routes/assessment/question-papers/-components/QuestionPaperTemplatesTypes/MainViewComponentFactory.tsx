@@ -9,6 +9,7 @@ import { ComprehensiveMultipleCorrectQuestionPaperTemplateMainView } from "./Com
 import { ComprehensiveNumericQuestionPaperTemplateMainView } from "./ComprehensiveNumericType/ComprehensiveNumericQuestionPaperTemplateMainView";
 import { OneWordQuestionPaperTemplateMainView } from "./OneWordType/OneWordQuestionPaperTemplateMainView";
 import { LongAnswerQuestionPaperTemplateMainView } from "./LongAnswerType/LongAnswerQuestionPaperTemplateMainView";
+import { TrueFalseQuestionPaperTemplateMainView } from "./TrueFalse/TrueFalseQuestionPaperTemplateMainView";
 
 type MainViewComponentType = QuestionType;
 
@@ -23,6 +24,7 @@ const MainViewComponentsMap: Record<MainViewComponentType, MainViewComponent> = 
     CNUMERIC: ComprehensiveNumericQuestionPaperTemplateMainView,
     ONE_WORD: OneWordQuestionPaperTemplateMainView,
     LONG_ANSWER: LongAnswerQuestionPaperTemplateMainView,
+    TRUE_FALSE: TrueFalseQuestionPaperTemplateMainView,
 };
 
 export const MainViewComponentFactory = (params: {
