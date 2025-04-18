@@ -25,7 +25,7 @@ interface LevelWithStatus {
     start_date: string;
 }
 
-interface Package {
+export interface Package {
     package_dto: PackageDTO;
     level: LevelWithStatus[];
 }
