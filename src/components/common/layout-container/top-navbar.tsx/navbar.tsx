@@ -133,7 +133,7 @@ export function Navbar() {
                                             </p>
                                             <p className="text-sm text-neutral-600">
                                                 <span>Institute Mobile:&nbsp;</span>
-                                                <span>{instituteDetails?.phone}</span>
+                                                <span>+{instituteDetails?.phone}</span>
                                             </p>
                                             <p className="text-sm text-neutral-600">
                                                 <span>Institute Website:&nbsp;</span>
