@@ -9,9 +9,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FaExternalLinkAlt } from "react-icons/fa";
 import { useRouter } from "@tanstack/react-router";
 import { ArrowUpDown } from "lucide-react";
+import { IoOpen } from "react-icons/io5";
 
 interface Student {
     id: string;
@@ -81,7 +81,7 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                                             });
                                         }}
                                     >
-                                        <FaExternalLinkAlt className="size-4 cursor-pointer text-primary-300" />
+                                        <IoOpen className="size-4 cursor-pointer text-primary-300" />
                                     </Button>
                                 </TableCell>
                             </TableRow>
