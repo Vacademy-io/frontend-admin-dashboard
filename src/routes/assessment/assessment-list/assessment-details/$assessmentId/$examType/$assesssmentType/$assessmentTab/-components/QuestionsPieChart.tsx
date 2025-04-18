@@ -124,10 +124,16 @@ export function QuestionsPieChart() {
                         {(examType === "EXAM" || examType === "MOCK") && (
                             <p>
                                 <span className="font-normal text-black">Duration: </span>
-                                <span>
-                                    {(data.assessment_overview_dto.duration_in_min / 60).toFixed(2)}{" "}
-                                    min
-                                </span>
+                                {data.assessment_overview_dto.duration_in_min >= 60 ? (
+                                    <span>
+                                        {(
+                                            data.assessment_overview_dto.duration_in_min / 60
+                                        ).toFixed(2)}{" "}
+                                        hrs
+                                    </span>
+                                ) : (
+                                    <span>{data.assessment_overview_dto.duration_in_min} min</span>
+                                )}
                             </p>
                         )}
                         <p>
