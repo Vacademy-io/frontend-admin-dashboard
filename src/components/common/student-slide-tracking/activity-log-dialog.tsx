@@ -81,7 +81,7 @@ export const ActivityLogDialog = ({
             lastPageRead: item.percentage_watched,
             videos: item.videos,
             documents: item.documents,
-            concentrationScore: item.concentration_score,
+            concentrationScore: item.concentration_score?.concentration_score || 0,
         }));
 
         return {

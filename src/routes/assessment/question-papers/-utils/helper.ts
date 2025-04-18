@@ -49,7 +49,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
         subject_id: data.subject, // Assuming there's no direct mapping for subject_id
         questions: data?.questions?.map((question) => {
             const options =
-                question.questionType === QuestionType.MCQS
+                question.questionType === QuestionType.MCQS || QuestionType.TRUE_FALSE
                     ? // ||
                       // question.questionType === QuestionType.CMCQS
                       question.singleChoiceOptions.map((opt, idx) => ({
@@ -93,7 +93,7 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
 
             // Extract correct option indices as strings
             const correctOptionIds = (
-                question.questionType === QuestionType.MCQS
+                question.questionType === QuestionType.MCQS || QuestionType.TRUE_FALSE
                     ? // ||
                       // question.questionType === QuestionType.CMCQS
                       question.singleChoiceOptions
@@ -419,6 +419,28 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
     });
 };
 
+export const convertQuestionsToExportSchema = (rawQuestions: QuestionResponse[]) => {
+    return rawQuestions.map((q, idx) => ({
+        question_id: q.id,
+        question: {
+            id: q.text.id,
+            type: q.text.type,
+            content: q.text.content,
+        },
+        options_with_explanation: q.options.map((opt) => ({
+            id: opt.id,
+            text: {
+                content: opt.text.content,
+            },
+        })),
+        marking_json: q.auto_evaluation_json,
+        question_type: q.question_type,
+        section_id: q.section_id ?? "",
+        question_duration: q.default_question_time_mins ?? 1, // default to 1 if null
+        question_order: idx + 1,
+    }));
+};
+
 export const handleRefetchData = (
     getFilteredFavouriteData: ReturnType<typeof useMutation>,
     getFilteredActiveData: ReturnType<typeof useMutation>,
@@ -467,6 +489,13 @@ function getEvaluationJSON(
     subjectiveAnswerText?: string,
 ): string {
     switch (question.questionType) {
+        case "TRUE_FALSE":
+            return JSON.stringify({
+                type: "TRUE_FALSE",
+                data: {
+                    correctOptionIds,
+                },
+            });
         case "MCQS":
             return JSON.stringify({
                 type: "MCQS",
