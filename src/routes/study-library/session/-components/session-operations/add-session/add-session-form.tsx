@@ -59,37 +59,11 @@ export const AddSessionForm = ({
     const addCourseMutation = useAddCourse();
     const [locallyAddedLevels, setLocallyAddedLevels] = useState<Record<string, LevelType[]>>({});
 
-    const getFilteredPackages = () => {
+    const getPackages = () => {
         if (!initialValues) {
-            return packageWithLevels; // Return all packages if not editing
+            return packageWithLevels;
         }
-
-        // Filter the packageWithLevels to only include packages present in initialValues
-        return packageWithLevels.filter(
-            (pkg) =>
-                initialValues?.packages.some(
-                    (initialPkg) => initialPkg.package_dto.id === pkg.package_dto.id,
-                ),
-        );
-    };
-
-    const getFilteredLevelsForPackage = (packageId: string) => {
-        if (!initialValues) {
-            // Return an empty array if not editing - this was trying to use packageItem
-            return [];
-        }
-
-        // Find the package in initialValues
-        const packageInInitialValues = initialValues.packages.find(
-            (pkg) => pkg.package_dto.id === packageId,
-        );
-
-        if (!packageInInitialValues) {
-            return []; // If package not found in initialValues, show no levels
-        }
-
-        // Return only the levels from this package in initialValues
-        return packageInInitialValues.level;
+        return initialValues.packages;
     };
 
     // Add this inside the AddSessionForm component, before the return statement
@@ -370,7 +344,7 @@ export const AddSessionForm = ({
                             <FormItem className="w-full">
                                 <FormControl>
                                     <div className="flex flex-col gap-4">
-                                        {getFilteredPackages().map((packageItem) => {
+                                        {getPackages().map((packageItem) => {
                                             const packageHasSelectedLevels =
                                                 hasSelectedLevelsInPackage(
                                                     packageItem.package_dto.id,
@@ -412,9 +386,7 @@ export const AddSessionForm = ({
                                                         <Separator />
                                                         <div className="grid grid-cols-2">
                                                             {initialValues
-                                                                ? getFilteredLevelsForPackage(
-                                                                      packageItem.package_dto.id,
-                                                                  ).map((level) => {
+                                                                ? packageItem.level.map((level) => {
                                                                       const selected =
                                                                           isLevelSelected(
                                                                               level.level_dto.id,
