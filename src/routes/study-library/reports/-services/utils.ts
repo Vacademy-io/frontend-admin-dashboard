@@ -7,8 +7,15 @@ import {
     CHAPTER_WISE_LEARNERS_REPORT,
     SUBJECT_WISE_LEARNERS_REPORT,
     SLIDE_WISE_LEARNERS_REPORT,
+    INSTITUTE_SETTING,
+    UPDATE_INSTITUTE_SETTING,
+    LEARNERS_SETTING,
+    UPDATE_LEARNERS_SETTING,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { InstituteSettingResponse } from "../-types/types";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export const fetchBatchReport = async (data: {
     start_date: string;
@@ -135,6 +142,83 @@ export const fetchSlideWiseProgress = async (data: {
                 "Content-Type": "application/json",
             },
         });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const fetchInstituteSetting = async (instituteId: string) => {
+    try {
+        const response = await authenticatedAxiosInstance.get(INSTITUTE_SETTING, {
+            params: {
+                instituteId,
+            },
+            headers: {
+                Accept: "*/*",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const updateInstituteReportSetting = async (data: InstituteSettingResponse) => {
+    try {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const tokenData = getTokenDecodedData(accessToken);
+        const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+        const response = await authenticatedAxiosInstance.post(
+            `${UPDATE_INSTITUTE_SETTING}/${INSTITUTE_ID}`,
+            data,
+            {
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const fetchLearnerSetting = async (param: { userId: string; instituteId: string }) => {
+    try {
+        const response = await authenticatedAxiosInstance.get(LEARNERS_SETTING, {
+            params: param,
+            headers: {
+                Accept: "*/*",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const updateLearnersReportSetting = async (params: {
+    userId: string;
+    data: InstituteSettingResponse;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            `${UPDATE_LEARNERS_SETTING}`,
+            params.data,
+            {
+                params: { userId: params.userId },
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
         return response.data;
     } catch (error) {
         console.error(error);

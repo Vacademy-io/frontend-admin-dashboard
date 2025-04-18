@@ -59,15 +59,15 @@ export default function ProgressReports() {
     const transformToSubjectOverview = (
         data: SubjectProgressResponse,
     ): SubjectOverviewColumnType[] => {
-        return data.flatMap((subject) =>
-            subject.modules.map((module) => ({
-                subject: subject.subject_name,
+        return data.flatMap((subject) => {
+            return subject.modules.map((module, index) => ({
+                subject: index === 0 ? subject.subject_name : "", // Only first row gets the subject name
                 module: module.module_name,
                 module_id: module.module_id,
                 module_completed: `${module.module_completion_percentage}%`,
                 average_time_spent: `${module.avg_time_spent_minutes.toFixed(2)} min`,
-            })),
-        );
+            }));
+        });
     };
 
     const subjectWiseData = {

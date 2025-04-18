@@ -418,7 +418,9 @@ export default function TimelineReports() {
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">Course Completed by batch</div>
-                            <div>{`${reportData?.percentage_course_completed} %`}</div>
+                            <div>{`${formatToTwoDecimalPlaces(
+                                reportData?.percentage_course_completed,
+                            )} %`}</div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">

@@ -108,6 +108,7 @@ export default function TimelineReports() {
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
     const selectedLevel = watch("level");
+    const selectedStudent = watch("student");
     const startDate = watch("startDate");
     const endDate = watch("endDate");
 
@@ -370,7 +371,7 @@ export default function TimelineReports() {
                             <div>{`Date ${startDate} - ${endDate}`}</div>
                         </div>
                         <div className="flex flex-row gap-10">
-                            <ReportRecipientsDialogBox />
+                            <ReportRecipientsDialogBox userId={selectedStudent} />
                             <MyButton buttonType="secondary">Export</MyButton>
                         </div>
                     </div>
