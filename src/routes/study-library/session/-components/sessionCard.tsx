@@ -14,7 +14,6 @@ import { useRef, useState } from "react";
 import { AddSessionDataType } from "./session-operations/add-session/add-session-form";
 import { useEditSession } from "@/services/study-library/session-management/editSession";
 import { toast } from "sonner";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface SessionCardProps {
     data: SessionData;
@@ -23,7 +22,6 @@ interface SessionCardProps {
 export function SessionCard({ data }: SessionCardProps) {
     const [disableAddButton, setDisableAddButton] = useState(true);
     const editSessionMutation = useEditSession();
-    const { getPackageSessionId } = useInstituteDetailsStore();
 
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const handleOpenAddSessionDialog = () => {
@@ -42,13 +40,7 @@ export function SessionCard({ data }: SessionCardProps) {
         console.log("allPackageSessionIds", allPackageSessionIds);
 
         const visiblePackageSessionIds = sessionData.levels.map((level) => {
-            return (
-                getPackageSessionId({
-                    courseId: level.level_dto.package_id || "",
-                    sessionId: sessionData.id || "",
-                    levelId: level.level_dto.id || "",
-                }) || ""
-            );
+            return level.package_session_id;
         });
 
         const hiddenPackageSessionIds = allPackageSessionIds.filter((pksId) => {

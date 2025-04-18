@@ -33,6 +33,9 @@ const formSchema = z.object({
                 thumbnail_file_id: z.string().nullable(),
                 package_id: z.string(), // Moved package_id into level_dto
             }),
+            package_session_id: z.string(),
+            package_session_status: z.string(),
+            start_date: z.string(),
         }),
     ),
 });
@@ -77,6 +80,7 @@ export const AddSessionForm = ({
                     // Only include levels where package_session_status is "ACTIVE"
                     if (levelWithStatus.package_session_status === "ACTIVE") {
                         initialSelectedLevels.push({
+                            start_date: levelWithStatus.start_date,
                             level_dto: {
                                 id: levelWithStatus.level_dto.id,
                                 new_level: false,
@@ -85,6 +89,8 @@ export const AddSessionForm = ({
                                 thumbnail_file_id: levelWithStatus.level_dto.thumbnail_id,
                                 package_id: packageItem.package_dto.id,
                             },
+                            package_session_id: levelWithStatus.package_session_id,
+                            package_session_status: levelWithStatus.package_session_status,
                         });
                     }
                 });
@@ -114,6 +120,9 @@ export const AddSessionForm = ({
                             level_name: level.level_name,
                             duration_in_days: level.duration_in_days,
                             thumbnail_id: level.thumbnail_id,
+                            package_id: packageId,
+                            new_level: true,
+                            start_date: new Date().toISOString(),
                         },
                         package_session_id: "", // Use empty string instead of null
                         package_session_status: "ACTIVE", // Use "ACTIVE" instead of null
@@ -143,6 +152,7 @@ export const AddSessionForm = ({
                         .filter((level) => level.package_session_status === "ACTIVE")
                         .map((level) => ({
                             level_dto: {
+                                start_date: level.start_date,
                                 id: level.level_dto.id,
                                 new_level: false,
                                 level_name: level.level_dto.level_name,
@@ -150,6 +160,9 @@ export const AddSessionForm = ({
                                 thumbnail_file_id: level.level_dto.thumbnail_id,
                                 package_id: packageId,
                             },
+                            package_session_id: level.package_session_id,
+                            package_session_status: level.package_session_status,
+                            start_date: level.start_date,
                         }));
                 }) || [],
         },
@@ -173,21 +186,19 @@ export const AddSessionForm = ({
         durationInDays: number | null,
         packageId: string,
     ) => {
-        const tempId = `temp-${Date.now()}`; // Create a unique temporary ID
-
         // Create the new level object with the correct structure
         const newLevel: LevelForSession = {
             level_dto: {
-                id: tempId,
+                id: "",
                 new_level: true, // Ensure this is explicitly set to true
                 level_name: levelName,
                 duration_in_days: durationInDays,
                 thumbnail_file_id: null,
                 package_id: packageId,
             },
-            // package_session_id: "", // Use empty string instead of null
-            // package_session_status: "ACTIVE", // Use "ACTIVE" instead of null
-            // start_date: new Date().toISOString(), // Use current date instead of null
+            package_session_id: "",
+            package_session_status: "ACTIVE",
+            start_date: new Date().toISOString(),
         };
 
         // Add to form values
@@ -196,7 +207,7 @@ export const AddSessionForm = ({
 
         // Add to local state for tracking
         const levelForLocalTracking: LevelType = {
-            id: tempId,
+            id: "",
             level_name: levelName,
             duration_in_days: durationInDays,
             thumbnail_id: null,
@@ -239,6 +250,9 @@ export const AddSessionForm = ({
                     thumbnail_file_id: level.level_dto.thumbnail_id || "",
                     package_id: packageId,
                 },
+                package_session_id: level.package_session_id,
+                package_session_status: level.package_session_status,
+                start_date: level.start_date,
             };
             form.setValue("levels", [...currentLevels, levelToAdd]);
             console.log("updatedLevels", form.getValues("levels"));
