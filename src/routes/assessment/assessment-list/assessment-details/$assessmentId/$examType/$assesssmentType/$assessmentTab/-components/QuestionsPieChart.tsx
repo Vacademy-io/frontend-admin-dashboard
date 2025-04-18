@@ -67,7 +67,7 @@ export function AssessmentDetailsPieChart({
 
 export function QuestionsPieChart() {
     const instituteId = getInstituteId();
-    const { assessmentId } = Route.useParams();
+    const { assessmentId, examType } = Route.useParams();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { data, isLoading } = useSuspenseQuery(
         handleGetOverviewData({ assessmentId, instituteId }),
@@ -86,22 +86,30 @@ export function QuestionsPieChart() {
                                 {convertToLocalDateTime(data.assessment_overview_dto.created_on)}
                             </span>
                         </p>
-                        <p>
-                            <span className="font-normal text-black">Start Date and Time: </span>
-                            <span>
-                                {convertToLocalDateTime(
-                                    data.assessment_overview_dto.start_date_and_time,
-                                )}
-                            </span>
-                        </p>
-                        <p>
-                            <span className="font-normal text-black">End Date and Time: </span>
-                            <span>
-                                {convertToLocalDateTime(
-                                    data.assessment_overview_dto.end_date_and_time,
-                                )}
-                            </span>
-                        </p>
+                        {(examType === "EXAM" || examType === "SURVEY") && (
+                            <>
+                                <p>
+                                    <span className="font-normal text-black">
+                                        Start Date and Time:{" "}
+                                    </span>
+                                    <span>
+                                        {convertToLocalDateTime(
+                                            data.assessment_overview_dto.start_date_and_time,
+                                        )}
+                                    </span>
+                                </p>
+                                <p>
+                                    <span className="font-normal text-black">
+                                        End Date and Time:{" "}
+                                    </span>
+                                    <span>
+                                        {convertToLocalDateTime(
+                                            data.assessment_overview_dto.end_date_and_time,
+                                        )}
+                                    </span>
+                                </p>
+                            </>
+                        )}
                     </div>
                     <div className="flex flex-col gap-6">
                         <p>
@@ -113,10 +121,15 @@ export function QuestionsPieChart() {
                                 )}
                             </span>
                         </p>
-                        <p>
-                            <span className="font-normal text-black">Duration: </span>
-                            <span>{data.assessment_overview_dto.duration_in_min} min</span>
-                        </p>
+                        {(examType === "EXAM" || examType === "MOCK") && (
+                            <p>
+                                <span className="font-normal text-black">Duration: </span>
+                                <span>
+                                    {(data.assessment_overview_dto.duration_in_min / 60).toFixed(2)}{" "}
+                                    min
+                                </span>
+                            </p>
+                        )}
                         <p>
                             <span className="font-normal text-black">Total Participants: </span>
                             <span>{data.assessment_overview_dto.total_participants}</span>
