@@ -13,7 +13,7 @@ import { StudentTable } from "@/types/student-table-types";
 import { myColumns } from "@/components/design-system/utils/constants/table-column-data";
 import { STUDENT_LIST_COLUMN_WIDTHS } from "@/components/design-system/utils/constants/table-layout";
 import { BulkActions } from "./bulk-actions/bulk-actions";
-import { ColumnDef, OnChangeFn, RowSelectionState } from "@tanstack/react-table";
+import { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import RootErrorComponent from "@/components/core/deafult-error";
@@ -38,7 +38,7 @@ export const StudentsListSection = () => {
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState<StudentTable | null>(null);
+    const [selectedStudent] = useState<StudentTable | null>(null);
     const { getCourseFromPackage } = useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
 
@@ -223,27 +223,27 @@ export const StudentsListSection = () => {
         }
     }, [search, instituteDetails]);
 
-    const handleCellClick = (
-        student: StudentTable | null,
-        column: ColumnDef<StudentTable> | null,
-        isHeader: boolean = false,
-    ) => {
-        if (isHeader) {
-            setIsSidebarOpen(false);
-            setSelectedStudent(null);
-            return;
-        }
+    // const handleCellClick = (
+    //     student: StudentTable | null,
+    //     column: ColumnDef<StudentTable> | null,
+    //     isHeader: boolean = false,
+    // ) => {
+    //     if (isHeader) {
+    //         setIsSidebarOpen(false);
+    //         setSelectedStudent(student);
+    //         return;
+    //     }
 
-        if (!student) return;
+    //     if (!student) return;
 
-        if (selectedStudent?.user_id === student.user_id) {
-            setIsSidebarOpen(false);
-            setSelectedStudent(null);
-        } else {
-            setSelectedStudent(student);
-            setIsSidebarOpen(true);
-        }
-    };
+    //     if (selectedStudent?.user_id === student.user_id) {
+    //         setIsSidebarOpen(false);
+    //         setSelectedStudent(student);
+    //     } else {
+    //         setSelectedStudent(student);
+    //         setIsSidebarOpen(true);
+    //     }
+    // };
 
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
@@ -312,15 +312,15 @@ export const StudentsListSection = () => {
                                         rowSelection={currentPageSelection}
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
-                                        onCellClick={(row, column) => {
-                                            if (
-                                                column.id !== "checkbox" &&
-                                                column.id !== "options"
-                                            ) {
-                                                handleCellClick(row, column);
-                                            }
-                                        }}
-                                        onHeaderClick={() => handleCellClick(null, null, true)}
+                                        // onCellClick={(row, column) => {
+                                        //     if (
+                                        //         column.id !== "checkbox" &&
+                                        //         column.id !== "options"
+                                        //     ) {
+                                        //         handleCellClick(row, column);
+                                        //     }
+                                        // }}
+                                        // onHeaderClick={() => handleCellClick(null, null, true)}
                                     />
                                     <div>
                                         <StudentSidebar

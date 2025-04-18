@@ -16,12 +16,12 @@ import { StudentTestRecord } from "./student-test-records/student-test-record";
 import { getPublicUrl } from "@/services/upload_file";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { StudentTable } from "@/types/student-table-types";
+import { useStudentSidebar } from "../../../-context/selected-student-sidebar-context";
 
 export const StudentSidebar = ({
     selectedTab,
     examType,
     isStudentList,
-    selectedStudent,
 }: {
     selectedTab?: string;
     examType?: string;
@@ -33,6 +33,8 @@ export const StudentSidebar = ({
     const { toggleSidebar } = useSidebar();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [faceLoader, setFaceLoader] = useState(false);
+
+    const { selectedStudent } = useStudentSidebar();
 
     useEffect(() => {
         if (state == "expanded") {
