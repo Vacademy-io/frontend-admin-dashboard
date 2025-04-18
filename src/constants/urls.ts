@@ -166,3 +166,12 @@ export const SHARE_CREDENTIALS = `${BASE_URL}/auth-service/v1/user-operation/sen
 
 export const PROCESS_AUDIO_FILE = `${BASE_URL}/media-service/ai/get-question-audio/audio-parser/start-process-audio-file-id`;
 export const GET_QUESTIONS_FROM_AUDIO = `${BASE_URL}/media-service/ai/get-question-audio/audio-parser/audio-to-questions`;
+
+// Evaluation AI Free tool
+export const CREATE_ASSESSMENT_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment/create`;
+export const ADD_QUESTIONS_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment/sections`;
+export const GET_ASSESSMENT_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment`;
+
+
+export const EVALUATION_TOOL_EVALUATE_ASSESSMENT = `${BASE_URL}/media-service/ai/evaluation-tool/evaluate-assessment`
+export const EVALUATION_TOOL_STATUS = `${BASE_URL}/media-service/ai/evaluation-tool/status`

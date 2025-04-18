@@ -30,10 +30,14 @@ export const useUploadedQuestionPapersStore = create<UploadedQuestionPapersStore
 
 interface AssessmentStore {
     savedAssessmentId: string;
+    saveAssessmentName: string;
     setSavedAssessmentId: (id: string) => void;
+    setSavedAssessmentName: (name: string) => void;
 }
 
 export const useSavedAssessmentStore = create<AssessmentStore>((set) => ({
     savedAssessmentId: "",
+    saveAssessmentName: "",
     setSavedAssessmentId: (id: string) => set({ savedAssessmentId: id }),
+    setSavedAssessmentName: (name: string) => set({ saveAssessmentName: name }),
 }));
