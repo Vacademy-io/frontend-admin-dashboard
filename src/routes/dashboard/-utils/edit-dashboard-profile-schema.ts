@@ -5,9 +5,15 @@ export const editDashboardProfileSchema = z.object({
     instituteProfilePictureId: z.union([z.string(), z.undefined()]),
     instituteName: z.string().min(1, "Institute Name is required"),
     instituteType: z.string().min(1, "Select institute type"),
-    instituteEmail: z.string().email("Invalid email address").optional(),
+    instituteEmail: z
+        .string()
+        .optional()
+        .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "Invalid email address"),
     institutePhoneNumber: z.string().optional(),
-    instituteWebsite: z.string().optional(),
+    instituteWebsite: z
+        .string()
+        .optional()
+        .refine((val) => !val || /^https?:\/\/[^\s$.?#].[^\s]*$/i.test(val), "Invalid website URL"),
     instituteAddress: z.string().optional(),
     instituteCountry: z.string().optional(),
     instituteState: z.string().optional(),
