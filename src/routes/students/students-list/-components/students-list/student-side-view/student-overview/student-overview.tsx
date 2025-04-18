@@ -12,6 +12,7 @@ import { useDialogStore } from "@/routes/students/students-list/-hooks/useDialog
 
 export const StudentOverview = () => {
     const { selectedStudent } = useStudentSidebar();
+
     const [overviewData, setOverviewData] = useState<OverviewDetailsType[] | null>(null);
     const [daysUntilExpiry, setDaysUntilExpiry] = useState<number>(0);
 
@@ -30,6 +31,7 @@ export const StudentOverview = () => {
     }, [selectedStudent]);
 
     useEffect(() => {
+        console.log("selectedStudent", selectedStudent);
         const details = getDetailsFromPackageSessionId({
             packageSessionId: selectedStudent?.package_session_id || "",
         });
