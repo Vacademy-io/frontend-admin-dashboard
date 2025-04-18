@@ -21,6 +21,7 @@ import { getPublicUrl } from "@/services/upload_file";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { handleUpdateInstituteDashboard } from "../-services/dashboard-services";
+import PhoneInputField from "@/components/design-system/phone-input-field";
 
 type FormValues = z.infer<typeof editDashboardProfileSchema>;
 
@@ -288,20 +289,14 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                 }) => (
                                                     <FormItem>
                                                         <FormControl>
-                                                            <MyInput
-                                                                inputType="text"
-                                                                inputPlaceholder="Institute Phone Number"
-                                                                input={value}
-                                                                onChangeFunction={onChange}
-                                                                error={
-                                                                    form.formState.errors
-                                                                        .institutePhoneNumber
-                                                                        ?.message
-                                                                }
-                                                                size="large"
+                                                            <PhoneInputField
                                                                 label="Institute Phone Number"
-                                                                className="w-full"
-                                                                {...field}
+                                                                placeholder="123 456 7890"
+                                                                name="institutePhoneNumber"
+                                                                control={form.control}
+                                                                country="in"
+                                                                required={false}
+                                                                
                                                             />
                                                         </FormControl>
                                                     </FormItem>

@@ -30,7 +30,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
             control={control as Control}
             name={name}
             render={({ field }) => (
-                <FormItem className="w-96">
+                <FormItem>
                     <FormLabel>
                         {label}
                         {required && <span className="text-danger-600">*</span>}
@@ -42,7 +42,7 @@ const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
                             enableSearch={true}
                             placeholder={placeholder}
                             onChange={field.onChange}
-                            inputClass="w-96 h-7"
+                            inputClass="!w-full h-7"
                             disabled={disabled}
                             value={value}
                         />
