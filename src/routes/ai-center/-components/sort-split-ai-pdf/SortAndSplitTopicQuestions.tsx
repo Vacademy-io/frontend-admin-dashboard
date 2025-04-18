@@ -14,12 +14,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { GenerateCard } from "../GenerateCard";
 import SortAndSplitTopicQuestionsPreview from "./SortAndSplitTopicQuestionsPreview";
-
+import { useAICenter } from "../../-contexts/useAICenterContext";
 const SortAndSplitTopicQuestions = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: "",
@@ -33,7 +32,7 @@ const SortAndSplitTopicQuestions = () => {
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
-
+    const { setLoader, key, setKey } = useAICenter();
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
         mode: "onChange",
@@ -54,15 +53,24 @@ const SortAndSplitTopicQuestions = () => {
     });
 
     const handleUploadClick = () => {
+        setKey("sort-split-pdf");
         fileInputRef.current?.click();
     };
+
+    const [fileUploading, setFileUploading] = useState(false);
+
+    useEffect(() => {
+        if (key === "sort-split-pdf") {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             const fileId = await uploadFile({
                 file,
-                setIsUploading,
+                setIsUploading: setFileUploading,
                 userId: "your-user-id",
                 source: instituteId,
                 sourceId: "STUDENTS",
@@ -92,8 +100,11 @@ const SortAndSplitTopicQuestions = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) =>
-            handleSortSplitPDF(pdfId, userPrompt),
+        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+            setLoader(true);
+            setKey("sort-split-pdf");
+            return handleSortSplitPDF(pdfId, userPrompt);
+        },
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -107,6 +118,8 @@ const SortAndSplitTopicQuestions = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
+                setLoader(false);
+                setKey(null);
                 setAssessmentData((prev) => ({
                     ...prev,
                     questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
@@ -144,6 +157,8 @@ const SortAndSplitTopicQuestions = () => {
             // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                setLoader(false);
+                setKey(null);
                 clearPolling();
                 return;
             }
@@ -154,10 +169,14 @@ const SortAndSplitTopicQuestions = () => {
     });
 
     const scheduleNextPoll = () => {
+        setLoader(false);
+        setKey(null);
         clearPolling(); // Clear any existing timeout
 
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
+            setLoader(true);
+            setKey("sort-split-pdf");
             console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
@@ -200,12 +219,12 @@ const SortAndSplitTopicQuestions = () => {
         <div className="flex items-center justify-start gap-8">
             <GenerateCard
                 handleUploadClick={handleUploadClick}
-                isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
                 cardTitle="Sort and split topic questions from PDF"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                keyProp="sort-split-pdf"
             />
             {assessmentData.questions.length > 0 && (
                 <SortAndSplitTopicQuestionsPreview

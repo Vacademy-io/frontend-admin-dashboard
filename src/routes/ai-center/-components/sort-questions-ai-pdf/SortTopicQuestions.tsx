@@ -14,12 +14,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { GenerateCard } from "../GenerateCard";
 import SortTopicQuestionsPreview from "./SortTopicQuestionsPreview";
+import { useAICenter } from "../../-contexts/useAICenterContext";
 
 const SortTopicQuestions = () => {
     const instituteId = getInstituteId();
+    const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: "",
@@ -54,15 +55,24 @@ const SortTopicQuestions = () => {
     });
 
     const handleUploadClick = () => {
+        setKey("sort-topics-pdf");
         fileInputRef.current?.click();
     };
+
+    const [fileUploading, setFileUploading] = useState(false);
+
+    useEffect(() => {
+        if (key === "sort-topics-pdf") {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             const fileId = await uploadFile({
                 file,
-                setIsUploading,
+                setIsUploading: setFileUploading,
                 userId: "your-user-id",
                 source: instituteId,
                 sourceId: "STUDENTS",
@@ -92,8 +102,11 @@ const SortTopicQuestions = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) =>
-            handleSortQuestionsPDF(pdfId, userPrompt),
+        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+            setLoader(true);
+            setKey("sort-topics-pdf");
+            return handleSortQuestionsPDF(pdfId, userPrompt);
+        },
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -107,6 +120,8 @@ const SortTopicQuestions = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
+                setLoader(false);
+                setKey(null);
                 setAssessmentData((prev) => ({
                     ...prev,
                     questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
@@ -144,6 +159,8 @@ const SortTopicQuestions = () => {
             // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                setLoader(false);
+                setKey(null);
                 clearPolling();
                 return;
             }
@@ -154,10 +171,14 @@ const SortTopicQuestions = () => {
     });
 
     const scheduleNextPoll = () => {
+        setLoader(false);
+        setKey(null);
         clearPolling(); // Clear any existing timeout
 
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
+            setLoader(true);
+            setKey("sort-topics-pdf");
             console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
@@ -200,12 +221,12 @@ const SortTopicQuestions = () => {
         <div className="flex items-center justify-start gap-8">
             <GenerateCard
                 handleUploadClick={handleUploadClick}
-                isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
                 cardTitle="Sort topics of each question from PDF"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                keyProp="sort-topics-pdf"
             />
             {assessmentData.questions.length > 0 && (
                 <SortTopicQuestionsPreview

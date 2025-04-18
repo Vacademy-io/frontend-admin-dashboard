@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FormProvider, useFieldArray, UseFormReturn } from "react-hook-form";
-import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
+import { transformQuestionsToGenerateAssessmentAI } from "../-utils/helper";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { getPPTViewTitle } from "@/routes/assessment/question-papers/-utils/helper";
 import { QuestionType } from "@/constants/dummy-data";
@@ -9,15 +9,17 @@ import { PPTComponentFactory } from "@/routes/assessment/question-papers/-compon
 import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
+import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
+import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
+import { QuestionsFromTextDialog } from "./generate-questions-from-text/QuestionsFromTextDialog";
+import { QuestionsFromTextData } from "./generate-questions-from-text/GenerateQuestionsFromText";
+import { useAICenter } from "../-contexts/useAICenterContext";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import ExportQuestionPaperAI from "../export-ai-question-paper/ExportQuestionPaperAI";
-
 // Infer the form type from the schema
 type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
 
@@ -38,7 +40,13 @@ interface GenerateCompleteAssessmentProps {
     language?: string | null;
     setLanguage?: React.Dispatch<React.SetStateAction<string | null>>;
     audioId?: string;
-    loader?: boolean;
+    handleSubmitSuccessForText?: (data: QuestionsFromTextData) => void;
+    isTextDialog?: boolean;
+    submitButtonForText?: JSX.Element;
+    handleDisableSubmitBtn?: (value: boolean) => void;
+    submitFormFn?: (submitFn: () => void) => void;
+    dialogForm?: UseFormReturn<QuestionsFromTextData>;
+    keyProp: string | null;
 }
 
 const GenerateCompleteAssessment = ({
@@ -58,13 +66,19 @@ const GenerateCompleteAssessment = ({
     language,
     setLanguage,
     audioId,
-    loader,
+    submitButtonForText,
+    handleSubmitSuccessForText,
+    handleDisableSubmitBtn,
+    submitFormFn,
+    dialogForm,
+    keyProp,
 }: GenerateCompleteAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
         assessmentData?.questions,
     );
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const { loader, key: keyContext } = useAICenter();
 
     const { getValues } = form;
 
@@ -91,11 +105,6 @@ const GenerateCompleteAssessment = ({
 
     return (
         <>
-            {loader && (
-                <div className="absolute">
-                    <DashboardLoader />{" "}
-                </div>
-            )}
             <Dialog
                 open={openCompleteAssessmentDialog}
                 onOpenChange={setOpenCompleteAssessmentDialog}
@@ -115,77 +124,129 @@ const GenerateCompleteAssessment = ({
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <Dialog
-                                        open={isMoreQuestionsDialog}
-                                        onOpenChange={setIsMoreQuestionsDialog}
-                                    >
-                                        <DialogTrigger>
-                                            <MyButton
-                                                type="button"
-                                                scale="medium"
-                                                buttonType="secondary"
-                                                layoutVariant="default"
-                                                className="mr-4 text-sm"
-                                            >
-                                                Generate
-                                            </MyButton>
-                                        </DialogTrigger>
-                                        <DialogContent className="p-0">
-                                            <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
-                                                Generate more questions
-                                            </h1>
-                                            <div className="flex flex-col items-center justify-center gap-4 p-4">
-                                                <Input
-                                                    placeholder="Enter prompt to generate questions"
-                                                    value={propmtInput}
-                                                    onChange={(e) => setPropmtInput(e.target.value)}
-                                                />
-                                                {setNumQuestions && (
-                                                    <Input
-                                                        type=""
-                                                        placeholder="Enter number of questions to generate"
-                                                        value={numQuestions || ""}
-                                                        onChange={(e) =>
-                                                            setNumQuestions(Number(e.target.value))
-                                                        }
-                                                    />
-                                                )}
-                                                {setDifficulty && (
-                                                    <Input
-                                                        placeholder="Enter difficulty level [Easy, Medium, Hard]"
-                                                        value={difficulty || ""}
-                                                        onChange={(e) =>
-                                                            setDifficulty(e.target.value)
-                                                        }
-                                                    />
-                                                )}
-                                                {setLanguage && (
-                                                    <Input
-                                                        placeholder="Enter language [English, Hindi, etc.]"
-                                                        value={language || ""}
-                                                        onChange={(e) =>
-                                                            setLanguage(e.target.value)
-                                                        }
-                                                    />
-                                                )}
-
+                                    {submitFormFn &&
+                                    handleSubmitSuccessForText &&
+                                    handleDisableSubmitBtn &&
+                                    dialogForm ? (
+                                        <QuestionsFromTextDialog
+                                            form={dialogForm}
+                                            open={isMoreQuestionsDialog}
+                                            onOpenChange={setIsMoreQuestionsDialog}
+                                            trigger={
                                                 <MyButton
                                                     type="button"
                                                     scale="medium"
-                                                    buttonType="primary"
+                                                    buttonType="secondary"
                                                     layoutVariant="default"
                                                     className="mr-4 text-sm"
-                                                    onClick={() =>
-                                                        handleGenerateQuestionsForAssessment(
-                                                            audioId || "",
-                                                        )
-                                                    }
+                                                    onClick={() => {
+                                                        setIsMoreQuestionsDialog(true);
+                                                    }}
                                                 >
-                                                    Generate Questions
+                                                    Generate
                                                 </MyButton>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
+                                            }
+                                            onSubmitSuccess={handleSubmitSuccessForText}
+                                            submitButton={submitButtonForText || <></>}
+                                            handleDisableSubmitBtn={handleDisableSubmitBtn}
+                                            submitForm={submitFormFn}
+                                        />
+                                    ) : (
+                                        <Dialog
+                                            open={isMoreQuestionsDialog}
+                                            onOpenChange={setIsMoreQuestionsDialog}
+                                        >
+                                            <DialogTrigger>
+                                                <MyButton
+                                                    type="button"
+                                                    scale="medium"
+                                                    buttonType="secondary"
+                                                    layoutVariant="default"
+                                                    className="mr-4 text-sm"
+                                                >
+                                                    Generate
+                                                </MyButton>
+                                            </DialogTrigger>
+                                            <DialogContent className="p-0">
+                                                <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                                                    Generate more questions
+                                                </h1>
+                                                <div className="flex flex-col items-center justify-center gap-4 p-4">
+                                                    <Input
+                                                        placeholder="Enter prompt to generate questions"
+                                                        value={propmtInput}
+                                                        onChange={(e) =>
+                                                            setPropmtInput(e.target.value)
+                                                        }
+                                                    />
+                                                    {setNumQuestions && (
+                                                        <Input
+                                                            type=""
+                                                            placeholder="Enter number of questions to generate"
+                                                            value={numQuestions || ""}
+                                                            onChange={(e) =>
+                                                                setNumQuestions(
+                                                                    Number(e.target.value),
+                                                                )
+                                                            }
+                                                        />
+                                                    )}
+                                                    {setDifficulty && (
+                                                        <Input
+                                                            placeholder="Enter difficulty level [Easy, Medium, Hard]"
+                                                            value={difficulty || ""}
+                                                            onChange={(e) =>
+                                                                setDifficulty(e.target.value)
+                                                            }
+                                                        />
+                                                    )}
+                                                    {setLanguage && (
+                                                        <Input
+                                                            placeholder="Enter language [English, Hindi, etc.]"
+                                                            value={language || ""}
+                                                            onChange={(e) =>
+                                                                setLanguage(e.target.value)
+                                                            }
+                                                        />
+                                                    )}
+                                                    {loader && keyContext == keyProp ? (
+                                                        <MyButton
+                                                            type="button"
+                                                            scale="medium"
+                                                            buttonType="primary"
+                                                            layoutVariant="default"
+                                                            className="mr-4 text-sm"
+                                                        >
+                                                            <DashboardLoader
+                                                                size={20}
+                                                                color="#ffffff"
+                                                            />
+                                                        </MyButton>
+                                                    ) : (
+                                                        <MyButton
+                                                            type="button"
+                                                            scale="medium"
+                                                            buttonType="primary"
+                                                            layoutVariant="default"
+                                                            className="mr-4 text-sm"
+                                                            onClick={() =>
+                                                                handleGenerateQuestionsForAssessment(
+                                                                    audioId || "",
+                                                                )
+                                                            }
+                                                        >
+                                                            Generate Questions
+                                                        </MyButton>
+                                                    )}
+                                                    {/* <ExportQuestionPaperAI
+                                                        responseQuestionsData={
+                                                            assessmentData?.questions
+                                                        }
+                                                    /> */}
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
                                     <MyButton
                                         type="button"
                                         scale="medium"
