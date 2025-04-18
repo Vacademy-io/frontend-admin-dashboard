@@ -284,9 +284,7 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                             <FormField
                                                 control={form.control}
                                                 name="institutePhoneNumber"
-                                                render={({
-                                                    field: { onChange, value, ...field },
-                                                }) => (
+                                                render={({ field: { value } }) => (
                                                     <FormItem>
                                                         <FormControl>
                                                             <PhoneInputField
@@ -296,7 +294,7 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 control={form.control}
                                                                 country="in"
                                                                 required={false}
-                                                                
+                                                                value={value}
                                                             />
                                                         </FormControl>
                                                     </FormItem>
