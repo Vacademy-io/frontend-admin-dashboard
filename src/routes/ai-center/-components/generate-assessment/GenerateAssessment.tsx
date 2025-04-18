@@ -8,7 +8,7 @@ import {
     handleStartProcessUploadedFile,
 } from "../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import GenerateCompleteAssessment from "./GenerateCompleteAssessment";
+import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,12 +18,13 @@ import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
 import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
 import { GenerateCard } from "../GenerateCard";
+import { useAICenter } from "../../-contexts/useAICenterContext";
 
 const GenerateAIAssessmentComponent = () => {
     const instituteId = getInstituteId();
+    const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
     const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
@@ -65,15 +66,24 @@ const GenerateAIAssessmentComponent = () => {
     };
 
     const handleUploadClick = () => {
+        setKey("assessment");
         fileInputRef.current?.click();
     };
+
+    const [fileUploading, setFileUploading] = useState(false);
+
+    useEffect(() => {
+        if (key === "assessment") {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             const fileId = await uploadFile({
                 file,
-                setIsUploading,
+                setIsUploading: setFileUploading,
                 userId: "your-user-id",
                 source: instituteId,
                 sourceId: "STUDENTS",
@@ -97,14 +107,19 @@ const GenerateAIAssessmentComponent = () => {
 
     const clearPolling = () => {
         if (pollingTimeoutIdRef.current) {
+            setLoader(false);
+            setKey(null);
             clearTimeout(pollingTimeoutIdRef.current);
             pollingTimeoutIdRef.current = null;
         }
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) =>
-            handleGenerateAssessmentQuestions(pdfId, userPrompt),
+        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+            setLoader(true);
+            setKey("assessment");
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt);
+        },
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -118,6 +133,8 @@ const GenerateAIAssessmentComponent = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
+                setLoader(false);
+                setKey(null);
                 setAssessmentData((prev) => ({
                     ...prev,
                     questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
@@ -155,6 +172,8 @@ const GenerateAIAssessmentComponent = () => {
             // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                setLoader(false);
+                setKey(null);
                 clearPolling();
                 return;
             }
@@ -165,10 +184,14 @@ const GenerateAIAssessmentComponent = () => {
     });
 
     const scheduleNextPoll = () => {
+        setLoader(false);
+        setKey(null);
         clearPolling(); // Clear any existing timeout
 
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
+            setLoader(true);
+            setKey("assessment");
             console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
@@ -305,16 +328,17 @@ const GenerateAIAssessmentComponent = () => {
             stopConvertPolling();
         };
     }, []);
+
     return (
         <div className="flex items-center justify-start gap-8">
             <GenerateCard
                 handleUploadClick={handleUploadClick}
-                isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
                 cardTitle="Generate Assessment"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                keyProp="assessment"
             />
             <GenerateAssessmentDialog
                 open={openAssessmentDialog}
@@ -333,6 +357,7 @@ const GenerateAIAssessmentComponent = () => {
                     setPropmtInput={setPropmtInput}
                     isMoreQuestionsDialog={isMoreQuestionsDialog}
                     setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
+                    keyProp="assessment"
                 />
             )}
             <GeneratePageWiseAssessment

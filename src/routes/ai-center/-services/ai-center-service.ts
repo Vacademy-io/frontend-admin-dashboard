@@ -2,6 +2,7 @@ import {
     CONVERT_PDF_TO_HTML_AI_URL,
     GENERATE_QUESTIONS_FROM_FILE_AI_URL,
     GET_QUESTIONS_FROM_AUDIO,
+    GET_QUESTIONS_FROM_TEXT,
     GET_QUESTIONS_URL_FROM_HTML_AI_URL,
     HTML_TO_QUESTIONS_FROM_FILE_AI_URL,
     PROCESS_AUDIO_FILE,
@@ -124,6 +125,29 @@ export const handleGetQuestionsFromAudio = async (
             prompt: prompt,
             difficulty: difficulty,
             language: language,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetQuestionsFromText = async (
+    text: string,
+    num: number,
+    class_level: string,
+    topics: string,
+    question_type: string,
+    question_language: string,
+) => {
+    const response = await axios({
+        method: "POST",
+        url: GET_QUESTIONS_FROM_TEXT,
+        data: {
+            text: text,
+            num: num,
+            class_level: class_level,
+            topics: topics,
+            question_type: question_type,
+            question_language: question_language,
         },
     });
     return response?.data;
