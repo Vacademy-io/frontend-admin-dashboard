@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@tanstack/react-router";
 import { ArrowUpDown } from "lucide-react";
-import { IoOpen } from "react-icons/io5";
 
 interface Student {
     id: string;
@@ -81,7 +80,9 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                                             });
                                         }}
                                     >
-                                        <IoOpen className="size-4 cursor-pointer text-primary-300" />
+                                        <span className="cursor-pointer text-orange-500 hover:underline">
+                                            Preview
+                                        </span>
                                     </Button>
                                 </TableCell>
                             </TableRow>
