@@ -29,7 +29,6 @@ export function SessionCard({ data }: SessionCardProps) {
     };
 
     const handleEditSession = (sessionData: AddSessionDataType) => {
-        console.log("sessionData", sessionData);
         // Get all the selected package_session_ids from the form
         const allPackageSessionIds: string[] = [];
         data.packages.forEach((pkg) => {
@@ -37,7 +36,6 @@ export function SessionCard({ data }: SessionCardProps) {
                 allPackageSessionIds.push(level.package_session_id);
             });
         });
-        console.log("allPackageSessionIds", allPackageSessionIds);
 
         const visiblePackageSessionIds = sessionData.levels.map((level) => {
             return level.package_session_id;
@@ -49,11 +47,6 @@ export function SessionCard({ data }: SessionCardProps) {
 
         const commaSeparatedVisiblePackageSessionIds = visiblePackageSessionIds.join(",");
         const commaSeparatedHiddenPackageSessionIds = hiddenPackageSessionIds.join(",");
-        console.log(
-            "commaSeparatedVisiblePackageSessionIds",
-            commaSeparatedVisiblePackageSessionIds,
-        );
-        console.log("commaSeparatedHiddenPackageSessionIds", commaSeparatedHiddenPackageSessionIds);
 
         const requestData = {
             comma_separated_hidden_package_session_ids: commaSeparatedHiddenPackageSessionIds,
