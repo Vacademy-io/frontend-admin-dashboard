@@ -11,6 +11,10 @@ import {
     UPDATE_INSTITUTE_SETTING,
     LEARNERS_SETTING,
     UPDATE_LEARNERS_SETTING,
+    EXPORT_BATCH_REPORT,
+    EXPORT_LEARNERS_REPORT,
+    EXPORT_LEARNERS_SUBJECT_REPORT,
+    EXPORT_LEARNERS_MODULE_REPORT,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { InstituteSettingResponse } from "../-types/types";
@@ -222,6 +226,125 @@ export const updateLearnersReportSetting = async (params: {
         return response.data;
     } catch (error) {
         console.error(error);
+        throw error;
+    }
+};
+
+export const exportBatchReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    userId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_BATCH_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                user_id: params.userId,
+            },
+            {
+                responseType: "blob",
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting batch report:", error);
+        throw error;
+    }
+};
+
+export const exportLearnersReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    userId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_LEARNERS_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                user_id: params.userId,
+            },
+            {
+                responseType: "blob",
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting batch report:", error);
+        throw error;
+    }
+};
+
+export const exportLearnersSubjectReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    userId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_LEARNERS_SUBJECT_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                user_id: params.userId,
+            },
+            {
+                responseType: "blob",
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting batch report:", error);
+        throw error;
+    }
+};
+
+export const exportLearnerModuleProgressReport = async (params: {
+    userId: string;
+    moduleId: string;
+    packageSessionId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(EXPORT_LEARNERS_MODULE_REPORT, {
+            responseType: "blob",
+            params: {
+                userId: params.userId,
+                moduleId: params.moduleId,
+                packageSessionId: params.packageSessionId,
+            },
+            headers: {
+                Accept: "application/pdf",
+                "Content-Type": "application/json",
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting learner module progress report:", error);
         throw error;
     }
 };
