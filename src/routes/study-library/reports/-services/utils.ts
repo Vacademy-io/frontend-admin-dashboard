@@ -329,18 +329,22 @@ export const exportLearnerModuleProgressReport = async (params: {
     packageSessionId: string;
 }) => {
     try {
-        const response = await authenticatedAxiosInstance.post(EXPORT_LEARNERS_MODULE_REPORT, {
-            responseType: "blob",
-            params: {
-                userId: params.userId,
-                moduleId: params.moduleId,
-                packageSessionId: params.packageSessionId,
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_LEARNERS_MODULE_REPORT,
+            null,
+            {
+                responseType: "blob",
+                params: {
+                    userId: params.userId,
+                    moduleId: params.moduleId,
+                    packageSessionId: params.packageSessionId,
+                },
+                headers: {
+                    Accept: "application/pdf",
+                    "Content-Type": "application/json",
+                },
             },
-            headers: {
-                Accept: "application/pdf",
-                "Content-Type": "application/json",
-            },
-        });
+        );
 
         return response.data;
     } catch (error) {

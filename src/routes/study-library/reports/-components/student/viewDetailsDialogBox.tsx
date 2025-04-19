@@ -119,7 +119,8 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                         <MyButton
                             type="button"
                             buttonType="secondary"
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 handleExportPDF();
                             }}
                         >
