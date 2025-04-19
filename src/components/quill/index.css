@@ -87,6 +87,7 @@
     border: none !important;
     border-radius: 8px;
     padding: 1rem !important;
+    left: 0 !important;
 }
 
 .ql-action {
