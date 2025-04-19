@@ -11,10 +11,15 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyTable } from "@/components/design-system/table";
-import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress } from "../../-services/utils";
+import {
+    fetchChapterWiseProgress,
+    fetchLearnersChapterWiseProgress,
+    exportLearnerModuleProgressReport,
+} from "../../-services/utils";
 import { usePacageDetails } from "../../-store/usePacageDetails";
 import dayjs from "dayjs";
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
+import { toast } from "sonner";
 
 export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
@@ -66,6 +71,34 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
         }
     }, [viewDetailsState]);
 
+    const getLearnersReportDataPDF = useMutation({
+        mutationFn: () =>
+            exportLearnerModuleProgressReport({
+                packageSessionId: pacageSessionId,
+                userId: row.getValue("user_id"),
+                moduleId: row.getValue("module_id"),
+            }),
+        onSuccess: async (response) => {
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `learners_report.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Learners Report PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getLearnersReportDataPDF.mutate();
+    };
+    const isExporting = getLearnersReportDataPDF.isPending;
+
     return (
         <div
             className="cursor-pointer text-primary-500"
@@ -83,7 +116,15 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) =>
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-row items-center justify-between">
                         <div>Date: {currDate}</div>
-                        <MyButton buttonType="secondary">Export</MyButton>
+                        <MyButton
+                            type="button"
+                            buttonType="secondary"
+                            onClick={() => {
+                                handleExportPDF();
+                            }}
+                        >
+                            {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                        </MyButton>
                     </div>
                     <div className="grid grid-cols-3 items-center justify-between gap-4">
                         <div>Course: {course}</div>

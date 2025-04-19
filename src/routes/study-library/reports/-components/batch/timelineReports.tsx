@@ -30,6 +30,7 @@ import dayjs from "dayjs";
 import { MyPagination } from "@/components/design-system/pagination";
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
 import { usePacageDetails } from "../../-store/usePacageDetails";
+import { toast } from "sonner";
 
 const formSchema = z
     .object({
@@ -164,6 +165,39 @@ export default function TimelineReports() {
         );
     }, [currPage]);
 
+    const getBatchReportDataPDF = useMutation({
+        mutationFn: () =>
+            exportBatchReport({
+                startDate: startDate,
+                endDate: endDate,
+                packageSessionId:
+                    getPackageSessionId({
+                        courseId: selectedCourse,
+                        sessionId: selectedSession,
+                        levelId: selectedLevel,
+                    }) || "",
+                userId: "",
+            }),
+        onSuccess: async (response) => {
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `batch_report.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Batch Report PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getBatchReportDataPDF.mutate();
+    };
+
     const onSubmit = (data: FormValues) => {
         setLoading(true);
         generateReportMutation.mutate(
@@ -279,6 +313,7 @@ export default function TimelineReports() {
         mutationFn: fetchLeaderboardData,
     });
     const { isPending, error } = leaderboardMutation;
+    const isExporting = getBatchReportDataPDF.isPending;
 
     return (
         <div className="mt-10 flex flex-col gap-10">
@@ -416,15 +451,10 @@ export default function TimelineReports() {
                         <MyButton
                             buttonType="secondary"
                             onClick={() => {
-                                exportBatchReport({
-                                    startDate: startDate,
-                                    endDate: endDate,
-                                    packageSessionId: "",
-                                    userId: "",
-                                });
+                                handleExportPDF();
                             }}
                         >
-                            Export
+                            {isExporting ? <DashboardLoader size={20} /> : "Export"}
                         </MyButton>
                     </div>
                     <div className="flex flex-row items-center justify-between">

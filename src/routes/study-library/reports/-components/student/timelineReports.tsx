@@ -15,7 +15,11 @@ import { z } from "zod";
 import { MyButton } from "@/components/design-system/button";
 import ReportRecipientsDialogBox from "./reportRecipientsDialogBox";
 import { useMutation } from "@tanstack/react-query";
-import { fetchLearnersReport, fetchSlideWiseProgress } from "../../-services/utils";
+import {
+    fetchLearnersReport,
+    fetchSlideWiseProgress,
+    exportLearnersReport,
+} from "../../-services/utils";
 import { useLearnerDetails, UserResponse } from "../../-store/useLearnersDetails";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
@@ -39,6 +43,7 @@ import {
 import dayjs from "dayjs";
 import { useSearch } from "@tanstack/react-router";
 import { Route } from "@/routes/study-library/reports";
+import { toast } from "sonner";
 
 const formSchema = z
     .object({
@@ -195,6 +200,39 @@ export default function TimelineReports() {
         // api call
     };
 
+    const getBatchReportDataPDF = useMutation({
+        mutationFn: () =>
+            exportLearnersReport({
+                startDate: startDate,
+                endDate: endDate,
+                packageSessionId:
+                    getPackageSessionId({
+                        courseId: selectedCourse,
+                        sessionId: selectedSession,
+                        levelId: selectedLevel,
+                    }) || "",
+                userId: selectedStudent,
+            }),
+        onSuccess: async (response) => {
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `learners_report.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Learners Report PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getBatchReportDataPDF.mutate();
+    };
+
     const tableData = {
         content: reportData ? transformLearnersReport(reportData) : [],
         total_pages: 0,
@@ -206,6 +244,7 @@ export default function TimelineReports() {
     const generateReportMutation = useMutation({ mutationFn: fetchLearnersReport });
     const generateSlideMutation = useMutation({ mutationFn: fetchSlideWiseProgress });
     const { isPending, error } = generateReportMutation;
+    const isExporting = getBatchReportDataPDF.isPending;
 
     return (
         <div className="mt-10 flex flex-col gap-10">
@@ -374,7 +413,14 @@ export default function TimelineReports() {
                         </div>
                         <div className="flex flex-row gap-10">
                             <ReportRecipientsDialogBox userId={selectedStudent} />
-                            <MyButton buttonType="secondary">Export</MyButton>
+                            <MyButton
+                                buttonType="secondary"
+                                onClick={() => {
+                                    handleExportPDF();
+                                }}
+                            >
+                                {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                            </MyButton>
                         </div>
                     </div>
                     <div className="flex flex-row items-center justify-between">
