@@ -149,6 +149,10 @@ export const SLIDE_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learne
 export const CHAPTER_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/chapter-wise-progress`;
 export const CHAPTER_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report/chapter-wise-progress`;
 export const GET_LEARNERS_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/learner-details`;
+export const EXPORT_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/batch-report`;
+export const EXPORT_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-report`;
+export const EXPORT_LEARNERS_SUBJECT_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-subject-wise-report`;
+export const EXPORT_LEARNERS_MODULE_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-module-progress-report`;
 
 export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-credentials`;
 export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;

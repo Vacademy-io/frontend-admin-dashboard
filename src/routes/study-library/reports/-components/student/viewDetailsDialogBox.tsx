@@ -3,20 +3,25 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { useState, useEffect } from "react";
 import { Row } from "@tanstack/react-table";
 import {
-    SubjectOverviewBatchColumnType,
+    SubjectOverviewColumnType,
     ChapterReport,
-    ChapterOverviewColumns,
-    CHAPTER_OVERVIEW_WIDTH,
+    ChapterOverviewStudentColumns,
+    CHAPTER_OVERVIEW_STUDENT_WIDTH,
 } from "../../-types/types";
 import { useMutation } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyTable } from "@/components/design-system/table";
-import { fetchChapterWiseProgress, fetchLearnersChapterWiseProgress } from "../../-services/utils";
+import {
+    fetchChapterWiseProgress,
+    fetchLearnersChapterWiseProgress,
+    exportLearnerModuleProgressReport,
+} from "../../-services/utils";
 import { usePacageDetails } from "../../-store/usePacageDetails";
 import dayjs from "dayjs";
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
+import { toast } from "sonner";
 
-export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> }) => {
+export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
     const [chapterReportData, setChapterReportData] = useState<ChapterReport>();
     const { pacageSessionId, course, session, level } = usePacageDetails();
@@ -66,6 +71,34 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
         }
     }, [viewDetailsState]);
 
+    const getLearnersReportDataPDF = useMutation({
+        mutationFn: () =>
+            exportLearnerModuleProgressReport({
+                packageSessionId: pacageSessionId,
+                userId: row.getValue("user_id"),
+                moduleId: row.getValue("module_id"),
+            }),
+        onSuccess: async (response) => {
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `learners_report.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Learners Report PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getLearnersReportDataPDF.mutate();
+    };
+    const isExporting = getLearnersReportDataPDF.isPending;
+
     return (
         <div
             className="cursor-pointer text-primary-500"
@@ -83,7 +116,16 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-row items-center justify-between">
                         <div>Date: {currDate}</div>
-                        <MyButton buttonType="secondary">Export</MyButton>
+                        <MyButton
+                            type="button"
+                            buttonType="secondary"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleExportPDF();
+                            }}
+                        >
+                            {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                        </MyButton>
                     </div>
                     <div className="grid grid-cols-3 items-center justify-between gap-4">
                         <div>Course: {course}</div>
@@ -108,12 +150,16 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                                         content:
                                             chapter.slides?.map((slide) => ({
                                                 study_slide: slide.slide_title,
+                                                concentration_score: `${formatToTwoDecimalPlaces(
+                                                    slide.avg_concentration_score,
+                                                )} %`,
                                                 batch_concentration_score: `${formatToTwoDecimalPlaces(
                                                     slide.avg_concentration_score,
                                                 )} %`,
                                                 average_time_spent: `${convertMinutesToTimeFormat(
                                                     slide.avg_time_spent,
                                                 )}`,
+                                                last_active: ``,
                                             })) || [],
                                         total_pages: 0,
                                         page_no: 0,
@@ -121,10 +167,10 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                                         total_elements: 0,
                                         last: false,
                                     }}
-                                    columns={ChapterOverviewColumns} // Use correct column config
+                                    columns={ChapterOverviewStudentColumns} // Use correct column config
                                     isLoading={isChapterPending || isLearnerPending}
                                     error={chapterError || learnerError}
-                                    columnWidths={CHAPTER_OVERVIEW_WIDTH} // Ensure this width config matches
+                                    columnWidths={CHAPTER_OVERVIEW_STUDENT_WIDTH} // Ensure this width config matches
                                     currentPage={0}
                                 />
                             </div>

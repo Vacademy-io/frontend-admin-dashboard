@@ -15,9 +15,9 @@ import { MyButton } from "@/components/design-system/button";
 import { fetchSubjectWiseProgress } from "../../-services/utils";
 import {
     SubjectProgressResponse,
-    SubjectOverviewColumns,
-    SUBJECT_OVERVIEW_WIDTH,
-    SubjectOverviewColumnType,
+    SubjectOverviewBatchColumns,
+    SUBJECT_OVERVIEW_BATCH_WIDTH,
+    SubjectOverviewBatchColumnType,
 } from "../../-types/types";
 import { useMutation } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
@@ -44,7 +44,7 @@ export default function ProgressReports() {
     const [sessionList, setSessionList] = useState<{ id: string; name: string }[]>([]);
     const [levelList, setLevelList] = useState<LevelType[]>([]);
     const [subjectReportData, setSubjectReportData] = useState<SubjectProgressResponse>();
-    const tableState = { columnVisibility: { module_id: false } };
+    const tableState = { columnVisibility: { module_id: false, user_id: false } };
     const { register, handleSubmit, setValue, watch, trigger } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -58,14 +58,14 @@ export default function ProgressReports() {
     const selectedLevel = watch("level");
     const transformToSubjectOverview = (
         data: SubjectProgressResponse,
-    ): SubjectOverviewColumnType[] => {
+    ): SubjectOverviewBatchColumnType[] => {
         return data.flatMap((subject) => {
             return subject.modules.map((module, index) => ({
                 subject: index === 0 ? subject.subject_name : "", // Only first row gets the subject name
                 module: module.module_name,
                 module_id: module.module_id,
-                module_completed: `${module.module_completion_percentage}%`,
-                average_time_spent: `${module.avg_time_spent_minutes.toFixed(2)} min`,
+                module_completed_by_batch: `${module.module_completion_percentage}%`,
+                average_time_spent_by_batch: `${module.avg_time_spent_minutes.toFixed(2)} min`,
             }));
         });
     };
@@ -226,7 +226,7 @@ export default function ProgressReports() {
                     <div className="flex flex-row justify-between gap-10">
                         <div className="flex flex-col gap-6">
                             <div className="text-h3 text-primary-500">
-                                {courseList.find((course) => (course.id = selectedCourse))?.name}{" "}
+                                {courseList.find((course) => (course.id = selectedCourse))?.name}
                             </div>
                         </div>
                         <MyButton buttonType="secondary">Export</MyButton>
@@ -235,10 +235,10 @@ export default function ProgressReports() {
                         <div className="text-h3 text-primary-500">Subject-wise Overview</div>
                         <MyTable
                             data={subjectWiseData}
-                            columns={SubjectOverviewColumns}
+                            columns={SubjectOverviewBatchColumns}
                             isLoading={isPending}
                             error={error}
-                            columnWidths={SUBJECT_OVERVIEW_WIDTH}
+                            columnWidths={SUBJECT_OVERVIEW_BATCH_WIDTH}
                             currentPage={0}
                             tableState={tableState}
                         ></MyTable>
