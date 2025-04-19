@@ -15,7 +15,7 @@ import { MyButton } from "@/components/design-system/button";
 import { LineChartComponent } from "./lineChart";
 import { MyTable } from "@/components/design-system/table";
 import { useMutation } from "@tanstack/react-query";
-import { fetchBatchReport, fetchLeaderboardData } from "../../-services/utils";
+import { fetchBatchReport, fetchLeaderboardData, exportBatchReport } from "../../-services/utils";
 import {
     DailyLearnerTimeSpent,
     BatchReportResponse,
@@ -409,11 +409,23 @@ export default function TimelineReports() {
                     <div className="flex flex-row justify-between gap-10">
                         <div className="flex flex-col gap-6">
                             <div className="text-h3 text-primary-500">
-                                10th Premier Pro Group1 (2024-2025)
+                                {courseList.find((c) => c.id === selectedCourse)?.name}
                             </div>
                             <div>{`Date ${startDate} - ${endDate}`}</div>
                         </div>
-                        <MyButton buttonType="secondary">Export</MyButton>
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => {
+                                exportBatchReport({
+                                    startDate: startDate,
+                                    endDate: endDate,
+                                    packageSessionId: "",
+                                    userId: "",
+                                });
+                            }}
+                        >
+                            Export
+                        </MyButton>
                     </div>
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
@@ -441,7 +453,7 @@ export default function TimelineReports() {
                     </div>
                     <div className="flex flex-col gap-6">
                         <div className="text-h3 font-[600] text-primary-500">
-                            Concentration score of batch (Avg)
+                            Daily Learning Performance
                         </div>
                         <div className="flex h-[570px] w-full flex-row gap-6">
                             <LineChartComponent
@@ -462,6 +474,7 @@ export default function TimelineReports() {
                         </div>
                     </div>
                     <div className="flex flex-col gap-6">
+                        <div className="text-h3 font-[600] text-primary-500">Leaderboard</div>
                         <MyTable
                             data={leaderBoardData}
                             columns={leaderBoardColumns}

@@ -167,7 +167,11 @@ export default function ProgressReports() {
                 module: module.module_name,
                 module_id: module.module_id,
                 module_completed: `${module.module_completion_percentage}%`,
+                module_completed_by_batch: `${module.module_completion_percentage}%`,
                 average_time_spent: `${convertMinutesToTimeFormat(module.avg_time_spent_minutes)}`,
+                average_time_spent_by_batch: `${convertMinutesToTimeFormat(
+                    module.avg_time_spent_minutes,
+                )}`,
                 user_id,
             })),
         );
@@ -329,7 +333,12 @@ export default function ProgressReports() {
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-row justify-between gap-10">
                             <div className="flex flex-col gap-6">
-                                <div className="text-h3 text-primary-500">Student Name</div>
+                                <div className="text-h3 text-primary-500">
+                                    {
+                                        studentList.find((s) => s.user_id === selectedStudent)
+                                            ?.full_name
+                                    }
+                                </div>
                             </div>
                             <div className="flex flex-row gap-10">
                                 <ReportRecipientsDialogBox userId={selectedStudent} />

@@ -3,10 +3,10 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { useState, useEffect } from "react";
 import { Row } from "@tanstack/react-table";
 import {
-    SubjectOverviewBatchColumnType,
+    SubjectOverviewColumnType,
     ChapterReport,
-    ChapterOverviewColumns,
-    CHAPTER_OVERVIEW_WIDTH,
+    ChapterOverviewStudentColumns,
+    CHAPTER_OVERVIEW_STUDENT_WIDTH,
 } from "../../-types/types";
 import { useMutation } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
@@ -16,7 +16,7 @@ import { usePacageDetails } from "../../-store/usePacageDetails";
 import dayjs from "dayjs";
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
 
-export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> }) => {
+export const ViewDetails = ({ row }: { row: Row<SubjectOverviewColumnType> }) => {
     const [viewDetailsState, setViewDetailsState] = useState(false);
     const [chapterReportData, setChapterReportData] = useState<ChapterReport>();
     const { pacageSessionId, course, session, level } = usePacageDetails();
@@ -108,12 +108,16 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                                         content:
                                             chapter.slides?.map((slide) => ({
                                                 study_slide: slide.slide_title,
+                                                concentration_score: `${formatToTwoDecimalPlaces(
+                                                    slide.avg_concentration_score,
+                                                )} %`,
                                                 batch_concentration_score: `${formatToTwoDecimalPlaces(
                                                     slide.avg_concentration_score,
                                                 )} %`,
                                                 average_time_spent: `${convertMinutesToTimeFormat(
                                                     slide.avg_time_spent,
                                                 )}`,
+                                                last_active: ``,
                                             })) || [],
                                         total_pages: 0,
                                         page_no: 0,
@@ -121,10 +125,10 @@ export const ViewDetails = ({ row }: { row: Row<SubjectOverviewBatchColumnType> 
                                         total_elements: 0,
                                         last: false,
                                     }}
-                                    columns={ChapterOverviewColumns} // Use correct column config
+                                    columns={ChapterOverviewStudentColumns} // Use correct column config
                                     isLoading={isChapterPending || isLearnerPending}
                                     error={chapterError || learnerError}
-                                    columnWidths={CHAPTER_OVERVIEW_WIDTH} // Ensure this width config matches
+                                    columnWidths={CHAPTER_OVERVIEW_STUDENT_WIDTH} // Ensure this width config matches
                                     currentPage={0}
                                 />
                             </div>

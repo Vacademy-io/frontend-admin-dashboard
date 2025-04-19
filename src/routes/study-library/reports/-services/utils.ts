@@ -11,6 +11,7 @@ import {
     UPDATE_INSTITUTE_SETTING,
     LEARNERS_SETTING,
     UPDATE_LEARNERS_SETTING,
+    EXPORT_BATCH_REPORT,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { InstituteSettingResponse } from "../-types/types";
@@ -222,6 +223,35 @@ export const updateLearnersReportSetting = async (params: {
         return response.data;
     } catch (error) {
         console.error(error);
+        throw error;
+    }
+};
+
+export const exportBatchReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    userId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_BATCH_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                user_id: params.userId,
+            },
+            {
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting batch report:", error);
         throw error;
     }
 };

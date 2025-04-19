@@ -367,7 +367,9 @@ export default function TimelineReports() {
                 <div className="flex flex-col gap-10">
                     <div className="flex flex-row justify-between gap-10">
                         <div className="flex flex-col gap-6">
-                            <div className="text-h3 text-primary-500">Student&lsquo;s Name</div>
+                            <div className="text-h3 text-primary-500">
+                                {studentList.find((s) => s.user_id === selectedStudent)?.full_name}
+                            </div>
                             <div>{`Date ${startDate} - ${endDate}`}</div>
                         </div>
                         <div className="flex flex-row gap-10">
@@ -436,7 +438,7 @@ export default function TimelineReports() {
                     </div>
                     <div className="flex flex-col gap-6">
                         <div className="text-h3 font-[600] text-primary-500">
-                            Concentration score of batch (Avg)
+                            Daily Learning Performance
                         </div>
                         <div className="flex h-[570px] w-full flex-row gap-6">
                             <LineChartComponent
