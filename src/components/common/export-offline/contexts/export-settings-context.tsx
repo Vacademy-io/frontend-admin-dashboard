@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import { CustomField } from "../types/question";
+import { HeaderSettings, defaultHeaderSettings } from "../types/header-settings";
 
 const DEFAULT_FIELDS: CustomField[] = [
     { label: "Name", enabled: true, type: "blank" },
@@ -30,6 +31,7 @@ export interface ExportSettings {
     randomizeQuestions: boolean;
     randomizeOptions: boolean;
     showPageNumbers: boolean;
+    pageNumbersPosition: "left" | "center" | "right";
     includeCustomInputFields: boolean;
     customFields: CustomField[];
     pagePadding: "low" | "medium" | "high";
@@ -40,6 +42,7 @@ export interface ExportSettings {
     customImageSizes: { [imageUrl: string]: { width: number; height: number } };
     answerSpacings: { [questionId: string]: number };
     maintainImageAspectRatio: boolean;
+    headerSettings: HeaderSettings;
 }
 
 const defaultSettings: ExportSettings = {
@@ -61,6 +64,7 @@ const defaultSettings: ExportSettings = {
     randomizeQuestions: false,
     randomizeOptions: false,
     showPageNumbers: true,
+    pageNumbersPosition: "right",
     includeCustomInputFields: true,
     pagePadding: "medium",
     customFields: DEFAULT_FIELDS,
@@ -70,7 +74,8 @@ const defaultSettings: ExportSettings = {
     showFirstPageInstructions: true,
     customImageSizes: {},
     answerSpacings: {},
-    maintainImageAspectRatio: true,
+    maintainImageAspectRatio: false,
+    headerSettings: defaultHeaderSettings,
 };
 
 const ExportSettingsContext = createContext<{

@@ -99,7 +99,31 @@ export function AnswerSpacingDialog({
                             <strong>{MAX_SPACING}mm</strong>.
                         </p>
                     </div>
-
+                    <div className="mb-6 flex items-center gap-4">
+                        <label htmlFor="default-spacing" className="text-sm font-medium">
+                            Default Space For All (mm):
+                        </label>
+                        <Input
+                            id="default-spacing"
+                            type="number"
+                            max={MAX_SPACING}
+                            min={MIN_SPACING}
+                            className="w-32"
+                            onBlur={(e) => {
+                                const value = Number(e.target.value);
+                                if (value >= MIN_SPACING && value <= MAX_SPACING) {
+                                    const updatedSpacings = eligibleQuestions.reduce(
+                                        (acc, question) => {
+                                            acc[question.question_id] = value;
+                                            return acc;
+                                        },
+                                        {} as { [questionId: string]: number },
+                                    );
+                                    setLocalSpacings(updatedSpacings);
+                                }
+                            }}
+                        />
+                    </div>
                     <Table>
                         <TableHeader className="bg-primary-100">
                             <TableRow>

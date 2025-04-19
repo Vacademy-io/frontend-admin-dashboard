@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Label } from "@/components/ui/label";
 import { useExportSettings } from "../contexts/export-settings-context";
 import { processHtmlString, getBase64FromUrl } from "../utils/utils";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -266,10 +265,12 @@ export function QuestionComponent({
         <div className={`space-y-4 ${getFontSizeClass()}`} onClick={() => setSelectedImage(null)}>
             <div className="flex items-start justify-between gap-4">
                 <div className="text-slate-800">
-                    <p className="question-container gap-x-1 font-bold">
-                        {question.question_order}
-                        {")"}.
-                        <p>
+                    <p className="flex gap-x-1 font-bold">
+                        <p className="min-w-fit">
+                            Q: {question.question_order}
+                            {")"}{" "}
+                        </p>
+                        <div className="">
                             {processHtmlString(question.question.content).map((item, index) => {
                                 if (item.type === "text") {
                                     return <span key={index}>{item.content}</span>;
@@ -287,9 +288,8 @@ export function QuestionComponent({
                                 }
                                 return null;
                             })}
-                        </p>
+                        </div>
                     </p>
-                    <p>{}</p>
                 </div>
                 {showMarks && (
                     <div className="whitespace-nowrap rounded-md px-1 text-sm font-semibold text-gray-600">
@@ -298,13 +298,18 @@ export function QuestionComponent({
                 )}
             </div>
 
-            <div className="grid grid-cols-2 pl-6">
+            <div className="grid grid-cols-2 pl-4">
                 {question.options_with_explanation.map((option, index) => (
-                    <div key={option.id} className="option-container gap-x-1">
-                        {showCheckboxes && <Checkbox className="pointer-events-none" />}
-                        <Label className="">
+                    <p key={option.id} className="flex gap-x-2">
+                        {showCheckboxes && (
+                            <Checkbox className="pointer-events-none mt-1 rounded-sm border-2 border-black" />
+                        )}
+
+                        <p>
                             {String.fromCharCode(97 + index)}
-                            {")"}.{" "}
+                            {")"}{" "}
+                        </p>
+                        <div className="mr-2">
                             {processHtmlString(option.text.content).map((item, index) => {
                                 if (item.type === "text") {
                                     return (
@@ -335,8 +340,8 @@ export function QuestionComponent({
                                 }
                                 return null;
                             })}
-                        </Label>
-                    </div>
+                        </div>
+                    </p>
                 ))}
             </div>
 

@@ -161,7 +161,18 @@ export function PaperSet({ sections, setNumber, settings, instructions }: PaperS
                     {settings.spaceForRoughWork !== "none" && renderRoughWork()}
                 </div>
                 {settings.showPageNumbers && (
-                    <div className="absolute bottom-4 right-4 text-sm text-gray-500">
+                    <div
+                        className="absolute bottom-4 text-sm text-gray-500"
+                        style={{
+                            left:
+                                settings.pageNumbersPosition === "center"
+                                    ? "50%"
+                                    : settings.pageNumbersPosition === "left"
+                                      ? "1rem"
+                                      : "auto",
+                            right: settings.pageNumbersPosition === "right" ? "1rem" : "auto",
+                        }}
+                    >
                         {pageNumber}
                     </div>
                 )}

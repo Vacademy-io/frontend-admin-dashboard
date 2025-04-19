@@ -26,6 +26,8 @@ import {
     AccordionContent,
 } from "@/components/ui/accordion";
 import { Section } from "../types/question"; // Make sure to import your Section type
+import { HeaderSettingsDialog } from "./header-settings-dialog";
+import { Switch } from "@/components/ui/switch";
 
 interface ExportSettingsDialogProps {
     open: boolean;
@@ -74,12 +76,98 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                 </DialogHeader>
 
                 <div className="grid gap-6 py-2">
-                    {/* Layout Settings */}
                     <Accordion type="single" collapsible className="w-full">
-                        <AccordionItem value="layout">
+                        <AccordionItem value="header">
                             <AccordionTrigger className="text-base">
-                                Layout Settings
+                                Header Settings
                             </AccordionTrigger>
+                            <AccordionContent>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label>Custom Header</Label>
+                                        <Switch
+                                            checked={settings.headerSettings.enabled}
+                                            onCheckedChange={(checked) =>
+                                                updateSettings({
+                                                    headerSettings: {
+                                                        ...settings.headerSettings,
+                                                        enabled: checked,
+                                                    },
+                                                })
+                                            }
+                                        />
+                                    </div>
+
+                                    {settings.headerSettings.enabled && (
+                                        <div className="mt-4">
+                                            <HeaderSettingsDialog />
+                                        </div>
+                                    )}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="footer">
+                            <AccordionTrigger className="text-base">
+                                Footer Settings
+                            </AccordionTrigger>
+                            <AccordionContent>
+                                <div className="flex items-center gap-4">
+                                    <Checkbox
+                                        checked={
+                                            settings[
+                                                "showPageNumbers" as keyof ExportSettings
+                                            ] as boolean
+                                        }
+                                        onCheckedChange={(checked) =>
+                                            handleSettingChange(
+                                                "showPageNumbers" as keyof ExportSettings,
+                                                checked,
+                                            )
+                                        }
+                                    />
+                                    <label>Show Page Number</label>
+                                </div>
+                                {settings.showPageNumbers && (
+                                    <div className="mt-2 space-y-2">
+                                        <Label>Position</Label>
+                                        <RadioGroup
+                                            value={settings.pageNumbersPosition}
+                                            onValueChange={(value) =>
+                                                handleSettingChange(
+                                                    "pageNumbersPosition",
+                                                    value as "left" | "center" | "right",
+                                                )
+                                            }
+                                            className="flex gap-4"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <RadioGroupItem
+                                                    value="left"
+                                                    id="page-number-left"
+                                                />
+                                                <Label htmlFor="page-number-left">Left</Label>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <RadioGroupItem
+                                                    value="center"
+                                                    id="page-number-center"
+                                                />
+                                                <Label htmlFor="page-number-center">Center</Label>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <RadioGroupItem
+                                                    value="right"
+                                                    id="page-number-right"
+                                                />
+                                                <Label htmlFor="page-number-right">Right</Label>
+                                            </div>
+                                        </RadioGroup>
+                                    </div>
+                                )}
+                            </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="layout">
+                            <AccordionTrigger className="text-base">Layout</AccordionTrigger>
                             <AccordionContent>
                                 <div className="space-y-4">
                                     <div className="flex w-full gap-x-4">
@@ -286,7 +374,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                         </AccordionItem>
                         <AccordionItem value="display">
                             <AccordionTrigger className="text-base">
-                                Display Settings
+                                Section and Marking
                             </AccordionTrigger>
                             <AccordionContent>
                                 <div className="flex flex-col gap-y-2">
@@ -314,7 +402,6 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                                             "showCheckboxesBeforeOptions",
                                             "Show Checkboxes before Options",
                                         ],
-                                        ["showPageNumbers", "Show Page Numbers"],
                                     ].map(([key, label]) => (
                                         <div key={key} className="flex items-center gap-4">
                                             <Checkbox
@@ -336,9 +423,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                             </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="paper">
-                            <AccordionTrigger className="text-base">
-                                Paper Settings
-                            </AccordionTrigger>
+                            <AccordionTrigger className="text-base">Paper Sets</AccordionTrigger>
                             <AccordionContent>
                                 <div className="flex flex-col gap-y-2">
                                     <div className="flex items-center gap-2">
@@ -432,9 +517,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                             </AccordionContent>
                         </AccordionItem>
                         <AccordionItem value="custom">
-                            <AccordionTrigger className="text-base">
-                                Custom Fields Settings
-                            </AccordionTrigger>
+                            <AccordionTrigger className="text-base">Custom Fields</AccordionTrigger>
                             <AccordionContent>
                                 <div className="grid gap-2">
                                     <div className="flex items-center gap-2">
@@ -554,7 +637,7 @@ export function ExportSettingsDialog({ open, onOpenChange, sections }: ExportSet
                         </AccordionItem>
                         <AccordionItem value="advanced">
                             <AccordionTrigger className="text-base">
-                                Advanced Settings
+                                Subjective Questions
                             </AccordionTrigger>
                             <AccordionContent>
                                 {/* Your existing advanced settings */}
