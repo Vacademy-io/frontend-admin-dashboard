@@ -408,3 +408,12 @@ html {
 .zoom-actions{
     display: none !important;
 }
+
+.buttonList{
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+}
+.App-menu__left{
+    max-width: 80vw !important;
+}

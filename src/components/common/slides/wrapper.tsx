@@ -13,24 +13,28 @@ interface ExcalidrawWrapperProps {
 const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
     initialElements,
     onChange,
-   
+
 }) => {
     const excalidrawRef = useRef<any>(null);
 
 
 
     const handleWheelCapture = (e: React.WheelEvent<HTMLDivElement>) => {
-          e.stopPropagation();
+        e.stopPropagation();
     };
-  
+
     return (
-        <div className="aspect-video h-[88vh] w-full border"  onWheelCapture={handleWheelCapture}>
+        <div
+            className="w-full aspect-[4/3] border"
+            style={{ height: '85vh' }}
+            onWheelCapture={handleWheelCapture}
+        >
             <Excalidraw
                 ref={excalidrawRef}
                 initialData={{
                     elements: initialElements,
                     appState: {
-                       
+
                         scrollX: 0,
                         scrollY: 0,
                     },
@@ -45,7 +49,7 @@ const ExcalidrawWrapper: React.FC<ExcalidrawWrapperProps> = ({
                         clearCanvas: false,
                         export: false,
                         loadScene: false,
-                      
+
                     },
                 }}
             />
