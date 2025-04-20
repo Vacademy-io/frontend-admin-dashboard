@@ -1,7 +1,6 @@
 /* eslint-disable */
 // @ts-nocheck
 "use client"
-
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -13,28 +12,60 @@ import { useRouter } from "@tanstack/react-router"
 import { cn } from "@/lib/utils"
 import { Presentation } from "./types"
 import { useGetPresntation } from "./hooks/useGetPresntation"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import type { FormEvent } from "react"
+
 
 export default function ManagePresentation() {
   const router = useRouter()
   const { setNavHeading } = useNavHeadingStore()
 
- const { data, isLoading, isError } = useGetPresntation()
+  const { data, isLoading, } = useGetPresntation()
   const [presentations, setPresentations] = useState<Presentation[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [newTitle, setNewTitle] = useState("")
+  const [newDescription, setNewDescription] = useState("")
 
   const handleDeletePresentation = (id: string) => {
     setPresentations((prev) => prev.filter((presentation) => presentation.id !== id))
   }
 
-  const handleEditPresentation = (id: string) => {
-    router.navigate({ to: `/study-library/present/add?id=${id}` })
+  const handleEditPresentation = (presentation: Presentation) => {
+    router.navigate({ to: `/study-library/present/add?id=${presentation.id}&title=${presentation.title}&description=${presentation.description}` })
+  }
+
+  const handleCreatePresentation = (e: FormEvent) => {
+    e.preventDefault()
+    router.navigate({
+      to: `/study-library/present/add`,
+      search: {
+        title: newTitle,
+        description: newDescription,
+        id:"",
+      },
+    })
+    setIsModalOpen(false)
+
+    setNewTitle("")
+    setNewDescription("")
   }
 
   const filteredPresentations = presentations.filter((presentation) => {
     const matchesSearch =
-      presentation.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      presentation.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      presentation?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      presentation?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       presentation?.category?.toLowerCase().includes(searchQuery.toLowerCase())
 
     if (activeTab === "all") return matchesSearch
@@ -62,33 +93,77 @@ export default function ManagePresentation() {
     }
   }
 
-    useEffect(() => {
-    setPresentations(data ??[])
+  useEffect(() => {
+    setPresentations(data ?? [])
   }, [data])
 
-  
-  if(isLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-1/2">
         <Loader2 className="animate-spin" />
       </div>
-    );
+    )
   }
   return (
     <div className="flex flex-col gap-8 text-neutral-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Presentations</h1>
-          <p className="text-sm text-neutral-500 mt-1">
-            Manage and organize your presentation materials
-          </p>
+          <p className="text-sm text-neutral-500 mt-1">Manage and organize your presentation materials</p>
         </div>
-        <Button
-          className="bg-rose-600 hover:bg-rose-700 text-white self-start md:self-center"
-          onClick={() => router.navigate({ to: `/study-library/present/add` })}
-        >
-          <Plus className="h-4 w-4 mr-2" /> New Presentation
-        </Button>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-rose-600 hover:bg-rose-700 text-white self-start md:self-center">
+              <Plus className="h-4 w-4 mr-2" /> New Presentation
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold">Create New Presentation</DialogTitle>
+              <DialogDescription>
+                Enter the details for your new presentation. You can edit these later.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreatePresentation} >
+              <div className="flex flex-col gap-4 mb-4">
+                <div className="flex flex-col items-start gap-4">
+                  <Label htmlFor="title" className="text-right">
+                    Title
+                  </Label>
+                  <Input
+                    id="title"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    className="col-span-3"
+                    placeholder="Enter presentation title"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col items-start gap-4">
+                  <Label htmlFor="description" className="text-right">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    className="col-span-3"
+                    placeholder="Enter presentation description"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <DialogFooter >
+                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" variant={"destructive"} className="flex-1">
+                  Next
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -115,23 +190,19 @@ export default function ManagePresentation() {
                 <div className="flex justify-between items-center gap-4">
                   <CardTitle>{presentation.title}</CardTitle>
                   <div className="flex-1">
-                    <Badge className={cn("mb-2 font-normal", getStatusColor("published"))}>
-                    Published
-                    </Badge>
+                    <Badge className={cn("mb-2 font-normal", getStatusColor("published"))}>Published</Badge>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-neutral-600 line-clamp-2 min-h-[40px]">
-                  {presentation.description}
-                </p>
+                <p className="text-sm text-neutral-600 line-clamp-2 min-h-[40px]">{presentation.description}</p>
                 <div className="flex items-center gap-2 mt-3">
                   <Badge variant="outline" className="bg-neutral-50 text-xs font-normal">
                     {2} slides
                   </Badge>
-                  {presentation.updated_at && (
+                  {presentation?.updated_at && (
                     <Badge variant="outline" className="bg-neutral-50 text-xs font-normal">
-                      Edited {new Date(presentation.updated_at).toLocaleDateString()}
+                      Edited {new Date(presentation?.updated_at).toLocaleDateString()}
                     </Badge>
                   )}
                 </div>
@@ -143,7 +214,7 @@ export default function ManagePresentation() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100"
-                    onClick={() => handleEditPresentation(presentation.id)}
+                    onClick={() => handleEditPresentation(presentation)}
                   >
                     <Edit className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
@@ -152,7 +223,7 @@ export default function ManagePresentation() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-neutral-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => handleDeletePresentation(presentation.id)}
+                    onClick={() => { handleDeletePresentation(presentation.id) }}
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>

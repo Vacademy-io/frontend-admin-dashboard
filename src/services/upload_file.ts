@@ -113,3 +113,50 @@ export const getPublicUrls = async (fileIds: string | undefined | null) => {
     });
     return response?.data;
 };
+
+
+export const UploadFileInS3V2 = async (
+    file: any,
+    setIsUploadingFile: React.Dispatch<React.SetStateAction<boolean>> = () => false,
+    user_id: string,
+    source?: string,
+    sourceId?: string,
+    publicUrl?: boolean,
+): Promise<string | undefined> => {
+    setIsUploadingFile(true);
+    const effectiveSource = source || "FLOOR_DOCUMENTS";
+    const effectiveSourceId = sourceId || "STUDENTS";
+
+    try {
+        if (isNullOrEmptyOrUndefined(file)) {
+            throw new Error("Invalid File");
+        }
+
+        if (file) {
+            const signedURLData: SignedURLResponse = await getSignedURL(
+                'jsone',
+                'json',
+                effectiveSource,
+                effectiveSourceId,
+            );
+
+            const uploadResponse = await axios({
+                method: "PUT",
+                url: signedURLData.url,
+                data: file,
+            });
+
+            if (uploadResponse.status === StatusCode.success) {
+                await acknowledgeUpload(signedURLData.id, user_id, publicUrl);
+            }
+
+            setIsUploadingFile(false);
+            return signedURLData.id;
+        }
+    } catch (error) {
+        console.error(error);
+        setIsUploadingFile(false);
+        throw error;
+    }
+    return undefined;
+};

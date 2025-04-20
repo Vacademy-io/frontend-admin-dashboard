@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+/* eslint-disable */
+// @ts-nocheck
+import { useState } from "react";
 import { Slide } from "./types";
 import "./styles.css";
 import ExcalidrawWrapper from "./wrapper";
@@ -39,24 +41,8 @@ export const SlideEditor = ({ slide, editMode, onSlideChange }: Props) => {
         }
     };
 
-    const [dimensions, setDimensions] = useState({
-        width: window.innerWidth,
-        height: window.innerHeight,
-    });
 
-    // const onResize = () => {
-    //     setDimensions({
-    //         width: window.innerWidth,
-    //         height: window.innerHeight,
-    //     });
-    // };
-
-    useEffect(() => {
-        console.log(slide ,'slide')
-        // window.addEventListener("resize", onResize);
-        // return () => window.removeEventListener("resize", onResize);
-    }, [slide]);
-
+ 
     return (
         <div
             className="App"

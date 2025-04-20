@@ -4,7 +4,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SlideEditor } from "./SlideEditor";
 import { Button } from "@/components/ui/button";
 import { ListStart, Settings, FileDown } from "lucide-react";
@@ -12,21 +12,31 @@ import SlideList from "./SlideList";
 import { SlideType } from "./constant/slideType";
 import { QuizeSlide } from "./slidesTypes/QuizSlides";
 import { useSlideStore } from "@/stores/Slides/useSlideStore";
+import { ADD_PRESENTATION } from "@/constants/urls";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { TokenKey } from "@/constants/auth/tokens";
+import { StatusCode, UploadFileInS3V2 } from "@/services/upload_file";
+import { useRouter } from "@tanstack/react-router";
+import { useGetSinglePresentation } from "./hooks/useGetSinglePresntation";
+import { isNullOrEmptyOrUndefined } from "@/lib/utils";
+import { toast } from "sonner";
 
-const SlideRenderer = ({ 
-  type, 
-  currentSlideId, 
-  editMode ,
 
-}: { 
-  type: SlideType; 
-  currentSlideId: string; 
-  editMode: boolean 
+const SlideRenderer = ({
+  type,
+  currentSlideId,
+  editMode,
+
+}: {
+  type: SlideType;
+  currentSlideId: string;
+  editMode: boolean
 }) => {
   const getSlide = useSlideStore(state => state.getSlide);
   const updateSlide = useSlideStore(state => state.updateSlide);
   const slide = getSlide(currentSlideId);
-  
+
   if (!slide) return null;
 
   switch (type) {
@@ -45,7 +55,7 @@ const SlideRenderer = ({
   }
 };
 
-export default function SlidesEditor() {
+export default function SlidesEditor({ metaData, presentationId }: { metaData: { title: string; description: string }, presentationId: string }) {
   const {
     slides,
     currentSlideId,
@@ -59,6 +69,12 @@ export default function SlidesEditor() {
     getSlide,
     setSlides,
   } = useSlideStore();
+
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
+
+
+  const { isLoading, isError, data: presentation } = useGetSinglePresentation({ presentationId: presentationId });
 
   const changeCurrentSlide = (id: string) => {
     setCurrentSlideId(id);
@@ -85,7 +101,7 @@ export default function SlidesEditor() {
     a.setAttribute(
       "href",
       "data:application/json;charset=utf-8," +
-        encodeURIComponent(JSON.stringify(slides, undefined, 2)),
+      encodeURIComponent(JSON.stringify(slides, undefined, 2)),
     );
     a.setAttribute("download", "Untitled.edslides");
     a.style.display = "none";
@@ -117,7 +133,7 @@ export default function SlidesEditor() {
   const takeScreenshot = async () => {
     try {
       const slideContainer = document.querySelector('.excalidraw__canvas');
-      
+
       if (!slideContainer) {
         console.error('Slide container not found');
         return;
@@ -150,13 +166,13 @@ export default function SlidesEditor() {
   const exportToPowerPoint = async () => {
     try {
       const pptx = new PptxGenJS();
-      
+
       for (const slide of slides) {
         const pptxSlide = pptx.addSlide();
-        
+
         try {
           const slideContainer = document.querySelector(`.excalidraw__canvas`);
-          
+
           if (!slideContainer) {
             console.warn(`Slide container for slide ${slide.id} not found`);
             continue;
@@ -191,43 +207,206 @@ export default function SlidesEditor() {
     }
   };
 
+  const savePresentation = async () => {
+
+    try {
+      setIsSaving(true);
+
+      // 1. Authentication check
+      const accessToken = getTokenFromCookie(TokenKey.accessToken);
+      if (!accessToken) {
+        toast.error("Please login to save presentations");
+        return;
+      }
+
+      // 2. Get institute ID
+      const tokenData = getTokenDecodedData(accessToken);
+      const INSTITUTE_ID = tokenData?.authorities && Object.keys(tokenData.authorities)[0];
+      if (!INSTITUTE_ID) {
+        toast.error("Organization information missing");
+        return;
+      }
+
+      // 3. Validate slides data
+      if (!slides || slides.length === 0) {
+        toast.error("No slides to save");
+        return;
+      }
+
+      // 4. Upload slides to S3 (mock for now)
+      let fileId;
+      try {
+
+        fileId = await UploadFileInS3V2(
+          slides,
+          () => { },
+          tokenData.sub, // user ID
+          INSTITUTE_ID,
+          "SLIDES",
+          true
+        );
+
+      } catch (uploadError) {
+        console.error("Upload failed:", uploadError);
+        toast.error("Failed to upload slides");
+        return;
+      }
+
+      // 5. Transform slides data
+      const addedSlides = slides.map((slide, index) => {
+        const isQuestionSlide = [SlideType.Quiz, SlideType.Feedback].includes(slide.type);
+        const baseSlide = {
+          presentation_id: "", // Will be set by backend
+          title: slide?.elements?.questionName || `Slide ${index + 1}`,
+          source_id: fileId,
+          source: isQuestionSlide ? "question" : "excalidraw",
+          status: "PUBLISHED",
+          interaction_status: "",
+          slide_order: index,
+          default_time: 0,
+          content: fileId,
+          added_question: null,
+          default_time: 0,
+        };
+
+        if (isQuestionSlide) {
+
+
+          const question = {
+            id: "1",
+            preview_id: "prev_001",
+            section_id: "1",
+            question_order_in_section: 0,
+            text: null,
+            question_response_type: "single_choice",
+            default_question_time_mins: 0,
+            question_type: "MCQS",
+            options_json: JSON.stringify(slide.elements.singleChoiceOptions || []),
+            parsed_evaluation_object: null,
+            options: (slide.elements.singleChoiceOptions || []).map((option, optIndex) => ({
+              text: { type: "text", content: option.name || "" },
+              option_order: optIndex,
+              ...(option.image?.imageId && { media_id: option.image.imageId })
+            }))
+          };
+  
+          return {
+            ...baseSlide,
+            added_question: question,
+            updated_question: null
+          }
+        }
+
+        return baseSlide;
+      });
+
+      // 6. Prepare final payload
+      const payload = {
+        title: metaData?.title || "New Presentation",
+        description: metaData?.description || "",
+        cover_file_id: "",
+        added_slides: addedSlides ?? null,
+        status: "PUBLISHED"
+      };
+
+      // 7. API call
+      const response = await authenticatedAxiosInstance.post(
+        ADD_PRESENTATION,
+        payload,
+        {
+          params: { instituteId: INSTITUTE_ID },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
+      );
+
+      // 8. Handle response
+
+      toast.success("Presentation saved successfully");
+      router.navigate({ to: '/study-library/present' });
+
+
+    } catch (error) {
+      console.error("Save error:", error);
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to save presentation"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+  useEffect(() => {
+    if (!isNullOrEmptyOrUndefined(presentation)) {
+      setSlides(presentation ?? []);
+    }
+  }, [presentation])
+  // Helper function to generate unique IDs
+  function generateUniqueId() {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  }
+
+
+  if (isSaving) {
+    <div className="absolute top-[40vh] left-[50vw] w-full h-full bg-black opacity-50">
+      Saving....
+    </div>
+  }
+
   return (
     <div className="flex h-screen w-full bg-white">
       <div className="flex size-full flex-col rounded-xl bg-base-white">
-        <div className="flex justify-end gap-2 rounded-md bg-primary-200 p-1 mb-1 min-h-32">
-          <Button 
-            variant="destructive" 
-            onClick={takeScreenshot}
-            className="gap-2"
-          >
-            <Settings className="size-4" />
-            SnapShot
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={exportToPowerPoint}
-            className="gap-2"
-          >
-            <FileDown className="size-4" />
-            Export PPT
-          </Button>
-          <Button variant="destructive" className="gap-2">
-            <Settings className="size-4" />
-            Settings
-          </Button>
+        <div className="flex justify-between  bg-primary-200 p-1 mb-1 min-h-32">
           <Button
-            variant="ghost"
-            onClick={toggleEditMode}
-            className="gap-2 bg-primary-400"
+            variant="destructive"
+            onClick={savePresentation}
+            className="gap-2 bg-primary-400  hover:bg-primary-500 mt-4"
           >
-            <ListStart className="size-4" />
-            {editMode ? "Start" : "Edit"}
+            <Settings className="size-4" />
+            Save Presentation
           </Button>
+          <div className="flex justify-end gap-2 ">
+
+            <Button
+              variant="destructive"
+              onClick={takeScreenshot}
+              className="gap-2"
+            >
+              <Settings className="size-4" />
+              SnapShot
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={exportToPowerPoint}
+              className="gap-2"
+            >
+              <FileDown className="size-4" />
+              Export PPT
+            </Button>
+            {/* <Button variant="destructive" className="gap-2">
+      <Settings className="size-4" />
+      Settings
+    </Button> */}
+            <Button
+              variant="ghost"
+              onClick={toggleEditMode}
+              className="gap-2 bg-primary-400"
+            >
+              <ListStart className="size-4" />
+              {editMode ? "Start" : "Edit"}
+            </Button>
+          </div>
         </div>
+
 
         <div className="slide-container flex gap-4 bg-primary-100" style={{ position: 'relative' }}>
           {currentSlideId && (
-            <div className={`slide-${currentSlideId}`} style={{ 
+            <div className={`slide-${currentSlideId}`} style={{
               display: 'block',
               height: '100%'
             }}>
@@ -254,16 +433,17 @@ export default function SlidesEditor() {
               )}
               {currentSlideId && (
                 <SlideRenderer
-                currentSlideId={currentSlideId}
+                  currentSlideId={currentSlideId}
                   type={getSlide(currentSlideId)?.type || SlideType.Title}
                   editMode={editMode}
                 />
               )}
             </div>
-            
+
           </div>
         </div>
       </div>
+  
     </div>
   );
 }
