@@ -11,30 +11,53 @@ import {
 } from "@/components/ui/dropdown-menu";
 import "react-quill/dist/quill.snow.css";
 import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
+import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
+import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
+
+interface ImageDetail {
+    imageId: string;
+    imageName: string;
+    imageTitle: string;
+    imageFile: string;
+    isDeleted: boolean;
+}
+
+interface ChoiceOption {
+    name: string;
+    isSelected: boolean;
+    image: ImageDetail;
+}
 
 export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
     className,
-}: QuestionPaperTemplateFormProps) => {
+    selectedSectionIndex,
+}: SectionQuestionPaperFormProps) => {
     const { control, getValues, setValue } = form;
 
     const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
-    const optionsType = getValues("optionsType") || "";
-    const allQuestions = getValues("questions") || [];
+    const optionsType = "";
+    const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
 
-    const option1 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`);
-    const option2 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`);
-    const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
-    const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
+    const option1 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`,
+    ) as ChoiceOption;
+    const option2 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`,
+    ) as ChoiceOption;
+    const option3 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`,
+    ) as ChoiceOption;
+    const option4 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`,
+    ) as ChoiceOption;
 
     const handleDeleteSlide = () => {
         allQuestions.splice(currentQuestionIndex, 1);
-        setValue("questions", allQuestions);
+        setValue(`sections.${selectedSectionIndex}.questions`, allQuestions);
     };
 
     const handleDuplicateSlide = () => {
@@ -48,7 +71,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
                 multipleChoiceOptions: questionToDuplicate.multipleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
-            setValue("questions", allQuestions);
+            setValue(`sections.${selectedSectionIndex}.questions`, allQuestions);
         }
     };
 
@@ -61,7 +84,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <FormField
                     control={control}
-                    name={`questions.${currentQuestionIndex}.questionName`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionName`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
@@ -89,7 +112,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -124,7 +147,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -161,7 +184,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -196,7 +219,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
