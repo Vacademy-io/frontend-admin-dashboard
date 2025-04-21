@@ -6,38 +6,50 @@ import "react-quill/dist/quill.snow.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-import { formatStructure } from "../../../-utils/helper";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
+import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
+import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
+
+interface ImageDetail {
+    imageId: string;
+    imageName: string;
+    imageTitle: string;
+    imageFile: string;
+    isDeleted: boolean;
+}
+
+interface ChoiceOption {
+    name: string;
+    isSelected: boolean;
+    image: ImageDetail;
+}
 
 export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
     className,
-}: QuestionPaperTemplateFormProps) => {
+    selectedSectionIndex,
+}: SectionQuestionPaperFormProps) => {
     const { control, getValues } = form;
 
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
-    const optionsType = getValues("optionsType") || "";
-    const questionsType = getValues("questionsType") || "";
+    const answersType = "Answer:";
+    const explanationsType = "Explanation:";
+    const optionsType = "";
+    const questionsType = "";
 
-    const allQuestions = getValues("questions") || [];
-
-    const option1 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`);
-    const option2 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`);
-    const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
-    const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
-
-    if (allQuestions.length === 0) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <h1>Please add a question to show question details</h1>
-            </div>
-        );
-    }
+    const option1 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`,
+    ) as ChoiceOption;
+    const option2 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`,
+    ) as ChoiceOption;
+    const option3 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`,
+    ) as ChoiceOption;
+    const option4 = getValues(
+        `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`,
+    ) as ChoiceOption;
 
     return (
         <div className={className}>
@@ -68,38 +80,6 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
-                                control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>
@@ -108,7 +88,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                 <span>Comprehension Text</span>
                 <FormField
                     control={control}
-                    name={`questions.${currentQuestionIndex}.parentRichTextContent`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
@@ -131,7 +111,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                 </span>
                 <FormField
                     control={control}
-                    name={`questions.${currentQuestionIndex}.questionName`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionName`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
@@ -163,7 +143,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                             {
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -181,7 +161,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -215,7 +195,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                             {
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -233,7 +213,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -269,7 +249,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                             {
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -287,7 +267,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -321,7 +301,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                             {
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.name`}
+                                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -339,7 +319,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
+                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.multipleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -366,7 +346,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                 <span>{explanationsType}</span>
                 <FormField
                     control={control}
-                    name={`questions.${currentQuestionIndex}.explanation`}
+                    name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.explanation`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>

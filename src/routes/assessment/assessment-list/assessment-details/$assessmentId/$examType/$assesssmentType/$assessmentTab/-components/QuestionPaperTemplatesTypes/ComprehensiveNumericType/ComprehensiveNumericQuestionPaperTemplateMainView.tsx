@@ -11,19 +11,16 @@ import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { QUESTION_TYPES, NUMERIC_TYPES } from "@/constants/dummy-data";
 import { MyInput } from "@/components/design-system/input";
 import { useState, useEffect } from "react";
-import { useWatch } from "react-hook-form";
 import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
-import { CollapsibleQuillEditor } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/CollapsibleQuillEditor";
 import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
 
-export const NumericQuestionPaperTemplateMainView = ({
+export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
     className,
     selectedSectionIndex,
 }: SectionQuestionPaperFormProps) => {
     const [isMultipleAnswersAllowed, setIsMultipleAnswersAllowed] = useState(false);
-
     const { control, getValues, trigger, watch } = form;
 
     const numericType = watch(
@@ -38,13 +35,52 @@ export const NumericQuestionPaperTemplateMainView = ({
     useEffect(() => {
         trigger(`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.validAnswers`);
     }, [numericType, currentQuestionIndex, trigger]);
-    const formValues = useWatch({ control });
-    useEffect(() => {
-        console.log("Form data changed: ", formValues);
-    }, [formValues]);
+
     const answersType = "Answer:";
     const explanationsType = "Explanation:";
     const questionsType = "";
+
+    // const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
+    const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
+
+    const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+    interface CollapsibleQuillEditorProps {
+        value: string | null | undefined;
+        onChange: (content: string) => void;
+    }
+
+    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange }) => {
+        return (
+            <div className="">
+                {!isExpanded ? (
+                    // Render only a single line preview
+                    <div className="flex cursor-pointer flex-row gap-1 border bg-primary-100 p-2">
+                        <div className="w-full max-w-[50vw] overflow-hidden text-ellipsis whitespace-nowrap text-body">
+                            {value && value.replace(/<[^>]+>/g, "")}
+                        </div>
+                        <button
+                            className="text-body text-blue-500"
+                            onClick={() => setIsExpanded(true)}
+                        >
+                            Show More
+                        </button>
+                    </div>
+                ) : (
+                    // Render full Quill Editor when expanded
+                    <div className="border bg-primary-100 p-2">
+                        <MainViewQuillEditor value={value} onChange={onChange} />
+                        <button
+                            className="mt-2 text-body text-blue-500"
+                            onClick={() => setIsExpanded(false)}
+                        >
+                            Show Less
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     useEffect(() => {
         const validAnswrs = form.getValues(
@@ -57,6 +93,14 @@ export const NumericQuestionPaperTemplateMainView = ({
             );
         }
     }, []);
+
+    if (allQuestions.length === 0) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center">
+                <h1>Please add a question to show question details</h1>
+            </div>
+        );
+    }
 
     return (
         <div className={className}>
@@ -77,7 +121,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                             </div>
                             <SelectField
                                 label="Question Type"
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`}
+                                name={`questions.${currentQuestionIndex}.questionType`}
                                 options={QUESTION_TYPES.map((option, index) => ({
                                     value: option.code,
                                     label: option.display,
@@ -89,7 +133,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                             />
                             <SelectField
                                 label="Numerical Type"
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.numericType`}
+                                name={`questions.${currentQuestionIndex}.numericType`}
                                 options={NUMERIC_TYPES.map((option, index) => ({
                                     value: option,
                                     label: option,
@@ -99,12 +143,26 @@ export const NumericQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.decimals`}
-                                label="Decimal Precision"
-                                required
-                            />
+                            <div className="flex flex-col gap-2">
+                                <h1 className="text-sm font-semibold">Time Limit</h1>
+                                <div className="flex items-center gap-4 text-sm">
+                                    <CustomInput
+                                        control={form.control}
+                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.hrs`}
+                                        label=""
+                                        className="w-10"
+                                    />
+                                    <span>hrs</span>
+                                    <span>:</span>
+                                    <CustomInput
+                                        control={form.control}
+                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.min`}
+                                        label=""
+                                        className="w-10"
+                                    />
+                                    <span>min</span>
+                                </div>
+                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>
@@ -168,11 +226,6 @@ export const NumericQuestionPaperTemplateMainView = ({
                                         <Checkbox
                                             checked={isMultipleAnswersAllowed}
                                             onCheckedChange={(checked) => {
-                                                // const check =
-                                                //     !!checked ||
-                                                //     (validAnswers
-                                                //         ? validAnswers?.length > 1
-                                                //         : false);
                                                 setIsMultipleAnswersAllowed(!!checked);
                                                 if (!checked) {
                                                     // If unchecked, keep only the first answer

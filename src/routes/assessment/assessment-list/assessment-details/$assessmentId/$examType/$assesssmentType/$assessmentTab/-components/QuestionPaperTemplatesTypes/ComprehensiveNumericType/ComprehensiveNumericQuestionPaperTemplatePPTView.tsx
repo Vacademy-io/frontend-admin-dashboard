@@ -12,7 +12,7 @@ import "react-quill/dist/quill.snow.css";
 import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
 import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
 
-export const LongAnswerQuestionPaperTemplatePPTView = ({
+export const ComprehensiveNumericQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
     className,
@@ -38,6 +38,7 @@ export const LongAnswerQuestionPaperTemplatePPTView = ({
                 questionId: questionToDuplicate.questionId || "",
                 questionName: questionToDuplicate.questionName || "",
                 explanation: questionToDuplicate.explanation || "",
+                // imageDetails: questionToDuplicate.imageDetails || [],
                 singleChoiceOptions: questionToDuplicate.singleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);

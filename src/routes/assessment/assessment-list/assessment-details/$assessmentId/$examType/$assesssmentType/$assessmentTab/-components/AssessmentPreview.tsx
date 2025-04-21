@@ -48,6 +48,7 @@ import { AssessmentDetailQuestions } from "../-utils/assessment-details-interfac
 import { transformResponseDataToMyQuestionsSchema } from "@/routes/assessment/question-papers/-utils/helper";
 import { MyQuestion } from "@/types/assessments/question-paper-form";
 import { BASE_URL_LEARNER_DASHBOARD } from "@/constants/urls";
+import { QuestionType } from "@/constants/dummy-data";
 
 interface Announcement {
     id: string;
@@ -91,57 +92,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                 {
                     sectionId: "",
                     sectionName: "",
-                    questions: [
-                        {
-                            id: "",
-                            questionId: "",
-                            questionName: "",
-                            explanation: "",
-                            questionType: "MCQS",
-                            questionPenalty: "",
-                            questionDuration: {
-                                hrs: "",
-                                min: "",
-                            },
-                            questionMark: "",
-                            singleChoiceOptions: [
-                                {
-                                    name: "",
-                                    isSelected: false,
-                                },
-                                {
-                                    name: "",
-                                    isSelected: false,
-                                },
-                                {
-                                    name: "",
-                                    isSelected: false,
-                                },
-                                {
-                                    name: "",
-                                    isSelected: false,
-                                },
-                            ],
-                            multipleChoiceOptions: [
-                                {
-                                    name: "",
-                                    isSelected: false,
-                                },
-                                {
-                                    name: "",
-                                    isSelected: false,
-                                },
-                                {
-                                    name: "",
-                                    isSelected: false,
-                                },
-                                {
-                                    name: "",
-                                    isSelected: false,
-                                },
-                            ],
-                        },
-                    ],
+                    questions: [],
                 },
             ],
         },
@@ -373,8 +324,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                     <div className="flex items-center gap-8">
                         <div className="flex items-center gap-4">
                             <span className="px-3 py-2 text-sm underline">
-                                {`${BASE_URL_LEARNER_DASHBOARD}/register?code=
-                                ${assessmentDetails[0]?.saved_data.assessment_url}`}
+                                {`${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`}
                             </span>
                             <MyButton
                                 type="button"
@@ -594,7 +544,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                                             type={
                                                                                 getValues(
                                                                                     `sections.${selectedSectionIndex}.questions.${index}.questionType`,
-                                                                                ) as "MCQS" | "MCQM"
+                                                                                ) as QuestionType
                                                                             }
                                                                             props={{
                                                                                 form: form,
@@ -622,22 +572,28 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                     </div>
                                 </div>
                                 <Separator orientation="vertical" className="min-h-screen" />
-                                <MainViewComponentFactory
-                                    type={
-                                        getValues(
-                                            `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`,
-                                        ) as "MCQS" | "MCQM"
-                                    }
-                                    props={{
-                                        form: form,
-                                        selectedSection: selectedSection,
-                                        currentQuestionIndexes: currentQuestionIndexes,
-                                        setCurrentQuestionIndexes: setCurrentQuestionIndexes,
-                                        currentQuestionIndex: currentQuestionIndex,
-                                        className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
-                                        selectedSectionIndex: selectedSectionIndex,
-                                    }}
-                                />
+                                {currentSectionQuestions.length === 0 ? (
+                                    <div className="flex h-screen w-screen items-center justify-center">
+                                        <h1>No Question Exists.</h1>
+                                    </div>
+                                ) : (
+                                    <MainViewComponentFactory
+                                        type={
+                                            getValues(
+                                                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionType`,
+                                            ) as QuestionType
+                                        }
+                                        props={{
+                                            form: form,
+                                            selectedSection: selectedSection,
+                                            currentQuestionIndexes: currentQuestionIndexes,
+                                            setCurrentQuestionIndexes: setCurrentQuestionIndexes,
+                                            currentQuestionIndex: currentQuestionIndex,
+                                            className: "ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                            selectedSectionIndex: selectedSectionIndex,
+                                        }}
+                                    />
+                                )}
                             </div>
                         </TabsContent>
                     </form>
