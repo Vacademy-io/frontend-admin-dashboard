@@ -345,7 +345,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     _id: index,
                                 }))}
                                 control={form.control}
-                                className="mt-3 w-56 font-thin"
+                                className="mt-[8px] w-56 font-thin"
                                 required={
                                     getStepKey({
                                         assessmentDetails,

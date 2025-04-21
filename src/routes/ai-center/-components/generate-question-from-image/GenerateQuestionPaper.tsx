@@ -15,13 +15,13 @@ import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-comp
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
 import { GenerateCard } from "../GenerateCard";
-import GenerateCompleteAssessment from "../generate-assessment/GenerateCompleteAssessment";
-
+import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
+import { useAICenter } from "../../-contexts/useAICenterContext";
 const GenerateAiQuestionFromImageComponent = () => {
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
+    const { setLoader, key, setKey } = useAICenter();
     // const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
@@ -58,20 +58,25 @@ const GenerateAiQuestionFromImageComponent = () => {
         },
     });
 
-    // const handleOpenAssessmentDialog = (open: boolean) => {
-    //     setOpenAssessmentDialog(open);
-    // };
-
     const handleUploadClick = () => {
+        setKey("image");
         fileInputRef.current?.click();
     };
+
+    const [fileUploading, setFileUploading] = useState(false);
+
+    useEffect(() => {
+        if (key === "image") {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             const fileId = await uploadFile({
                 file,
-                setIsUploading,
+                setIsUploading: setFileUploading,
                 userId: "your-user-id",
                 source: instituteId,
                 sourceId: "STUDENTS",
@@ -79,11 +84,8 @@ const GenerateAiQuestionFromImageComponent = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    // setOpenAssessmentDialog(true);
-                    // setAssessmentData(questionsCompleteResponseData);
-                    // setOpenCompleteAssessmentDialog(true);
                     setUploadedFilePDFId(response.pdf_id);
-                    handleGenerateQuestionsForAssessment();
+                    handleGenerateQuestionsForAssessment(response.pdf_id);
                 }
             }
             event.target.value = "";
@@ -104,8 +106,11 @@ const GenerateAiQuestionFromImageComponent = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) =>
-            handleGenerateAssessmentQuestions(pdfId, userPrompt),
+        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+            setLoader(true);
+            setKey("image");
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt);
+        },
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -119,6 +124,8 @@ const GenerateAiQuestionFromImageComponent = () => {
 
             // If we have complete data, we're done
             if (response?.status === "completed" || response?.questions) {
+                setLoader(false);
+                setKey(null);
                 setAssessmentData((prev) => ({
                     ...prev,
                     questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
@@ -156,6 +163,8 @@ const GenerateAiQuestionFromImageComponent = () => {
             // Normal error handling
             pollingCountRef.current += 1;
             if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                setLoader(false);
+                setKey(null);
                 clearPolling();
                 return;
             }
@@ -166,10 +175,14 @@ const GenerateAiQuestionFromImageComponent = () => {
     });
 
     const scheduleNextPoll = () => {
+        setLoader(false);
+        setKey(null);
         clearPolling(); // Clear any existing timeout
 
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
+            setLoader(true);
+            setKey("image");
             console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
@@ -185,8 +198,8 @@ const GenerateAiQuestionFromImageComponent = () => {
         generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
     };
 
-    const handleGenerateQuestionsForAssessment = () => {
-        if (!uploadedFilePDFId) return;
+    const handleGenerateQuestionsForAssessment = (fileId?: string) => {
+        if (!fileId && !uploadedFilePDFId) return;
 
         clearPolling();
         pollingCountRef.current = 0;
@@ -300,12 +313,12 @@ const GenerateAiQuestionFromImageComponent = () => {
         <div className="flex items-center justify-start gap-8">
             <GenerateCard
                 handleUploadClick={handleUploadClick}
-                isUploading={isUploading}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Generate Question From Image"
+                cardTitle="Extract Questions from Image"
                 cardDescription="Upload JPG/JPEG/PNG"
                 inputFormat=".jpg,.jpeg,.png"
+                keyProp="image"
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
@@ -318,6 +331,7 @@ const GenerateAiQuestionFromImageComponent = () => {
                     setPropmtInput={setPropmtInput}
                     isMoreQuestionsDialog={isMoreQuestionsDialog}
                     setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
+                    keyProp="image"
                 />
             )}
         </div>

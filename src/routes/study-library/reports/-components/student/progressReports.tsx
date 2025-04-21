@@ -24,13 +24,17 @@ import {
     SUBJECT_OVERVIEW_WIDTH,
     SubjectOverviewColumnType,
 } from "../../-types/types";
-import { fetchLearnersSubjectWiseProgress } from "../../-services/utils";
+import {
+    fetchLearnersSubjectWiseProgress,
+    exportLearnersSubjectReport,
+} from "../../-services/utils";
 import { useMutation } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { usePacageDetails } from "../../-store/usePacageDetails";
 import { convertMinutesToTimeFormat } from "../../-services/helper";
 import { useSearch } from "@tanstack/react-router";
 import { Route } from "@/routes/study-library/reports";
+import { toast } from "sonner";
 
 const formSchema = z.object({
     course: z.string().min(1, "Course is required"),
@@ -82,6 +86,8 @@ export default function ProgressReports() {
     const selectedCourse = watch("course");
     const selectedSession = watch("session");
     const selectedLevel = watch("level");
+    const selectedStudent = watch("student");
+
     const { data } = useLearnerDetails(
         getPackageSessionId({
             courseId: selectedCourse,
@@ -155,6 +161,39 @@ export default function ProgressReports() {
         );
     };
 
+    const getBatchReportDataPDF = useMutation({
+        mutationFn: () =>
+            exportLearnersSubjectReport({
+                startDate: "",
+                endDate: "",
+                packageSessionId:
+                    getPackageSessionId({
+                        courseId: selectedCourse,
+                        sessionId: selectedSession,
+                        levelId: selectedLevel,
+                    }) || "",
+                userId: selectedStudent,
+            }),
+        onSuccess: async (response) => {
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `learners_report.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Learners Report PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getBatchReportDataPDF.mutate();
+    };
+
     const transformToSubjectOverview = (
         data: SubjectProgressResponse,
         user_id: string,
@@ -165,7 +204,11 @@ export default function ProgressReports() {
                 module: module.module_name,
                 module_id: module.module_id,
                 module_completed: `${module.module_completion_percentage}%`,
+                module_completed_by_batch: `${module.module_completion_percentage}%`,
                 average_time_spent: `${convertMinutesToTimeFormat(module.avg_time_spent_minutes)}`,
+                average_time_spent_by_batch: `${convertMinutesToTimeFormat(
+                    module.avg_time_spent_minutes,
+                )}`,
                 user_id,
             })),
         );
@@ -181,7 +224,7 @@ export default function ProgressReports() {
         total_elements: 0,
         last: false,
     };
-
+    const isExporting = getBatchReportDataPDF.isPending;
     return (
         <div className="mt-10 flex flex-col gap-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -327,11 +370,23 @@ export default function ProgressReports() {
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-row justify-between gap-10">
                             <div className="flex flex-col gap-6">
-                                <div className="text-h3 text-primary-500">Student Name</div>
+                                <div className="text-h3 text-primary-500">
+                                    {
+                                        studentList.find((s) => s.user_id === selectedStudent)
+                                            ?.full_name
+                                    }
+                                </div>
                             </div>
                             <div className="flex flex-row gap-10">
-                                <ReportRecipientsDialogBox />
-                                <MyButton buttonType="secondary">Export</MyButton>
+                                <ReportRecipientsDialogBox userId={selectedStudent} />
+                                <MyButton
+                                    buttonType="secondary"
+                                    onClick={() => {
+                                        handleExportPDF();
+                                    }}
+                                >
+                                    {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                                </MyButton>
                             </div>
                         </div>
                         <div className="flex flex-row items-center justify-between">

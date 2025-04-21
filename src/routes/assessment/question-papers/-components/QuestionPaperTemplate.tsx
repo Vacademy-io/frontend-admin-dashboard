@@ -211,7 +211,7 @@ export function QuestionPaperTemplate({
         if (Object.values(form.formState.errors).length > 0) return;
         setIsQuestionPaperTemplateDialog(false);
     };
-    
+
     return (
         <Dialog
             open={isQuestionPaperTemplateDialog}

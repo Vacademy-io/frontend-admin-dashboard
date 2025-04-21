@@ -94,6 +94,7 @@ export function ExportHandlerQuestionPaper({
                 pageElement.style.position = "fixed";
                 pageElement.style.top = "0";
                 pageElement.style.left = "0";
+                pageElement.style.padding = "40px";
                 pageElement.style.visibility = "visible";
                 pageElement.style.width = "210mm";
                 pageElement.style.height = "297mm";
@@ -185,7 +186,7 @@ export function ExportHandlerQuestionPaper({
     return (
         <>
             <div className="flex flex-col">
-                <div className="flex items-center gap-4 w-full">
+                <div className="flex w-full items-center gap-4">
                     <MyButton onClick={handleExport} disabled={isExporting} className="gap-2">
                         <Download className="size-4" />
                         {isExporting

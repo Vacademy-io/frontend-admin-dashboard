@@ -166,7 +166,7 @@ export function QuestionInsightsComponent() {
             </div>
             <TabsContent
                 value={selectedSection || ""}
-                className="max-h-[calc(100vh-120px)] overflow-y-auto"
+                className="max-h-[calc(100vh-220px)] overflow-y-auto"
             >
                 {selectedSectionData.map((question, index) => (
                     <div key={index}>

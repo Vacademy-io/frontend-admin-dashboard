@@ -95,6 +95,7 @@ export function ExportHandlerQuestionPaperAI({
                 pageElement.style.position = "fixed";
                 pageElement.style.top = "0";
                 pageElement.style.left = "0";
+                pageElement.style.padding = "40px";
                 pageElement.style.visibility = "visible";
                 pageElement.style.width = "210mm";
                 pageElement.style.height = "297mm";
