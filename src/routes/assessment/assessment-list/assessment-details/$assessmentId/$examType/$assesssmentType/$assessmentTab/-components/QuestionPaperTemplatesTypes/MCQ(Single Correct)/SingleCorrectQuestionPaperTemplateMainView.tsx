@@ -6,7 +6,6 @@ import "react-quill/dist/quill.snow.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
 import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
@@ -32,7 +31,6 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     selectedSectionIndex,
 }: SectionQuestionPaperFormProps) => {
     const { control, getValues, setValue } = form;
-    const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
 
     const option1 = getValues(
         `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.singleChoiceOptions.${0}`,
@@ -63,14 +61,6 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
         });
     };
 
-    if (allQuestions.length === 0) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <h1>Please add a question to show question details</h1>
-            </div>
-        );
-    }
-
     return (
         <div className={className}>
             <div className="-mb-8 flex justify-end">
@@ -100,38 +90,6 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>

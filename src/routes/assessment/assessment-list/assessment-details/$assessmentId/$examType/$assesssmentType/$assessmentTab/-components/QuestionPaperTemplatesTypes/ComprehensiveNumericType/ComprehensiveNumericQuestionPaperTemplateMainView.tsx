@@ -143,24 +143,6 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.decimals`}
-                                label="Decimal Precision"
-                                required
-                            />
                             <div className="flex flex-col gap-2">
                                 <h1 className="text-sm font-semibold">Time Limit</h1>
                                 <div className="flex items-center gap-4 text-sm">

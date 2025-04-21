@@ -324,8 +324,7 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                     <div className="flex items-center gap-8">
                         <div className="flex items-center gap-4">
                             <span className="px-3 py-2 text-sm underline">
-                                {`${BASE_URL_LEARNER_DASHBOARD}/register?code=
-                                ${assessmentDetails[0]?.saved_data.assessment_url}`}
+                                {`${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`}
                             </span>
                             <MyButton
                                 type="button"
