@@ -141,6 +141,7 @@ export const handlePostStep1Data = async (
 ) => {
     const transformedData = {
         status: data.status,
+        assessment_type: "HOMEWORK",
         test_creation: {
             assessment_name: data.testCreation.assessmentName,
             subject_id: data.testCreation.subject,

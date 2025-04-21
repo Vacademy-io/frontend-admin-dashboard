@@ -66,9 +66,11 @@ export const getAssessmentListWithFilters = async (
             pageNo,
             instituteId,
             pageSize,
-            is_homework: true,
         },
-        data: transformFilterAssessmentData(data),
+        data: {
+            ...transformFilterAssessmentData(data),
+            assessment_types: ["HOMEWORK"],
+        },
     });
     return response?.data;
 };
