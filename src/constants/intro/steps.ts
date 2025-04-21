@@ -267,4 +267,49 @@ const studentManagementSteps: Step[] = [
     },
 ];
 
-export { dashboardSteps, createAssesmentSteps, studyLibrarySteps, studentManagementSteps };
+const inviteSteps: Step[] = [
+    {
+        element: "#invite-link-name",
+        title: "Invite link Name",
+        intro: "Enter a name that clearly identifies the batch you're inviting students to. For example, 'Batch A - July 2025'",
+        position: "right",
+    },
+    {
+        element: "#activate-link",
+        title: "Activate Invite link",
+        intro: "Turn the link on or off depending on when you want students to enroll.",
+        position: "right",
+    },
+    {
+        element: "#custom-fields",
+        title: "Add Custom Fields",
+        intro: "Add any additional fields you'd like students to fill out as part of the enrollment form.",
+        position: "right",
+    },
+    {
+        element: "#select-batch",
+        title: "Select Batch Enrollment Preference",
+        intro: "You can pre-select the batches you're inviting students to, or allow them to choose from the list of open batches during enrollment.",
+        position: "right",
+    },
+    {
+        element: "#student-access-duration",
+        title: "Set Student Access Duration",
+        intro: "Enter the number of days students will have access to the course after enrolling using this invite.",
+        position: "right",
+    },
+    {
+        element: "#invitee-email",
+        title: "Invitee Email",
+        intro: "Optionally, enter the email addresses of users you want to send the invite to, and an email will be sent to them.",
+        position: "right",
+    },
+];
+
+export {
+    dashboardSteps,
+    createAssesmentSteps,
+    studyLibrarySteps,
+    studentManagementSteps,
+    inviteSteps,
+};
