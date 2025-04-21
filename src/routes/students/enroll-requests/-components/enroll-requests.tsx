@@ -1,6 +1,6 @@
 import { FilterRequestType } from "../-types/enroll-request-types";
 import { EmptyRequestPage } from "@/assets/svgs";
-import { RequestCard } from "./request-card";
+import { LearnerRequest } from "./learner-request";
 import { useGetEnrollRequests } from "../-services/get-enroll-requests";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { getInstituteId } from "@/constants/helper";
@@ -76,7 +76,7 @@ export const EnrollRequests = () => {
                     {requestData.pages.map(
                         (page) =>
                             page?.content.map((request, index) => (
-                                <RequestCard key={index} obj={request} />
+                                <LearnerRequest key={index} obj={request} />
                             )),
                     )}
 

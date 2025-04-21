@@ -1,16 +1,25 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { MyButton } from "@/components/design-system/button";
 import { Copy } from "phosphor-react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
-import { ContentType } from "../-types/enroll-request-types";
-import createInviteLink from "../../invite/-utils/createInviteLink";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
+import { ContentType } from "../-types/enroll-request-types";
+import { useEffect, useState } from "react";
+import createInviteLink from "../../invite/-utils/createInviteLink";
+import { toast } from "sonner";
 
-export const RequestCard = ({ obj }: { obj: ContentType }) => {
+export const RequestCard = ({
+    obj,
+    batchDetails,
+}: {
+    obj: ContentType;
+    batchDetails: BatchForSessionType;
+}) => {
+    const [inviteLink, setInviteLink] = useState("");
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+
     const handleCopyClick = (link: string) => {
         navigator.clipboard
             .writeText(link)
@@ -23,8 +32,6 @@ export const RequestCard = ({ obj }: { obj: ContentType }) => {
                 toast.error("Copy failed!");
             });
     };
-
-    const [inviteLink, setInviteLink] = useState("");
 
     useEffect(() => {
         if (obj.learner_invitation.invite_code) {
@@ -98,15 +105,53 @@ export const RequestCard = ({ obj }: { obj: ContentType }) => {
                         </div>
                     </div>
                     <div className="grid grid-cols-4 gap-x-20 gap-y-4">
-                        <p>Batch:</p>
-                        <p>Session: </p>
+                        <p>
+                            Batch: {batchDetails.level.level_name}{" "}
+                            {batchDetails.package_dto.package_name}
+                        </p>
+                        <p>Session: {batchDetails.session.session_name}</p>
                         <p>Email: {obj.learner_invitation_response_dto.email}</p>
                         <p>Mobile Number: {obj.learner_invitation_response_dto.contact_number}</p>
-                        <p>Gender: </p>
-                        <p>School: </p>
-                        <p>Address Line: </p>
-                        <p>City/Village: </p>
-                        <p>State: </p>
+                        <p>
+                            Gender:{" "}
+                            {
+                                obj.learner_invitation_response_dto.custom_fields_response.find(
+                                    (field) => field.field_name == "Gender",
+                                )?.value
+                            }
+                        </p>
+                        <p>
+                            School:{" "}
+                            {
+                                obj.learner_invitation_response_dto.custom_fields_response.find(
+                                    (field) => field.field_name == "School/College",
+                                )?.value
+                            }
+                        </p>
+                        <p>
+                            Address Line:{" "}
+                            {
+                                obj.learner_invitation_response_dto.custom_fields_response.find(
+                                    (field) => field.field_name == "Address",
+                                )?.value
+                            }
+                        </p>
+                        <p>
+                            City/Village:{" "}
+                            {
+                                obj.learner_invitation_response_dto.custom_fields_response.find(
+                                    (field) => field.field_name == "City",
+                                )?.value
+                            }
+                        </p>
+                        <p>
+                            State:{" "}
+                            {
+                                obj.learner_invitation_response_dto.custom_fields_response.find(
+                                    (field) => field.field_name == "State",
+                                )?.value
+                            }
+                        </p>
                     </div>
                 </div>
                 <div className="flex w-full items-center justify-end">
