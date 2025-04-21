@@ -448,7 +448,16 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 inputType="text"
                                                                 inputPlaceholder="Enter Pincode"
                                                                 input={value}
-                                                                onChangeFunction={onChange}
+                                                                onChangeFunction={(
+                                                                    e: React.ChangeEvent<HTMLInputElement>,
+                                                                ) => {
+                                                                    const filteredValue =
+                                                                        e.target.value
+                                                                            .replace(/[^0-9+]/g, "") // allow only + and numbers
+                                                                            .slice(0, 11); // limit to 10 characters
+
+                                                                    onChange(filteredValue);
+                                                                }}
                                                                 error={
                                                                     form.formState.errors
                                                                         .institutePinCode?.message
@@ -456,6 +465,7 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                                 size="large"
                                                                 label="Pincode"
                                                                 className="w-full"
+                                                                maxLength={11}
                                                                 {...field}
                                                             />
                                                         </FormControl>
