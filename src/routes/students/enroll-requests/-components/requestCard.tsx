@@ -8,6 +8,7 @@ import { ContentType } from "../-types/enroll-request-types";
 import { useEffect, useState } from "react";
 import createInviteLink from "../../invite/-utils/createInviteLink";
 import { toast } from "sonner";
+import { StudentTable } from "@/types/student-table-types";
 
 export const RequestCard = ({
     obj,
@@ -19,6 +20,7 @@ export const RequestCard = ({
     const [inviteLink, setInviteLink] = useState("");
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [studentData, setStudentData] = useState<StudentTable | undefined>();
 
     const handleCopyClick = (link: string) => {
         navigator.clipboard
@@ -40,6 +42,68 @@ export const RequestCard = ({
         } else {
             setInviteLink("");
         }
+
+        const data: StudentTable = {
+            id: obj.learner_invitation_response_dto.id,
+            username: "",
+            user_id: "",
+            email: obj.learner_invitation_response_dto.email,
+            full_name: obj.learner_invitation_response_dto.full_name,
+            address_line:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "Address",
+                )?.value || "",
+            region:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "State",
+                )?.value || "",
+            city:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "City",
+                )?.value || "",
+            pin_code:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "Pincode",
+                )?.value || "",
+            mobile_number: obj.learner_invitation_response_dto.contact_number,
+            date_of_birth: "",
+            gender:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "Gender",
+                )?.value || "",
+            father_name:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "Father Name",
+                )?.value || "",
+            mother_name:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "Mother Name",
+                )?.value || "",
+            parents_mobile_number:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "Parent Phone Number",
+                )?.value || "",
+            parents_email:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "Parent Email",
+                )?.value || "",
+            linked_institute_name:
+                obj.learner_invitation_response_dto.custom_fields_response.find(
+                    (field) => field.field_name == "School/College",
+                )?.value || "",
+            package_session_id: batchDetails.id,
+            institute_enrollment_id: "",
+            status: "INACTIVE",
+            session_expiry_days: 0,
+            institute_id: "",
+            expiry_date: 0,
+            face_file_id: "",
+            attempt_id: "",
+            created_at: "",
+            updated_at: "",
+        };
+
+        setStudentData(data);
     }, [obj]);
 
     return (
@@ -169,7 +233,7 @@ export const RequestCard = ({
                                     Accept
                                 </MyButton>
                             }
-                            // initialValues={obj.learner_invitation_response_dto}
+                            initialValues={studentData}
                         />
                     </div>
                 </div>

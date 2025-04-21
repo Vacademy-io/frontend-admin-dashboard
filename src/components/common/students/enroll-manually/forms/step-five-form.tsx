@@ -158,7 +158,7 @@ export const StepFiveForm = ({
                             <FormStepHeading stepNumber={5} heading="Generate Login Credentials" />
                         </FormItemWrapper>
 
-                        {!initialValues && (
+                        {(!initialValues || initialValues.username == "") && (
                             <FormItemWrapper<StepFiveData> control={form.control} name="username">
                                 <div className="flex flex-col items-center justify-center gap-5">
                                     <div className="text-subtitle">
