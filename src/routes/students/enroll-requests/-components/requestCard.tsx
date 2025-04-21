@@ -91,6 +91,8 @@ export const RequestCard = ({
                 obj.learner_invitation_response_dto.custom_fields_response.find(
                     (field) => field.field_name == "School/College",
                 )?.value || "",
+            parents_to_mother_email: "",
+            parents_to_mother_mobile_number: "",
             package_session_id: batchDetails.id,
             institute_enrollment_id: "",
             status: "INACTIVE",

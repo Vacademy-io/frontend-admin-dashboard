@@ -51,6 +51,8 @@ export interface StudentTable {
     expiry_date: number;
     face_file_id: string;
     attempt_id?: string;
+    parents_to_mother_mobile_number: string;
+    parents_to_mother_email: string;
 }
 
 export interface StudentListResponse {
