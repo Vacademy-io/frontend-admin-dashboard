@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { MyDialog } from "@/components/design-system/dialog";
 
 interface FileState {
     file: File | null;
@@ -72,6 +73,7 @@ export const UploadCSVButton = ({
         levelId: packageDetails.level.id || "",
     });
     const queryClient = useQueryClient();
+    const [showNotificationDialog, setShowNotificationDialog] = useState(false);
 
     // Function to close all dialogs
     const closeAllDialogs = () => {
@@ -228,7 +230,29 @@ export const UploadCSVButton = ({
         }
     };
 
-    const uploadCsv = async () => {
+    const handleDoneClick = async () => {
+        // Check if there are validation errors before proceeding with upload
+        if (csvErrors && csvErrors.length > 0) {
+            toast.error("Please fix the errors", {
+                className: "error-toast",
+                duration: 3000,
+            });
+
+            // Automatically open preview to show errors
+            setShowPreview(true);
+            return;
+        }
+
+        // Show notification dialog before proceeding with upload
+        setShowNotificationDialog(true);
+    };
+
+    const handleNotificationConfirm = async (notify: boolean) => {
+        setShowNotificationDialog(false);
+        await uploadCsv(notify);
+    };
+
+    const uploadCsv = async (notify: boolean) => {
         if (!csvData || !fileState.file) return;
 
         try {
@@ -238,7 +262,7 @@ export const UploadCSVButton = ({
                 instituteId: INSTITUTE_ID || "",
                 bulkUploadInitRequest: requestPayload,
                 packageSessionId: packageSessionId || "",
-                notify: true,
+                notify,
             });
 
             // Parse the response
@@ -269,23 +293,6 @@ export const UploadCSVButton = ({
         } finally {
             setIsUploading(false);
         }
-    };
-
-    const handleDoneClick = async () => {
-        // Check if there are validation errors before proceeding with upload
-        if (csvErrors && csvErrors.length > 0) {
-            toast.error("Please fix the errors", {
-                className: "error-toast",
-                duration: 3000,
-            });
-
-            // Automatically open preview to show errors
-            setShowPreview(true);
-            return;
-        }
-
-        // No errors, proceed with
-        uploadCsv();
     };
 
     const handleDownloadResponse = () => {
@@ -427,6 +434,41 @@ export const UploadCSVButton = ({
                     closeAllDialogs={closeAllDialogs}
                 />
             )}
+
+            {/* Notification Confirmation Dialog */}
+            <MyDialog
+                open={showNotificationDialog}
+                onOpenChange={setShowNotificationDialog}
+                heading="Notification Preference"
+                dialogWidth="w-[500px]"
+                footer={
+                    <div className="flex justify-end gap-4">
+                        <MyButton
+                            buttonType="secondary"
+                            scale="large"
+                            layoutVariant="default"
+                            onClick={() => handleNotificationConfirm(false)}
+                        >
+                            Don&apos;t Notify
+                        </MyButton>
+                        <MyButton
+                            buttonType="primary"
+                            scale="large"
+                            layoutVariant="default"
+                            onClick={() => handleNotificationConfirm(true)}
+                        >
+                            Notify Students
+                        </MyButton>
+                    </div>
+                }
+            >
+                <div className="p-4">
+                    <p className="text-neutral-600">
+                        Would you like to send notification emails to the students about their
+                        enrollment?
+                    </p>
+                </div>
+            </MyDialog>
         </>
     );
 };

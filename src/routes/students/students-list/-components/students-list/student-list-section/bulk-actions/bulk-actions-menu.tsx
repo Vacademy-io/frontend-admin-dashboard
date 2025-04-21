@@ -16,10 +16,10 @@ interface BulkActionsMenuProps {
 export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuProps) => {
     const {
         openBulkChangeBatchDialog,
-        openBulkExtendSessionDialog,
         openBulkReRegisterDialog,
         openBulkTerminateRegistrationDialog,
         openBulkDeleteDialog,
+        openBulkShareCredentialsDialog,
     } = useDialogStore();
 
     const handleMenuOptionsChange = (value: string) => {
@@ -42,9 +42,6 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
             case "Change Batch":
                 openBulkChangeBatchDialog(bulkActionInfo);
                 break;
-            case "Extend Session":
-                openBulkExtendSessionDialog(bulkActionInfo);
-                break;
             case "Re-register for Next Session":
                 openBulkReRegisterDialog(bulkActionInfo);
                 break;
@@ -53,6 +50,9 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
                 break;
             case "Delete":
                 openBulkDeleteDialog(bulkActionInfo);
+                break;
+            case "Share Credentials":
+                openBulkShareCredentialsDialog(bulkActionInfo);
                 break;
         }
     };

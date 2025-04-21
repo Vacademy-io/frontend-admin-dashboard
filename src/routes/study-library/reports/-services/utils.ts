@@ -7,8 +7,19 @@ import {
     CHAPTER_WISE_LEARNERS_REPORT,
     SUBJECT_WISE_LEARNERS_REPORT,
     SLIDE_WISE_LEARNERS_REPORT,
+    INSTITUTE_SETTING,
+    UPDATE_INSTITUTE_SETTING,
+    LEARNERS_SETTING,
+    UPDATE_LEARNERS_SETTING,
+    EXPORT_BATCH_REPORT,
+    EXPORT_LEARNERS_REPORT,
+    EXPORT_LEARNERS_SUBJECT_REPORT,
+    EXPORT_LEARNERS_MODULE_REPORT,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
+import { InstituteSettingResponse } from "../-types/types";
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
+import { TokenKey } from "@/constants/auth/tokens";
 
 export const fetchBatchReport = async (data: {
     start_date: string;
@@ -138,6 +149,206 @@ export const fetchSlideWiseProgress = async (data: {
         return response.data;
     } catch (error) {
         console.error(error);
+        throw error;
+    }
+};
+
+export const fetchInstituteSetting = async (instituteId: string) => {
+    try {
+        const response = await authenticatedAxiosInstance.get(INSTITUTE_SETTING, {
+            params: {
+                instituteId,
+            },
+            headers: {
+                Accept: "*/*",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const updateInstituteReportSetting = async (data: InstituteSettingResponse) => {
+    try {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const tokenData = getTokenDecodedData(accessToken);
+        const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+        const response = await authenticatedAxiosInstance.post(
+            `${UPDATE_INSTITUTE_SETTING}/${INSTITUTE_ID}`,
+            data,
+            {
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const fetchLearnerSetting = async (param: { userId: string; instituteId: string }) => {
+    try {
+        const response = await authenticatedAxiosInstance.get(LEARNERS_SETTING, {
+            params: param,
+            headers: {
+                Accept: "*/*",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const updateLearnersReportSetting = async (params: {
+    userId: string;
+    data: InstituteSettingResponse;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            `${UPDATE_LEARNERS_SETTING}`,
+            params.data,
+            {
+                params: { userId: params.userId },
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const exportBatchReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    userId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_BATCH_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                user_id: params.userId,
+            },
+            {
+                responseType: "blob",
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting batch report:", error);
+        throw error;
+    }
+};
+
+export const exportLearnersReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    userId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_LEARNERS_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                user_id: params.userId,
+            },
+            {
+                responseType: "blob",
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting batch report:", error);
+        throw error;
+    }
+};
+
+export const exportLearnersSubjectReport = async (params: {
+    startDate: string;
+    endDate: string;
+    packageSessionId: string;
+    userId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_LEARNERS_SUBJECT_REPORT,
+            {
+                start_date: params.startDate,
+                end_date: params.endDate,
+                package_session_id: params.packageSessionId,
+                user_id: params.userId,
+            },
+            {
+                responseType: "blob",
+                headers: {
+                    Accept: "*/*",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting batch report:", error);
+        throw error;
+    }
+};
+
+export const exportLearnerModuleProgressReport = async (params: {
+    userId: string;
+    moduleId: string;
+    packageSessionId: string;
+}) => {
+    try {
+        const response = await authenticatedAxiosInstance.post(
+            EXPORT_LEARNERS_MODULE_REPORT,
+            null,
+            {
+                responseType: "blob",
+                params: {
+                    userId: params.userId,
+                    moduleId: params.moduleId,
+                    packageSessionId: params.packageSessionId,
+                },
+                headers: {
+                    Accept: "application/pdf",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error exporting learner module progress report:", error);
         throw error;
     }
 };

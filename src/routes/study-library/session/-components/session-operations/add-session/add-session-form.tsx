@@ -33,9 +33,9 @@ const formSchema = z.object({
                 thumbnail_file_id: z.string().nullable(),
                 package_id: z.string(), // Moved package_id into level_dto
             }),
-            // package_session_id: z.string().nullable(),
-            // package_session_status: z.string().nullable(),
-            // start_date: z.string().nullable(),
+            package_session_id: z.string(),
+            package_session_status: z.string(),
+            start_date: z.string(),
         }),
     ),
 });
@@ -62,36 +62,11 @@ export const AddSessionForm = ({
     const addCourseMutation = useAddCourse();
     const [locallyAddedLevels, setLocallyAddedLevels] = useState<Record<string, LevelType[]>>({});
 
-    const getFilteredPackages = () => {
+    const getPackages = () => {
         if (!initialValues) {
-            return packageWithLevels; // Return all packages if not editing
+            return packageWithLevels;
         }
-
-        // Filter the packageWithLevels to only include packages present in initialValues
-        return packageWithLevels.filter((pkg) =>
-            initialValues.packages.some(
-                (initialPkg) => initialPkg.package_dto.id === pkg.package_dto.id,
-            ),
-        );
-    };
-
-    const getFilteredLevelsForPackage = (packageId: string) => {
-        if (!initialValues) {
-            // Return an empty array if not editing - this was trying to use packageItem
-            return [];
-        }
-
-        // Find the package in initialValues
-        const packageInInitialValues = initialValues.packages.find(
-            (pkg) => pkg.package_dto.id === packageId,
-        );
-
-        if (!packageInInitialValues) {
-            return []; // If package not found in initialValues, show no levels
-        }
-
-        // Return only the levels from this package in initialValues
-        return packageInInitialValues.level;
+        return initialValues.packages;
     };
 
     // Add this inside the AddSessionForm component, before the return statement
@@ -105,6 +80,7 @@ export const AddSessionForm = ({
                     // Only include levels where package_session_status is "ACTIVE"
                     if (levelWithStatus.package_session_status === "ACTIVE") {
                         initialSelectedLevels.push({
+                            start_date: levelWithStatus.start_date,
                             level_dto: {
                                 id: levelWithStatus.level_dto.id,
                                 new_level: false,
@@ -113,6 +89,8 @@ export const AddSessionForm = ({
                                 thumbnail_file_id: levelWithStatus.level_dto.thumbnail_id,
                                 package_id: packageItem.package_dto.id,
                             },
+                            package_session_id: levelWithStatus.package_session_id,
+                            package_session_status: levelWithStatus.package_session_status,
                         });
                     }
                 });
@@ -142,6 +120,9 @@ export const AddSessionForm = ({
                             level_name: level.level_name,
                             duration_in_days: level.duration_in_days,
                             thumbnail_id: level.thumbnail_id,
+                            package_id: packageId,
+                            new_level: true,
+                            start_date: new Date().toISOString(),
                         },
                         package_session_id: "", // Use empty string instead of null
                         package_session_status: "ACTIVE", // Use "ACTIVE" instead of null
@@ -164,7 +145,26 @@ export const AddSessionForm = ({
                 ? new Date(initialValues.session.start_date).toISOString().split("T")[0]
                 : new Date().toISOString().split("T")[0],
             new_session: initialValues ? false : true,
-            levels: [],
+            levels:
+                initialValues?.packages.flatMap((pkg) => {
+                    const packageId = pkg.package_dto.id;
+                    return pkg.level
+                        .filter((level) => level.package_session_status === "ACTIVE")
+                        .map((level) => ({
+                            level_dto: {
+                                start_date: level.start_date,
+                                id: level.level_dto.id,
+                                new_level: false,
+                                level_name: level.level_dto.level_name,
+                                duration_in_days: level.level_dto.duration_in_days,
+                                thumbnail_file_id: level.level_dto.thumbnail_id,
+                                package_id: packageId,
+                            },
+                            package_session_id: level.package_session_id,
+                            package_session_status: level.package_session_status,
+                            start_date: level.start_date,
+                        }));
+                }) || [],
         },
     });
 
@@ -186,21 +186,19 @@ export const AddSessionForm = ({
         durationInDays: number | null,
         packageId: string,
     ) => {
-        const tempId = `temp-${Date.now()}`; // Create a unique temporary ID
-
         // Create the new level object with the correct structure
         const newLevel: LevelForSession = {
             level_dto: {
-                id: tempId,
+                id: "",
                 new_level: true, // Ensure this is explicitly set to true
                 level_name: levelName,
                 duration_in_days: durationInDays,
                 thumbnail_file_id: null,
                 package_id: packageId,
             },
-            // package_session_id: "", // Use empty string instead of null
-            // package_session_status: "ACTIVE", // Use "ACTIVE" instead of null
-            // start_date: new Date().toISOString(), // Use current date instead of null
+            package_session_id: "",
+            package_session_status: "ACTIVE",
+            start_date: new Date().toISOString(),
         };
 
         // Add to form values
@@ -209,7 +207,7 @@ export const AddSessionForm = ({
 
         // Add to local state for tracking
         const levelForLocalTracking: LevelType = {
-            id: tempId,
+            id: "",
             level_name: levelName,
             duration_in_days: durationInDays,
             thumbnail_id: null,
@@ -227,6 +225,8 @@ export const AddSessionForm = ({
 
     const handleSelectLevel = (level: levelWithDetails, packageId: string, isSelected: boolean) => {
         const currentLevels = form.getValues("levels");
+        console.log("currentLevels", currentLevels);
+        console.log("isSelected", isSelected);
 
         if (isSelected) {
             // Remove the level if it's already selected
@@ -238,6 +238,7 @@ export const AddSessionForm = ({
                     ),
             );
             form.setValue("levels", updatedLevels);
+            console.log("updatedLevels", updatedLevels);
         } else {
             // Add the level if it's not already selected
             const levelToAdd: LevelForSession = {
@@ -249,11 +250,12 @@ export const AddSessionForm = ({
                     thumbnail_file_id: level.level_dto.thumbnail_id || "",
                     package_id: packageId,
                 },
-                // package_session_id: level.package_session_id,
-                // package_session_status: level.package_session_status,
-                // start_date: level.start_date,
+                package_session_id: level.package_session_id,
+                package_session_status: level.package_session_status,
+                start_date: level.start_date,
             };
             form.setValue("levels", [...currentLevels, levelToAdd]);
+            console.log("updatedLevels", form.getValues("levels"));
         }
     };
 
@@ -356,7 +358,7 @@ export const AddSessionForm = ({
                             <FormItem className="w-full">
                                 <FormControl>
                                     <div className="flex flex-col gap-4">
-                                        {getFilteredPackages().map((packageItem) => {
+                                        {getPackages().map((packageItem) => {
                                             const packageHasSelectedLevels =
                                                 hasSelectedLevelsInPackage(
                                                     packageItem.package_dto.id,
@@ -398,29 +400,14 @@ export const AddSessionForm = ({
                                                         <Separator />
                                                         <div className="grid grid-cols-2">
                                                             {initialValues
-                                                                ? getFilteredLevelsForPackage(
-                                                                      packageItem.package_dto.id,
-                                                                  ).map((level) => {
+                                                                ? packageItem.level.map((level) => {
                                                                       const selected =
                                                                           isLevelSelected(
                                                                               level.level_dto.id,
                                                                               packageItem
                                                                                   .package_dto.id,
                                                                           );
-                                                                      // If editing, pre-check levels based on status
-                                                                      if (
-                                                                          !selected &&
-                                                                          level.package_session_status ===
-                                                                              "ACTIVE"
-                                                                      ) {
-                                                                          // Automatically select active levels if not already selected
-                                                                          handleSelectLevel(
-                                                                              level,
-                                                                              packageItem
-                                                                                  .package_dto.id,
-                                                                              false, // false means not already selected
-                                                                          );
-                                                                      }
+
                                                                       return (
                                                                           <div
                                                                               key={
@@ -430,20 +417,14 @@ export const AddSessionForm = ({
                                                                           >
                                                                               <Checkbox
                                                                                   className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
-                                                                                  checked={
-                                                                                      level.package_session_status ===
-                                                                                          "ACTIVE" ||
-                                                                                      selected
-                                                                                  }
+                                                                                  checked={selected}
                                                                                   onCheckedChange={() =>
                                                                                       handleSelectLevel(
                                                                                           level,
                                                                                           packageItem
                                                                                               .package_dto
                                                                                               .id,
-                                                                                          level.package_session_status ===
-                                                                                              "ACTIVE" ||
-                                                                                              selected,
+                                                                                          selected,
                                                                                       )
                                                                                   }
                                                                               />

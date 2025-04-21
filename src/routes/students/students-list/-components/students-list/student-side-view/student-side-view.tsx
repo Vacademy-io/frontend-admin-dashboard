@@ -13,9 +13,11 @@ import { StatusChips } from "@/components/design-system/chips";
 import { StudentOverview } from "./student-overview/student-overview";
 import { StudentLearningProgress } from "./student-learning-progress/student-learning-progress";
 import { StudentTestRecord } from "./student-test-records/student-test-record";
-import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { getPublicUrl } from "@/services/upload_file";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
+import { StudentTable } from "@/types/student-table-types";
+import { useStudentSidebar } from "../../../-context/selected-student-sidebar-context";
+
 export const StudentSidebar = ({
     selectedTab,
     examType,
@@ -24,13 +26,16 @@ export const StudentSidebar = ({
     selectedTab?: string;
     examType?: string;
     isStudentList?: boolean;
+    selectedStudent: StudentTable | null;
 }) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState("overview");
     const { toggleSidebar } = useSidebar();
-    const { selectedStudent } = useStudentSidebar();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [faceLoader, setFaceLoader] = useState(false);
+
+    const { selectedStudent } = useStudentSidebar();
+
     useEffect(() => {
         if (state == "expanded") {
             document.body.classList.add("sidebar-open");
@@ -45,7 +50,6 @@ export const StudentSidebar = ({
     }, [state]);
 
     useEffect(() => {
-        console.log("inside useEffect");
         const fetchImageUrl = async () => {
             if (selectedStudent?.face_file_id) {
                 console.log("inside if");

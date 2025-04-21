@@ -21,10 +21,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { StatusColumnRenderer } from "./status-column-rendered";
 import { ErrorDetailsDialog } from "./error-details-dialog";
+import { Warning } from "phosphor-react";
 
 interface EditableBulkUploadTableProps {
     headers: Header[];
     onEdit?: (rowIndex: number, columnId: string, value: string) => void;
+    affectedRows: number;
 }
 
 interface RowWithError extends SchemaFields {
@@ -192,7 +194,11 @@ export const getUploadStats = (responseData: SchemaFields[]) => {
     };
 };
 
-export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadTableProps) {
+export function EditableBulkUploadTable({
+    headers,
+    onEdit,
+    affectedRows,
+}: EditableBulkUploadTableProps) {
     const { csvData, csvErrors, setIsEditing, isEditing, setCsvData } = useBulkUploadStore();
     const [page, setPage] = useState(0);
     const [searchInput, setSearchInput] = useState("");
@@ -385,8 +391,8 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
     return paginatedData.content.length === 0 ? (
         <p className="w-full text-center text-subtitle text-primary-500">No uploaded data found!</p>
     ) : (
-        <div className="no-scrollbar flex flex-col gap-6 overflow-y-scroll px-6">
-            <div className="no-scrollbar flex items-center justify-between">
+        <div className="flex flex-col gap-6 pr-10">
+            <div className="fixed top-[55px] z-50 flex w-[78vw] items-center justify-between border-b border-b-neutral-300 bg-white py-2">
                 <div className="flex items-center gap-2">
                     <StudentSearchBox
                         searchInput={searchInput}
@@ -406,10 +412,21 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
                         </Label>
                     </div>
                     {isEditing && (
-                        <div className="text-sm text-primary-500">Double click on cell to edit</div>
+                        <div className="text-sm text-primary-500">Click on cell to edit</div>
                     )}
                 </div>
-                <div className="flex gap-4">
+                <div className="flex items-center gap-4">
+                    {csvErrors.length > 0 && (
+                        <div className="rounded-md">
+                            <div className="flex items-center">
+                                <Warning className="h-5 w-5 text-danger-500" />
+                                <h3 className="ml-2 text-sm font-medium text-danger-700">
+                                    Found {csvErrors.length} validation issues in {affectedRows}{" "}
+                                    rows
+                                </h3>
+                            </div>
+                        </div>
+                    )}
                     {csvErrors.length > 0 && (
                         <MyButton
                             buttonType="secondary"
@@ -433,7 +450,7 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
                 </div>
             </div>
 
-            <div className="no-scrollbar">
+            <div className="no-scrollbar mt-12 bg-white">
                 <div className="no-scrollbar">
                     <MyTable<SchemaFields>
                         data={paginatedData}
@@ -447,7 +464,7 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
                             ...headers.reduce(
                                 (acc, header) => ({
                                     ...acc,
-                                    [header.column_name]: "w-[180px]",
+                                    [header.column_name]: "min-w-[220px]",
                                 }),
                                 {},
                             ),
@@ -457,11 +474,13 @@ export function EditableBulkUploadTable({ headers, onEdit }: EditableBulkUploadT
                 </div>
             </div>
 
-            <MyPagination
-                currentPage={page}
-                totalPages={paginatedData.total_pages}
-                onPageChange={(newPage) => setPage(newPage)}
-            />
+            <div className="fixed bottom-0 left-[30vw] right-0 z-50 w-fit bg-white py-2">
+                <MyPagination
+                    currentPage={page}
+                    totalPages={paginatedData.total_pages}
+                    onPageChange={(newPage) => setPage(newPage)}
+                />
+            </div>
 
             <ErrorDetailsDialog
                 isOpen={showErrorDialog}

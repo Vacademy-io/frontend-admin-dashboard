@@ -48,7 +48,7 @@ export const useStudentTable = (
             if (student) {
                 setSelectedStudent(student);
             } else {
-                setSelectedStudent(null);
+                setSelectedStudent(student || null);
             }
         }
     }, [studentTableData]);

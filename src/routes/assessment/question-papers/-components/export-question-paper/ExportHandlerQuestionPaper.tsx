@@ -186,7 +186,7 @@ export function ExportHandlerQuestionPaper({
     return (
         <>
             <div className="flex flex-col">
-                <div className="flex items-center gap-4 w-full">
+                <div className="flex w-full items-center gap-4">
                     <MyButton onClick={handleExport} disabled={isExporting} className="gap-2">
                         <Download className="size-4" />
                         {isExporting

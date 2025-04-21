@@ -8,6 +8,7 @@ import { ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView } from "./Comp
 import { ComprehensiveNumericQuestionPaperTemplatePPTView } from "./ComprehensiveNumericType/ComprehensiveNumericQuestionPaperTemplatePPTView";
 import { OneWordQuestionPaperTemplatePPTView } from "./OneWordType/OneWordQuestionPaperTemplatePPTView";
 import { LongAnswerQuestionPaperTemplatePPTView } from "./LongAnswerType/LongAnswerQuestionPaperTemplatePPTView";
+import { TrueFalseQuestionPaperTemplatePPTView } from "./TrueFalse/TrueFalseQuestionPaperTemplatePPTView";
 
 type PPTComponentType = QuestionType;
 
@@ -22,6 +23,7 @@ const PPTComponentsMap: Record<PPTComponentType, PPTComponent> = {
     CNUMERIC: ComprehensiveNumericQuestionPaperTemplatePPTView,
     ONE_WORD: OneWordQuestionPaperTemplatePPTView,
     LONG_ANSWER: LongAnswerQuestionPaperTemplatePPTView,
+    TRUE_FALSE: TrueFalseQuestionPaperTemplatePPTView,
 };
 
 export const PPTComponentFactory = (params: {
