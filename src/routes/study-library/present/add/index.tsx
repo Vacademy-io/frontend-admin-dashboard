@@ -4,7 +4,8 @@ import { createFileRoute } from "@tanstack/react-router"
 interface AddPresentParams {
   title: string;
   description: string;
-  id: string
+  id: string;
+  isEdit: boolean;
 }
 export const Route = createFileRoute("/study-library/present/add/")({
   component: RouteComponent,
@@ -13,12 +14,13 @@ export const Route = createFileRoute("/study-library/present/add/")({
       title: search.title as string,
       description: search.description as string,
       id: search.id as string,
+      isEdit: search.isEdit as boolean,
     };
   },
 })
 
 function RouteComponent() {
-  const { title = "", description = "", id } = Route.useSearch();
-  return <SlidesEditor metaData={{ title, description }} presentationId={id} />;
+  const { title = "", description = "", id, isEdit } = Route.useSearch();
+  return <SlidesEditor metaData={{ title, description }} presentationId={id} isEdit={isEdit} />;
 }
 

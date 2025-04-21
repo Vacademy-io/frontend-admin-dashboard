@@ -7,12 +7,12 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { SlideEditor } from "./SlideEditor";
 import { Button } from "@/components/ui/button";
-import { ListStart, Settings, FileDown } from "lucide-react";
+import { ListStart, Settings, FileDown, Save } from "lucide-react";
 import SlideList from "./SlideList";
 import { SlideType } from "./constant/slideType";
 import { QuizeSlide } from "./slidesTypes/QuizSlides";
 import { useSlideStore } from "@/stores/Slides/useSlideStore";
-import { ADD_PRESENTATION } from "@/constants/urls";
+import { ADD_PRESENTATION, EDIT_PRESENTATION } from "@/constants/urls";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import { TokenKey } from "@/constants/auth/tokens";
@@ -55,7 +55,7 @@ const SlideRenderer = ({
   }
 };
 
-export default function SlidesEditor({ metaData, presentationId }: { metaData: { title: string; description: string }, presentationId: string }) {
+export default function SlidesEditor({ metaData, presentationId, isEdit }: { metaData: { title: string; description: string }, presentationId: string, isEdit: boolean }) {
   const {
     slides,
     currentSlideId,
@@ -270,26 +270,94 @@ export default function SlidesEditor({ metaData, presentationId }: { metaData: {
         };
 
         if (isQuestionSlide) {
-
-
           const question = {
-            id: "1",
-            preview_id: "prev_001",
-            section_id: "1",
-            question_order_in_section: 0,
-            text: null,
-            question_response_type: "single_choice",
-            default_question_time_mins: 0,
-            question_type: "MCQS",
-            options_json: JSON.stringify(slide.elements.singleChoiceOptions || []),
-            parsed_evaluation_object: null,
-            options: (slide.elements.singleChoiceOptions || []).map((option, optIndex) => ({
-              text: { type: "text", content: option.name || "" },
-              option_order: optIndex,
-              ...(option.image?.imageId && { media_id: option.image.imageId })
-            }))
-          };
-  
+            "preview_id": "1",
+            "section_id": null,
+            "question_order_in_section": 1,
+            "text": {
+              "id": null,
+              "type": "HTML",
+              "content": "Which of the following is a front-end technology?"
+            },
+            "media_id": "media_001",
+            "question_response_type": "multiple_choice",
+            "question_type": "MCQS",
+            "access_level": "public",
+            "auto_evaluation_json": "{\"type\":\"MCQS\",\"data\":{\"correctOptionIds\":[\"1\"]}}",
+            "options_json": null,
+            "parsed_evaluation_object": {
+              "correct_option": 1
+            },
+            "evaluation_type": "auto",
+            "explanation_text": {
+              "id": null,
+              "type": "HTML",
+              "content": "HTML is used to structure content on the web, making it a front-end technology."
+            },
+            "parent_rich_text_id": "prt_001",
+            "parent_rich_text": {
+              "id": null,
+              "type": "HTML",
+              "content": "Let'\''s check your understanding of front-end technologies."
+            },
+            "default_question_time_mins": 1,
+            "options": [
+              {
+                "id": null,
+                "preview_id": "1",
+                "text": {
+                  "id": null,
+                  "type": "HTML",
+                  "content": "HTML"
+                },
+                "media_id": "media_opt_001",
+                "option_order": 1,
+                "explanation_text": {
+                  "id": "exp_opt_001",
+                  "type": "HTML",
+                  "content": "Correct! HTML is used to build web page structure."
+                }
+              },
+              {
+                "id": null,
+                "preview_id": 2,
+                "text": {
+                  "id": null,
+                  "type": "HTML",
+                  "content": "Node.js"
+                },
+                "media_id": "media_opt_002",
+                "option_order": 2,
+                "explanation_text": {
+                  "id": null,
+                  "type": "HTML",
+                  "content": "Incorrect. Node.js is used for server-side (back-end) development."
+                }
+              }
+            ],
+            "errors": [],
+            "warnings": []
+          }
+
+
+          // const question = {
+          //   id: "1",
+          //   preview_id: "prev_001",
+          //   section_id: "1",
+          //   question_order_in_section: 0,
+          //   text: null,
+          //   question_response_type: "single_choice",
+          //   default_question_time_mins: 0,
+          //   question_type: "MCQS",
+          //   options_json: null,
+          //   parsed_evaluation_object: null,
+          //   options: (slide.elements.singleChoiceOptions || []).map((option, optIndex) => ({
+          //     text: { type: "text", content: option.name || "" },
+          //     option_order: optIndex,
+          //     ...(option.image?.imageId && { media_id: option.image.imageId })
+          //   }))
+          // };
+
           return {
             ...baseSlide,
             added_question: question,
@@ -302,6 +370,7 @@ export default function SlidesEditor({ metaData, presentationId }: { metaData: {
 
       // 6. Prepare final payload
       const payload = {
+        id: isEdit ? presentationId : "",
         title: metaData?.title || "New Presentation",
         description: metaData?.description || "",
         cover_file_id: "",
@@ -311,7 +380,7 @@ export default function SlidesEditor({ metaData, presentationId }: { metaData: {
 
       // 7. API call
       const response = await authenticatedAxiosInstance.post(
-        ADD_PRESENTATION,
+        isEdit ? EDIT_PRESENTATION : ADD_PRESENTATION,
         payload,
         {
           params: { instituteId: INSTITUTE_ID },
@@ -346,17 +415,10 @@ export default function SlidesEditor({ metaData, presentationId }: { metaData: {
       setSlides(presentation ?? []);
     }
   }, [presentation])
-  // Helper function to generate unique IDs
-  function generateUniqueId() {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
-  }
 
 
-  if (isSaving) {
-    <div className="absolute top-[40vh] left-[50vw] w-full h-full bg-black opacity-50">
-      Saving....
-    </div>
-  }
+
+
 
   return (
     <div className="flex h-screen w-full bg-white">
@@ -367,11 +429,10 @@ export default function SlidesEditor({ metaData, presentationId }: { metaData: {
             onClick={savePresentation}
             className="gap-2 bg-primary-400  hover:bg-primary-500 mt-4"
           >
-            <Settings className="size-4" />
-            Save Presentation
+            <Save className="size-4" />
+            {isSaving ? "Saving..." : isEdit ? "Edit Presentation" : "Save Presentation"}
           </Button>
           <div className="flex justify-end gap-2 ">
-
             <Button
               variant="destructive"
               onClick={takeScreenshot}
@@ -388,10 +449,6 @@ export default function SlidesEditor({ metaData, presentationId }: { metaData: {
               <FileDown className="size-4" />
               Export PPT
             </Button>
-            {/* <Button variant="destructive" className="gap-2">
-      <Settings className="size-4" />
-      Settings
-    </Button> */}
             <Button
               variant="ghost"
               onClick={toggleEditMode}
@@ -443,7 +500,7 @@ export default function SlidesEditor({ metaData, presentationId }: { metaData: {
           </div>
         </div>
       </div>
-  
+
     </div>
   );
 }

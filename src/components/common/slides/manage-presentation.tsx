@@ -34,16 +34,35 @@ export default function ManagePresentation() {
   const [presentations, setPresentations] = useState<Presentation[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [newTitle, setNewTitle] = useState("")
   const [newDescription, setNewDescription] = useState("")
+  const [editingPresentation, setEditingPresentation] = useState<Presentation | null>(null)
 
   const handleDeletePresentation = (id: string) => {
     setPresentations((prev) => prev.filter((presentation) => presentation.id !== id))
   }
 
   const handleEditPresentation = (presentation: Presentation) => {
-    router.navigate({ to: `/study-library/present/add?id=${presentation.id}&title=${presentation.title}&description=${presentation.description}` })
+    setEditingPresentation(presentation)
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdatePresentation = (e: FormEvent) => {
+    e.preventDefault()
+    if (!editingPresentation) return
+
+    router.navigate({
+      to: `/study-library/present/add`,
+      search: {
+        title: editingPresentation.title,
+        description: editingPresentation.description,
+        id: editingPresentation.id,
+        isEdit: true
+      },
+    })
+    setIsEditModalOpen(false)
   }
 
   const handleCreatePresentation = (e: FormEvent) => {
@@ -53,10 +72,11 @@ export default function ManagePresentation() {
       search: {
         title: newTitle,
         description: newDescription,
-        id:"",
+        id: "",
+        isEdit: false
       },
     })
-    setIsModalOpen(false)
+    setIsCreateModalOpen(false)
 
     setNewTitle("")
     setNewDescription("")
@@ -111,7 +131,7 @@ export default function ManagePresentation() {
           <h1 className="text-2xl font-bold">Presentations</h1>
           <p className="text-sm text-neutral-500 mt-1">Manage and organize your presentation materials</p>
         </div>
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button className="bg-rose-600 hover:bg-rose-700 text-white self-start md:self-center">
               <Plus className="h-4 w-4 mr-2" /> New Presentation
@@ -154,7 +174,7 @@ export default function ManagePresentation() {
                 </div>
               </div>
               <DialogFooter >
-                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1">
+                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)} className="flex-1">
                   Cancel
                 </Button>
                 <Button type="submit" variant={"destructive"} className="flex-1">
@@ -165,6 +185,64 @@ export default function ManagePresentation() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Edit Presentation Dialog */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Edit Presentation</DialogTitle>
+            <DialogDescription>
+              Update the details for your presentation.
+            </DialogDescription>
+          </DialogHeader>
+          {editingPresentation && (
+            <form onSubmit={handleUpdatePresentation}>
+              <div className="flex flex-col gap-4 mb-4">
+                <div className="flex flex-col items-start gap-4">
+                  <Label htmlFor="edit-title" className="text-right">
+                    Title
+                  </Label>
+                  <Input
+                    id="edit-title"
+                    value={editingPresentation.title}
+                    onChange={(e) => setEditingPresentation({
+                      ...editingPresentation,
+                      title: e.target.value
+                    })}
+                    className="col-span-3"
+                    placeholder="Enter presentation title"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col items-start gap-4">
+                  <Label htmlFor="edit-description" className="text-right">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editingPresentation.description}
+                    onChange={(e) => setEditingPresentation({
+                      ...editingPresentation,
+                      description: e.target.value
+                    })}
+                    className="col-span-3"
+                    placeholder="Enter presentation description"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" variant={"destructive"} className="flex-1">
+                  Next
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div className="relative w-full md:w-64">

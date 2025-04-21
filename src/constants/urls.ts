@@ -146,3 +146,4 @@ export const EXPORT_ACCOUNT_DETAILS = `${BASE_URL}/admin-core-service/institute/
 export const GET_PRESENTATION_LIST = `${BASE_URL}/community-service/presentation/get-all-presentation`;
 export const ADD_PRESENTATION = `${BASE_URL}/community-service/presentation/add-presentation`;
 export const GET_PRESENTATION = `${BASE_URL}/community-service/presentation/get-presentation`;
+export const EDIT_PRESENTATION = `${BASE_URL}/community-service/presentation/edit-presentation`;
