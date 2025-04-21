@@ -24,11 +24,20 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { FormEvent } from "react"
+import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility"
+import { TokenKey } from "@/constants/auth/tokens"
+import authenticatedAxiosInstance from "@/lib/auth/axiosInstance"
+import { toast } from "sonner"
+import { EDIT_PRESENTATION } from "@/constants/urls"
+import { useQueryClient } from "@tanstack/react-query"
 
 
 export default function ManagePresentation() {
   const router = useRouter()
   const { setNavHeading } = useNavHeadingStore()
+  const queryClient = useQueryClient();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const { data, isLoading, } = useGetPresntation()
   const [presentations, setPresentations] = useState<Presentation[]>([])
@@ -39,10 +48,9 @@ export default function ManagePresentation() {
   const [newTitle, setNewTitle] = useState("")
   const [newDescription, setNewDescription] = useState("")
   const [editingPresentation, setEditingPresentation] = useState<Presentation | null>(null)
+  const [presentationToDelete, setPresentationToDelete] = useState<Presentation | null>(null)
 
-  const handleDeletePresentation = (id: string) => {
-    setPresentations((prev) => prev.filter((presentation) => presentation.id !== id))
-  }
+
 
   const handleEditPresentation = (presentation: Presentation) => {
     setEditingPresentation(presentation)
@@ -64,6 +72,13 @@ export default function ManagePresentation() {
     })
     setIsEditModalOpen(false)
   }
+
+
+  const handleDeletePresentation = (presentation: Presentation) => {
+    setPresentationToDelete(presentation)
+    setIsDeleteDialogOpen(true)
+  }
+
 
   const handleCreatePresentation = (e: FormEvent) => {
     e.preventDefault()
@@ -116,6 +131,53 @@ export default function ManagePresentation() {
   useEffect(() => {
     setPresentations(data ?? [])
   }, [data])
+
+
+  const deletePresentation = async () => {
+
+    try {
+      setIsSaving(true);
+      // 1. Authentication check
+      const accessToken = getTokenFromCookie(TokenKey.accessToken);
+      if (!accessToken) {
+        toast.error("Please login to save presentations");
+        return;
+      }
+
+      // 2. Get institute ID
+      const tokenData = getTokenDecodedData(accessToken);
+      const INSTITUTE_ID = tokenData?.authorities && Object.keys(tokenData.authorities)[0];
+      // 7. API call
+      const response = await authenticatedAxiosInstance.post(
+        EDIT_PRESENTATION,
+        { ...presentationToDelete, status: "DELETED", added_slides: [] },
+        {
+          params: { instituteId: INSTITUTE_ID },
+          headers: {
+            'Content-Type': 'application/json',
+
+          }
+        }
+      );
+
+      // 8. Handle response
+      await queryClient.refetchQueries({ queryKey: ["GET_PRESNTATIONS"] });
+      toast.success("Presentation deleted successfully");
+
+
+    } catch (error) {
+      console.error("Save error:", error);
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to save presentation"
+      );
+    } finally {
+      setIsSaving(false);
+      setIsDeleteDialogOpen(false)
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -301,7 +363,7 @@ export default function ManagePresentation() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-neutral-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => { handleDeletePresentation(presentation.id) }}
+                    onClick={() => { handleDeletePresentation(presentation) }}
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
@@ -327,6 +389,44 @@ export default function ManagePresentation() {
           )}
         </div>
       )}
+
+
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Delete Presentation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this presentation? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              className="flex-1"
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant={"destructive"}
+              className="flex-1"
+              onClick={deletePresentation}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
