@@ -1,12 +1,14 @@
-import { useState } from "react";
-import { LearnerEnrollRequestType } from "../-types/enroll-request-types";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { MyButton } from "@/components/design-system/button";
 import { Copy } from "phosphor-react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
+import { ContentType } from "../-types/enroll-request-types";
+import createInviteLink from "../../invite/-utils/createInviteLink";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export const RequestCard = ({ obj }: { obj: LearnerEnrollRequestType }) => {
+export const RequestCard = ({ obj }: { obj: ContentType }) => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const handleCopyClick = (link: string) => {
@@ -21,6 +23,18 @@ export const RequestCard = ({ obj }: { obj: LearnerEnrollRequestType }) => {
                 toast.error("Copy failed!");
             });
     };
+
+    const [inviteLink, setInviteLink] = useState("");
+
+    useEffect(() => {
+        if (obj.learner_invitation.invite_code) {
+            const link = createInviteLink(obj.learner_invitation.invite_code);
+            setInviteLink(link);
+        } else {
+            setInviteLink("");
+        }
+    }, [obj]);
+
     return (
         <>
             <div className="flex w-full flex-col gap-6 rounded-lg border border-neutral-300 p-6">
@@ -28,26 +42,49 @@ export const RequestCard = ({ obj }: { obj: LearnerEnrollRequestType }) => {
                     <div className="flex justify-between">
                         <div className="flex flex-col">
                             <div className="text-subtitle font-semibold">
-                                {obj.learner.full_name}
+                                {obj.learner_invitation_response_dto.full_name}
                             </div>
                             <div className="flex items-center gap-10">
                                 <div className="text-body">
                                     <span className="font-semibold">Invite Link name</span>:{" "}
-                                    {obj.invite_link_name}
+                                    {obj.learner_invitation.name}
                                 </div>
                                 <div className="flex items-center gap-2 text-body">
-                                    <p className="font-semibold">Invite Link: </p>
-                                    <p className="underline">{obj.invite_link}</p>
+                                    <p className="text-body font-semibold">Invite Link: </p>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <a
+                                                    href={inviteLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-subtitle underline hover:text-primary-500"
+                                                >
+                                                    {`${inviteLink.slice(0, 40)}..`}
+                                                </a>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:text-primary-500">
+                                                <a
+                                                    href={inviteLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {inviteLink}
+                                                </a>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+
                                     <div className="flex items-center gap-2">
                                         <MyButton
                                             buttonType="secondary"
-                                            layoutVariant="icon"
                                             scale="medium"
-                                            onClick={() => handleCopyClick(obj.invite_link)}
+                                            layoutVariant="icon"
+                                            onClick={() => handleCopyClick(inviteLink)}
                                         >
                                             <Copy />
                                         </MyButton>
-                                        {copySuccess == obj.invite_link && (
+                                        {copySuccess == inviteLink && (
                                             <span className="text-caption text-primary-500">
                                                 Copied!
                                             </span>
@@ -56,18 +93,20 @@ export const RequestCard = ({ obj }: { obj: LearnerEnrollRequestType }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="text-neutral-500">{obj.request_time}</div>
+                        <div className="text-neutral-500">
+                            {obj.learner_invitation_response_dto.recorded_on}
+                        </div>
                     </div>
                     <div className="grid grid-cols-4 gap-x-20 gap-y-4">
-                        <p>Batch: 10th Premium Pro Group</p>
-                        <p>Session: 2024-2025</p>
-                        <p>Email: {obj.learner.email}</p>
-                        <p>Mobile Number: {obj.learner.mobile_number}</p>
-                        <p>Gender: {obj.learner.gender}</p>
-                        <p>School: {obj.learner.linked_institute_name}</p>
-                        <p>Address Line: {obj.learner.address_line}</p>
-                        <p>City/Village: {obj.learner.city}</p>
-                        <p>State: {obj.learner.region}</p>
+                        <p>Batch:</p>
+                        <p>Session: </p>
+                        <p>Email: {obj.learner_invitation_response_dto.email}</p>
+                        <p>Mobile Number: {obj.learner_invitation_response_dto.contact_number}</p>
+                        <p>Gender: </p>
+                        <p>School: </p>
+                        <p>Address Line: </p>
+                        <p>City/Village: </p>
+                        <p>State: </p>
                     </div>
                 </div>
                 <div className="flex w-full items-center justify-end">
@@ -85,7 +124,7 @@ export const RequestCard = ({ obj }: { obj: LearnerEnrollRequestType }) => {
                                     Accept
                                 </MyButton>
                             }
-                            initialValues={obj.learner}
+                            // initialValues={obj.learner_invitation_response_dto}
                         />
                     </div>
                 </div>
@@ -103,7 +142,8 @@ export const RequestCard = ({ obj }: { obj: LearnerEnrollRequestType }) => {
                     </div>
                 }
             >
-                Are you are you want to delete the enroll request of {obj.learner.full_name}?
+                Are you are you want to delete the enroll request of{" "}
+                {obj.learner_invitation_response_dto.full_name}?
             </MyDialog>
         </>
     );
