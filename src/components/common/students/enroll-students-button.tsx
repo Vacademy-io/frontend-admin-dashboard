@@ -28,7 +28,7 @@ export const EnrollStudentsButton = () => {
                     Enroll Students
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="p-0 font-normal">
+            <DialogContent className="p-0 font-normal" data-dialog-id="enroll-students-root-dialog">
                 <DialogTitle>
                     <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
                         Enroll Students

@@ -83,12 +83,22 @@ export const UploadCSVButton = ({
             setOpenDialog(false);
         }
 
-        // Close the root enroll students dialog
-        const rootDialog = document.querySelector(
-            '[data-dialog-id="enroll-students-root-dialog"] [role="dialog"]',
-        );
+        // Close the preview dialog
+        setShowPreview(false);
+
+        // Close the root enroll students dialog by finding and clicking its close button
+        const rootDialog = document.querySelector('[data-dialog-id="enroll-students-root-dialog"]');
         if (rootDialog) {
             const closeButton = rootDialog.querySelector('button[aria-label="Close"]');
+            if (closeButton instanceof HTMLButtonElement) {
+                closeButton.click();
+            }
+        }
+
+        // Close the bulk enroll dialog by finding and clicking its close button
+        const bulkDialog = document.querySelector('[data-dialog-id="enroll-bulk-dialog"]');
+        if (bulkDialog) {
+            const closeButton = bulkDialog.querySelector('button[aria-label="Close"]');
             if (closeButton instanceof HTMLButtonElement) {
                 closeButton.click();
             }
@@ -278,7 +288,7 @@ export const UploadCSVButton = ({
             });
 
             // Invalidate queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ["students-list"] });
+            queryClient.invalidateQueries({ queryKey: ["students"] });
 
             // Close other dialogs first
             // closeAllDialogs();
