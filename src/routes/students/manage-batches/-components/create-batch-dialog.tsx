@@ -9,6 +9,9 @@ import { FormProvider, useForm } from "react-hook-form";
 export const CreateBatchDialog = () => {
     const triggerButton = <MyButton scale="large">Create Batch</MyButton>;
     const [currentStep, setCurrentStep] = useState(0);
+    const [openManageBatchDialog, setOpenManageBatchDialog] = useState(false);
+
+    const handleOpenManageBatchDialog = (open: boolean) => setOpenManageBatchDialog(open);
 
     // Set up the form with default values
     const methods = useForm({
@@ -78,7 +81,7 @@ export const CreateBatchDialog = () => {
         );
 
     const steps = [
-        <CreateCourseStep key="course" />,
+        <CreateCourseStep key="course" handleOpenManageBatchDialog={handleOpenManageBatchDialog} />,
         <CreateSessionStep key="session" />,
         <CreateLevelStep key="level" />,
     ];
@@ -89,6 +92,8 @@ export const CreateBatchDialog = () => {
             heading="Create Batch"
             footer={footer}
             dialogWidth="w-[800px]"
+            open={openManageBatchDialog}
+            onOpenChange={handleOpenManageBatchDialog}
         >
             <FormProvider {...methods}>
                 <form onSubmit={methods.handleSubmit(submit)}>{steps[currentStep]}</form>

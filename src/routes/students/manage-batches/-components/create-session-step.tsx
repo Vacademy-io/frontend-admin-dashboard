@@ -9,10 +9,10 @@ import { FormControl, FormField, FormItem } from "@/components/ui/form";
 
 export const CreateSessionStep = () => {
     const { instituteDetails, getSessionFromPackage } = useInstituteDetailsStore();
-    const [sessionList, setSessionList] = useState(getSessionFromPackage());
     const [newSessionName, setNewSessionName] = useState("");
     const [newSessionStartDate, setNewSessionStartDate] = useState("");
     const form = useFormContext();
+    const [sessionList, setSessionList] = useState(getSessionFromPackage());
 
     useEffect(() => {
         setSessionList(getSessionFromPackage());
@@ -52,29 +52,31 @@ export const CreateSessionStep = () => {
             />
 
             <div className="flex flex-col gap-1">
-                <div>
-                    Session
-                    <span className="text-subtitle text-danger-600">*</span>
-                </div>
-
                 {sessionList.length > 0 && form.watch("sessionCreationType") === "existing" && (
-                    <FormField
-                        control={form.control}
-                        name="selectedSession"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyDropdown
-                                        currentValue={field.value}
-                                        dropdownList={sessionList}
-                                        handleChange={field.onChange}
-                                        placeholder="Select session"
-                                        required={true}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                    <>
+                        <div>
+                            Session
+                            <span className="text-subtitle text-danger-600">*</span>
+                        </div>
+
+                        <FormField
+                            control={form.control}
+                            name="selectedSession"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MyDropdown
+                                            currentValue={field.value}
+                                            dropdownList={sessionList}
+                                            handleChange={field.onChange}
+                                            placeholder="Select session"
+                                            required={true}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </>
                 )}
 
                 {form.watch("sessionCreationType") === "new" && (

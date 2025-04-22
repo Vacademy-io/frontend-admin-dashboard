@@ -8,13 +8,34 @@ import { AddCourseButton } from "@/components/common/study-library/add-course/ad
 import { MyButton } from "@/components/design-system/button";
 import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import { useAddCourse } from "@/services/study-library/course-operations/add-course";
+import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
+import { toast } from "sonner";
 
-export const CreateCourseStep = () => {
+interface CreateCourseStepProps {
+    handleOpenManageBatchDialog: (open: boolean) => void;
+}
+
+export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseStepProps) => {
     const { getCourseFromPackage, instituteDetails } = useInstituteDetailsStore();
     const [courseList, setCourseList] = useState(getCourseFromPackage());
     const form = useFormContext();
+    const addCourseMutation = useAddCourse();
 
-    const handleAddCourse = () => {};
+    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+        addCourseMutation.mutate(
+            { requestData: requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Batch created successfully");
+                    handleOpenManageBatchDialog(false);
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to create batch");
+                },
+            },
+        );
+    };
 
     useEffect(() => {
         setCourseList(getCourseFromPackage());
@@ -52,29 +73,30 @@ export const CreateCourseStep = () => {
             />
 
             <div className="flex flex-col gap-1">
-                <div>
-                    Course
-                    <span className="text-subtitle text-danger-600">*</span>
-                </div>
-
                 {courseList.length > 0 && form.watch("courseCreationType") === "existing" && (
-                    <FormField
-                        control={form.control}
-                        name="selectedCourse"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyDropdown
-                                        currentValue={field.value}
-                                        dropdownList={courseList}
-                                        handleChange={field.onChange}
-                                        placeholder="Select course"
-                                        required={true}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                    <>
+                        <div>
+                            Course
+                            <span className="text-subtitle text-danger-600">*</span>
+                        </div>
+                        <FormField
+                            control={form.control}
+                            name="selectedCourse"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MyDropdown
+                                            currentValue={field.value}
+                                            dropdownList={courseList}
+                                            handleChange={field.onChange}
+                                            placeholder="Select course"
+                                            required={true}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </>
                 )}
 
                 {form.watch("courseCreationType") === "new" && (
