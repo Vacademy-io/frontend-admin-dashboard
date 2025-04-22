@@ -35,7 +35,7 @@ export interface AIAssessmentCompleteQuestion {
     explanation_text: RichText;
     default_question_time_mins: number | null;
     parent_rich_text_id: string | null;
-    parent_rich_text: string | null;
+    parent_rich_text: RichText | null;
     options: Option[];
     errors: string[];
     warnings: string[];
