@@ -374,8 +374,31 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
                 hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
                 min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes
             },
-            singleChoiceOptions: [],
-            multipleChoiceOptions: [],
+            singleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            multipleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            csingleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            cmultipleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            trueFalseOptions: Array(2).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
             validAnswers: [],
             decimals,
             numericType,
@@ -389,29 +412,30 @@ export const transformResponseDataToMyQuestionsSchema = (data: QuestionResponse[
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
             }));
-            baseQuestion.multipleChoiceOptions = Array(4).fill({
-                id: "",
-                name: "",
-                isSelected: false,
-            });
         } else if (item.question_type === "MCQM") {
             baseQuestion.multipleChoiceOptions = item.options.map((option) => ({
                 id: option.id ? option.id : "",
                 name: option.text?.content || "",
                 isSelected: correctOptionIds.includes(option.id || option.preview_id),
             }));
-            baseQuestion.singleChoiceOptions = Array(4).fill({
-                id: "",
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
-            });
+        } else if (item.question_type === "CMCQS") {
+            baseQuestion.csingleChoiceOptions = item.options.map((option) => ({
+                id: option.id ? option.id : "",
+                name: option.text?.content || "",
+                isSelected: correctOptionIds.includes(option.id || option.preview_id),
+            }));
+        } else if (item.question_type === "CMCQM") {
+            baseQuestion.cmultipleChoiceOptions = item.options.map((option) => ({
+                id: option.id ? option.id : "",
+                name: option.text?.content || "",
+                isSelected: correctOptionIds.includes(option.id || option.preview_id),
+            }));
+        } else if (item.question_type === "TRUE_FALSE") {
+            baseQuestion.trueFalseOptions = item.options.map((option) => ({
+                id: option.id ? option.id : "",
+                name: option.text?.content || "",
+                isSelected: correctOptionIds.includes(option.id || option.preview_id),
+            }));
         } else if (item.question_type === "NUMERIC") {
             baseQuestion.validAnswers = validAnswers;
         }

@@ -27,8 +27,8 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
 
     const optionsType = getValues("optionsType") || "";
     const allQuestions = getValues("questions") || [];
-    const option1 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${0}`);
-    const option2 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${1}`);
+    const option1 = getValues(`questions.${currentQuestionIndex}.trueFalseOptions.${0}`);
+    const option2 = getValues(`questions.${currentQuestionIndex}.trueFalseOptions.${1}`);
 
     const handleDeleteSlide = () => {
         // If this is the last question, decrease the current question index
@@ -49,7 +49,7 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
                 questionId: questionToDuplicate.questionId || "",
                 questionName: questionToDuplicate.questionName || "",
                 explanation: questionToDuplicate.explanation || "",
-                singleChoiceOptions: questionToDuplicate.singleChoiceOptions || [],
+                trueFalseOptions: questionToDuplicate.trueFalseOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
             setValue("questions", allQuestions);
@@ -61,12 +61,12 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
 
         // Check current state of the selected option
         const isCurrentlySelected = getValues(
-            `questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
+            `questions.${currentQuestionIndex}.trueFalseOptions.${optionIndex}.isSelected`,
         );
 
         options.forEach((option) => {
             setValue(
-                `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
+                `questions.${currentQuestionIndex}.trueFalseOptions.${option}.isSelected`,
                 option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
             );
         });
@@ -108,7 +108,7 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.trueFalseOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -143,7 +143,7 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.trueFalseOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
