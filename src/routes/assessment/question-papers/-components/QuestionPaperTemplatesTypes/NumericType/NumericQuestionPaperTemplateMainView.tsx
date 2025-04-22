@@ -101,42 +101,10 @@ export const NumericQuestionPaperTemplateMainView = ({
                             />
                             <CustomInput
                                 control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
                                 name={`questions.${currentQuestionIndex}.decimals`}
                                 label="Decimal Precision"
                                 required
                             />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>
