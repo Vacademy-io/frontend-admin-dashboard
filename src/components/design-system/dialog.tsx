@@ -17,6 +17,7 @@ interface DialogProps {
     onOpenChange?: (open: boolean) => void;
     children?: React.ReactNode;
     footer?: JSX.Element;
+    dialogId?: string;
 }
 
 export const MyDialog = ({
@@ -28,11 +29,13 @@ export const MyDialog = ({
     open,
     onOpenChange,
     footer,
+    dialogId,
 }: DialogProps) => {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
             <DialogContent
+                data-dialog-id={dialogId}
                 className={`${dialogWidth} dialog-no-close-icon flex max-h-[80vh] max-w-[80vw] flex-col p-0`}
             >
                 <DialogTitle className="flex justify-between rounded-lg bg-primary-50">

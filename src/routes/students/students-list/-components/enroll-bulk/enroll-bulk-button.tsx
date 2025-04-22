@@ -5,7 +5,9 @@ import { MyDialog } from "@/components/design-system/dialog";
 import { useState } from "react";
 
 export const EnrollBulkButton = () => {
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleOpenChange = (open: boolean) => setIsOpen(open);
 
     const bulkTrigger = (
         <MyButton buttonType="primary" scale="large" layoutVariant="default">
@@ -20,13 +22,8 @@ export const EnrollBulkButton = () => {
         <MyDialog
             heading="Enroll in Bulk"
             trigger={bulkTrigger}
-            data-dialog-id="enroll-bulk-dialog"
-            onOpenChange={(open) => {
-                if (!open) {
-                    // Close the dialog when it's being closed
-                    setIsOpen(false);
-                }
-            }}
+            dialogId="enroll-bulk-dialog"
+            onOpenChange={handleOpenChange}
             open={isOpen}
         >
             <EnrollBulkDialog />

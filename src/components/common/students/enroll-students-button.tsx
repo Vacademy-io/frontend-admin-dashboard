@@ -5,14 +5,14 @@ import { EnrollBulkButton } from "@/routes/students/students-list/-components/en
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { cn } from "@/lib/utils";
-import { useDialogStore } from "@/stores/students/students-list/useDialogStore";
+import { useBulkDialog } from "@/routes/students/students-list/-context/bulk-dialog-context";
 
 export const EnrollStudentsButton = () => {
     const { getCourseFromPackage } = useInstituteDetailsStore();
-    const { isEnrollStudentsOpen, setEnrollStudentsOpen } = useDialogStore();
+    const { enrollStudentDialogOpen, setEnrollStudentDialogOpen } = useBulkDialog();
 
     return (
-        <Dialog open={isEnrollStudentsOpen} onOpenChange={setEnrollStudentsOpen}>
+        <Dialog open={enrollStudentDialogOpen} onOpenChange={setEnrollStudentDialogOpen}>
             <DialogTrigger
                 disabled={getCourseFromPackage().length === 0}
                 className={cn(
@@ -28,7 +28,7 @@ export const EnrollStudentsButton = () => {
                     Enroll Students
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="p-0 font-normal" data-dialog-id="enroll-students-root-dialog">
+            <DialogContent className="p-0 font-normal">
                 <DialogTitle>
                     <div className="bg-primary-50 px-6 py-4 text-h3 font-semibold text-primary-500">
                         Enroll Students
