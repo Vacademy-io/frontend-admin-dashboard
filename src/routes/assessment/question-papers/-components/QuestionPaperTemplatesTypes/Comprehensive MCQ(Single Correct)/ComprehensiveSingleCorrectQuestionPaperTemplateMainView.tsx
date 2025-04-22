@@ -24,22 +24,22 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
 
     const allQuestions = getValues("questions") || [];
 
-    const option1 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${0}`);
-    const option2 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${1}`);
-    const option3 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${2}`);
-    const option4 = getValues(`questions.${currentQuestionIndex}.singleChoiceOptions.${3}`);
+    const option1 = getValues(`questions.${currentQuestionIndex}.csingleChoiceOptions.${0}`);
+    const option2 = getValues(`questions.${currentQuestionIndex}.csingleChoiceOptions.${1}`);
+    const option3 = getValues(`questions.${currentQuestionIndex}.csingleChoiceOptions.${2}`);
+    const option4 = getValues(`questions.${currentQuestionIndex}.csingleChoiceOptions.${3}`);
 
     const handleOptionChange = (optionIndex: number) => {
         const options = [0, 1, 2, 3];
 
         // Check current state of the selected option
         const isCurrentlySelected = getValues(
-            `questions.${currentQuestionIndex}.singleChoiceOptions.${optionIndex}.isSelected`,
+            `questions.${currentQuestionIndex}.csingleChoiceOptions.${optionIndex}.isSelected`,
         );
 
         options.forEach((option) => {
             setValue(
-                `questions.${currentQuestionIndex}.singleChoiceOptions.${option}.isSelected`,
+                `questions.${currentQuestionIndex}.csingleChoiceOptions.${option}.isSelected`,
                 option === optionIndex ? !isCurrentlySelected : false, // Toggle only the selected option
             );
         });
@@ -145,7 +145,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                             {
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.name`}
+                                    name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${0}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -163,7 +163,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${0}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -197,7 +197,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                             {
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.name`}
+                                    name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${1}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -215,7 +215,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${1}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -251,7 +251,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                             {
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.singleChoiceOptions.${2}.name`}
+                                    name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${2}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -269,7 +269,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${2}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>
@@ -303,7 +303,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                             {
                                 <FormField
                                     control={control}
-                                    name={`questions.${currentQuestionIndex}.singleChoiceOptions.${3}.name`}
+                                    name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${3}.name`}
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
@@ -321,7 +321,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
                                 control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
+                                name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${3}.isSelected`}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl>

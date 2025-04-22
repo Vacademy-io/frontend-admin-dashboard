@@ -504,9 +504,9 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                             >
                                                                 <div
                                                                     key={index}
-                                                                    onClick={() =>
-                                                                        handlePageClick(index)
-                                                                    }
+                                                                    // onClick={() =>
+                                                                    //     handlePageClick(index)
+                                                                    // }
                                                                     className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                         currentQuestionIndex ===
                                                                         index

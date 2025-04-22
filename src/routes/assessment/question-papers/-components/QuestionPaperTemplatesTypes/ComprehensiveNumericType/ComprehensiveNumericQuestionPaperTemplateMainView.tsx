@@ -26,7 +26,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`);
     useEffect(() => {
         if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
-    });
+    }, []);
     useEffect(() => {
         trigger(`questions.${currentQuestionIndex}.validAnswers`);
     }, [numericType, currentQuestionIndex, trigger]);
