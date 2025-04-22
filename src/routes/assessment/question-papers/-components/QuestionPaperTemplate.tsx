@@ -150,6 +150,7 @@ export function QuestionPaperTemplate({
                 className: "success-toast",
                 duration: 2000,
             });
+            setIsQuestionPaperTemplateDialog(false);
         },
         onError: (error: unknown) => {
             throw error;
