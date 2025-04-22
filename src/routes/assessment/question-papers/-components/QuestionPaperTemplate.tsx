@@ -208,7 +208,13 @@ export function QuestionPaperTemplate({
 
     const handleTriggerForm = () => {
         form.trigger();
-        if (Object.values(form.formState.errors).length > 0) return;
+        if (Object.values(form.formState.errors).length > 0) {
+            toast.error("some of your questions are incomplete or needs attentions!", {
+                className: "error-toast",
+                duration: 3000,
+            });
+            return;
+        }
         setIsQuestionPaperTemplateDialog(false);
     };
 
