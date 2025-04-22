@@ -143,26 +143,24 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                     </PopoverContent>
                 </Popover>
             </div>
-            {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
-                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                    <span>Comprehension Text</span>
-                    <FormField
-                        control={control}
-                        name={`questions.${currentQuestionIndex}.parentRichTextContent`}
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormControl>
-                                    <CollapsibleQuillEditor
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-            )}
+            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                <span>Comprehension Text</span>
+                <FormField
+                    control={control}
+                    name={`questions.${currentQuestionIndex}.parentRichTextContent`}
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormControl>
+                                <CollapsibleQuillEditor
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
                     Question&nbsp;
