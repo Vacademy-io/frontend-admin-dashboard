@@ -17,6 +17,7 @@ import { formatStructure } from "../../../-utils/helper";
 export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
+    setCurrentQuestionIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
@@ -33,8 +34,13 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplatePPTView = ({
     const option4 = getValues(`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${3}`);
 
     const handleDeleteSlide = () => {
+        // If this is the last question, decrease the current question index
+        if (currentQuestionIndex === allQuestions.length - 1 && currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(currentQuestionIndex - 1);
+        }
         allQuestions.splice(currentQuestionIndex, 1);
         setValue("questions", allQuestions);
+        form.trigger();
     };
 
     const handleDuplicateSlide = () => {

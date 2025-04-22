@@ -1,10 +1,18 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import "react-quill/dist/quill.snow.css";
-import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
 import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
+import { useState } from "react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { DotsThree } from "phosphor-react";
 
 export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
     form,
@@ -12,12 +20,10 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
-    const answersType = getValues("answersType") || "Answer:";
-    const explanationsType = getValues("explanationsType") || "Explanation:";
     const optionsType = getValues("optionsType") || "";
-    const questionsType = getValues("questionsType") || "";
-
     const allQuestions = getValues("questions") || [];
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
     const option1 = getValues(`questions.${currentQuestionIndex}.csingleChoiceOptions.${0}`);
     const option2 = getValues(`questions.${currentQuestionIndex}.csingleChoiceOptions.${1}`);
@@ -40,16 +46,33 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
         });
     };
 
-    if (allQuestions.length === 0) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <h1>Please add a question to show question details</h1>
-            </div>
-        );
-    }
+    const handleDeleteSlide = () => {
+        allQuestions.splice(currentQuestionIndex, 1);
+        setValue("questions", allQuestions);
+        form.trigger();
+    };
+
+    const handleDuplicateSlide = () => {
+        const questionToDuplicate = allQuestions[currentQuestionIndex];
+        if (questionToDuplicate) {
+            const duplicatedQuestion = {
+                ...questionToDuplicate,
+                questionId: questionToDuplicate.questionId || "",
+                questionName: questionToDuplicate.questionName || "",
+                explanation: questionToDuplicate.explanation || "",
+                cmultipleChoiceOptions: questionToDuplicate.csingleChoiceOptions || [],
+            };
+            allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
+            setValue("questions", allQuestions);
+        }
+    };
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            onMouseEnter={() => setIsDropdownVisible(true)}
+            onMouseLeave={() => !isDropdownOpen && setIsDropdownVisible(false)}
+        >
             {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
                 <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                     <span>Comprehension Text</span>
@@ -71,31 +94,20 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                 </div>
             )}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>
-                    Question&nbsp;
-                    {questionsType
-                        ? formatStructure(questionsType, currentQuestionIndex + 1)
-                        : currentQuestionIndex + 1}
-                </span>
                 <FormField
                     control={control}
                     name={`questions.${currentQuestionIndex}.questionName`}
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                />
+                                <PPTViewQuillEditor value={field.value} onChange={field.onChange} />
                             </FormControl>
-                            <FormMessage />
                         </FormItem>
                     )}
                 />
             </div>
 
             <div className="flex w-full grow flex-col gap-4">
-                <span className="-mb-3">{answersType}</span>
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
@@ -108,23 +120,6 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                     {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
                                 </span>
                             </div>
-                            {
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${0}.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <MainViewQuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            }
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
@@ -143,7 +138,6 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                                 }`}
                                             />
                                         </FormControl>
-                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -160,23 +154,6 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                     {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
                                 </span>
                             </div>
-                            {
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${1}.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <MainViewQuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            }
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
@@ -195,7 +172,6 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                                 }`}
                                             />
                                         </FormControl>
-                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -214,23 +190,6 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                     {optionsType ? formatStructure(optionsType, "c") : "(c.)"}
                                 </span>
                             </div>
-                            {
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${2}.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <MainViewQuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            }
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
@@ -249,7 +208,6 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                                 }`}
                                             />
                                         </FormControl>
-                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -266,23 +224,6 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                                     {optionsType ? formatStructure(optionsType, "d") : "(d.)"}
                                 </span>
                             </div>
-                            {
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.csingleChoiceOptions.${3}.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <MainViewQuillEditor
-                                                    value={field.value}
-                                                    onChange={field.onChange}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            }
                         </div>
                         <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
                             <FormField
@@ -309,23 +250,34 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                 </div>
             </div>
-            <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>{explanationsType}</span>
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.explanation`}
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormControl>
-                                <MainViewQuillEditor
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+
+            <div className="absolute bottom-10 right-12">
+                {(isDropdownVisible || isDropdownOpen) && (
+                    <DropdownMenu
+                        onOpenChange={(open) => {
+                            setIsDropdownOpen(open);
+                            if (!open) setIsDropdownVisible(false); // Reset visibility when closed
+                        }}
+                    >
+                        <DropdownMenuTrigger>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="scale-[2] border-2 border-primary-300 px-3 font-bold"
+                            >
+                                <DotsThree size="32" className="font-bold" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="mt-1">
+                            <DropdownMenuItem onClick={handleDuplicateSlide}>
+                                Duplicate Slide
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleDeleteSlide}>
+                                Delete Slide
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
             </div>
         </div>
     );
