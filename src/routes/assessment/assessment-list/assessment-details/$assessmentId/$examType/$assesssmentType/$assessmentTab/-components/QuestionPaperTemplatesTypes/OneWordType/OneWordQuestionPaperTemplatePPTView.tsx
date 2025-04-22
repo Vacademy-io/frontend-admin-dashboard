@@ -14,9 +14,6 @@ import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-questi
 
 export const OneWordQuestionPaperTemplatePPTView = ({
     form,
-    selectedSection,
-    currentQuestionIndexes,
-    setCurrentQuestionIndexes,
     currentQuestionIndex,
     className,
     selectedSectionIndex,
@@ -29,23 +26,8 @@ export const OneWordQuestionPaperTemplatePPTView = ({
     const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
 
     const handleDeleteSlide = () => {
-        const currentIndex = currentQuestionIndexes[selectedSection] ?? 0; // Default to 0
-        if (
-            currentIndex !== undefined && // This check is now redundant but kept for clarity
-            currentIndex === allQuestions.length - 1 &&
-            currentIndex > 0
-        ) {
-            setCurrentQuestionIndexes((prev) => {
-                const updatedIndexes = {
-                    ...prev,
-                    [selectedSection]: Math.max(0, currentIndex - 1),
-                };
-                return updatedIndexes;
-            });
-        }
-
-        allQuestions.splice(currentIndex, 1);
-        setValue(`sections.${selectedSectionIndex}.questions`, allQuestions); // Ensure new reference
+        allQuestions.splice(currentQuestionIndex, 1);
+        setValue(`sections.${selectedSectionIndex}.questions`, allQuestions);
     };
 
     const handleDuplicateSlide = () => {
