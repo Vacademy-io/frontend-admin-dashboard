@@ -6,19 +6,33 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import {
+    convertToFormSession,
+    Session,
+} from "@/components/common/study-library/add-course/add-course-form";
 
 export const CreateSessionStep = () => {
-    const { instituteDetails, getSessionFromPackage } = useInstituteDetailsStore();
+    const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [newSessionName, setNewSessionName] = useState("");
     const [newSessionStartDate, setNewSessionStartDate] = useState("");
     const form = useFormContext();
-    const [sessionList, setSessionList] = useState(getSessionFromPackage());
+    const [sessionList, setSessionList] = useState<Session[]>([]);
 
     useEffect(() => {
-        setSessionList(getSessionFromPackage());
+        setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
     }, [instituteDetails]);
 
-    const handleAddSession = () => {};
+    const handleAddSession = (sessionName: string, startDate: string) => {
+        const newSession: Session = {
+            id: "",
+            new_session: true,
+            session_name: sessionName,
+            status: "INACTIVE",
+            start_date: startDate,
+            levels: [], // Initialize with empty levels array
+        };
+        setSessionList((prevSessionList) => [...prevSessionList, newSession]);
+    };
 
     return (
         <div className="flex flex-col gap-6">
@@ -67,7 +81,10 @@ export const CreateSessionStep = () => {
                                     <FormControl>
                                         <MyDropdown
                                             currentValue={field.value}
-                                            dropdownList={sessionList}
+                                            dropdownList={sessionList.map((session) => ({
+                                                id: session.id,
+                                                name: session.session_name,
+                                            }))}
                                             handleChange={field.onChange}
                                             placeholder="Select session"
                                             required={true}
