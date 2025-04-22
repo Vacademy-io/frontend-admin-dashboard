@@ -48,59 +48,133 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
         level_id: data.yearClass, // Assuming there's no direct mapping for level_id
         subject_id: data.subject, // Assuming there's no direct mapping for subject_id
         questions: data?.questions?.map((question) => {
-            const options =
-                question.questionType === QuestionType.MCQS || QuestionType.TRUE_FALSE
-                    ? // ||
-                      // question.questionType === QuestionType.CMCQS
-                      question.singleChoiceOptions.map((opt, idx) => ({
-                          id: null, // Assuming no direct mapping for option ID
-                          preview_id: idx, // Using index as preview_id
-                          question_id: null,
-                          text: {
-                              id: null, // Assuming no direct mapping for option text ID
-                              type: "HTML", // Assuming option content is HTML
-                              content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
-                          },
-                          media_id: null, // Assuming no direct mapping for option media ID
-                          option_order: null,
-                          created_on: null,
-                          updated_on: null,
-                          explanation_text: {
-                              id: null, // Assuming no direct mapping for explanation text ID
-                              type: "HTML", // Assuming explanation for options is in HTML
-                              content: question.explanation, // Assuming no explanation provided for options
-                          },
-                      }))
-                    : question.multipleChoiceOptions.map((opt, idx) => ({
-                          id: null, // Assuming no direct mapping for option ID
-                          preview_id: idx, // Using index as preview_id
-                          question_id: null,
-                          text: {
-                              id: null, // Assuming no direct mapping for option text ID
-                              type: "HTML", // Assuming option content is HTML
-                              content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
-                          },
-                          media_id: null, // Assuming no direct mapping for option media ID
-                          option_order: null,
-                          created_on: null,
-                          updated_on: null,
-                          explanation_text: {
-                              id: null, // Assuming no direct mapping for explanation text ID
-                              type: "HTML", // Assuming explanation for options is in HTML
-                              content: question.explanation, // Assuming no explanation provided for options
-                          },
-                      }));
+            let options;
+            if (question.questionType === QuestionType.MCQS) {
+                options = question.singleChoiceOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: "HTML", // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: "HTML", // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            } else if (question.questionType === QuestionType.TRUE_FALSE) {
+                options = question.trueFalseOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: "HTML", // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: "HTML", // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            } else if (question.questionType === QuestionType.MCQM) {
+                options = question.multipleChoiceOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: "HTML", // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: "HTML", // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            } else if (question.questionType === QuestionType.CMCQS) {
+                options = question.csingleChoiceOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: "HTML", // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: "HTML", // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            } else if (question.questionType === QuestionType.CMCQM) {
+                options = question.cmultipleChoiceOptions.map((opt, idx) => ({
+                    id: null, // Assuming no direct mapping for option ID
+                    preview_id: idx, // Using index as preview_id
+                    question_id: null,
+                    text: {
+                        id: null, // Assuming no direct mapping for option text ID
+                        type: "HTML", // Assuming option content is HTML
+                        content: opt?.name?.replace(/<\/?p>/g, ""), // Remove <p> tags from content
+                    },
+                    media_id: null, // Assuming no direct mapping for option media ID
+                    option_order: null,
+                    created_on: null,
+                    updated_on: null,
+                    explanation_text: {
+                        id: null, // Assuming no direct mapping for explanation text ID
+                        type: "HTML", // Assuming explanation for options is in HTML
+                        content: question.explanation, // Assuming no explanation provided for options
+                    },
+                }));
+            }
 
             // Extract correct option indices as strings
-            const correctOptionIds = (
-                question.questionType === QuestionType.MCQS || QuestionType.TRUE_FALSE
-                    ? // ||
-                      // question.questionType === QuestionType.CMCQS
-                      question.singleChoiceOptions
-                    : question.multipleChoiceOptions
-            )
-                .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
-                .filter((idx) => idx !== null); // Remove null values
+            let correctOptionIds;
+
+            if (question.questionType === QuestionType.MCQS) {
+                correctOptionIds = question.singleChoiceOptions
+                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            } else if (question.questionType === QuestionType.MCQM) {
+                correctOptionIds = question.multipleChoiceOptions
+                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            } else if (question.questionType === QuestionType.CMCQS) {
+                correctOptionIds = question.csingleChoiceOptions
+                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            } else if (question.questionType === QuestionType.CMCQM) {
+                correctOptionIds = question.cmultipleChoiceOptions
+                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            } else if (question.questionType === QuestionType.TRUE_FALSE) {
+                correctOptionIds = question.trueFalseOptions
+                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .filter((idx) => idx !== null); // Remove null values
+            }
 
             const auto_evaluation_json = getEvaluationJSON(
                 question,
@@ -585,7 +659,6 @@ function getEvaluationJSON(
     }
 }
 function getOptionsJson(question: MyQuestion): string | null {
-    console.log(question);
     switch (question.questionType) {
         case "MCQS":
             return null;
