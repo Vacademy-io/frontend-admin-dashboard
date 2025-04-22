@@ -1,6 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { EnrollStudentsButton } from "../../../../../../components/common/students/enroll-students-button";
 import { useRouter } from "@tanstack/react-router";
+import { BulkDialogProvider } from "../../../-providers/bulk-dialog-provider";
 
 export const StudentListHeader = () => {
     const router = useRouter();
@@ -18,7 +19,9 @@ export const StudentListHeader = () => {
                 <MyButton onClick={handleInviteButtonClick} scale="large" buttonType="secondary">
                     Invite Students
                 </MyButton>
-                <EnrollStudentsButton />
+                <BulkDialogProvider>
+                    <EnrollStudentsButton />
+                </BulkDialogProvider>
             </div>
         </div>
     );

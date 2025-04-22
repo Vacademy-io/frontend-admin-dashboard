@@ -45,12 +45,14 @@ export interface StudentTable {
     updated_at: string;
     package_session_id: string;
     institute_enrollment_id: string;
-    status: "ACTIVE" | "TERMINATED";
+    status: "ACTIVE" | "TERMINATED" | "INACTIVE";
     session_expiry_days: number;
     institute_id: string;
     expiry_date: number;
     face_file_id: string;
-    attempt_id?:string;
+    attempt_id?: string;
+    parents_to_mother_mobile_number: string;
+    parents_to_mother_email: string;
 }
 
 export interface StudentListResponse {
