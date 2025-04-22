@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { DotsSixVertical, Plus, X } from "phosphor-react";
 import { useState } from "react";
 import { useFieldArray } from "react-hook-form";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
@@ -252,7 +252,7 @@ export function QuestionPaperTemplate({
                     <DashboardLoader />
                 ) : (
                     <div>
-                        <div className="flex items-center justify-between bg-primary-100 p-2">
+                        <div className="flex w-screen items-center justify-between bg-primary-100 p-2">
                             <div className="flex items-start gap-2">
                                 <img
                                     src={instituteLogo}
@@ -295,15 +295,14 @@ export function QuestionPaperTemplate({
                                 >
                                     Save
                                 </Button>
-                                <DialogClose>
-                                    <Button
-                                        type="submit"
-                                        variant="outline"
-                                        className="w-44 bg-transparent shadow-none hover:bg-transparent"
-                                    >
-                                        Exit
-                                    </Button>
-                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    className="w-44 bg-transparent shadow-none hover:bg-transparent"
+                                    onClick={handleTriggerForm}
+                                >
+                                    Exit
+                                </Button>
                             </div>
                         </div>
                         <div className="flex h-screen items-start">

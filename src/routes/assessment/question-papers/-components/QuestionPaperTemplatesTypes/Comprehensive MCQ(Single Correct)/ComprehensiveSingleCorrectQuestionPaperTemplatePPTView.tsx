@@ -4,6 +4,15 @@ import "react-quill/dist/quill.snow.css";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
 import { PPTViewQuillEditor } from "@/components/quill/PPTViewQuillEditor";
+import { useState } from "react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { DotsThree } from "phosphor-react";
 
 export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
     form,
@@ -12,6 +21,9 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
     const optionsType = getValues("optionsType") || "";
+    const allQuestions = getValues("questions") || [];
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false); // State to track dropdown visibility
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
     const option1 = getValues(`questions.${currentQuestionIndex}.csingleChoiceOptions.${0}`);
     const option2 = getValues(`questions.${currentQuestionIndex}.csingleChoiceOptions.${1}`);
@@ -34,8 +46,33 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
         });
     };
 
+    const handleDeleteSlide = () => {
+        allQuestions.splice(currentQuestionIndex, 1);
+        setValue("questions", allQuestions);
+        form.trigger();
+    };
+
+    const handleDuplicateSlide = () => {
+        const questionToDuplicate = allQuestions[currentQuestionIndex];
+        if (questionToDuplicate) {
+            const duplicatedQuestion = {
+                ...questionToDuplicate,
+                questionId: questionToDuplicate.questionId || "",
+                questionName: questionToDuplicate.questionName || "",
+                explanation: questionToDuplicate.explanation || "",
+                cmultipleChoiceOptions: questionToDuplicate.csingleChoiceOptions || [],
+            };
+            allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
+            setValue("questions", allQuestions);
+        }
+    };
+
     return (
-        <div className={className}>
+        <div
+            className={className}
+            onMouseEnter={() => setIsDropdownVisible(true)}
+            onMouseLeave={() => !isDropdownOpen && setIsDropdownVisible(false)}
+        >
             {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
                 <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                     <span>Comprehension Text</span>
@@ -212,6 +249,35 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplatePPTView = ({
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className="absolute bottom-10 right-12">
+                {(isDropdownVisible || isDropdownOpen) && (
+                    <DropdownMenu
+                        onOpenChange={(open) => {
+                            setIsDropdownOpen(open);
+                            if (!open) setIsDropdownVisible(false); // Reset visibility when closed
+                        }}
+                    >
+                        <DropdownMenuTrigger>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="scale-[2] border-2 border-primary-300 px-3 font-bold"
+                            >
+                                <DotsThree size="32" className="font-bold" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="mt-1">
+                            <DropdownMenuItem onClick={handleDuplicateSlide}>
+                                Duplicate Slide
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleDeleteSlide}>
+                                Delete Slide
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
             </div>
         </div>
     );

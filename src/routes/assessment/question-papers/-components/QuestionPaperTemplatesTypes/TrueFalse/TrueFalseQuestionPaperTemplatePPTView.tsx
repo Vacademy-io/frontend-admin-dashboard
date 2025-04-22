@@ -39,6 +39,7 @@ export const TrueFalseQuestionPaperTemplatePPTView = ({
         // Remove the current question from the questions array
         allQuestions.splice(currentQuestionIndex, 1);
         setValue("questions", allQuestions);
+        form.trigger();
     };
 
     const handleDuplicateSlide = () => {
