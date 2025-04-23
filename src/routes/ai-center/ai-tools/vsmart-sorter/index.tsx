@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AICenterProvider } from "../-contexts/useAICenterContext";
+import SortTopicQuestions from "./-components/SortTopicQuestions";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
+import { AICenterProvider } from "../../-contexts/useAICenterContext";
 
-export const Route = createFileRoute("/ai-center/ai-tools/")({
+export const Route = createFileRoute("/ai-center/ai-tools/vsmart-sorter/")({
     component: RouteComponent,
 });
 
@@ -10,7 +11,7 @@ function RouteComponent() {
     return (
         <LayoutContainer>
             <AICenterProvider>
-                <p>welcome to ai center</p>
+                <SortTopicQuestions />
             </AICenterProvider>
         </LayoutContainer>
     );
