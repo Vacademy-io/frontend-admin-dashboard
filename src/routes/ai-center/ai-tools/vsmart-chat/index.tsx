@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AICenterProvider } from "@/routes/ai-center/-contexts/useAICenterContext";
+import PlayWithPDF from "./-components/PlayWithPDF";
+
 export const Route = createFileRoute("/ai-center/ai-tools/vsmart-chat/")({
     component: RouteComponent,
 });
@@ -7,7 +9,7 @@ export const Route = createFileRoute("/ai-center/ai-tools/vsmart-chat/")({
 function RouteComponent() {
     return (
         <AICenterProvider>
-            <div>Hello /ai-center/ai-tools/vsmart-chat/!</div>
+            <PlayWithPDF />
         </AICenterProvider>
     );
 }
