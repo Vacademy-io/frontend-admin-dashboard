@@ -1,16 +1,21 @@
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyInput } from "@/components/design-system/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { getInstituteId } from "@/constants/helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
-import { handleStartProcessUploadedFile } from "@/routes/ai-center/-services/ai-center-service";
+import {
+    handleChatWithPDF,
+    handleStartProcessUploadedFile,
+} from "@/routes/ai-center/-services/ai-center-service";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 interface QuestionWithAnswer {
     id: string;
     question: string;
-    answer: string;
+    response: string;
 }
 
 const PlayWithPDF = () => {
@@ -22,6 +27,10 @@ const PlayWithPDF = () => {
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [fileUploading, setFileUploading] = useState(false);
     const [open, setOpen] = useState(false);
+    const [question, setQuestion] = useState("");
+    const [questionsWithAnswers, setQuestionsWithAnswers] = useState<QuestionWithAnswer[]>([]);
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
     const handleUploadClick = () => {
         setKey("chat");
         fileInputRef.current?.click();
@@ -51,23 +60,120 @@ const PlayWithPDF = () => {
         }
     };
 
-    const [question, setQuestion] = useState("");
-    const [questionsWithAnswers, setQuestionsWithAnswers] = useState<QuestionWithAnswer[]>([]);
-    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    /* Adding Polling For Response */
+    const MAX_POLL_ATTEMPTS = 10;
+    const pollingCountRef = useRef(0);
+    const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+    const pendingRef = useRef(false);
+
+    const clearPolling = () => {
+        if (pollingTimeoutIdRef.current) {
+            setLoader(false);
+            setKey(null);
+            clearTimeout(pollingTimeoutIdRef.current);
+            pollingTimeoutIdRef.current = null;
+        }
+    };
+
+    const getQuestionResponseMutation = useMutation({
+        mutationFn: async ({
+            pdfId,
+            userPrompt,
+            taskName,
+        }: {
+            pdfId: string;
+            userPrompt: string;
+            taskName: string;
+        }) => {
+            return handleChatWithPDF(pdfId, userPrompt, taskName);
+        },
+        onSuccess: (response) => {
+            // Check if response indicates pending state
+            if (response?.status === "pending") {
+                pendingRef.current = true;
+                // Don't schedule next poll - we'll wait for an error to resume
+                return;
+            }
+
+            // Reset pending state if response is no longer pending
+            pendingRef.current = false;
+
+            // If we have complete data, we're done
+            if (response) {
+                setQuestionsWithAnswers(response);
+                setQuestion("");
+                return;
+            }
+
+            // Otherwise schedule next poll
+            scheduleNextPoll();
+        },
+        onError: () => {
+            // If we were in a pending state, resume polling on error
+            if (pendingRef.current) {
+                pendingRef.current = false;
+                scheduleNextPoll();
+                return;
+            }
+
+            // Normal error handling
+            pollingCountRef.current += 1;
+            if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                setLoader(false);
+                setKey(null);
+                clearPolling();
+                return;
+            }
+
+            // Schedule next poll on error (if not max attempts)
+            scheduleNextPoll();
+        },
+    });
+
+    const scheduleNextPoll = () => {
+        setLoader(false);
+        setKey(null);
+        clearPolling(); // Clear any existing timeout
+
+        // Only schedule next poll if not in pending state
+        if (!pendingRef.current) {
+            setLoader(true);
+            setKey("assessment");
+            console.log("Scheduling next poll in 10 seconds");
+            pollingTimeoutIdRef.current = setTimeout(() => {
+                pollGenerateAssessment();
+            }, 10000);
+        }
+    };
+
+    const pollGenerateAssessment = () => {
+        // Don't call API if in pending state
+        if (pendingRef.current) {
+            return;
+        }
+        getQuestionResponseMutation.mutate({
+            pdfId: uploadedFilePDFId,
+            userPrompt: question,
+            taskName: taskName,
+        });
+    };
 
     const handleAddQuestions = () => {
-        if (question.trim() === "") return;
+        if (!uploadedFilePDFId) return;
 
-        setQuestionsWithAnswers((prev) => [
-            ...prev,
-            {
-                id: String(prev.length + 1),
-                question: question.trim(),
-                answer: String(Math.random()), // Placeholder
-            },
-        ]);
-        setQuestion("");
+        clearPolling();
+        pollingCountRef.current = 0;
+        pendingRef.current = false;
+
+        // Make initial call
+        pollGenerateAssessment();
     };
+
+    useEffect(() => {
+        return () => {
+            clearPolling();
+        };
+    }, []);
 
     useEffect(() => {
         if (key === "chat") {
@@ -108,7 +214,7 @@ const PlayWithPDF = () => {
                                         </div>
                                         <div className="flex justify-start">
                                             <p className="rounded-xl bg-blue-100 px-4 py-2 text-black">
-                                                {qa.answer}
+                                                {qa.response}
                                             </p>
                                         </div>
                                     </div>
@@ -138,21 +244,26 @@ const PlayWithPDF = () => {
                                         </div>
                                     </>
                                 )}
-                                <MyInput
-                                    inputType="text"
-                                    inputPlaceholder="Ask anything"
-                                    input={question}
-                                    onChangeFunction={(e) => setQuestion(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            e.preventDefault();
-                                            handleAddQuestions();
-                                        }
-                                    }}
-                                    required={true}
-                                    size="large"
-                                    className="w-[500px] rounded-xl px-6 py-4"
-                                />
+                                <div className="flex h-10 items-center justify-start gap-1">
+                                    <MyInput
+                                        inputType="text"
+                                        inputPlaceholder="Ask anything"
+                                        input={question}
+                                        onChangeFunction={(e) => setQuestion(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.preventDefault();
+                                                handleAddQuestions();
+                                            }
+                                        }}
+                                        required={true}
+                                        size="large"
+                                        className="w-[500px] rounded-xl px-6 py-4"
+                                    />
+                                    {getQuestionResponseMutation.status === "pending" && (
+                                        <DashboardLoader size={18} />
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </DialogContent>
