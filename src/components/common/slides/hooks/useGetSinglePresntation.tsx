@@ -68,7 +68,7 @@ export const useGetSinglePresentation = ({
             s3Url?: string
         }
     >({
-        queryKey: ["presentation", presentationId],
+        queryKey: ["presentation"],
         queryFn: () => fetchPresentation(presentationId),
         staleTime: 5 * 60 * 1000, // 5 minute cache
         retry: (failureCount, error) => {

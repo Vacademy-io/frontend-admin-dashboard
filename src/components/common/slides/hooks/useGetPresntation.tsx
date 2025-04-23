@@ -8,30 +8,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Presentation } from "../types";
 
 
-
-
-  const initialPresentations: Presentation[] = [
-    {
-      id: "e281d727-08b7-487c-9662-d0e0eaa19700",
-      title: "Introduction to Web Development",
-      description: "A beginner-friendly presentation on the fundamentals of web development.",
-      cover_file_id: "9d3443a4-9810-461c-8dc0-434ae2899a7",
-      status: "published",
-      createdAt: new Date().toISOString(),
-      added_slides:null,
-    },
-    {
-      id: "e281d727-08b7-487c-9662-d0e0eaa19701",
-      title: "Introduction to Java",
-      description: "A beginner-friendly presentation on the fundamentals of Java.",
-      cover_file_id: "9d3443a4-9810-461c-8dc0-434ae2899a7",
-      status: "published",
-      createdAt: new Date().toISOString(),
-      added_slides:null,
-    },
-  ]
-
-
 export const fetchPresntation = async () => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);

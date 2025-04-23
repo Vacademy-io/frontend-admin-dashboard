@@ -417,8 +417,7 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
   }, [presentation])
 
 
-
-
+  
 
   return (
     <div className="flex h-screen w-full bg-white">
@@ -430,7 +429,7 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
             className="gap-2 bg-primary-400  hover:bg-primary-500 mt-4"
           >
             <Save className="size-4" />
-            {isSaving ? "Saving..." : isEdit ? "Edit Presentation" : "Save Presentation"}
+            {isSaving ? "Saving..." : isEdit ? "Save Presentation" : "Add Presentation"}
           </Button>
           <div className="flex justify-end gap-2 ">
             <Button
