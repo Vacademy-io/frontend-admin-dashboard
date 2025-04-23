@@ -8,6 +8,7 @@ import {
     AIUploadAudioImg,
     AIUploadPdfImg,
 } from "@/assets/svgs";
+import { AIToolFeatureType } from "../-constants/AICardsData";
 
 export const GetImagesForAITools = (key: string) => {
     switch (key) {
@@ -31,4 +32,25 @@ export const GetImagesForAITools = (key: string) => {
             <></>;
     }
     return <></>;
+};
+
+export const getTaskTypeFromFeature = (feature: AIToolFeatureType): string => {
+    switch (feature.heading) {
+        case "Vsmart Upload":
+        case "Vsmart Extract":
+        case "Vsmart Vision":
+            return "PDF_TO_QUESTIONS";
+        case "Vsmart Audio":
+            return "AUDIO_TO_QUESTIONS";
+        case "Vsmart Topics":
+            return "TOPIC_TO_QUESTIONS";
+        case "Vsmart Chat":
+            return "CHAT_WITH_PDF";
+        case "Vsmart Organizer":
+            return "SORT_AND_SPLIT_TOPICS";
+        case "Vsmart Sorter":
+            return "SORT_QUESTIONS_TOPIC_WISE";
+        default:
+            return "UNKNOWN_TASK_TYPE"; // fallback for safety
+    }
 };

@@ -8,6 +8,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Badge } from "@/components/ui/badge";
 import AIQuestionsPreview from "./AIQuestionsPreview";
 import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
+import { getTaskTypeFromFeature } from "../-helpers/GetImagesForAITools";
 
 const AITasksList = ({ feature }: { feature: AIToolFeatureType }) => {
     const [open, setOpen] = useState(false);
@@ -44,7 +45,9 @@ const AITasksList = ({ feature }: { feature: AIToolFeatureType }) => {
                     scale="large"
                     buttonType="secondary"
                     className="text-normal border-none !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
-                    onClick={() => handleGetListIndividualTopicsList("PDF_TO_QUESTIONS")}
+                    onClick={() =>
+                        handleGetListIndividualTopicsList(getTaskTypeFromFeature(feature))
+                    }
                 >
                     {getListIndividualTopicsMutation.status === "pending" ? (
                         <DashboardLoader size={18} />
