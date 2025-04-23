@@ -132,7 +132,7 @@ const GenerateAIAssessmentComponent = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response?.status === "completed" || response?.questions) {
+            if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
                 setAssessmentData((prev) => ({
@@ -244,7 +244,7 @@ const GenerateAIAssessmentComponent = () => {
             convertPendingRef.current = false;
 
             // If conversion is complete and we have HTML data
-            if (response?.html) {
+            if (response === "Done" || response?.html) {
                 stopConvertPolling();
                 setHtmlData(response?.html);
                 setOpenPageWiseAssessmentDialog(true);

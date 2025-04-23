@@ -152,7 +152,7 @@ export const GenerateQuestionsFromAudio = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response?.status === "completed" || response?.questions) {
+            if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
                 setAssessmentData((prev) => ({
