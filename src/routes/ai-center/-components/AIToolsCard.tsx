@@ -3,6 +3,7 @@ import { StarFour } from "phosphor-react";
 import { GetImagesForAITools } from "../-helpers/GetImagesForAITools";
 import { AIToolFeatureType } from "../-constants/AICardsData";
 import { useNavigate } from "@tanstack/react-router";
+import AITasksList from "./AITasksList";
 
 export const AIToolsCard = ({ feature }: { feature: AIToolFeatureType }) => {
     const navigate = useNavigate();
@@ -18,7 +19,6 @@ export const AIToolsCard = ({ feature }: { feature: AIToolFeatureType }) => {
         >
             <CardHeader className="flex h-full flex-col gap-3">
                 <CardTitle className="flex items-center gap-2 text-title font-semibold">
-                    {" "}
                     <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
                     {feature.heading}
                     <p className="text-body">({feature.subheading})</p>
@@ -29,7 +29,10 @@ export const AIToolsCard = ({ feature }: { feature: AIToolFeatureType }) => {
                             <p key={index}>{description}</p>
                         ))}
                     </div>
-                    <p className="text-body font-semibold">File Type: </p>
+                    <div className="flex items-center justify-between">
+                        <p className="text-body font-semibold">File Type: </p>
+                        <AITasksList feature={feature} />
+                    </div>
                 </CardDescription>
             </CardHeader>
             <CardContent>{GetImagesForAITools(feature.key)}</CardContent>

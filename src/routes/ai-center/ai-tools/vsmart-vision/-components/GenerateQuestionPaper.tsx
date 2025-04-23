@@ -17,6 +17,7 @@ import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import GenerateCompleteAssessment from "@/routes/ai-center/-components/GenerateCompleteAssessment";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 const GenerateAiQuestionFromImageComponent = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -105,10 +106,18 @@ const GenerateAiQuestionFromImageComponent = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+        mutationFn: ({
+            pdfId,
+            userPrompt,
+            taskName,
+        }: {
+            pdfId: string;
+            userPrompt: string;
+            taskName: string;
+        }) => {
             setLoader(true);
             setKey("image");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt);
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
         },
         onSuccess: (response) => {
             // Check if response indicates pending state
@@ -122,7 +131,7 @@ const GenerateAiQuestionFromImageComponent = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response?.status === "completed" || response?.questions) {
+            if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
                 setAssessmentData((prev) => ({
@@ -194,7 +203,11 @@ const GenerateAiQuestionFromImageComponent = () => {
         if (pendingRef.current) {
             return;
         }
-        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
+        generateAssessmentMutation.mutate({
+            pdfId: uploadedFilePDFId,
+            userPrompt: propmtInput,
+            taskName,
+        });
     };
 
     const handleGenerateQuestionsForAssessment = (fileId?: string) => {
@@ -221,7 +234,8 @@ const GenerateAiQuestionFromImageComponent = () => {
     const convertPendingRef = useRef(false);
 
     const handleConvertPDFToHTMLMutation = useMutation({
-        mutationFn: ({ pdfId }: { pdfId: string }) => handleConvertPDFToHTML(pdfId),
+        mutationFn: ({ pdfId, taskName }: { pdfId: string; taskName: string }) =>
+            handleConvertPDFToHTML(pdfId, taskName),
         onSuccess: async (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -299,7 +313,7 @@ const GenerateAiQuestionFromImageComponent = () => {
         if (convertPendingRef.current) {
             return;
         }
-        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
+        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId, taskName });
     };
 
     // Cleanup on component unmount
@@ -318,6 +332,8 @@ const GenerateAiQuestionFromImageComponent = () => {
                 cardDescription="Upload JPG/JPEG/PNG"
                 inputFormat=".jpg,.jpeg,.png"
                 keyProp="image"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment

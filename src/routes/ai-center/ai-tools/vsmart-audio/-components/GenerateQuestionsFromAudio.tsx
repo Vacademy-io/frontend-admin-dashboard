@@ -17,6 +17,7 @@ import { transformQuestionsToGenerateAssessmentAI } from "../../../-utils/helper
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 export const GenerateQuestionsFromAudio = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const { setLoader, key, setKey } = useAICenter();
@@ -119,6 +120,7 @@ export const GenerateQuestionsFromAudio = () => {
             prompt: propmtInput,
             difficulty: difficulty,
             language: language,
+            taskName,
         });
     };
 
@@ -129,16 +131,25 @@ export const GenerateQuestionsFromAudio = () => {
             prompt,
             difficulty,
             language,
+            taskName,
         }: {
             audioId: string;
             numQuestions: number | null;
             prompt: string | null;
             difficulty: string | null;
             language: string | null;
+            taskName: string;
         }) => {
             setLoader(true);
             setKey("audio");
-            return handleGetQuestionsFromAudio(audioId, numQuestions, prompt, difficulty, language);
+            return handleGetQuestionsFromAudio(
+                audioId,
+                numQuestions,
+                prompt,
+                difficulty,
+                language,
+                taskName,
+            );
         },
         onSuccess: (response, variables) => {
             // Check if response indicates pending state
@@ -152,7 +163,7 @@ export const GenerateQuestionsFromAudio = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response?.status === "completed" || response?.questions) {
+            if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
                 setAssessmentData((prev) => ({
@@ -249,6 +260,8 @@ export const GenerateQuestionsFromAudio = () => {
                 cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
                 inputFormat=".mp3,.wav,.flac,.aac,.m4a"
                 keyProp="audio"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment

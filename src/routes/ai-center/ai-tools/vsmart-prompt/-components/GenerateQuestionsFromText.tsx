@@ -18,6 +18,7 @@ import { AIToolPageData } from "@/routes/ai-center/-constants/AIToolPageData";
 import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
+    taskName: z.string().min(1),
     text: z.string().min(1),
     num: z.number().min(1),
     class_level: z.string().min(1),
@@ -65,6 +66,7 @@ export const GenerateQuestionsFromText = () => {
     const dialogForm = useForm<QuestionsFromTextData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            taskName: "",
             text: "",
             num: undefined,
             class_level: "",
@@ -103,6 +105,7 @@ export const GenerateQuestionsFromText = () => {
             return;
         }
         getQuestionsFromTextMutation.mutate({
+            taskName: data.taskName,
             text: data.text,
             num: data.num,
             class_level: data.class_level,
@@ -114,6 +117,7 @@ export const GenerateQuestionsFromText = () => {
 
     const getQuestionsFromTextMutation = useMutation({
         mutationFn: async (data: {
+            taskName: string;
             text: string;
             num: number;
             class_level: string;
@@ -124,6 +128,7 @@ export const GenerateQuestionsFromText = () => {
             setLoader(true);
             setKey("text");
             return handleGetQuestionsFromText(
+                data.taskName,
                 data.text,
                 data.num,
                 data.class_level,
@@ -144,7 +149,7 @@ export const GenerateQuestionsFromText = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response?.status === "completed" || response?.questions) {
+            if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
                 dialogForm.reset();
@@ -175,6 +180,7 @@ export const GenerateQuestionsFromText = () => {
 
             // Otherwise schedule next poll
             scheduleNextPoll({
+                taskName: variables.taskName,
                 text: variables.text,
                 num: variables.num,
                 class_level: variables.class_level,

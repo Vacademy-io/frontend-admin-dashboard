@@ -17,6 +17,7 @@ import SortTopicQuestionsPreview from "./SortTopicQuestionsPreview";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 const SortTopicQuestions = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -102,10 +103,18 @@ const SortTopicQuestions = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+        mutationFn: ({
+            pdfId,
+            userPrompt,
+            taskName,
+        }: {
+            pdfId: string;
+            userPrompt: string;
+            taskName: string;
+        }) => {
             setLoader(true);
             setKey("sortTopicsPdf");
-            return handleSortQuestionsPDF(pdfId, userPrompt);
+            return handleSortQuestionsPDF(pdfId, userPrompt, taskName);
         },
         onSuccess: (response) => {
             // Check if response indicates pending state
@@ -119,7 +128,7 @@ const SortTopicQuestions = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response?.status === "completed" || response?.questions) {
+            if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
                 setAssessmentData((prev) => ({
@@ -191,7 +200,11 @@ const SortTopicQuestions = () => {
         if (pendingRef.current) {
             return;
         }
-        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
+        generateAssessmentMutation.mutate({
+            pdfId: uploadedFilePDFId,
+            userPrompt: propmtInput,
+            taskName,
+        });
     };
 
     const handleGenerateQuestionsForAssessment = (pdfId = uploadedFilePDFId) => {
@@ -202,7 +215,7 @@ const SortTopicQuestions = () => {
         pendingRef.current = false;
 
         // Use pdfId in your mutation call
-        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: propmtInput });
+        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: propmtInput, taskName });
     };
 
     useEffect(() => {
@@ -227,6 +240,8 @@ const SortTopicQuestions = () => {
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="sortTopicsPdf"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <SortTopicQuestionsPreview

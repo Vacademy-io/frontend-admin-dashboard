@@ -19,6 +19,7 @@ import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 const GenerateAiQuestionPaperComponent = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -108,10 +109,18 @@ const GenerateAiQuestionPaperComponent = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+        mutationFn: ({
+            pdfId,
+            userPrompt,
+            taskName,
+        }: {
+            pdfId: string;
+            userPrompt: string;
+            taskName: string;
+        }) => {
             setLoader(true);
             setKey("question");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt);
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
         },
         onSuccess: (response) => {
             // Check if response indicates pending state
@@ -125,7 +134,7 @@ const GenerateAiQuestionPaperComponent = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response?.status === "completed" || response?.questions) {
+            if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
                 setAssessmentData((prev) => ({
@@ -197,7 +206,11 @@ const GenerateAiQuestionPaperComponent = () => {
         if (pendingRef.current) {
             return;
         }
-        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
+        generateAssessmentMutation.mutate({
+            pdfId: uploadedFilePDFId,
+            userPrompt: propmtInput,
+            taskName,
+        });
     };
 
     const handleGenerateQuestionsForAssessment = (fileId?: string) => {
@@ -225,7 +238,8 @@ const GenerateAiQuestionPaperComponent = () => {
     const convertPendingRef = useRef(false);
 
     const handleConvertPDFToHTMLMutation = useMutation({
-        mutationFn: ({ pdfId }: { pdfId: string }) => handleConvertPDFToHTML(pdfId),
+        mutationFn: ({ pdfId, taskName }: { pdfId: string; taskName: string }) =>
+            handleConvertPDFToHTML(pdfId, taskName),
         onSuccess: async (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -302,7 +316,7 @@ const GenerateAiQuestionPaperComponent = () => {
         if (convertPendingRef.current) {
             return;
         }
-        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
+        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId, taskName });
     };
 
     console.log(assessmentData);
@@ -322,6 +336,8 @@ const GenerateAiQuestionPaperComponent = () => {
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="question"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment

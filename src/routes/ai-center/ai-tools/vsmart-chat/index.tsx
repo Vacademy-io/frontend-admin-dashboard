@@ -4,6 +4,7 @@ import PlayWithPDF from "./-components/PlayWithPDF";
 import { CaretLeft } from "phosphor-react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
+import { LayoutContainer } from "@/components/common/layout-container/layout-container";
 
 export const Route = createFileRoute("/ai-center/ai-tools/vsmart-chat/")({
     component: RouteComponent,
@@ -32,8 +33,10 @@ function RouteComponent() {
     }, []);
 
     return (
-        <AICenterProvider>
-            <PlayWithPDF />
-        </AICenterProvider>
+        <LayoutContainer>
+            <AICenterProvider>
+                <PlayWithPDF />
+            </AICenterProvider>
+        </LayoutContainer>
     );
 }

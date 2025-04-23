@@ -37,8 +37,8 @@ export const AIToolCardData: AIToolCardDataType[] = [
             },
             {
                 key: "text",
-                heading: "Vsmart Prompt",
-                subheading: "Generate questions by providing prompts",
+                heading: "Vsmart Topics",
+                subheading: "Generate questions by providing topics",
                 description: [
                     "Generate custom question papers in seconds by just typing a topic, concept, or instruction. Vsmart Prompt uses advanced AI to understand your input and create a tailored set of questions — covering various difficulty levels, formats, and cognitive skills, all aligned to your needs.",
                     "Perfect for teachers, trainers, and academic heads who want quick assessments on specific topics without uploading any material. Whether it's for an impromptu quiz, concept revision, or rapid-fire session, Vsmart Prompt delivers accurate and varied questions with minimal input.",
@@ -103,7 +103,7 @@ export const AIToolCardData: AIToolCardDataType[] = [
                     "Generate and organize topic-wise question papers with precision. Vsmart Sorter automatically extracts questions from your uploaded file (PDF, PPT, or DOC), groups them based on topics, and gives you the control to reorder questions within those topics to match your teaching flow or focus areas.",
                     "Ideal for educators, content designers, or exam moderators who want AI-generated content, but also need flexibility in how it's arranged. Whether you're creating chapter-wise assessments or tailoring question papers to fit specific classroom needs, Vsmart Sorter gives structure with control — letting you decide the question flow.",
                 ],
-                route: "/ai-center/ai-tools/vsmart-vision",
+                route: "/ai-center/ai-tools/vsmart-sorter",
             },
         ],
     },

@@ -52,3 +52,15 @@ export interface AIAssessmentResponseInterface {
     classes: string[];
     questions: AIAssessmentCompleteQuestion[];
 }
+
+export interface AITaskIndividualListInterface {
+    id: string;
+    task_name: string;
+    institute_id: string;
+    status: string; // Add more status values as needed
+    result_json: string;
+    input_id: string;
+    input_type: string; // Add more input types as needed
+    created_at: string; // ISO datetime string
+    updated_at: string; // ISO datetime string
+}
