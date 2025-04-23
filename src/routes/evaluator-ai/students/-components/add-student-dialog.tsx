@@ -6,13 +6,14 @@ import { useEffect, useState } from "react";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Loader2, MoreVertical, Pencil, Trash2, FileText } from "lucide-react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { handleStartProcessUploadedFile } from "@/routes/ai-center/-services/ai-center-service";
 import { UploadFileInS3Public } from "@/routes/signup/-services/signup-services";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import axios from "axios";
 import {
     Table,
     TableBody,
@@ -38,6 +39,35 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSearch } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { GET_DETAILS, GET_PUBLIC_URL } from "@/constants/urls";
+
+// Default tokens
+const DEFAULT_ACCESS_TOKEN =
+    "eyJhbGciOiJIUzI1NiJ9.eyJmdWxsbmFtZSI6IkRvZSBXYWxrZXIiLCJ1c2VyIjoiOTE3YjI1YWMtZjZhZi00ZjM5LTkwZGYtYmQxZDIxZTQyNTkzIiwiZW1haWwiOiJkb2VAZXhhbXBsZS5jb20iLCJpc19yb290X3VzZXIiOmZhbHNlLCJhdXRob3JpdGllcyI6eyI5ZDNmNGNjYi1hN2Y2LTQyM2YtYmM0Zi03NWM2ZDYxNzYzNDYiOnsicGVybWlzc2lvbnMiOltdLCJyb2xlcyI6WyJTVFVERU5UIl19fSwidXNlcm5hbWUiOiJkb2V3NjA2OSIsInN1YiI6ImRvZXc2MDY5IiwiaWF0IjoxNzQ1MzI2ODI2LCJleHAiOjE3NDU5MzE2MjZ9._O0T3Q0kxXLE9JnwC79IQCpwl-sAdFqR8nHa3MTpE5U";
+
+// Helper functions for API calls using axios directly
+export const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
+    const response = await axios.get(GET_PUBLIC_URL, {
+        params: { fileId, expiryDays: 1 },
+        headers: {
+            Authorization: `Bearer ${DEFAULT_ACCESS_TOKEN}`,
+        },
+    });
+    return response?.data;
+};
+
+export const getPublicUrls = async (fileIds: string | undefined | null) => {
+    const response = await axios({
+        method: "GET",
+        url: GET_DETAILS,
+        params: { fileIds, expiryDays: 1 },
+        headers: {
+            Authorization: `Bearer ${DEFAULT_ACCESS_TOKEN}`,
+        },
+    });
+    return response?.data;
+};
 
 interface StudentData {
     name: string;
@@ -59,6 +89,7 @@ export function StudentEnrollmentDialog() {
     const [selected, setSelected] = useState<number[]>([]);
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [loadingPdf, setLoadingPdf] = useState<Record<string, boolean>>({});
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -205,6 +236,30 @@ export function StudentEnrollmentDialog() {
         // If we deleted the last item on the current page, go to previous page
         if (paginatedStudents.length === 1 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleViewPdf = async (fileId: string | undefined) => {
+        if (!fileId) {
+            toast.error("No file ID available");
+            return;
+        }
+
+        try {
+            setLoadingPdf({ ...loadingPdf, [fileId]: true });
+            const url = await getPublicUrl(fileId);
+
+            if (url) {
+                // Open in new tab
+                window.open(url, "_blank");
+            } else {
+                toast.error("Could not retrieve PDF URL");
+            }
+        } catch (error) {
+            console.error("Error fetching PDF URL:", error);
+            toast.error("Failed to retrieve PDF");
+        } finally {
+            setLoadingPdf({ ...loadingPdf, [fileId]: false });
         }
     };
 
@@ -367,6 +422,7 @@ export function StudentEnrollmentDialog() {
                                 <TableHead>Enrollment ID</TableHead>
                                 <TableHead>PDF ID</TableHead>
                                 <TableHead>File ID</TableHead>
+                                <TableHead>View PDF</TableHead>
                                 <TableHead className="w-10 text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -387,6 +443,28 @@ export function StudentEnrollmentDialog() {
                                         <TableCell>{student.enrollId}</TableCell>
                                         <TableCell>{student.pdfId}</TableCell>
                                         <TableCell>{student.fileId || "N/A"}</TableCell>
+                                        <TableCell>
+                                            {student.fileId ? (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleViewPdf(student.fileId)}
+                                                    disabled={loadingPdf[student.fileId || ""]}
+                                                    className="flex items-center gap-1"
+                                                >
+                                                    {loadingPdf[student.fileId || ""] ? (
+                                                        <Loader2 className="size-4 animate-spin" />
+                                                    ) : (
+                                                        <FileText className="size-4" />
+                                                    )}
+                                                    View PDF
+                                                </Button>
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground">
+                                                    No file
+                                                </span>
+                                            )}
+                                        </TableCell>
                                         <TableCell className="text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
