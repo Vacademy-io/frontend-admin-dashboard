@@ -50,12 +50,6 @@ const PlayWithPDF = () => {
         }
     };
 
-    useEffect(() => {
-        if (key === "playWithPDF") {
-            if (fileUploading == true) setLoader(true);
-        }
-    }, [fileUploading, key]);
-
     const [question, setQuestion] = useState("");
     const [questionsWithAnswers, setQuestionsWithAnswers] = useState<QuestionWithAnswer[]>([]);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -73,6 +67,12 @@ const PlayWithPDF = () => {
         ]);
         setQuestion("");
     };
+
+    useEffect(() => {
+        if (key === "playWithPDF") {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
 
     // Scroll to bottom on update
     useEffect(() => {
