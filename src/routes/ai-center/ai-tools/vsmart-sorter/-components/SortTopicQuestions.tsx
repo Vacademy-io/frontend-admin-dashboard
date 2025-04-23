@@ -103,10 +103,18 @@ const SortTopicQuestions = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+        mutationFn: ({
+            pdfId,
+            userPrompt,
+            taskName,
+        }: {
+            pdfId: string;
+            userPrompt: string;
+            taskName: string;
+        }) => {
             setLoader(true);
             setKey("sortTopicsPdf");
-            return handleSortQuestionsPDF(pdfId, userPrompt);
+            return handleSortQuestionsPDF(pdfId, userPrompt, taskName);
         },
         onSuccess: (response) => {
             // Check if response indicates pending state
@@ -192,7 +200,11 @@ const SortTopicQuestions = () => {
         if (pendingRef.current) {
             return;
         }
-        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
+        generateAssessmentMutation.mutate({
+            pdfId: uploadedFilePDFId,
+            userPrompt: propmtInput,
+            taskName,
+        });
     };
 
     const handleGenerateQuestionsForAssessment = (pdfId = uploadedFilePDFId) => {
@@ -203,7 +215,7 @@ const SortTopicQuestions = () => {
         pendingRef.current = false;
 
         // Use pdfId in your mutation call
-        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: propmtInput });
+        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: propmtInput, taskName });
     };
 
     useEffect(() => {

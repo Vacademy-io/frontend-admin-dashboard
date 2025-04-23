@@ -106,10 +106,18 @@ const GenerateAiQuestionFromImageComponent = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
+        mutationFn: ({
+            pdfId,
+            userPrompt,
+            taskName,
+        }: {
+            pdfId: string;
+            userPrompt: string;
+            taskName: string;
+        }) => {
             setLoader(true);
             setKey("image");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt);
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
         },
         onSuccess: (response) => {
             // Check if response indicates pending state
@@ -195,7 +203,11 @@ const GenerateAiQuestionFromImageComponent = () => {
         if (pendingRef.current) {
             return;
         }
-        generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
+        generateAssessmentMutation.mutate({
+            pdfId: uploadedFilePDFId,
+            userPrompt: propmtInput,
+            taskName,
+        });
     };
 
     const handleGenerateQuestionsForAssessment = (fileId?: string) => {
@@ -222,7 +234,8 @@ const GenerateAiQuestionFromImageComponent = () => {
     const convertPendingRef = useRef(false);
 
     const handleConvertPDFToHTMLMutation = useMutation({
-        mutationFn: ({ pdfId }: { pdfId: string }) => handleConvertPDFToHTML(pdfId),
+        mutationFn: ({ pdfId, taskName }: { pdfId: string; taskName: string }) =>
+            handleConvertPDFToHTML(pdfId, taskName),
         onSuccess: async (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -300,7 +313,7 @@ const GenerateAiQuestionFromImageComponent = () => {
         if (convertPendingRef.current) {
             return;
         }
-        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
+        handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId, taskName });
     };
 
     // Cleanup on component unmount

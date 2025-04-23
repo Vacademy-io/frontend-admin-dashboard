@@ -118,8 +118,8 @@ export const AIToolPageData: AIToolPageDataType = {
     },
     text: {
         key: "text",
-        heading: "Vsmart Prompt",
-        instructionsHeading: "How to Use Vsmart Prompt",
+        heading: "Vsmart Topics",
+        instructionsHeading: "How to Use Vsmart Topics",
         instructions: [
             {
                 stepHeading: "Click on Generate Questions",

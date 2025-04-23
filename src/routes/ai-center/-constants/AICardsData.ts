@@ -37,8 +37,8 @@ export const AIToolCardData: AIToolCardDataType[] = [
             },
             {
                 key: "text",
-                heading: "Vsmart Prompt",
-                subheading: "Generate questions by providing prompts",
+                heading: "Vsmart Topics",
+                subheading: "Generate questions by providing topics",
                 description: [
                     "Generate custom question papers in seconds by just typing a topic, concept, or instruction. Vsmart Prompt uses advanced AI to understand your input and create a tailored set of questions — covering various difficulty levels, formats, and cognitive skills, all aligned to your needs.",
                     "Perfect for teachers, trainers, and academic heads who want quick assessments on specific topics without uploading any material. Whether it's for an impromptu quiz, concept revision, or rapid-fire session, Vsmart Prompt delivers accurate and varied questions with minimal input.",

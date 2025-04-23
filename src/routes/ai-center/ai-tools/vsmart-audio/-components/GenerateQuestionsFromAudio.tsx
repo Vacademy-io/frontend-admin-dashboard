@@ -120,6 +120,7 @@ export const GenerateQuestionsFromAudio = () => {
             prompt: propmtInput,
             difficulty: difficulty,
             language: language,
+            taskName,
         });
     };
 
@@ -130,16 +131,25 @@ export const GenerateQuestionsFromAudio = () => {
             prompt,
             difficulty,
             language,
+            taskName,
         }: {
             audioId: string;
             numQuestions: number | null;
             prompt: string | null;
             difficulty: string | null;
             language: string | null;
+            taskName: string;
         }) => {
             setLoader(true);
             setKey("audio");
-            return handleGetQuestionsFromAudio(audioId, numQuestions, prompt, difficulty, language);
+            return handleGetQuestionsFromAudio(
+                audioId,
+                numQuestions,
+                prompt,
+                difficulty,
+                language,
+                taskName,
+            );
         },
         onSuccess: (response, variables) => {
             // Check if response indicates pending state

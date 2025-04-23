@@ -1,3 +1,4 @@
+import { getInstituteId } from "@/constants/helper";
 import {
     CONVERT_PDF_TO_HTML_AI_URL,
     GENERATE_QUESTIONS_FROM_FILE_AI_URL,
@@ -23,37 +24,58 @@ export const handleStartProcessUploadedFile = async (fileId: string) => {
     return response?.data;
 };
 
-export const handleSortSplitPDF = async (pdfId: string, requiredTopics: string) => {
+export const handleSortSplitPDF = async (
+    pdfId: string,
+    requiredTopics: string,
+    taskName: string,
+) => {
+    const instituteId = getInstituteId();
     const response = await axios({
         method: "GET",
         url: SORT_SPLIT_FILE_AI_URL,
         params: {
             pdfId,
             requiredTopics,
+            taskName,
+            instituteId,
         },
     });
     return response?.data;
 };
 
-export const handleSortQuestionsPDF = async (pdfId: string, userPrompt: string) => {
+export const handleSortQuestionsPDF = async (
+    pdfId: string,
+    userPrompt: string,
+    taskName: string,
+) => {
+    const instituteId = getInstituteId();
     const response = await axios({
         method: "GET",
         url: SORT_QUESTIONS_FILE_AI_URL,
         params: {
             pdfId,
             userPrompt,
+            taskName,
+            instituteId,
         },
     });
     return response?.data;
 };
 
-export const handleGenerateAssessmentQuestions = async (pdfId: string, userPrompt: string) => {
+export const handleGenerateAssessmentQuestions = async (
+    pdfId: string,
+    userPrompt: string,
+    taskName: string,
+) => {
+    const instituteId = getInstituteId();
     const response = await axios({
         method: "GET",
         url: GENERATE_QUESTIONS_FROM_FILE_AI_URL,
         params: {
             pdfId,
             userPrompt,
+            taskName,
+            instituteId,
         },
     });
     return response?.data;
@@ -74,12 +96,15 @@ export const handleGenerateAssessmentQuestionsPageWise = async (
     return response?.data;
 };
 
-export const handleConvertPDFToHTML = async (pdfId: string) => {
+export const handleConvertPDFToHTML = async (pdfId: string, taskName: string) => {
+    const instituteId = getInstituteId();
     const response = await axios({
         method: "GET",
         url: CONVERT_PDF_TO_HTML_AI_URL,
         params: {
             pdfId,
+            taskName,
+            instituteId,
         },
     });
     return response?.data;
@@ -115,7 +140,9 @@ export const handleGetQuestionsFromAudio = async (
     prompt: string | null,
     difficulty: string | null,
     language: string | null,
+    taskName: string,
 ) => {
+    const instituteId = getInstituteId();
     const response = await axios({
         method: "GET",
         url: GET_QUESTIONS_FROM_AUDIO,
@@ -125,12 +152,15 @@ export const handleGetQuestionsFromAudio = async (
             prompt: prompt,
             difficulty: difficulty,
             language: language,
+            taskName,
+            instituteId,
         },
     });
     return response?.data;
 };
 
 export const handleGetQuestionsFromText = async (
+    taskName: string,
     text: string,
     num: number,
     class_level: string,
@@ -138,6 +168,7 @@ export const handleGetQuestionsFromText = async (
     question_type: string,
     question_language: string,
 ) => {
+    const instituteId = getInstituteId();
     const response = await axios({
         method: "POST",
         url: GET_QUESTIONS_FROM_TEXT,
@@ -148,6 +179,8 @@ export const handleGetQuestionsFromText = async (
             topics: topics,
             question_type: question_type,
             question_language: question_language,
+            taskName,
+            instituteId,
         },
     });
     return response?.data;
