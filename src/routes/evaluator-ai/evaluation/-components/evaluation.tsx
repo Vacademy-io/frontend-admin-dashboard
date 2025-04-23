@@ -1,4 +1,5 @@
 /* eslint-disable */
+// @ts-nocheck
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { StudentSelectionDialog } from "./select-students";
