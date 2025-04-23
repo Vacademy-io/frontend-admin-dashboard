@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { GenerateCard } from "../GenerateCard";
+import { GenerateCard } from "../../../-components/GenerateCard";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { getInstituteId } from "@/constants/helper";
 import {
     handleStartProcessUploadedAudioFile,
     handleGetQuestionsFromAudio,
-} from "../../-services/ai-center-service";
+} from "../../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
+import { generateCompleteAssessmentFormSchema } from "../../../-utils/generate-complete-assessment-schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
-import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
-import { useAICenter } from "../../-contexts/useAICenterContext";
+import GenerateCompleteAssessment from "../../../-components/GenerateCompleteAssessment";
+import { transformQuestionsToGenerateAssessmentAI } from "../../../-utils/helper";
+import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 export const GenerateQuestionsFromAudio = () => {
     const instituteId = getInstituteId();

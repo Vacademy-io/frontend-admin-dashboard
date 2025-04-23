@@ -4,16 +4,16 @@ import { UploadSimple } from "phosphor-react";
 import { QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
 import { useRef, useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { handleGetQuestionsFromText } from "../../-services/ai-center-service";
-import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
-import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
+import { handleGetQuestionsFromText } from "../../../-services/ai-center-service";
+import { transformQuestionsToGenerateAssessmentAI } from "../../../-utils/helper";
+import { generateCompleteAssessmentFormSchema } from "../../../-utils/generate-complete-assessment-schema";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
+import GenerateCompleteAssessment from "../../../-components/GenerateCompleteAssessment";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useAICenter } from "../../-contexts/useAICenterContext";
+import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 const formSchema = z.object({
     text: z.string().min(1),

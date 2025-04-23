@@ -36,8 +36,16 @@ import { Route as EvaluationEvaluationToolIndexImport } from "./routes/evaluatio
 import { Route as CommunityQuestionPaperIndexImport } from "./routes/community/question-paper/index";
 import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessment/question-papers/index";
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index";
+import { Route as AiCenterAiToolsIndexImport } from "./routes/ai-center/ai-tools/index";
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index";
 import { Route as AssessmentExportAssessmentIdIndexImport } from "./routes/assessment/export/$assessmentId/index";
+import { Route as AiCenterAiToolsVsmartVisionIndexImport } from "./routes/ai-center/ai-tools/vsmart-vision/index";
+import { Route as AiCenterAiToolsVsmartUploadIndexImport } from "./routes/ai-center/ai-tools/vsmart-upload/index";
+import { Route as AiCenterAiToolsVsmartPromptIndexImport } from "./routes/ai-center/ai-tools/vsmart-prompt/index";
+import { Route as AiCenterAiToolsVsmartOrganizerIndexImport } from "./routes/ai-center/ai-tools/vsmart-organizer/index";
+import { Route as AiCenterAiToolsVsmartExtractIndexImport } from "./routes/ai-center/ai-tools/vsmart-extract/index";
+import { Route as AiCenterAiToolsVsmartChatIndexImport } from "./routes/ai-center/ai-tools/vsmart-chat/index";
+import { Route as AiCenterAiToolsVsmartAudioIndexImport } from "./routes/ai-center/ai-tools/vsmart-audio/index";
 import { Route as StudyLibraryCoursesLevelsSubjectsIndexImport } from "./routes/study-library/courses/levels/subjects/index";
 import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexImport } from "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index";
 import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index";
@@ -201,6 +209,12 @@ const AssessmentAssessmentListIndexRoute = AssessmentAssessmentListIndexImport.u
     getParentRoute: () => rootRoute,
 } as any);
 
+const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexImport.update({
+    id: "/ai-center/ai-tools/",
+    path: "/ai-center/ai-tools/",
+    getParentRoute: () => rootRoute,
+} as any);
+
 const StudyLibraryCoursesLevelsIndexRoute = StudyLibraryCoursesLevelsIndexImport.update({
     id: "/study-library/courses/levels/",
     path: "/study-library/courses/levels/",
@@ -210,6 +224,48 @@ const StudyLibraryCoursesLevelsIndexRoute = StudyLibraryCoursesLevelsIndexImport
 const AssessmentExportAssessmentIdIndexRoute = AssessmentExportAssessmentIdIndexImport.update({
     id: "/assessment/export/$assessmentId/",
     path: "/assessment/export/$assessmentId/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterAiToolsVsmartVisionIndexRoute = AiCenterAiToolsVsmartVisionIndexImport.update({
+    id: "/ai-center/ai-tools/vsmart-vision/",
+    path: "/ai-center/ai-tools/vsmart-vision/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterAiToolsVsmartUploadIndexRoute = AiCenterAiToolsVsmartUploadIndexImport.update({
+    id: "/ai-center/ai-tools/vsmart-upload/",
+    path: "/ai-center/ai-tools/vsmart-upload/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterAiToolsVsmartPromptIndexRoute = AiCenterAiToolsVsmartPromptIndexImport.update({
+    id: "/ai-center/ai-tools/vsmart-prompt/",
+    path: "/ai-center/ai-tools/vsmart-prompt/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterAiToolsVsmartOrganizerIndexRoute = AiCenterAiToolsVsmartOrganizerIndexImport.update({
+    id: "/ai-center/ai-tools/vsmart-organizer/",
+    path: "/ai-center/ai-tools/vsmart-organizer/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterAiToolsVsmartExtractIndexRoute = AiCenterAiToolsVsmartExtractIndexImport.update({
+    id: "/ai-center/ai-tools/vsmart-extract/",
+    path: "/ai-center/ai-tools/vsmart-extract/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterAiToolsVsmartChatIndexRoute = AiCenterAiToolsVsmartChatIndexImport.update({
+    id: "/ai-center/ai-tools/vsmart-chat/",
+    path: "/ai-center/ai-tools/vsmart-chat/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterAiToolsVsmartAudioIndexRoute = AiCenterAiToolsVsmartAudioIndexImport.update({
+    id: "/ai-center/ai-tools/vsmart-audio/",
+    path: "/ai-center/ai-tools/vsmart-audio/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -354,6 +410,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibraryIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/ai-center/ai-tools/": {
+            id: "/ai-center/ai-tools/";
+            path: "/ai-center/ai-tools";
+            fullPath: "/ai-center/ai-tools";
+            preLoaderRoute: typeof AiCenterAiToolsIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/assessment/assessment-list/": {
             id: "/assessment/assessment-list/";
             path: "/assessment/assessment-list";
@@ -466,6 +529,55 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof StudyLibrarySessionIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/ai-center/ai-tools/vsmart-audio/": {
+            id: "/ai-center/ai-tools/vsmart-audio/";
+            path: "/ai-center/ai-tools/vsmart-audio";
+            fullPath: "/ai-center/ai-tools/vsmart-audio";
+            preLoaderRoute: typeof AiCenterAiToolsVsmartAudioIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/ai-center/ai-tools/vsmart-chat/": {
+            id: "/ai-center/ai-tools/vsmart-chat/";
+            path: "/ai-center/ai-tools/vsmart-chat";
+            fullPath: "/ai-center/ai-tools/vsmart-chat";
+            preLoaderRoute: typeof AiCenterAiToolsVsmartChatIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/ai-center/ai-tools/vsmart-extract/": {
+            id: "/ai-center/ai-tools/vsmart-extract/";
+            path: "/ai-center/ai-tools/vsmart-extract";
+            fullPath: "/ai-center/ai-tools/vsmart-extract";
+            preLoaderRoute: typeof AiCenterAiToolsVsmartExtractIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/ai-center/ai-tools/vsmart-organizer/": {
+            id: "/ai-center/ai-tools/vsmart-organizer/";
+            path: "/ai-center/ai-tools/vsmart-organizer";
+            fullPath: "/ai-center/ai-tools/vsmart-organizer";
+            preLoaderRoute: typeof AiCenterAiToolsVsmartOrganizerIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/ai-center/ai-tools/vsmart-prompt/": {
+            id: "/ai-center/ai-tools/vsmart-prompt/";
+            path: "/ai-center/ai-tools/vsmart-prompt";
+            fullPath: "/ai-center/ai-tools/vsmart-prompt";
+            preLoaderRoute: typeof AiCenterAiToolsVsmartPromptIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/ai-center/ai-tools/vsmart-upload/": {
+            id: "/ai-center/ai-tools/vsmart-upload/";
+            path: "/ai-center/ai-tools/vsmart-upload";
+            fullPath: "/ai-center/ai-tools/vsmart-upload";
+            preLoaderRoute: typeof AiCenterAiToolsVsmartUploadIndexImport;
+            parentRoute: typeof rootRoute;
+        };
+        "/ai-center/ai-tools/vsmart-vision/": {
+            id: "/ai-center/ai-tools/vsmart-vision/";
+            path: "/ai-center/ai-tools/vsmart-vision";
+            fullPath: "/ai-center/ai-tools/vsmart-vision";
+            preLoaderRoute: typeof AiCenterAiToolsVsmartVisionIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/assessment/export/$assessmentId/": {
             id: "/assessment/export/$assessmentId/";
             path: "/assessment/export/$assessmentId";
@@ -565,6 +677,7 @@ export interface FileRoutesByFullPath {
     "/signup": typeof SignupIndexRoute;
     "/students": typeof StudentsIndexRoute;
     "/study-library": typeof StudyLibraryIndexRoute;
+    "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute;
     "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute;
     "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute;
     "/community/question-paper": typeof CommunityQuestionPaperIndexRoute;
@@ -581,6 +694,13 @@ export interface FileRoutesByFullPath {
     "/study-library/courses": typeof StudyLibraryCoursesIndexRoute;
     "/study-library/reports": typeof StudyLibraryReportsIndexRoute;
     "/study-library/session": typeof StudyLibrarySessionIndexRoute;
+    "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute;
+    "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute;
+    "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute;
+    "/ai-center/ai-tools/vsmart-organizer": typeof AiCenterAiToolsVsmartOrganizerIndexRoute;
+    "/ai-center/ai-tools/vsmart-prompt": typeof AiCenterAiToolsVsmartPromptIndexRoute;
+    "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute;
+    "/ai-center/ai-tools/vsmart-vision": typeof AiCenterAiToolsVsmartVisionIndexRoute;
     "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
@@ -605,6 +725,7 @@ export interface FileRoutesByTo {
     "/signup": typeof SignupIndexRoute;
     "/students": typeof StudentsIndexRoute;
     "/study-library": typeof StudyLibraryIndexRoute;
+    "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute;
     "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute;
     "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute;
     "/community/question-paper": typeof CommunityQuestionPaperIndexRoute;
@@ -621,6 +742,13 @@ export interface FileRoutesByTo {
     "/study-library/courses": typeof StudyLibraryCoursesIndexRoute;
     "/study-library/reports": typeof StudyLibraryReportsIndexRoute;
     "/study-library/session": typeof StudyLibrarySessionIndexRoute;
+    "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute;
+    "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute;
+    "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute;
+    "/ai-center/ai-tools/vsmart-organizer": typeof AiCenterAiToolsVsmartOrganizerIndexRoute;
+    "/ai-center/ai-tools/vsmart-prompt": typeof AiCenterAiToolsVsmartPromptIndexRoute;
+    "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute;
+    "/ai-center/ai-tools/vsmart-vision": typeof AiCenterAiToolsVsmartVisionIndexRoute;
     "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
@@ -646,6 +774,7 @@ export interface FileRoutesById {
     "/signup/": typeof SignupIndexRoute;
     "/students/": typeof StudentsIndexRoute;
     "/study-library/": typeof StudyLibraryIndexRoute;
+    "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute;
     "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute;
     "/assessment/question-papers/": typeof AssessmentQuestionPapersIndexRoute;
     "/community/question-paper/": typeof CommunityQuestionPaperIndexRoute;
@@ -662,6 +791,13 @@ export interface FileRoutesById {
     "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute;
     "/study-library/reports/": typeof StudyLibraryReportsIndexRoute;
     "/study-library/session/": typeof StudyLibrarySessionIndexRoute;
+    "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute;
+    "/ai-center/ai-tools/vsmart-chat/": typeof AiCenterAiToolsVsmartChatIndexRoute;
+    "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute;
+    "/ai-center/ai-tools/vsmart-organizer/": typeof AiCenterAiToolsVsmartOrganizerIndexRoute;
+    "/ai-center/ai-tools/vsmart-prompt/": typeof AiCenterAiToolsVsmartPromptIndexRoute;
+    "/ai-center/ai-tools/vsmart-upload/": typeof AiCenterAiToolsVsmartUploadIndexRoute;
+    "/ai-center/ai-tools/vsmart-vision/": typeof AiCenterAiToolsVsmartVisionIndexRoute;
     "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute;
     "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute;
     "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
@@ -688,6 +824,7 @@ export interface FileRouteTypes {
         | "/signup"
         | "/students"
         | "/study-library"
+        | "/ai-center/ai-tools"
         | "/assessment/assessment-list"
         | "/assessment/question-papers"
         | "/community/question-paper"
@@ -704,6 +841,13 @@ export interface FileRouteTypes {
         | "/study-library/courses"
         | "/study-library/reports"
         | "/study-library/session"
+        | "/ai-center/ai-tools/vsmart-audio"
+        | "/ai-center/ai-tools/vsmart-chat"
+        | "/ai-center/ai-tools/vsmart-extract"
+        | "/ai-center/ai-tools/vsmart-organizer"
+        | "/ai-center/ai-tools/vsmart-prompt"
+        | "/ai-center/ai-tools/vsmart-upload"
+        | "/ai-center/ai-tools/vsmart-vision"
         | "/assessment/export/$assessmentId"
         | "/study-library/courses/levels"
         | "/assessment/create-assessment/$assessmentId/$examtype"
@@ -727,6 +871,7 @@ export interface FileRouteTypes {
         | "/signup"
         | "/students"
         | "/study-library"
+        | "/ai-center/ai-tools"
         | "/assessment/assessment-list"
         | "/assessment/question-papers"
         | "/community/question-paper"
@@ -743,6 +888,13 @@ export interface FileRouteTypes {
         | "/study-library/courses"
         | "/study-library/reports"
         | "/study-library/session"
+        | "/ai-center/ai-tools/vsmart-audio"
+        | "/ai-center/ai-tools/vsmart-chat"
+        | "/ai-center/ai-tools/vsmart-extract"
+        | "/ai-center/ai-tools/vsmart-organizer"
+        | "/ai-center/ai-tools/vsmart-prompt"
+        | "/ai-center/ai-tools/vsmart-upload"
+        | "/ai-center/ai-tools/vsmart-vision"
         | "/assessment/export/$assessmentId"
         | "/study-library/courses/levels"
         | "/assessment/create-assessment/$assessmentId/$examtype"
@@ -766,6 +918,7 @@ export interface FileRouteTypes {
         | "/signup/"
         | "/students/"
         | "/study-library/"
+        | "/ai-center/ai-tools/"
         | "/assessment/assessment-list/"
         | "/assessment/question-papers/"
         | "/community/question-paper/"
@@ -782,6 +935,13 @@ export interface FileRouteTypes {
         | "/study-library/courses/"
         | "/study-library/reports/"
         | "/study-library/session/"
+        | "/ai-center/ai-tools/vsmart-audio/"
+        | "/ai-center/ai-tools/vsmart-chat/"
+        | "/ai-center/ai-tools/vsmart-extract/"
+        | "/ai-center/ai-tools/vsmart-organizer/"
+        | "/ai-center/ai-tools/vsmart-prompt/"
+        | "/ai-center/ai-tools/vsmart-upload/"
+        | "/ai-center/ai-tools/vsmart-vision/"
         | "/assessment/export/$assessmentId/"
         | "/study-library/courses/levels/"
         | "/assessment/create-assessment/$assessmentId/$examtype/"
@@ -807,6 +967,7 @@ export interface RootRouteChildren {
     SignupIndexRoute: typeof SignupIndexRoute;
     StudentsIndexRoute: typeof StudentsIndexRoute;
     StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute;
+    AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute;
     AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute;
     AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute;
     CommunityQuestionPaperIndexRoute: typeof CommunityQuestionPaperIndexRoute;
@@ -823,6 +984,13 @@ export interface RootRouteChildren {
     StudyLibraryCoursesIndexRoute: typeof StudyLibraryCoursesIndexRoute;
     StudyLibraryReportsIndexRoute: typeof StudyLibraryReportsIndexRoute;
     StudyLibrarySessionIndexRoute: typeof StudyLibrarySessionIndexRoute;
+    AiCenterAiToolsVsmartAudioIndexRoute: typeof AiCenterAiToolsVsmartAudioIndexRoute;
+    AiCenterAiToolsVsmartChatIndexRoute: typeof AiCenterAiToolsVsmartChatIndexRoute;
+    AiCenterAiToolsVsmartExtractIndexRoute: typeof AiCenterAiToolsVsmartExtractIndexRoute;
+    AiCenterAiToolsVsmartOrganizerIndexRoute: typeof AiCenterAiToolsVsmartOrganizerIndexRoute;
+    AiCenterAiToolsVsmartPromptIndexRoute: typeof AiCenterAiToolsVsmartPromptIndexRoute;
+    AiCenterAiToolsVsmartUploadIndexRoute: typeof AiCenterAiToolsVsmartUploadIndexRoute;
+    AiCenterAiToolsVsmartVisionIndexRoute: typeof AiCenterAiToolsVsmartVisionIndexRoute;
     AssessmentExportAssessmentIdIndexRoute: typeof AssessmentExportAssessmentIdIndexRoute;
     StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute;
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute;
@@ -847,6 +1015,7 @@ const rootRouteChildren: RootRouteChildren = {
     SignupIndexRoute: SignupIndexRoute,
     StudentsIndexRoute: StudentsIndexRoute,
     StudyLibraryIndexRoute: StudyLibraryIndexRoute,
+    AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
     AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
     AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
     CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
@@ -863,6 +1032,13 @@ const rootRouteChildren: RootRouteChildren = {
     StudyLibraryCoursesIndexRoute: StudyLibraryCoursesIndexRoute,
     StudyLibraryReportsIndexRoute: StudyLibraryReportsIndexRoute,
     StudyLibrarySessionIndexRoute: StudyLibrarySessionIndexRoute,
+    AiCenterAiToolsVsmartAudioIndexRoute: AiCenterAiToolsVsmartAudioIndexRoute,
+    AiCenterAiToolsVsmartChatIndexRoute: AiCenterAiToolsVsmartChatIndexRoute,
+    AiCenterAiToolsVsmartExtractIndexRoute: AiCenterAiToolsVsmartExtractIndexRoute,
+    AiCenterAiToolsVsmartOrganizerIndexRoute: AiCenterAiToolsVsmartOrganizerIndexRoute,
+    AiCenterAiToolsVsmartPromptIndexRoute: AiCenterAiToolsVsmartPromptIndexRoute,
+    AiCenterAiToolsVsmartUploadIndexRoute: AiCenterAiToolsVsmartUploadIndexRoute,
+    AiCenterAiToolsVsmartVisionIndexRoute: AiCenterAiToolsVsmartVisionIndexRoute,
     AssessmentExportAssessmentIdIndexRoute: AssessmentExportAssessmentIdIndexRoute,
     StudyLibraryCoursesLevelsIndexRoute: StudyLibraryCoursesLevelsIndexRoute,
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
@@ -905,6 +1081,7 @@ export const routeTree = rootRoute
         "/signup/",
         "/students/",
         "/study-library/",
+        "/ai-center/ai-tools/",
         "/assessment/assessment-list/",
         "/assessment/question-papers/",
         "/community/question-paper/",
@@ -921,6 +1098,13 @@ export const routeTree = rootRoute
         "/study-library/courses/",
         "/study-library/reports/",
         "/study-library/session/",
+        "/ai-center/ai-tools/vsmart-audio/",
+        "/ai-center/ai-tools/vsmart-chat/",
+        "/ai-center/ai-tools/vsmart-extract/",
+        "/ai-center/ai-tools/vsmart-organizer/",
+        "/ai-center/ai-tools/vsmart-prompt/",
+        "/ai-center/ai-tools/vsmart-upload/",
+        "/ai-center/ai-tools/vsmart-vision/",
         "/assessment/export/$assessmentId/",
         "/study-library/courses/levels/",
         "/assessment/create-assessment/$assessmentId/$examtype/",
@@ -961,6 +1145,9 @@ export const routeTree = rootRoute
     },
     "/study-library/": {
       "filePath": "study-library/index.tsx"
+    },
+    "/ai-center/ai-tools/": {
+      "filePath": "ai-center/ai-tools/index.tsx"
     },
     "/assessment/assessment-list/": {
       "filePath": "assessment/assessment-list/index.tsx"
@@ -1009,6 +1196,27 @@ export const routeTree = rootRoute
     },
     "/study-library/session/": {
       "filePath": "study-library/session/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-audio/": {
+      "filePath": "ai-center/ai-tools/vsmart-audio/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-chat/": {
+      "filePath": "ai-center/ai-tools/vsmart-chat/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-extract/": {
+      "filePath": "ai-center/ai-tools/vsmart-extract/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-organizer/": {
+      "filePath": "ai-center/ai-tools/vsmart-organizer/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-prompt/": {
+      "filePath": "ai-center/ai-tools/vsmart-prompt/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-upload/": {
+      "filePath": "ai-center/ai-tools/vsmart-upload/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-vision/": {
+      "filePath": "ai-center/ai-tools/vsmart-vision/index.tsx"
     },
     "/assessment/export/$assessmentId/": {
       "filePath": "assessment/export/$assessmentId/index.tsx"

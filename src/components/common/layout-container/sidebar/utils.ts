@@ -104,7 +104,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: HeadCircuit,
-        title: "AI Features",
+        title: "VSmart AI Tools",
         id: "AI Center",
         to: "/ai-center",
     },
