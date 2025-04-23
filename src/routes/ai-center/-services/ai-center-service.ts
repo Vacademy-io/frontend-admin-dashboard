@@ -2,10 +2,12 @@ import { getInstituteId } from "@/constants/helper";
 import {
     CONVERT_PDF_TO_HTML_AI_URL,
     GENERATE_QUESTIONS_FROM_FILE_AI_URL,
+    GET_INDIVIDUAL_AI_TASK_QUESTIONS,
     GET_QUESTIONS_FROM_AUDIO,
     GET_QUESTIONS_FROM_TEXT,
     GET_QUESTIONS_URL_FROM_HTML_AI_URL,
     HTML_TO_QUESTIONS_FROM_FILE_AI_URL,
+    LIST_INDIVIDUAL_AI_TASKS_URL,
     PROCESS_AUDIO_FILE,
     SORT_QUESTIONS_FILE_AI_URL,
     SORT_SPLIT_FILE_AI_URL,
@@ -19,6 +21,30 @@ export const handleStartProcessUploadedFile = async (fileId: string) => {
         url: START_PROCESSING_FILE_AI_URL,
         data: {
             file_id: fileId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetListIndividualTopics = async (taskType: string) => {
+    const instituteId = getInstituteId();
+    const response = await axios({
+        method: "GET",
+        url: LIST_INDIVIDUAL_AI_TASKS_URL,
+        params: {
+            instituteId,
+            taskType,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetQuestionsInvidualTask = async (taskId: string) => {
+    const response = await axios({
+        method: "GET",
+        url: GET_INDIVIDUAL_AI_TASK_QUESTIONS,
+        params: {
+            taskId,
         },
     });
     return response?.data;

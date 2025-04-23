@@ -6,6 +6,7 @@ import { AICenterProvider } from "./-contexts/useAICenterContext";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AIToolCardData } from "./-constants/AICardsData";
 import { AIToolsCard } from "./-components/AIToolsCard";
+import AllToolsTasks from "./ai-tools/-components/AllToolsTasks";
 
 export const Route = createFileRoute("/ai-center/")({
     component: () => (
@@ -49,6 +50,9 @@ function RouteComponent() {
                         ))}
                     </div>
                 ))}
+            </TabsContent>
+            <TabsContent value="tasks" className="flex w-full flex-col gap-6">
+                <AllToolsTasks />
             </TabsContent>
         </Tabs>
     );
