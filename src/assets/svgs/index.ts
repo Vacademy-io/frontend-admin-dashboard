@@ -69,3 +69,6 @@ export { AIUploadPdfImg };
 
 import AIExtractImg from "./AIExtractImg.svg";
 export { AIExtractImg };
+
+import AISorterImg from "./AISorterImg.svg";
+export { AISorterImg };

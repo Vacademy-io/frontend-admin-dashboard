@@ -53,14 +53,14 @@ const SortAndSplitTopicQuestions = () => {
     });
 
     const handleUploadClick = () => {
-        setKey("sort-split-pdf");
+        setKey("sortSplitPdf");
         fileInputRef.current?.click();
     };
 
     const [fileUploading, setFileUploading] = useState(false);
 
     useEffect(() => {
-        if (key === "sort-split-pdf") {
+        if (key === "sortSplitPdf") {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -102,7 +102,7 @@ const SortAndSplitTopicQuestions = () => {
     const generateAssessmentMutation = useMutation({
         mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
             setLoader(true);
-            setKey("sort-split-pdf");
+            setKey("sortSplitPdf");
             return handleSortSplitPDF(pdfId, userPrompt);
         },
         onSuccess: (response) => {
@@ -176,7 +176,7 @@ const SortAndSplitTopicQuestions = () => {
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("sort-split-pdf");
+            setKey("sortSplitPdf");
             console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
@@ -224,7 +224,7 @@ const SortAndSplitTopicQuestions = () => {
                 cardTitle="Sort and split topic questions from PDF"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="sort-split-pdf"
+                keyProp="sortSplitPdf"
             />
             {assessmentData.questions.length > 0 && (
                 <SortAndSplitTopicQuestionsPreview

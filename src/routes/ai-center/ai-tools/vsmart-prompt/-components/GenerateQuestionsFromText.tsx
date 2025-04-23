@@ -1,6 +1,5 @@
 import { MyButton } from "@/components/design-system/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UploadSimple } from "phosphor-react";
+import { StarFour, UploadSimple } from "phosphor-react";
 import { QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
 import { useRef, useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -14,6 +13,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import GenerateCompleteAssessment from "../../../-components/GenerateCompleteAssessment";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
+import { GetImagesForAITools } from "@/routes/ai-center/-helpers/GetImagesForAITools";
+import { AIToolPageData } from "@/routes/ai-center/-constants/AIToolPageData";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
     text: z.string().min(1),
@@ -252,40 +254,68 @@ export const GenerateQuestionsFromText = () => {
         formSubmitRef.current = submitFn;
     };
 
+    const toolData = AIToolPageData["text"];
     return (
-        <div>
-            <Card className="w-full cursor-pointer bg-primary-50">
-                <CardHeader>
-                    <CardTitle>Generate Questions From Text</CardTitle>
-                    <CardDescription>Add text content</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {loader && keyContext == "text" ? (
-                        <MyButton
-                            type="button"
-                            scale="medium"
-                            buttonType="primary"
-                            layoutVariant="default"
-                            className="w-full text-sm"
-                        >
-                            <DashboardLoader size={20} color="#ffffff" />
-                        </MyButton>
-                    ) : (
-                        <MyButton
-                            type="button"
-                            scale="medium"
-                            buttonType="primary"
-                            layoutVariant="default"
-                            className="w-full text-sm"
-                            onClick={handleUploadClick}
-                            disable={loader && keyContext != "text" && keyContext != ""}
-                        >
-                            <UploadSimple size={32} />
-                            Upload
-                        </MyButton>
-                    )}
-                </CardContent>
-            </Card>
+        <>
+            {toolData && (
+                <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
+                    <div className="flex items-center gap-2 text-h2 font-semibold">
+                        <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
+                        {toolData.heading}
+                    </div>
+                    {GetImagesForAITools(toolData.key)}
+                    <div className="flex flex-col gap-1">
+                        <p className="text-h3 font-semibold">How to use {toolData.heading}</p>
+                        <p className="text-subtitle">{toolData.instructionsHeading}</p>
+                    </div>
+                    <Separator />
+                    <div className="flex flex-col gap-6">
+                        {toolData.instructions.map((steps, index) => (
+                            <div key={index}>
+                                <div className="flex gap-2 text-title font-semibold">
+                                    <p className="text-primary-500">Step {index + 1}</p>
+                                    <p>{steps.stepHeading}</p>
+                                </div>
+                                <p>{steps.stepSubHeading}</p>
+                                <ul className="flex flex-col text-body">
+                                    {steps.steps.map((step, index) => (
+                                        <li key={index}>
+                                            <p>{step}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p>{steps.stepFooter}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div>
+                        {loader && keyContext == "text" ? (
+                            <MyButton
+                                type="button"
+                                scale="medium"
+                                buttonType="primary"
+                                layoutVariant="default"
+                                className="w-full text-sm"
+                            >
+                                <DashboardLoader size={20} color="#ffffff" />
+                            </MyButton>
+                        ) : (
+                            <MyButton
+                                type="button"
+                                scale="medium"
+                                buttonType="primary"
+                                layoutVariant="default"
+                                className="text-sm"
+                                onClick={handleUploadClick}
+                                disable={loader && keyContext != "text" && keyContext != ""}
+                            >
+                                <UploadSimple size={32} />
+                                Upload
+                            </MyButton>
+                        )}
+                    </div>
+                </div>
+            )}
             <QuestionsFromTextDialog
                 open={open}
                 onOpenChange={handleOpenChange}
@@ -314,6 +344,6 @@ export const GenerateQuestionsFromText = () => {
                     keyProp="text"
                 />
             )}
-        </div>
+        </>
     );
 };

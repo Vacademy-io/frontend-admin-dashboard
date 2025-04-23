@@ -4,6 +4,7 @@ import {
     AIExtractPdfImg,
     AIGivePromptImg,
     AISortAndSplitImg,
+    AISorterImg,
     AIUploadAudioImg,
     AIUploadPdfImg,
 } from "@/assets/svgs";
@@ -22,10 +23,10 @@ export const GetImagesForAITools = (key: string) => {
             return <AIExtractPdfImg />;
         case "image":
             return <AIExtractImg />;
-        case "sort-split-pdf":
+        case "sortSplitPdf":
             return <AISortAndSplitImg />;
-        case "sort-topics-pdf":
-            return <AISortAndSplitImg />;
+        case "sortTopicsPdf":
+            return <AISorterImg />;
         default:
             <></>;
     }

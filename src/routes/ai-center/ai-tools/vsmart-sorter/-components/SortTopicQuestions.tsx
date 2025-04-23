@@ -4,17 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import {
     handleSortQuestionsPDF,
     handleStartProcessUploadedFile,
-} from "../../-services/ai-center-service";
+} from "../../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
+import { generateCompleteAssessmentFormSchema } from "../../../-utils/generate-complete-assessment-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
-import { GenerateCard } from "../GenerateCard";
+import { transformQuestionsToGenerateAssessmentAI } from "../../../-utils/helper";
+import { GenerateCard } from "../../../-components/GenerateCard";
 import SortTopicQuestionsPreview from "./SortTopicQuestionsPreview";
-import { useAICenter } from "../../-contexts/useAICenterContext";
+import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 const SortTopicQuestions = () => {
     const instituteId = getInstituteId();
@@ -55,14 +55,14 @@ const SortTopicQuestions = () => {
     });
 
     const handleUploadClick = () => {
-        setKey("sort-topics-pdf");
+        setKey("sortTopicsPdf");
         fileInputRef.current?.click();
     };
 
     const [fileUploading, setFileUploading] = useState(false);
 
     useEffect(() => {
-        if (key === "sort-topics-pdf") {
+        if (key === "sortTopicsPdf") {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -104,7 +104,7 @@ const SortTopicQuestions = () => {
     const generateAssessmentMutation = useMutation({
         mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
             setLoader(true);
-            setKey("sort-topics-pdf");
+            setKey("sortTopicsPdf");
             return handleSortQuestionsPDF(pdfId, userPrompt);
         },
         onSuccess: (response) => {
@@ -178,7 +178,7 @@ const SortTopicQuestions = () => {
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("sort-topics-pdf");
+            setKey("sortTopicsPdf");
             console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
@@ -226,7 +226,7 @@ const SortTopicQuestions = () => {
                 cardTitle="Sort topics of each question from PDF"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="sort-topics-pdf"
+                keyProp="sortTopicsPdf"
             />
             {assessmentData.questions.length > 0 && (
                 <SortTopicQuestionsPreview
