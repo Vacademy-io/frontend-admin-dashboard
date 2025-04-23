@@ -156,23 +156,23 @@ export function transformQuestionPaperData(data: MyQuestionPaperFormInterface) {
 
             if (question.questionType === QuestionType.MCQS) {
                 correctOptionIds = question.singleChoiceOptions
-                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
                     .filter((idx) => idx !== null); // Remove null values
             } else if (question.questionType === QuestionType.MCQM) {
                 correctOptionIds = question.multipleChoiceOptions
-                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
                     .filter((idx) => idx !== null); // Remove null values
             } else if (question.questionType === QuestionType.CMCQS) {
                 correctOptionIds = question.csingleChoiceOptions
-                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
                     .filter((idx) => idx !== null); // Remove null values
             } else if (question.questionType === QuestionType.CMCQM) {
                 correctOptionIds = question.cmultipleChoiceOptions
-                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
                     .filter((idx) => idx !== null); // Remove null values
             } else if (question.questionType === QuestionType.TRUE_FALSE) {
                 correctOptionIds = question.trueFalseOptions
-                    .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+                    .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
                     .filter((idx) => idx !== null); // Remove null values
             }
 
@@ -296,7 +296,7 @@ export function convertQuestionsDataToResponse(questions: MyQuestion[], key: str
                 ? question.singleChoiceOptions
                 : question.multipleChoiceOptions
         )
-            .map((opt, idx) => (opt.isSelected ? idx.toString() : null))
+            .map((opt, idx) => (opt.isSelected ? (opt.id ? opt.id : idx.toString()) : null))
             .filter((idx) => idx !== null);
 
         const auto_evaluation_json = JSON.stringify({
