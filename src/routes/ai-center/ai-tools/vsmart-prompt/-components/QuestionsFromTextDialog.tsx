@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useRef } from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import { QuestionsFromTextData } from "./GenerateQuestionsFromText";
+import SelectField from "@/components/design-system/select-field";
+import { languageSupport } from "@/constants/dummy-data";
 
 export const QuestionsFromTextDialog = ({
     open,
@@ -90,10 +92,10 @@ export const QuestionsFromTextDialog = ({
                                 <FormControl>
                                     <div className="flex flex-col gap-2">
                                         <FormLabel>
-                                            Text <span className="text-red-500">*</span>
+                                            Prompt <span className="text-red-500">*</span>
                                         </FormLabel>
                                         <Textarea
-                                            placeholder="Enter text"
+                                            placeholder="For example, Generate a set of questions covering the key principles of photosynthesis, including the process, factors affecting it, and its importance in the ecosystem. Focus on conceptual understanding and application"
                                             className="h-[100px] w-full"
                                             value={field.value}
                                             onChange={(e) => field.onChange(e.target.value)}
@@ -122,7 +124,7 @@ export const QuestionsFromTextDialog = ({
                                         label="Number of Questions"
                                         required={true}
                                         inputType="number"
-                                        inputPlaceholder="Enter number of questions"
+                                        inputPlaceholder="For example, 10"
                                         className="w-full"
                                     />
                                 </FormControl>
@@ -138,10 +140,10 @@ export const QuestionsFromTextDialog = ({
                                     <MyInput
                                         input={field.value?.toString() || ""}
                                         onChangeFunction={(e) => field.onChange(e.target.value)}
-                                        label="Class Level"
+                                        label="Level"
                                         required={true}
                                         inputType="text"
-                                        inputPlaceholder="Enter class level"
+                                        inputPlaceholder="For example, 8th standard"
                                         className="w-full"
                                     />
                                 </FormControl>
@@ -160,7 +162,7 @@ export const QuestionsFromTextDialog = ({
                                         label="Topics"
                                         required={true}
                                         inputType="text"
-                                        inputPlaceholder="Enter topics"
+                                        inputPlaceholder="Enter the topic you want to generate the question for"
                                         className="w-full"
                                     />
                                 </FormControl>
@@ -179,31 +181,25 @@ export const QuestionsFromTextDialog = ({
                                         label="Question Type"
                                         required={true}
                                         inputType="text"
-                                        inputPlaceholder="Enter question type"
+                                        inputPlaceholder="Eg. Numerical, MCQS, True/False etc"
                                         className="w-full"
                                     />
                                 </FormControl>
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={form.control}
+                    <SelectField
+                        label="Question Language"
+                        labelStyle="font-thin"
                         name="question_language"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyInput
-                                        input={field.value?.toString() || ""}
-                                        onChangeFunction={(e) => field.onChange(e.target.value)}
-                                        label="Question Language"
-                                        required={true}
-                                        inputType="text"
-                                        inputPlaceholder="Enter question language"
-                                        className="w-full"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
+                        options={languageSupport.map((option, index) => ({
+                            value: option,
+                            label: option,
+                            _id: index,
+                        }))}
+                        control={form.control}
+                        required
+                        className="w-56 font-thin"
                     />
                 </form>
             </FormProvider>
