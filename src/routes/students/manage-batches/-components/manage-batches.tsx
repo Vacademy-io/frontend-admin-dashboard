@@ -83,12 +83,6 @@ export const ManageBatches = () => {
             <div className="flex items-center justify-between">
                 <p className="text-h3 font-semibold">Student Batches</p>
                 <div className="flex items-center gap-6">
-                    {/* <SessionDropdown
-                        currentSession={currentSession ?? undefined}
-                        onSessionChange={handleSessionChange}
-                        className="text-title font-semibold"
-                        sessionList={sessionList}
-                    /> */}
                     <MyDropdown
                         currentValue={currentSession}
                         dropdownList={sessionList}
