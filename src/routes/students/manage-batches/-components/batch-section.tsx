@@ -9,6 +9,7 @@ import { Plus, TrashSimple } from "phosphor-react";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
+import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
 // import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
 // import { toast } from "sonner";
 // import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
@@ -77,15 +78,19 @@ const BatchCard = ({ batch }: batchCardProps) => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <MyButton
-                        buttonType="text"
-                        layoutVariant="default"
-                        scale="medium"
-                        className="text-primary-500"
-                    >
-                        {" "}
-                        <Plus /> Enroll Student
-                    </MyButton>
+                    <EnrollManuallyButton
+                        triggerButton={
+                            <MyButton
+                                buttonType="text"
+                                layoutVariant="default"
+                                scale="medium"
+                                className="text-primary-500"
+                            >
+                                {" "}
+                                <Plus /> Enroll Student
+                            </MyButton>
+                        }
+                    />
                     <MyButton
                         buttonType="secondary"
                         layoutVariant="default"
