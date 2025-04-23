@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LayoutContainer } from "../-components/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { Examination } from "@/svgs";
 import { useNavigate } from "@tanstack/react-router";
@@ -42,22 +41,25 @@ function RouteComponent() {
     }, []);
 
     return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <MyButton
-                    scale="large"
-                    buttonType="primary"
-                    layoutVariant="default"
-                    className="ml-auto"
-                    onClick={() => navigate({ to: "/evaluator-ai/assessment/create-assessment" })}
-                >
-                    <CalendarBlank size={32} />
-                    Create Assessment
-                </MyButton>
-            </DialogTrigger>
+        <main className="flex min-h-screen scroll-mt-10 flex-col">
             <div className="mt-4">
                 {assessments.length > 0 ? (
-                    <div className="space-y-5">
+                    <div className="flex flex-col space-y-5">
+                        <div className="flex w-full items-center justify-between">
+                            <h1 className="text-xl font-semibold">Assessment List</h1>
+                            <MyButton
+                                scale="large"
+                                buttonType="primary"
+                                layoutVariant="default"
+                                className="ml-auto"
+                                onClick={() =>
+                                    navigate({ to: "/evaluator-ai/assessment/create-assessment" })
+                                }
+                            >
+                                <CalendarBlank size={32} />
+                                Create Assessment
+                            </MyButton>
+                        </div>
                         {assessments.map((assessment) => (
                             <div
                                 key={assessment.assessmentId}
@@ -92,28 +94,23 @@ function RouteComponent() {
                     </div>
                 ) : (
                     <div className="py-10 text-center text-gray-500">
-                        <Examination className="mx-auto mb-4 size-12 text-gray-400" />
+                        <Examination className="mx-auto mb-4 size-40 text-gray-400" />
                         <p className="mb-2">No assessments available</p>
                         <MyButton
+                            scale="large"
+                            buttonType="primary"
+                            layoutVariant="default"
+                            className="ml-auto"
                             onClick={() =>
                                 navigate({ to: "/evaluator-ai/assessment/create-assessment" })
                             }
                         >
-                            Create New Assessment
+                            <CalendarBlank size={32} />
+                            Create Assessment
                         </MyButton>
                     </div>
                 )}
             </div>
-            <DialogContent className="mx-auto">
-                <div className="mx-auto flex w-4/5 flex-col items-center rounded-md bg-gray-100 p-2 text-center">
-                    <Examination />
-                    <h2 className="text-lg font-semibold">Create Assessment</h2>
-                    <p>
-                        A Fixed assessment that goes live for specific schedule, simulating real
-                        exam conditions.
-                    </p>
-                </div>
-            </DialogContent>
-        </Dialog>
+        </main>
     );
 }

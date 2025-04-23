@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LayoutContainer } from "../-components/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
-import { StudentEnrollmentDialog } from "./-components/add-student-dialog";
+import { StudentEnrollment } from "./-components/add-student";
 
 export const Route = createFileRoute("/evaluator-ai/students/")({
     component: () => (
@@ -19,7 +19,7 @@ function RouteComponent() {
     }, []);
     return (
         <main className="flex min-h-screen scroll-mt-10 flex-col">
-            <StudentEnrollmentDialog />
+            <StudentEnrollment />
         </main>
     );
 }

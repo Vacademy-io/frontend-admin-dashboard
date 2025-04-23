@@ -18,6 +18,8 @@ import { type StudentData } from "./select-students";
 import { EVALUATION_TOOL_EVALUATE_ASSESSMENT, EVALUATION_TOOL_STATUS } from "@/constants/urls";
 import { parseEvaluationResults, transformEvaluationData } from "../-utils/utils";
 import axios from "axios";
+import { MyButton } from "@/components/design-system/button";
+import { FileMagnifyingGlass } from "@phosphor-icons/react";
 
 const evaluatedStudentData = JSON.parse(localStorage.getItem("evaluatedStudentData") || "[]");
 const studentData = JSON.parse(localStorage.getItem("students") || "[]");
@@ -165,14 +167,19 @@ export const EvaluatedStudents = () => {
         <main className="flex min-h-screen flex-col items-center">
             <div className="flex w-full justify-between gap-4">
                 <h1 className="mb-8 items-center text-xl font-bold">Evaluated Student List</h1>
-                <Button
-                    variant={"destructive"}
+
+                <MyButton
+                    scale="large"
+                    buttonType="primary"
+                    layoutVariant="default"
+                    className="ml-auto"
                     onClick={() => {
                         setIsDialogOpen(true);
                     }}
                 >
-                    Evaluate Student
-                </Button>
+                    <FileMagnifyingGlass size={32} />
+                    Evaluate Students
+                </MyButton>
             </div>
             {!isLoading && evaluatedData.length > 0 && (
                 <StudentEvaluationTable data={evaluatedData} />
@@ -195,14 +202,18 @@ export const EvaluatedStudents = () => {
                         </CardDescription>
                     </CardContent>
                     <CardFooter className="flex justify-center pb-6">
-                        <Button
-                            variant={"destructive"}
+                        <MyButton
+                            scale="large"
+                            buttonType="primary"
+                            layoutVariant="default"
+                            className="ml-auto"
                             onClick={() => {
                                 setIsDialogOpen(true);
                             }}
                         >
-                            Evaluate Student
-                        </Button>
+                            <FileMagnifyingGlass size={32} />
+                            Evaluate Students
+                        </MyButton>
                     </CardFooter>
                 </Card>
             )}
