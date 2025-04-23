@@ -19,6 +19,7 @@ import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 const GenerateAiQuestionPaperComponent = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -322,6 +323,8 @@ const GenerateAiQuestionPaperComponent = () => {
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="question"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment

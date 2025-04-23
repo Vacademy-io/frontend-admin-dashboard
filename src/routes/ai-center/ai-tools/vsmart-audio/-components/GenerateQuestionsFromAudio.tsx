@@ -17,6 +17,7 @@ import { transformQuestionsToGenerateAssessmentAI } from "../../../-utils/helper
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 export const GenerateQuestionsFromAudio = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const { setLoader, key, setKey } = useAICenter();
@@ -249,6 +250,8 @@ export const GenerateQuestionsFromAudio = () => {
                 cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
                 inputFormat=".mp3,.wav,.flac,.aac,.m4a"
                 keyProp="audio"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment

@@ -14,6 +14,7 @@ interface QuestionWithAnswer {
 }
 
 const PlayWithPDF = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -89,6 +90,8 @@ const PlayWithPDF = () => {
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="chat"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {uploadedFilePDFId.length > 0 && (
                 <Dialog open={open} onOpenChange={setOpen}>

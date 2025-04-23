@@ -6,6 +6,7 @@ import { useAICenter } from "../-contexts/useAICenterContext";
 import { AIToolPageData } from "../-constants/AIToolPageData";
 import { GetImagesForAITools } from "../-helpers/GetImagesForAITools";
 import { Separator } from "@/components/ui/separator";
+import { MyInput } from "@/components/design-system/input";
 interface GenerateCardProps {
     handleUploadClick: () => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
@@ -14,6 +15,8 @@ interface GenerateCardProps {
     cardDescription: string;
     inputFormat: string;
     keyProp: string | null;
+    taskName: string;
+    setTaskName: React.Dispatch<React.SetStateAction<string>>;
 }
 export const GenerateCard = ({
     handleUploadClick,
@@ -21,6 +24,8 @@ export const GenerateCard = ({
     handleFileChange,
     inputFormat,
     keyProp,
+    taskName,
+    setTaskName,
 }: GenerateCardProps) => {
     const { key: keyContext, loader } = useAICenter();
     const toolData = keyProp ? AIToolPageData[keyProp] : null;
@@ -32,7 +37,53 @@ export const GenerateCard = ({
                         <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
                         {toolData.heading}
                     </div>
-                    {GetImagesForAITools(toolData.key)}
+                    <div className="flex items-center justify-between">
+                        {GetImagesForAITools(toolData.key)}
+                        <div className="flex flex-col gap-4">
+                            <MyInput
+                                inputType="text"
+                                inputPlaceholder="Enter Your Task Name"
+                                input={taskName}
+                                onChangeFunction={(e) => setTaskName(e.target.value)}
+                                required={true}
+                                label="Task Name"
+                            />
+                            {loader && keyContext == keyProp && keyContext != null ? (
+                                <MyButton
+                                    type="button"
+                                    scale="medium"
+                                    buttonType="primary"
+                                    layoutVariant="default"
+                                    className="w-full text-sm"
+                                >
+                                    <DashboardLoader size={20} color="#ffffff" />
+                                </MyButton>
+                            ) : (
+                                <MyButton
+                                    type="button"
+                                    scale="medium"
+                                    buttonType="primary"
+                                    layoutVariant="default"
+                                    className="text-sm"
+                                    onClick={handleUploadClick}
+                                    disable={
+                                        (keyContext !== keyProp && loader && keyContext != null) ||
+                                        !taskName
+                                    }
+                                >
+                                    <UploadSimple size={32} />
+                                    Upload
+                                </MyButton>
+                            )}
+                            <Input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept={inputFormat}
+                            />
+                        </div>
+                    </div>
                     <div className="flex flex-col gap-1">
                         <p className="text-h3 font-semibold">How to use {toolData.heading}</p>
                         <p className="text-subtitle">{toolData.instructionsHeading}</p>
@@ -56,39 +107,6 @@ export const GenerateCard = ({
                                 <p>{steps.stepFooter}</p>
                             </div>
                         ))}
-                    </div>
-                    <div>
-                        {loader && keyContext == keyProp && keyContext != null ? (
-                            <MyButton
-                                type="button"
-                                scale="medium"
-                                buttonType="primary"
-                                layoutVariant="default"
-                                className="w-full text-sm"
-                            >
-                                <DashboardLoader size={20} color="#ffffff" />
-                            </MyButton>
-                        ) : (
-                            <MyButton
-                                type="button"
-                                scale="medium"
-                                buttonType="primary"
-                                layoutVariant="default"
-                                className="text-sm"
-                                onClick={handleUploadClick}
-                                disable={keyContext !== keyProp && loader && keyContext != null}
-                            >
-                                <UploadSimple size={32} />
-                                Upload
-                            </MyButton>
-                        )}
-                        <Input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            className="hidden"
-                            accept={inputFormat}
-                        />
                     </div>
                 </div>
             )}

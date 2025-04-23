@@ -17,6 +17,7 @@ import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import GenerateCompleteAssessment from "@/routes/ai-center/-components/GenerateCompleteAssessment";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 const GenerateAiQuestionFromImageComponent = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -318,6 +319,8 @@ const GenerateAiQuestionFromImageComponent = () => {
                 cardDescription="Upload JPG/JPEG/PNG"
                 inputFormat=".jpg,.jpeg,.png"
                 keyProp="image"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment

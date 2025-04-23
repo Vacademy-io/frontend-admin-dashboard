@@ -17,6 +17,7 @@ import SortTopicQuestionsPreview from "./SortTopicQuestionsPreview";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 const SortTopicQuestions = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -227,6 +228,8 @@ const SortTopicQuestions = () => {
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="sortTopicsPdf"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <SortTopicQuestionsPreview

@@ -21,6 +21,7 @@ import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 
 const GenerateAIAssessmentComponent = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
@@ -339,6 +340,8 @@ const GenerateAIAssessmentComponent = () => {
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="assessment"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             <GenerateAssessmentDialog
                 open={openAssessmentDialog}

@@ -16,6 +16,7 @@ import { GenerateCard } from "../../../-components/GenerateCard";
 import SortAndSplitTopicQuestionsPreview from "./SortAndSplitTopicQuestionsPreview";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 const SortAndSplitTopicQuestions = () => {
+    const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -225,6 +226,8 @@ const SortAndSplitTopicQuestions = () => {
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="sortSplitPdf"
+                taskName={taskName}
+                setTaskName={setTaskName}
             />
             {assessmentData.questions.length > 0 && (
                 <SortAndSplitTopicQuestionsPreview
