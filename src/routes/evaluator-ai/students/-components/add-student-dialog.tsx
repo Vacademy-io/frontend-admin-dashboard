@@ -37,6 +37,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSearch } from "@tanstack/react-router";
 
 interface StudentData {
     name: string;
@@ -46,7 +47,8 @@ interface StudentData {
 }
 
 export function StudentEnrollmentDialog() {
-    const [open, setOpen] = useState(false);
+    const { q } = useSearch({ from: "/evaluator-ai/students/" }) as { q: string };
+    const [open, setOpen] = useState(q ? true : false);
     const [name, setName] = useState("");
     const [enrollId, setEnrollId] = useState("");
     const [pdfId, setPdfId] = useState("");
@@ -361,7 +363,7 @@ export function StudentEnrollmentDialog() {
                                 </TableHead>
                                 <TableHead className="sticky left-12 z-10 bg-primary-50">
                                     Student Name
-                            </TableHead>
+                                </TableHead>
                                 <TableHead>Enrollment ID</TableHead>
                                 <TableHead>PDF ID</TableHead>
                                 <TableHead>File ID</TableHead>

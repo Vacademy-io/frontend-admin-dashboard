@@ -17,9 +17,11 @@ import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
 import { Question } from "phosphor-react";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
+import { useNavigate } from "@tanstack/react-router";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
+    const navigate = useNavigate();
 
     return (
         <Sidebar collapsible="icon" className="z-20">
@@ -42,6 +44,11 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
                         <SidebarGroup
                             className={`text-[18px] font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}
+                            onClick={() => {
+                                navigate({
+                                    to: "/evaluator-ai",
+                                });
+                            }}
                         >
                             Vacademy
                             <span className="text-xs">Evaluation AI</span>

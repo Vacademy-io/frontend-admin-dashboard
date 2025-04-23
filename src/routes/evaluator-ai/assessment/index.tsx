@@ -7,6 +7,7 @@ import { MyButton } from "@/components/design-system/button";
 import { Examination } from "@/svgs";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { CalendarBlank } from "phosphor-react";
 
 interface assessment {
     assessmentId: string;
@@ -44,9 +45,13 @@ function RouteComponent() {
         <Dialog>
             <DialogTrigger asChild>
                 <MyButton
-                    className="ml-auto w-1/3"
+                    scale="large"
+                    buttonType="primary"
+                    layoutVariant="default"
+                    className="ml-auto"
                     onClick={() => navigate({ to: "/evaluator-ai/assessment/create-assessment" })}
                 >
+                    <CalendarBlank size={32} />
                     Create Assessment
                 </MyButton>
             </DialogTrigger>
