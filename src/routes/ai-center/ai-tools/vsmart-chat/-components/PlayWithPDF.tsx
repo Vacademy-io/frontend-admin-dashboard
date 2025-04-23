@@ -22,7 +22,7 @@ const PlayWithPDF = () => {
     const [fileUploading, setFileUploading] = useState(false);
     const [open, setOpen] = useState(false);
     const handleUploadClick = () => {
-        setKey("playWithPDF");
+        setKey("chat");
         fileInputRef.current?.click();
     };
 
@@ -69,7 +69,7 @@ const PlayWithPDF = () => {
     };
 
     useEffect(() => {
-        if (key === "playWithPDF") {
+        if (key === "chat") {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -88,7 +88,7 @@ const PlayWithPDF = () => {
                 cardTitle="Play With PDF"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="playWithPDF"
+                keyProp="chat"
             />
             {uploadedFilePDFId.length > 0 && (
                 <Dialog open={open} onOpenChange={setOpen}>
