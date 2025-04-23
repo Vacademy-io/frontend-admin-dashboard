@@ -9,6 +9,7 @@ import { CollegeStudentsDashboardLogo } from "@/svgs";
 import { Helmet } from "react-helmet";
 import { LayoutContainer } from "./-components/layout-container/layout-container";
 import useLocalStorage from "./-hooks/useLocalStorage";
+// import StartTourDialog from "./-components/start-tour-dialog";
 
 export const Route = createFileRoute("/evaluator-ai/")({
     component: () => (
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/evaluator-ai/")({
 export function EvaluationDashboard() {
     const [assessments] = useLocalStorage("assessments", []);
     const [students] = useLocalStorage("students", []);
+
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
@@ -172,6 +174,11 @@ export function EvaluationDashboard() {
                     </CardHeader>
                 </Card>
             </div>
+            {/* <StartTourDialog
+                onStartTour={() => {
+                    console.log("start");
+                }}
+            /> */}
         </>
     );
 }
