@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AICenterProvider } from "@/routes/ai-center/-contexts/useAICenterContext";
+import PlayWithPDF from "./-components/PlayWithPDF";
 import { CaretLeft } from "phosphor-react";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
@@ -29,11 +30,10 @@ function RouteComponent() {
 
         setNavHeading(heading);
     }, []);
-    ``;
 
     return (
         <AICenterProvider>
-            <div>Hello /ai-center/ai-tools/vsmart-chat/!</div>
+            <PlayWithPDF />
         </AICenterProvider>
     );
 }
