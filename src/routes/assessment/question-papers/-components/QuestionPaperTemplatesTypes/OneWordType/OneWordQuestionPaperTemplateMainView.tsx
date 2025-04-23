@@ -5,7 +5,6 @@ import "react-quill/dist/quill.snow.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
@@ -69,38 +68,6 @@ export const OneWordQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
-                                control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>

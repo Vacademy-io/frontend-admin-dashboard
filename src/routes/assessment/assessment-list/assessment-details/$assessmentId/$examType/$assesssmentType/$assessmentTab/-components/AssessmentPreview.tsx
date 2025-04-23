@@ -215,6 +215,10 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
             queryClient.invalidateQueries({ queryKey: ["GET_ASSESSMENT_DETAILS"] });
             queryClient.invalidateQueries({ queryKey: ["GET_QUESTIONS_DATA_FOR_SECTIONS"] });
             handleCloseDialog();
+            toast.success("Question paper for this assessment has been updated successfully!", {
+                className: "success-toast",
+                duration: 2000,
+            });
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
@@ -504,9 +508,9 @@ const AssessmentPreview = ({ handleCloseDialog }: { handleCloseDialog: () => voi
                                                             >
                                                                 <div
                                                                     key={index}
-                                                                    onClick={() =>
-                                                                        handlePageClick(index)
-                                                                    }
+                                                                    // onClick={() =>
+                                                                    //     handlePageClick(index)
+                                                                    // }
                                                                     className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                         currentQuestionIndex ===
                                                                         index

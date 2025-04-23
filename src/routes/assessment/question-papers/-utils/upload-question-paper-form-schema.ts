@@ -76,6 +76,33 @@ export const uploadQuestionPaperFormSchema = z.object({
                         }),
                     )
                     .optional(),
+                csingleChoiceOptions: z
+                    .array(
+                        z.object({
+                            id: z.string().optional(),
+                            name: z.string().optional(),
+                            isSelected: z.boolean().optional(),
+                        }),
+                    )
+                    .optional(),
+                cmultipleChoiceOptions: z
+                    .array(
+                        z.object({
+                            id: z.string().optional(),
+                            name: z.string().optional(),
+                            isSelected: z.boolean().optional(),
+                        }),
+                    )
+                    .optional(),
+                trueFalseOptions: z
+                    .array(
+                        z.object({
+                            id: z.string().optional(),
+                            name: z.string().optional(),
+                            isSelected: z.boolean().optional(),
+                        }),
+                    )
+                    .optional(),
                 parentRichTextContent: z.union([z.string(), z.null()]).optional(),
                 decimals: z.number().optional(),
                 numericType: z.string().optional(),
@@ -166,6 +193,129 @@ export const uploadQuestionPaperFormSchema = z.object({
                                 code: z.ZodIssueCode.custom,
                                 message: `Option ${index + 1} is required`,
                                 path: ["multipleChoiceOptions", index, "name"],
+                            });
+                        }
+                    });
+                } else if (question.questionType === "CMCQS") {
+                    // Validate singleChoiceOptions when type is MCQS
+                    if (
+                        !question.csingleChoiceOptions ||
+                        question.csingleChoiceOptions.length === 0
+                    ) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "CMCQS questions must have singleChoiceOptions",
+                            path: ["csingleChoiceOptions"],
+                        });
+                        return;
+                    }
+
+                    if (question.csingleChoiceOptions.length !== 4) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "MCQS must have exactly 4 options",
+                            path: ["csingleChoiceOptions"],
+                        });
+                    }
+
+                    const selectedCount = question.csingleChoiceOptions.filter(
+                        (opt) => opt.isSelected,
+                    ).length;
+                    if (selectedCount !== 1) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "CMCQS must have exactly one option selected",
+                            path: ["csingleChoiceOptions"],
+                        });
+                    }
+
+                    question.csingleChoiceOptions.forEach((opt, index) => {
+                        if (!opt?.name?.trim()) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: `Option ${index + 1} is required`,
+                                path: ["csingleChoiceOptions", index, "name"],
+                            });
+                        }
+                    });
+                } else if (question.questionType === "CMCQM") {
+                    // Validate multipleChoiceOptions when type is MCQM
+                    if (
+                        !question.cmultipleChoiceOptions ||
+                        question.cmultipleChoiceOptions.length === 0
+                    ) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "CMCQM questions must have multipleChoiceOptions",
+                            path: ["cmultipleChoiceOptions"],
+                        });
+                        return;
+                    }
+
+                    if (question.cmultipleChoiceOptions.length !== 4) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "CMCQM must have exactly 4 options",
+                            path: ["cmultipleChoiceOptions"],
+                        });
+                    }
+
+                    const selectedCount = question.cmultipleChoiceOptions.filter(
+                        (opt) => opt.isSelected,
+                    ).length;
+                    if (selectedCount < 1) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "CMCQM must have at least one option selected",
+                            path: ["cmultipleChoiceOptions"],
+                        });
+                    }
+
+                    question.cmultipleChoiceOptions.forEach((opt, index) => {
+                        if (!opt.name?.trim()) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: `Option ${index + 1} is required`,
+                                path: ["cmultipleChoiceOptions", index, "name"],
+                            });
+                        }
+                    });
+                } else if (question.questionType === "TRUE_FALSE") {
+                    // Validate singleChoiceOptions when type is MCQS
+                    if (!question.trueFalseOptions || question.trueFalseOptions.length === 0) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "TRUE_FALSE questions must have singleChoiceOptions",
+                            path: ["trueFalseOptions"],
+                        });
+                        return;
+                    }
+
+                    if (question.trueFalseOptions.length !== 2) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "TRUE_FALSE must have exactly 2 options",
+                            path: ["trueFalseOptions"],
+                        });
+                    }
+
+                    const selectedCount = question.trueFalseOptions.filter(
+                        (opt) => opt.isSelected,
+                    ).length;
+                    if (selectedCount !== 1) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "TRUE_FALSE must have exactly one option selected",
+                            path: ["trueFalseOptions"],
+                        });
+                    }
+
+                    question.trueFalseOptions.forEach((opt, index) => {
+                        if (!opt?.name?.trim()) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: `Option ${index + 1} is required`,
+                                path: ["trueFalseOptions", index, "name"],
                             });
                         }
                     });

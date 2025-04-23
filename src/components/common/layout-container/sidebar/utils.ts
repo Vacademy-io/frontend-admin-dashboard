@@ -105,7 +105,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
     {
         icon: HeadCircuit,
         title: "AI Features",
-        id: "dashboard",
+        id: "AI Center",
         to: "/ai-center",
     },
 ];
