@@ -103,7 +103,7 @@ export const AIToolCardData: AIToolCardDataType[] = [
                     "Turn images into questions with ease. Vsmart Vision uses advanced OCR and AI to scan photographs, scanned pages, handwritten notes, or screenshots — and extracts structured questions from them. Just upload your image, and let AI do the rest.",
                     "Ideal for teachers, coaching institutes, and trainers who often receive content in the form of handwritten notes, textbook snapshots, or board images. Whether you're digitizing old test papers or pulling questions from printed material — Vsmart Vision brings analog content into your digital workflow in seconds.",
                 ],
-                route: null,
+                route: "/ai-center/ai-tools/vsmart-vision",
             },
         ],
     },
