@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FormProvider, useFieldArray, UseFormReturn } from "react-hook-form";
-import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
+import { transformQuestionsToGenerateAssessmentAI } from "@/routes/ai-center/-utils/helper";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
 import { getPPTViewTitle } from "@/routes/assessment/question-papers/-utils/helper";
 import { QuestionType } from "@/constants/dummy-data";
@@ -9,32 +9,39 @@ import { PPTComponentFactory } from "@/routes/assessment/question-papers/-compon
 import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
+import { generateCompleteAssessmentFormSchema } from "@/routes/ai-center/-utils/generate-complete-assessment-schema";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import useInstituteLogoStore from "@/components/common/layout-container/sidebar/institutelogo-global-zustand";
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import ExportQuestionPaperAI from "../export-ai-question-paper/ExportQuestionPaperAI";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import ExportQuestionPaperAI from "../../../-components/export-ai-question-paper/ExportQuestionPaperAI";
 
 // Infer the form type from the schema
-type GeneratePageWiseAssessmentQuestionsDialog = z.infer<
-    typeof generateCompleteAssessmentFormSchema
->;
+type GenerateCompleteAssessmentFormType = z.infer<typeof generateCompleteAssessmentFormSchema>;
 
-interface GeneratePageWiseAssessmentProps {
-    form: UseFormReturn<GeneratePageWiseAssessmentQuestionsDialog>;
+interface GenerateCompleteAssessmentProps {
+    form: UseFormReturn<GenerateCompleteAssessmentFormType>;
     openCompleteAssessmentDialog: boolean;
     setOpenCompleteAssessmentDialog: React.Dispatch<React.SetStateAction<boolean>>;
     assessmentData: AIAssessmentResponseInterface | null;
-    handleGenerateQuestionsForAssessment: () => void;
+    handleGenerateQuestionsForAssessment: (pdfId: string, propmtInput: string) => void;
     propmtInput: string;
     setPropmtInput: React.Dispatch<React.SetStateAction<string>>;
     isMoreQuestionsDialog: boolean;
     setIsMoreQuestionsDialog: React.Dispatch<React.SetStateAction<boolean>>;
+    numQuestions?: number | null;
+    setNumQuestions?: React.Dispatch<React.SetStateAction<number | null>>;
+    difficulty?: string | null;
+    setDifficulty?: React.Dispatch<React.SetStateAction<string | null>>;
+    language?: string | null;
+    setLanguage?: React.Dispatch<React.SetStateAction<string | null>>;
+    pdfId?: string;
+    loader?: boolean;
 }
 
-const GeneratePageWiseAssessmentQuestionsDialog = ({
+const SortAndSplitTopicQuestionsPreview = ({
     form,
     openCompleteAssessmentDialog,
     setOpenCompleteAssessmentDialog,
@@ -44,7 +51,15 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
     setPropmtInput,
     isMoreQuestionsDialog,
     setIsMoreQuestionsDialog,
-}: GeneratePageWiseAssessmentProps) => {
+    numQuestions,
+    setNumQuestions,
+    difficulty,
+    setDifficulty,
+    language,
+    setLanguage,
+    pdfId,
+    loader,
+}: GenerateCompleteAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
         assessmentData?.questions,
@@ -75,20 +90,16 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
     }, []);
 
     return (
-        <Dialog open={openCompleteAssessmentDialog} onOpenChange={setOpenCompleteAssessmentDialog}>
-            <DialogTrigger>
-                <MyButton
-                    type="submit"
-                    scale="medium"
-                    buttonType="secondary"
-                    layoutVariant="default"
-                    className="text-sm"
-                    onClick={handleGenerateQuestionsForAssessment}
-                >
-                    Select Questions
-                </MyButton>
-            </DialogTrigger>
-            {assessmentData!.questions.length > 0 && (
+        <>
+            {loader && (
+                <div className="absolute">
+                    <DashboardLoader />{" "}
+                </div>
+            )}
+            <Dialog
+                open={openCompleteAssessmentDialog}
+                onOpenChange={setOpenCompleteAssessmentDialog}
+            >
                 <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
                     <FormProvider {...form}>
                         <form className="flex h-screen flex-col items-start">
@@ -129,13 +140,47 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                                     value={propmtInput}
                                                     onChange={(e) => setPropmtInput(e.target.value)}
                                                 />
+                                                {setNumQuestions && (
+                                                    <Input
+                                                        type=""
+                                                        placeholder="Enter number of questions to generate"
+                                                        value={numQuestions || ""}
+                                                        onChange={(e) =>
+                                                            setNumQuestions(Number(e.target.value))
+                                                        }
+                                                    />
+                                                )}
+                                                {setDifficulty && (
+                                                    <Input
+                                                        placeholder="Enter difficulty level [Easy, Medium, Hard]"
+                                                        value={difficulty || ""}
+                                                        onChange={(e) =>
+                                                            setDifficulty(e.target.value)
+                                                        }
+                                                    />
+                                                )}
+                                                {setLanguage && (
+                                                    <Input
+                                                        placeholder="Enter language [English, Hindi, etc.]"
+                                                        value={language || ""}
+                                                        onChange={(e) =>
+                                                            setLanguage(e.target.value)
+                                                        }
+                                                    />
+                                                )}
+
                                                 <MyButton
                                                     type="button"
                                                     scale="medium"
                                                     buttonType="primary"
                                                     layoutVariant="default"
                                                     className="mr-4 text-sm"
-                                                    onClick={handleGenerateQuestionsForAssessment}
+                                                    onClick={() =>
+                                                        handleGenerateQuestionsForAssessment(
+                                                            pdfId ?? "",
+                                                            propmtInput,
+                                                        )
+                                                    }
                                                 >
                                                     Generate Questions
                                                 </MyButton>
@@ -148,7 +193,12 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                         buttonType="secondary"
                                         layoutVariant="default"
                                         className="mr-4 text-sm"
-                                        onClick={() => setOpenCompleteAssessmentDialog(false)}
+                                        onClick={() => {
+                                            setNumQuestions && setNumQuestions(null);
+                                            setDifficulty && setDifficulty(null);
+                                            setLanguage && setLanguage(null);
+                                            setOpenCompleteAssessmentDialog(false);
+                                        }}
                                     >
                                         Cancel
                                     </MyButton>
@@ -257,9 +307,9 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                         </form>
                     </FormProvider>
                 </DialogContent>
-            )}
-        </Dialog>
+            </Dialog>
+        </>
     );
 };
 
-export default GeneratePageWiseAssessmentQuestionsDialog;
+export default SortAndSplitTopicQuestionsPreview;

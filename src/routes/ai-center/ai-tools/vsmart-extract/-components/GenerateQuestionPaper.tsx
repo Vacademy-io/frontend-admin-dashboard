@@ -6,26 +6,23 @@ import {
     handleGenerateAssessmentQuestions,
     // handleGetQuestionsFromHTMLUrl,
     handleStartProcessUploadedFile,
-} from "../../-services/ai-center-service";
+} from "../../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import GenerateCompleteAssessment from "../GenerateCompleteAssessment";
+import GenerateCompleteAssessment from "../../../-components/GenerateCompleteAssessment";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../../-utils/generate-complete-assessment-schema";
+import { generateCompleteAssessmentFormSchema } from "../../../-utils/generate-complete-assessment-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { transformQuestionsToGenerateAssessmentAI } from "../../-utils/helper";
-import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
-import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
-import { GenerateCard } from "../GenerateCard";
-import { useAICenter } from "../../-contexts/useAICenterContext";
+import { transformQuestionsToGenerateAssessmentAI } from "../../../-utils/helper";
+import { GenerateCard } from "../../../-components/GenerateCard";
+import { useAICenter } from "../../../-contexts/useAICenterContext";
 
-const GenerateAIAssessmentComponent = () => {
+const GenerateAiQuestionPaperComponent = () => {
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: "",
@@ -39,9 +36,8 @@ const GenerateAIAssessmentComponent = () => {
     const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
     const [propmtInput, setPropmtInput] = useState("");
     const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
-    const [htmlData, setHtmlData] = useState(null);
-    const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
-
+    // const [htmlData, setHtmlData] = useState(null);
+    // const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
     const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
         resolver: zodResolver(generateCompleteAssessmentFormSchema),
         mode: "onChange",
@@ -61,19 +57,15 @@ const GenerateAIAssessmentComponent = () => {
         },
     });
 
-    const handleOpenAssessmentDialog = (open: boolean) => {
-        setOpenAssessmentDialog(open);
-    };
-
     const handleUploadClick = () => {
-        setKey("assessment");
+        setKey("question");
         fileInputRef.current?.click();
     };
 
     const [fileUploading, setFileUploading] = useState(false);
 
     useEffect(() => {
-        if (key === "assessment") {
+        if (key === "question") {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
@@ -91,8 +83,9 @@ const GenerateAIAssessmentComponent = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    setOpenAssessmentDialog(true);
+                    console.log("response ", response);
                     setUploadedFilePDFId(response.pdf_id);
+                    handleGenerateQuestionsForAssessment(response.pdf_id);
                 }
             }
             event.target.value = "";
@@ -117,7 +110,7 @@ const GenerateAIAssessmentComponent = () => {
     const generateAssessmentMutation = useMutation({
         mutationFn: ({ pdfId, userPrompt }: { pdfId: string; userPrompt: string }) => {
             setLoader(true);
-            setKey("assessment");
+            setKey("question");
             return handleGenerateAssessmentQuestions(pdfId, userPrompt);
         },
         onSuccess: (response) => {
@@ -191,7 +184,7 @@ const GenerateAIAssessmentComponent = () => {
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("assessment");
+            setKey("question");
             console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
@@ -207,8 +200,9 @@ const GenerateAIAssessmentComponent = () => {
         generateAssessmentMutation.mutate({ pdfId: uploadedFilePDFId, userPrompt: propmtInput });
     };
 
-    const handleGenerateQuestionsForAssessment = () => {
-        if (!uploadedFilePDFId) return;
+    const handleGenerateQuestionsForAssessment = (fileId?: string) => {
+        console.log("here ", uploadedFilePDFId);
+        if (!fileId && !uploadedFilePDFId) return;
 
         clearPolling();
         pollingCountRef.current = 0;
@@ -246,8 +240,7 @@ const GenerateAIAssessmentComponent = () => {
             // If conversion is complete and we have HTML data
             if (response?.html) {
                 stopConvertPolling();
-                setHtmlData(response?.html);
-                setOpenPageWiseAssessmentDialog(true);
+                // setHtmlData(response?.html);
                 // try {
                 //     const questionsData = await handleGetQuestionsFromHTMLUrl(response.html, "");
                 //     console.log("✅ Questions Data:", questionsData);
@@ -312,39 +305,23 @@ const GenerateAIAssessmentComponent = () => {
         handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId });
     };
 
-    const handleConvertPDFToHTMLFn = () => {
-        if (!uploadedFilePDFId) return;
-        stopConvertPolling();
-        convertPollingCountRef.current = 0;
-        convertPendingRef.current = false;
-
-        // Make initial call
-        pollConvertPDFToHTML();
-    };
-
+    console.log(assessmentData);
     // Cleanup on component unmount
     useEffect(() => {
         return () => {
             stopConvertPolling();
         };
     }, []);
-
     return (
         <div className="flex items-center justify-start gap-8">
             <GenerateCard
                 handleUploadClick={handleUploadClick}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Generate Assessment"
+                cardTitle="Extract Question"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="assessment"
-            />
-            <GenerateAssessmentDialog
-                open={openAssessmentDialog}
-                handleOpen={handleOpenAssessmentDialog}
-                handleGenerateCompleteFile={handleGenerateQuestionsForAssessment}
-                handleGeneratePageWise={handleConvertPDFToHTMLFn}
+                keyProp="question"
             />
             {assessmentData.questions.length > 0 && (
                 <GenerateCompleteAssessment
@@ -357,16 +334,11 @@ const GenerateAIAssessmentComponent = () => {
                     setPropmtInput={setPropmtInput}
                     isMoreQuestionsDialog={isMoreQuestionsDialog}
                     setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
-                    keyProp="assessment"
+                    keyProp="question"
                 />
             )}
-            <GeneratePageWiseAssessment
-                openPageWiseAssessmentDialog={openPageWiseAssessmentDialog}
-                setOpenPageWiseAssessmentDialog={setOpenPageWiseAssessmentDialog}
-                htmlData={htmlData}
-            />
         </div>
     );
 };
 
-export default GenerateAIAssessmentComponent;
+export default GenerateAiQuestionPaperComponent;

@@ -16,8 +16,8 @@ import useInstituteLogoStore from "@/components/common/layout-container/sidebar/
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
-import { QuestionsFromTextDialog } from "./generate-questions-from-text/QuestionsFromTextDialog";
-import { QuestionsFromTextData } from "./generate-questions-from-text/GenerateQuestionsFromText";
+import { QuestionsFromTextDialog } from "../ai-tools/vsmart-prompt/-components/QuestionsFromTextDialog";
+import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
 import { useAICenter } from "../-contexts/useAICenterContext";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 // Infer the form type from the schema
