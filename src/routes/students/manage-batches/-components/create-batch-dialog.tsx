@@ -5,16 +5,35 @@ import { CreateCourseStep } from "./create-course-step";
 import { CreateSessionStep } from "./create-session-step";
 import { CreateLevelStep } from "./create-level-step";
 import { FormProvider, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { useAddCourse } from "@/services/study-library/course-operations/add-course";
+import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
+
+interface FormData {
+    // Course step
+    courseCreationType: "existing" | "new";
+    selectedCourse: { id: string; name: string } | null;
+
+    // Session step
+    sessionCreationType: "existing" | "new";
+    selectedSession: { id: string; name: string } | null;
+    selectedStartDate: string | null;
+
+    // Level step
+    levelCreationType: "existing" | "new";
+    selectedLevel: { id: string; name: string } | null;
+    selectedLevelDuration: number | null;
+}
 
 export const CreateBatchDialog = () => {
     const triggerButton = <MyButton scale="large">Create Batch</MyButton>;
     const [currentStep, setCurrentStep] = useState(0);
     const [openManageBatchDialog, setOpenManageBatchDialog] = useState(false);
-
+    const addCourseMutation = useAddCourse();
     const handleOpenManageBatchDialog = (open: boolean) => setOpenManageBatchDialog(open);
 
     // Set up the form with default values
-    const methods = useForm({
+    const methods = useForm<FormData>({
         defaultValues: {
             // Course step
             courseCreationType: "existing",
@@ -23,10 +42,12 @@ export const CreateBatchDialog = () => {
             // Session step
             sessionCreationType: "existing",
             selectedSession: null,
+            selectedStartDate: null,
 
             // Level step
             levelCreationType: "existing",
             selectedLevel: null,
+            selectedLevelDuration: null,
         },
     });
 
@@ -47,10 +68,83 @@ export const CreateBatchDialog = () => {
 
     const prevStep = () => setCurrentStep(currentStep - 1);
 
+    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+        addCourseMutation.mutate(
+            { requestData: requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Batch created successfully");
+                    handleOpenManageBatchDialog(false);
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to create batch");
+                },
+            },
+        );
+    };
+
     const submit = () => {
         methods.handleSubmit((data) => {
             console.log("Form submitted with data:", data);
             // Handle submission here
+            const levelData =
+                data.levelCreationType === "new"
+                    ? {
+                          id: data.selectedLevel?.id || "",
+                          new_level: true,
+                          level_name: data.selectedLevel?.name || "",
+                          duration_in_days: data.selectedLevelDuration || null,
+                          thumbnail_id: null,
+                          package_id: data.selectedCourse?.id || "",
+                      }
+                    : {
+                          id: data.selectedLevel?.id || "",
+                          new_level: false,
+                          level_name: data.selectedLevel?.name || "",
+                          duration_in_days: data.selectedLevelDuration || null,
+                          thumbnail_id: null,
+                          package_id: data.selectedCourse?.id || "",
+                      };
+
+            const sessionData =
+                data.sessionCreationType === "new"
+                    ? {
+                          id: data.selectedSession?.id || "",
+                          new_session: true,
+                          session_name: data.selectedSession?.name || "",
+                          start_date: data.selectedStartDate || "",
+                          levels: [levelData],
+                          status: "ACTIVE",
+                      }
+                    : {
+                          id: data.selectedSession?.id || "",
+                          new_session: false,
+                          session_name: data.selectedSession?.name || "",
+                          start_date: data.selectedStartDate || "",
+                          levels: [levelData],
+                          status: "ACTIVE",
+                      };
+
+            const courseData: AddCourseData =
+                data.courseCreationType === "new"
+                    ? {
+                          id: data.selectedCourse?.id || "",
+                          course_name: data.selectedCourse?.name || "",
+                          thumbnail_file_id: "",
+                          new_course: true,
+                          contain_levels: true,
+                          sessions: [sessionData],
+                      }
+                    : {
+                          id: data.selectedCourse?.id || "",
+                          course_name: data.selectedCourse?.name || "",
+                          thumbnail_file_id: "",
+                          new_course: false,
+                          contain_levels: true,
+                          sessions: [sessionData],
+                      };
+
+            handleAddCourse({ requestData: courseData });
         })();
     };
 

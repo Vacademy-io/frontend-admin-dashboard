@@ -6,15 +6,18 @@ import { useEffect, useState } from "react";
 import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
 import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import { X } from "phosphor-react";
+import { MyButton } from "@/components/design-system/button";
 
 export const CreateLevelStep = () => {
     const { getLevelsFromPackage, instituteDetails } = useInstituteDetailsStore();
     const [newLevelName, setNewLevelName] = useState("");
     const [newLevelDuration, setNewLevelDuration] = useState<number | null>(null);
+    const [newLevelAdded, setNewLevelAdded] = useState(false);
     const [levelList, setLevelList] =
         useState<Array<{ id: string; name: string }>>(getLevelsFromPackage());
     const form = useFormContext();
-
+    const { watch } = form;
     useEffect(() => {
         const allLevels = getLevelsFromPackage();
         //pass the selected courseId and sessionId
@@ -26,7 +29,18 @@ export const CreateLevelStep = () => {
         setLevelList(requiredLevelList);
     }, [instituteDetails, form.watch("selectedCourse"), form.watch("selectedSession")]);
 
-    const handleAddLevel = () => {};
+    const handleAddLevel = (levelName: string, durationInDays: number | null) => {
+        setNewLevelName(levelName);
+        setNewLevelDuration(durationInDays);
+        setNewLevelAdded(true);
+    };
+
+    useEffect(() => {
+        if (watch("levelCreationType") === "new") {
+            form.setValue("selectedLevel", { id: "", name: newLevelName });
+            form.setValue("selectedLevelDuration", newLevelDuration);
+        }
+    }, [watch("levelCreationType"), newLevelName, newLevelDuration]);
 
     return (
         <div className="flex flex-col gap-6">
@@ -60,40 +74,64 @@ export const CreateLevelStep = () => {
             />
 
             <div className="flex flex-col gap-1">
-                <div>
-                    Level
-                    <span className="text-subtitle text-danger-600">*</span>
-                </div>
-
                 {levelList.length > 0 && form.watch("levelCreationType") === "existing" && (
-                    <FormField
-                        control={form.control}
-                        name="selectedLevel"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyDropdown
-                                        currentValue={field.value}
-                                        dropdownList={levelList}
-                                        handleChange={field.onChange}
-                                        placeholder="Select level"
-                                        required={true}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                    <>
+                        <div>
+                            Level
+                            <span className="text-subtitle text-danger-600">*</span>
+                        </div>
+
+                        <FormField
+                            control={form.control}
+                            name="selectedLevel"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MyDropdown
+                                            currentValue={field.value}
+                                            dropdownList={levelList}
+                                            handleChange={field.onChange}
+                                            placeholder="Select level"
+                                            required={true}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    </>
                 )}
 
-                {form.watch("levelCreationType") === "new" && (
-                    <AddLevelInput
-                        newLevelName={newLevelName}
-                        setNewLevelName={setNewLevelName}
-                        newLevelDuration={newLevelDuration}
-                        setNewLevelDuration={setNewLevelDuration}
-                        handleAddLevel={handleAddLevel}
-                    />
-                )}
+                {form.watch("levelCreationType") === "new" &&
+                    (newLevelName != "" && setNewLevelDuration != null && newLevelAdded ? (
+                        <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-1">
+                                <p className="text-body font-semibold">Level: {newLevelName}</p>
+                                <p className="text-caption text-neutral-500">
+                                    Duration: {newLevelDuration}
+                                </p>
+                            </div>
+                            <MyButton
+                                onClick={() => {
+                                    setNewLevelName("");
+                                    setNewLevelDuration(null);
+                                    setNewLevelAdded(false);
+                                }}
+                                scale="small"
+                                layoutVariant="icon"
+                            >
+                                <X />
+                            </MyButton>
+                        </div>
+                    ) : (
+                        <AddLevelInput
+                            newLevelName={newLevelName}
+                            setNewLevelName={setNewLevelName}
+                            newLevelDuration={newLevelDuration}
+                            setNewLevelDuration={setNewLevelDuration}
+                            handleAddLevel={handleAddLevel}
+                            batchCreation={true}
+                        />
+                    ))}
             </div>
         </div>
     );

@@ -10,14 +10,16 @@ import {
     convertToFormSession,
     Session,
 } from "@/components/common/study-library/add-course/add-course-form";
+import { MyButton } from "@/components/design-system/button";
+import { X } from "phosphor-react";
 
 export const CreateSessionStep = () => {
     const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
     const [newSessionName, setNewSessionName] = useState("");
     const [newSessionStartDate, setNewSessionStartDate] = useState("");
     const form = useFormContext();
+    const { watch } = form;
     const [sessionList, setSessionList] = useState<Session[]>([]);
-
     useEffect(() => {
         setSessionList(getAllSessions().map((session) => convertToFormSession(session)));
     }, [instituteDetails]);
@@ -32,7 +34,16 @@ export const CreateSessionStep = () => {
             levels: [], // Initialize with empty levels array
         };
         setSessionList((prevSessionList) => [...prevSessionList, newSession]);
+        // Set the new session in the form's state
+        form.setValue("selectedSession", { id: newSession.id, name: newSession.session_name });
     };
+
+    useEffect(() => {
+        if (watch("sessionCreationType") === "new") {
+            form.setValue("selectedSession", { id: "", name: newSessionName });
+            form.setValue("selectedStartDate", newSessionStartDate);
+        }
+    }, [watch("sessionCreationType"), newSessionName, newSessionStartDate]);
 
     return (
         <div className="flex flex-col gap-6">
@@ -96,15 +107,35 @@ export const CreateSessionStep = () => {
                     </>
                 )}
 
-                {form.watch("sessionCreationType") === "new" && (
-                    <AddSessionInput
-                        newSessionName={newSessionName}
-                        setNewSessionName={setNewSessionName}
-                        newSessionStartDate={newSessionStartDate}
-                        setNewSessionStartDate={setNewSessionStartDate}
-                        handleAddSession={handleAddSession}
-                    />
-                )}
+                {form.watch("sessionCreationType") === "new" &&
+                    (newSessionName != "" && newSessionStartDate != "" ? (
+                        <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-1">
+                                <p className="text-body font-semibold">Session: {newSessionName}</p>
+                                <p className="text-caption text-neutral-500">
+                                    Start Date: {newSessionStartDate}
+                                </p>
+                            </div>
+                            <MyButton
+                                onClick={() => {
+                                    setNewSessionName("");
+                                    setNewSessionStartDate("");
+                                }}
+                                scale="small"
+                                layoutVariant="icon"
+                            >
+                                <X />
+                            </MyButton>
+                        </div>
+                    ) : (
+                        <AddSessionInput
+                            newSessionName={newSessionName}
+                            setNewSessionName={setNewSessionName}
+                            newSessionStartDate={newSessionStartDate}
+                            setNewSessionStartDate={setNewSessionStartDate}
+                            handleAddSession={handleAddSession}
+                        />
+                    ))}
             </div>
         </div>
     );
