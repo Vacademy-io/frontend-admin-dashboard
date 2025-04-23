@@ -26,7 +26,7 @@ function RouteComponent() {
                     }}
                     className="cursor-pointer"
                 />
-                <div>VSmart Audio</div>
+                <div>VSmart AI Tools</div>
             </div>
         );
 

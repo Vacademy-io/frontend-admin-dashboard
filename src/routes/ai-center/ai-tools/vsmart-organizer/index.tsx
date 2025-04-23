@@ -24,7 +24,7 @@ function RouteComponent() {
                     }}
                     className="cursor-pointer"
                 />
-                <div>VSmart Organizer</div>
+                <div>VSmart AI Tools</div>
             </div>
         );
 

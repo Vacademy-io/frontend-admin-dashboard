@@ -41,6 +41,7 @@ import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-li
 import { Route as AssessmentExportAssessmentIdIndexImport } from "./routes/assessment/export/$assessmentId/index";
 import { Route as AiCenterAiToolsVsmartVisionIndexImport } from "./routes/ai-center/ai-tools/vsmart-vision/index";
 import { Route as AiCenterAiToolsVsmartUploadIndexImport } from "./routes/ai-center/ai-tools/vsmart-upload/index";
+import { Route as AiCenterAiToolsVsmartSorterIndexImport } from "./routes/ai-center/ai-tools/vsmart-sorter/index";
 import { Route as AiCenterAiToolsVsmartPromptIndexImport } from "./routes/ai-center/ai-tools/vsmart-prompt/index";
 import { Route as AiCenterAiToolsVsmartOrganizerIndexImport } from "./routes/ai-center/ai-tools/vsmart-organizer/index";
 import { Route as AiCenterAiToolsVsmartExtractIndexImport } from "./routes/ai-center/ai-tools/vsmart-extract/index";
@@ -236,6 +237,12 @@ const AiCenterAiToolsVsmartVisionIndexRoute = AiCenterAiToolsVsmartVisionIndexIm
 const AiCenterAiToolsVsmartUploadIndexRoute = AiCenterAiToolsVsmartUploadIndexImport.update({
     id: "/ai-center/ai-tools/vsmart-upload/",
     path: "/ai-center/ai-tools/vsmart-upload/",
+    getParentRoute: () => rootRoute,
+} as any);
+
+const AiCenterAiToolsVsmartSorterIndexRoute = AiCenterAiToolsVsmartSorterIndexImport.update({
+    id: "/ai-center/ai-tools/vsmart-sorter/",
+    path: "/ai-center/ai-tools/vsmart-sorter/",
     getParentRoute: () => rootRoute,
 } as any);
 
@@ -564,6 +571,13 @@ declare module "@tanstack/react-router" {
             preLoaderRoute: typeof AiCenterAiToolsVsmartPromptIndexImport;
             parentRoute: typeof rootRoute;
         };
+        "/ai-center/ai-tools/vsmart-sorter/": {
+            id: "/ai-center/ai-tools/vsmart-sorter/";
+            path: "/ai-center/ai-tools/vsmart-sorter";
+            fullPath: "/ai-center/ai-tools/vsmart-sorter";
+            preLoaderRoute: typeof AiCenterAiToolsVsmartSorterIndexImport;
+            parentRoute: typeof rootRoute;
+        };
         "/ai-center/ai-tools/vsmart-upload/": {
             id: "/ai-center/ai-tools/vsmart-upload/";
             path: "/ai-center/ai-tools/vsmart-upload";
@@ -699,6 +713,7 @@ export interface FileRoutesByFullPath {
     "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute;
     "/ai-center/ai-tools/vsmart-organizer": typeof AiCenterAiToolsVsmartOrganizerIndexRoute;
     "/ai-center/ai-tools/vsmart-prompt": typeof AiCenterAiToolsVsmartPromptIndexRoute;
+    "/ai-center/ai-tools/vsmart-sorter": typeof AiCenterAiToolsVsmartSorterIndexRoute;
     "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute;
     "/ai-center/ai-tools/vsmart-vision": typeof AiCenterAiToolsVsmartVisionIndexRoute;
     "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute;
@@ -747,6 +762,7 @@ export interface FileRoutesByTo {
     "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute;
     "/ai-center/ai-tools/vsmart-organizer": typeof AiCenterAiToolsVsmartOrganizerIndexRoute;
     "/ai-center/ai-tools/vsmart-prompt": typeof AiCenterAiToolsVsmartPromptIndexRoute;
+    "/ai-center/ai-tools/vsmart-sorter": typeof AiCenterAiToolsVsmartSorterIndexRoute;
     "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute;
     "/ai-center/ai-tools/vsmart-vision": typeof AiCenterAiToolsVsmartVisionIndexRoute;
     "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute;
@@ -796,6 +812,7 @@ export interface FileRoutesById {
     "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute;
     "/ai-center/ai-tools/vsmart-organizer/": typeof AiCenterAiToolsVsmartOrganizerIndexRoute;
     "/ai-center/ai-tools/vsmart-prompt/": typeof AiCenterAiToolsVsmartPromptIndexRoute;
+    "/ai-center/ai-tools/vsmart-sorter/": typeof AiCenterAiToolsVsmartSorterIndexRoute;
     "/ai-center/ai-tools/vsmart-upload/": typeof AiCenterAiToolsVsmartUploadIndexRoute;
     "/ai-center/ai-tools/vsmart-vision/": typeof AiCenterAiToolsVsmartVisionIndexRoute;
     "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute;
@@ -846,6 +863,7 @@ export interface FileRouteTypes {
         | "/ai-center/ai-tools/vsmart-extract"
         | "/ai-center/ai-tools/vsmart-organizer"
         | "/ai-center/ai-tools/vsmart-prompt"
+        | "/ai-center/ai-tools/vsmart-sorter"
         | "/ai-center/ai-tools/vsmart-upload"
         | "/ai-center/ai-tools/vsmart-vision"
         | "/assessment/export/$assessmentId"
@@ -893,6 +911,7 @@ export interface FileRouteTypes {
         | "/ai-center/ai-tools/vsmart-extract"
         | "/ai-center/ai-tools/vsmart-organizer"
         | "/ai-center/ai-tools/vsmart-prompt"
+        | "/ai-center/ai-tools/vsmart-sorter"
         | "/ai-center/ai-tools/vsmart-upload"
         | "/ai-center/ai-tools/vsmart-vision"
         | "/assessment/export/$assessmentId"
@@ -940,6 +959,7 @@ export interface FileRouteTypes {
         | "/ai-center/ai-tools/vsmart-extract/"
         | "/ai-center/ai-tools/vsmart-organizer/"
         | "/ai-center/ai-tools/vsmart-prompt/"
+        | "/ai-center/ai-tools/vsmart-sorter/"
         | "/ai-center/ai-tools/vsmart-upload/"
         | "/ai-center/ai-tools/vsmart-vision/"
         | "/assessment/export/$assessmentId/"
@@ -989,6 +1009,7 @@ export interface RootRouteChildren {
     AiCenterAiToolsVsmartExtractIndexRoute: typeof AiCenterAiToolsVsmartExtractIndexRoute;
     AiCenterAiToolsVsmartOrganizerIndexRoute: typeof AiCenterAiToolsVsmartOrganizerIndexRoute;
     AiCenterAiToolsVsmartPromptIndexRoute: typeof AiCenterAiToolsVsmartPromptIndexRoute;
+    AiCenterAiToolsVsmartSorterIndexRoute: typeof AiCenterAiToolsVsmartSorterIndexRoute;
     AiCenterAiToolsVsmartUploadIndexRoute: typeof AiCenterAiToolsVsmartUploadIndexRoute;
     AiCenterAiToolsVsmartVisionIndexRoute: typeof AiCenterAiToolsVsmartVisionIndexRoute;
     AssessmentExportAssessmentIdIndexRoute: typeof AssessmentExportAssessmentIdIndexRoute;
@@ -1037,6 +1058,7 @@ const rootRouteChildren: RootRouteChildren = {
     AiCenterAiToolsVsmartExtractIndexRoute: AiCenterAiToolsVsmartExtractIndexRoute,
     AiCenterAiToolsVsmartOrganizerIndexRoute: AiCenterAiToolsVsmartOrganizerIndexRoute,
     AiCenterAiToolsVsmartPromptIndexRoute: AiCenterAiToolsVsmartPromptIndexRoute,
+    AiCenterAiToolsVsmartSorterIndexRoute: AiCenterAiToolsVsmartSorterIndexRoute,
     AiCenterAiToolsVsmartUploadIndexRoute: AiCenterAiToolsVsmartUploadIndexRoute,
     AiCenterAiToolsVsmartVisionIndexRoute: AiCenterAiToolsVsmartVisionIndexRoute,
     AssessmentExportAssessmentIdIndexRoute: AssessmentExportAssessmentIdIndexRoute,
@@ -1103,6 +1125,7 @@ export const routeTree = rootRoute
         "/ai-center/ai-tools/vsmart-extract/",
         "/ai-center/ai-tools/vsmart-organizer/",
         "/ai-center/ai-tools/vsmart-prompt/",
+        "/ai-center/ai-tools/vsmart-sorter/",
         "/ai-center/ai-tools/vsmart-upload/",
         "/ai-center/ai-tools/vsmart-vision/",
         "/assessment/export/$assessmentId/",
@@ -1211,6 +1234,9 @@ export const routeTree = rootRoute
     },
     "/ai-center/ai-tools/vsmart-prompt/": {
       "filePath": "ai-center/ai-tools/vsmart-prompt/index.tsx"
+    },
+    "/ai-center/ai-tools/vsmart-sorter/": {
+      "filePath": "ai-center/ai-tools/vsmart-sorter/index.tsx"
     },
     "/ai-center/ai-tools/vsmart-upload/": {
       "filePath": "ai-center/ai-tools/vsmart-upload/index.tsx"

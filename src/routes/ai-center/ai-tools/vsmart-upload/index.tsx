@@ -25,7 +25,7 @@ function RouteComponent() {
                     }}
                     className="cursor-pointer"
                 />
-                <div>VSmart Upload</div>
+                <div>VSmart AI Tools</div>
             </div>
         );
 

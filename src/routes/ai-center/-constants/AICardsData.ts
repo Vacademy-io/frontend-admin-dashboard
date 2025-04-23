@@ -86,7 +86,7 @@ export const AIToolCardData: AIToolCardDataType[] = [
         title: "Sort topic questions with AI",
         features: [
             {
-                key: "sort-split-pdf",
+                key: "sortSplitPdf",
                 heading: "Vsmart Organizer",
                 subheading: "Sort and split topic questions from pdf, doc and ppt files",
                 description: [
@@ -96,12 +96,12 @@ export const AIToolCardData: AIToolCardDataType[] = [
                 route: "/ai-center/ai-tools/vsmart-organizer",
             },
             {
-                key: "sort-topics-pdf",
-                heading: "Vsmart Vision",
-                subheading: "Extract questions by uploading images",
+                key: "sortTopicsPdf",
+                heading: "Vsmart Sorter",
+                subheading: "Sort topics for questions from pdf, doc and ppt files",
                 description: [
-                    "Turn images into questions with ease. Vsmart Vision uses advanced OCR and AI to scan photographs, scanned pages, handwritten notes, or screenshots — and extracts structured questions from them. Just upload your image, and let AI do the rest.",
-                    "Ideal for teachers, coaching institutes, and trainers who often receive content in the form of handwritten notes, textbook snapshots, or board images. Whether you're digitizing old test papers or pulling questions from printed material — Vsmart Vision brings analog content into your digital workflow in seconds.",
+                    "Generate and organize topic-wise question papers with precision. Vsmart Sorter automatically extracts questions from your uploaded file (PDF, PPT, or DOC), groups them based on topics, and gives you the control to reorder questions within those topics to match your teaching flow or focus areas.",
+                    "Ideal for educators, content designers, or exam moderators who want AI-generated content, but also need flexibility in how it's arranged. Whether you're creating chapter-wise assessments or tailoring question papers to fit specific classroom needs, Vsmart Sorter gives structure with control — letting you decide the question flow.",
                 ],
                 route: "/ai-center/ai-tools/vsmart-vision",
             },
