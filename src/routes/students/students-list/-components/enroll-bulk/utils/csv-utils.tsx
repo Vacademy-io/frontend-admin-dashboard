@@ -127,6 +127,11 @@ export const validateCsvData = (
                             processedRow[fieldName] = value.toUpperCase();
                         }
 
+                        // Wrap ADDRESS_LINE values in inverted commas
+                        if (fieldName === "ADDRESS_LINE" && value) {
+                            processedRow[fieldName] = `"${value}"`;
+                        }
+
                         // Determine if field is optional based on both schema and user settings
                         const isOptional =
                             header.optional ||
