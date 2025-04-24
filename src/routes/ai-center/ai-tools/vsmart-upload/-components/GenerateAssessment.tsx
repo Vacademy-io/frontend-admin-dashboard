@@ -14,6 +14,8 @@ import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const GenerateAIAssessmentComponent = () => {
+    const [allPagesGenerateQuestionsStatus, setAllPagesGenerateQuestionsStatus] = useState(false);
+    const [pageWiseGenerateQuestionsStatus, setPageWiseGenerateQuestionsStatus] = useState(false);
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
@@ -94,6 +96,7 @@ const GenerateAIAssessmentComponent = () => {
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
+                setAllPagesGenerateQuestionsStatus(true);
                 pendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
@@ -103,7 +106,8 @@ const GenerateAIAssessmentComponent = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response === "Done" || response?.questions) {
+            if (response === "Done") {
+                setAllPagesGenerateQuestionsStatus(false);
                 setLoader(false);
                 setKey(null);
                 clearPolling();
@@ -116,6 +120,7 @@ const GenerateAIAssessmentComponent = () => {
         onError: () => {
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
+                setAllPagesGenerateQuestionsStatus(true);
                 pendingRef.current = false;
                 scheduleNextPoll();
                 return;
@@ -127,6 +132,7 @@ const GenerateAIAssessmentComponent = () => {
                 setLoader(false);
                 setKey(null);
                 clearPolling();
+                setAllPagesGenerateQuestionsStatus(false);
                 return;
             }
 
@@ -170,6 +176,7 @@ const GenerateAIAssessmentComponent = () => {
         pollingCountRef.current = 0;
         pendingRef.current = false;
 
+        setAllPagesGenerateQuestionsStatus(true);
         // Make initial call
         pollGenerateAssessment();
     };
@@ -192,6 +199,7 @@ const GenerateAIAssessmentComponent = () => {
         onSuccess: async (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
+                setPageWiseGenerateQuestionsStatus(true);
                 convertPendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
@@ -202,6 +210,7 @@ const GenerateAIAssessmentComponent = () => {
 
             // If conversion is complete and we have HTML data
             if (response === "Done" || response?.html) {
+                setPageWiseGenerateQuestionsStatus(false);
                 stopConvertPolling();
                 setHtmlData(response?.html);
                 setOpenPageWiseAssessmentDialog(true);
@@ -217,7 +226,7 @@ const GenerateAIAssessmentComponent = () => {
 
             // If we were in a pending state, resume polling on error
             if (convertPendingRef.current) {
-                console.log("Resuming polling after pending state");
+                setPageWiseGenerateQuestionsStatus(true);
                 convertPendingRef.current = false;
                 scheduleNextConvertPoll();
                 return;
@@ -226,7 +235,7 @@ const GenerateAIAssessmentComponent = () => {
             // Increment count and check max attempts
             convertPollingCountRef.current += 1;
             if (convertPollingCountRef.current >= MAX_CONVERT_ATTEMPTS) {
-                console.log("Max conversion polling attempts reached");
+                setPageWiseGenerateQuestionsStatus(false);
                 stopConvertPolling();
                 return;
             }
@@ -269,6 +278,7 @@ const GenerateAIAssessmentComponent = () => {
         convertPollingCountRef.current = 0;
         convertPendingRef.current = false;
 
+        setPageWiseGenerateQuestionsStatus(true);
         // Make initial call
         pollConvertPDFToHTML();
     };
@@ -298,8 +308,8 @@ const GenerateAIAssessmentComponent = () => {
                 handleOpen={handleOpenAssessmentDialog}
                 handleGenerateCompleteFile={handleGenerateQuestionsForAssessment}
                 handleGeneratePageWise={handleConvertPDFToHTMLFn}
-                allPagesGenerateQuestionsStatus={generateAssessmentMutation.status}
-                pageWiseGenerateQuestionsStatus={handleConvertPDFToHTMLMutation.status}
+                allPagesGenerateQuestionsStatus={allPagesGenerateQuestionsStatus}
+                pageWiseGenerateQuestionsStatus={pageWiseGenerateQuestionsStatus}
             />
             {generateAssessmentMutation.status === "success" && (
                 <AITasksList heading="Vsmart Upload" enableDialog={true} />

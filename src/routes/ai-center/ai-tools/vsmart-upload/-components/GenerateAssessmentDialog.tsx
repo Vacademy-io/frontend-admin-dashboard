@@ -7,8 +7,8 @@ interface GenerateDialogProps {
     handleOpen: (open: boolean) => void;
     handleGenerateCompleteFile: () => void;
     handleGeneratePageWise: () => void;
-    allPagesGenerateQuestionsStatus: string;
-    pageWiseGenerateQuestionsStatus: string;
+    allPagesGenerateQuestionsStatus: boolean;
+    pageWiseGenerateQuestionsStatus: boolean;
 }
 
 export const GenerateAssessmentDialog = ({
@@ -34,7 +34,7 @@ export const GenerateAssessmentDialog = ({
                         className="text-sm"
                         onClick={handleGenerateCompleteFile}
                     >
-                        {allPagesGenerateQuestionsStatus === "pending" ? (
+                        {allPagesGenerateQuestionsStatus ? (
                             <DashboardLoader size={18} />
                         ) : (
                             "Select Questions From All Pages"
@@ -48,7 +48,7 @@ export const GenerateAssessmentDialog = ({
                         className="text-sm"
                         onClick={handleGeneratePageWise}
                     >
-                        {pageWiseGenerateQuestionsStatus === "pending" ? (
+                        {pageWiseGenerateQuestionsStatus ? (
                             <DashboardLoader size={18} />
                         ) : (
                             "Select Question From Specific Pages"
