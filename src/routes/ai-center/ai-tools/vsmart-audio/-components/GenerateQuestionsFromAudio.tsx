@@ -9,8 +9,10 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
+import GenerateQuestionsFromAudioForm from "./GenerateQuestionsFromAudioForm";
 
 export const GenerateQuestionsFromAudio = () => {
+    const [audioId, setAudioId] = useState("");
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
@@ -37,7 +39,7 @@ export const GenerateQuestionsFromAudio = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedAudioFile(fileId);
                 if (response) {
-                    await handleCallApi(response.pdf_id);
+                    setAudioId(response.pdf_id);
                 }
             }
             event.target.value = "";
@@ -50,28 +52,48 @@ export const GenerateQuestionsFromAudio = () => {
     const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
     const pendingRef = useRef(false);
 
-    const handleCallApi = async (audioId?: string) => {
-        const idToUse = audioId;
-        if (!idToUse) return;
+    const handleCallApi = async (
+        audioId: string,
+        numQuestions: string,
+        prompt: string,
+        difficulty: string,
+        language: string,
+        taskName: string,
+    ) => {
+        if (!audioId) return;
 
         clearPolling();
         pollingCountRef.current = 0;
         pendingRef.current = false;
 
         // Make initial call
-        pollGenerateQuestionsFromAudio(idToUse);
+        pollGenerateQuestionsFromAudio(
+            audioId,
+            numQuestions,
+            prompt,
+            difficulty,
+            language,
+            taskName,
+        );
     };
 
-    const pollGenerateQuestionsFromAudio = (audioId: string) => {
+    const pollGenerateQuestionsFromAudio = (
+        audioId: string,
+        numQuestions: string,
+        prompt: string,
+        difficulty: string,
+        language: string,
+        taskName: string,
+    ) => {
         if (pendingRef.current) {
             return;
         }
         getQuestionsFromAudioMutation.mutate({
-            audioId: audioId,
-            numQuestions: "",
-            prompt: "",
-            difficulty: "",
-            language: "",
+            audioId,
+            numQuestions,
+            prompt,
+            difficulty,
+            language,
             taskName,
         });
     };
@@ -86,10 +108,10 @@ export const GenerateQuestionsFromAudio = () => {
             taskName,
         }: {
             audioId: string;
-            numQuestions: string | null;
-            prompt: string | null;
-            difficulty: string | null;
-            language: string | null;
+            numQuestions: string;
+            prompt: string;
+            difficulty: string;
+            language: string;
             taskName: string;
         }) => {
             setLoader(true);
@@ -124,13 +146,27 @@ export const GenerateQuestionsFromAudio = () => {
             }
 
             // Otherwise schedule next poll
-            scheduleNextPoll(variables.audioId);
+            scheduleNextPoll(
+                variables.audioId,
+                variables.numQuestions,
+                variables.prompt,
+                variables.difficulty,
+                variables.language,
+                variables.taskName,
+            );
         },
         onError: (_, variables) => {
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
                 pendingRef.current = false;
-                scheduleNextPoll(variables.audioId);
+                scheduleNextPoll(
+                    variables.audioId,
+                    variables.numQuestions,
+                    variables.prompt,
+                    variables.difficulty,
+                    variables.language,
+                    variables.taskName,
+                );
                 return;
             }
 
@@ -144,7 +180,14 @@ export const GenerateQuestionsFromAudio = () => {
             }
 
             // Schedule next poll on error (if not max attempts)
-            scheduleNextPoll(variables.audioId);
+            scheduleNextPoll(
+                variables.audioId,
+                variables.numQuestions,
+                variables.prompt,
+                variables.difficulty,
+                variables.language,
+                variables.taskName,
+            );
         },
     });
 
@@ -157,7 +200,14 @@ export const GenerateQuestionsFromAudio = () => {
         }
     };
 
-    const scheduleNextPoll = (audioId: string) => {
+    const scheduleNextPoll = (
+        audioId: string,
+        numQuestions: string,
+        prompt: string,
+        difficulty: string,
+        language: string,
+        taskName: string,
+    ) => {
         setLoader(false);
         setKey(null);
         clearPolling(); // Clear any existing timeout
@@ -167,7 +217,14 @@ export const GenerateQuestionsFromAudio = () => {
             setLoader(true);
             setKey("audio");
             pollingTimeoutIdRef.current = setTimeout(() => {
-                pollGenerateQuestionsFromAudio(audioId);
+                pollGenerateQuestionsFromAudio(
+                    audioId,
+                    numQuestions,
+                    prompt,
+                    difficulty,
+                    language,
+                    taskName,
+                );
             }, 10000);
         }
     };
@@ -197,6 +254,9 @@ export const GenerateQuestionsFromAudio = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
             />
+            {audioId !== "" && (
+                <GenerateQuestionsFromAudioForm audioId={audioId} handleCallApi={handleCallApi} />
+            )}
             {getQuestionsFromAudioMutation.status === "success" && (
                 <AITasksList heading="Vsmart Audio" enableDialog={true} />
             )}

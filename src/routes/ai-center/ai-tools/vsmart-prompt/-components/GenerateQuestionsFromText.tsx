@@ -1,5 +1,5 @@
 import { MyButton } from "@/components/design-system/button";
-import { StarFour, UploadSimple } from "phosphor-react";
+import { StarFour } from "phosphor-react";
 import { QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
 import { useRef, useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -266,8 +266,7 @@ export const GenerateQuestionsFromText = () => {
                                 onClick={handleUploadClick}
                                 disable={loader && keyContext != "text" && keyContext != ""}
                             >
-                                <UploadSimple size={32} />
-                                Upload
+                                Generate
                             </MyButton>
                         )}
                     </div>
