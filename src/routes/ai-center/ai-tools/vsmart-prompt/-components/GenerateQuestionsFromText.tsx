@@ -211,9 +211,12 @@ export const GenerateQuestionsFromText = () => {
         <>
             {toolData && (
                 <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
-                    <div className="flex items-center gap-2 text-h2 font-semibold">
-                        <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
-                        {toolData.heading}
+                    <div className="flex w-fit items-center justify-start gap-2">
+                        <div className="flex items-center gap-2 text-h2 font-semibold">
+                            <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
+                            {toolData.heading}
+                        </div>
+                        <AITasksList heading={toolData.heading} />
                     </div>
                     {GetImagesForAITools(toolData.key)}
                     <div className="flex flex-col gap-1">
