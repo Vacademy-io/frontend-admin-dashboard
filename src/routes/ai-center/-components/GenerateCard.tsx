@@ -44,14 +44,16 @@ export const GenerateCard = ({
                     <div className="flex items-center justify-between">
                         {GetImagesForAITools(toolData.key)}
                         <div className="flex flex-col gap-4">
-                            <MyInput
-                                inputType="text"
-                                inputPlaceholder="Enter Your Task Name"
-                                input={taskName}
-                                onChangeFunction={(e) => setTaskName(e.target.value)}
-                                required={true}
-                                label="Task Name"
-                            />
+                            {keyProp !== "audio" && (
+                                <MyInput
+                                    inputType="text"
+                                    inputPlaceholder="Enter Your Task Name"
+                                    input={taskName}
+                                    onChangeFunction={(e) => setTaskName(e.target.value)}
+                                    required={true}
+                                    label="Task Name"
+                                />
+                            )}
                             {loader && keyContext == keyProp && keyContext != null ? (
                                 <MyButton
                                     type="button"
@@ -72,7 +74,7 @@ export const GenerateCard = ({
                                     onClick={handleUploadClick}
                                     disable={
                                         (keyContext !== keyProp && loader && keyContext != null) ||
-                                        !taskName
+                                        (keyProp !== "audio" && !taskName)
                                     }
                                 >
                                     <UploadSimple size={32} />
