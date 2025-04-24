@@ -5,11 +5,12 @@ import {
     handleGenerateAssessmentQuestions,
     handleStartProcessUploadedFile,
 } from "@/routes/ai-center/-services/ai-center-service";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
 const GenerateAiQuestionFromImageComponent = () => {
+    const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { uploadFile } = useFileUpload();
@@ -85,6 +86,7 @@ const GenerateAiQuestionFromImageComponent = () => {
                 setLoader(false);
                 setKey(null);
                 clearPolling();
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
                 return;
             }
 

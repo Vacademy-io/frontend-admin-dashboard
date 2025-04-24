@@ -5,12 +5,13 @@ import {
     handleGenerateAssessmentQuestions,
     handleStartProcessUploadedFile,
 } from "../../../-services/ai-center-service";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const GenerateAiQuestionPaperComponent = () => {
+    const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
@@ -88,6 +89,7 @@ const GenerateAiQuestionPaperComponent = () => {
                 setLoader(false);
                 setKey(null);
                 clearPolling();
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
                 return;
             }
 

@@ -43,7 +43,7 @@ export const handleGetListIndividualTopics = async (taskType: string) => {
 
 export const handleQueryGetListIndividualTopics = (taskType: string) => {
     return {
-        queryKey: ["GET_ASSESSMENT_LIST_DATA", taskType],
+        queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA", taskType],
         queryFn: () => handleGetListIndividualTopics(taskType),
         staleTime: 60 * 60 * 1000,
     };

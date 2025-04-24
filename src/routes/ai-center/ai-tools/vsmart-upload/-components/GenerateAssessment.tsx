@@ -6,7 +6,7 @@ import {
     handleGenerateAssessmentQuestions,
     handleStartProcessUploadedFile,
 } from "@/routes/ai-center/-services/ai-center-service";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
 import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
@@ -14,6 +14,7 @@ import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const GenerateAIAssessmentComponent = () => {
+    const queryClient = useQueryClient();
     const [allPagesGenerateQuestionsStatus, setAllPagesGenerateQuestionsStatus] = useState(false);
     const [pageWiseGenerateQuestionsStatus, setPageWiseGenerateQuestionsStatus] = useState(false);
     const [taskName, setTaskName] = useState("");
@@ -111,6 +112,7 @@ const GenerateAIAssessmentComponent = () => {
                 setLoader(false);
                 setKey(null);
                 clearPolling();
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
                 return;
             }
 
