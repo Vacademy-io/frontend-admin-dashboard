@@ -22,6 +22,7 @@ import { PPTComponentFactory } from "@/routes/assessment/question-papers/-compon
 import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
+import { toast } from "sonner";
 
 const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) => {
     const [open, setOpen] = useState(false);
@@ -75,6 +76,10 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
             return handleGetQuestionsInvidualTask(taskId);
         },
         onSuccess: (response) => {
+            if (!response.questions) {
+                toast.success("No data exists!");
+                return;
+            }
             setAssessmentData(response);
             const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
                 response.questions,
