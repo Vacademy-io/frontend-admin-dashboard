@@ -38,7 +38,7 @@ export const getTaskTypeFromFeature = (feature: AIToolFeatureType): string => {
     switch (feature.heading) {
         case "Vsmart Upload":
         case "Vsmart Extract":
-        case "Vsmart Vision":
+        case "Vsmart Image":
             return "PDF_TO_QUESTIONS";
         case "Vsmart Audio":
             return "AUDIO_TO_QUESTIONS";

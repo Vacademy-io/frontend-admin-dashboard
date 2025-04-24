@@ -163,7 +163,7 @@ export const handleStartProcessUploadedAudioFile = async (fileId: string) => {
 
 export const handleGetQuestionsFromAudio = async (
     audioId: string,
-    numQuestions: number | null,
+    numQuestions: string | null,
     prompt: string | null,
     difficulty: string | null,
     language: string | null,

@@ -6,14 +6,7 @@ import {
     handleStartProcessUploadedFile,
 } from "../../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "../../../-utils/generate-complete-assessment-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { transformQuestionsToGenerateAssessmentAI } from "../../../-utils/helper";
 import { GenerateCard } from "../../../-components/GenerateCard";
-import SortTopicQuestionsPreview from "./SortTopicQuestionsPreview";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 
 const SortTopicQuestions = () => {
@@ -23,50 +16,12 @@ const SortTopicQuestions = () => {
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
-    const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
-        title: "",
-        tags: [],
-        difficulty: "",
-        description: "",
-        subjects: [],
-        classes: [],
-        questions: [],
-    });
-    const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
-    const [propmtInput, setPropmtInput] = useState("");
-    const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
-
-    const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
-        resolver: zodResolver(generateCompleteAssessmentFormSchema),
-        mode: "onChange",
-        defaultValues: {
-            questionPaperId: "1",
-            isFavourite: false,
-            title: "",
-            createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
-            fileUpload: undefined,
-            questions: [],
-        },
-    });
+    const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
         setKey("sortTopicsPdf");
         fileInputRef.current?.click();
     };
-
-    const [fileUploading, setFileUploading] = useState(false);
-
-    useEffect(() => {
-        if (key === "sortTopicsPdf") {
-            if (fileUploading == true) setLoader(true);
-        }
-    }, [fileUploading, key]);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -128,29 +83,10 @@ const SortTopicQuestions = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response === "Done" || response?.questions) {
+            if (response === "Done") {
                 setLoader(false);
                 setKey(null);
-                setAssessmentData((prev) => ({
-                    ...prev,
-                    questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
-                }));
-                const addedQuestions = [
-                    ...(assessmentData.questions ?? []),
-                    ...(response?.questions ?? []),
-                ];
-                const transformQuestionsData =
-                    transformQuestionsToGenerateAssessmentAI(addedQuestions);
-                form.reset({
-                    ...form.getValues(),
-                    title: assessmentData?.title,
-                    questions: transformQuestionsData,
-                });
-                form.trigger();
                 clearPolling();
-                setOpenCompleteAssessmentDialog(true);
-                setPropmtInput("");
-                setIsMoreQuestionsDialog(false);
                 return;
             }
 
@@ -202,7 +138,7 @@ const SortTopicQuestions = () => {
         }
         generateAssessmentMutation.mutate({
             pdfId: uploadedFilePDFId,
-            userPrompt: propmtInput,
+            userPrompt: "",
             taskName,
         });
     };
@@ -215,7 +151,7 @@ const SortTopicQuestions = () => {
         pendingRef.current = false;
 
         // Use pdfId in your mutation call
-        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: propmtInput, taskName });
+        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: "", taskName });
     };
 
     useEffect(() => {
@@ -230,33 +166,24 @@ const SortTopicQuestions = () => {
         }
     }, [uploadedFilePDFId]);
 
+    useEffect(() => {
+        if (key === "sortTopicsPdf") {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
+
     return (
-        <div className="flex items-center justify-start gap-8">
-            <GenerateCard
-                handleUploadClick={handleUploadClick}
-                fileInputRef={fileInputRef}
-                handleFileChange={handleFileChange}
-                cardTitle="Sort topics of each question from PDF"
-                cardDescription="Upload PDF/DOCX/PPT"
-                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="sortTopicsPdf"
-                taskName={taskName}
-                setTaskName={setTaskName}
-            />
-            {assessmentData.questions.length > 0 && (
-                <SortTopicQuestionsPreview
-                    form={form}
-                    openCompleteAssessmentDialog={openCompleteAssessmentDialog}
-                    setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
-                    assessmentData={assessmentData}
-                    handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
-                    propmtInput={propmtInput}
-                    setPropmtInput={setPropmtInput}
-                    isMoreQuestionsDialog={isMoreQuestionsDialog}
-                    setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
-                />
-            )}
-        </div>
+        <GenerateCard
+            handleUploadClick={handleUploadClick}
+            fileInputRef={fileInputRef}
+            handleFileChange={handleFileChange}
+            cardTitle="Sort topics of each question from PDF"
+            cardDescription="Upload PDF/DOCX/PPT"
+            inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+            keyProp="sortTopicsPdf"
+            taskName={taskName}
+            setTaskName={setTaskName}
+        />
     );
 };
 

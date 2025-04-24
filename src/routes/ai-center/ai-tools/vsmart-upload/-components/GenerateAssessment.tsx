@@ -4,17 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import {
     handleConvertPDFToHTML,
     handleGenerateAssessmentQuestions,
-    // handleGetQuestionsFromHTMLUrl,
     handleStartProcessUploadedFile,
 } from "@/routes/ai-center/-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import GenerateCompleteAssessment from "@/routes/ai-center/-components/GenerateCompleteAssessment";
-import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "@/routes/ai-center/-utils/generate-complete-assessment-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { transformQuestionsToGenerateAssessmentAI } from "@/routes/ai-center/-utils/helper";
 import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
 import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
@@ -28,39 +20,8 @@ const GenerateAIAssessmentComponent = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
-    const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
-        title: "",
-        tags: [],
-        difficulty: "",
-        description: "",
-        subjects: [],
-        classes: [],
-        questions: [],
-    });
-    const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
-    const [propmtInput, setPropmtInput] = useState("");
-    const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
     const [htmlData, setHtmlData] = useState(null);
     const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
-
-    const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
-        resolver: zodResolver(generateCompleteAssessmentFormSchema),
-        mode: "onChange",
-        defaultValues: {
-            questionPaperId: "1",
-            isFavourite: false,
-            title: "",
-            createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
-            fileUpload: undefined,
-            questions: [],
-        },
-    });
 
     const handleOpenAssessmentDialog = (open: boolean) => {
         setOpenAssessmentDialog(open);
@@ -144,26 +105,7 @@ const GenerateAIAssessmentComponent = () => {
             if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
-                setAssessmentData((prev) => ({
-                    ...prev,
-                    questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
-                }));
-                const addedQuestions = [
-                    ...(assessmentData.questions ?? []),
-                    ...(response?.questions ?? []),
-                ];
-                const transformQuestionsData =
-                    transformQuestionsToGenerateAssessmentAI(addedQuestions);
-                form.reset({
-                    ...form.getValues(),
-                    title: assessmentData?.title,
-                    questions: transformQuestionsData,
-                });
-                form.trigger();
                 clearPolling();
-                setOpenCompleteAssessmentDialog(true);
-                setPropmtInput("");
-                setIsMoreQuestionsDialog(false);
                 return;
             }
 
@@ -215,7 +157,7 @@ const GenerateAIAssessmentComponent = () => {
         }
         generateAssessmentMutation.mutate({
             pdfId: uploadedFilePDFId,
-            userPrompt: propmtInput,
+            userPrompt: "",
             taskName,
         });
     };
@@ -262,12 +204,6 @@ const GenerateAIAssessmentComponent = () => {
                 stopConvertPolling();
                 setHtmlData(response?.html);
                 setOpenPageWiseAssessmentDialog(true);
-                // try {
-                //     const questionsData = await handleGetQuestionsFromHTMLUrl(response.html, "");
-                //     console.log("✅ Questions Data:", questionsData);
-                // } catch (error) {
-                //     console.error("⛔️ Error processing HTML:", error);
-                // }
 
                 return;
             }
@@ -361,21 +297,9 @@ const GenerateAIAssessmentComponent = () => {
                 handleOpen={handleOpenAssessmentDialog}
                 handleGenerateCompleteFile={handleGenerateQuestionsForAssessment}
                 handleGeneratePageWise={handleConvertPDFToHTMLFn}
+                allPagesGenerateQuestionsStatus={generateAssessmentMutation.status}
+                pageWiseGenerateQuestionsStatus={handleConvertPDFToHTMLMutation.status}
             />
-            {assessmentData.questions.length > 0 && (
-                <GenerateCompleteAssessment
-                    form={form}
-                    openCompleteAssessmentDialog={openCompleteAssessmentDialog}
-                    setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
-                    assessmentData={assessmentData}
-                    handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
-                    propmtInput={propmtInput}
-                    setPropmtInput={setPropmtInput}
-                    isMoreQuestionsDialog={isMoreQuestionsDialog}
-                    setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
-                    keyProp="assessment"
-                />
-            )}
             <GeneratePageWiseAssessment
                 openPageWiseAssessmentDialog={openPageWiseAssessmentDialog}
                 setOpenPageWiseAssessmentDialog={setOpenPageWiseAssessmentDialog}

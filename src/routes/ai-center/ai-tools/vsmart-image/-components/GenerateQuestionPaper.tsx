@@ -4,21 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import {
     handleGenerateAssessmentQuestions,
     handleStartProcessUploadedFile,
-} from "../../../-services/ai-center-service";
+} from "@/routes/ai-center/-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
-import { GenerateCard } from "../../../-components/GenerateCard";
-import { useAICenter } from "../../../-contexts/useAICenterContext";
-
-const GenerateAiQuestionPaperComponent = () => {
+import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
+import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+const GenerateAiQuestionFromImageComponent = () => {
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
-    const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const { setLoader, key, setKey } = useAICenter();
     const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("question");
+        setKey("image");
         fileInputRef.current?.click();
     };
 
@@ -50,8 +49,6 @@ const GenerateAiQuestionPaperComponent = () => {
 
     const clearPolling = () => {
         if (pollingTimeoutIdRef.current) {
-            setLoader(false);
-            setKey(null);
             clearTimeout(pollingTimeoutIdRef.current);
             pollingTimeoutIdRef.current = null;
         }
@@ -68,7 +65,7 @@ const GenerateAiQuestionPaperComponent = () => {
             taskName: string;
         }) => {
             setLoader(true);
-            setKey("question");
+            setKey("image");
             return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
         },
         onSuccess: (response, { pdfId }) => {
@@ -83,7 +80,7 @@ const GenerateAiQuestionPaperComponent = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response === "Done") {
+            if (response === "Done" || response?.questions) {
                 setLoader(false);
                 setKey(null);
                 clearPolling();
@@ -123,7 +120,8 @@ const GenerateAiQuestionPaperComponent = () => {
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("question");
+            setKey("image");
+            console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment(pdfId);
             }, 10000);
@@ -142,7 +140,7 @@ const GenerateAiQuestionPaperComponent = () => {
         });
     };
 
-    const handleGenerateQuestionsForAssessment = (pdfId?: string) => {
+    const handleGenerateQuestionsForAssessment = (pdfId: string) => {
         if (!pdfId) return;
 
         clearPolling();
@@ -160,26 +158,24 @@ const GenerateAiQuestionPaperComponent = () => {
     }, []);
 
     useEffect(() => {
-        if (key === "question") {
+        if (key === "image") {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
 
     return (
-        <div className="flex items-center justify-start gap-8">
-            <GenerateCard
-                handleUploadClick={handleUploadClick}
-                fileInputRef={fileInputRef}
-                handleFileChange={handleFileChange}
-                cardTitle="Extract Question"
-                cardDescription="Upload PDF/DOCX/PPT"
-                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="question"
-                taskName={taskName}
-                setTaskName={setTaskName}
-            />
-        </div>
+        <GenerateCard
+            handleUploadClick={handleUploadClick}
+            fileInputRef={fileInputRef}
+            handleFileChange={handleFileChange}
+            cardTitle="Extract Questions from Image"
+            cardDescription="Upload JPG/JPEG/PNG"
+            inputFormat=".jpg,.jpeg,.png"
+            keyProp="image"
+            taskName={taskName}
+            setTaskName={setTaskName}
+        />
     );
 };
 
-export default GenerateAiQuestionPaperComponent;
+export default GenerateAiQuestionFromImageComponent;
