@@ -30,6 +30,8 @@ const PlayWithPDF = () => {
     const [question, setQuestion] = useState("");
     const [questionsWithAnswers, setQuestionsWithAnswers] = useState<QuestionWithAnswer[]>([]);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const [parentId, setParentId] = useState("");
+    const [pendingResponse, setPendingResponse] = useState(false);
 
     const handleUploadClick = () => {
         setKey("chat");
@@ -49,11 +51,11 @@ const PlayWithPDF = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    console.log("response ", response);
                     setUploadedFilePDFId(response.pdf_id);
                     setFileUploading(true);
                     setLoader(false);
                     setOpen(true);
+                    setParentId("");
                 }
             }
             event.target.value = "";
@@ -80,12 +82,14 @@ const PlayWithPDF = () => {
             pdfId,
             userPrompt,
             taskName,
+            parentId,
         }: {
             pdfId: string;
             userPrompt: string;
             taskName: string;
+            parentId: string;
         }) => {
-            return handleChatWithPDF(pdfId, userPrompt, taskName);
+            return handleChatWithPDF(pdfId, userPrompt, taskName, parentId);
         },
         onSuccess: (response) => {
             // Check if response indicates pending state
@@ -101,7 +105,9 @@ const PlayWithPDF = () => {
             // If we have complete data, we're done
             if (response) {
                 setQuestionsWithAnswers(response);
+                if (parentId === "") setParentId(response[0].id);
                 setQuestion("");
+                setPendingResponse(false);
                 return;
             }
 
@@ -113,6 +119,7 @@ const PlayWithPDF = () => {
             if (pendingRef.current) {
                 pendingRef.current = false;
                 scheduleNextPoll();
+                setPendingResponse(true);
                 return;
             }
 
@@ -122,6 +129,7 @@ const PlayWithPDF = () => {
                 setLoader(false);
                 setKey(null);
                 clearPolling();
+                setPendingResponse(false);
                 return;
             }
 
@@ -139,7 +147,6 @@ const PlayWithPDF = () => {
         if (!pendingRef.current) {
             setLoader(true);
             setKey("assessment");
-            console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
             }, 10000);
@@ -155,11 +162,13 @@ const PlayWithPDF = () => {
             pdfId: uploadedFilePDFId,
             userPrompt: question,
             taskName: taskName,
+            parentId: parentId,
         });
     };
 
     const handleAddQuestions = () => {
         if (!uploadedFilePDFId) return;
+        setPendingResponse(true);
 
         clearPolling();
         pollingCountRef.current = 0;
@@ -260,9 +269,7 @@ const PlayWithPDF = () => {
                                         size="large"
                                         className="w-[500px] rounded-xl px-6 py-4"
                                     />
-                                    {getQuestionResponseMutation.status === "pending" && (
-                                        <DashboardLoader size={18} />
-                                    )}
+                                    {pendingResponse && <DashboardLoader size={18} />}
                                 </div>
                             </div>
                         </div>

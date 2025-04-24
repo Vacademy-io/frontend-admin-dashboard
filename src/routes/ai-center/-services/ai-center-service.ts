@@ -221,7 +221,12 @@ export const handleGetQuestionsFromText = async (
     return response?.data;
 };
 
-export const handleChatWithPDF = async (pdfId: string, userPrompt: string, taskName: string) => {
+export const handleChatWithPDF = async (
+    pdfId: string,
+    userPrompt: string,
+    taskName: string,
+    parentId: string,
+) => {
     const instituteId = getInstituteId();
     const response = await axios({
         method: "GET",
@@ -231,6 +236,7 @@ export const handleChatWithPDF = async (pdfId: string, userPrompt: string, taskN
             userPrompt,
             taskName,
             instituteId,
+            parentId,
         },
     });
     return response?.data;
