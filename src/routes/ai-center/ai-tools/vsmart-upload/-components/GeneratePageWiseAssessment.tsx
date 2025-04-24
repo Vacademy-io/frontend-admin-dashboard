@@ -185,7 +185,6 @@ const GeneratePageWiseAssessment = ({
 
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
-            console.log("Scheduling next poll in 10 seconds");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
             }, 10000);
@@ -197,7 +196,10 @@ const GeneratePageWiseAssessment = ({
         if (pendingRef.current) {
             return;
         }
-        generateAssessmentMutation.mutate({ html: htmlData!, userPrompt: propmtInput });
+        generateAssessmentMutation.mutate({
+            html: String(rightEditorRef.current?.value),
+            userPrompt: propmtInput,
+        });
     };
 
     const handleGenerateQuestionsForAssessment = () => {
@@ -251,6 +253,7 @@ const GeneratePageWiseAssessment = ({
                             setPropmtInput={setPropmtInput}
                             isMoreQuestionsDialog={isMoreQuestionsDialog}
                             setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
+                            loadingState={generateAssessmentMutation.status}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4 p-4">

@@ -1,36 +1,28 @@
 import { MyButton } from "@/components/design-system/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
-import { AIToolFeatureType } from "../-constants/AICardsData";
-import { useMutation } from "@tanstack/react-query";
-import { handleGetListIndividualTopics } from "../-services/ai-center-service";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { handleQueryGetListIndividualTopics } from "../-services/ai-center-service";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { Badge } from "@/components/ui/badge";
 import AIQuestionsPreview from "./AIQuestionsPreview";
 import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { getTaskTypeFromFeature } from "../-helpers/GetImagesForAITools";
 
-const AITasksList = ({ feature }: { feature: AIToolFeatureType }) => {
-    const [open, setOpen] = useState(false);
-    const [allTasks, setAllTasks] = useState([]);
+const AITasksList = ({
+    heading,
+    enableDialog = false,
+}: {
+    heading: string;
+    enableDialog?: boolean;
+}) => {
+    const [open, setOpen] = useState(enableDialog);
 
-    const getListIndividualTopicsMutation = useMutation({
-        mutationFn: async ({ taskType }: { taskType: string }) => {
-            return handleGetListIndividualTopics(taskType);
-        },
-        onSuccess: (response) => {
-            setAllTasks(response);
-        },
-        onError: (error: unknown) => {
-            console.log(error);
-        },
-    });
+    const { data: allTasks, isLoading } = useSuspenseQuery(
+        handleQueryGetListIndividualTopics(getTaskTypeFromFeature(heading)),
+    );
 
-    const handleGetListIndividualTopicsList = (taskType: string) => {
-        getListIndividualTopicsMutation.mutate({
-            taskType,
-        });
-    };
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -42,26 +34,19 @@ const AITasksList = ({ feature }: { feature: AIToolFeatureType }) => {
             >
                 <MyButton
                     type="button"
-                    scale="large"
+                    scale="small"
                     buttonType="secondary"
                     className="text-normal border-none !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
-                    onClick={() =>
-                        handleGetListIndividualTopicsList(getTaskTypeFromFeature(feature))
-                    }
                 >
-                    {getListIndividualTopicsMutation.status === "pending" ? (
-                        <DashboardLoader size={18} />
-                    ) : (
-                        "View All Tasks"
-                    )}
+                    View All Tasks
                 </MyButton>
             </DialogTrigger>
             <DialogContent
                 onClick={(e) => e.stopPropagation()}
-                className="no-scrollbar !m-0 flex h-[90%] w-[90%] flex-col !gap-0 overflow-y-auto !p-0"
+                className="no-scrollbar !m-0 flex size-[90%] flex-col !gap-0 overflow-y-auto !p-0"
             >
                 <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
-                    {feature.heading}
+                    {heading}
                 </h1>
                 <div className="flex flex-col gap-4 p-4">
                     {allTasks.map((task: AITaskIndividualListInterface) => {

@@ -7,6 +7,7 @@ import { AIToolPageData } from "../-constants/AIToolPageData";
 import { GetImagesForAITools } from "../-helpers/GetImagesForAITools";
 import { Separator } from "@/components/ui/separator";
 import { MyInput } from "@/components/design-system/input";
+import AITasksList from "./AITasksList";
 interface GenerateCardProps {
     handleUploadClick: () => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
@@ -33,9 +34,12 @@ export const GenerateCard = ({
         <>
             {toolData && (
                 <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
-                    <div className="flex items-center gap-2 text-h2 font-semibold">
-                        <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
-                        {toolData.heading}
+                    <div className="flex w-fit items-center justify-start gap-2">
+                        <div className="flex items-center gap-2 text-h2 font-semibold">
+                            <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
+                            {toolData.heading}
+                        </div>
+                        <AITasksList heading={toolData.heading} />
                     </div>
                     <div className="flex items-center justify-between">
                         {GetImagesForAITools(toolData.key)}

@@ -8,7 +8,6 @@ import {
     AIUploadAudioImg,
     AIUploadPdfImg,
 } from "@/assets/svgs";
-import { AIToolFeatureType } from "../-constants/AICardsData";
 
 export const GetImagesForAITools = (key: string) => {
     switch (key) {
@@ -34,11 +33,11 @@ export const GetImagesForAITools = (key: string) => {
     return <></>;
 };
 
-export const getTaskTypeFromFeature = (feature: AIToolFeatureType): string => {
-    switch (feature.heading) {
+export const getTaskTypeFromFeature = (heading: string): string => {
+    switch (heading) {
         case "Vsmart Upload":
         case "Vsmart Extract":
-        case "Vsmart Vision":
+        case "Vsmart Image":
             return "PDF_TO_QUESTIONS";
         case "Vsmart Audio":
             return "AUDIO_TO_QUESTIONS";

@@ -247,8 +247,8 @@ export const AIToolPageData: AIToolPageDataType = {
     },
     image: {
         key: "image",
-        heading: "Vsmart Vision",
-        instructionsHeading: "How to Use Vsmart Vision",
+        heading: "Vsmart Image",
+        instructionsHeading: "How to Use Vsmart Image",
         instructionsSubHeading:
             "This tool lets you upload an image of content — handwritten notes, printed pages, textbook snapshots — and automatically extracts relevant questions from it.",
         instructions: [

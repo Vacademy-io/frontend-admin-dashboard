@@ -40,6 +40,14 @@ export const handleGetListIndividualTopics = async (taskType: string) => {
     return response?.data;
 };
 
+export const handleQueryGetListIndividualTopics = (taskType: string) => {
+    return {
+        queryKey: ["GET_ASSESSMENT_LIST_DATA", taskType],
+        queryFn: () => handleGetListIndividualTopics(taskType),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
 export const handleGetQuestionsInvidualTask = async (taskId: string) => {
     const response = await axios({
         method: "GET",
@@ -163,7 +171,7 @@ export const handleStartProcessUploadedAudioFile = async (fileId: string) => {
 
 export const handleGetQuestionsFromAudio = async (
     audioId: string,
-    numQuestions: number | null,
+    numQuestions: string | null,
     prompt: string | null,
     difficulty: string | null,
     language: string | null,
