@@ -27,7 +27,7 @@ export const transformQuestionsToGenerateAssessmentAI = (
             questionId: item.id || item.preview_id || undefined,
             questionName: convertSVGsToBase64(item.text?.content) || "",
             explanation: convertSVGsToBase64(item.explanation_text?.content) || "",
-            questionType: item.question_type === "MCQS" ? "MCQS" : "MCQM",
+            questionType: item.question_type,
             questionMark: "0",
             questionPenalty: "0",
             questionDuration: {
