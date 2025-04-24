@@ -8,6 +8,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const GenerateAiQuestionPaperComponent = () => {
     const [taskName, setTaskName] = useState("");
@@ -166,7 +167,7 @@ const GenerateAiQuestionPaperComponent = () => {
     }, [fileUploading, key]);
 
     return (
-        <div className="flex items-center justify-start gap-8">
+        <>
             <GenerateCard
                 handleUploadClick={handleUploadClick}
                 fileInputRef={fileInputRef}
@@ -178,7 +179,10 @@ const GenerateAiQuestionPaperComponent = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
             />
-        </div>
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Extract" enableDialog={true} />
+            )}
+        </>
     );
 };
 

@@ -11,6 +11,7 @@ import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
 import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const GenerateAIAssessmentComponent = () => {
     const [taskName, setTaskName] = useState("");
@@ -300,6 +301,9 @@ const GenerateAIAssessmentComponent = () => {
                 allPagesGenerateQuestionsStatus={generateAssessmentMutation.status}
                 pageWiseGenerateQuestionsStatus={handleConvertPDFToHTMLMutation.status}
             />
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Upload" enableDialog={true} />
+            )}
             <GeneratePageWiseAssessment
                 openPageWiseAssessmentDialog={openPageWiseAssessmentDialog}
                 setOpenPageWiseAssessmentDialog={setOpenPageWiseAssessmentDialog}

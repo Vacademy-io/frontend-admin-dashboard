@@ -3,7 +3,6 @@ import { StarFour } from "phosphor-react";
 import { GetImagesForAITools } from "../-helpers/GetImagesForAITools";
 import { AIToolFeatureType } from "../-constants/AICardsData";
 import { useNavigate } from "@tanstack/react-router";
-import AITasksList from "./AITasksList";
 
 export const AIToolsCard = ({ feature }: { feature: AIToolFeatureType }) => {
     const navigate = useNavigate();
@@ -28,10 +27,6 @@ export const AIToolsCard = ({ feature }: { feature: AIToolFeatureType }) => {
                         {feature.description.map((description, index) => (
                             <p key={index}>{description}</p>
                         ))}
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <p className="text-body font-semibold">File Type: </p>
-                        <AITasksList feature={feature} />
                     </div>
                 </CardDescription>
             </CardHeader>

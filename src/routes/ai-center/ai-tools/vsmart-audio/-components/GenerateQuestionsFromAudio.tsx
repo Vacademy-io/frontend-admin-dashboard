@@ -8,6 +8,7 @@ import {
 } from "../../../-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 export const GenerateQuestionsFromAudio = () => {
     const [taskName, setTaskName] = useState("");
@@ -182,16 +183,21 @@ export const GenerateQuestionsFromAudio = () => {
     }, [fileUploading, key]);
 
     return (
-        <GenerateCard
-            handleUploadClick={handleUploadClick}
-            fileInputRef={fileInputRef}
-            handleFileChange={handleFileChange}
-            cardTitle="Generate Questions From Audio"
-            cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
-            inputFormat=".mp3,.wav,.flac,.aac,.m4a"
-            keyProp="audio"
-            taskName={taskName}
-            setTaskName={setTaskName}
-        />
+        <>
+            <GenerateCard
+                handleUploadClick={handleUploadClick}
+                fileInputRef={fileInputRef}
+                handleFileChange={handleFileChange}
+                cardTitle="Generate Questions From Audio"
+                cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
+                inputFormat=".mp3,.wav,.flac,.aac,.m4a"
+                keyProp="audio"
+                taskName={taskName}
+                setTaskName={setTaskName}
+            />
+            {getQuestionsFromAudioMutation.status === "success" && (
+                <AITasksList heading="Vsmart Audio" enableDialog={true} />
+            )}
+        </>
     );
 };

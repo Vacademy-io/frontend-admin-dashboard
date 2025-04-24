@@ -8,6 +8,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 const SortAndSplitTopicQuestions = () => {
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
@@ -171,17 +172,22 @@ const SortAndSplitTopicQuestions = () => {
     }, [uploadedFilePDFId]);
 
     return (
-        <GenerateCard
-            handleUploadClick={handleUploadClick}
-            fileInputRef={fileInputRef}
-            handleFileChange={handleFileChange}
-            cardTitle="Sort and split topic questions from PDF"
-            cardDescription="Upload PDF/DOCX/PPT"
-            inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-            keyProp="sortSplitPdf"
-            taskName={taskName}
-            setTaskName={setTaskName}
-        />
+        <>
+            <GenerateCard
+                handleUploadClick={handleUploadClick}
+                fileInputRef={fileInputRef}
+                handleFileChange={handleFileChange}
+                cardTitle="Sort and split topic questions from PDF"
+                cardDescription="Upload PDF/DOCX/PPT"
+                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                keyProp="sortSplitPdf"
+                taskName={taskName}
+                setTaskName={setTaskName}
+            />
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Organizer" enableDialog={true} />
+            )}
+        </>
     );
 };
 

@@ -12,6 +12,7 @@ import { useAICenter } from "../../../-contexts/useAICenterContext";
 import { GetImagesForAITools } from "@/routes/ai-center/-helpers/GetImagesForAITools";
 import { AIToolPageData } from "@/routes/ai-center/-constants/AIToolPageData";
 import { Separator } from "@/components/ui/separator";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const formSchema = z.object({
     taskName: z.string().min(1),
@@ -276,6 +277,9 @@ export const GenerateQuestionsFromText = () => {
                 submitForm={submitFormFn}
                 form={dialogForm}
             />
+            {getQuestionsFromTextMutation.status === "success" && (
+                <AITasksList heading="Vsmart Topics" enableDialog={true} />
+            )}
         </>
     );
 };

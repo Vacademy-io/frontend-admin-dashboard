@@ -8,6 +8,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 const GenerateAiQuestionFromImageComponent = () => {
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
@@ -164,17 +165,22 @@ const GenerateAiQuestionFromImageComponent = () => {
     }, [fileUploading, key]);
 
     return (
-        <GenerateCard
-            handleUploadClick={handleUploadClick}
-            fileInputRef={fileInputRef}
-            handleFileChange={handleFileChange}
-            cardTitle="Extract Questions from Image"
-            cardDescription="Upload JPG/JPEG/PNG"
-            inputFormat=".jpg,.jpeg,.png"
-            keyProp="image"
-            taskName={taskName}
-            setTaskName={setTaskName}
-        />
+        <>
+            <GenerateCard
+                handleUploadClick={handleUploadClick}
+                fileInputRef={fileInputRef}
+                handleFileChange={handleFileChange}
+                cardTitle="Extract Questions from Image"
+                cardDescription="Upload JPG/JPEG/PNG"
+                inputFormat=".jpg,.jpeg,.png"
+                keyProp="image"
+                taskName={taskName}
+                setTaskName={setTaskName}
+            />
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Image" enableDialog={true} />
+            )}
+        </>
     );
 };
 

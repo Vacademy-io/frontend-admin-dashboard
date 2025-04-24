@@ -8,6 +8,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const SortTopicQuestions = () => {
     const [taskName, setTaskName] = useState("");
@@ -173,17 +174,22 @@ const SortTopicQuestions = () => {
     }, [fileUploading, key]);
 
     return (
-        <GenerateCard
-            handleUploadClick={handleUploadClick}
-            fileInputRef={fileInputRef}
-            handleFileChange={handleFileChange}
-            cardTitle="Sort topics of each question from PDF"
-            cardDescription="Upload PDF/DOCX/PPT"
-            inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-            keyProp="sortTopicsPdf"
-            taskName={taskName}
-            setTaskName={setTaskName}
-        />
+        <>
+            <GenerateCard
+                handleUploadClick={handleUploadClick}
+                fileInputRef={fileInputRef}
+                handleFileChange={handleFileChange}
+                cardTitle="Sort topics of each question from PDF"
+                cardDescription="Upload PDF/DOCX/PPT"
+                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                keyProp="sortTopicsPdf"
+                taskName={taskName}
+                setTaskName={setTaskName}
+            />
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Sorter" enableDialog={true} />
+            )}
+        </>
     );
 };
 
