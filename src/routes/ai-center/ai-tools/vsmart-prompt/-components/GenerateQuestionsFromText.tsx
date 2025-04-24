@@ -2,7 +2,7 @@ import { MyButton } from "@/components/design-system/button";
 import { StarFour, UploadSimple } from "phosphor-react";
 import { QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
 import { useRef, useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleGetQuestionsFromText } from "../../../-services/ai-center-service";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,6 +27,7 @@ const formSchema = z.object({
 export type QuestionsFromTextData = z.infer<typeof formSchema>;
 
 export const GenerateQuestionsFromText = () => {
+    const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const [disableSubmitBtn, setDisableSubmitBtn] = useState(true);
     const formSubmitRef = useRef(() => {});
@@ -121,6 +122,7 @@ export const GenerateQuestionsFromText = () => {
                 dialogForm.reset();
                 handleOpenChange(false);
                 clearPolling();
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
                 return;
             }
 
