@@ -57,6 +57,7 @@ export interface AITaskIndividualListInterface {
     id: string;
     task_name: string;
     institute_id: string;
+    parent_id: string;
     status: string; // Add more status values as needed
     result_json: string;
     input_id: string;

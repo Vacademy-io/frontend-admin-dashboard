@@ -4,6 +4,7 @@ import {
     CONVERT_PDF_TO_HTML_AI_URL,
     GENERATE_QUESTIONS_FROM_FILE_AI_URL,
     GET_INDIVIDUAL_AI_TASK_QUESTIONS,
+    GET_INDIVIDUAL_CHAT_WITH_PDF_AI_TASK_QUESTIONS,
     GET_QUESTIONS_FROM_AUDIO,
     GET_QUESTIONS_FROM_TEXT,
     GET_QUESTIONS_URL_FROM_HTML_AI_URL,
@@ -54,6 +55,17 @@ export const handleGetQuestionsInvidualTask = async (taskId: string) => {
         url: GET_INDIVIDUAL_AI_TASK_QUESTIONS,
         params: {
             taskId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleGetChatWithPDFInvidualTask = async (parentId: string) => {
+    const response = await axios({
+        method: "GET",
+        url: GET_INDIVIDUAL_CHAT_WITH_PDF_AI_TASK_QUESTIONS,
+        params: {
+            parentId,
         },
     });
     return response?.data;

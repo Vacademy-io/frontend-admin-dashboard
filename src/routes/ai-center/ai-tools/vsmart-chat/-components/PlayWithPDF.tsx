@@ -12,25 +12,39 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-interface QuestionWithAnswer {
+export interface QuestionWithAnswerChatInterface {
     id: string;
     question: string;
     response: string;
 }
 
-const PlayWithPDF = () => {
-    const [taskName, setTaskName] = useState("");
+const PlayWithPDF = ({
+    isListMode = false,
+    chatResponse,
+    input_id,
+    parent_id,
+    task_name,
+}: {
+    isListMode?: boolean;
+    chatResponse?: QuestionWithAnswerChatInterface[];
+    input_id?: string;
+    parent_id?: string;
+    task_name?: string;
+}) => {
+    const [taskName, setTaskName] = useState(task_name ?? "");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
+    const [uploadedFilePDFId, setUploadedFilePDFId] = useState(input_id ?? "");
     const [fileUploading, setFileUploading] = useState(false);
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(isListMode);
     const [question, setQuestion] = useState("");
-    const [questionsWithAnswers, setQuestionsWithAnswers] = useState<QuestionWithAnswer[]>([]);
+    const [questionsWithAnswers, setQuestionsWithAnswers] = useState<
+        QuestionWithAnswerChatInterface[]
+    >(chatResponse ?? []);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
-    const [parentId, setParentId] = useState("");
+    const [parentId, setParentId] = useState(parent_id ?? "");
     const [pendingResponse, setPendingResponse] = useState(false);
 
     const handleUploadClick = () => {
@@ -197,18 +211,20 @@ const PlayWithPDF = () => {
 
     return (
         <>
-            <GenerateCard
-                handleUploadClick={handleUploadClick}
-                fileInputRef={fileInputRef}
-                handleFileChange={handleFileChange}
-                cardTitle="Play With PDF"
-                cardDescription="Upload PDF/DOCX/PPT"
-                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="chat"
-                taskName={taskName}
-                setTaskName={setTaskName}
-            />
-            {uploadedFilePDFId.length > 0 && (
+            {!isListMode && (
+                <GenerateCard
+                    handleUploadClick={handleUploadClick}
+                    fileInputRef={fileInputRef}
+                    handleFileChange={handleFileChange}
+                    cardTitle="Play With PDF"
+                    cardDescription="Upload PDF/DOCX/PPT"
+                    inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                    keyProp="chat"
+                    taskName={taskName}
+                    setTaskName={setTaskName}
+                />
+            )}
+            {(uploadedFilePDFId.length > 0 || isListMode) && (
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogContent className="!m-0 flex !h-full !w-full !max-w-full flex-col !rounded-none !p-0">
                         {/* Scrollable messages container */}

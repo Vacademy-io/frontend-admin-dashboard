@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import AIQuestionsPreview from "./AIQuestionsPreview";
 import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { getTaskTypeFromFeature } from "../-helpers/GetImagesForAITools";
+import AIChatWithPDFPreview from "./AIChatWithPDFPreview";
 
 const AITasksList = ({
     heading,
@@ -73,9 +74,13 @@ const AITasksList = ({
                                         >
                                             {task.status}
                                         </Badge>
-                                        {(task.status === "COMPLETED" ||
-                                            task.status === "FAILED") && (
-                                            <AIQuestionsPreview task={task} />
+                                        {heading === "Vsmart Chat" ? (
+                                            <AIChatWithPDFPreview task={task} />
+                                        ) : (
+                                            (task.status === "COMPLETED" ||
+                                                task.status === "FAILED") && (
+                                                <AIQuestionsPreview task={task} />
+                                            )
                                         )}
                                     </div>
                                 </div>
