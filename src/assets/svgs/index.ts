@@ -72,3 +72,9 @@ export { AIExtractImg };
 
 import AISorterImg from "./AISorterImg.svg";
 export { AISorterImg };
+
+import AIPlanLectureImg from "./AIPlanLectureImg.svg";
+export { AIPlanLectureImg };
+
+import AIEvaluateLectureImg from "./AIEvaluateLectureImg.svg";
+export { AIEvaluateLectureImg };

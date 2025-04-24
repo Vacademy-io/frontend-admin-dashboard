@@ -7,6 +7,8 @@ import {
     AISorterImg,
     AIUploadAudioImg,
     AIUploadPdfImg,
+    AIPlanLectureImg,
+    AIEvaluateLectureImg,
 } from "@/assets/svgs";
 
 export const GetImagesForAITools = (key: string) => {
@@ -27,6 +29,10 @@ export const GetImagesForAITools = (key: string) => {
             return <AISortAndSplitImg />;
         case "sortTopicsPdf":
             return <AISorterImg />;
+        case "planLecture":
+            return <AIPlanLectureImg />;
+        case "evaluateLecture":
+            return <AIEvaluateLectureImg />;
         default:
             <></>;
     }

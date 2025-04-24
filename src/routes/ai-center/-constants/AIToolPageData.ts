@@ -364,4 +364,41 @@ export const AIToolPageData: AIToolPageDataType = {
             },
         ],
     },
+    planLecture: {
+        key: "planLecture",
+        heading: "Vsmart Lecturer",
+        instructionsHeading: "How to Use Vsmart Sorter",
+        instructionsSubHeading:
+            "This tool helps you generate a complete lecture plan tailored to your teaching style, topics, language, and timeframe — including optional in-between questions and end-of-lecture assignments.",
+        instructions: [
+            {
+                stepHeading: "Click Plan Lecture",
+                steps: [
+                    "Lecture Title and Topics",
+                    "Academic Level (e.g., 8th Standard)",
+                    "Preferred Teaching Method (e.g., Storytelling, More Examples",
+                    "Language (English or Hindi)",
+                    "Total Duration of the Lecture",
+                    "Include Questions in Between? (Yes/No)",
+                    "Add Assignment or Homework at the End? (Yes/No)",
+                ],
+            },
+            {
+                stepHeading: "Click Generate",
+                steps: [
+                    "Once your preferences are set, hit the Generate button. The AI will take a few moments to craft a smart, structured, and interactive lecture plan based on your inputs.",
+                ],
+            },
+            {
+                stepHeading: "Export Your Plan",
+                steps: [
+                    "Time-wise structure",
+                    "Topic-wise breakdown",
+                    "Built-in engagement points (if selected)",
+                    "Assignment section (if selected)",
+                    "Teaching method-based content generation",
+                ],
+            },
+        ],
+    },
 };
