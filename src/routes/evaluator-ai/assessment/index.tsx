@@ -1,3 +1,6 @@
+"use client";
+
+import axios from "axios";
 import { createFileRoute } from "@tanstack/react-router";
 import { LayoutContainer } from "../-components/layout-container/layout-container";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
@@ -5,12 +8,46 @@ import { useEffect, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Examination } from "@/svgs";
 import { useNavigate } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 import { CalendarBlank } from "phosphor-react";
+import { EVALUATION_TOOL_GET_QUESTION } from "@/constants/urls";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import { MarkingCriteriaDialog } from "./create-assessment/-components/marking-criteria-dialog";
 
-interface assessment {
+interface Assessment {
     assessmentId: string;
     title: string;
+}
+
+interface Question {
+    id: string;
+    question_text: {
+        content: string;
+    };
+    question_type: string;
+    evaluation_type: string;
+    explanation: {
+        content: string;
+    };
+    marking_json: string;
+    question_order: number;
+}
+
+interface AssessmentDetails {
+    basic_details: {
+        test_creation: {
+            assessment_name: string;
+        };
+    };
+    sections: Array<{
+        id: string;
+        name: string;
+        questions: Question[];
+    }>;
 }
 
 export const Route = createFileRoute("/evaluator-ai/assessment/")({
@@ -24,7 +61,11 @@ export const Route = createFileRoute("/evaluator-ai/assessment/")({
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
-    const [assessments, setAssessments] = useState<assessment[]>([]);
+    const [assessments, setAssessments] = useState<Assessment[]>([]);
+    const [assessmentDetails, setAssessmentDetails] = useState<
+        Record<string, AssessmentDetails | null>
+    >({});
+    const [loadingAssessments, setLoadingAssessments] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         setNavHeading(<h1 className="text-lg">Assessment</h1>);
@@ -39,6 +80,25 @@ function RouteComponent() {
             }
         }
     }, []);
+
+    const fetchAssessmentDetails = async (assessmentId: string) => {
+        if (assessmentDetails[assessmentId]) return;
+
+        setLoadingAssessments((prev) => ({ ...prev, [assessmentId]: true }));
+
+        try {
+            const response = await axios.get(`${EVALUATION_TOOL_GET_QUESTION}/${assessmentId}`);
+            console.log("Fetched questions for assessment:", assessmentId, response.data);
+            setAssessmentDetails((prev) => ({
+                ...prev,
+                [assessmentId]: response.data,
+            }));
+        } catch {
+            console.error("Error fetching assessment details:");
+        } finally {
+            setLoadingAssessments((prev) => ({ ...prev, [assessmentId]: false }));
+        }
+    };
 
     return (
         <main className="flex min-h-screen scroll-mt-10 flex-col">
@@ -60,37 +120,124 @@ function RouteComponent() {
                                 Create Assessment
                             </MyButton>
                         </div>
-                        {assessments.map((assessment) => (
-                            <div
-                                key={assessment.assessmentId}
-                                className="flex flex-col rounded-md border bg-white p-4 shadow-sm transition hover:shadow-md"
-                            >
-                                <div>
-                                    <h3 className="text-base font-semibold text-gray-800">
-                                        {assessment.title}
-                                    </h3>
-                                    <span className="text-xs text-gray-500">
-                                        Assessment ID: {assessment.assessmentId}
-                                    </span>
-                                </div>
-                                <Button
-                                    className="ml-auto"
-                                    variant={"destructive"}
-                                    onClick={() => {
-                                        const updatedAssessments = assessments.filter(
-                                            (a) => a.assessmentId !== assessment.assessmentId,
-                                        );
-                                        setAssessments(updatedAssessments);
-                                        localStorage.setItem(
-                                            "assessments",
-                                            JSON.stringify(updatedAssessments),
-                                        );
-                                    }}
+
+                        <Accordion type="single" collapsible className="w-full">
+                            {assessments.map((assessment) => (
+                                <AccordionItem
+                                    key={assessment.assessmentId}
+                                    value={assessment.assessmentId}
+                                    className="mb-4 rounded-md border bg-white shadow-sm transition hover:shadow-md"
                                 >
-                                    Delete
-                                </Button>
-                            </div>
-                        ))}
+                                    <AccordionTrigger
+                                        className="px-4 py-2"
+                                        onClick={() =>
+                                            fetchAssessmentDetails(assessment.assessmentId)
+                                        }
+                                    >
+                                        <div className="flex flex-col items-start text-left">
+                                            <h3 className="text-base font-semibold text-gray-800">
+                                                {assessment.title}
+                                            </h3>
+                                            <span className="text-xs text-gray-500">
+                                                Assessment ID: {assessment.assessmentId}
+                                            </span>
+                                        </div>
+                                    </AccordionTrigger>
+
+                                    <AccordionContent className="px-4">
+                                        {loadingAssessments[assessment.assessmentId] ? (
+                                            <div className="py-4 text-center">
+                                                <div className="inline-block size-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></div>
+                                                <p className="mt-2 text-sm text-gray-500">
+                                                    Loading assessment details...
+                                                </p>
+                                            </div>
+                                        ) : assessmentDetails[assessment.assessmentId] ? (
+                                            <div className="py-2">
+                                                {assessmentDetails[
+                                                    assessment.assessmentId
+                                                ]?.sections.map((section) => (
+                                                    <div
+                                                        key={section.id}
+                                                        className="mb-4 rounded-md border p-3"
+                                                    >
+                                                        <h4 className="mb-2 font-medium">
+                                                            {section.name}
+                                                        </h4>
+
+                                                        <div className="space-y-1">
+                                                            <div className="mb-2 grid grid-cols-3 text-sm font-medium text-muted-foreground">
+                                                                <div>Question</div>
+                                                                <div>Answer</div>
+                                                                {/* <div>Evaluation</div> */}
+                                                                <div>Actions</div>
+                                                            </div>
+
+                                                            {section.questions.map((question) => (
+                                                                <div
+                                                                    key={question.id}
+                                                                    className="grid grid-cols-3 items-center border-t py-2"
+                                                                >
+                                                                    <div
+                                                                        className="text-sm"
+                                                                        dangerouslySetInnerHTML={{
+                                                                            __html: question
+                                                                                .question_text
+                                                                                .content,
+                                                                        }}
+                                                                    />
+                                                                    <div
+                                                                        className="text-sm"
+                                                                        dangerouslySetInnerHTML={{
+                                                                            __html: question
+                                                                                .explanation
+                                                                                .content,
+                                                                        }}
+                                                                    />
+                                                                    <div>
+                                                                        <MarkingCriteriaDialog
+                                                                            markingJson={
+                                                                                question.marking_json
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                                <div className="mt-4 flex justify-between border-t pt-2">
+                                                    <button
+                                                        className="rounded-md bg-red-500 px-3 py-1.5 text-sm text-white"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const updatedAssessments =
+                                                                assessments.filter(
+                                                                    (a) =>
+                                                                        a.assessmentId !==
+                                                                        assessment.assessmentId,
+                                                                );
+                                                            setAssessments(updatedAssessments);
+                                                            localStorage.setItem(
+                                                                "assessments",
+                                                                JSON.stringify(updatedAssessments),
+                                                            );
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="py-4 text-center text-gray-500">
+                                                Failed to load assessment details
+                                            </div>
+                                        )}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
                     </div>
                 ) : (
                     <div className="py-10 text-center text-gray-500">
@@ -100,7 +247,7 @@ function RouteComponent() {
                             scale="large"
                             buttonType="primary"
                             layoutVariant="default"
-                            className="ml-auto"
+                            className="mx-auto"
                             onClick={() =>
                                 navigate({ to: "/evaluator-ai/assessment/create-assessment" })
                             }

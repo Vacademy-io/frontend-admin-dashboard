@@ -27,14 +27,28 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown } from "lucide-react";
 import { useLoaderStore } from "../-hooks/loader";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
+interface AttemptData {
+    id: string;
+    pdfId: string;
+    fileId: string;
+    date: string;
+}
 
 export interface StudentData {
     name: string;
     enrollId: string;
-    pdfId: string;
-    fileId?: string;
+    attempts: AttemptData[];
+    currentAttemptIndex: number;
 }
 
 interface StudentSelectionDialogProps {
@@ -55,6 +69,7 @@ export function StudentSelectionDialog({
     const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
     const [selectedAssessment, setSelectedAssessment] = useState<string>("");
     const [isEvaluating, setIsEvaluating] = useState(false);
+    const [attemptDropdownOpen, setAttemptDropdownOpen] = useState<Record<number, boolean>>({});
 
     const { setLoading } = useLoaderStore();
     const studentData = JSON.parse(localStorage.getItem("students") || "[]") as StudentData[];
@@ -130,6 +145,36 @@ export function StudentSelectionDialog({
         }
     };
 
+    const handleSelectAttempt = (studentIndex: number, attemptIndex: number) => {
+        const actualIndex = (currentPage - 1) * itemsPerPage + studentIndex;
+
+        // Create a copy of the student data to modify
+        const updatedStudentData = [...studentData];
+        if (updatedStudentData[actualIndex]) {
+            updatedStudentData[actualIndex].currentAttemptIndex = attemptIndex;
+        }
+
+        // Update localStorage
+        localStorage.setItem("students", JSON.stringify(updatedStudentData));
+
+        // Close the dropdown
+        setAttemptDropdownOpen({ ...attemptDropdownOpen, [studentIndex]: false });
+
+        // Force a re-render by updating a state
+        setSelected([...selected]);
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -160,8 +205,8 @@ export function StudentSelectionDialog({
                                                 Student Name
                                             </TableHead>
                                             <TableHead>Enrollment ID</TableHead>
-                                            <TableHead>PDF ID</TableHead>
-                                            <TableHead>File ID</TableHead>
+                                            <TableHead>Attempt Count</TableHead>
+                                            <TableHead>Current PDF ID</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -207,6 +252,8 @@ export function StudentSelectionDialog({
                                             paginatedStudents.map((student, index) => {
                                                 const actualIndex =
                                                     (currentPage - 1) * itemsPerPage + index;
+                                                const currentAttempt: AttemptData | undefined =
+                                                    student.attempts[student.currentAttemptIndex];
                                                 return (
                                                     <TableRow key={index}>
                                                         <TableCell className="sticky left-0 z-10 bg-white text-center">
@@ -223,9 +270,67 @@ export function StudentSelectionDialog({
                                                             {student.name}
                                                         </TableCell>
                                                         <TableCell>{student.enrollId}</TableCell>
-                                                        <TableCell>{student.pdfId}</TableCell>
                                                         <TableCell>
-                                                            {student.fileId || "N/A"}
+                                                            <DropdownMenu
+                                                                open={attemptDropdownOpen[index]}
+                                                                onOpenChange={(open) =>
+                                                                    setAttemptDropdownOpen({
+                                                                        ...attemptDropdownOpen,
+                                                                        [index]: open,
+                                                                    })
+                                                                }
+                                                            >
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="flex items-center gap-1"
+                                                                    >
+                                                                        {student.attempts.length}{" "}
+                                                                        Attempts
+                                                                        <ChevronDown className="size-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent
+                                                                    align="start"
+                                                                    className="w-56"
+                                                                >
+                                                                    {student.attempts.map(
+                                                                        (attempt, attemptIndex) => (
+                                                                            <DropdownMenuItem
+                                                                                key={attempt.id}
+                                                                                className={cn(
+                                                                                    "flex cursor-pointer justify-between",
+                                                                                    student.currentAttemptIndex ===
+                                                                                        attemptIndex &&
+                                                                                        "bg-muted",
+                                                                                )}
+                                                                                onClick={() =>
+                                                                                    handleSelectAttempt(
+                                                                                        index,
+                                                                                        attemptIndex,
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <span>
+                                                                                    Attempt{" "}
+                                                                                    {attemptIndex +
+                                                                                        1}
+                                                                                </span>
+                                                                                <span className="text-xs text-muted-foreground">
+                                                                                    {formatDate(
+                                                                                        attempt.date,
+                                                                                    )}
+                                                                                </span>
+                                                                            </DropdownMenuItem>
+                                                                        ),
+                                                                    )}
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {currentAttempt?.pdfId || "N/A"}
+                                                            {/* {currentAttempt ? currentAttempt.pdfId : "N/A"} */}
                                                         </TableCell>
                                                     </TableRow>
                                                 );
