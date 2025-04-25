@@ -7,7 +7,7 @@ const EvaluateReportPreview = ({ openDialog = false }: { openDialog: boolean }) 
     const [open, setOpen] = useState(openDialog);
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent>
+            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none p-4">
                 <div className="flex h-screen w-screen flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <h1 className="text-xl font-semibold">Feedback Report</h1>
