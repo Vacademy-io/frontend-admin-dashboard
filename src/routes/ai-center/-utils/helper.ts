@@ -122,3 +122,32 @@ export function convertSVGsToBase64(htmlString: string) {
 
     return doc.body.innerHTML;
 }
+
+export function getPerformanceLabel(score: number): string {
+    if (score < 40) return "Needs Improvement";
+    if (score >= 40 && score < 60) return "Average";
+    if (score >= 60 && score < 80) return "Good";
+    return "Excellent"; // score >= 80
+}
+
+export function getPerformanceColor(score: number): string {
+    if (score < 40) return "text-destructive text-sm"; // or "text-danger-500" if using custom
+    if (score >= 40 && score < 60) return "text-warning-500 text-sm";
+    if (score > 60 && score <= 80) return "text-success-500 text-sm";
+    return "text-success-500 text-sm"; // for score > 80
+}
+
+export function getScoreFromString(input: string): number {
+    const scores: Record<string, number> = {
+        "Delivery & Presentation": 20,
+        "Content Quality": 20,
+        "Student Engagement": 15,
+        "Assessment & Feedback": 10,
+        "Inclusivity & Language": 10,
+        "Classroom Management": 10,
+        "Teaching Aids": 10,
+        Professionalism: 5,
+    };
+
+    return scores[input.trim()] ?? 0;
+}
