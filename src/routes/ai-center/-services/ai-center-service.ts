@@ -2,6 +2,7 @@ import { getInstituteId } from "@/constants/helper";
 import {
     CHAT_WITH_PDF_AI_URL,
     CONVERT_PDF_TO_HTML_AI_URL,
+    GENERATE_FEEDBACK_FROM_FILE_AI_URL,
     GENERATE_QUESTIONS_FROM_FILE_AI_URL,
     GET_INDIVIDUAL_AI_TASK_QUESTIONS,
     GET_INDIVIDUAL_CHAT_WITH_PDF_AI_TASK_QUESTIONS,
@@ -134,6 +135,20 @@ export const handleGenerateAssessmentQuestions = async (
         params: {
             pdfId,
             userPrompt,
+            taskName,
+            instituteId,
+        },
+    });
+    return response?.data;
+};
+
+export const handleEvaluateLecture = async (audioId: string, taskName: string) => {
+    const instituteId = getInstituteId();
+    const response = await axios({
+        method: "GET",
+        url: GENERATE_FEEDBACK_FROM_FILE_AI_URL,
+        params: {
+            audioId,
             taskName,
             instituteId,
         },

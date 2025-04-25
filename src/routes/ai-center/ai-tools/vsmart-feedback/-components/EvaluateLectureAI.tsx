@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 import {
-    handleGenerateAssessmentQuestions,
+    handleEvaluateLecture,
     handleStartProcessUploadedAudioFile,
 } from "@/routes/ai-center/-services/ai-center-service";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
@@ -44,7 +44,7 @@ const EvaluateLectureAI = () => {
     };
 
     /* Generate Assessment Complete */
-    const MAX_POLL_ATTEMPTS = 10;
+    const MAX_POLL_ATTEMPTS = 3;
     const pollingCountRef = useRef(0);
     const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
     const pendingRef = useRef(false);
@@ -59,18 +59,10 @@ const EvaluateLectureAI = () => {
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({
-            pdfId,
-            userPrompt,
-            taskName,
-        }: {
-            pdfId: string;
-            userPrompt: string;
-            taskName: string;
-        }) => {
+        mutationFn: ({ pdfId, taskName }: { pdfId: string; taskName: string }) => {
             setLoader(true);
             setKey("evaluateLecture");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
+            return handleEvaluateLecture(pdfId, taskName);
         },
         onSuccess: (response, { pdfId }) => {
             // Check if response indicates pending state
@@ -139,7 +131,6 @@ const EvaluateLectureAI = () => {
         }
         generateAssessmentMutation.mutate({
             pdfId: pdfId,
-            userPrompt: "",
             taskName,
         });
     };

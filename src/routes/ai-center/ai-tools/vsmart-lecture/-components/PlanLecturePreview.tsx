@@ -19,7 +19,7 @@ const PlanLecturePreview = ({
                 </h1>
                 <div className="flex h-screen w-full flex-col gap-4 p-6">
                     <h1 className="text-xl font-semibold">
-                        📘 Lecture Title: {planLectureData.heading}
+                        📘 Lecture Title: {planLectureData?.heading}
                     </h1>
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center">
@@ -41,16 +41,16 @@ const PlanLecturePreview = ({
                     </div>
                     <Separator />
                     <div className="flex flex-col gap-4">
-                        {planLectureData.timeWiseSplit.map((lectureData, idx) => {
+                        {planLectureData?.timeWiseSplit?.map((lectureData, idx) => {
                             return (
                                 <>
                                     <div key={idx} className="flex flex-col gap-3">
                                         <div className="flex items-center gap-4">
                                             <h1 className="font-semibold">
-                                                {lectureData.sectionHeading}
+                                                {lectureData?.sectionHeading}
                                             </h1>
                                             <span className="text-primary-300">
-                                                ({lectureData.timeSplit})
+                                                ({lectureData?.timeSplit})
                                             </span>
                                         </div>
                                         <div className="flex items-center">
@@ -58,7 +58,7 @@ const PlanLecturePreview = ({
                                                 Topic Covered:&nbsp;
                                             </span>
                                             <div className="flex items-center gap-2">
-                                                {lectureData.topicCovered.map((topic, idx) => {
+                                                {lectureData?.topicCovered?.map((topic, idx) => {
                                                     return (
                                                         <span
                                                             key={idx}
@@ -73,13 +73,13 @@ const PlanLecturePreview = ({
                                         <div>
                                             <span>Content:</span>
                                             <p className="text-sm font-thin">
-                                                {lectureData.content}
+                                                {lectureData?.content}
                                             </p>
                                         </div>
                                         <div>
                                             <span>In-Lecture Question:</span>
                                             <div className="flex flex-col">
-                                                {lectureData.questionToStudents.map(
+                                                {lectureData?.questionToStudents?.map(
                                                     (activity, idx) => {
                                                         return (
                                                             <p
@@ -96,7 +96,7 @@ const PlanLecturePreview = ({
                                         <div>
                                             <span>Activity:</span>
                                             <div className="flex flex-col">
-                                                {lectureData.activity.map((activity, idx) => {
+                                                {lectureData?.activity?.map((activity, idx) => {
                                                     return (
                                                         <p key={idx} className="text-sm font-thin">
                                                             {activity}
@@ -119,7 +119,7 @@ const PlanLecturePreview = ({
                         <div className="flex items-center">
                             <span className="text-sm font-semibold">Topic Covered:&nbsp;</span>
                             <div className="flex items-center gap-2">
-                                {planLectureData.assignment.topicCovered.map((topic, idx) => {
+                                {planLectureData?.assignment?.topicCovered?.map((topic, idx) => {
                                     return (
                                         <span key={idx} className="text-sm font-thin">
                                             {topic}
@@ -131,7 +131,7 @@ const PlanLecturePreview = ({
                         <div className="flex flex-col">
                             <span>Task:</span>
                             <div className="-mb-1 flex flex-col">
-                                {planLectureData.assignment.tasks.map((activity, idx) => {
+                                {planLectureData?.assignment?.tasks?.map((activity, idx) => {
                                     return (
                                         <p key={idx} className="text-sm font-thin">
                                             {idx + 1}. {activity}
