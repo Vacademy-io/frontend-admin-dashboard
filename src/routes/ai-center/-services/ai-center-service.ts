@@ -267,8 +267,8 @@ export const handleGetQuestionsFromText = async (
             question_type: question_type,
             question_language: question_language,
             taskName,
-            instituteId,
         },
+        params: { instituteId },
     });
     return response?.data;
 };
