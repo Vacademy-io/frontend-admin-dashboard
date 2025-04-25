@@ -48,11 +48,11 @@ export const getTaskTypeFromFeature = (heading: string): string => {
         case "Vsmart Audio":
             return "AUDIO_TO_QUESTIONS";
         case "Vsmart Topics":
-            return "PDF_TO_QUESTIONS_WITH_TOPIC";
+            return "TEXT_TO_QUESTIONS";
         case "Vsmart Chat":
             return "CHAT_WITH_PDF";
         case "Vsmart Organizer":
-            return "SORT_AND_SPLIT_TOPICS";
+            return "PDF_TO_QUESTIONS_WITH_TOPIC";
         case "Vsmart Sorter":
             return "SORT_QUESTIONS_TOPIC_WISE";
         case "Vsmart Lecturer":
