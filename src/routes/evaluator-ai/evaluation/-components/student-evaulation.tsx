@@ -9,7 +9,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "@tanstack/react-router";
 import { ArrowUpDown, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -143,11 +142,8 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                                     </TableCell>
                                     <TableCell>{student.marks}</TableCell>
 
-                                    <TableCell className="ml-8">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="size-8"
+                                    <TableCell className="">
+                                        <div
                                             onClick={() => {
                                                 router.navigate({
                                                     to: `/evaluator-ai/evaluation/student-summary?studentId=${student.id}`,
@@ -157,7 +153,7 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                                             <span className="cursor-pointer text-orange-500 hover:underline">
                                                 Details
                                             </span>
-                                        </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             );

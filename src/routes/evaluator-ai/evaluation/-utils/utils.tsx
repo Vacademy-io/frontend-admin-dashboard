@@ -71,6 +71,7 @@ export function transformEvaluationData(evaluationResults: EvaluationResult[]): 
             enrollmentId: result.user_id || `enroll-${index + 1}`,
             assessment: assessment,
             status: "completed",
+            summary: result,
             marks: `${result.total_marks_obtained}/${result.total_marks}`,
         };
     });

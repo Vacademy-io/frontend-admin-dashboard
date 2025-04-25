@@ -49,7 +49,7 @@ export function StudentSelectionDialog({
     isOpen,
     onOpenChange,
     onSubmit,
-    itemsPerPage = 5,
+    itemsPerPage = 10,
 }: StudentSelectionDialogProps) {
     const [selected, setSelected] = useState<number[]>([]);
     const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);

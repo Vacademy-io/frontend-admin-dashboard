@@ -281,6 +281,9 @@ importers:
       dom-to-image:
         specifier: ^2.6.0
         version: 2.6.0
+      emailjs-com:
+        specifier: ^3.2.0
+        version: 3.2.0
       fabric:
         specifier: ^6.6.1
         version: 6.6.1
@@ -6160,6 +6163,11 @@ packages:
 
   electron-to-chromium@1.5.80:
     resolution: {integrity: sha512-LTrKpW0AqIuHwmlVNV+cjFYTnXtM9K37OGhpe0ZI10ScPSxqVSryZHIY3WnCS5NSYbBODRTZyhRMS2h5FAEqAw==}
+
+  emailjs-com@3.2.0:
+    resolution: {integrity: sha512-Prbz3E1usiAwGjMNYRv6EsJ5c373cX7/AGnZQwOfrpNJrygQJ15+E9OOq4pU8yC977Z5xMetRfc3WmDX6RcjAA==}
+    engines: {node: '>=12.0.0'}
+    deprecated: The SDK name changed to @emailjs/browser
 
   emittery@0.10.2:
     resolution: {integrity: sha512-aITqOwnLanpHLNXZJENbOgjUBeHocD+xsSJmNrjovKBW5HbSpW3d1pEls7GFQPUWXiwG9+0P4GtHfEqC/4M0Iw==}
@@ -17887,6 +17895,8 @@ snapshots:
       jake: 10.9.2
 
   electron-to-chromium@1.5.80: {}
+
+  emailjs-com@3.2.0: {}
 
   emittery@0.10.2: {}
 

@@ -38,6 +38,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { GET_PUBLIC_URL_PUBLIC } from "@/constants/urls";
 
@@ -56,8 +57,9 @@ interface StudentData {
     fileId?: string;
 }
 
-export function StudentEnrollmentDialog() {
-    const [open, setOpen] = useState(false);
+export function StudentEnrollment() {
+    const { q } = useSearch({ from: "/evaluator-ai/students/" }) as { q: string };
+    const [open, setOpen] = useState(q ? true : false);
     const [name, setName] = useState("");
     const [enrollId, setEnrollId] = useState("");
     const [pdfId, setPdfId] = useState("");
@@ -72,7 +74,7 @@ export function StudentEnrollmentDialog() {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     const totalPages = Math.ceil(students.length / itemsPerPage);
     const paginatedStudents = students.slice(
         (currentPage - 1) * itemsPerPage,
@@ -293,13 +295,8 @@ export function StudentEnrollmentDialog() {
                         setOpen(newOpen);
                     }}
                     trigger={
-                        <MyButton
-                            type="button"
-                            scale="medium"
-                            buttonType="primary"
-                            className="font-medium"
-                        >
-                            Enroll Student
+                        <MyButton scale="large" buttonType="primary" type="button">
+                            Enroll Students
                         </MyButton>
                     }
                 >
@@ -356,7 +353,7 @@ export function StudentEnrollmentDialog() {
                                                     Uploading...
                                                 </>
                                             ) : (
-                                                "Upload File"
+                                                "Upload file"
                                             )}
                                         </MyButton>
                                     )}
@@ -372,7 +369,7 @@ export function StudentEnrollmentDialog() {
                                         ? "pointer-events-none opacity-50"
                                         : "cursor-pointer",
                                 )}
-                                disabled={!name || !enrollId || !pdfId}
+                                disabled={!name && !enrollId && !pdfId}
                             >
                                 {isEditMode ? "Update" : "Enroll"}
                             </MyButton>
@@ -382,100 +379,106 @@ export function StudentEnrollmentDialog() {
             </div>
             {/* Table displaying all enrolled students */}
             <div className="mt-6 rounded-md border">
-                <div className="overflow-hidden">
-                    <Table>
-                        <TableHeader className="bg-primary-50">
-                            <TableRow>
-                                <TableHead className="sticky left-0 z-10 w-12 bg-primary-50 text-center">
-                                    <Checkbox
-                                        checked={
-                                            selected.length > 0 &&
-                                            selected.length === paginatedStudents.length
-                                        }
-                                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                                    />
-                                </TableHead>
-                                <TableHead className="sticky left-12 z-10 bg-primary-50">
-                                    Student Name
-                                </TableHead>
-                                <TableHead>Enrollment ID</TableHead>
-                                <TableHead>PDF ID</TableHead>
-                                <TableHead>File ID</TableHead>
-                                <TableHead>View PDF</TableHead>
-                                <TableHead className="w-10 text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {paginatedStudents.map((student, index) => {
-                                const actualIndex = (currentPage - 1) * itemsPerPage + index;
-                                return (
-                                    <TableRow key={index}>
-                                        <TableCell className="sticky left-0 z-10 bg-white text-center">
-                                            <Checkbox
-                                                checked={selected.includes(actualIndex)}
-                                                onCheckedChange={() => toggleSelect(actualIndex)}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="sticky left-12 z-10 bg-white">
-                                            {student.name}
-                                        </TableCell>
-                                        <TableCell>{student.enrollId}</TableCell>
-                                        <TableCell>{student.pdfId}</TableCell>
-                                        <TableCell>{student.fileId || "N/A"}</TableCell>
-                                        <TableCell>
-                                            {student.fileId ? (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleViewPdf(student.fileId)}
-                                                    disabled={loadingPdf[student.fileId || ""]}
-                                                    className="flex items-center gap-1"
-                                                >
-                                                    {loadingPdf[student.fileId || ""] ? (
-                                                        <Loader2 className="size-4 animate-spin" />
-                                                    ) : (
-                                                        <FileText className="size-4" />
-                                                    )}
-                                                    View PDF
-                                                </Button>
-                                            ) : (
-                                                <span className="text-sm text-muted-foreground">
-                                                    No file
-                                                </span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button className="rounded-full p-1">
-                                                        <MoreVertical className="size-4" />
-                                                        <span className="sr-only">Open menu</span>
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={() => handleEdit(index)}
-                                                        className="cursor-pointer"
+                {students.length !== 0 && (
+                    <div className="overflow-hidden">
+                        <Table>
+                            <TableHeader className="bg-primary-50">
+                                <TableRow>
+                                    <TableHead className="sticky left-0 z-10 w-12 bg-primary-50 text-center">
+                                        <Checkbox
+                                            checked={
+                                                selected.length > 0 &&
+                                                selected.length === paginatedStudents.length
+                                            }
+                                            onCheckedChange={(checked) =>
+                                                handleSelectAll(!!checked)
+                                            }
+                                        />
+                                    </TableHead>
+                                    <TableHead className="sticky left-12 z-10 bg-primary-50">
+                                        Student Name
+                                    </TableHead>
+                                    <TableHead>Enrollment ID</TableHead>
+                                    <TableHead>View PDF</TableHead>
+                                    <TableHead className="w-10 text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedStudents.map((student, index) => {
+                                    const actualIndex = (currentPage - 1) * itemsPerPage + index;
+                                    return (
+                                        <TableRow key={index}>
+                                            <TableCell className="sticky left-0 z-10 bg-white text-center">
+                                                <Checkbox
+                                                    checked={selected.includes(actualIndex)}
+                                                    onCheckedChange={() =>
+                                                        toggleSelect(actualIndex)
+                                                    }
+                                                />
+                                            </TableCell>
+                                            <TableCell className="sticky left-12 z-10 bg-white">
+                                                {student.name}
+                                            </TableCell>
+                                            <TableCell>{student.enrollId}</TableCell>
+                                            <TableCell>
+                                                {student.fileId ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            handleViewPdf(student.fileId)
+                                                        }
+                                                        disabled={loadingPdf[student.fileId || ""]}
+                                                        className="flex items-center gap-1"
                                                     >
-                                                        <Pencil className="mr-2 size-4" />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => handleDelete(index)}
-                                                        className="cursor-pointer text-destructive focus:text-destructive"
-                                                    >
-                                                        <Trash2 className="mr-2 size-4" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                </div>
+                                                        {loadingPdf[student.fileId || ""] ? (
+                                                            <Loader2 className="size-4 animate-spin" />
+                                                        ) : (
+                                                            <FileText className="size-4" />
+                                                        )}
+                                                        View PDF
+                                                    </Button>
+                                                ) : (
+                                                    <span className="text-sm text-muted-foreground">
+                                                        No file
+                                                    </span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button className="rounded-full p-1">
+                                                            <MoreVertical className="size-4" />
+                                                            <span className="sr-only">
+                                                                Open menu
+                                                            </span>
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleEdit(index)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            <Pencil className="mr-2 size-4" />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleDelete(index)}
+                                                            className="cursor-pointer text-destructive focus:text-destructive"
+                                                        >
+                                                            <Trash2 className="mr-2 size-4" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
 
                 {students.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">
