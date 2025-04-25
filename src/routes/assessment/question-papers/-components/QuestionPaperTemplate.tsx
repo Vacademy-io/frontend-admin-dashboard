@@ -49,6 +49,7 @@ export function QuestionPaperTemplate({
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperTemplateProps) {
+    console.log(form.getValues());
     const [isQuestionPaperTemplateDialog, setIsQuestionPaperTemplateDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const { handleRefetchData } = useRefetchStore();
@@ -151,6 +152,7 @@ export function QuestionPaperTemplate({
                 duration: 2000,
             });
             setIsQuestionPaperTemplateDialog(false);
+            queryClient.invalidateQueries({ queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA"] });
         },
         onError: (error: unknown) => {
             throw error;
@@ -300,7 +302,6 @@ export function QuestionPaperTemplate({
                                     type="submit"
                                     variant="outline"
                                     className="w-44 bg-transparent shadow-none hover:bg-transparent"
-                                    onClick={handleTriggerForm}
                                 >
                                     Exit
                                 </Button>
