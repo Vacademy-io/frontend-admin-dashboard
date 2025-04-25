@@ -107,4 +107,29 @@ export const AIToolCardData: AIToolCardDataType[] = [
             },
         ],
     },
+    {
+        title: "Lecture support with AI",
+        features: [
+            {
+                key: "planLecture",
+                heading: "Vsmart Lecturer",
+                subheading: "Generate structured, time-based lectures with just a prompt",
+                description: [
+                    "Create custom lecture plans effortlessly. With Vsmart Lecturer, all you need to do is enter what topics you want to cover, the academic level (e.g., 8th standard), your preferred teaching method, the language (English or Hindi), and total lecture duration. You can also choose whether to include questions during the session or assignments at the end. Based on your inputs, Vsmart Lecturer generates a well-structured, AI-powered lecture flow — ready to deliver.",
+                    "Ideal for educators, trainers, and facilitators who want to design purposeful and interactive lectures without starting from scratch. Whether you're preparing a short 30-minute lesson or a detailed 90-minute workshop, just enter your preferences — from time splits and teaching style to language and student engagement activities — and instantly receive a full, downloadable lecture blueprint tailored to your needs.",
+                ],
+                route: "/ai-center/ai-tools/vsmart-lecture",
+            },
+            {
+                key: "evaluateLecture",
+                heading: "Vsmart Feedback",
+                subheading: "Get feedback reports on your lecture performance",
+                description: [
+                    "Upload your lecture recording and let AI evaluate your performance. Vsmart Lecturer listens to your audio file and generates a comprehensive report — scoring you on clarity, content delivery, engagement, structure, and pacing. Get instant feedback on what you did well and what could be improved.",
+                    "Designed for educators, trainers, and presenters who want to refine their speaking and teaching style. Whether you're preparing for a classroom session, webinar, or workshop — just upload a WAV, MP3, FLAC, AAC, or M4A file and receive a detailed, actionable evaluation of your lecture.",
+                ],
+                route: "/ai-center/ai-tools/vsmart-feedback",
+            },
+        ],
+    },
 ];

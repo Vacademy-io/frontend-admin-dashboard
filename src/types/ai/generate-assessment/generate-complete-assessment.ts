@@ -65,3 +65,28 @@ export interface AITaskIndividualListInterface {
     created_at: string; // ISO datetime string
     updated_at: string; // ISO datetime string
 }
+
+interface TimeWiseSection {
+    sectionHeading: string;
+    timeSplit: string;
+    content: string;
+    topicCovered: string[];
+    questionToStudents: string[];
+    activity: string[];
+}
+
+interface Assignment {
+    topicCovered: string[];
+    tasks: string[];
+}
+
+export interface PlanLectureDataInterface {
+    heading: string;
+    mode: string;
+    duration: string;
+    language: string;
+    level: string;
+    timeWiseSplit: TimeWiseSection[];
+    assignment: Assignment;
+    summary: string[];
+}
