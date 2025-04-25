@@ -7,8 +7,11 @@ const EvaluateReportPreview = ({ openDialog = false }: { openDialog: boolean }) 
     const [open, setOpen] = useState(openDialog);
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none p-4">
-                <div className="flex h-screen w-screen flex-col gap-4">
+            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none p-0">
+                <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
+                    VSmart Evaluate Report Preview
+                </h1>
+                <div className="flex h-screen w-screen flex-col gap-4 p-6">
                     <div className="flex items-center justify-between">
                         <h1 className="text-xl font-semibold">Feedback Report</h1>
                         <MyButton type="button" scale="large" buttonType="secondary">
