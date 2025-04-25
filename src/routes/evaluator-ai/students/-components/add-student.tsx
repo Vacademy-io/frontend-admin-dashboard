@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, MoreVertical, Pencil, Trash2, FileText } from "lucide-react";
+import { Loader2, MoreVertical, Pencil, Trash2, FileText, Plus, ChevronDown } from "lucide-react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { handleStartProcessUploadedFile } from "@/routes/ai-center/-services/ai-center-service";
@@ -50,11 +50,18 @@ export const getPublicUrl = async (fileId: string | undefined | null): Promise<s
     return response?.data;
 };
 
+interface AttemptData {
+    id: string;
+    pdfId: string;
+    fileId?: string;
+    date: string;
+}
+
 interface StudentData {
     name: string;
     enrollId: string;
-    pdfId: string;
-    fileId?: string;
+    attempts: AttemptData[];
+    currentAttemptIndex: number;
 }
 
 export function StudentEnrollment() {
@@ -72,6 +79,11 @@ export function StudentEnrollment() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [loadingPdf, setLoadingPdf] = useState<Record<string, boolean>>({});
 
+    // New state for attempt management
+    const [attemptDialogOpen, setAttemptDialogOpen] = useState(false);
+    const [currentStudentIndex, setCurrentStudentIndex] = useState<number | null>(null);
+    const [attemptDropdownOpen, setAttemptDropdownOpen] = useState<Record<number, boolean>>({});
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -82,8 +94,30 @@ export function StudentEnrollment() {
     );
 
     useEffect(() => {
+        // Convert old format to new format with attempts
         const savedStudents = JSON.parse(localStorage.getItem("students") || "[]");
-        setStudents(savedStudents);
+        const convertedStudents = savedStudents.map((student: any) => {
+            // If the student already has attempts array, return as is
+            if (student.attempts) return student;
+
+            // Convert old format to new format
+            return {
+                name: student.name,
+                enrollId: student.enrollId,
+                attempts: student.pdfId
+                    ? [
+                          {
+                              id: crypto.randomUUID(),
+                              pdfId: student.pdfId,
+                              fileId: student.fileId,
+                              date: new Date().toISOString(),
+                          },
+                      ]
+                    : [],
+                currentAttemptIndex: 0,
+            };
+        });
+        setStudents(convertedStudents);
     }, []);
 
     // Reset form when dialog closes
@@ -134,30 +168,64 @@ export function StudentEnrollment() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!name || !enrollId || !pdfId) {
             toast.warning("Please fill in all fields and upload a file.");
             return;
         }
-
-        const studentData: StudentData = {
-            name,
-            enrollId,
-            pdfId,
-            fileId,
-        };
-
         try {
             let updatedStudents: StudentData[];
-
             if (isEditMode && editIndex !== null) {
                 // Edit existing student
                 updatedStudents = [...students];
-                updatedStudents[editIndex] = studentData;
+
+                // Update basic info
+                if (updatedStudents[editIndex]) {
+                    updatedStudents[editIndex].name = name;
+                    updatedStudents[editIndex].enrollId = enrollId;
+                }
+
+                // If a new file was uploaded, update the first attempt or create one
+                if (pdfId) {
+                    const student = updatedStudents[editIndex];
+                    if (student && student.attempts.length === 0) {
+                        student.attempts.push({
+                            id: crypto.randomUUID(),
+                            pdfId,
+                            fileId: fileId || "",
+                            date: new Date().toISOString(),
+                        });
+                        student.currentAttemptIndex = 0;
+                    } else if (student) {
+                        const currentAttemptIndex = student.currentAttemptIndex;
+                        const currentAttempt = student.attempts[currentAttemptIndex];
+                        if (currentAttempt) {
+                            student.attempts[currentAttemptIndex] = {
+                                ...currentAttempt,
+                                pdfId,
+                                fileId: fileId || "",
+                            };
+                        }
+                    }
+                }
+
                 toast.success("Student updated successfully!");
             } else {
                 // Add new student
-                updatedStudents = [...students, studentData];
+                const newStudent: StudentData = {
+                    name,
+                    enrollId,
+                    attempts: [
+                        {
+                            id: crypto.randomUUID(),
+                            pdfId,
+                            fileId,
+                            date: new Date().toISOString(),
+                        },
+                    ],
+                    currentAttemptIndex: 0,
+                };
+
+                updatedStudents = [...students, newStudent];
                 toast.success("Student enrolled successfully!");
             }
 
@@ -181,8 +249,18 @@ export function StudentEnrollment() {
         if (student) {
             setName(student.name);
             setEnrollId(student.enrollId);
-            setPdfId(student.pdfId);
-            setFileId(student.fileId || "");
+
+            // Set PDF ID and file ID from current attempt if available
+            if (student.attempts.length > 0) {
+                const currentAttempt = student.attempts[student.currentAttemptIndex];
+                if (currentAttempt) {
+                    setPdfId(currentAttempt.pdfId);
+                    setFileId(currentAttempt.fileId || "");
+                }
+            } else {
+                setPdfId("");
+                setFileId("");
+            }
         }
 
         // Set edit mode
@@ -220,7 +298,18 @@ export function StudentEnrollment() {
         }
     };
 
-    const handleViewPdf = async (fileId: string | undefined) => {
+    const handleViewPdf = async (studentIndex: number) => {
+        const actualIndex = (currentPage - 1) * itemsPerPage + studentIndex;
+        const student = students[actualIndex];
+
+        if (!student || student.attempts.length === 0) {
+            toast.error("No file available");
+            return;
+        }
+
+        const currentAttempt = student.attempts[student.currentAttemptIndex];
+        const fileId = currentAttempt?.fileId;
+
         if (!fileId) {
             toast.error("No file ID available");
             return;
@@ -242,6 +331,97 @@ export function StudentEnrollment() {
         } finally {
             setLoadingPdf({ ...loadingPdf, [fileId]: false });
         }
+    };
+
+    // New functions for attempt management
+    const openAddAttemptDialog = (index: number) => {
+        const actualIndex = (currentPage - 1) * itemsPerPage + index;
+        setCurrentStudentIndex(actualIndex);
+        resetForm(); // Clear form fields
+        setAttemptDialogOpen(true);
+    };
+
+    const handleAddAttempt = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!pdfId || currentStudentIndex === null) {
+            toast.warning("Please upload a file.");
+            return;
+        }
+
+        try {
+            const updatedStudents = [...students];
+            const student = updatedStudents[currentStudentIndex];
+
+            // Add new attempt
+            const newAttempt: AttemptData = {
+                id: crypto.randomUUID(),
+                pdfId,
+                fileId,
+                date: new Date().toISOString(),
+            };
+
+            if (student) {
+                student.attempts.push(newAttempt);
+                student.currentAttemptIndex = student.attempts.length - 1; // Set to the new attempt
+            }
+
+            // Update state and localStorage
+            setStudents(updatedStudents);
+            localStorage.setItem("students", JSON.stringify(updatedStudents));
+
+            toast.success("New attempt added successfully!");
+            setAttemptDialogOpen(false);
+            resetForm();
+        } catch (error) {
+            console.error("Error adding attempt:", error);
+            toast.error("Failed to add attempt");
+        }
+    };
+
+    const handleDeleteAttempt = (studentIndex: number, attemptIndex: number) => {
+        const actualIndex = (currentPage - 1) * itemsPerPage + studentIndex;
+        const updatedStudents = [...students];
+        const student = updatedStudents[actualIndex];
+
+        if (!student) {
+            toast.error("Student not found.");
+            return;
+        }
+
+        if (student.attempts.length <= 1) {
+            toast.warning("Cannot delete the only attempt. Delete the student instead.");
+            return;
+        }
+
+        // Remove the attempt
+        student.attempts.splice(attemptIndex, 1);
+
+        // Adjust current attempt index if needed
+        if (student.currentAttemptIndex >= student.attempts.length) {
+            student.currentAttemptIndex = student.attempts.length - 1;
+        }
+
+        // Update state and localStorage
+        setStudents(updatedStudents);
+        localStorage.setItem("students", JSON.stringify(updatedStudents));
+
+        toast.success("Attempt deleted successfully!");
+    };
+
+    const handleSelectAttempt = (studentIndex: number, attemptIndex: number) => {
+        const actualIndex = (currentPage - 1) * itemsPerPage + studentIndex;
+        const updatedStudents = [...students];
+        if (updatedStudents[actualIndex]) {
+            updatedStudents[actualIndex].currentAttemptIndex = attemptIndex;
+        }
+
+        // Update state and localStorage
+        setStudents(updatedStudents);
+        localStorage.setItem("students", JSON.stringify(updatedStudents));
+
+        // Close the dropdown
+        setAttemptDropdownOpen({ ...attemptDropdownOpen, [studentIndex]: false });
     };
 
     const toggleSelect = (index: number) => {
@@ -278,6 +458,17 @@ export function StudentEnrollment() {
         if (page > 0 && page <= totalPages) {
             setCurrentPage(page);
         }
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
     };
 
     return (
@@ -376,6 +567,65 @@ export function StudentEnrollment() {
                         </DialogFooter>
                     </form>
                 </MyDialog>
+
+                {/* Add Attempt Dialog */}
+                <MyDialog
+                    heading="Add New Attempt"
+                    open={attemptDialogOpen}
+                    onOpenChange={(newOpen) => {
+                        if (!newOpen) {
+                            resetForm();
+                        }
+                        setAttemptDialogOpen(newOpen);
+                    }}
+                >
+                    <form onSubmit={handleAddAttempt}>
+                        <div className="flex flex-col gap-4 py-4">
+                            <div className="flex flex-col items-start gap-2">
+                                <Label htmlFor="file">Upload Response PDF</Label>
+                                <div className="w-full space-y-2">
+                                    <Input
+                                        id="file"
+                                        type="file"
+                                        onChange={handleFileChange}
+                                        accept=".pdf"
+                                        required
+                                    />
+                                    {file && !pdfId && (
+                                        <MyButton
+                                            type="button"
+                                            buttonType="secondary"
+                                            onClick={handleFileUpload}
+                                            disabled={isUploading}
+                                            size="sm"
+                                        >
+                                            {isUploading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 size-4 animate-spin" />
+                                                    Uploading...
+                                                </>
+                                            ) : (
+                                                "Upload file"
+                                            )}
+                                        </MyButton>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <MyButton
+                                layoutVariant="default"
+                                type="submit"
+                                className={cn(
+                                    !pdfId ? "pointer-events-none opacity-50" : "cursor-pointer",
+                                )}
+                                disabled={!pdfId}
+                            >
+                                Add Attempt
+                            </MyButton>
+                        </DialogFooter>
+                    </form>
+                </MyDialog>
             </div>
             {/* Table displaying all enrolled students */}
             <div className="mt-6 rounded-md border">
@@ -399,6 +649,7 @@ export function StudentEnrollment() {
                                         Student Name
                                     </TableHead>
                                     <TableHead>Enrollment ID</TableHead>
+                                    <TableHead>Attempt Count</TableHead>
                                     <TableHead>View PDF</TableHead>
                                     <TableHead className="w-10 text-right">Actions</TableHead>
                                 </TableRow>
@@ -406,6 +657,8 @@ export function StudentEnrollment() {
                             <TableBody>
                                 {paginatedStudents.map((student, index) => {
                                     const actualIndex = (currentPage - 1) * itemsPerPage + index;
+                                    const currentAttempt: AttemptData | null =
+                                        student.attempts[student.currentAttemptIndex] || null;
                                     return (
                                         <TableRow key={index}>
                                             <TableCell className="sticky left-0 z-10 bg-white text-center">
@@ -421,17 +674,70 @@ export function StudentEnrollment() {
                                             </TableCell>
                                             <TableCell>{student.enrollId}</TableCell>
                                             <TableCell>
-                                                {student.fileId ? (
+                                                <DropdownMenu
+                                                    open={attemptDropdownOpen[index]}
+                                                    onOpenChange={(open) =>
+                                                        setAttemptDropdownOpen({
+                                                            ...attemptDropdownOpen,
+                                                            [index]: open,
+                                                        })
+                                                    }
+                                                >
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="flex items-center gap-1"
+                                                        >
+                                                            {student.attempts.length} Attempts
+                                                            <ChevronDown className="size-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent
+                                                        align="start"
+                                                        className="w-56"
+                                                    >
+                                                        {student.attempts.map(
+                                                            (attempt, attemptIndex) => (
+                                                                <DropdownMenuItem
+                                                                    key={attempt.id}
+                                                                    className={cn(
+                                                                        "flex cursor-pointer justify-between",
+                                                                        student.currentAttemptIndex ===
+                                                                            attemptIndex &&
+                                                                            "bg-muted",
+                                                                    )}
+                                                                    onClick={() =>
+                                                                        handleSelectAttempt(
+                                                                            index,
+                                                                            attemptIndex,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <span>
+                                                                        Attempt {attemptIndex + 1}
+                                                                    </span>
+                                                                    <span className="text-xs text-muted-foreground">
+                                                                        {formatDate(attempt.date)}
+                                                                    </span>
+                                                                </DropdownMenuItem>
+                                                            ),
+                                                        )}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                            <TableCell>
+                                                {currentAttempt?.fileId ? (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() =>
-                                                            handleViewPdf(student.fileId)
+                                                        onClick={() => handleViewPdf(index)}
+                                                        disabled={
+                                                            loadingPdf[currentAttempt.fileId || ""]
                                                         }
-                                                        disabled={loadingPdf[student.fileId || ""]}
                                                         className="flex items-center gap-1"
                                                     >
-                                                        {loadingPdf[student.fileId || ""] ? (
+                                                        {loadingPdf[currentAttempt.fileId || ""] ? (
                                                             <Loader2 className="size-4 animate-spin" />
                                                         ) : (
                                                             <FileText className="size-4" />
@@ -463,11 +769,34 @@ export function StudentEnrollment() {
                                                             Edit
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
+                                                            onClick={() =>
+                                                                openAddAttemptDialog(index)
+                                                            }
+                                                            className="cursor-pointer"
+                                                        >
+                                                            <Plus className="mr-2 size-4" />
+                                                            Add Attempt
+                                                        </DropdownMenuItem>
+                                                        {student.attempts.length > 1 && (
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    handleDeleteAttempt(
+                                                                        index,
+                                                                        student.currentAttemptIndex,
+                                                                    )
+                                                                }
+                                                                className="cursor-pointer text-destructive focus:text-destructive"
+                                                            >
+                                                                <Trash2 className="mr-2 size-4" />
+                                                                Delete Current Attempt
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        <DropdownMenuItem
                                                             onClick={() => handleDelete(index)}
                                                             className="cursor-pointer text-destructive focus:text-destructive"
                                                         >
                                                             <Trash2 className="mr-2 size-4" />
-                                                            Delete
+                                                            Delete Student
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>

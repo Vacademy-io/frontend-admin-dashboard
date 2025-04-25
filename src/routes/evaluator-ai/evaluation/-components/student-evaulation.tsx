@@ -12,7 +12,8 @@ import {
 import { useRouter } from "@tanstack/react-router";
 import { ArrowUpDown, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { getPublicUrl } from "../../students/-components/add-student-dialog";
+import { getPublicUrl } from "@/services/upload_file";
+// import { getPublicUrl } from "../../students/-components/add-student-dialog";
 
 interface Student {
     id: string;
