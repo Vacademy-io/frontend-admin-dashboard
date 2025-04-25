@@ -24,19 +24,19 @@ const PlanLecturePreview = ({
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center">
                             <span className="text-sm font-semibold">Level:&nbsp;</span>
-                            <span className="text-sm font-thin">{planLectureData.level}</span>
+                            <span className="text-sm font-thin">{planLectureData?.level}</span>
                         </div>
                         <div className="flex items-center">
                             <span className="text-sm font-semibold">Mode of Teaching:&nbsp;</span>
-                            <span className="text-sm font-thin">{planLectureData.mode}</span>
+                            <span className="text-sm font-thin">{planLectureData?.mode}</span>
                         </div>
                         <div className="flex items-center">
                             <span className="text-sm font-semibold">Lecture Language:&nbsp;</span>
-                            <span className="text-sm font-thin">{planLectureData.language}</span>
+                            <span className="text-sm font-thin">{planLectureData?.language}</span>
                         </div>
                         <div className="flex items-center">
                             <span className="text-sm font-semibold">Lecture Duration:&nbsp;</span>
-                            <span className="text-sm font-thin">{planLectureData.duration}</span>
+                            <span className="text-sm font-thin">{planLectureData?.duration}</span>
                         </div>
                     </div>
                     <Separator />

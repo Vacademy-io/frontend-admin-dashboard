@@ -44,7 +44,7 @@ const EvaluateLectureAI = () => {
     };
 
     /* Generate Assessment Complete */
-    const MAX_POLL_ATTEMPTS = 3;
+    const MAX_POLL_ATTEMPTS = 10;
     const pollingCountRef = useRef(0);
     const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
     const pendingRef = useRef(false);
