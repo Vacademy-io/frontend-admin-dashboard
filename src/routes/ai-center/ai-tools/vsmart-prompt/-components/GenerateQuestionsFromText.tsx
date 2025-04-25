@@ -1,21 +1,18 @@
 import { MyButton } from "@/components/design-system/button";
-import { StarFour, UploadSimple } from "phosphor-react";
+import { StarFour } from "phosphor-react";
 import { QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
 import { useRef, useState, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleGetQuestionsFromText } from "../../../-services/ai-center-service";
-import { transformQuestionsToGenerateAssessmentAI } from "../../../-utils/helper";
-import { generateCompleteAssessmentFormSchema } from "../../../-utils/generate-complete-assessment-schema";
-import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import GenerateCompleteAssessment from "../../../-components/GenerateCompleteAssessment";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 import { GetImagesForAITools } from "@/routes/ai-center/-helpers/GetImagesForAITools";
 import { AIToolPageData } from "@/routes/ai-center/-constants/AIToolPageData";
 import { Separator } from "@/components/ui/separator";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const formSchema = z.object({
     taskName: z.string().min(1),
@@ -30,39 +27,10 @@ const formSchema = z.object({
 export type QuestionsFromTextData = z.infer<typeof formSchema>;
 
 export const GenerateQuestionsFromText = () => {
+    const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
-    const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
-    const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
-    const [propmtInput, setPropmtInput] = useState("");
     const [disableSubmitBtn, setDisableSubmitBtn] = useState(true);
     const formSubmitRef = useRef(() => {});
-    const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
-        title: "",
-        tags: [],
-        difficulty: "",
-        description: "",
-        subjects: [],
-        classes: [],
-        questions: [],
-    });
-    const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
-        resolver: zodResolver(generateCompleteAssessmentFormSchema),
-        mode: "onChange",
-        defaultValues: {
-            questionPaperId: "1",
-            isFavourite: false,
-            title: "",
-            createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
-            fileUpload: undefined,
-            questions: [],
-        },
-    });
     const dialogForm = useForm<QuestionsFromTextData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -96,7 +64,6 @@ export const GenerateQuestionsFromText = () => {
         clearPolling();
         pollingCountRef.current = 0;
         pendingRef.current = false;
-
         pollGenerateQuestionsFromText(data);
     };
 
@@ -149,32 +116,13 @@ export const GenerateQuestionsFromText = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response === "Done" || response?.questions) {
+            if (response === "Done") {
                 setLoader(false);
                 setKey(null);
                 dialogForm.reset();
                 handleOpenChange(false);
-                setIsMoreQuestionsDialog(false);
-                setAssessmentData((prev) => ({
-                    ...prev,
-                    questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
-                }));
-                const addedQuestions = [
-                    ...(assessmentData.questions ?? []),
-                    ...(response?.questions ?? []),
-                ];
-                const transformQuestionsData =
-                    transformQuestionsToGenerateAssessmentAI(addedQuestions);
-                form.reset({
-                    ...form.getValues(),
-                    title: assessmentData?.title,
-                    questions: transformQuestionsData,
-                });
-                form.trigger();
-                handleOpenChange(false);
                 clearPolling();
-                setOpenCompleteAssessmentDialog(true);
-                setPropmtInput("");
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
                 return;
             }
 
@@ -189,7 +137,7 @@ export const GenerateQuestionsFromText = () => {
                 question_language: variables.question_language,
             });
         },
-        onError: (error, variables) => {
+        onError: (_, variables) => {
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
                 pendingRef.current = false;
@@ -265,9 +213,12 @@ export const GenerateQuestionsFromText = () => {
         <>
             {toolData && (
                 <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
-                    <div className="flex items-center gap-2 text-h2 font-semibold">
-                        <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
-                        {toolData.heading}
+                    <div className="flex w-fit items-center justify-start gap-2">
+                        <div className="flex items-center gap-2 text-h2 font-semibold">
+                            <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
+                            {toolData.heading}
+                        </div>
+                        <AITasksList heading={toolData.heading} />
                     </div>
                     {GetImagesForAITools(toolData.key)}
                     <div className="flex flex-col gap-1">
@@ -315,8 +266,7 @@ export const GenerateQuestionsFromText = () => {
                                 onClick={handleUploadClick}
                                 disable={loader && keyContext != "text" && keyContext != ""}
                             >
-                                <UploadSimple size={32} />
-                                Upload
+                                Generate
                             </MyButton>
                         )}
                     </div>
@@ -331,24 +281,8 @@ export const GenerateQuestionsFromText = () => {
                 submitForm={submitFormFn}
                 form={dialogForm}
             />
-            {assessmentData.questions.length > 0 && (
-                <GenerateCompleteAssessment
-                    form={form}
-                    openCompleteAssessmentDialog={openCompleteAssessmentDialog}
-                    setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
-                    assessmentData={assessmentData}
-                    handleSubmitSuccessForText={handleSubmitSuccess}
-                    handleGenerateQuestionsForAssessment={() => {}}
-                    propmtInput={propmtInput}
-                    setPropmtInput={setPropmtInput}
-                    isMoreQuestionsDialog={isMoreQuestionsDialog}
-                    setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
-                    submitButtonForText={submitButton}
-                    handleDisableSubmitBtn={handleDisableSubmitBtn}
-                    submitFormFn={submitFormFn}
-                    dialogForm={dialogForm}
-                    keyProp="text"
-                />
+            {getQuestionsFromTextMutation.status === "success" && (
+                <AITasksList heading="Vsmart Topics" enableDialog={true} />
             )}
         </>
     );

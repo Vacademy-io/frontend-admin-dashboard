@@ -7,6 +7,7 @@ export enum IntroKey {
     assessmentStep3Participants = "assessmentStep3Participants",
     assessmentStep4Access = "assessmentStep4Access",
     dashboardWelcomeVideo = "dashboardWelcomeVideo",
+    inviteFirstTimeVisit = "inviteFirstTimeVisit",
 }
 
 export enum StudyLibraryIntroKey {

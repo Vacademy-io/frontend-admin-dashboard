@@ -16,6 +16,7 @@ import useInstituteLogoStore from "@/components/common/layout-container/sidebar/
 import { Input } from "@/components/ui/input";
 import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import ExportQuestionPaperAI from "@/routes/ai-center/-components/export-ai-question-paper/ExportQuestionPaperAI";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 // Infer the form type from the schema
 type GeneratePageWiseAssessmentQuestionsDialog = z.infer<
@@ -32,6 +33,7 @@ interface GeneratePageWiseAssessmentProps {
     setPropmtInput: React.Dispatch<React.SetStateAction<string>>;
     isMoreQuestionsDialog: boolean;
     setIsMoreQuestionsDialog: React.Dispatch<React.SetStateAction<boolean>>;
+    loadingState: string;
 }
 
 const GeneratePageWiseAssessmentQuestionsDialog = ({
@@ -44,6 +46,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
     setPropmtInput,
     isMoreQuestionsDialog,
     setIsMoreQuestionsDialog,
+    loadingState,
 }: GeneratePageWiseAssessmentProps) => {
     const { instituteLogo } = useInstituteLogoStore();
     const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
@@ -85,7 +88,11 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                     className="text-sm"
                     onClick={handleGenerateQuestionsForAssessment}
                 >
-                    Select Questions
+                    {loadingState === "pending" ? (
+                        <DashboardLoader size={18} />
+                    ) : (
+                        "Extract Copied Questions"
+                    )}
                 </MyButton>
             </DialogTrigger>
             {assessmentData!.questions.length > 0 && (

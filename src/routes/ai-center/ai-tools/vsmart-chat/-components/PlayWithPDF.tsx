@@ -12,24 +12,40 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
-interface QuestionWithAnswer {
+export interface QuestionWithAnswerChatInterface {
     id: string;
     question: string;
     response: string;
 }
 
-const PlayWithPDF = () => {
-    const [taskName, setTaskName] = useState("");
+const PlayWithPDF = ({
+    isListMode = false,
+    chatResponse,
+    input_id,
+    parent_id,
+    task_name,
+}: {
+    isListMode?: boolean;
+    chatResponse?: QuestionWithAnswerChatInterface[];
+    input_id?: string;
+    parent_id?: string;
+    task_name?: string;
+}) => {
+    const [taskName, setTaskName] = useState(task_name ?? "");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
+    const [uploadedFilePDFId, setUploadedFilePDFId] = useState(input_id ?? "");
     const [fileUploading, setFileUploading] = useState(false);
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(isListMode);
     const [question, setQuestion] = useState("");
-    const [questionsWithAnswers, setQuestionsWithAnswers] = useState<QuestionWithAnswer[]>([]);
+    const [questionsWithAnswers, setQuestionsWithAnswers] = useState<
+        QuestionWithAnswerChatInterface[]
+    >(chatResponse ?? []);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const [parentId, setParentId] = useState(parent_id ?? "");
+    const [pendingResponse, setPendingResponse] = useState(false);
 
     const handleUploadClick = () => {
         setKey("chat");
@@ -49,11 +65,11 @@ const PlayWithPDF = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    console.log("response ", response);
                     setUploadedFilePDFId(response.pdf_id);
                     setFileUploading(true);
                     setLoader(false);
                     setOpen(true);
+                    setParentId("");
                 }
             }
             event.target.value = "";
@@ -80,12 +96,14 @@ const PlayWithPDF = () => {
             pdfId,
             userPrompt,
             taskName,
+            parentId,
         }: {
             pdfId: string;
             userPrompt: string;
             taskName: string;
+            parentId: string;
         }) => {
-            return handleChatWithPDF(pdfId, userPrompt, taskName);
+            return handleChatWithPDF(pdfId, userPrompt, taskName, parentId);
         },
         onSuccess: (response) => {
             // Check if response indicates pending state
@@ -101,7 +119,9 @@ const PlayWithPDF = () => {
             // If we have complete data, we're done
             if (response) {
                 setQuestionsWithAnswers(response);
+                if (parentId === "") setParentId(response[0].id);
                 setQuestion("");
+                setPendingResponse(false);
                 return;
             }
 
@@ -113,6 +133,7 @@ const PlayWithPDF = () => {
             if (pendingRef.current) {
                 pendingRef.current = false;
                 scheduleNextPoll();
+                setPendingResponse(true);
                 return;
             }
 
@@ -122,6 +143,7 @@ const PlayWithPDF = () => {
                 setLoader(false);
                 setKey(null);
                 clearPolling();
+                setPendingResponse(false);
                 return;
             }
 
@@ -138,8 +160,7 @@ const PlayWithPDF = () => {
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("assessment");
-            console.log("Scheduling next poll in 10 seconds");
+            setKey("chat");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
             }, 10000);
@@ -155,11 +176,13 @@ const PlayWithPDF = () => {
             pdfId: uploadedFilePDFId,
             userPrompt: question,
             taskName: taskName,
+            parentId: parentId,
         });
     };
 
     const handleAddQuestions = () => {
         if (!uploadedFilePDFId) return;
+        setPendingResponse(true);
 
         clearPolling();
         pollingCountRef.current = 0;
@@ -188,18 +211,20 @@ const PlayWithPDF = () => {
 
     return (
         <>
-            <GenerateCard
-                handleUploadClick={handleUploadClick}
-                fileInputRef={fileInputRef}
-                handleFileChange={handleFileChange}
-                cardTitle="Play With PDF"
-                cardDescription="Upload PDF/DOCX/PPT"
-                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="chat"
-                taskName={taskName}
-                setTaskName={setTaskName}
-            />
-            {uploadedFilePDFId.length > 0 && (
+            {!isListMode && (
+                <GenerateCard
+                    handleUploadClick={handleUploadClick}
+                    fileInputRef={fileInputRef}
+                    handleFileChange={handleFileChange}
+                    cardTitle="Play With PDF"
+                    cardDescription="Upload PDF/DOCX/PPT"
+                    inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                    keyProp="chat"
+                    taskName={taskName}
+                    setTaskName={setTaskName}
+                />
+            )}
+            {(uploadedFilePDFId.length > 0 || isListMode) && (
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogContent className="!m-0 flex !h-full !w-full !max-w-full flex-col !rounded-none !p-0">
                         {/* Scrollable messages container */}
@@ -260,9 +285,7 @@ const PlayWithPDF = () => {
                                         size="large"
                                         className="w-[500px] rounded-xl px-6 py-4"
                                     />
-                                    {getQuestionResponseMutation.status === "pending" && (
-                                        <DashboardLoader size={18} />
-                                    )}
+                                    {pendingResponse && <DashboardLoader size={18} />}
                                 </div>
                             </div>
                         </div>

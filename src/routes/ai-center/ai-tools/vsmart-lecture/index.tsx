@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import SortTopicQuestions from "./-components/SortTopicQuestions";
-import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { AICenterProvider } from "../../-contexts/useAICenterContext";
+import PlanLectureAI from "./-components/PlanLectureAI";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { useEffect } from "react";
 import { CaretLeft } from "phosphor-react";
+import { LayoutContainer } from "@/components/common/layout-container/layout-container";
+import { AICenterProvider } from "../../-contexts/useAICenterContext";
 
-export const Route = createFileRoute("/ai-center/ai-tools/vsmart-sorter/")({
+export const Route = createFileRoute("/ai-center/ai-tools/vsmart-lecture/")({
     component: RouteComponent,
 });
 
@@ -34,7 +34,7 @@ function RouteComponent() {
     return (
         <LayoutContainer>
             <AICenterProvider>
-                <SortTopicQuestions />
+                <PlanLectureAI />
             </AICenterProvider>
         </LayoutContainer>
     );

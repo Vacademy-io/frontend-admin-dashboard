@@ -1,27 +1,25 @@
+import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { getInstituteId } from "@/constants/helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useEffect, useRef, useState } from "react";
-import {
-    handleSortSplitPDF,
-    handleStartProcessUploadedFile,
-} from "../../../-services/ai-center-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { GenerateCard } from "../../../-components/GenerateCard";
-import { useAICenter } from "../../../-contexts/useAICenterContext";
+import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+import {
+    handleGenerateAssessmentQuestions,
+    handleStartProcessUploadedFile,
+} from "@/routes/ai-center/-services/ai-center-service";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
-const SortAndSplitTopicQuestions = () => {
-    const [prompt, setPrompt] = useState("");
+const EvaluateLectureAI = () => {
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
+    const { setLoader, key, setKey } = useAICenter();
     const { uploadFile } = useFileUpload();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
-    const { setLoader, key, setKey } = useAICenter();
     const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("sortSplitPdf");
+        setKey("evaluateLecture");
         fileInputRef.current?.click();
     };
 
@@ -38,7 +36,6 @@ const SortAndSplitTopicQuestions = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    setUploadedFilePDFId(response.pdf_id);
                     handleGenerateQuestionsForAssessment(response.pdf_id);
                 }
             }
@@ -54,6 +51,8 @@ const SortAndSplitTopicQuestions = () => {
 
     const clearPolling = () => {
         if (pollingTimeoutIdRef.current) {
+            setLoader(false);
+            setKey(null);
             clearTimeout(pollingTimeoutIdRef.current);
             pollingTimeoutIdRef.current = null;
         }
@@ -70,10 +69,10 @@ const SortAndSplitTopicQuestions = () => {
             taskName: string;
         }) => {
             setLoader(true);
-            setKey("sortSplitPdf");
-            return handleSortSplitPDF(pdfId, userPrompt, taskName);
+            setKey("evaluateLecture");
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
         },
-        onSuccess: (response) => {
+        onSuccess: (response, { pdfId }) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
                 pendingRef.current = true;
@@ -94,13 +93,13 @@ const SortAndSplitTopicQuestions = () => {
             }
 
             // Otherwise schedule next poll
-            scheduleNextPoll();
+            scheduleNextPoll(pdfId);
         },
-        onError: () => {
+        onError: (_, { pdfId }) => {
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
                 pendingRef.current = false;
-                scheduleNextPoll();
+                scheduleNextPoll(pdfId);
                 return;
             }
 
@@ -114,11 +113,11 @@ const SortAndSplitTopicQuestions = () => {
             }
 
             // Schedule next poll on error (if not max attempts)
-            scheduleNextPoll();
+            scheduleNextPoll(pdfId);
         },
     });
 
-    const scheduleNextPoll = () => {
+    const scheduleNextPoll = (pdfId: string) => {
         setLoader(false);
         setKey(null);
         clearPolling(); // Clear any existing timeout
@@ -126,34 +125,34 @@ const SortAndSplitTopicQuestions = () => {
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("sortSplitPdf");
+            setKey("evaluateLecture");
             pollingTimeoutIdRef.current = setTimeout(() => {
-                pollGenerateAssessment();
+                pollGenerateAssessment(pdfId);
             }, 10000);
         }
     };
 
-    const pollGenerateAssessment = () => {
+    const pollGenerateAssessment = (pdfId: string) => {
         // Don't call API if in pending state
         if (pendingRef.current) {
             return;
         }
         generateAssessmentMutation.mutate({
-            pdfId: uploadedFilePDFId,
-            userPrompt: prompt,
+            pdfId: pdfId,
+            userPrompt: "",
             taskName,
         });
     };
 
-    const handleGenerateQuestionsForAssessment = (pdfId = uploadedFilePDFId) => {
-        if (!uploadedFilePDFId) return;
+    const handleGenerateQuestionsForAssessment = (pdfId?: string) => {
+        if (!pdfId) return;
 
         clearPolling();
         pollingCountRef.current = 0;
         pendingRef.current = false;
 
-        // Use pdfId in your mutation call
-        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: prompt, taskName });
+        // Make initial call
+        pollGenerateAssessment(pdfId);
     };
 
     useEffect(() => {
@@ -163,37 +162,28 @@ const SortAndSplitTopicQuestions = () => {
     }, []);
 
     useEffect(() => {
-        if (key === "sortSplitPdf") {
+        if (key === "question") {
             if (fileUploading == true) setLoader(true);
         }
     }, [fileUploading, key]);
-
-    useEffect(() => {
-        if (uploadedFilePDFId) {
-            handleGenerateQuestionsForAssessment(uploadedFilePDFId);
-        }
-    }, [uploadedFilePDFId]);
-
     return (
         <>
             <GenerateCard
                 handleUploadClick={handleUploadClick}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Sort and split topic questions from PDF"
+                cardTitle="Evaluate Lecture"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
-                keyProp="sortSplitPdf"
+                keyProp="evaluateLecture"
                 taskName={taskName}
                 setTaskName={setTaskName}
-                prompt={prompt}
-                setPrompt={setPrompt}
             />
             {generateAssessmentMutation.status === "success" && (
-                <AITasksList heading="Vsmart Organizer" enableDialog={true} />
+                <AITasksList heading="Vsmart Lecturer" enableDialog={true} />
             )}
         </>
     );
 };
 
-export default SortAndSplitTopicQuestions;
+export default EvaluateLectureAI;

@@ -7,6 +7,8 @@ import { AIToolPageData } from "../-constants/AIToolPageData";
 import { GetImagesForAITools } from "../-helpers/GetImagesForAITools";
 import { Separator } from "@/components/ui/separator";
 import { MyInput } from "@/components/design-system/input";
+import AITasksList from "./AITasksList";
+import { Textarea } from "@/components/ui/textarea";
 interface GenerateCardProps {
     handleUploadClick: () => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
@@ -17,6 +19,8 @@ interface GenerateCardProps {
     keyProp: string | null;
     taskName: string;
     setTaskName: React.Dispatch<React.SetStateAction<string>>;
+    prompt?: string;
+    setPrompt?: React.Dispatch<React.SetStateAction<string>>;
 }
 export const GenerateCard = ({
     handleUploadClick,
@@ -26,6 +30,8 @@ export const GenerateCard = ({
     keyProp,
     taskName,
     setTaskName,
+    prompt,
+    setPrompt,
 }: GenerateCardProps) => {
     const { key: keyContext, loader } = useAICenter();
     const toolData = keyProp ? AIToolPageData[keyProp] : null;
@@ -33,21 +39,45 @@ export const GenerateCard = ({
         <>
             {toolData && (
                 <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
-                    <div className="flex items-center gap-2 text-h2 font-semibold">
-                        <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
-                        {toolData.heading}
+                    <div className="flex w-fit items-center justify-start gap-2">
+                        <div className="flex items-center gap-2 text-h2 font-semibold">
+                            <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
+                            {toolData.heading}
+                        </div>
+                        <AITasksList heading={toolData.heading} />
                     </div>
                     <div className="flex items-center justify-between">
                         {GetImagesForAITools(toolData.key)}
                         <div className="flex flex-col gap-4">
-                            <MyInput
-                                inputType="text"
-                                inputPlaceholder="Enter Your Task Name"
-                                input={taskName}
-                                onChangeFunction={(e) => setTaskName(e.target.value)}
-                                required={true}
-                                label="Task Name"
-                            />
+                            {keyProp !== "audio" && (
+                                <MyInput
+                                    inputType="text"
+                                    inputPlaceholder="Enter Your Task Name"
+                                    input={taskName}
+                                    onChangeFunction={(e) => setTaskName(e.target.value)}
+                                    required={true}
+                                    label="Task Name"
+                                />
+                            )}
+                            {(keyProp === "sortSplitPdf" || keyProp === "sortTopicsPdf") && (
+                                <div className="flex flex-col gap-2">
+                                    <h1>
+                                        Prompt <span className="text-red-500">*</span>
+                                    </h1>
+                                    <Textarea
+                                        placeholder="For example, Generate a set of questions covering the key principles of photosynthesis, including the process, factors affecting it, and its importance in the ecosystem. Focus on conceptual understanding and application"
+                                        className="h-[100px] w-full"
+                                        value={prompt}
+                                        onChange={(e) => setPrompt?.(e.target.value)}
+                                    />
+                                    <span className="text-sm">Example Prompts</span>
+                                    <div className="flex flex-col text-sm text-red-500">
+                                        <span>* Select any topic questions covered</span>
+                                        <span>* Select questions from specific pages</span>
+                                        <span>* Select a set of questions eg. 1, 2, 3, 4</span>
+                                    </div>
+                                </div>
+                            )}
                             {loader && keyContext == keyProp && keyContext != null ? (
                                 <MyButton
                                     type="button"
@@ -68,7 +98,7 @@ export const GenerateCard = ({
                                     onClick={handleUploadClick}
                                     disable={
                                         (keyContext !== keyProp && loader && keyContext != null) ||
-                                        !taskName
+                                        (keyProp !== "audio" && !taskName)
                                     }
                                 >
                                     <UploadSimple size={32} />

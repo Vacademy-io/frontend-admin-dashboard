@@ -4,23 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import {
     handleConvertPDFToHTML,
     handleGenerateAssessmentQuestions,
-    // handleGetQuestionsFromHTMLUrl,
     handleStartProcessUploadedFile,
 } from "@/routes/ai-center/-services/ai-center-service";
-import { useMutation } from "@tanstack/react-query";
-import GenerateCompleteAssessment from "@/routes/ai-center/-components/GenerateCompleteAssessment";
-import { AIAssessmentResponseInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { generateCompleteAssessmentFormSchema } from "@/routes/ai-center/-utils/generate-complete-assessment-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { transformQuestionsToGenerateAssessmentAI } from "@/routes/ai-center/-utils/helper";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
 import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const GenerateAIAssessmentComponent = () => {
+    const queryClient = useQueryClient();
+    const [allPagesGenerateQuestionsStatus, setAllPagesGenerateQuestionsStatus] = useState(false);
+    const [pageWiseGenerateQuestionsStatus, setPageWiseGenerateQuestionsStatus] = useState(false);
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
@@ -28,39 +24,8 @@ const GenerateAIAssessmentComponent = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [openAssessmentDialog, setOpenAssessmentDialog] = useState(false);
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
-    const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
-        title: "",
-        tags: [],
-        difficulty: "",
-        description: "",
-        subjects: [],
-        classes: [],
-        questions: [],
-    });
-    const [openCompleteAssessmentDialog, setOpenCompleteAssessmentDialog] = useState(false);
-    const [propmtInput, setPropmtInput] = useState("");
-    const [isMoreQuestionsDialog, setIsMoreQuestionsDialog] = useState(false);
     const [htmlData, setHtmlData] = useState(null);
     const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
-
-    const form = useForm<z.infer<typeof generateCompleteAssessmentFormSchema>>({
-        resolver: zodResolver(generateCompleteAssessmentFormSchema),
-        mode: "onChange",
-        defaultValues: {
-            questionPaperId: "1",
-            isFavourite: false,
-            title: "",
-            createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
-            fileUpload: undefined,
-            questions: [],
-        },
-    });
 
     const handleOpenAssessmentDialog = (open: boolean) => {
         setOpenAssessmentDialog(open);
@@ -132,6 +97,7 @@ const GenerateAIAssessmentComponent = () => {
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
+                setAllPagesGenerateQuestionsStatus(true);
                 pendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
@@ -141,29 +107,12 @@ const GenerateAIAssessmentComponent = () => {
             pendingRef.current = false;
 
             // If we have complete data, we're done
-            if (response === "Done" || response?.questions) {
+            if (response === "Done") {
+                setAllPagesGenerateQuestionsStatus(false);
                 setLoader(false);
                 setKey(null);
-                setAssessmentData((prev) => ({
-                    ...prev,
-                    questions: [...(prev.questions ?? []), ...(response?.questions ?? [])],
-                }));
-                const addedQuestions = [
-                    ...(assessmentData.questions ?? []),
-                    ...(response?.questions ?? []),
-                ];
-                const transformQuestionsData =
-                    transformQuestionsToGenerateAssessmentAI(addedQuestions);
-                form.reset({
-                    ...form.getValues(),
-                    title: assessmentData?.title,
-                    questions: transformQuestionsData,
-                });
-                form.trigger();
                 clearPolling();
-                setOpenCompleteAssessmentDialog(true);
-                setPropmtInput("");
-                setIsMoreQuestionsDialog(false);
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
                 return;
             }
 
@@ -173,6 +122,7 @@ const GenerateAIAssessmentComponent = () => {
         onError: () => {
             // If we were in a pending state, resume polling on error
             if (pendingRef.current) {
+                setAllPagesGenerateQuestionsStatus(true);
                 pendingRef.current = false;
                 scheduleNextPoll();
                 return;
@@ -184,6 +134,7 @@ const GenerateAIAssessmentComponent = () => {
                 setLoader(false);
                 setKey(null);
                 clearPolling();
+                setAllPagesGenerateQuestionsStatus(false);
                 return;
             }
 
@@ -215,7 +166,7 @@ const GenerateAIAssessmentComponent = () => {
         }
         generateAssessmentMutation.mutate({
             pdfId: uploadedFilePDFId,
-            userPrompt: propmtInput,
+            userPrompt: "",
             taskName,
         });
     };
@@ -227,6 +178,7 @@ const GenerateAIAssessmentComponent = () => {
         pollingCountRef.current = 0;
         pendingRef.current = false;
 
+        setAllPagesGenerateQuestionsStatus(true);
         // Make initial call
         pollGenerateAssessment();
     };
@@ -249,6 +201,7 @@ const GenerateAIAssessmentComponent = () => {
         onSuccess: async (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
+                setPageWiseGenerateQuestionsStatus(true);
                 convertPendingRef.current = true;
                 // Don't schedule next poll - we'll wait for an error to resume
                 return;
@@ -259,15 +212,10 @@ const GenerateAIAssessmentComponent = () => {
 
             // If conversion is complete and we have HTML data
             if (response === "Done" || response?.html) {
+                setPageWiseGenerateQuestionsStatus(false);
                 stopConvertPolling();
                 setHtmlData(response?.html);
                 setOpenPageWiseAssessmentDialog(true);
-                // try {
-                //     const questionsData = await handleGetQuestionsFromHTMLUrl(response.html, "");
-                //     console.log("✅ Questions Data:", questionsData);
-                // } catch (error) {
-                //     console.error("⛔️ Error processing HTML:", error);
-                // }
 
                 return;
             }
@@ -280,7 +228,7 @@ const GenerateAIAssessmentComponent = () => {
 
             // If we were in a pending state, resume polling on error
             if (convertPendingRef.current) {
-                console.log("Resuming polling after pending state");
+                setPageWiseGenerateQuestionsStatus(true);
                 convertPendingRef.current = false;
                 scheduleNextConvertPoll();
                 return;
@@ -289,7 +237,7 @@ const GenerateAIAssessmentComponent = () => {
             // Increment count and check max attempts
             convertPollingCountRef.current += 1;
             if (convertPollingCountRef.current >= MAX_CONVERT_ATTEMPTS) {
-                console.log("Max conversion polling attempts reached");
+                setPageWiseGenerateQuestionsStatus(false);
                 stopConvertPolling();
                 return;
             }
@@ -332,6 +280,7 @@ const GenerateAIAssessmentComponent = () => {
         convertPollingCountRef.current = 0;
         convertPendingRef.current = false;
 
+        setPageWiseGenerateQuestionsStatus(true);
         // Make initial call
         pollConvertPDFToHTML();
     };
@@ -361,20 +310,11 @@ const GenerateAIAssessmentComponent = () => {
                 handleOpen={handleOpenAssessmentDialog}
                 handleGenerateCompleteFile={handleGenerateQuestionsForAssessment}
                 handleGeneratePageWise={handleConvertPDFToHTMLFn}
+                allPagesGenerateQuestionsStatus={allPagesGenerateQuestionsStatus}
+                pageWiseGenerateQuestionsStatus={pageWiseGenerateQuestionsStatus}
             />
-            {assessmentData.questions.length > 0 && (
-                <GenerateCompleteAssessment
-                    form={form}
-                    openCompleteAssessmentDialog={openCompleteAssessmentDialog}
-                    setOpenCompleteAssessmentDialog={setOpenCompleteAssessmentDialog}
-                    assessmentData={assessmentData}
-                    handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
-                    propmtInput={propmtInput}
-                    setPropmtInput={setPropmtInput}
-                    isMoreQuestionsDialog={isMoreQuestionsDialog}
-                    setIsMoreQuestionsDialog={setIsMoreQuestionsDialog}
-                    keyProp="assessment"
-                />
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Upload" enableDialog={true} />
             )}
             <GeneratePageWiseAssessment
                 openPageWiseAssessmentDialog={openPageWiseAssessmentDialog}

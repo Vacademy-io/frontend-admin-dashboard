@@ -1,11 +1,14 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 
 interface GenerateDialogProps {
     open: boolean;
     handleOpen: (open: boolean) => void;
     handleGenerateCompleteFile: () => void;
     handleGeneratePageWise: () => void;
+    allPagesGenerateQuestionsStatus: boolean;
+    pageWiseGenerateQuestionsStatus: boolean;
 }
 
 export const GenerateAssessmentDialog = ({
@@ -13,6 +16,8 @@ export const GenerateAssessmentDialog = ({
     handleOpen,
     handleGenerateCompleteFile,
     handleGeneratePageWise,
+    allPagesGenerateQuestionsStatus,
+    pageWiseGenerateQuestionsStatus,
 }: GenerateDialogProps) => {
     return (
         <Dialog open={open} onOpenChange={handleOpen}>
@@ -26,20 +31,28 @@ export const GenerateAssessmentDialog = ({
                         scale="medium"
                         buttonType="secondary"
                         layoutVariant="default"
-                        className="w-48 text-sm"
+                        className="text-sm"
                         onClick={handleGenerateCompleteFile}
                     >
-                        Generate Complete File
+                        {allPagesGenerateQuestionsStatus ? (
+                            <DashboardLoader size={18} />
+                        ) : (
+                            "Select Questions From All Pages"
+                        )}
                     </MyButton>
                     <MyButton
                         type="submit"
                         scale="medium"
                         buttonType="secondary"
                         layoutVariant="default"
-                        className="w-48 text-sm"
+                        className="text-sm"
                         onClick={handleGeneratePageWise}
                     >
-                        Generate Page Wise
+                        {pageWiseGenerateQuestionsStatus ? (
+                            <DashboardLoader size={18} />
+                        ) : (
+                            "Select Question From Specific Pages"
+                        )}
                     </MyButton>
                 </div>
             </DialogContent>

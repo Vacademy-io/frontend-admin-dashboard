@@ -14,19 +14,20 @@ export interface Step {
 interface UseIntroJsTourProps {
     key: string;
     steps: Step[];
+    enable?: boolean;
     partial?: boolean;
     className?: string;
     onTourExit?: () => void;
 }
 
-const useIntroJsTour = ({ key, steps, onTourExit, className }: UseIntroJsTourProps) => {
+const useIntroJsTour = ({ key, steps, onTourExit, className,enable = true }: UseIntroJsTourProps) => {
     const { getValue, setValue } = useLocalStorage<boolean>(key, false);
     const [hasDisplayedIntro, setHasDisplayedIntro] = useState(false);
 
     const isSingleStep = steps.length === 1;
 
     useEffect(() => {
-        if (!getValue() && !hasDisplayedIntro) {
+        if (!getValue() && !hasDisplayedIntro && enable) {
             const instance = introJs();
 
             instance.setOptions({
@@ -69,11 +70,14 @@ const useIntroJsTour = ({ key, steps, onTourExit, className }: UseIntroJsTourPro
                 setValue(true);
                 if (onTourExit) onTourExit();
             });
+            setTimeout(() => {
+                console.log("starting tour...");
+                instance.start();
+            }, 300);
 
-            instance.start();
             setHasDisplayedIntro(true);
         }
-    }, [getValue, hasDisplayedIntro, key, onTourExit, setValue, steps]);
+    }, [getValue, hasDisplayedIntro, key, onTourExit, setValue, steps, enable]);
 
     return null;
 };

@@ -247,8 +247,8 @@ export const AIToolPageData: AIToolPageDataType = {
     },
     image: {
         key: "image",
-        heading: "Vsmart Vision",
-        instructionsHeading: "How to Use Vsmart Vision",
+        heading: "Vsmart Image",
+        instructionsHeading: "How to Use Vsmart Image",
         instructionsSubHeading:
             "This tool lets you upload an image of content — handwritten notes, printed pages, textbook snapshots — and automatically extracts relevant questions from it.",
         instructions: [
@@ -360,6 +360,89 @@ export const AIToolPageData: AIToolPageDataType = {
                 steps: [
                     "Once generated, click on Export to download your question paper in PDF or DOC format.",
                     "You're now ready to print, share, or upload it into your assessment system.",
+                ],
+            },
+        ],
+    },
+    planLecture: {
+        key: "planLecture",
+        heading: "Vsmart Lecturer",
+        instructionsHeading: "How to Use Vsmart Sorter",
+        instructionsSubHeading:
+            "This tool helps you generate a complete lecture plan tailored to your teaching style, topics, language, and timeframe — including optional in-between questions and end-of-lecture assignments.",
+        instructions: [
+            {
+                stepHeading: "Click Plan Lecture",
+                steps: [
+                    "Lecture Title and Topics",
+                    "Academic Level (e.g., 8th Standard)",
+                    "Preferred Teaching Method (e.g., Storytelling, More Examples",
+                    "Language (English or Hindi)",
+                    "Total Duration of the Lecture",
+                    "Include Questions in Between? (Yes/No)",
+                    "Add Assignment or Homework at the End? (Yes/No)",
+                ],
+            },
+            {
+                stepHeading: "Click Generate",
+                steps: [
+                    "Once your preferences are set, hit the Generate button. The AI will take a few moments to craft a smart, structured, and interactive lecture plan based on your inputs.",
+                ],
+            },
+            {
+                stepHeading: "Export Your Plan",
+                steps: [
+                    "Time-wise structure",
+                    "Topic-wise breakdown",
+                    "Built-in engagement points (if selected)",
+                    "Assignment section (if selected)",
+                    "Teaching method-based content generation",
+                ],
+            },
+        ],
+    },
+    evaluateLecture: {
+        key: "evaluateLecture",
+        heading: "Vsmart Feedback",
+        instructionsHeading: "How to Use Vsmart Feedback",
+        instructionsSubHeading:
+            "This tool helps you upload an audio file of your lecture and automatically generates a detailed evaluation report — highlighting strengths, areas of improvement, and a performance score across multiple criteria.",
+        instructions: [
+            {
+                stepHeading: "Upload Your File",
+                steps: ["Click on Upload File", "Supported formats: WAV, FLAC, MP3, AAC, M4A"],
+            },
+            {
+                stepHeading: "Let the AI Evaluate It",
+                steps: [
+                    "Once uploaded, the tool listens to the lecture and analyzes it across eight key areas — from clarity and engagement to content quality and professionalism.",
+                    "Each section is scored, with comments and suggestions provided.",
+                ],
+            },
+            {
+                stepHeading: "Example Scoring Areas",
+                steps: [
+                    "Delivery & Presentation (20 pts)",
+                    "Content Quality (20 pts)",
+                    "Student Engagement (15 pts)",
+                    "Assessment & Feedback (10 pts)",
+                    "Inclusivity & Language (10 pts)",
+                    "Classroom Management (10 pts)",
+                    "Teaching Aids (10 pts)",
+                    "Professionalism (5 pts)",
+                ],
+            },
+            {
+                stepHeading: "Check Back Later in My AI Tools",
+                steps: [
+                    "The evaluation may take a few minutes depending on file length. You can wait or return later to check the status in your My Builts tab.",
+                    "Once ready, your full report will appear — with highlights, scores, and AI-generated suggestions.",
+                ],
+            },
+            {
+                stepHeading: "Export Your Report",
+                steps: [
+                    "Download the final evaluation report in PDF format to share with peers, save for future reference, or use for personal growth.",
                 ],
             },
         ],

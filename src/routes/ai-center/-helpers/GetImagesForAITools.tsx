@@ -7,8 +7,9 @@ import {
     AISorterImg,
     AIUploadAudioImg,
     AIUploadPdfImg,
+    AIPlanLectureImg,
+    AIEvaluateLectureImg,
 } from "@/assets/svgs";
-import { AIToolFeatureType } from "../-constants/AICardsData";
 
 export const GetImagesForAITools = (key: string) => {
     switch (key) {
@@ -28,17 +29,21 @@ export const GetImagesForAITools = (key: string) => {
             return <AISortAndSplitImg />;
         case "sortTopicsPdf":
             return <AISorterImg />;
+        case "planLecture":
+            return <AIPlanLectureImg />;
+        case "evaluateLecture":
+            return <AIEvaluateLectureImg />;
         default:
             <></>;
     }
     return <></>;
 };
 
-export const getTaskTypeFromFeature = (feature: AIToolFeatureType): string => {
-    switch (feature.heading) {
+export const getTaskTypeFromFeature = (heading: string): string => {
+    switch (heading) {
         case "Vsmart Upload":
         case "Vsmart Extract":
-        case "Vsmart Vision":
+        case "Vsmart Image":
             return "PDF_TO_QUESTIONS";
         case "Vsmart Audio":
             return "AUDIO_TO_QUESTIONS";
@@ -50,6 +55,10 @@ export const getTaskTypeFromFeature = (feature: AIToolFeatureType): string => {
             return "SORT_AND_SPLIT_TOPICS";
         case "Vsmart Sorter":
             return "SORT_QUESTIONS_TOPIC_WISE";
+        case "Vsmart Lecturer":
+            return "LECTURE_PLANNER";
+        case "Vsmart Feedback":
+            return "LECTURE_FEEDBACK";
         default:
             return "UNKNOWN_TASK_TYPE"; // fallback for safety
     }

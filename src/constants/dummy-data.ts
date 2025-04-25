@@ -59,6 +59,15 @@ export const scheduleTestTabsData = [
 
 export const timeLimit = ["1 min", "2 min", "3 min", "5 min", "10 min", "15 min"];
 export const languageSupport = ["ENGLISH", "HINDI"];
+export const teachingMethod = [
+    "Concept-First – Introduce the core idea before diving into details",
+    "Storytelling – Explain concepts through engaging narratives",
+    "Problem-Solution – Present a problem first, then explain how to solve it",
+    "Question-Led – Guide the lecture by asking thought-provoking questions",
+    "Step-by-Step Tutorial – Break concepts into clear, sequential steps",
+    "Gamified – Include quiz-style or game-based explanation format",
+    "Case-Based Learning – Teach using detailed case studies",
+];
 
 export const EvaluationType = ["Auto", "Manual", "PDF", "VIDEO"];
 

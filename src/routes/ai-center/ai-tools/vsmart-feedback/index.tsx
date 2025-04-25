@@ -1,12 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import GenerateAiQuestionFromImageComponent from "./-components/GenerateQuestionPaper";
-import { AICenterProvider } from "@/routes/ai-center/-contexts/useAICenterContext";
 import { LayoutContainer } from "@/components/common/layout-container/layout-container";
-import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { AICenterProvider } from "../../-contexts/useAICenterContext";
+import EvaluateLectureAI from "./-components/EvaluateLectureAI";
 import { useEffect } from "react";
+import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "phosphor-react";
 
-export const Route = createFileRoute("/ai-center/ai-tools/vsmart-vision/")({
+export const Route = createFileRoute("/ai-center/ai-tools/vsmart-feedback/")({
     component: RouteComponent,
 });
 
@@ -34,7 +34,7 @@ function RouteComponent() {
     return (
         <LayoutContainer>
             <AICenterProvider>
-                <GenerateAiQuestionFromImageComponent />
+                <EvaluateLectureAI />
             </AICenterProvider>
         </LayoutContainer>
     );

@@ -72,13 +72,13 @@ export const AIToolCardData: AIToolCardDataType[] = [
             },
             {
                 key: "image",
-                heading: "Vsmart Vision",
+                heading: "Vsmart Image",
                 subheading: "Extract questions by uploading images",
                 description: [
-                    "Turn images into questions with ease. Vsmart Vision uses advanced OCR and AI to scan photographs, scanned pages, handwritten notes, or screenshots — and extracts structured questions from them. Just upload your image, and let AI do the rest.",
-                    "Ideal for teachers, coaching institutes, and trainers who often receive content in the form of handwritten notes, textbook snapshots, or board images. Whether you're digitizing old test papers or pulling questions from printed material — Vsmart Vision brings analog content into your digital workflow in seconds.",
+                    "Turn images into questions with ease. Vsmart Image uses advanced OCR and AI to scan photographs, scanned pages, handwritten notes, or screenshots — and extracts structured questions from them. Just upload your image, and let AI do the rest.",
+                    "Ideal for teachers, coaching institutes, and trainers who often receive content in the form of handwritten notes, textbook snapshots, or board images. Whether you're digitizing old test papers or pulling questions from printed material — Vsmart Image brings analog content into your digital workflow in seconds.",
                 ],
-                route: "/ai-center/ai-tools/vsmart-vision",
+                route: "/ai-center/ai-tools/vsmart-image",
             },
         ],
     },
@@ -88,7 +88,7 @@ export const AIToolCardData: AIToolCardDataType[] = [
             {
                 key: "sortSplitPdf",
                 heading: "Vsmart Organizer",
-                subheading: "Sort and split topic questions from pdf, doc and ppt files",
+                subheading: "Sort specific questions from any topics, question numbers or page",
                 description: [
                     "Automatically generate and structure question papers topic-by-topic. Vsmart Organizer not only creates questions but intelligently classifies and groups them based on key concepts or chapters — giving you clean, organized sections ready for print or digital use.",
                     "Best suited for curriculum planners, educators, and training professionals who need to align assessments with syllabus breakdowns or learning objectives. Whether you’re creating unit tests, revision modules, or chapter-wise assignments, Vsmart Organizer keeps everything neat, focused, and ready to deploy.",
@@ -98,12 +98,37 @@ export const AIToolCardData: AIToolCardDataType[] = [
             {
                 key: "sortTopicsPdf",
                 heading: "Vsmart Sorter",
-                subheading: "Sort topics for questions from pdf, doc and ppt files",
+                subheading: "Get all the questions sorted by their topics",
                 description: [
                     "Generate and organize topic-wise question papers with precision. Vsmart Sorter automatically extracts questions from your uploaded file (PDF, PPT, or DOC), groups them based on topics, and gives you the control to reorder questions within those topics to match your teaching flow or focus areas.",
                     "Ideal for educators, content designers, or exam moderators who want AI-generated content, but also need flexibility in how it's arranged. Whether you're creating chapter-wise assessments or tailoring question papers to fit specific classroom needs, Vsmart Sorter gives structure with control — letting you decide the question flow.",
                 ],
                 route: "/ai-center/ai-tools/vsmart-sorter",
+            },
+        ],
+    },
+    {
+        title: "Lecture support with AI",
+        features: [
+            {
+                key: "planLecture",
+                heading: "Vsmart Lecturer",
+                subheading: "Generate structured, time-based lectures with just a prompt",
+                description: [
+                    "Create custom lecture plans effortlessly. With Vsmart Lecturer, all you need to do is enter what topics you want to cover, the academic level (e.g., 8th standard), your preferred teaching method, the language (English or Hindi), and total lecture duration. You can also choose whether to include questions during the session or assignments at the end. Based on your inputs, Vsmart Lecturer generates a well-structured, AI-powered lecture flow — ready to deliver.",
+                    "Ideal for educators, trainers, and facilitators who want to design purposeful and interactive lectures without starting from scratch. Whether you're preparing a short 30-minute lesson or a detailed 90-minute workshop, just enter your preferences — from time splits and teaching style to language and student engagement activities — and instantly receive a full, downloadable lecture blueprint tailored to your needs.",
+                ],
+                route: "/ai-center/ai-tools/vsmart-lecture",
+            },
+            {
+                key: "evaluateLecture",
+                heading: "Vsmart Feedback",
+                subheading: "Get feedback reports on your lecture performance",
+                description: [
+                    "Upload your lecture recording and let AI evaluate your performance. Vsmart Lecturer listens to your audio file and generates a comprehensive report — scoring you on clarity, content delivery, engagement, structure, and pacing. Get instant feedback on what you did well and what could be improved.",
+                    "Designed for educators, trainers, and presenters who want to refine their speaking and teaching style. Whether you're preparing for a classroom session, webinar, or workshop — just upload a WAV, MP3, FLAC, AAC, or M4A file and receive a detailed, actionable evaluation of your lecture.",
+                ],
+                route: "/ai-center/ai-tools/vsmart-feedback",
             },
         ],
     },
