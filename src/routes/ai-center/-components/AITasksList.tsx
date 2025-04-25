@@ -9,6 +9,7 @@ import AIQuestionsPreview from "./AIQuestionsPreview";
 import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { getTaskTypeFromFeature } from "../-helpers/GetImagesForAITools";
 import AIChatWithPDFPreview from "./AIChatWithPDFPreview";
+import AIPlanLecturePreview from "./AIPlanLecturePreview";
 
 const AITasksList = ({
     heading,
@@ -74,9 +75,13 @@ const AITasksList = ({
                                         >
                                             {task.status}
                                         </Badge>
+                                        {heading === "Vsmart Lecturer" && (
+                                            <AIPlanLecturePreview task={task} />
+                                        )}
                                         {heading === "Vsmart Chat" ? (
                                             <AIChatWithPDFPreview task={task} />
                                         ) : (
+                                            heading !== "Vsmart Lecturer" &&
                                             (task.status === "COMPLETED" ||
                                                 task.status === "FAILED") && (
                                                 <AIQuestionsPreview task={task} />

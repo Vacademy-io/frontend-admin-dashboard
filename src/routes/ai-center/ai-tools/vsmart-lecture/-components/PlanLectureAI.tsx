@@ -4,9 +4,144 @@ import { AIToolPageData } from "@/routes/ai-center/-constants/AIToolPageData";
 import { GetImagesForAITools } from "@/routes/ai-center/-helpers/GetImagesForAITools";
 import { StarFour } from "phosphor-react";
 import PlanLectureForm from "./PlanLectureForm";
+import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+import { PlanLectureAIFormSchema } from "@/routes/ai-center/-utils/plan-lecture-schema";
+import { useEffect, useRef } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleGetPlanLecture } from "@/routes/ai-center/-services/ai-center-service";
 
 const PlanLectureAI = () => {
+    const queryClient = useQueryClient();
+    const { key: keyContext, loader, setLoader, setKey } = useAICenter();
     const toolData = AIToolPageData["planLecture"];
+    /* Generate Assessment Complete */
+    const MAX_POLL_ATTEMPTS = 10;
+    const pollingCountRef = useRef(0);
+    const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+    const pendingRef = useRef(false);
+
+    const handleSubmitSuccess = (data: PlanLectureAIFormSchema) => {
+        clearPolling();
+        pollingCountRef.current = 0;
+        pendingRef.current = false;
+        pollGenerateQuestionsFromText(data);
+    };
+
+    const pollGenerateQuestionsFromText = (data: PlanLectureAIFormSchema) => {
+        if (pendingRef.current) {
+            return;
+        }
+        getQuestionsFromTextMutation.mutate({
+            taskName: data.taskName,
+            prompt: data.prompt,
+            level: data.level,
+            teachingMethod: data.teachingMethod,
+            language: data.language,
+            lectureDuration: data.lectureDuration,
+            isQuestionGenerated: data.isQuestionGenerated,
+            isAssignmentHomeworkGenerated: data.isAssignmentHomeworkGenerated,
+        });
+    };
+
+    const getQuestionsFromTextMutation = useMutation({
+        mutationFn: async (data: PlanLectureAIFormSchema) => {
+            setLoader(true);
+            setKey("text");
+            return handleGetPlanLecture(
+                data.taskName,
+                data.prompt,
+                data.level,
+                data.teachingMethod,
+                data.language,
+                data.lectureDuration,
+                data.isQuestionGenerated,
+                data.isAssignmentHomeworkGenerated,
+            );
+        },
+        onSuccess: (response, variables) => {
+            // Check if response indicates pending state
+            if (response?.status === "pending") {
+                pendingRef.current = true;
+                // Don't schedule next poll - we'll wait for an error to resume
+                return;
+            }
+
+            // Reset pending state if response is no longer pending
+            pendingRef.current = false;
+
+            // If we have complete data, we're done
+            if (response === "Done") {
+                setLoader(false);
+                setKey(null);
+                clearPolling();
+                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+                return;
+            }
+
+            // Otherwise schedule next poll
+            scheduleNextPoll({
+                taskName: variables.taskName,
+                prompt: variables.prompt,
+                level: variables.level,
+                teachingMethod: variables.teachingMethod,
+                language: variables.language,
+                lectureDuration: variables.lectureDuration,
+                isQuestionGenerated: variables.isQuestionGenerated,
+                isAssignmentHomeworkGenerated: variables.isAssignmentHomeworkGenerated,
+            });
+        },
+        onError: (_, variables) => {
+            // If we were in a pending state, resume polling on error
+            if (pendingRef.current) {
+                pendingRef.current = false;
+                scheduleNextPoll(variables);
+                return;
+            }
+
+            // Normal error handling
+            pollingCountRef.current += 1;
+            if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
+                setLoader(false);
+                setKey(null);
+                clearPolling();
+                return;
+            }
+
+            // Schedule next poll on error (if not max attempts)
+            scheduleNextPoll(variables);
+        },
+    });
+
+    const clearPolling = () => {
+        if (pollingTimeoutIdRef.current) {
+            setLoader(false);
+            setKey(null);
+            clearTimeout(pollingTimeoutIdRef.current);
+            pollingTimeoutIdRef.current = null;
+        }
+    };
+
+    const scheduleNextPoll = (data: PlanLectureAIFormSchema) => {
+        setLoader(false);
+        setKey(null);
+        clearPolling(); // Clear any existing timeout
+
+        // Only schedule next poll if not in pending state
+        if (!pendingRef.current) {
+            setLoader(true);
+            setKey("text");
+            pollingTimeoutIdRef.current = setTimeout(() => {
+                pollGenerateQuestionsFromText(data);
+            }, 10000);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            clearPolling();
+        };
+    }, []);
+
     return (
         <>
             {toolData && (
@@ -44,9 +179,16 @@ const PlanLectureAI = () => {
                         ))}
                     </div>
                     <div>
-                        <PlanLectureForm />
+                        <PlanLectureForm
+                            handleSubmitSuccess={handleSubmitSuccess}
+                            keyContext={keyContext}
+                            loader={loader}
+                        />
                     </div>
                 </div>
+            )}
+            {getQuestionsFromTextMutation.status === "success" && (
+                <AITasksList heading="Vsmart Lecturer" enableDialog={true} />
             )}
         </>
     );

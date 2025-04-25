@@ -1,3 +1,4 @@
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
@@ -14,7 +15,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
-const PlanLectureForm = () => {
+type PlanLectureFormProps = {
+    handleSubmitSuccess: (data: PlanLectureAIFormSchema) => void;
+    keyContext: string | null;
+    loader: boolean;
+};
+
+const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectureFormProps) => {
     const [open, setOpen] = useState(false);
     const form = useForm<PlanLectureAIFormSchema>({
         resolver: zodResolver(planLectureFormSchema),
@@ -34,7 +41,7 @@ const PlanLectureForm = () => {
     });
 
     const onSubmit = (values: PlanLectureAIFormSchema) => {
-        console.log(values);
+        handleSubmitSuccess(values);
     };
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -249,17 +256,33 @@ const PlanLectureForm = () => {
                                 </FormItem>
                             )}
                         />
+
                         <div>
-                            <MyButton
-                                buttonType="primary"
-                                layoutVariant="default"
-                                scale="large"
-                                className=""
-                                type="button"
-                                onClick={form.handleSubmit(onSubmit)}
-                            >
-                                Submit
-                            </MyButton>
+                            {loader && keyContext == "planLecture" ? (
+                                <MyButton
+                                    type="button"
+                                    scale="medium"
+                                    buttonType="primary"
+                                    layoutVariant="default"
+                                    className="w-full text-sm"
+                                >
+                                    <DashboardLoader size={20} color="#ffffff" />
+                                </MyButton>
+                            ) : (
+                                <MyButton
+                                    type="button"
+                                    scale="medium"
+                                    buttonType="primary"
+                                    layoutVariant="default"
+                                    className="text-sm"
+                                    onClick={form.handleSubmit(onSubmit)}
+                                    disable={
+                                        loader && keyContext != "planLecture" && keyContext != ""
+                                    }
+                                >
+                                    Submit
+                                </MyButton>
+                            )}
                         </div>
                     </form>
                 </FormProvider>
