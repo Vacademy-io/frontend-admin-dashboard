@@ -13,8 +13,11 @@ const PlanLecturePreview = ({
     const [open, setOpen] = useState(openDialog);
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none p-4">
-                <div className="flex h-screen w-full flex-col gap-4">
+            <DialogContent className="no-scrollbar !m-0 h-full !w-full !max-w-full !gap-0 overflow-y-auto !rounded-none p-0">
+                <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
+                    VSmart Lecture Preview
+                </h1>
+                <div className="flex h-screen w-full flex-col gap-4 p-6">
                     <h1 className="text-xl font-semibold">
                         📘 Lecture Title: {planLectureData.heading}
                     </h1>

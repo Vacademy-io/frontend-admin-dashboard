@@ -8,6 +8,7 @@ import {
     handleGenerateAssessmentQuestions,
     handleStartProcessUploadedFile,
 } from "@/routes/ai-center/-services/ai-center-service";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 const EvaluateLectureAI = () => {
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState("");
@@ -18,7 +19,7 @@ const EvaluateLectureAI = () => {
     const [fileUploading, setFileUploading] = useState(false);
 
     const handleUploadClick = () => {
-        setKey("question");
+        setKey("evaluateLecture");
         fileInputRef.current?.click();
     };
 
@@ -68,7 +69,7 @@ const EvaluateLectureAI = () => {
             taskName: string;
         }) => {
             setLoader(true);
-            setKey("question");
+            setKey("evaluateLecture");
             return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
         },
         onSuccess: (response, { pdfId }) => {
@@ -124,7 +125,7 @@ const EvaluateLectureAI = () => {
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("question");
+            setKey("evaluateLecture");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment(pdfId);
             }, 10000);
@@ -171,13 +172,16 @@ const EvaluateLectureAI = () => {
                 handleUploadClick={handleUploadClick}
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
-                cardTitle="Extract Question"
+                cardTitle="Evaluate Lecture"
                 cardDescription="Upload PDF/DOCX/PPT"
                 inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
                 keyProp="evaluateLecture"
                 taskName={taskName}
                 setTaskName={setTaskName}
             />
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Lecturer" enableDialog={true} />
+            )}
         </>
     );
 };

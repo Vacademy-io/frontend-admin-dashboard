@@ -10,6 +10,7 @@ import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
 const SortAndSplitTopicQuestions = () => {
+    const [prompt, setPrompt] = useState("");
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
@@ -139,7 +140,7 @@ const SortAndSplitTopicQuestions = () => {
         }
         generateAssessmentMutation.mutate({
             pdfId: uploadedFilePDFId,
-            userPrompt: "",
+            userPrompt: prompt,
             taskName,
         });
     };
@@ -152,7 +153,7 @@ const SortAndSplitTopicQuestions = () => {
         pendingRef.current = false;
 
         // Use pdfId in your mutation call
-        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: "", taskName });
+        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: prompt, taskName });
     };
 
     useEffect(() => {
@@ -185,6 +186,8 @@ const SortAndSplitTopicQuestions = () => {
                 keyProp="sortSplitPdf"
                 taskName={taskName}
                 setTaskName={setTaskName}
+                prompt={prompt}
+                setPrompt={setPrompt}
             />
             {generateAssessmentMutation.status === "success" && (
                 <AITasksList heading="Vsmart Organizer" enableDialog={true} />

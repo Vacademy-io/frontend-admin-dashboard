@@ -88,7 +88,7 @@ export const AIToolCardData: AIToolCardDataType[] = [
             {
                 key: "sortSplitPdf",
                 heading: "Vsmart Organizer",
-                subheading: "Sort and split topic questions from pdf, doc and ppt files",
+                subheading: "Sort specific questions from any topics, question numbers or page",
                 description: [
                     "Automatically generate and structure question papers topic-by-topic. Vsmart Organizer not only creates questions but intelligently classifies and groups them based on key concepts or chapters — giving you clean, organized sections ready for print or digital use.",
                     "Best suited for curriculum planners, educators, and training professionals who need to align assessments with syllabus breakdowns or learning objectives. Whether you’re creating unit tests, revision modules, or chapter-wise assignments, Vsmart Organizer keeps everything neat, focused, and ready to deploy.",
@@ -98,7 +98,7 @@ export const AIToolCardData: AIToolCardDataType[] = [
             {
                 key: "sortTopicsPdf",
                 heading: "Vsmart Sorter",
-                subheading: "Sort topics for questions from pdf, doc and ppt files",
+                subheading: "Get all the questions sorted by their topics",
                 description: [
                     "Generate and organize topic-wise question papers with precision. Vsmart Sorter automatically extracts questions from your uploaded file (PDF, PPT, or DOC), groups them based on topics, and gives you the control to reorder questions within those topics to match your teaching flow or focus areas.",
                     "Ideal for educators, content designers, or exam moderators who want AI-generated content, but also need flexibility in how it's arranged. Whether you're creating chapter-wise assessments or tailoring question papers to fit specific classroom needs, Vsmart Sorter gives structure with control — letting you decide the question flow.",
