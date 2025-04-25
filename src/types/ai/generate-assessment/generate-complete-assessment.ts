@@ -67,16 +67,16 @@ export interface AITaskIndividualListInterface {
 }
 
 interface TimeWiseSection {
-    sectionHeading: string;
-    timeSplit: string;
+    section_heading: string;
+    time_split: string;
     content: string;
-    topicCovered: string[];
-    questionToStudents: string[];
+    topic_covered: string[];
+    question_to_students: string[];
     activity: string[];
 }
 
 interface Assignment {
-    topicCovered: string[];
+    topic_covered: string[];
     tasks: string[];
 }
 
@@ -86,7 +86,7 @@ export interface PlanLectureDataInterface {
     duration: string;
     language: string;
     level: string;
-    timeWiseSplit: TimeWiseSection[];
+    time_wise_split: TimeWiseSection[];
     assignment: Assignment;
     summary: string[];
 }
