@@ -90,3 +90,30 @@ export interface PlanLectureDataInterface {
     assignment: Assignment;
     summary: string[];
 }
+
+export interface AILectureFeedbackInterface {
+    title: string;
+    report_title: string;
+    lecture_info: LectureInfo;
+    total_score: string; // or number, depending on usage
+    criteria: EvaluationCriterion[];
+    summary: string[];
+}
+
+export interface LectureInfo {
+    lecture_title: string;
+    duration: string;
+    evaluation_date: string;
+}
+
+export interface EvaluationCriterion {
+    name: string;
+    score: string; // or number
+    points: CriterionPoint[];
+    scope_of_improvement: string[];
+}
+
+export interface CriterionPoint {
+    title: string;
+    description: string[];
+}

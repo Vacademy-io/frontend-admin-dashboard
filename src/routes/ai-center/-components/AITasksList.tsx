@@ -15,6 +15,7 @@ import AIChatWithPDFPreview from "./AIChatWithPDFPreview";
 import AIPlanLecturePreview from "./AIPlanLecturePreview";
 import AIEvaluatePreview from "./AIEvaluatePreview";
 import { ArrowCounterClockwise } from "phosphor-react";
+import { convertToLocalDateTime } from "@/constants/helper";
 
 const AITasksList = ({
     heading,
@@ -96,7 +97,12 @@ const AITasksList = ({
                                         key={task.id}
                                         className="flex flex-col gap-1 rounded-lg border bg-neutral-50 p-4"
                                     >
-                                        <h1 className="text-neutral-600">{task.task_name}</h1>
+                                        <div className="flex items-center justify-between">
+                                            <h1 className="text-neutral-600">{task.task_name}</h1>
+                                            <h1 className="text-sm text-neutral-600">
+                                                {convertToLocalDateTime(task.updated_at)}
+                                            </h1>
+                                        </div>
                                         <div className="flex items-center justify-start">
                                             <Badge
                                                 className={`border border-gray-200 text-neutral-600 shadow-none ${
@@ -109,17 +115,20 @@ const AITasksList = ({
                                             >
                                                 {task.status}
                                             </Badge>
-                                            {heading === "Vsmart Feedback" && (
-                                                <AIEvaluatePreview task={task} />
-                                            )}
+                                            {task.status !== "PROGRESS" &&
+                                                heading === "Vsmart Feedback" && (
+                                                    <AIEvaluatePreview task={task} />
+                                                )}
 
-                                            {heading === "Vsmart Lecturer" && (
-                                                <AIPlanLecturePreview task={task} />
-                                            )}
+                                            {task.status !== "PROGRESS" &&
+                                                heading === "Vsmart Lecturer" && (
+                                                    <AIPlanLecturePreview task={task} />
+                                                )}
 
-                                            {heading === "Vsmart Chat" && (
-                                                <AIChatWithPDFPreview task={task} />
-                                            )}
+                                            {task.status !== "PROGRESS" &&
+                                                heading === "Vsmart Chat" && (
+                                                    <AIChatWithPDFPreview task={task} />
+                                                )}
 
                                             {heading !== "Vsmart Lecturer" &&
                                                 heading !== "Vsmart Chat" &&
