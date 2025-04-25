@@ -17,9 +17,9 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
         duration: "",
         language: "",
         level: "",
-        timeWiseSplit: [],
+        time_wise_split: [],
         assignment: {
-            topicCovered: [],
+            topic_covered: [],
             tasks: [],
         },
         summary: [],
