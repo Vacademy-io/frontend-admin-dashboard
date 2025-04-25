@@ -273,15 +273,15 @@ export const EvaluatedStudents = () => {
                 </MyButton>
             </div>
 
-            {/* Show shimmer only when loading and no data has arrived yet */}
-            {isLoading && !hasInitialData && <ShimmerLoadingTable isPolling={false} />}
-
             {/* Show table when we have data (either partial or complete) */}
             {(hasInitialData || displayData.length > 0) && (
                 <div className="w-full">
                     <StudentEvaluationTable data={displayData} isProcessing={isPolling} />
                 </div>
             )}
+
+            {/* Show shimmer only when loading and no data has arrived yet */}
+            {isLoading && !hasInitialData && <ShimmerLoadingTable isPolling={false} />}
 
             {/* Show empty state only when not loading and no data exists */}
             {!isLoading && !isPolling && displayData.length === 0 && (
