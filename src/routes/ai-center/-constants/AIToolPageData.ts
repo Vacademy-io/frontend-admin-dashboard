@@ -42,13 +42,7 @@ export const AIToolPageData: AIToolPageDataType = {
                 stepHeading: "Customize the Output",
                 stepSubHeading:
                     "After selecting the content source, specify the following details:",
-                steps: [
-                    "Number of Questions (e.g., 10, 20...)",
-                    "Difficulty Level (Easy, Medium, Hard)",
-                    "Topic/Chapter Name (Optional, for better context)",
-                    "Question Type (MCQs, Short Answer, Descriptive, Mixed)",
-                    "Preferred Language (English, Hindi, or any supported language)",
-                ],
+                steps: ["Generate a set of questions by adding topics"],
             },
             {
                 stepHeading: "Click Generate",

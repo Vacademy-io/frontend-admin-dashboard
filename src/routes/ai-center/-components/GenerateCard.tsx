@@ -9,6 +9,13 @@ import { Separator } from "@/components/ui/separator";
 import { MyInput } from "@/components/design-system/input";
 import AITasksList from "./AITasksList";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useState } from "react";
+import { PromptDummyData } from "./Prompt-dummy-data";
+
+type PromptType = keyof typeof PromptDummyData;
+
 interface GenerateCardProps {
     handleUploadClick: () => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
@@ -33,6 +40,7 @@ export const GenerateCard = ({
     prompt,
     setPrompt,
 }: GenerateCardProps) => {
+    const [selectedValue, setSelectedValue] = useState<PromptType>("topic");
     const { key: keyContext, loader } = useAICenter();
     const toolData = keyProp ? AIToolPageData[keyProp] : null;
     return (
@@ -59,25 +67,43 @@ export const GenerateCard = ({
                                     label="Task Name"
                                 />
                             )}
-                            {(keyProp === "sortSplitPdf" ||
-                                keyProp === "sortTopicsPdf" ||
-                                keyProp === "question") && (
+                            {keyProp === "sortSplitPdf" && (
                                 <div className="flex flex-col gap-2">
                                     <h1>
-                                        Topics <span className="text-red-500">*</span>
+                                        {PromptDummyData[selectedValue].heading}
+                                        <span className="text-red-500">*</span>
                                     </h1>
                                     <Textarea
-                                        placeholder="For example, Generate a set of questions covering the key principles of photosynthesis, including the process, factors affecting it, and its importance in the ecosystem. Focus on conceptual understanding and application"
+                                        placeholder={PromptDummyData[selectedValue].description}
                                         className="h-[100px] w-full"
                                         value={prompt}
                                         onChange={(e) => setPrompt?.(e.target.value)}
                                     />
-                                    <span className="text-sm">Example Prompts</span>
-                                    <div className="flex flex-col text-sm text-red-500">
-                                        <span>* Select any topic questions covered</span>
-                                        <span>* Select questions from specific pages</span>
-                                        <span>* Select a set of questions eg. 1, 2, 3, 4</span>
-                                    </div>
+                                    <RadioGroup
+                                        defaultValue="topic"
+                                        className="mt-2"
+                                        value={selectedValue}
+                                        onValueChange={(newValue) =>
+                                            setSelectedValue(newValue as PromptType)
+                                        }
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="topic" id="r1" />
+                                            <Label htmlFor="r1">
+                                                Select any topic questions covered
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="pages" id="r2" />
+                                            <Label htmlFor="r2">
+                                                Select questions from specific pages
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="questionNo" id="r3" />
+                                            <Label htmlFor="r3">Select a set of questions</Label>
+                                        </div>
+                                    </RadioGroup>
                                 </div>
                             )}
                             {loader && keyContext == keyProp && keyContext != null ? (
