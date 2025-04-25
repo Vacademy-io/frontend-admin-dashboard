@@ -114,13 +114,16 @@ export const EvaluatedStudents = () => {
     const { isLoading, setLoading } = useLoaderStore();
 
     function transformStudentData(studentDataArray: StudentData[]): OutputData[] {
-        return studentDataArray.map((student) => ({
-            id: student.enrollId,
-            response_id: student.pdfId,
-            full_name: student.name,
-            email: "",
-            contact_number: "",
-        }));
+        return studentDataArray.map((student) => {
+            const attemptIndex = student.currentAttemptIndex;
+            return {
+                id: student.id,
+                response_id: student.attempts[attemptIndex]?.pdfId,
+                full_name: student.name,
+                email: student.email ?? "",
+                contact_number: student.contact_number ?? "",
+            };
+        });
     }
 
     const handleStudentSubmit = async (students: StudentData[], selectedAssessment: string) => {

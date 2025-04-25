@@ -10,12 +10,11 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { useRouter } from "@tanstack/react-router";
-import { ArrowUpDown, FileText, Loader2 } from "lucide-react";
+import { ArrowUpDown, ExternalLink, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { GET_PUBLIC_URL } from "@/constants/urls";
 import { SectionWiseAnsExtracted, Student } from "../-utils/utils";
 import StatusIndicator from "./status-indicator";
-import { MdOutlineOpenInNew } from "react-icons/md";
 import { isNullOrEmptyOrUndefined } from "@/lib/utils";
 import { MyDialog } from "@/components/design-system/dialog";
 import {
@@ -183,7 +182,7 @@ export default function StudentEvaluationTable({
                                         <StatusIndicator status={student.status} />
                                         {student.status !== "EXTRACTING_ANSWER" &&
                                             !isNullOrEmptyOrUndefined(student.extracted) && (
-                                                <MdOutlineOpenInNew
+                                                <ExternalLink
                                                     className="cursor-pointer"
                                                     onClick={() => {
                                                         setOpenPreview(true);
