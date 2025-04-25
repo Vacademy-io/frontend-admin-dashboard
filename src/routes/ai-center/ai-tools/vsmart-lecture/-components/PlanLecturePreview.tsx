@@ -108,7 +108,6 @@ const PlanLecturePreview = ({
                             );
                         })}
                     </div>
-                    <Separator />
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-4">
                             <h1 className="font-semibold">Assignment</h1>
