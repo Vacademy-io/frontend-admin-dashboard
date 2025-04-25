@@ -160,7 +160,7 @@ const PlayWithPDF = ({
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("assessment");
+            setKey("chat");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateAssessment();
             }, 10000);

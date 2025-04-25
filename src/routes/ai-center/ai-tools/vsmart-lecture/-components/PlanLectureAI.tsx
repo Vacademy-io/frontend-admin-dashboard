@@ -46,7 +46,7 @@ const PlanLectureAI = () => {
     const getQuestionsFromTextMutation = useMutation({
         mutationFn: async (data: PlanLectureAIFormSchema) => {
             setLoader(true);
-            setKey("text");
+            setKey("planLecture");
             return handleGetPlanLecture(
                 data.taskName,
                 data.prompt,
@@ -129,7 +129,7 @@ const PlanLectureAI = () => {
         // Only schedule next poll if not in pending state
         if (!pendingRef.current) {
             setLoader(true);
-            setKey("text");
+            setKey("planLecture");
             pollingTimeoutIdRef.current = setTimeout(() => {
                 pollGenerateQuestionsFromText(data);
             }, 10000);

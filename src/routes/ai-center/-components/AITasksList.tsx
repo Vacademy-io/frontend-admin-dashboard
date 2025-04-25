@@ -10,6 +10,7 @@ import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/ge
 import { getTaskTypeFromFeature } from "../-helpers/GetImagesForAITools";
 import AIChatWithPDFPreview from "./AIChatWithPDFPreview";
 import AIPlanLecturePreview from "./AIPlanLecturePreview";
+import AIEvaluatePreview from "./AIEvaluatePreview";
 
 const AITasksList = ({
     heading,
@@ -75,18 +76,25 @@ const AITasksList = ({
                                         >
                                             {task.status}
                                         </Badge>
+                                        {heading === "Vsmart Feedback" && (
+                                            <AIEvaluatePreview task={task} />
+                                        )}
+
                                         {heading === "Vsmart Lecturer" && (
                                             <AIPlanLecturePreview task={task} />
                                         )}
-                                        {heading === "Vsmart Chat" ? (
+
+                                        {heading === "Vsmart Chat" && (
                                             <AIChatWithPDFPreview task={task} />
-                                        ) : (
-                                            heading !== "Vsmart Lecturer" &&
+                                        )}
+
+                                        {heading !== "Vsmart Lecturer" &&
+                                            heading !== "Vsmart Chat" &&
+                                            heading !== "Vsmart Feedback" &&
                                             (task.status === "COMPLETED" ||
                                                 task.status === "FAILED") && (
                                                 <AIQuestionsPreview task={task} />
-                                            )
-                                        )}
+                                            )}
                                     </div>
                                 </div>
                             );
