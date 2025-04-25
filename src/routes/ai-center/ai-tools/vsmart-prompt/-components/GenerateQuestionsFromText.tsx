@@ -29,7 +29,7 @@ export type QuestionsFromTextData = z.infer<typeof formSchema>;
 export const GenerateQuestionsFromText = () => {
     const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
-    const [disableSubmitBtn, setDisableSubmitBtn] = useState(true);
+    const [disableSubmitBtn, setDisableSubmitBtn] = useState(false);
     const formSubmitRef = useRef(() => {});
     const dialogForm = useForm<QuestionsFromTextData>({
         resolver: zodResolver(formSchema),
