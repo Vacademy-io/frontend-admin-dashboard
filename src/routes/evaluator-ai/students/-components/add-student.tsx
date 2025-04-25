@@ -181,8 +181,11 @@ export function StudentEnrollment() {
 
                 // Update basic info
                 if (updatedStudents[editIndex]) {
-                    updatedStudents[editIndex].name = name;
-                    updatedStudents[editIndex].enrollId = enrollId;
+                    const student = updatedStudents[editIndex];
+                    if (student) {
+                        student.name = name;
+                        student.enrollId = enrollId;
+                    }
                 }
 
                 // If a new file was uploaded, update the first attempt or create one
@@ -414,7 +417,10 @@ export function StudentEnrollment() {
         const actualIndex = (currentPage - 1) * itemsPerPage + studentIndex;
         const updatedStudents = [...students];
         if (updatedStudents[actualIndex]) {
-            updatedStudents[actualIndex].currentAttemptIndex = attemptIndex;
+            const student = updatedStudents[actualIndex];
+            if (student) {
+                student.currentAttemptIndex = attemptIndex;
+            }
         }
 
         // Update state and localStorage

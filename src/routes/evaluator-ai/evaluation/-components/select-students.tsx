@@ -1,6 +1,4 @@
 "use client";
-/* eslint-disable */
-// @ts-nocheck
 
 import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -153,9 +151,8 @@ export function StudentSelectionDialog({
         // Create a copy of the student data to modify
         const updatedStudentData = [...studentData];
         if (updatedStudentData[actualIndex]) {
-            updatedStudentData[actualIndex].currentAttemptIndex = attemptIndex;
+            updatedStudentData[actualIndex]!.currentAttemptIndex = attemptIndex;
         }
-
         // Update localStorage
         localStorage.setItem("students", JSON.stringify(updatedStudentData));
 
