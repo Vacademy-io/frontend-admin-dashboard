@@ -70,6 +70,12 @@ export const GenerateCard = ({
                                         value={prompt}
                                         onChange={(e) => setPrompt?.(e.target.value)}
                                     />
+                                    <span className="text-sm">Example Prompts</span>
+                                    <div className="flex flex-col text-sm text-red-500">
+                                        <span>* Select any topic questions covered</span>
+                                        <span>* Select questions from specific pages</span>
+                                        <span>* Select a set of questions eg. 1, 2, 3, 4</span>
+                                    </div>
                                 </div>
                             )}
                             {loader && keyContext == keyProp && keyContext != null ? (
