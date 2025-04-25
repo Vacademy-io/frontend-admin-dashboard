@@ -21,13 +21,13 @@ export function MarkingCriteriaDialog({ markingJson }: MarkingCriteriaDialogProp
 
     return (
         <>
-            <Button onClick={() => setOpen(true)} className="w-28">
+            <Button variant="outline" onClick={() => setOpen(true)} className="">
                 <Eye className="mr-2 size-4" />
                 View
             </Button>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+                <DialogContent className="max-h-[80vh] min-w-fit overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
                             Marking Criteria for {markingData.total_marks} marks
@@ -45,6 +45,7 @@ export function MarkingCriteriaDialog({ markingJson }: MarkingCriteriaDialogProp
                             </div>
 
                             {markingData.criteria && markingData.criteria.length > 0 ? (
+                                // eslint-disable-next-line
                                 markingData.criteria.map((criterion: any, index: number) => (
                                     <div
                                         key={index}
