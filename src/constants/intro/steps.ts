@@ -175,6 +175,14 @@ const createAssesmentSteps: Step[] = [
         title: "Access Control",
         intro: "Control who can access the assessment by configuring the access settings.",
         position: "right",
+        subStep: [
+            {
+                element: "#access-users",
+                title: "Access Control",
+                intro: "Grant users in the institute appropriate access by assigning them to specific access control groups.",
+                position: "right",
+            },
+        ],
     },
 ];
 

@@ -16,10 +16,11 @@ interface UseIntroJsTourProps {
     steps: Step[];
     enable?: boolean;
     partial?: boolean;
+    className?: string;
     onTourExit?: () => void;
 }
 
-const useIntroJsTour = ({ key, steps, onTourExit, enable = true }: UseIntroJsTourProps) => {
+const useIntroJsTour = ({ key, steps, onTourExit, className,enable = true }: UseIntroJsTourProps) => {
     const { getValue, setValue } = useLocalStorage<boolean>(key, false);
     const [hasDisplayedIntro, setHasDisplayedIntro] = useState(false);
 
@@ -37,7 +38,7 @@ const useIntroJsTour = ({ key, steps, onTourExit, enable = true }: UseIntroJsTou
                 nextLabel: "Next",
                 prevLabel: "Previous",
                 highlightClass: "custom-highlight",
-                tooltipClass: `custom-tooltip `,
+                tooltipClass: `custom-tooltip ${className}`,
                 steps,
                 doneLabel: "Done",
                 exitOnEsc: true,
