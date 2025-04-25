@@ -114,7 +114,8 @@ export const QuestionsFromTextDialog = ({
                                 <FormControl>
                                     <div className="flex flex-col gap-2">
                                         <FormLabel>
-                                            Topics <span className="text-red-500">*</span>
+                                            Details of topics{" "}
+                                            <span className="text-red-500">*</span>
                                         </FormLabel>
                                         <Textarea
                                             placeholder="For example, Generate a set of questions covering the key principles of photosynthesis, including the process, factors affecting it, and its importance in the ecosystem. Focus on conceptual understanding and application"
@@ -123,6 +124,25 @@ export const QuestionsFromTextDialog = ({
                                             onChange={(e) => field.onChange(e.target.value)}
                                         />
                                     </div>
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="topics"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <MyInput
+                                        input={field.value?.toString() || ""}
+                                        onChangeFunction={(e) => field.onChange(e.target.value)}
+                                        label="Topics"
+                                        required={true}
+                                        inputType="text"
+                                        inputPlaceholder="Enter the topic you want to generate the question for"
+                                        className="w-full"
+                                    />
                                 </FormControl>
                             </FormItem>
                         )}
@@ -172,25 +192,7 @@ export const QuestionsFromTextDialog = ({
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={form.control}
-                        name="topics"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyInput
-                                        input={field.value?.toString() || ""}
-                                        onChangeFunction={(e) => field.onChange(e.target.value)}
-                                        label="Topics"
-                                        required={true}
-                                        inputType="text"
-                                        inputPlaceholder="Enter the topic you want to generate the question for"
-                                        className="w-full"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+
                     <FormField
                         control={form.control}
                         name="question_type"
