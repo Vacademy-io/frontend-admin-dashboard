@@ -96,6 +96,7 @@ export function StudentEnrollment() {
     useEffect(() => {
         // Convert old format to new format with attempts
         const savedStudents = JSON.parse(localStorage.getItem("students") || "[]");
+        // eslint-disable-next-line
         const convertedStudents = savedStudents.map((student: any) => {
             // If the student already has attempts array, return as is
             if (student.attempts) return student;
