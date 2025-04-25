@@ -114,7 +114,7 @@ export const QuestionsFromTextDialog = ({
                                 <FormControl>
                                     <div className="flex flex-col gap-2">
                                         <FormLabel>
-                                            Prompt <span className="text-red-500">*</span>
+                                            Topics <span className="text-red-500">*</span>
                                         </FormLabel>
                                         <Textarea
                                             placeholder="For example, Generate a set of questions covering the key principles of photosynthesis, including the process, factors affecting it, and its importance in the ecosystem. Focus on conceptual understanding and application"

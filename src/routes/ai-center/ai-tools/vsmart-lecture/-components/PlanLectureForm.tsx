@@ -32,8 +32,8 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
             teachingMethod: "",
             language: "",
             lectureDuration: {
-                hrs: "",
-                min: "",
+                hrs: "0",
+                min: "0",
             },
             isQuestionGenerated: false,
             isAssignmentHomeworkGenerated: false,
@@ -89,7 +89,8 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                                     <FormControl>
                                         <div className="flex flex-col gap-2">
                                             <FormLabel>
-                                                Prompt <span className="text-red-500">*</span>
+                                                Topics to be covered in lecture{" "}
+                                                <span className="text-red-500">*</span>
                                             </FormLabel>
                                             <Textarea
                                                 placeholder="For example, Generate a set of questions covering the key principles of photosynthesis, including the process, factors affecting it, and its importance in the ecosystem. Focus on conceptual understanding and application"
