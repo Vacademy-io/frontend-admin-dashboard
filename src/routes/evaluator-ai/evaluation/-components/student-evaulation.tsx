@@ -12,24 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@tanstack/react-router";
 import { ArrowUpDown, FileText, Loader2 } from "lucide-react";
-import axios from "axios";
 import { toast } from "sonner";
-import { GET_PUBLIC_URL } from "@/constants/urls";
-
-// Default token for authorization
-const DEFAULT_ACCESS_TOKEN =
-    "eyJhbGciOiJIUzI1NiJ9.eyJmdWxsbmFtZSI6IkRvZSBXYWxrZXIiLCJ1c2VyIjoiOTE3YjI1YWMtZjZhZi00ZjM5LTkwZGYtYmQxZDIxZTQyNTkzIiwiZW1haWwiOiJkb2VAZXhhbXBsZS5jb20iLCJpc19yb290X3VzZXIiOmZhbHNlLCJhdXRob3JpdGllcyI6eyI5ZDNmNGNjYi1hN2Y2LTQyM2YtYmM0Zi03NWM2ZDYxNzYzNDYiOnsicGVybWlzc2lvbnMiOltdLCJyb2xlcyI6WyJTVFVERU5UIl19fSwidXNlcm5hbWUiOiJkb2V3NjA2OSIsInN1YiI6ImRvZXc2MDY5IiwiaWF0IjoxNzQ1MzI2ODI2LCJleHAiOjE3NDU5MzE2MjZ9._O0T3Q0kxXLE9JnwC79IQCpwl-sAdFqR8nHa3MTpE5U";
-
-// Helper function to get public URL
-const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
-    const response = await axios.get(GET_PUBLIC_URL, {
-        params: { fileId, expiryDays: 1 },
-        headers: {
-            Authorization: `Bearer ${DEFAULT_ACCESS_TOKEN}`,
-        },
-    });
-    return response?.data;
-};
+import { getPublicUrl } from "../../students/-components/add-student-dialog";
 
 interface Student {
     id: string;
