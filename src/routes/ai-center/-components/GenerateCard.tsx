@@ -64,7 +64,7 @@ export const GenerateCard = ({
                                 keyProp === "question") && (
                                 <div className="flex flex-col gap-2">
                                     <h1>
-                                        Prompt <span className="text-red-500">*</span>
+                                        Topics <span className="text-red-500">*</span>
                                     </h1>
                                     <Textarea
                                         placeholder="For example, Generate a set of questions covering the key principles of photosynthesis, including the process, factors affecting it, and its importance in the ecosystem. Focus on conceptual understanding and application"
