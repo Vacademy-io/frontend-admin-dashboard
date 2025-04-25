@@ -48,7 +48,13 @@ interface EnrolledStudent {
     fileId?: string;
 }
 
-export default function StudentEvaluationTable({ data }: { data: Student[] }) {
+export default function StudentEvaluationTable({
+    data,
+    isProcessing,
+}: {
+    data: Student[];
+    isProcessing?: boolean;
+}) {
     const router = useRouter();
     const [enrolledStudents, setEnrolledStudents] = useState<EnrolledStudent[]>([]);
     const [loadingPdf, setLoadingPdf] = useState<Record<string, boolean>>({});
@@ -156,7 +162,8 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                                         )}
                                     </TableCell>
                                     <TableCell className="">
-                                        {student.status === "EVALUATION_COMPLETED" ? (
+                                        {student.status === "EVALUATION_COMPLETED" &&
+                                        !isProcessing ? (
                                             <div
                                                 onClick={() => {
                                                     router.navigate({

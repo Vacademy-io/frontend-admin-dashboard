@@ -253,7 +253,7 @@ export function StudentSelectionDialog({
                                                 const actualIndex =
                                                     (currentPage - 1) * itemsPerPage + index;
                                                 const currentAttempt: AttemptData | undefined =
-                                                    student.attempts[student.currentAttemptIndex];
+                                                    student.attempts[student?.currentAttemptIndex];
                                                 return (
                                                     <TableRow key={index}>
                                                         <TableCell className="sticky left-0 z-10 bg-white text-center">
