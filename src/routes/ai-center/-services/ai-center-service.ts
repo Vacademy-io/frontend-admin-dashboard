@@ -19,6 +19,7 @@ import {
     SORT_SPLIT_FILE_AI_URL,
     START_PROCESSING_FILE_AI_URL,
 } from "@/constants/urls";
+import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
 import axios from "axios";
 
 export const handleStartProcessUploadedFile = async (fileId: string) => {
@@ -256,7 +257,7 @@ export const handleGetQuestionsFromText = async (
     question_language: string,
 ) => {
     const instituteId = getInstituteId();
-    const response = await axios({
+    const response = await authenticatedAxiosInstance({
         method: "POST",
         url: GET_QUESTIONS_FROM_TEXT,
         data: {
