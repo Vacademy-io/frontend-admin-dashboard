@@ -24,25 +24,37 @@ import { z } from "zod";
 import { Loader2, Mail } from "lucide-react";
 import { UploadFileInS3Public } from "@/routes/signup/-services/signup-services";
 import { toast } from "sonner";
+import { MyDialog } from "@/components/design-system/dialog";
 
 interface ISummary {
-    overall_description: string;
-    overall_verdict: string;
-    total_marks: number;
-    total_marks_obtained: number;
-    user_id: string;
-    name: string;
-    section_wise_results: {
-        question_wise_results: {
-            description: string;
-            feedback: string;
-            total_marks: number;
-            marks_obtained: number;
+    evaluation_result: {
+        overall_description: string;
+        overall_verdict: string;
+        total_marks: number;
+        total_marks_obtained: number;
+        section_wise_results: {
+            question_wise_results: {
+                description: string;
+                feedback: string;
+                total_marks: number;
+                marks_obtained: number;
+                question_order: number;
+                question_text: string;
+                question_id: string;
+            }[];
+        }[];
+    };
+    section_wise_ans_extracted: {
+        question_wise_ans_extracted: {
+            answer_html: string;
+            question_id: string;
             question_order: number;
             question_text: string;
-            question_id: string;
+            status: string;
         }[];
     }[];
+    user_id: string;
+    name: string;
 }
 interface IEvaluationData {
     assessment: string;
@@ -71,6 +83,11 @@ export default function EvaluationSummary() {
     const [open, setOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [sendingMail, setSendlingMail] = useState(false);
+    const [openPreview, setOpenPreview] = useState(false);
+    const [previewText, setPreviewText] = useState({
+        first: "",
+        second: "",
+    });
 
     const { studentId } = useSearch({ from: "/evaluator-ai/evaluation/student-summary/" }) as {
         studentId: number;
@@ -139,7 +156,9 @@ export default function EvaluationSummary() {
                     to_email: data.email,
                     subject: data.subject || "Evaluation Report",
                     name: studentSummary?.name || "Student",
-                    message: data.remarks || studentSummary?.summary.overall_description,
+                    message:
+                        data.remarks ||
+                        studentSummary?.summary.evaluation_result.overall_description,
                     buttonLink: fileUrl,
                 },
                 "7Bbm-7qYy8Ef8i-rR",
@@ -268,7 +287,7 @@ export default function EvaluationSummary() {
                     <div className="flex flex-wrap items-start gap-2 text-sm">
                         <span className="w-16 text-gray-600">Summary:</span>
                         <span className="flex-1">
-                            {studentSummary?.summary.overall_description}
+                            {studentSummary?.summary.evaluation_result.overall_description}
                         </span>
                     </div>
                 </div>
@@ -303,6 +322,9 @@ export default function EvaluationSummary() {
                                     Question
                                 </th>
                                 <th className="border border-[#e6e3d8] p-2 text-left font-medium">
+                                    Answer
+                                </th>
+                                <th className="border border-[#e6e3d8] p-2 text-left font-medium">
                                     Marks
                                 </th>
                                 <th className="border border-[#e6e3d8] p-2 text-left font-medium">
@@ -314,7 +336,7 @@ export default function EvaluationSummary() {
                             </tr>
                         </thead>
                         <tbody>
-                            {studentSummary?.summary.section_wise_results[0]?.question_wise_results.map(
+                            {studentSummary?.summary.evaluation_result.section_wise_results[0]?.question_wise_results.map(
                                 (question) => (
                                     <tr className="bg-[#faf9f5]" key={question.question_id}>
                                         <td className="border border-[#e6e3d8] p-2">
@@ -327,6 +349,60 @@ export default function EvaluationSummary() {
                                                 __html: question.question_text || "",
                                             }}
                                         />
+                                        <td className="border border-[#e6e3d8] p-2">
+                                            {(() => {
+                                                const answerHtml =
+                                                    studentSummary?.summary.section_wise_ans_extracted[0]?.question_wise_ans_extracted
+                                                        .find(
+                                                            (ans) =>
+                                                                ans.question_id ===
+                                                                question.question_id,
+                                                        )
+                                                        ?.answer_html.replace(
+                                                            /^\[\[(.*)\]\]$/s,
+                                                            "$1",
+                                                        ) ?? "";
+
+                                                const plainText = answerHtml
+                                                    .replace(/<[^>]+>/g, "") // Strip HTML tags
+                                                    .trim();
+                                                const words = plainText.split(/\s+/);
+                                                const preview = words.slice(0, 5).join(" ");
+                                                const hasMore = words.length > 5;
+
+                                                return (
+                                                    <>
+                                                        <span>{preview}</span>
+                                                        {hasMore && (
+                                                            <>
+                                                                {"... "}
+                                                                <button
+                                                                    className="text-primary-500 underline"
+                                                                    onClick={() => {
+                                                                        setPreviewText({
+                                                                            first: question.question_text
+                                                                                .replace(
+                                                                                    /<[^>]+>/g,
+                                                                                    "",
+                                                                                )
+                                                                                .trim(),
+                                                                            second:
+                                                                                plainText.replace(
+                                                                                    /^\[\[(.*)\]\]$/s,
+                                                                                    "$1",
+                                                                                ) ?? "",
+                                                                        });
+                                                                        setOpenPreview(true);
+                                                                    }}
+                                                                >
+                                                                    View More
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
+                                        </td>
 
                                         <td className="border border-[#e6e3d8] p-2">
                                             {question.marks_obtained}
@@ -344,6 +420,32 @@ export default function EvaluationSummary() {
                             )}
                         </tbody>
                     </table>
+                    <MyDialog
+                        open={openPreview}
+                        onOpenChange={() => {
+                            setPreviewText({
+                                first: "",
+                                second: "",
+                            });
+                            setOpenPreview(false);
+                        }}
+                        heading="View Question"
+                        dialogWidth="min-w-fit"
+                    >
+                        <div className="space-y-4">
+                            <p>
+                                <strong>Question </strong>
+                                <br />
+
+                                {previewText.first}
+                            </p>
+                            <p>
+                                <strong>Extracted Answer </strong>
+                                <br />
+                                {previewText.second}
+                            </p>
+                        </div>
+                    </MyDialog>
                 </div>
             </div>
         </div>

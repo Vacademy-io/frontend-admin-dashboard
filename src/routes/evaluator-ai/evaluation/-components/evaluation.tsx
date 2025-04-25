@@ -21,6 +21,7 @@ import { parseEvaluationResults, transformEvaluationData } from "../-utils/utils
 import axios from "axios";
 import { MyButton } from "@/components/design-system/button";
 import { FileMagnifyingGlass } from "@phosphor-icons/react";
+import { isNullOrEmptyOrUndefined } from "@/lib/utils";
 
 interface OutputData {
     id: string;
@@ -40,14 +41,23 @@ interface EvaluatedStudent {
     id: string;
     name: string;
     score: number;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
+    status: "pending" | "processing" | "completed" | "failed";
     // Add other student properties as needed
 }
 
-const ShimmerLoadingTable = ({ isPolling, loadingText = "" }: { isPolling: boolean, loadingText?: string }) => {
+const ShimmerLoadingTable = ({
+    isPolling,
+    loadingText = "",
+}: {
+    isPolling: boolean;
+    loadingText?: string;
+}) => {
     return (
         <div className="flex w-full flex-col gap-4">
-            <div className="text-base font-bold"> {!isPolling ? "Please wait we are Evaluating students..." : loadingText}</div>
+            <div className="text-base font-bold">
+                {" "}
+                {!isPolling ? "Please wait we are Evaluating students..." : loadingText}
+            </div>
             <div className="w-full overflow-x-auto">
                 <table className="min-w-full rounded-md border border-muted">
                     <thead>
@@ -99,6 +109,7 @@ export const EvaluatedStudents = () => {
     const [partialResults, setPartialResults] = useState<EvaluatedStudent[]>([]);
     const [isPolling, setIsPolling] = useState(false);
     const [hasInitialData, setHasInitialData] = useState(false);
+    const [assessmentName, setAssessmentName] = useState<string | null>(null);
 
     const { isLoading, setLoading } = useLoaderStore();
 
@@ -119,7 +130,8 @@ export const EvaluatedStudents = () => {
             setHasInitialData(false);
             setPartialResults([]);
             const data = transformStudentData(students);
-
+            const name = getAssessmentName(selectedAssessment);
+            setAssessmentName(name);
             // First API call to start evaluation
             const evaluateResponse = await axios<TaskResponse>({
                 method: "POST",
@@ -151,14 +163,17 @@ export const EvaluatedStudents = () => {
                         // Check if we have partial results
                         if (statusResponse.data.response) {
                             try {
-                                const parsedResults = parseEvaluationResults(statusResponse.data);
-                                const students = transformEvaluationData(parsedResults);
+                                const parsedData = parseEvaluationResults(statusResponse.data);
+                                const students = transformEvaluationData(parsedData);
 
+                                console.log("students data", students);
                                 // Update partial results
-                                setPartialResults(prev => {
+                                setPartialResults((prev) => {
                                     const newResults = [...prev];
-                                    students.forEach(student => {
-                                        const existingIndex = newResults.findIndex(s => s.id === student.id);
+                                    students.forEach((student) => {
+                                        const existingIndex = newResults.findIndex(
+                                            (s) => s.id === student.id,
+                                        );
                                         if (existingIndex >= 0) {
                                             newResults[existingIndex] = student;
                                         } else {
@@ -178,13 +193,20 @@ export const EvaluatedStudents = () => {
                         }
 
                         // Check if task is completed
-                        if (statusResponse.data.status === "COMPLETED" || statusResponse.data.status === "FAILED") {
+                        if (
+                            statusResponse.data.status === "COMPLETED" ||
+                            statusResponse.data.status === "FAILED"
+                        ) {
                             isCompleted = true;
 
                             if (statusResponse.data.status === "COMPLETED") {
                                 const parsedResults = parseEvaluationResults(statusResponse.data);
                                 const students = transformEvaluationData(parsedResults);
-                                localStorage.setItem("evaluatedStudentData", JSON.stringify(students));
+                                console.log("completed", students);
+                                localStorage.setItem(
+                                    "evaluatedStudentData",
+                                    JSON.stringify(students),
+                                );
                                 setEvaluatedData(students);
                                 toast.success(`Successfully evaluated ${students.length} students`);
                             } else {
@@ -205,12 +227,25 @@ export const EvaluatedStudents = () => {
                 setIsPolling(false);
                 setLoading(false);
             });
-
         } catch (error) {
             console.error("Evaluation error:", error);
             toast.error("Failed to evaluate students");
             setIsPolling(false);
             setLoading(false);
+        }
+    };
+
+    const getAssessmentName = (id: string) => {
+        const storedData = localStorage.getItem("assessments") as {
+            assessmentId: string;
+            title: string;
+        }[];
+        const assessments = JSON.parse(storedData || "[]");
+        if (isNullOrEmptyOrUndefined(assessments)) {
+            throw new Error("Assessments not found");
+        } else {
+            const name = assessments.find((assessment) => assessment.assessmentId === id)?.title;
+            return name;
         }
     };
 
@@ -220,7 +255,9 @@ export const EvaluatedStudents = () => {
     return (
         <main className="flex min-h-screen flex-col items-center">
             <div className="flex w-full justify-between gap-4">
-                <h1 className="mb-8 items-center text-xl font-bold">Evaluated Student List</h1>
+                <h1 className="mb-8 items-center text-xl font-bold">
+                    Evaluation list {assessmentName && `for ${assessmentName}`}
+                </h1>
 
                 <MyButton
                     scale="large"
@@ -242,15 +279,7 @@ export const EvaluatedStudents = () => {
             {/* Show table when we have data (either partial or complete) */}
             {(hasInitialData || displayData.length > 0) && (
                 <div className="w-full">
-
-                    <StudentEvaluationTable
-                        data={displayData}
-                        isProcessing={isPolling}
-                    />
-
-                    {isPolling && (
-                        <ShimmerLoadingTable isPolling={isPolling} loadingText={`Evaluation in progress... ${partialResults.length} students processed so far`} />
-                    )}
+                    <StudentEvaluationTable data={displayData} isProcessing={isPolling} />
                 </div>
             )}
 

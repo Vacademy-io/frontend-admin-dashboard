@@ -14,6 +14,17 @@ import { ArrowUpDown, FileText, Loader2 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { GET_PUBLIC_URL } from "@/constants/urls";
+import { SectionWiseAnsExtracted, Student } from "../-utils/utils";
+import StatusIndicator from "./status-indicator";
+import { MdOutlineOpenInNew } from "react-icons/md";
+import { isNullOrEmptyOrUndefined } from "@/lib/utils";
+import { MyDialog } from "@/components/design-system/dialog";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // Default token for authorization
 const DEFAULT_ACCESS_TOKEN =
@@ -30,15 +41,6 @@ const getPublicUrl = async (fileId: string | undefined | null): Promise<string> 
     return response?.data;
 };
 
-interface Student {
-    id: string;
-    name: string;
-    enrollmentId: string;
-    assessment: string | null;
-    status: "completed" | "pending";
-    marks: string;
-}
-
 interface EnrolledStudent {
     name: string;
     enrollId: string;
@@ -50,6 +52,9 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
     const router = useRouter();
     const [enrolledStudents, setEnrolledStudents] = useState<EnrolledStudent[]>([]);
     const [loadingPdf, setLoadingPdf] = useState<Record<string, boolean>>({});
+    const [openPreview, setOpenPreview] = useState(false);
+    const [extracted, setExtracted] = useState<SectionWiseAnsExtracted[]>([]);
+    const [previewStudent, setPreviewStudent] = useState<string | null>(null);
 
     // Load enrolled students from localStorage
     useEffect(() => {
@@ -98,17 +103,17 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                 <Table>
                     <TableHeader className="bg-[#f9f7f0]">
                         <TableRow>
+                            <TableHead>Id</TableHead>
                             <TableHead>
                                 <div className="flex items-center gap-1">
-                                    Student Name
+                                    Name
                                     <ArrowUpDown className="size-4" />
                                 </div>
                             </TableHead>
-                            <TableHead>Enrollment ID</TableHead>
-                            <TableHead>Preview Submission</TableHead>
-                            <TableHead>Evaluation Status</TableHead>
+                            <TableHead>Submission</TableHead>
                             <TableHead>Marks</TableHead>
                             <TableHead className="w-24">Details</TableHead>
+                            <TableHead>Status</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -117,9 +122,10 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                             const hasSubmission = !!fileId;
 
                             return (
-                                <TableRow key={student.id} className="hover:bg-muted/30">
+                                <TableRow key={student.name} className="hover:bg-muted/30">
+                                    <TableCell>{student.id}</TableCell>
                                     <TableCell>{student.name}</TableCell>
-                                    <TableCell>{student.enrollmentId}</TableCell>
+
                                     <TableCell>
                                         {loadingPdf[student.enrollmentId] ? (
                                             <div className="flex items-center gap-1 text-orange-500">
@@ -142,41 +148,112 @@ export default function StudentEvaluationTable({ data }: { data: Student[] }) {
                                             </span>
                                         )}
                                     </TableCell>
-
                                     <TableCell>
-                                        {student.status === "completed" ? (
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="size-2.5 rounded-full bg-green-500"></span>
-                                                <span>Completed</span>
-                                            </div>
+                                        {isNullOrEmptyOrUndefined(student.marks) ? (
+                                            <RowLoader />
                                         ) : (
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="size-2.5 rounded-full bg-amber-500"></span>
-                                                <span>Pending</span>
-                                            </div>
+                                            student.marks
                                         )}
                                     </TableCell>
-                                    <TableCell>{student.marks}</TableCell>
-
                                     <TableCell className="">
-                                        <div
-                                            onClick={() => {
-                                                router.navigate({
-                                                    to: `/evaluator-ai/evaluation/student-summary?studentId=${student.id}`,
-                                                });
-                                            }}
-                                        >
-                                            <span className="cursor-pointer text-orange-500 hover:underline">
-                                                Details
-                                            </span>
-                                        </div>
+                                        {student.status === "EVALUATION_COMPLETED" ? (
+                                            <div
+                                                onClick={() => {
+                                                    router.navigate({
+                                                        to: `/evaluator-ai/evaluation/student-summary?studentId=${student.id}`,
+                                                    });
+                                                }}
+                                            >
+                                                <span className="cursor-pointer text-orange-500 hover:underline">
+                                                    Details
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <RowLoader />
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="flex items-center gap-x-2">
+                                        <StatusIndicator status={student.status} />
+                                        {student.status !== "EXTRACTING_ANSWER" &&
+                                            !isNullOrEmptyOrUndefined(student.extracted) && (
+                                                <MdOutlineOpenInNew
+                                                    className="cursor-pointer"
+                                                    onClick={() => {
+                                                        setOpenPreview(true);
+                                                        setExtracted(student.extracted);
+                                                        setPreviewStudent(student.name);
+                                                    }}
+                                                />
+                                            )}
                                     </TableCell>
                                 </TableRow>
                             );
                         })}
                     </TableBody>
                 </Table>
+                <MyDialog
+                    open={openPreview}
+                    onOpenChange={() => {
+                        setOpenPreview(false);
+                        setExtracted([]);
+                    }}
+                    heading={`Extracted Responses of ${previewStudent}`}
+                    dialogWidth="w-[600px]"
+                >
+                    <div className="mt-4">
+                        <Accordion type="single" collapsible className="w-full">
+                            {extracted[0]?.question_wise_ans_extracted
+                                .sort((a, b) => a.question_order - b.question_order)
+                                .map((question) => (
+                                    <AccordionItem
+                                        key={question.question_id}
+                                        value={question.question_id}
+                                    >
+                                        <AccordionTrigger className="rounded-md px-4 py-3 hover:bg-gray-50">
+                                            <div className="flex w-full items-center justify-between pr-4">
+                                                <div className="flex text-left font-medium">
+                                                    <span className="mr-2 text-gray-500">
+                                                        {question.question_order}.
+                                                    </span>
+                                                    <div
+                                                        className="prose prose-sm max-w-none"
+                                                        dangerouslySetInnerHTML={{
+                                                            __html:
+                                                                question.question_text.replace(
+                                                                    /^\[\[(.*)\]\]$/s,
+                                                                    "$1",
+                                                                ) ?? "",
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="mb-2 mt-1 rounded-md bg-gray-50 px-4 py-3">
+                                            <div
+                                                className="prose prose-sm max-w-none"
+                                                dangerouslySetInnerHTML={{
+                                                    __html:
+                                                        question.answer_html?.replace(
+                                                            /^\[\[(.*)\]\]$/s,
+                                                            "$1",
+                                                        ) ?? "",
+                                                }}
+                                            />
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                        </Accordion>
+                    </div>
+                </MyDialog>
             </div>
         </div>
     );
 }
+
+const RowLoader = () => {
+    return (
+        <div className="relative flex items-center justify-center">
+            <Loader2 className="absolute size-4 animate-spin text-primary-500" />
+        </div>
+    );
+};
