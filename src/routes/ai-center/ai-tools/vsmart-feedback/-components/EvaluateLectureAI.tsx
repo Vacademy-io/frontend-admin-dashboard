@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 import {
     handleGenerateAssessmentQuestions,
-    handleStartProcessUploadedFile,
+    handleStartProcessUploadedAudioFile,
 } from "@/routes/ai-center/-services/ai-center-service";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
 const EvaluateLectureAI = () => {
@@ -34,7 +34,7 @@ const EvaluateLectureAI = () => {
                 sourceId: "STUDENTS",
             });
             if (fileId) {
-                const response = await handleStartProcessUploadedFile(fileId);
+                const response = await handleStartProcessUploadedAudioFile(fileId);
                 if (response) {
                     handleGenerateQuestionsForAssessment(response.pdf_id);
                 }
@@ -173,14 +173,14 @@ const EvaluateLectureAI = () => {
                 fileInputRef={fileInputRef}
                 handleFileChange={handleFileChange}
                 cardTitle="Evaluate Lecture"
-                cardDescription="Upload PDF/DOCX/PPT"
-                inputFormat=".pdf,.doc,.docx,.ppt,.pptx,.html"
+                cardDescription="Upload WAV/FLAC/MP3/AAC/M4A"
+                inputFormat=".mp3,.wav,.flac,.aac,.m4a"
                 keyProp="evaluateLecture"
                 taskName={taskName}
                 setTaskName={setTaskName}
             />
             {generateAssessmentMutation.status === "success" && (
-                <AITasksList heading="Vsmart Lecturer" enableDialog={true} />
+                <AITasksList heading="Vsmart Feedback" enableDialog={true} />
             )}
         </>
     );

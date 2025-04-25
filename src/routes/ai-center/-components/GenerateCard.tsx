@@ -59,7 +59,9 @@ export const GenerateCard = ({
                                     label="Task Name"
                                 />
                             )}
-                            {(keyProp === "sortSplitPdf" || keyProp === "sortTopicsPdf") && (
+                            {(keyProp === "sortSplitPdf" ||
+                                keyProp === "sortTopicsPdf" ||
+                                keyProp === "question") && (
                                 <div className="flex flex-col gap-2">
                                     <h1>
                                         Prompt <span className="text-red-500">*</span>
