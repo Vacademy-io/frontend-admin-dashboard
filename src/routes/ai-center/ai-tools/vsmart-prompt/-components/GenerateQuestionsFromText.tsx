@@ -30,6 +30,7 @@ export const GenerateQuestionsFromText = () => {
     const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const [disableSubmitBtn, setDisableSubmitBtn] = useState(false);
+    console.log(disableSubmitBtn);
     const formSubmitRef = useRef(() => {});
     const dialogForm = useForm<QuestionsFromTextData>({
         resolver: zodResolver(formSchema),
@@ -197,9 +198,7 @@ export const GenerateQuestionsFromText = () => {
                     <DashboardLoader height="60px" size={20} color="#ffffff" />
                 </MyButton>
             ) : (
-                <MyButton disable={disableSubmitBtn} onClick={() => formSubmitRef.current()}>
-                    Generate Questions
-                </MyButton>
+                <MyButton onClick={() => formSubmitRef.current()}>Generate Questions</MyButton>
             )}
         </div>
     );
