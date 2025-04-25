@@ -150,8 +150,9 @@ export function StudentSelectionDialog({
 
         // Create a copy of the student data to modify
         const updatedStudentData = [...studentData];
-        if (updatedStudentData[actualIndex]) {
-            updatedStudentData[actualIndex].currentAttemptIndex = attemptIndex;
+        const studentToUpdate = updatedStudentData[actualIndex];
+        if (studentToUpdate) {
+            studentToUpdate.currentAttemptIndex = attemptIndex;
         }
 
         // Update localStorage
