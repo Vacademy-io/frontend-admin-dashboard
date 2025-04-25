@@ -9,7 +9,11 @@ import { Plus, TrashSimple } from "phosphor-react";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
-
+import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
+// import { useDeleteCourse } from "@/services/study-library/course-operations/delete-course";
+// import { toast } from "sonner";
+// import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+// import { useDeleteLevel } from "@/routes/study-library/courses/levels/-services/delete-level";
 interface batchCardProps {
     batch: BatchType;
 }
@@ -18,6 +22,8 @@ const BatchCard = ({ batch }: batchCardProps) => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const navigate = useNavigate();
     const { levelName, packageName } = useGetStudentBatch(batch.package_session_id);
+    // const {getDetailsFromPackageSessionId} = useInstituteDetailsStore();
+    // const deleteLevelMutation = useDeleteLevel();
 
     const handleViewBatch = () => {
         // Navigate to student list with this batch pre-selected
@@ -37,6 +43,20 @@ const BatchCard = ({ batch }: batchCardProps) => {
             },
         });
     };
+
+    // const handleDeleteBatch = (batchId: string) => {
+    //     const batchDetails = getDetailsFromPackageSessionId({packageSessionId: batchId});
+    //     const levelId = batchDetails?.level.id || "";
+    //     deleteLevelMutation.mutate(levelId, {
+    //         onSuccess: () => {
+    //             toast.success("Course deleted successfully");
+    //             setOpenDeleteDialog(false);
+    //         },
+    //         onError: (error) => {
+    //             toast.error(error.message || "Failed to delete course");
+    //         },
+    //     });
+    // };
 
     return (
         <>
@@ -58,15 +78,19 @@ const BatchCard = ({ batch }: batchCardProps) => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <MyButton
-                        buttonType="text"
-                        layoutVariant="default"
-                        scale="medium"
-                        className="text-primary-500"
-                    >
-                        {" "}
-                        <Plus /> Enroll Student
-                    </MyButton>
+                    <EnrollManuallyButton
+                        triggerButton={
+                            <MyButton
+                                buttonType="text"
+                                layoutVariant="default"
+                                scale="medium"
+                                className="text-primary-500"
+                            >
+                                {" "}
+                                <Plus /> Enroll Student
+                            </MyButton>
+                        }
+                    />
                     <MyButton
                         buttonType="secondary"
                         layoutVariant="default"

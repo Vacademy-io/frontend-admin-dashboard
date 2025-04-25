@@ -156,8 +156,6 @@ export const QuestionPaperUpload = ({
     });
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        console.log("get questions ", getValues("questions"));
-        console.log("values ", values);
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
@@ -275,6 +273,7 @@ export const QuestionPaperUpload = ({
             fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
+
     return (
         <>
             <FormProvider {...form}>

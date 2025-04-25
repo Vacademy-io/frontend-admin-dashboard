@@ -15,6 +15,7 @@ import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-t
 export const OneWordQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
+    setCurrentQuestionIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
@@ -25,8 +26,13 @@ export const OneWordQuestionPaperTemplatePPTView = ({
     const allQuestions = getValues("questions") || [];
 
     const handleDeleteSlide = () => {
+        // If this is the last question, decrease the current question index
+        if (currentQuestionIndex === allQuestions.length - 1 && currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(currentQuestionIndex - 1);
+        }
         allQuestions.splice(currentQuestionIndex, 1);
         setValue("questions", allQuestions);
+        form.trigger();
     };
 
     const handleDuplicateSlide = () => {

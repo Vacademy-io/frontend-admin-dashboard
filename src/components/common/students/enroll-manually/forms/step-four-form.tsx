@@ -31,9 +31,13 @@ export const StepFourForm = ({
             guardianName: "",
             guardianEmail: initialValues?.parents_email || "",
             guardianMobileNumber: initialValues?.parents_mobile_number || "",
+            motherEmail: initialValues?.parents_to_mother_email || "",
+            motherMobileNumber: initialValues?.parents_to_mother_mobile_number || "",
         },
         mode: "onChange",
     });
+
+    useEffect(() => {}, [stepFourData]);
 
     const onSubmit = (values: StepFourData) => {
         setStepFourData(values);
@@ -145,11 +149,33 @@ export const StepFourForm = ({
                                         <FormControl>
                                             <MyInput
                                                 inputType="email"
-                                                label="Parent/Guardian's Email"
+                                                label="Father/Male Guardian's Email"
                                                 inputPlaceholder="you@email.com"
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.guardianEmail?.message}
+                                                required={false}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="motherEmail"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="email"
+                                                label="Mother/Female Guardian's Email"
+                                                inputPlaceholder="you@email.com"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                error={form.formState.errors.motherEmail?.message}
                                                 required={false}
                                                 size="large"
                                                 className="w-full"
@@ -167,9 +193,27 @@ export const StepFourForm = ({
                                     <FormItem>
                                         <FormControl>
                                             <PhoneInputField
-                                                label="Parent/Guardian's Mobile Number"
+                                                label="Father/Guardian's Mobile Number"
                                                 placeholder="123 456 7890"
                                                 name="guardianMobileNumber"
+                                                control={form.control}
+                                                country="in"
+                                                required={false}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="motherMobileNumber"
+                                render={() => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <PhoneInputField
+                                                label="Mother/Female Guardian's Mobile Number"
+                                                placeholder="123 456 7890"
+                                                name="motherMobileNumber"
                                                 control={form.control}
                                                 country="in"
                                                 required={false}

@@ -72,6 +72,39 @@ export const generateCompleteAssessmentFormSchema = z.object({
                     }),
                 )
                 .optional(),
+            csingleChoiceOptions: z
+                .array(
+                    z.object({
+                        id: z.string().optional(),
+                        name: z.string().optional(),
+                        isSelected: z.boolean().optional(),
+                    }),
+                )
+                .optional(),
+            cmultipleChoiceOptions: z
+                .array(
+                    z.object({
+                        id: z.string().optional(),
+                        name: z.string().optional(),
+                        isSelected: z.boolean().optional(),
+                    }),
+                )
+                .optional(),
+            trueFalseOptions: z
+                .array(
+                    z.object({
+                        id: z.string().optional(),
+                        name: z.string().optional(),
+                        isSelected: z.boolean().optional(),
+                    }),
+                )
+                .optional(),
+            parentRichTextContent: z.union([z.string(), z.null()]).optional(),
+            decimals: z.number().optional(),
+            numericType: z.string().optional(),
+            validAnswers: z.union([z.array(z.number()), z.null()]).optional(),
+            questionResponseType: z.union([z.string(), z.null()]).optional(),
+            subjectiveAnswerText: z.string().optional(),
         }),
     ),
 });

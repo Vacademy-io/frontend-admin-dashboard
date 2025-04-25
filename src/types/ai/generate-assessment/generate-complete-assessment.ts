@@ -35,7 +35,7 @@ export interface AIAssessmentCompleteQuestion {
     explanation_text: RichText;
     default_question_time_mins: number | null;
     parent_rich_text_id: string | null;
-    parent_rich_text: string | null;
+    parent_rich_text: RichText | null;
     options: Option[];
     errors: string[];
     warnings: string[];
@@ -51,4 +51,42 @@ export interface AIAssessmentResponseInterface {
     subjects: string[];
     classes: string[];
     questions: AIAssessmentCompleteQuestion[];
+}
+
+export interface AITaskIndividualListInterface {
+    id: string;
+    task_name: string;
+    institute_id: string;
+    parent_id: string;
+    status: string; // Add more status values as needed
+    result_json: string;
+    input_id: string;
+    input_type: string; // Add more input types as needed
+    created_at: string; // ISO datetime string
+    updated_at: string; // ISO datetime string
+}
+
+interface TimeWiseSection {
+    sectionHeading: string;
+    timeSplit: string;
+    content: string;
+    topicCovered: string[];
+    questionToStudents: string[];
+    activity: string[];
+}
+
+interface Assignment {
+    topicCovered: string[];
+    tasks: string[];
+}
+
+export interface PlanLectureDataInterface {
+    heading: string;
+    mode: string;
+    duration: string;
+    language: string;
+    level: string;
+    timeWiseSplit: TimeWiseSection[];
+    assignment: Assignment;
+    summary: string[];
 }

@@ -105,7 +105,7 @@ export const StepFiveForm = ({
     const onSubmit = async (values: StepFiveData) => {
         setStepFiveData(values);
         try {
-            const result = await enrollStudentMutation.mutateAsync({
+            await enrollStudentMutation.mutateAsync({
                 formData: {
                     stepOneData,
                     stepTwoData,
@@ -116,7 +116,6 @@ export const StepFiveForm = ({
                 packageSessionId: packageSessionId || "",
             });
             toast.success("Student enrolled successfully");
-            console.log(result);
             resetForm();
             handleOpenDialog(false);
             // Handle success
@@ -158,7 +157,7 @@ export const StepFiveForm = ({
                             <FormStepHeading stepNumber={5} heading="Generate Login Credentials" />
                         </FormItemWrapper>
 
-                        {!initialValues && (
+                        {(!initialValues || initialValues.username == "") && (
                             <FormItemWrapper<StepFiveData> control={form.control} name="username">
                                 <div className="flex flex-col items-center justify-center gap-5">
                                     <div className="text-subtitle">

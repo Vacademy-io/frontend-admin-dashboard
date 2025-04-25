@@ -27,6 +27,9 @@ export interface MyQuestion {
     };
     singleChoiceOptions: MySingleChoiceOption[]; // Array of single choice options
     multipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
+    csingleChoiceOptions: MySingleChoiceOption[]; // Array of single choice options
+    cmultipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
+    trueFalseOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
     validAnswers?: number[];
     decimals?: number;
     numericType?: string;

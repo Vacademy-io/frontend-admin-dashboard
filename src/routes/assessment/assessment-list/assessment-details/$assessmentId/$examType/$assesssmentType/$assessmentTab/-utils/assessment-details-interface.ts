@@ -134,7 +134,11 @@ interface transformSectionsAndQuestionsDataOption {
 
 interface transformSectionsAndQuestionsDataInterface {
     question_id: string;
-    parent_rich_text: string | null;
+    parent_rich_text: {
+        type: string;
+        id: string;
+        content: string;
+    } | null;
     question: transformSectionsAndQuestionsDataQuestionText;
     section_id: string;
     question_duration: number;
@@ -143,6 +147,7 @@ interface transformSectionsAndQuestionsDataInterface {
     evaluation_json: string;
     question_type: string;
     options: transformSectionsAndQuestionsDataOption[];
+    options_json: string;
     options_with_explanation: transformSectionsAndQuestionsDataOption[];
 }
 
@@ -248,7 +253,11 @@ interface QuestionInsightsQuestion {
 
 interface AssessmentQuestionPreviewDTO {
     question_id: string;
-    parent_rich_text: string | null;
+    parent_rich_text: {
+        type: string;
+        id: string;
+        content: string;
+    } | null;
     question: QuestionInsightsQuestion;
     section_id: string;
     question_duration: number;
@@ -257,6 +266,7 @@ interface AssessmentQuestionPreviewDTO {
     evaluation_json: string;
     question_type: string;
     options: QuestionInsightsOption[];
+    options_json: string;
     options_with_explanation: QuestionInsightsOption[];
 }
 

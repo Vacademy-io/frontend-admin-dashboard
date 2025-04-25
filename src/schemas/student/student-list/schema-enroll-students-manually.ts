@@ -43,6 +43,8 @@ export const stepFourSchema = z.object({
     guardianName: z.string().optional(),
     guardianEmail: z.string().email("Invalid email format").optional().or(z.literal("")),
     guardianMobileNumber: z.string().optional(),
+    motherEmail: z.string().email("Invalid email format").optional().or(z.literal("")),
+    motherMobileNumber: z.string().optional(),
 });
 
 // Step Five Schema

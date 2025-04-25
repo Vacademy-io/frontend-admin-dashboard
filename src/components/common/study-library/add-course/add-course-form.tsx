@@ -98,6 +98,14 @@ interface AddCourseFormProps {
     submitForm?: (submitFn: () => void) => void;
 }
 
+export function convertToFormSession(session: SessionType): Session {
+    return {
+        ...session,
+        new_session: false,
+        levels: [],
+    };
+}
+
 export const AddCourseForm = ({
     initialValues,
     onSubmitCourse,
@@ -183,14 +191,6 @@ export const AddCourseForm = ({
             sessions: [], // Changed from levels to sessions
         },
     });
-
-    function convertToFormSession(session: SessionType): Session {
-        return {
-            ...session,
-            new_session: false,
-            levels: [],
-        };
-    }
 
     const handleAddSession = (sessionName: string, startDate: string) => {
         const newSession: Session = {

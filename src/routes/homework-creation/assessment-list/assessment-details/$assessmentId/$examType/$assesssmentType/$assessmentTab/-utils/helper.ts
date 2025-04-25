@@ -868,6 +868,29 @@ export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[
                 ?.correctOptionIds || [];
         const totalMark =
             JSON.parse(item.assessment_question_preview_dto.marking_json)?.data?.totalMark || "";
+
+        const validAnswers =
+            JSON.parse(item.assessment_question_preview_dto.evaluation_json)?.data?.validAnswers ||
+            [];
+        let decimals;
+        let numericType;
+        let subjectiveAnswerText;
+        if (item.assessment_question_preview_dto.options_json) {
+            decimals = JSON.parse(item.assessment_question_preview_dto.options_json)?.decimals || 0;
+            numericType =
+                JSON.parse(item.assessment_question_preview_dto.options_json)?.numeric_type || "";
+        }
+        if (item.assessment_question_preview_dto.evaluation_json) {
+            if (item.assessment_question_preview_dto.question_type === "ONE_WORD") {
+                subjectiveAnswerText = JSON.parse(
+                    item.assessment_question_preview_dto.evaluation_json,
+                )?.data?.answer;
+            } else if (item.assessment_question_preview_dto.question_type === "LONG_ANSWER") {
+                subjectiveAnswerText = JSON.parse(
+                    item.assessment_question_preview_dto.evaluation_json,
+                )?.data?.answer?.content;
+            }
+        }
         const baseQuestion: MyQuestion = {
             id: item.assessment_question_preview_dto.question_id || "",
             questionId: item.assessment_question_preview_dto.question_id || undefined,
@@ -882,8 +905,37 @@ export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[
                 min: String((item.assessment_question_preview_dto.question_duration ?? 0) % 60),
             },
             questionMark: totalMark,
-            singleChoiceOptions: [],
-            multipleChoiceOptions: [],
+            singleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            multipleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            csingleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            cmultipleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            trueFalseOptions: Array(2).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            validAnswers: [],
+            decimals,
+            numericType,
+            parentRichTextContent:
+                item.assessment_question_preview_dto.parent_rich_text?.content || null,
+            subjectiveAnswerText,
         };
 
         if (item.assessment_question_preview_dto.question_type === "MCQS") {
@@ -891,37 +943,36 @@ export const transformQuestionInsightsQuestionsData = (data: QuestionInsightDTO[
                 item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
                     name: option.text?.content || "",
                     isSelected: correctOptionIds.includes(option.id || option.preview_id),
-                    image: {},
                 }));
-            baseQuestion.multipleChoiceOptions = Array(4).fill({
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
-            });
         } else if (item.assessment_question_preview_dto.question_type === "MCQM") {
             baseQuestion.multipleChoiceOptions =
                 item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
                     name: option.text?.content || "",
                     isSelected: correctOptionIds.includes(option.id || option.preview_id),
-                    image: {},
                 }));
-            baseQuestion.singleChoiceOptions = Array(4).fill({
-                name: "",
-                isSelected: false,
-                image: {
-                    imageId: "",
-                    imageName: "",
-                    imageTitle: "",
-                    imageFile: "",
-                    isDeleted: false,
-                },
-            });
+        } else if (item.assessment_question_preview_dto.question_type === "CMCQS") {
+            baseQuestion.csingleChoiceOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    id: option.id ? option.id : "",
+                    name: option.text?.content || "",
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                }));
+        } else if (item.assessment_question_preview_dto.question_type === "CMCQM") {
+            baseQuestion.cmultipleChoiceOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    id: option.id ? option.id : "",
+                    name: option.text?.content || "",
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                }));
+        } else if (item.assessment_question_preview_dto.question_type === "TRUE_FALSE") {
+            baseQuestion.trueFalseOptions =
+                item.assessment_question_preview_dto.options_with_explanation.map((option) => ({
+                    id: option.id ? option.id : "",
+                    name: option.text?.content || "",
+                    isSelected: correctOptionIds.includes(option.id || option.preview_id),
+                }));
+        } else if (item.assessment_question_preview_dto.question_type === "NUMERIC") {
+            baseQuestion.validAnswers = validAnswers;
         }
         return {
             assessment_question_preview_dto: baseQuestion,
