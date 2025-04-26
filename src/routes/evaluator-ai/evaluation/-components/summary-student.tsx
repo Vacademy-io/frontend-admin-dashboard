@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useSearch } from "@tanstack/react-router";
+import { useSearch, useRouter } from "@tanstack/react-router";
 import { usePDF } from "react-to-pdf";
 import useLocalStorage from "../../-hooks/useLocalStorage";
 import { useEffect, useState } from "react";
@@ -89,6 +89,8 @@ export default function EvaluationSummary() {
         second: "",
     });
 
+    const router = useRouter();
+
     const { studentId } = useSearch({ from: "/evaluator-ai/evaluation/student-summary/" }) as {
         studentId: number;
     };
@@ -161,10 +163,11 @@ export default function EvaluationSummary() {
                         studentSummary?.summary.evaluation_result.overall_description,
                     buttonLink: fileUrl,
                 },
-                "7Bbm-7qYy8Ef8i-rR",
+                "Ui2SejB0xwurTySXJ",
             );
 
             console.log("Email sent with PDF link:", fileUrl);
+            toast.success("Email sent successfully");
         } catch (err) {
             toast.error("Error sending mail");
             console.error("Error uploading PDF or sending email:", err);
@@ -193,7 +196,18 @@ export default function EvaluationSummary() {
         <div className="mx-auto w-[95vw] space-y-6 bg-white">
             {/* Header */}
             <div className="m-6 flex items-center justify-between">
-                <h1 className="text-base font-bold text-gray-800">Evaluation Summary</h1>
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                            router.history.back();
+                        }}
+                    >
+                        ← Back
+                    </Button>
+                    <h1 className="text-base font-bold text-gray-800">Evaluation Summary</h1>
+                </div>
                 <span className="flex items-center gap-2">
                     <Button
                         variant={"outline"}
@@ -206,7 +220,7 @@ export default function EvaluationSummary() {
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
                             <Button variant={"outline"}>
-                                <Mail className="mr-2 size-4" />
+                                <Mail className="size-4" />
                                 Send Report
                             </Button>
                         </DialogTrigger>

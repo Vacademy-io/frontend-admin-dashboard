@@ -176,7 +176,7 @@ function RouteComponent() {
                                                             {section.questions.map((question) => (
                                                                 <div
                                                                     key={question.id}
-                                                                    className="grid grid-cols-3 items-center border-t py-2"
+                                                                    className="grid grid-cols-3 items-start border-t py-2"
                                                                 >
                                                                     <div
                                                                         className="text-sm"
@@ -186,14 +186,7 @@ function RouteComponent() {
                                                                                 .content,
                                                                         }}
                                                                     />
-                                                                    <div
-                                                                        className="text-sm"
-                                                                        dangerouslySetInnerHTML={{
-                                                                            __html: question
-                                                                                .explanation
-                                                                                .content,
-                                                                        }}
-                                                                    />
+                                                                    <ExplanationPreview explanation={question.explanation.content} />
                                                                     <div>
                                                                         <MarkingCriteriaDialog
                                                                             markingJson={
@@ -259,5 +252,34 @@ function RouteComponent() {
                 )}
             </div>
         </main>
+    );
+}
+
+function ExplanationPreview({ explanation }: { explanation: string }) {
+    const [expanded, setExpanded] = useState(false);
+
+    const explanationHtml = explanation || "";
+    const plainText = explanationHtml.replace(/<[^>]+>/g, "").trim();
+    const words = plainText.split(/\s+/);
+    const preview = words.slice(0, 10).join(" ");
+    const hasMore = words.length > 10;
+
+    return (
+        <div className="text-sm">
+            <span>{expanded ? plainText : preview}</span>
+            {hasMore && (
+                <>
+                    {" "}
+                    <button
+                        className="text-primary-500 underline"
+                        onClick={() => {
+                            setExpanded((prev) => !prev);
+                        }}
+                    >
+                        {expanded ? "View Less" : "View More"}
+                    </button>
+                </>
+            )}
+        </div>
     );
 }
