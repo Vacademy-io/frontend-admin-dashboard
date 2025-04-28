@@ -123,7 +123,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
 export const BatchSection = ({ batch }: { batch: batchWithStudentDetails }) => {
     return (
         <>
-            {batch.batches.length > 0 && (
+            {batch.batches.length > 0 ? (
                 <div className="flex flex-col gap-4">
                     <p className="text-title font-semibold">{batch.package_dto.package_name}</p>
                     <div className="grid grid-cols-3 gap-6">
@@ -131,6 +131,11 @@ export const BatchSection = ({ batch }: { batch: batchWithStudentDetails }) => {
                             <BatchCard batch={batchLevel} key={index} />
                         ))}
                     </div>
+                </div>
+            ) : (
+                <div className="flex flex-col gap-4">
+                    <p className="text-title font-semibold">{batch.package_dto.package_name}</p>
+                    <p className="text-neutral-400">No batches found</p>
                 </div>
             )}
         </>

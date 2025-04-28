@@ -10,6 +10,7 @@ import {
     DropdownValueType,
 } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
+import { EmptyBatchImage } from "@/assets/svgs";
 
 export const ManageBatches = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -82,6 +83,12 @@ export const ManageBatches = () => {
                 </div>
             </div>
             <div className="flex flex-col gap-10">
+                {data == undefined && (
+                    <div className="flex flex-col items-center justify-center gap-4">
+                        <EmptyBatchImage />
+                        <p className="text-neutral-400">No batches found</p>
+                    </div>
+                )}
                 {data?.map((batch, index) => <BatchSection key={index} batch={batch} />)}
             </div>
         </div>
