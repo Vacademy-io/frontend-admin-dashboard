@@ -97,6 +97,9 @@ const PlanLectureAI = () => {
                     </div>
                 </div>
             )}
+            {getQuestionsFromTextMutation.status === "success" && (
+                <AITasksList heading="Vsmart Lecturer" enableDialog={true} />
+            )}
         </>
     );
 };
