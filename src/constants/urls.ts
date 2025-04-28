@@ -139,6 +139,7 @@ export const ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/learner-invitatio
 
 export const GET_ATTEMPT_DATA = `${BASE_URL}/assessment-service/assessment/manual-evaluation/get/attempt-data`;
 export const UPDATE_ATTEMPT = `${BASE_URL}/assessment-service/assessment/manual-evaluation/update/attempt`;
+export const SUBMIT_MARKS = `${BASE_URL}/assessment-service/assessment/manual-evaluation/submit/marks`;
 export const GET_INVITE_DETAILS = `${BASE_URL}/admin-core-service/learner-invitation/learner-invitation-detail-by-id`;
 export const GET_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report`;
 export const GET_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report`;
@@ -166,6 +167,7 @@ export const GET_INDIVIDUAL_CHAT_WITH_PDF_AI_TASK_QUESTIONS = `${BASE_URL}/media
 export const SORT_SPLIT_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/pdf-to-extract-topic-questions`;
 export const SORT_QUESTIONS_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/topic-wise/pdf-to-questions`;
 export const GENERATE_QUESTIONS_FROM_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/pdf-to-questions`;
+export const GENERATE_QUESTIONS_FROM_IMAGE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/image-to-questions`;
 export const GENERATE_FEEDBACK_FROM_FILE_AI_URL = `${BASE_URL}/media-service/ai/lecture/generate-feedback`;
 export const HTML_TO_QUESTIONS_FROM_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/html-to-questions`;
 export const CONVERT_PDF_TO_HTML_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/pdf-to-html`;
@@ -182,3 +184,5 @@ export const INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-sett
 export const UPDATE_INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/institute/update`;
 export const LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/learner-setting`;
 export const UPDATE_LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/learner/update`;
+
+export const DELETE_BATCHES = `${BASE_URL}/admin-core-service/batch/v1/delete-batches`;

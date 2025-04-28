@@ -37,7 +37,7 @@ const EvaluateAttemptComponent = () => {
             type: examType,
         }),
     );
-    const { isLoading: isQuestionsLoading } = useSuspenseQuery(
+    const { data: questionData, isLoading: isQuestionsLoading } = useSuspenseQuery(
         getQuestionDataForSection({
             assessmentId,
             sectionIds: assessmentDetails[1]?.saved_data.sections
@@ -73,12 +73,12 @@ const EvaluateAttemptComponent = () => {
                 });
             }, 100);
         }
-    }, []);
+    }, [isAttemptLoading]);
 
     if (isLoading || isQuestionsLoading || isAttemptLoading || !file)
         return (
             <div className="flex h-full flex-col items-center justify-center gap-y-2">
-                <h1>Getting Response file please wait...</h1>
+                <h1>Getting response file please wait...</h1>
                 <DashboardLoader height="fit-content" />
             </div>
         );
@@ -92,7 +92,17 @@ const EvaluateAttemptComponent = () => {
                     content="This page shows all details related to an assessment."
                 />
             </Helmet>
-            {file && <PDFEvaluator file={file} />}
+            {file && (
+                <PDFEvaluator
+                    isFreeTool={false}
+                    file={file}
+                    fileId={attemptDetails}
+                    questionData={questionData}
+                    assessmentId={assessmentId}
+                    attemptId={attemptId}
+                    instituteId={instituteDetails?.id}
+                />
+            )}
         </>
     );
 };

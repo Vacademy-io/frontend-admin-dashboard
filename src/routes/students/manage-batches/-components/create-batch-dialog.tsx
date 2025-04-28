@@ -75,6 +75,18 @@ export const CreateBatchDialog = () => {
                 onSuccess: () => {
                     toast.success("Batch created successfully");
                     handleOpenManageBatchDialog(false);
+                    setCurrentStep(0);
+                    // Reset form data
+                    methods.reset({
+                        courseCreationType: "existing",
+                        selectedCourse: null,
+                        sessionCreationType: "existing",
+                        selectedSession: null,
+                        selectedStartDate: null,
+                        levelCreationType: "existing",
+                        selectedLevel: null,
+                        selectedLevelDuration: null,
+                    });
                 },
                 onError: (error) => {
                     toast.error(error.message || "Failed to create batch");

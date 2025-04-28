@@ -188,6 +188,7 @@
         "@types/crypto-js": "^4.2.2",
         "@types/dom-to-image": "^2.6.7",
         "@types/fabric": "^5.3.10",
+        "@types/file-saver": "^2.0.7",
         "@types/image-to-base64": "^2.1.2",
         "@types/intro.js": "^5.1.5",
         "@types/js-cookie": "^3.0.6",

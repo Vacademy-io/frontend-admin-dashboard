@@ -1,14 +1,75 @@
 import { getInstituteId } from "@/constants/helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useEffect, useRef, useState } from "react";
-import {
-    handleGenerateAssessmentQuestions,
-    handleStartProcessUploadedFile,
-} from "@/routes/ai-center/-services/ai-center-service";
+import { handleGenerateAssessmentQuestions } from "@/routes/ai-center/-services/ai-center-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
+import { jsPDF } from "jspdf";
+import { saveAs } from "file-saver";
+
+interface ConvertImageToPDFResult {
+    pdfFile: File;
+    pdfBlob: Blob;
+}
+
+const convertImageToPDF = async (file: File): Promise<ConvertImageToPDFResult> => {
+    return new Promise<ConvertImageToPDFResult>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const img = new Image();
+                img.onload = () => {
+                    const pdf = new jsPDF({
+                        orientation: img.width > img.height ? "landscape" : "portrait",
+                        unit: "mm",
+                        format: "a4",
+                    });
+
+                    // Calculate dimensions to fit the page while maintaining aspect ratio
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    const imgRatio = img.width / img.height;
+                    let imgWidth = pageWidth;
+                    let imgHeight = pageWidth / imgRatio;
+
+                    if (imgHeight > pageHeight) {
+                        imgHeight = pageHeight;
+                        imgWidth = pageHeight * imgRatio;
+                    }
+
+                    // Center the image on the page
+                    const x = (pageWidth - imgWidth) / 2;
+                    const y = (pageHeight - imgHeight) / 2;
+
+                    pdf.addImage(img, "JPEG", x, y, imgWidth, imgHeight);
+
+                    // Convert PDF to blob and then to File
+                    const pdfBlob = pdf.output("blob");
+                    const pdfFile = new File(
+                        [pdfBlob],
+                        `${file.name.replace(/\.[^/.]+$/, "")}.pdf`,
+                        {
+                            type: "application/pdf",
+                        },
+                    );
+
+                    // Download the PDF file
+                    saveAs(pdfBlob, pdfFile.name);
+
+                    resolve({ pdfFile, pdfBlob });
+                };
+                img.onerror = reject;
+                img.src = e.target?.result as string;
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+};
 
 const GenerateAiQuestionFromImageComponent = () => {
     const queryClient = useQueryClient();
@@ -27,33 +88,28 @@ const GenerateAiQuestionFromImageComponent = () => {
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const fileId = await uploadFile({
-                file,
-                setIsUploading: setFileUploading,
-                userId: "your-user-id",
-                source: instituteId,
-                sourceId: "STUDENTS",
-            });
-            if (fileId) {
-                const response = await handleStartProcessUploadedFile(fileId);
-                if (response) {
-                    handleGenerateQuestionsForAssessment(response.pdf_id);
+            try {
+                // Convert image to PDF
+                const { pdfFile } = await convertImageToPDF(file);
+
+                const fileId = await uploadFile({
+                    file: pdfFile,
+                    setIsUploading: setFileUploading,
+                    userId: "your-user-id",
+                    source: instituteId,
+                    sourceId: "STUDENTS",
+                });
+                if (fileId) {
+                    generateAssessmentMutation.mutate({
+                        pdfId: fileId,
+                        userPrompt: "",
+                        taskName,
+                    });
                 }
+            } catch (error) {
+                console.error("Error converting image to PDF:", error);
             }
             event.target.value = "";
-        }
-    };
-
-    /* Generate Assessment Complete */
-    const MAX_POLL_ATTEMPTS = 10;
-    const pollingCountRef = useRef(0);
-    const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-    const pendingRef = useRef(false);
-
-    const clearPolling = () => {
-        if (pollingTimeoutIdRef.current) {
-            clearTimeout(pollingTimeoutIdRef.current);
-            pollingTimeoutIdRef.current = null;
         }
     };
 
@@ -71,95 +127,16 @@ const GenerateAiQuestionFromImageComponent = () => {
             setKey("image");
             return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
         },
-        onSuccess: (response, { pdfId }) => {
-            // Check if response indicates pending state
-            if (response?.status === "pending") {
-                pendingRef.current = true;
-                // Don't schedule next poll - we'll wait for an error to resume
-                return;
-            }
-
-            // Reset pending state if response is no longer pending
-            pendingRef.current = false;
-
-            // If we have complete data, we're done
-            if (response === "Done" || response?.questions) {
-                setLoader(false);
-                setKey(null);
-                clearPolling();
-                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
-                return;
-            }
-
-            // Otherwise schedule next poll
-            scheduleNextPoll(pdfId);
+        onSuccess: () => {
+            setLoader(false);
+            setKey(null);
+            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
-        onError: (_, { pdfId }) => {
-            // If we were in a pending state, resume polling on error
-            if (pendingRef.current) {
-                pendingRef.current = false;
-                scheduleNextPoll(pdfId);
-                return;
-            }
-
-            // Normal error handling
-            pollingCountRef.current += 1;
-            if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
-                setLoader(false);
-                setKey(null);
-                clearPolling();
-                return;
-            }
-
-            // Schedule next poll on error (if not max attempts)
-            scheduleNextPoll(pdfId);
+        onError: () => {
+            setLoader(false);
+            setKey(null);
         },
     });
-
-    const scheduleNextPoll = (pdfId: string) => {
-        setLoader(false);
-        setKey(null);
-        clearPolling(); // Clear any existing timeout
-
-        // Only schedule next poll if not in pending state
-        if (!pendingRef.current) {
-            setLoader(true);
-            setKey("image");
-            console.log("Scheduling next poll in 10 seconds");
-            pollingTimeoutIdRef.current = setTimeout(() => {
-                pollGenerateAssessment(pdfId);
-            }, 10000);
-        }
-    };
-
-    const pollGenerateAssessment = (pdfId: string) => {
-        // Don't call API if in pending state
-        if (pendingRef.current) {
-            return;
-        }
-        generateAssessmentMutation.mutate({
-            pdfId: pdfId,
-            userPrompt: "",
-            taskName,
-        });
-    };
-
-    const handleGenerateQuestionsForAssessment = (pdfId: string) => {
-        if (!pdfId) return;
-
-        clearPolling();
-        pollingCountRef.current = 0;
-        pendingRef.current = false;
-
-        // Make initial call
-        pollGenerateAssessment(pdfId);
-    };
-
-    useEffect(() => {
-        return () => {
-            clearPolling();
-        };
-    }, []);
 
     useEffect(() => {
         if (key === "image") {
