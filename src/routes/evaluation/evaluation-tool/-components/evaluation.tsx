@@ -13,10 +13,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { GrFormView } from "react-icons/gr";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useTimerStore } from "@/stores/evaluation/timer-store";
 import { useMarksStore } from "@/stores/evaluation/marks-store";
+import { ArrowSquareOut } from "phosphor-react";
 
 interface QuestionData {
     question_id: string;
@@ -125,7 +125,7 @@ export default function Evaluation({ questionData, totalPages, pagesVisited }: E
                                         <TableRow key={question.questionNo}>
                                             <TableCell className="flex cursor-pointer items-center space-x-2 text-base font-medium">
                                                 <strong>{question.questionNo}</strong>
-                                                <GrFormView
+                                                <ArrowSquareOut
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setPreviewQuestionContent(question.content);
