@@ -223,28 +223,6 @@ export const StudentsListSection = () => {
         }
     }, [search, instituteDetails]);
 
-    // const handleCellClick = (
-    //     student: StudentTable | null,
-    //     column: ColumnDef<StudentTable> | null,
-    //     isHeader: boolean = false,
-    // ) => {
-    //     if (isHeader) {
-    //         setIsSidebarOpen(false);
-    //         setSelectedStudent(student);
-    //         return;
-    //     }
-
-    //     if (!student) return;
-
-    //     if (selectedStudent?.user_id === student.user_id) {
-    //         setIsSidebarOpen(false);
-    //         setSelectedStudent(student);
-    //     } else {
-    //         setSelectedStudent(student);
-    //         setIsSidebarOpen(true);
-    //     }
-    // };
-
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
 
@@ -312,15 +290,6 @@ export const StudentsListSection = () => {
                                         rowSelection={currentPageSelection}
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
-                                        // onCellClick={(row, column) => {
-                                        //     if (
-                                        //         column.id !== "checkbox" &&
-                                        //         column.id !== "options"
-                                        //     ) {
-                                        //         handleCellClick(row, column);
-                                        //     }
-                                        // }}
-                                        // onHeaderClick={() => handleCellClick(null, null, true)}
                                     />
                                     <div>
                                         <StudentSidebar

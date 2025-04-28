@@ -78,3 +78,6 @@ export { AIPlanLectureImg };
 
 import AIEvaluateLectureImg from "./AIEvaluateLectureImg.svg";
 export { AIEvaluateLectureImg };
+
+import EmptyBatchImage from "./empty_manage_batches.svg";
+export { EmptyBatchImage };

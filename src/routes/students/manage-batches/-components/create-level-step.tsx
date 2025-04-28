@@ -42,6 +42,12 @@ export const CreateLevelStep = () => {
         }
     }, [watch("levelCreationType"), newLevelName, newLevelDuration]);
 
+    useEffect(() => {
+        if (levelList.length === 0) {
+            form.setValue("levelCreationType", "new");
+        }
+    }, [levelList, form]);
+
     return (
         <div className="flex flex-col gap-6">
             <div className="text-regular">
@@ -60,8 +66,21 @@ export const CreateLevelStep = () => {
                                 value={field.value}
                             >
                                 <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="existing" id="existing" />
-                                    <label htmlFor="existing">Pre-existing level</label>
+                                    <RadioGroupItem
+                                        value="existing"
+                                        id="existing"
+                                        disabled={levelList.length === 0}
+                                    />
+                                    <label
+                                        htmlFor="existing"
+                                        className={
+                                            levelList.length === 0
+                                                ? "text-neutral-400"
+                                                : "text-neutral-600"
+                                        }
+                                    >
+                                        Pre-existing level
+                                    </label>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="new" id="new" />

@@ -30,8 +30,8 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                     toast.success("Batch created successfully");
                     handleOpenManageBatchDialog(false);
                 },
-                onError: (error) => {
-                    toast.error(error.message || "Failed to create batch");
+                onError: () => {
+                    toast.error("Failed to create batch");
                 },
             },
         );
@@ -40,6 +40,12 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
     useEffect(() => {
         setCourseList(getCourseFromPackage());
     }, [instituteDetails]);
+
+    useEffect(() => {
+        if (courseList.length === 0) {
+            form.setValue("courseCreationType", "new");
+        }
+    }, [courseList.length, form]);
 
     return (
         <div className="flex flex-col gap-6">
@@ -59,8 +65,19 @@ export const CreateCourseStep = ({ handleOpenManageBatchDialog }: CreateCourseSt
                                 value={field.value}
                             >
                                 <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="existing" id="existing" />
-                                    <label htmlFor="existing">Pre-existing course</label>
+                                    <RadioGroupItem
+                                        value="existing"
+                                        id="existing"
+                                        disabled={courseList.length === 0}
+                                    />
+                                    <label
+                                        htmlFor="existing"
+                                        className={
+                                            courseList.length === 0 ? "text-neutral-400" : ""
+                                        }
+                                    >
+                                        Pre-existing course
+                                    </label>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="new" id="new" />

@@ -4,6 +4,7 @@ import {
     CONVERT_PDF_TO_HTML_AI_URL,
     GENERATE_FEEDBACK_FROM_FILE_AI_URL,
     GENERATE_QUESTIONS_FROM_FILE_AI_URL,
+    GENERATE_QUESTIONS_FROM_IMAGE_AI_URL,
     GET_INDIVIDUAL_AI_TASK_QUESTIONS,
     GET_INDIVIDUAL_CHAT_WITH_PDF_AI_TASK_QUESTIONS,
     GET_LECTURE_FEEDBACK_PREVIEW_URL,
@@ -145,6 +146,24 @@ export const handleGenerateAssessmentQuestions = async (
     const response = await axios({
         method: "GET",
         url: GENERATE_QUESTIONS_FROM_FILE_AI_URL,
+        params: {
+            pdfId,
+            userPrompt,
+            taskName,
+            instituteId,
+        },
+    });
+    return response?.data;
+};
+export const handleGenerateAssessmentImage = async (
+    pdfId: string,
+    userPrompt: string,
+    taskName: string,
+) => {
+    const instituteId = getInstituteId();
+    const response = await axios({
+        method: "GET",
+        url: GENERATE_QUESTIONS_FROM_IMAGE_AI_URL,
         params: {
             pdfId,
             userPrompt,
