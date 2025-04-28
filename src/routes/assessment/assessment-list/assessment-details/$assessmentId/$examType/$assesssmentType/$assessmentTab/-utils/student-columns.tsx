@@ -109,9 +109,11 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
             const statusMapping: Record<string, ActivityStatus> = {
                 EVALUATED: "evaluated",
                 PENDING: "pending",
+                EVALUATING: "evaluating",
             };
 
-            const mappedStatus = statusMapping[status] || "evaluated";
+            const mappedStatus = statusMapping[status] || "evaluating";
+            console.log("mapped", status, mappedStatus);
             return <StatusChips status={mappedStatus} />;
         },
     },

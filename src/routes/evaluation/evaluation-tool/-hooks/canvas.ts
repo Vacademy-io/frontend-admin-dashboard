@@ -26,8 +26,8 @@ const useFabric = (fabricCanvas: Canvas | null) => {
             top: window.scrollY ?? 100,
             width: 100,
             fontSize: 20,
-            fill: "red",
-            backgroundColor: "#d1cdcd",
+            fill: "black",
+            backgroundColor: "#f2eeed",
             selectable: true,
         });
         fabricCanvas.add(textbox);
