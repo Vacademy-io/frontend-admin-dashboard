@@ -5,7 +5,6 @@ import { handleGenerateAssessmentQuestions } from "@/routes/ai-center/-services/
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
 import { jsPDF } from "jspdf";
 import { saveAs } from "file-saver";
 
@@ -157,9 +156,6 @@ const GenerateAiQuestionFromImageComponent = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
             />
-            {generateAssessmentMutation.status === "success" && (
-                <AITasksList heading="Vsmart Image" enableDialog={true} />
-            )}
         </>
     );
 };

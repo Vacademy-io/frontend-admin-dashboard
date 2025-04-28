@@ -8,7 +8,6 @@ import {
 } from "../../../-services/ai-center-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
 import GenerateQuestionsFromAudioForm from "./GenerateQuestionsFromAudioForm";
 
 export const GenerateQuestionsFromAudio = () => {
@@ -46,58 +45,6 @@ export const GenerateQuestionsFromAudio = () => {
         }
     };
 
-    /* Polling */
-    const MAX_POLL_ATTEMPTS = 10;
-    const pollingCountRef = useRef(0);
-    const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-    const pendingRef = useRef(false);
-
-    const handleCallApi = async (
-        audioId: string,
-        numQuestions: string,
-        prompt: string,
-        difficulty: string,
-        language: string,
-        taskName: string,
-    ) => {
-        if (!audioId) return;
-
-        clearPolling();
-        pollingCountRef.current = 0;
-        pendingRef.current = false;
-
-        // Make initial call
-        pollGenerateQuestionsFromAudio(
-            audioId,
-            numQuestions,
-            prompt,
-            difficulty,
-            language,
-            taskName,
-        );
-    };
-
-    const pollGenerateQuestionsFromAudio = (
-        audioId: string,
-        numQuestions: string,
-        prompt: string,
-        difficulty: string,
-        language: string,
-        taskName: string,
-    ) => {
-        if (pendingRef.current) {
-            return;
-        }
-        getQuestionsFromAudioMutation.mutate({
-            audioId,
-            numQuestions,
-            prompt,
-            difficulty,
-            language,
-            taskName,
-        });
-    };
-
     const getQuestionsFromAudioMutation = useMutation({
         mutationFn: async ({
             audioId,
@@ -125,82 +72,17 @@ export const GenerateQuestionsFromAudio = () => {
                 taskName,
             );
         },
-        onSuccess: (response, variables) => {
-            // Check if response indicates pending state
-            if (response?.status === "pending") {
-                pendingRef.current = true;
-                // Don't schedule next poll - we'll wait for an error to resume
-                return;
-            }
-
-            // Reset pending state if response is no longer pending
-            pendingRef.current = false;
-
-            // If we have complete data, we're done
-            if (response === "Done") {
-                setLoader(false);
-                setKey(null);
-                clearPolling();
-                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
-                return;
-            }
-
-            // Otherwise schedule next poll
-            scheduleNextPoll(
-                variables.audioId,
-                variables.numQuestions,
-                variables.prompt,
-                variables.difficulty,
-                variables.language,
-                variables.taskName,
-            );
+        onSuccess: () => {
+            setLoader(false);
+            setKey(null);
+            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
-        onError: (_, variables) => {
-            // If we were in a pending state, resume polling on error
-            if (pendingRef.current) {
-                pendingRef.current = false;
-                scheduleNextPoll(
-                    variables.audioId,
-                    variables.numQuestions,
-                    variables.prompt,
-                    variables.difficulty,
-                    variables.language,
-                    variables.taskName,
-                );
-                return;
-            }
-
-            // Normal error handling
-            pollingCountRef.current += 1;
-            if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
-                setLoader(false);
-                setKey(null);
-                clearPolling();
-                return;
-            }
-
-            // Schedule next poll on error (if not max attempts)
-            scheduleNextPoll(
-                variables.audioId,
-                variables.numQuestions,
-                variables.prompt,
-                variables.difficulty,
-                variables.language,
-                variables.taskName,
-            );
+        onError: (error: unknown) => {
+            console.log(error);
         },
     });
 
-    const clearPolling = () => {
-        if (pollingTimeoutIdRef.current) {
-            setLoader(false);
-            setKey(null);
-            clearTimeout(pollingTimeoutIdRef.current);
-            pollingTimeoutIdRef.current = null;
-        }
-    };
-
-    const scheduleNextPoll = (
+    const pollGenerateQuestionsFromAudio = (
         audioId: string,
         numQuestions: string,
         prompt: string,
@@ -208,32 +90,15 @@ export const GenerateQuestionsFromAudio = () => {
         language: string,
         taskName: string,
     ) => {
-        setLoader(false);
-        setKey(null);
-        clearPolling(); // Clear any existing timeout
-
-        // Only schedule next poll if not in pending state
-        if (!pendingRef.current) {
-            setLoader(true);
-            setKey("audio");
-            pollingTimeoutIdRef.current = setTimeout(() => {
-                pollGenerateQuestionsFromAudio(
-                    audioId,
-                    numQuestions,
-                    prompt,
-                    difficulty,
-                    language,
-                    taskName,
-                );
-            }, 10000);
-        }
+        getQuestionsFromAudioMutation.mutate({
+            audioId,
+            numQuestions,
+            prompt,
+            difficulty,
+            language,
+            taskName,
+        });
     };
-
-    useEffect(() => {
-        return () => {
-            clearPolling();
-        };
-    }, []);
 
     useEffect(() => {
         if (key === "audio") {
@@ -255,10 +120,10 @@ export const GenerateQuestionsFromAudio = () => {
                 setTaskName={setTaskName}
             />
             {audioId !== "" && (
-                <GenerateQuestionsFromAudioForm audioId={audioId} handleCallApi={handleCallApi} />
-            )}
-            {getQuestionsFromAudioMutation.status === "success" && (
-                <AITasksList heading="Vsmart Audio" enableDialog={true} />
+                <GenerateQuestionsFromAudioForm
+                    audioId={audioId}
+                    handleCallApi={pollGenerateQuestionsFromAudio}
+                />
             )}
         </>
     );
