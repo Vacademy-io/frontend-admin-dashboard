@@ -13,6 +13,7 @@ import { GetImagesForAITools } from "@/routes/ai-center/-helpers/GetImagesForAIT
 import { AIToolPageData } from "@/routes/ai-center/-constants/AIToolPageData";
 import { Separator } from "@/components/ui/separator";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
+import { languageSupport } from "@/constants/dummy-data";
 
 const formSchema = z.object({
     taskName: z.string().min(1),
@@ -41,7 +42,7 @@ export const GenerateQuestionsFromText = () => {
             class_level: "",
             topics: "",
             question_type: "",
-            question_language: "",
+            question_language: languageSupport[0],
         },
     });
     const { key: keyContext, loader, setLoader, setKey } = useAICenter();

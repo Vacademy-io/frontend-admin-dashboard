@@ -1,3 +1,4 @@
+import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyButton } from "@/components/design-system/button";
 import { MyInput } from "@/components/design-system/input";
 import SelectField from "@/components/design-system/select-field";
@@ -16,6 +17,7 @@ import { FormProvider, useForm } from "react-hook-form";
 const GenerateQuestionsFromAudioForm = ({
     audioId,
     handleCallApi,
+    status,
 }: {
     audioId: string;
     handleCallApi: (
@@ -26,6 +28,7 @@ const GenerateQuestionsFromAudioForm = ({
         language: string,
         taskName: string,
     ) => void;
+    status: string;
 }) => {
     const [open, setOpen] = useState(audioId ? true : false);
     const form = useForm<AudioAIQuestionFormSchema>({
@@ -34,7 +37,7 @@ const GenerateQuestionsFromAudioForm = ({
             numQuestions: "",
             prompt: "",
             difficulty: "",
-            language: "",
+            language: languageSupport[0],
             taskName: "",
         },
     });
@@ -48,6 +51,7 @@ const GenerateQuestionsFromAudioForm = ({
             values.language,
             values.taskName,
         );
+        form.reset();
     };
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -149,16 +153,28 @@ const GenerateQuestionsFromAudioForm = ({
                             className="w-full font-thin"
                         />
                         <div>
-                            <MyButton
-                                buttonType="primary"
-                                layoutVariant="default"
-                                scale="large"
-                                className=""
-                                type="button"
-                                onClick={form.handleSubmit(onSubmit)}
-                            >
-                                Submit
-                            </MyButton>
+                            {status === "pending" ? (
+                                <MyButton
+                                    buttonType="primary"
+                                    layoutVariant="default"
+                                    scale="large"
+                                    className=""
+                                    type="button"
+                                >
+                                    <DashboardLoader size={18} color="#ffffff" />
+                                </MyButton>
+                            ) : (
+                                <MyButton
+                                    buttonType="primary"
+                                    layoutVariant="default"
+                                    scale="large"
+                                    className=""
+                                    type="button"
+                                    onClick={form.handleSubmit(onSubmit)}
+                                >
+                                    Submit
+                                </MyButton>
+                            )}
                         </div>
                     </form>
                 </FormProvider>
