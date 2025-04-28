@@ -8,7 +8,7 @@ import {
     handleEvaluateLecture,
     handleStartProcessUploadedAudioFile,
 } from "@/routes/ai-center/-services/ai-center-service";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
+
 const EvaluateLectureAI = () => {
     const queryClient = useQueryClient();
     const [taskName, setTaskName] = useState("");
@@ -85,9 +85,6 @@ const EvaluateLectureAI = () => {
                 taskName={taskName}
                 setTaskName={setTaskName}
             />
-            {generateAssessmentMutation.status === "success" && (
-                <AITasksList heading="Vsmart Feedback" enableDialog={true} />
-            )}
         </>
     );
 };

@@ -8,7 +8,6 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
-import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const SortAndSplitTopicQuestions = () => {
     const [prompt, setPrompt] = useState("");
@@ -102,9 +101,6 @@ const SortAndSplitTopicQuestions = () => {
                 prompt={prompt}
                 setPrompt={setPrompt}
             />
-            {generateAssessmentMutation.status === "success" && (
-                <AITasksList heading="Vsmart Organizer" enableDialog={true} />
-            )}
         </>
     );
 };
