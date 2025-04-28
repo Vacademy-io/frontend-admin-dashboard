@@ -13,7 +13,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { IoMdOpen } from "react-icons/io";
+import { FaExternalLinkAlt } from "react-icons/fa";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useTimerStore } from "@/stores/evaluation/timer-store";
 import { useMarksStore } from "@/stores/evaluation/marks-store";
@@ -125,7 +125,7 @@ export default function Evaluation({ questionData, totalPages, pagesVisited }: E
                                         <TableRow key={question.questionNo}>
                                             <TableCell className="flex cursor-pointer items-center space-x-2 text-base font-medium">
                                                 <strong>{question.questionNo}</strong>
-                                                <IoMdOpen
+                                                <FaExternalLinkAlt
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setPreviewQuestionContent(question.content);
