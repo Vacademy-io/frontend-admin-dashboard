@@ -11,11 +11,13 @@ import GeneratePageWiseAssessment from "./GeneratePageWiseAssessment";
 import { GenerateAssessmentDialog } from "./GenerateAssessmentDialog";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const GenerateAIAssessmentComponent = () => {
     const queryClient = useQueryClient();
     const [allPagesGenerateQuestionsStatus, setAllPagesGenerateQuestionsStatus] = useState(false);
     const [pageWiseGenerateQuestionsStatus, setPageWiseGenerateQuestionsStatus] = useState(false);
+    console.log(allPagesGenerateQuestionsStatus);
     const [taskName, setTaskName] = useState("");
     const instituteId = getInstituteId();
     const { setLoader, key, setKey } = useAICenter();
@@ -78,6 +80,9 @@ const GenerateAIAssessmentComponent = () => {
             setLoader(true);
             setKey("assessment");
             return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
+        },
+        onMutate: () => {
+            setAllPagesGenerateQuestionsStatus(true);
         },
         onSuccess: () => {
             setAllPagesGenerateQuestionsStatus(false);
@@ -226,6 +231,9 @@ const GenerateAIAssessmentComponent = () => {
                 setOpenPageWiseAssessmentDialog={setOpenPageWiseAssessmentDialog}
                 htmlData={htmlData}
             />
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Upload" enableDialog={true} />
+            )}
         </div>
     );
 };

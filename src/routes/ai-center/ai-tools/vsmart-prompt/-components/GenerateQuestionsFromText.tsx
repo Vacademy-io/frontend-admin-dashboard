@@ -192,6 +192,9 @@ export const GenerateQuestionsFromText = () => {
                 submitForm={submitFormFn}
                 form={dialogForm}
             />
+            {getQuestionsFromTextMutation.status === "success" && (
+                <AITasksList heading="Vsmart Topics" enableDialog={true} />
+            )}
         </>
     );
 };

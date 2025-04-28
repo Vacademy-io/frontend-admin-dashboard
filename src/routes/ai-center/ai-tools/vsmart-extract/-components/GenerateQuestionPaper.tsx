@@ -97,7 +97,7 @@ const GenerateAiQuestionPaperComponent = () => {
                 setTaskName={setTaskName}
             />
             {generateAssessmentMutation.status === "success" && (
-                <AITasksList heading="Vsmart Extract" />
+                <AITasksList heading="Vsmart Extract" enableDialog={true} />
             )}
         </>
     );
