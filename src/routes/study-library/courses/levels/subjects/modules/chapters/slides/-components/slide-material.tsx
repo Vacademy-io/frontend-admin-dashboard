@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { Check, DownloadSimple, PencilSimpleLine } from "phosphor-react";
 import { formatReadableDate } from "@/utils/formatReadableData";
 import { convertHtmlToPdf } from "../-helper/html-to-pdf";
+import { StudyLibraryQuestionsPreview } from "./questions-preview";
 
 export const formatHTMLString = (htmlString: string) => {
     // Remove the body tag and its attributes
@@ -232,12 +233,8 @@ export const SlideMaterial = ({
                 setContent(<div>Error loading document content</div>);
             }
             return;
-        } else if (activeItem.source_type == "QUESTION" && activeItem.document_type == "MCQS") {
-            setContent(
-                <div key={`question-${activeItem.slide_id}`} className="size-full">
-                    test question
-                </div>,
-            );
+        } else if (activeItem.source_type == "QUESTION") {
+            setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
             return;
         }
 
@@ -369,15 +366,6 @@ export const SlideMaterial = ({
         }
     };
 
-    useEffect(() => {
-        if (items.length == 0) setActiveItem(null);
-    }, [items]);
-
-    useEffect(() => {
-        setHeading(activeItem?.document_title || activeItem?.video_title || "");
-        loadContent();
-    }, [activeItem]);
-
     const getCurrentEditorHTMLContent: () => string = () => {
         const data = editor.getEditorValue();
         const htmlString = html.serialize(editor, data);
@@ -458,6 +446,15 @@ export const SlideMaterial = ({
         }
         return null;
     };
+
+    useEffect(() => {
+        if (items.length == 0) setActiveItem(null);
+    }, [items]);
+
+    useEffect(() => {
+        setHeading(activeItem?.document_title || activeItem?.video_title || "");
+        loadContent();
+    }, [activeItem]);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;

@@ -3,9 +3,11 @@ import { QuestionType as QuestionTypeList } from "@/constants/dummy-data";
 import { Separator } from "@/components/ui/separator";
 import { z } from "zod";
 import { questionsFormSchema } from "@/routes/assessment/question-papers/-utils/question-form-schema";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useContentStore } from "../../-stores/chapter-sidebar-store";
+import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
+import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
@@ -21,35 +23,25 @@ const AddQuestionDialog = ({
     openState?: ((open: boolean) => void) | undefined;
 }) => {
     const { setItems, items } = useContentStore();
-    console.log(items);
-    const form = useForm<QuestionPaperFormType>({
-        resolver: zodResolver(questionsFormSchema),
+    const form = useForm<UploadQuestionPaperFormType>({
+        resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
         defaultValues: {
-            questionId: undefined,
-            questionName: "",
-            explanation: "",
-            questionType: "MCQS",
-            questionPenalty: "",
-            questionDuration: {
-                hrs: "",
-                min: "",
-            },
-            questionMark: "",
-            singleChoiceOptions: [],
-            multipleChoiceOptions: [],
-            csingleChoiceOptions: [],
-            cmultipleChoiceOptions: [],
-            trueFalseOptions: [],
-            parentRichTextContent: null,
-            decimals: undefined,
-            numericType: undefined,
-            validAnswers: null,
-            questionResponseType: null,
-            subjectiveAnswerText: "",
+            questionPaperId: "1",
+            isFavourite: false,
+            title: "",
+            createdOn: new Date(),
+            yearClass: "",
+            subject: "",
+            questionsType: "",
+            optionsType: "",
+            answersType: "",
+            explanationsType: "",
+            fileUpload: undefined,
+            questions: [],
         },
     });
-    console.log(openState);
+
     const QuestionType = ({
         icon,
         text,
@@ -71,17 +63,33 @@ const AddQuestionDialog = ({
         );
     };
 
+    const { fields, append } = useFieldArray({
+        control: form.control,
+        name: "questions", // Name of the field array
+    });
+
+    // Function to handle adding a new question
     const handleAddQuestion = (newQuestionType: string) => {
-        form.reset({
-            ...form.getValues(),
+        append({
+            questionId: String(fields.length + 1),
+            questionName: "",
+            explanation: "",
             questionType: newQuestionType,
+            questionPenalty: "",
+            questionDuration: {
+                hrs: "",
+                min: "",
+            },
+            questionMark: "",
+            singleChoiceOptions: [],
+            multipleChoiceOptions: [],
         });
         setItems([
             {
                 slide_title: null,
                 document_id: null,
-                document_title: `${form.getValues("questionType")} slide`,
-                document_type: form.getValues("questionType"),
+                document_title: `${form.getValues(`questions.${0}.questionType`)} slide`,
+                document_type: form.getValues(`questions.${0}.questionType`),
                 slide_description: null,
                 document_cover_file_id: null,
                 video_description: null,
@@ -99,6 +107,7 @@ const AddQuestionDialog = ({
             ...items,
         ]);
         form.trigger();
+        openState && openState(false);
     };
     return (
         <>

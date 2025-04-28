@@ -12,7 +12,7 @@ import {
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
 import { useFieldArray, useForm } from "react-hook-form";
-import { CheckCircle } from "phosphor-react";
+import { CheckCircle, Question } from "phosphor-react";
 import { useSaveDraft } from "../../-context/saveDraftContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -61,10 +61,6 @@ export const ChapterSidebarSlides = ({
         toggleSidebar();
     };
 
-    useEffect(() => {
-        form.setValue("slides", items || []);
-    }, [items]);
-
     const form = useForm<FormValues>({
         defaultValues: {
             slides: items || [],
@@ -75,6 +71,49 @@ export const ChapterSidebarSlides = ({
         control: form.control,
         name: "slides",
     });
+
+    const getIcon = (slide: Slide): ReactNode => {
+        const type =
+            slide.source_type === "QUESTION"
+                ? "QUESTION"
+                : slide.published_url != null || slide.video_url != null
+                  ? "VIDEO"
+                  : slide.document_type;
+        switch (type) {
+            case "PDF":
+                return <FilePdf className="size-6" />;
+            case "VIDEO":
+                return <PlayCircle className="size-6" />;
+            case "DOC":
+                return <FileDoc className="size-6" />;
+            case "DOCX":
+                return <FileDoc className="size-6" />;
+            case "QUESTION":
+                return <Question className="size-6" />;
+            default:
+                return <></>;
+        }
+    };
+
+    const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
+        move(activeIndex, overIndex);
+
+        // Create order payload after move
+        const updatedFields = form.getValues("slides");
+
+        // Create order payload with the updated order
+        const orderPayload = updatedFields.map((slide, index) => ({
+            slide_id: slide.slide_id,
+            slide_order: index + 1,
+        }));
+
+        // Call the handler to update the order through API
+        handleSlideOrderChange(orderPayload);
+    };
+
+    useEffect(() => {
+        form.setValue("slides", items || []);
+    }, [items]);
 
     useEffect(() => {
         if (slides?.length) {
@@ -96,39 +135,6 @@ export const ChapterSidebarSlides = ({
             setActiveItem(null);
         }
     }, [slides, slideId]);
-
-    const getIcon = (slide: Slide): ReactNode => {
-        const type =
-            slide.published_url != null || slide.video_url != null ? "VIDEO" : slide.document_type;
-        switch (type) {
-            case "PDF":
-                return <FilePdf className="size-6" />;
-            case "VIDEO":
-                return <PlayCircle className="size-6" />;
-            case "DOC":
-                return <FileDoc className="size-6" />;
-            case "DOCX":
-                return <FileDoc className="size-6" />;
-            default:
-                return <></>;
-        }
-    };
-
-    const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
-        move(activeIndex, overIndex);
-
-        // Create order payload after move
-        const updatedFields = form.getValues("slides");
-
-        // Create order payload with the updated order
-        const orderPayload = updatedFields.map((slide, index) => ({
-            slide_id: slide.slide_id,
-            slide_order: index + 1,
-        }));
-
-        // Call the handler to update the order through API
-        handleSlideOrderChange(orderPayload);
-    };
 
     if (isLoading) {
         return <DashboardLoader />;
