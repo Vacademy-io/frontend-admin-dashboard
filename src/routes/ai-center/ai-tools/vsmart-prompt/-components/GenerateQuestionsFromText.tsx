@@ -101,6 +101,7 @@ export const GenerateQuestionsFromText = () => {
             question_type: data.question_type,
             question_language: data.question_language,
         });
+        dialogForm.reset();
     };
     const submitButton = (
         <div className="flex w-full items-center justify-center">
