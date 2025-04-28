@@ -182,3 +182,5 @@ export const INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-sett
 export const UPDATE_INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/institute/update`;
 export const LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/learner-setting`;
 export const UPDATE_LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/learner/update`;
+
+export const DELETE_BATCHES = `${BASE_URL}/admin-core-service/batch/v1/delete-batches`;

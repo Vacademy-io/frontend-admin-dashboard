@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { BatchSection } from "./batch-section";
 import { useGetBatchesQuery } from "@/routes/students/manage-batches/-services/get-batches";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { CreateBatchDialog } from "./create-batch-dialog";
 import {
@@ -15,7 +14,6 @@ import { MyDropdown } from "@/components/common/students/enroll-manually/dropdow
 export const ManageBatches = () => {
     const { setNavHeading } = useNavHeadingStore();
 
-    const { selectedSession, setSelectedSession } = useSelectedSessionStore();
     const { getAllSessions, instituteDetails } = useInstituteDetailsStore();
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(
         getAllSessions().map((session) => ({
@@ -23,12 +21,23 @@ export const ManageBatches = () => {
             name: session.session_name,
         })),
     );
-    const [currentSession, setCurrentSession] = useState<DropdownItemType>(() => {
-        const defaultSession = sessionList[0] || { id: "", name: "" };
-        return selectedSession && sessionList.find((session) => session.id === selectedSession.id)
-            ? { id: selectedSession.id, name: selectedSession.session_name }
-            : defaultSession;
-    });
+
+    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>();
+
+    useEffect(() => {
+        if (sessionList.length > 0) {
+            let selectedSession = sessionList[0];
+            getAllSessions().forEach((session) => {
+                if (session.status === "ACTIVE") {
+                    selectedSession = { id: session.id, name: session.session_name };
+                }
+            });
+            setCurrentSession(selectedSession);
+        } else {
+            setCurrentSession(undefined);
+        }
+    }, [sessionList]);
+
     const { data, isLoading, isError } = useGetBatchesQuery({
         sessionId: currentSession?.id || "",
     });
@@ -36,12 +45,6 @@ export const ManageBatches = () => {
     const handleSessionChange = (value: DropdownValueType) => {
         if (value && typeof value === "object" && "id" in value && "name" in value) {
             setCurrentSession(value as DropdownItemType);
-            const session = getAllSessions().find(
-                (session) => session.id === (value as DropdownItemType).id,
-            );
-            if (session) {
-                setSelectedSession(session);
-            }
         }
     };
 
@@ -52,22 +55,6 @@ export const ManageBatches = () => {
                 name: session.session_name,
             })),
         );
-        if (currentSession && sessionList.includes(currentSession)) {
-            const session = getAllSessions().find((session) => session.id === currentSession.id);
-            if (session) {
-                setSelectedSession(session);
-            }
-        } else {
-            const defaultSession = sessionList[0] || { id: "", name: "" };
-            const newSession = selectedSession
-                ? { id: selectedSession.id, name: selectedSession.session_name }
-                : defaultSession;
-            setCurrentSession(newSession);
-            const session = getAllSessions().find((session) => session.id === newSession.id);
-            if (session) {
-                setSelectedSession(session);
-            }
-        }
     }, [instituteDetails]);
 
     useEffect(() => {
@@ -83,12 +70,14 @@ export const ManageBatches = () => {
             <div className="flex items-center justify-between">
                 <p className="text-h3 font-semibold">Student Batches</p>
                 <div className="flex items-center gap-6">
-                    <MyDropdown
-                        currentValue={currentSession}
-                        dropdownList={sessionList}
-                        placeholder="Select Session"
-                        handleChange={handleSessionChange}
-                    />
+                    {currentSession !== undefined && (
+                        <MyDropdown
+                            currentValue={currentSession}
+                            dropdownList={sessionList}
+                            placeholder="Select Session"
+                            handleChange={handleSessionChange}
+                        />
+                    )}
                     <CreateBatchDialog />
                 </div>
             </div>
