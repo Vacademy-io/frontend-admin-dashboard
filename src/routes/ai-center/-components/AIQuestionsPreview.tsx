@@ -203,7 +203,7 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
                                                                         key={index}
                                                                         type={
                                                                             getValues(
-                                                                                `questions.${currentQuestionIndex}.questionType`,
+                                                                                `questions.${index}.questionType`,
                                                                             ) as QuestionType
                                                                         }
                                                                         props={{

@@ -71,9 +71,10 @@ const AITasksList = ({
             </DialogTrigger>
             <DialogContent
                 onClick={(e) => e.stopPropagation()}
-                className="no-scrollbar !m-0 flex size-[90%] flex-col !gap-0 overflow-y-auto !p-0"
+                className="no-scrollbar !m-0 flex size-[90%] flex-col !gap-0 overflow-hidden !p-0"
             >
-                <div className="flex items-center justify-start gap-4 rounded-t-lg bg-primary-50 p-4">
+                {/* Fixed Header */}
+                <div className="sticky top-0 z-10 flex items-center justify-start gap-4 rounded-t-lg bg-primary-50 p-4">
                     <h1 className="font-semibold text-primary-500">{heading}</h1>
                     <div
                         className="cursor-pointer rounded-lg border p-2 px-3"
@@ -82,10 +83,11 @@ const AITasksList = ({
                         <ArrowCounterClockwise size={18} className="font-thin text-neutral-600" />
                     </div>
                 </div>
+
                 {getAITasksIndividualListMutation.status === "pending" ? (
                     <DashboardLoader size={24} />
                 ) : (
-                    <div className="flex flex-col gap-4 p-4">
+                    <div className="flex flex-col gap-4 overflow-y-auto p-4">
                         {allTasks.length === 0 ? (
                             <div className="flex h-[75vh] items-center justify-center">
                                 <p>No task exists</p>

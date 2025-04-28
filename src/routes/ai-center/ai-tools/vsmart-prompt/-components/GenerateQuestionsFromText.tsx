@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { StarFour } from "phosphor-react";
 import { QuestionsFromTextDialog } from "./QuestionsFromTextDialog";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleGetQuestionsFromText } from "../../../-services/ai-center-service";
 import { useForm } from "react-hook-form";
@@ -55,33 +55,6 @@ export const GenerateQuestionsFromText = () => {
     const handleOpenChange = (open: boolean) => {
         setOpen(open);
     };
-    /* Generate Assessment Complete */
-    const MAX_POLL_ATTEMPTS = 10;
-    const pollingCountRef = useRef(0);
-    const pollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-    const pendingRef = useRef(false);
-
-    const handleSubmitSuccess = (data: QuestionsFromTextData) => {
-        clearPolling();
-        pollingCountRef.current = 0;
-        pendingRef.current = false;
-        pollGenerateQuestionsFromText(data);
-    };
-
-    const pollGenerateQuestionsFromText = (data: QuestionsFromTextData) => {
-        if (pendingRef.current) {
-            return;
-        }
-        getQuestionsFromTextMutation.mutate({
-            taskName: data.taskName,
-            text: data.text,
-            num: data.num,
-            class_level: data.class_level,
-            topics: data.topics,
-            question_type: data.question_type,
-            question_language: data.question_language,
-        });
-    };
 
     const getQuestionsFromTextMutation = useMutation({
         mutationFn: async (data: {
@@ -105,92 +78,29 @@ export const GenerateQuestionsFromText = () => {
                 data.question_language,
             );
         },
-        onSuccess: (response, variables) => {
-            // Check if response indicates pending state
-            if (response?.status === "pending") {
-                pendingRef.current = true;
-                // Don't schedule next poll - we'll wait for an error to resume
-                return;
-            }
-
-            // Reset pending state if response is no longer pending
-            pendingRef.current = false;
-
-            // If we have complete data, we're done
-            if (response === "Done") {
-                setLoader(false);
-                setKey(null);
-                dialogForm.reset();
-                handleOpenChange(false);
-                clearPolling();
-                queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
-                return;
-            }
-
-            // Otherwise schedule next poll
-            scheduleNextPoll({
-                taskName: variables.taskName,
-                text: variables.text,
-                num: variables.num,
-                class_level: variables.class_level,
-                topics: variables.topics,
-                question_type: variables.question_type,
-                question_language: variables.question_language,
-            });
+        onSuccess: () => {
+            setLoader(false);
+            setKey(null);
+            dialogForm.reset();
+            handleOpenChange(false);
+            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
-        onError: (_, variables) => {
-            // If we were in a pending state, resume polling on error
-            if (pendingRef.current) {
-                pendingRef.current = false;
-                scheduleNextPoll(variables);
-                return;
-            }
-
-            // Normal error handling
-            pollingCountRef.current += 1;
-            if (pollingCountRef.current >= MAX_POLL_ATTEMPTS) {
-                setLoader(false);
-                setKey(null);
-                handleOpenChange(false);
-                clearPolling();
-                return;
-            }
-
-            // Schedule next poll on error (if not max attempts)
-            scheduleNextPoll(variables);
+        onError: (error: unknown) => {
+            console.log(error);
         },
     });
 
-    const clearPolling = () => {
-        if (pollingTimeoutIdRef.current) {
-            setLoader(false);
-            setKey(null);
-            clearTimeout(pollingTimeoutIdRef.current);
-            pollingTimeoutIdRef.current = null;
-        }
+    const pollGenerateQuestionsFromText = (data: QuestionsFromTextData) => {
+        getQuestionsFromTextMutation.mutate({
+            taskName: data.taskName,
+            text: data.text,
+            num: data.num,
+            class_level: data.class_level,
+            topics: data.topics,
+            question_type: data.question_type,
+            question_language: data.question_language,
+        });
     };
-
-    const scheduleNextPoll = (data: QuestionsFromTextData) => {
-        setLoader(false);
-        setKey(null);
-        clearPolling(); // Clear any existing timeout
-
-        // Only schedule next poll if not in pending state
-        if (!pendingRef.current) {
-            setLoader(true);
-            setKey("text");
-            pollingTimeoutIdRef.current = setTimeout(() => {
-                pollGenerateQuestionsFromText(data);
-            }, 10000);
-        }
-    };
-
-    useEffect(() => {
-        return () => {
-            clearPolling();
-        };
-    }, []);
-
     const submitButton = (
         <div className="flex w-full items-center justify-center">
             {loader ? (
@@ -274,15 +184,12 @@ export const GenerateQuestionsFromText = () => {
             <QuestionsFromTextDialog
                 open={open}
                 onOpenChange={handleOpenChange}
-                onSubmitSuccess={handleSubmitSuccess}
+                onSubmitSuccess={pollGenerateQuestionsFromText}
                 submitButton={submitButton}
                 handleDisableSubmitBtn={handleDisableSubmitBtn}
                 submitForm={submitFormFn}
                 form={dialogForm}
             />
-            {getQuestionsFromTextMutation.status === "success" && (
-                <AITasksList heading="Vsmart Topics" enableDialog={true} />
-            )}
         </>
     );
 };

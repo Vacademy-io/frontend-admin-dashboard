@@ -13,7 +13,6 @@ export const QuestionsFromTextDialog = ({
     onOpenChange,
     onSubmitSuccess,
     submitButton,
-    handleDisableSubmitBtn,
     submitForm,
     trigger,
     form,
@@ -35,42 +34,19 @@ export const QuestionsFromTextDialog = ({
         question_language: string;
     }>;
 }) => {
-    const { watch, getValues } = form;
-    useEffect(() => {
-        const values = getValues();
-        const isValid = !(
-            values.taskName === "" ||
-            values.text === "" ||
-            values.num === 0 ||
-            values.class_level === "" ||
-            values.topics === "" ||
-            values.question_type === "" ||
-            values.question_language === ""
-        );
-        handleDisableSubmitBtn(!isValid);
-    }, [
-        watch("taskName"),
-        watch("text"),
-        watch("num"),
-        watch("class_level"),
-        watch("topics"),
-        watch("question_type"),
-        watch("question_language"),
-    ]);
-
     const formRef = useRef<HTMLFormElement>(null);
-
-    useEffect(() => {
-        if (submitForm) {
-            submitForm(requestSubmitFn);
-        }
-    }, [submitForm]);
 
     const requestSubmitFn = () => {
         if (formRef.current) {
             formRef.current.requestSubmit();
         }
     };
+
+    useEffect(() => {
+        if (submitForm) {
+            submitForm(requestSubmitFn);
+        }
+    }, [submitForm]);
 
     return (
         <MyDialog
@@ -108,6 +84,25 @@ export const QuestionsFromTextDialog = ({
                     />
                     <FormField
                         control={form.control}
+                        name="topics"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <MyInput
+                                        input={field.value?.toString() || ""}
+                                        onChangeFunction={(e) => field.onChange(e.target.value)}
+                                        label="Topics"
+                                        required={true}
+                                        inputType="text"
+                                        inputPlaceholder="Enter the topic you want to generate the question for"
+                                        className="w-full"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
                         name="text"
                         render={({ field }) => (
                             <FormItem>
@@ -128,25 +123,7 @@ export const QuestionsFromTextDialog = ({
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={form.control}
-                        name="topics"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <MyInput
-                                        input={field.value?.toString() || ""}
-                                        onChangeFunction={(e) => field.onChange(e.target.value)}
-                                        label="Topics"
-                                        required={true}
-                                        inputType="text"
-                                        inputPlaceholder="Enter the topic you want to generate the question for"
-                                        className="w-full"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+
                     <FormField
                         control={form.control}
                         name="num"
