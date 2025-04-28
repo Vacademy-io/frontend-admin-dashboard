@@ -25,7 +25,6 @@ const GenerateAIAssessmentComponent = () => {
     const [uploadedFilePDFId, setUploadedFilePDFId] = useState("");
     const [htmlData, setHtmlData] = useState(null);
     const [openPageWiseAssessmentDialog, setOpenPageWiseAssessmentDialog] = useState(false);
-    const [fileUploading, setFileUploading] = useState(false);
 
     const handleOpenAssessmentDialog = (open: boolean) => {
         setOpenAssessmentDialog(open);
@@ -35,6 +34,14 @@ const GenerateAIAssessmentComponent = () => {
         setKey("assessment");
         fileInputRef.current?.click();
     };
+
+    const [fileUploading, setFileUploading] = useState(false);
+
+    useEffect(() => {
+        if (key === "assessment") {
+            if (fileUploading == true) setLoader(true);
+        }
+    }, [fileUploading, key]);
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -91,28 +98,107 @@ const GenerateAIAssessmentComponent = () => {
         });
     };
 
+    /* Generate Assessment Pagewise */
+    const convertPollingCountRef = useRef(0);
+    const convertPollingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+    const MAX_CONVERT_ATTEMPTS = 10;
+    const convertPendingRef = useRef(false);
+
     const handleConvertPDFToHTMLMutation = useMutation({
         mutationFn: ({ pdfId, taskName }: { pdfId: string; taskName: string }) =>
             handleConvertPDFToHTML(pdfId, taskName),
         onSuccess: async (response) => {
-            setPageWiseGenerateQuestionsStatus(false);
-            setHtmlData(response?.html);
-            setOpenPageWiseAssessmentDialog(true);
+            // Check if response indicates pending state
+            if (response?.status === "pending") {
+                setPageWiseGenerateQuestionsStatus(true);
+                convertPendingRef.current = true;
+                // Don't schedule next poll - we'll wait for an error to resume
+                return;
+            }
+
+            // Reset pending state
+            convertPendingRef.current = false;
+
+            // If conversion is complete and we have HTML data
+            if (response === "Done" || response?.html) {
+                setPageWiseGenerateQuestionsStatus(false);
+                stopConvertPolling();
+                setHtmlData(response?.html);
+                setOpenPageWiseAssessmentDialog(true);
+
+                return;
+            }
+
+            // If response exists but no HTML yet, schedule next poll
+            scheduleNextConvertPoll();
         },
         onError: (error: unknown) => {
-            console.log(error);
+            console.error("⛔️ Convert Error:", error);
+
+            // If we were in a pending state, resume polling on error
+            if (convertPendingRef.current) {
+                setPageWiseGenerateQuestionsStatus(true);
+                convertPendingRef.current = false;
+                scheduleNextConvertPoll();
+                return;
+            }
+
+            // Increment count and check max attempts
+            convertPollingCountRef.current += 1;
+            if (convertPollingCountRef.current >= MAX_CONVERT_ATTEMPTS) {
+                setPageWiseGenerateQuestionsStatus(false);
+                stopConvertPolling();
+                return;
+            }
+
+            // Schedule next poll if not max attempts yet
+            scheduleNextConvertPoll();
         },
     });
 
+    const stopConvertPolling = () => {
+        if (convertPollingTimeoutIdRef.current) {
+            clearTimeout(convertPollingTimeoutIdRef.current);
+            convertPollingTimeoutIdRef.current = null;
+        }
+    };
+
+    const scheduleNextConvertPoll = () => {
+        stopConvertPolling(); // Clear any existing timeout
+
+        // Only schedule next poll if not in pending state
+        if (!convertPendingRef.current) {
+            console.log("Scheduling next conversion poll in 10 seconds");
+            convertPollingTimeoutIdRef.current = setTimeout(() => {
+                pollConvertPDFToHTML();
+            }, 10000);
+        }
+    };
+
     const pollConvertPDFToHTML = () => {
+        // Don't call API if in pending state
+        if (convertPendingRef.current) {
+            return;
+        }
         handleConvertPDFToHTMLMutation.mutate({ pdfId: uploadedFilePDFId, taskName });
     };
 
+    const handleConvertPDFToHTMLFn = () => {
+        if (!uploadedFilePDFId) return;
+        stopConvertPolling();
+        convertPollingCountRef.current = 0;
+        convertPendingRef.current = false;
+        setPageWiseGenerateQuestionsStatus(true);
+        // Make initial call
+        pollConvertPDFToHTML();
+    };
+
+    // Cleanup on component unmount
     useEffect(() => {
-        if (key === "assessment") {
-            if (fileUploading == true) setLoader(true);
-        }
-    }, [fileUploading, key]);
+        return () => {
+            stopConvertPolling();
+        };
+    }, []);
 
     return (
         <div className="flex items-center justify-start gap-8">
@@ -131,7 +217,7 @@ const GenerateAIAssessmentComponent = () => {
                 open={openAssessmentDialog}
                 handleOpen={handleOpenAssessmentDialog}
                 handleGenerateCompleteFile={pollGenerateAssessment}
-                handleGeneratePageWise={pollConvertPDFToHTML}
+                handleGeneratePageWise={handleConvertPDFToHTMLFn}
                 allPagesGenerateQuestionsStatus={allPagesGenerateQuestionsStatus}
                 pageWiseGenerateQuestionsStatus={pageWiseGenerateQuestionsStatus}
             />
