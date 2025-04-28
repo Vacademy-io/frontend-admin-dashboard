@@ -42,9 +42,11 @@ export const GetImagesForAITools = (key: string) => {
 export const getTaskTypeFromFeature = (heading: string): string => {
     switch (heading) {
         case "Vsmart Upload":
-        case "Vsmart Extract":
-        case "Vsmart Image":
             return "PDF_TO_QUESTIONS";
+        case "Vsmart Extract":
+            return "PDF_TO_QUESTIONS";
+        case "Vsmart Image":
+            return "IMAGE_TO_QUESTIONS";
         case "Vsmart Audio":
             return "AUDIO_TO_QUESTIONS";
         case "Vsmart Topics":
