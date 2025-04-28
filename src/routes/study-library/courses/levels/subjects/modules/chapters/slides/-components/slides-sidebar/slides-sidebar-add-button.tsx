@@ -167,7 +167,7 @@ export const ChapterSidebarAddButton = () => {
             <MyDialog
                 trigger={<></>}
                 heading="Upload Question"
-                dialogWidth="min-w-[400px]"
+                dialogWidth="min-w-[500px]"
                 open={isQuestionDialogOpen}
                 onOpenChange={closeQuestionDialog} // Pass the action function directly
             >

@@ -232,6 +232,13 @@ export const SlideMaterial = ({
                 setContent(<div>Error loading document content</div>);
             }
             return;
+        } else if (activeItem.source_type == "QUESTION" && activeItem.document_type == "MCQS") {
+            setContent(
+                <div key={`question-${activeItem.slide_id}`} className="size-full">
+                    test question
+                </div>,
+            );
+            return;
         }
 
         return;

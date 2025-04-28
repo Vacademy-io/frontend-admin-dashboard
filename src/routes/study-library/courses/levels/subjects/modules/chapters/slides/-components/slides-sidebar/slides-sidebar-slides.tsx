@@ -78,12 +78,12 @@ export const ChapterSidebarSlides = ({
 
     useEffect(() => {
         if (slides?.length) {
-            form.reset({ slides });
-            setItems(slides);
+            form.reset({ slides: items });
+            setItems(items);
 
             if (slideId) {
-                const targetSlide: Slide = slides.find(
-                    (slide: Slide) => slide.slide_id === slideId,
+                const targetSlide: Slide | undefined = items.find(
+                    (item: Slide) => item.slide_id === slideId,
                 );
                 if (targetSlide) {
                     setActiveItem(targetSlide);
