@@ -4,8 +4,9 @@ import { z } from "zod";
 import { BasicInfoFormSchema } from "../-utils/basic-info-form-schema";
 import sectionDetailsSchema from "../-utils/section-details-sechma";
 import { classifySections, convertStep2Data } from "../-utils/helper";
-import { ApiResponse } from "../-hooks/getQuestionsDataForSection";
+import { ApiResponse, SectionResponse } from "../-hooks/getQuestionsDataForSection";
 import axios from "axios";
+import { toast } from "sonner";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -32,6 +33,31 @@ export const getAssessmentDetails = ({
     };
 };
 
+export const handleUpdateCriteria = async ({
+    assessmentId,
+    sectionDetails,
+}: {
+    assessmentId: string;
+    sectionDetails: SectionResponse[];
+}) => {
+    try {
+        const response = await axios({
+            method: "POST",
+            url: ADD_QUESTIONS_URL,
+            params: {
+                assessmentId,
+            },
+            data: sectionDetails,
+        });
+        if (response.status === 200) {
+            toast.success("Criteria has been updated");
+        }
+        return response.data;
+    } catch (error) {
+        console.log("Error updating criteria", error);
+        throw error;
+    }
+};
 
 export const handlePostStep1Data = async (data: z.infer<typeof BasicInfoFormSchema>) => {
     const transformedData = {

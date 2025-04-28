@@ -49,7 +49,7 @@ export function MarkingCriteriaDialog({ markingJson }: MarkingCriteriaDialogProp
                                 markingData.criteria.map((criterion: any, index: number) => (
                                     <div
                                         key={index}
-                                        className="flex justify-between border-b p-3 last:border-0"
+                                        className="flex justify-between gap-x-4 border-b p-3 last:border-0"
                                     >
                                         <div>{criterion.name}</div>
                                         <div>{criterion.marks}</div>

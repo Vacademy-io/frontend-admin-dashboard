@@ -16,7 +16,12 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { MarkingCriteriaDialog } from "./create-assessment/-components/marking-criteria-dialog";
+// import { MarkingCriteriaDialog } from "./create-assessment/-components/marking-criteria-dialog";
+import EditCriteriaDialog from "./create-assessment/-components/edit-criteria-dialog";
+import { useMutation } from "@tanstack/react-query";
+import { handleUpdateCriteria } from "./create-assessment/-services/assessment-services";
+import { SectionResponse } from "./create-assessment/-hooks/getQuestionsDataForSection";
+import { Loader2 } from "lucide-react";
 
 interface Assessment {
     assessmentId: string;
@@ -66,6 +71,19 @@ function RouteComponent() {
         Record<string, AssessmentDetails | null>
     >({});
     const [loadingAssessments, setLoadingAssessments] = useState<Record<string, boolean>>({});
+
+    const updateCriteriaMutation = useMutation({
+        mutationFn: ({
+            assessmentId,
+            sectionDetails,
+        }: {
+            assessmentId: string;
+            sectionDetails: SectionResponse[];
+        }) => handleUpdateCriteria({ assessmentId, sectionDetails }),
+
+        onSuccess: () => {},
+        onError: () => {},
+    });
 
     useEffect(() => {
         setNavHeading(<h1 className="text-lg">Assessment</h1>);
@@ -147,7 +165,7 @@ function RouteComponent() {
                                     <AccordionContent className="px-4">
                                         {loadingAssessments[assessment.assessmentId] ? (
                                             <div className="py-4 text-center">
-                                                <div className="inline-block size-6 animate-spin rounded-full border-2 border-solid border-current border-r-transparent"></div>
+                                                <Loader2 className="mx-auto size-6 animate-spin" />
                                                 <p className="mt-2 text-sm text-gray-500">
                                                     Loading assessment details...
                                                 </p>
@@ -166,32 +184,98 @@ function RouteComponent() {
                                                         </h4>
 
                                                         <div className="space-y-1">
-                                                            <div className="mb-2 grid grid-cols-3 text-sm font-medium text-muted-foreground">
-                                                                <div>Question</div>
-                                                                <div>Answer</div>
-                                                                {/* <div>Evaluation</div> */}
-                                                                <div>Actions</div>
+                                                            <div className="mb-2 grid grid-cols-6 text-sm font-medium text-muted-foreground">
+                                                                <div className="col-span-3">
+                                                                    Question
+                                                                </div>
+                                                                <div className="col-span-2">
+                                                                    Answer
+                                                                </div>
+                                                                <div className="col-span-1">
+                                                                    Criteria
+                                                                </div>
                                                             </div>
 
                                                             {section.questions.map((question) => (
                                                                 <div
                                                                     key={question.id}
-                                                                    className="grid grid-cols-3 items-start border-t py-2"
+                                                                    className="grid grid-cols-6 items-start gap-x-2 border-t py-2"
                                                                 >
                                                                     <div
-                                                                        className="text-sm"
+                                                                        className="col-span-3 text-sm"
                                                                         dangerouslySetInnerHTML={{
                                                                             __html: question
                                                                                 .question_text
                                                                                 .content,
                                                                         }}
                                                                     />
-                                                                    <ExplanationPreview explanation={question.explanation.content} />
-                                                                    <div>
-                                                                        <MarkingCriteriaDialog
+                                                                    <ExplanationPreview
+                                                                        explanation={
+                                                                            question.explanation
+                                                                                .content
+                                                                        }
+                                                                    />
+                                                                    <div className="col-span-1 flex gap-2">
+                                                                        {/* <MarkingCriteriaDialog
                                                                             markingJson={
                                                                                 question.marking_json
                                                                             }
+                                                                        /> */}
+                                                                        <EditCriteriaDialog
+                                                                            markingJson={
+                                                                                question.marking_json
+                                                                            }
+                                                                            onSave={(updated) => {
+                                                                                const sectionData =
+                                                                                    assessmentDetails[
+                                                                                        assessment
+                                                                                            .assessmentId
+                                                                                    ]?.sections;
+                                                                                // Create a new array with updated marking_json for the correct question
+                                                                                const updatedSections =
+                                                                                    sectionData?.map(
+                                                                                        (
+                                                                                            section,
+                                                                                        ) => ({
+                                                                                            ...section,
+                                                                                            new_section:
+                                                                                                false,
+                                                                                            questions:
+                                                                                                section.questions.map(
+                                                                                                    (
+                                                                                                        q,
+                                                                                                    ) =>
+                                                                                                        q.id ===
+                                                                                                        question.id
+                                                                                                            ? {
+                                                                                                                  ...q,
+                                                                                                                  marking_json:
+                                                                                                                      updated,
+                                                                                                                  new_question:
+                                                                                                                      false,
+                                                                                                              }
+                                                                                                            : {
+                                                                                                                  ...q,
+                                                                                                                  new_question:
+                                                                                                                      false,
+                                                                                                              },
+                                                                                                ),
+                                                                                        }),
+                                                                                    );
+
+                                                                                updateCriteriaMutation.mutate(
+                                                                                    {
+                                                                                        assessmentId:
+                                                                                            assessment.assessmentId,
+                                                                                        sectionDetails:
+                                                                                            updatedSections as SectionResponse[],
+                                                                                    },
+                                                                                );
+                                                                                console.log(
+                                                                                    "Updated marking json:",
+                                                                                    updated,
+                                                                                );
+                                                                            }}
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -205,17 +289,25 @@ function RouteComponent() {
                                                         className="rounded-md bg-red-500 px-3 py-1.5 text-sm text-white"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            const updatedAssessments =
-                                                                assessments.filter(
-                                                                    (a) =>
-                                                                        a.assessmentId !==
-                                                                        assessment.assessmentId,
+                                                            if (
+                                                                confirm(
+                                                                    "Are you sure you want to delete this assessment? ",
+                                                                )
+                                                            ) {
+                                                                const updatedAssessments =
+                                                                    assessments.filter(
+                                                                        (a) =>
+                                                                            a.assessmentId !==
+                                                                            assessment.assessmentId,
+                                                                    );
+                                                                setAssessments(updatedAssessments);
+                                                                localStorage.setItem(
+                                                                    "assessments",
+                                                                    JSON.stringify(
+                                                                        updatedAssessments,
+                                                                    ),
                                                                 );
-                                                            setAssessments(updatedAssessments);
-                                                            localStorage.setItem(
-                                                                "assessments",
-                                                                JSON.stringify(updatedAssessments),
-                                                            );
+                                                            }
                                                         }}
                                                     >
                                                         Delete
@@ -258,14 +350,14 @@ function RouteComponent() {
 function ExplanationPreview({ explanation }: { explanation: string }) {
     const [expanded, setExpanded] = useState(false);
 
-    const explanationHtml = explanation || "";
+    const explanationHtml = explanation || "No answer available";
     const plainText = explanationHtml.replace(/<[^>]+>/g, "").trim();
     const words = plainText.split(/\s+/);
     const preview = words.slice(0, 10).join(" ");
     const hasMore = words.length > 10;
 
     return (
-        <div className="text-sm">
+        <div className="col-span-2 text-sm">
             <span>{expanded ? plainText : preview}</span>
             {hasMore && (
                 <>

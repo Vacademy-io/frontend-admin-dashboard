@@ -1,12 +1,39 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getAssessmentDetails } from "../-services/assessment-services";
 
-/**
- * Extracts question data from a section and converts it to AdaptiveMarking format
- * @param data - The API response data
- * @param sectionId - The ID of the section to process
- * @returns Array of AdaptiveMarking objects
- */
+export interface SectionResponse {
+    id: string;
+    name: string;
+    description: {
+        id: string;
+        type: string;
+        content: string;
+    };
+    total_marks: number;
+    cut_of_marks: number;
+    marks_per_question: number;
+    section_order: number;
+    questions: Array<{
+        id: string;
+        question_text: {
+            id: string;
+            type: string;
+            content: string;
+        };
+        question_response_type: string;
+        question_type: string;
+        evaluation_type: string;
+        explanation: {
+            id: string;
+            type: string;
+            content: string;
+        };
+        marking_json: string;
+        question_order: number;
+        new_question: boolean;
+    }>;
+    new_section: boolean;
+}
 export interface ApiResponse {
     basic_details: {
         status: string;
@@ -30,39 +57,7 @@ export interface ApiResponse {
         source: string;
         source_id: string;
     };
-    sections: Array<{
-        id: string;
-        name: string;
-        description: {
-            id: string;
-            type: string;
-            content: string;
-        };
-        total_marks: number;
-        cut_of_marks: number;
-        marks_per_question: number;
-        section_order: number;
-        questions: Array<{
-            id: string;
-            question_text: {
-                id: string;
-                type: string;
-                content: string;
-            };
-            question_response_type: string;
-            question_type: string;
-            evaluation_type: string;
-            explanation: {
-                id: string;
-                type: string;
-                content: string;
-            };
-            marking_json: string;
-            question_order: number;
-            new_question: boolean;
-        }>;
-        new_section: boolean;
-    }>;
+    sections: SectionResponse[];
 }
 
 export interface AdaptiveMarking {
