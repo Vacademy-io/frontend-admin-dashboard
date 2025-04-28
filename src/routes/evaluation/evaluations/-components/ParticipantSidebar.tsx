@@ -24,6 +24,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { handleUpdateAttempt } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { DummyProfile } from "@/assets/svgs";
+import { MyDialog } from "@/components/design-system/dialog";
 
 interface FormData {
     file: FileList | null;
@@ -38,6 +39,7 @@ export const ParticipantSidebar = ({
 }) => {
     const [isUploading, setIsUploading] = useState(false);
     const { state } = useSidebar();
+    const [openUploadConfirm, setOpenUploadConfirm] = useState(false);
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const [error, setError] = useState<string | null>(null);
@@ -208,7 +210,9 @@ export const ParticipantSidebar = ({
                                 />
 
                                 <MyButton
-                                    onClick={() => fileInputRef.current?.click()}
+                                    onClick={() => {
+                                        setOpenUploadConfirm(true);
+                                    }}
                                     disabled={isUploading || isUploadingFile}
                                     buttonType="secondary"
                                     scale="large"
@@ -252,6 +256,27 @@ export const ParticipantSidebar = ({
                             Evaluate
                         </MyButton>
                     </SidebarMenuItem>
+                    <MyDialog open={openUploadConfirm} heading="Confirm Upload?">
+                        <div className="flex flex-col gap-y-4">
+                            <p>
+                                Uploading a new file will overwrite the student&apos;s existing
+                                response. Are you sure you want to continue?
+                            </p>
+                            <MyButton
+                                buttonType="primary"
+                                scale="medium"
+                                layoutVariant="default"
+                                type="submit"
+                                onClick={() => {
+                                    fileInputRef.current?.click();
+                                    setOpenUploadConfirm(false);
+                                }}
+                                className="ml-auto"
+                            >
+                                Upload
+                            </MyButton>
+                        </div>
+                    </MyDialog>
                 </SidebarMenu>
             </SidebarContent>
         </Sidebar>
