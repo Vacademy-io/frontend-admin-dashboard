@@ -1,10 +1,32 @@
 export const QUESTION_TYPES = [
-    "MCQS",
-    "MCQM",
-    "Integer",
-    "True or False",
-    "Match the following",
-    "Short answer",
+    { code: "MCQS", display: "Multiple Choice (Single)" },
+    { code: "MCQM", display: "Multiple Choice (Multiple)" },
+    { code: "NUMERIC", display: "Numeric Answer" },
+    { code: "CMCQS", display: "Comprehensive Multiple Choice (Single)" },
+    { code: "CMCQM", display: "Comprehensive Multiple Choice (Multiple)" },
+    { code: "CNUMERIC", display: "Comprehensive Numeric Answer" },
+    { code: "ONE_WORD", display: "One Word Answer" },
+    { code: "LONG_ANSWER", display: "Long Answer Type Question" },
+    { code: "TRUE_FALSE", display: "True of false type Question" },
+];
+
+export enum QuestionType {
+    MCQS = "MCQS",
+    MCQM = "MCQM",
+    NUMERIC = "NUMERIC",
+    CMCQS = "CMCQS",
+    CMCQM = "CMCQM",
+    CNUMERIC = "CNUMERIC",
+    ONE_WORD = "ONE_WORD",
+    LONG_ANSWER = "LONG_ANSWER",
+    TRUE_FALSE = "TRUE_FALSE",
+}
+
+export const NUMERIC_TYPES = [
+    "SINGLE_DIGIT_NON_NEGATIVE_INTEGER", // 0 - 9 integers
+    "INTEGER", // positive and negative integers
+    "POSITIVE_INTEGER", // all positive integers
+    "DECIMAL",
 ];
 
 export const QUESTION_LABELS = ["(1.)", "1.)", "(1)", "1)"];
@@ -36,6 +58,16 @@ export const scheduleTestTabsData = [
 ];
 
 export const timeLimit = ["1 min", "2 min", "3 min", "5 min", "10 min", "15 min"];
+export const languageSupport = ["ENGLISH", "HINDI"];
+export const teachingMethod = [
+    "Concept-First – Introduce the core idea before diving into details",
+    "Storytelling – Explain concepts through engaging narratives",
+    "Problem-Solution – Present a problem first, then explain how to solve it",
+    "Question-Led – Guide the lecture by asking thought-provoking questions",
+    "Step-by-Step Tutorial – Break concepts into clear, sequential steps",
+    "Gamified – Include quiz-style or game-based explanation format",
+    "Case-Based Learning – Teach using detailed case studies",
+];
 
 export const EvaluationType = ["Auto", "Manual", "PDF", "VIDEO"];
 

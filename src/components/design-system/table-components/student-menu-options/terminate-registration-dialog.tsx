@@ -1,9 +1,9 @@
 import { MyDialog } from "../../dialog";
 import { ReactNode } from "react";
-import { useDialogStore } from "../../utils/useDialogStore";
+import { useDialogStore } from "../../../../routes/students/students-list/-hooks/useDialogStore";
 import { MyButton } from "../../button";
-import { useTerminateStudentMutation } from "@/services/student-list-section/useStudentOperations";
-import { useBulkTerminateStudentsMutation } from "@/services/student-list-section/useBulkOperations";
+import { useTerminateStudentMutation } from "@/routes/students/students-list/-services/useStudentOperations";
+import { useBulkTerminateStudentsMutation } from "@/routes/students/students-list/-services/useBulkOperations";
 
 interface TerminateRegistrationDialogProps {
     trigger: ReactNode;

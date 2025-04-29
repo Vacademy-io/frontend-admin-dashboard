@@ -26,6 +26,7 @@ interface SelectFieldProps {
     // eslint-disable-next-line
     control: any;
     disabled?: boolean;
+    selectFieldForInvite?: boolean;
 }
 
 const SelectField: React.FC<SelectFieldProps> = ({
@@ -38,6 +39,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
     onSelect,
     disabled = false,
     className,
+    selectFieldForInvite = false,
 }) => (
     <FormField
         control={control as Control}
@@ -49,8 +51,14 @@ const SelectField: React.FC<SelectFieldProps> = ({
             }
 
             return (
-                <FormItem className={cn("w-44", className)}>
-                    <FormLabel className={labelStyle}>
+                <FormItem
+                    className={
+                        !selectFieldForInvite ? cn("w-44", className) : cn("flex items-center")
+                    }
+                >
+                    <FormLabel
+                        className={labelStyle ? cn("flex items-center", labelStyle) : "w-[330px]"}
+                    >
                         {label}
                         {required && <span className="text-red-500">*</span>}
                     </FormLabel>

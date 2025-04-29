@@ -1,10 +1,12 @@
 import {
     ADD_USER_ROLES_URL,
     DELETE_DISABLE_USER_URL,
+    GET_DASHBOARD_ASSESSMENT_COUNT_URL,
     GET_DASHBOARD_URL,
     GET_INSTITUTE_USERS,
     INVITE_USERS_URL,
     RESEND_INVITATION_URL,
+    UPDATE_DASHBOARD_URL,
     UPDATE_USER_INVITATION_URL,
 } from "@/constants/urls";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
@@ -12,6 +14,7 @@ import { RoleTypeSelectedFilter } from "../-components/RoleTypeComponent";
 import { z } from "zod";
 import { inviteUsersSchema } from "../-components/InviteUsersComponent";
 import { UserRolesDataEntry } from "@/types/dashboard/user-roles";
+import { editDashboardProfileSchema } from "../-utils/edit-dashboard-profile-schema";
 
 export const fetchInstituteDashboardDetails = async (instituteId: string | undefined) => {
     const response = await authenticatedAxiosInstance({
@@ -24,11 +27,33 @@ export const fetchInstituteDashboardDetails = async (instituteId: string | undef
     return response.data;
 };
 
+export const fetchAssessmentsCountDetailsForInstitute = async (instituteId: string | undefined) => {
+    const response = await authenticatedAxiosInstance({
+        method: "GET",
+        url: GET_DASHBOARD_ASSESSMENT_COUNT_URL,
+        params: {
+            instituteId,
+        },
+    });
+    return response.data;
+};
+
 export const getInstituteDashboardData = (instituteId: string | undefined) => {
     return {
         queryKey: ["GET_INSTITUTE_DASHBOARD_DATA", instituteId],
         queryFn: async () => {
             const data = await fetchInstituteDashboardDetails(instituteId);
+            return data;
+        },
+        staleTime: 3600000,
+    };
+};
+
+export const getAssessmentsCountsData = (instituteId: string | undefined) => {
+    return {
+        queryKey: ["GET_ASSESSMENT_COUNT_DATA", instituteId],
+        queryFn: async () => {
+            const data = await fetchAssessmentsCountDetailsForInstitute(instituteId);
             return data;
         },
         staleTime: 3600000,
@@ -51,6 +76,20 @@ export const fetchInstituteDashboardUsers = async (
         },
     });
     return response.data;
+};
+
+export const handleGetInstituteUsersForAccessControl = (
+    instituteId: string | undefined,
+    selectedFilter: RoleTypeSelectedFilter,
+) => {
+    return {
+        queryKey: ["GET_INSTITUTE_USERS_FOR_ACCESS_CONTROL", instituteId, selectedFilter],
+        queryFn: async () => {
+            const data = await fetchInstituteDashboardUsers(instituteId, selectedFilter);
+            return data;
+        },
+        staleTime: 3600000,
+    };
 };
 
 export const handleInviteUsers = async (
@@ -148,4 +187,48 @@ export const handleResendUserInvitation = async (userId: string) => {
         },
     });
     return response.data;
+};
+
+export const handleUpdateInstituteDashboard = async (
+    data: z.infer<typeof editDashboardProfileSchema>,
+    instituteId: string | undefined,
+) => {
+    const convertedData = {
+        institute_name: data.instituteName,
+        id: instituteId,
+        country: data.instituteCountry,
+        state: data.instituteState,
+        city: data.instituteCity,
+        address: data.instituteAddress,
+        pin_code: data.institutePinCode,
+        phone: data.institutePhoneNumber,
+        email: data.instituteEmail,
+        website_url: data.instituteWebsite,
+        institute_logo_file_id: data.instituteProfilePictureId,
+        institute_theme_code: "",
+        language: "",
+        description: "",
+        type: data.instituteType,
+        held_by: "",
+        founded_date: "",
+        module_request_ids: [],
+        sub_modules: [],
+        sessions: [],
+        batches_for_sessions: [],
+        levels: [],
+        genders: [],
+        student_statuses: [],
+        subjects: [],
+        session_expiry_days: [],
+        letter_head_file_id: "",
+    };
+    const response = await authenticatedAxiosInstance({
+        method: "POST",
+        url: UPDATE_DASHBOARD_URL,
+        data: convertedData,
+        params: {
+            instituteId,
+        },
+    });
+    return response?.data;
 };

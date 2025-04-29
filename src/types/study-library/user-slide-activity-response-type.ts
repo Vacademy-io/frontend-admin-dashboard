@@ -38,6 +38,13 @@ export interface ActivityContent {
     videos: Video[];
     documents: Document[];
     new_activity: boolean;
+    concentration_score: {
+        id: string;
+        concentration_score: number;
+        tab_switch_count: number;
+        pause_count: number;
+        answer_times_in_seconds: number[];
+    } | null;
 }
 
 export interface ActivityResponse {

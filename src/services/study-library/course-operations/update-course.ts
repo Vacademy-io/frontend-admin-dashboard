@@ -1,7 +1,7 @@
 // services/study-library/course-operations/update-course.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import authenticatedAxiosInstance from "@/lib/auth/axiosInstance";
-import { AddCourseData } from "@/components/common/study-library/course-material/add-course/add-course-form";
+import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
 import { UPDATE_COURSE } from "@/constants/urls";
 
 export const useUpdateCourse = () => {
@@ -26,6 +26,9 @@ export const useUpdateCourse = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_STUDY_LIBRARY"] });
             queryClient.invalidateQueries({ queryKey: ["GET_INIT_INSTITUTE"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_STUDENT_SUBJECTS_PROGRESS"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_SESSION_DATA"] });
+            queryClient.invalidateQueries({ queryKey: ["GET_BATCHES"] });
         },
     });
 };

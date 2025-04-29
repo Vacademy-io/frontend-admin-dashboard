@@ -17,6 +17,7 @@ import { formatStructure } from "../../../-utils/helper";
 export const MultipleCorrectQuestionPaperTemplatePPTView = ({
     form,
     currentQuestionIndex,
+    setCurrentQuestionIndex,
     className,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
@@ -25,7 +26,6 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown open state
 
     const optionsType = getValues("optionsType") || "";
-    const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
 
     const option1 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${0}`);
@@ -34,6 +34,12 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
     const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
 
     const handleDeleteSlide = () => {
+        // If this is the last question, decrease the current question index
+        if (currentQuestionIndex === allQuestions.length - 1 && currentQuestionIndex > 0) {
+            setCurrentQuestionIndex(currentQuestionIndex - 1);
+        }
+
+        // Remove the current question from the questions array
         allQuestions.splice(currentQuestionIndex, 1);
         setValue("questions", allQuestions);
     };
@@ -46,7 +52,6 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                 questionId: questionToDuplicate.questionId || "",
                 questionName: questionToDuplicate.questionName || "",
                 explanation: questionToDuplicate.explanation || "",
-                imageDetails: questionToDuplicate.imageDetails || [],
                 multipleChoiceOptions: questionToDuplicate.multipleChoiceOptions || [],
             };
             allQuestions.splice(currentQuestionIndex, 0, duplicatedQuestion);
@@ -73,37 +78,11 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                     )}
                 />
             </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-8 py-2">
-                {Array.isArray(allQuestions) &&
-                    allQuestions.length > 0 &&
-                    Array.isArray(imageDetails) &&
-                    imageDetails.length > 0 &&
-                    imageDetails.slice(0, 4).map((imgDetail, index) => {
-                        if (imgDetail.imageFile) {
-                            return (
-                                <div className="flex flex-col" key={index}>
-                                    <div className="size-16 items-center justify-center bg-black !p-0">
-                                        <img
-                                            src={imgDetail.imageFile}
-                                            alt="logo"
-                                            className="size-16"
-                                        />
-                                    </div>
-                                </div>
-                            );
-                        }
-
-                        // Return null if imageFile doesn't exist
-                        return null;
-                    })}
-            </div>
-
             <div className="flex w-full grow flex-col gap-2">
                 <div className="flex gap-2">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option1.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -138,7 +117,7 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option2.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -175,7 +154,7 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                 <div className="flex gap-2">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option3.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option3?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -210,7 +189,7 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-2 ${
-                            option4.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option4?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -245,7 +224,6 @@ export const MultipleCorrectQuestionPaperTemplatePPTView = ({
                     </div>
                 </div>
             </div>
-
             <div className="absolute bottom-10 right-12">
                 {(isDropdownVisible || isDropdownOpen) && (
                     <DropdownMenu

@@ -15,23 +15,25 @@ import React, { useEffect, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { filterMenuList, getModuleFlags } from "./helper";
+import { filterMenuItems, filterMenuList, getModuleFlags } from "./helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn, goToMailSupport, goToWhatsappSupport } from "@/lib/utils";
 import { Question } from "phosphor-react";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react";
-import { useRouter } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import useInstituteLogoStore from "./institutelogo-global-zustand";
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
+    const navigate = useNavigate();
     const { state }: SidebarStateType = useSidebar();
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
     const subModules = getModuleFlags(data?.sub_modules);
-    const sideBarItems = filterMenuList(subModules, SidebarItemsData);
+    const sideBarData = filterMenuList(subModules, SidebarItemsData);
+    const sideBarItems = filterMenuItems(sideBarData, data?.id);
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
 
@@ -52,7 +54,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
     if (isLoading) return <DashboardLoader />;
     return (
-        <Sidebar collapsible="icon">
+        <Sidebar collapsible="icon" className="z-20">
             <SidebarContent
                 className={`sidebar-content flex flex-col gap-14 border-r border-r-neutral-300 bg-primary-50 py-10 ${
                     state == "expanded" ? "w-[307px]" : "w-28"
@@ -60,9 +62,10 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
             >
                 <SidebarHeader className="">
                     <div
-                        className={`flex items-center justify-center gap-2 ${
+                        className={`flex cursor-pointer items-center justify-center gap-2 ${
                             state == "expanded" ? "pl-4" : "pl-0"
                         }`}
+                        onClick={() => navigate({ to: "/dashboard" })}
                     >
                         {instituteLogo !== "" && (
                             <img src={instituteLogo} alt="logo" className="size-12 rounded-full" />

@@ -1,18 +1,18 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
 import { ArrowSquareOut, CaretUpDown, Info } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MyDropdown } from "../../dropdown";
-import { useGetStudentBatch } from "@/hooks/student-list-section/useGetStudentBatch";
+import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
 import { ActivityStatus } from "../types/chips-types";
 import { StatusChips } from "../../chips";
 import { StudentMenuOptions } from "../../table-components/student-menu-options/student-menu-options";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useActivityStatsStore } from "@/stores/study-library/activity-stats-store";
-import { useContentStore } from "@/stores/study-library/chapter-sidebar-store";
-import { useState } from "react";
-import { LogDetailsDialog } from "@/components/common/students/students-list/student-side-view/student-learning-progress/chapter-details/topic-details/log-details-dialog";
-import { useStudentSidebar } from "@/context/selected-student-sidebar-context";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { useActivityStatsStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/activity-stats-store";
+import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
+import { useState, useRef } from "react";
+import { LogDetailsDialog } from "@/components/common/student-slide-tracking/log-details-dialog";
+import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -37,10 +37,21 @@ export interface ActivityLogType {
     }[];
 }
 
-const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
+const BatchCell = ({
+    package_session_id,
+    row,
+}: {
+    package_session_id: string;
+    row: Row<StudentTable>;
+}) => {
     const { packageName, levelName } = useGetStudentBatch(package_session_id);
+    const { handleClick, handleDoubleClick } = useClickHandlers();
+
     return (
-        <div>
+        <div
+            onClick={() => handleClick("package_session_id", row)}
+            onDoubleClick={(e) => handleDoubleClick(e, "package_session_id", row)}
+        >
             {levelName} {packageName}
         </div>
     );
@@ -49,12 +60,12 @@ const BatchCell = ({ package_session_id }: { package_session_id: string }) => {
 const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
     const { setSelectedStudent } = useStudentSidebar();
 
+    const handleClick = async () => {
+        setSelectedStudent(row.original);
+    };
+
     return (
-        <SidebarTrigger
-            onClick={() => {
-                setSelectedStudent(row.original);
-            }}
-        >
+        <SidebarTrigger onClick={handleClick}>
             <ArrowSquareOut className="size-10 cursor-pointer text-neutral-600" />
         </SidebarTrigger>
     );
@@ -76,6 +87,112 @@ const InfoCell = ({ row }: { row: Row<ActivityLogType> }) => {
                 logData={row.original}
             />
         </>
+    );
+};
+
+const useClickHandlers = () => {
+    const clickTimeout = useRef<NodeJS.Timeout | null>(null);
+    const { setSelectedStudent, selectedStudent } = useStudentSidebar();
+    const { setOpen } = useSidebar();
+
+    const handleClick = (columnId: string, row: Row<StudentTable>) => {
+        if (clickTimeout.current) clearTimeout(clickTimeout.current);
+        console.log("clicked on column:", columnId, "row:", row.original);
+        clickTimeout.current = setTimeout(() => {
+            if (selectedStudent?.id != row.original.id) {
+                console.log("single clicked");
+                setSelectedStudent(row.original);
+                setOpen(true);
+            } else {
+                setOpen(false);
+            }
+        }, 250);
+    };
+
+    const handleDoubleClick = (e: React.MouseEvent, columnId: string, row: Row<StudentTable>) => {
+        e.stopPropagation();
+        if (clickTimeout.current) {
+            clearTimeout(clickTimeout.current);
+            clickTimeout.current = null;
+        }
+        console.log("double clicked on column:", columnId, "row:", row.original);
+        // Add your double click logic here
+    };
+
+    return { handleClick, handleDoubleClick };
+};
+
+const CreateClickableCell = ({ row, columnId }: { row: Row<StudentTable>; columnId: string }) => {
+    const { handleClick, handleDoubleClick } = useClickHandlers();
+
+    return (
+        <div
+            onClick={() => handleClick(columnId, row)}
+            onDoubleClick={(e) => handleDoubleClick(e, columnId, row)}
+            className="cursor-pointer"
+        >
+            {row.getValue(columnId)}
+        </div>
+    );
+};
+
+const BatchCellComponent = ({ row }: { row: Row<StudentTable> }) => {
+    const { handleClick, handleDoubleClick } = useClickHandlers();
+    return (
+        <div
+            onClick={() => handleClick("package_session_id", row)}
+            onDoubleClick={(e) => handleDoubleClick(e, "package_session_id", row)}
+        >
+            <BatchCell package_session_id={row.original.package_session_id} row={row} />
+        </div>
+    );
+};
+
+const ExpiryDateCell = ({ row }: { row: Row<StudentTable> }) => {
+    const { handleClick, handleDoubleClick } = useClickHandlers();
+
+    if (row.original.expiry_date == null) {
+        return <></>;
+    }
+    const expiryDate = new Date(row.original.expiry_date);
+    const today = new Date();
+
+    const diffTime = expiryDate.getTime() - today.getTime();
+    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return (
+        <div
+            className={`${
+                daysLeft < 30
+                    ? "text-danger-600"
+                    : daysLeft < 180
+                      ? "text-warning-500"
+                      : "text-success-500"
+            }`}
+            onClick={() => handleClick("expiry_date", row)}
+            onDoubleClick={(e) => handleDoubleClick(e, "expiry_date", row)}
+        >
+            {daysLeft > 0 ? daysLeft : 0}
+        </div>
+    );
+};
+
+const StatusCell = ({ row }: { row: Row<StudentTable> }) => {
+    const { handleClick, handleDoubleClick } = useClickHandlers();
+    const status = row.original.status;
+    const statusMapping: Record<string, ActivityStatus> = {
+        ACTIVE: "active",
+        TERMINATED: "inactive",
+    };
+
+    const mappedStatus = statusMapping[status] || "inactive";
+    return (
+        <div
+            onClick={() => handleClick("status", row)}
+            onDoubleClick={(e) => handleDoubleClick(e, "status", row)}
+        >
+            <StatusChips status={mappedStatus} />
+        </div>
     );
 };
 
@@ -124,112 +241,92 @@ export const myColumns: ColumnDef<StudentTable>[] = [
                 </div>
             );
         },
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
     },
     {
         accessorKey: "username",
         header: "Username",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="username" />,
     },
     {
         accessorKey: "package_session_id",
         header: "Batch",
-        cell: ({ row }) => <BatchCell package_session_id={row.original.package_session_id} />,
+        cell: ({ row }) => <BatchCellComponent row={row} />,
     },
     {
         accessorKey: "institute_enrollment_id",
         header: "Enrollment Number",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="institute_enrollment_id" />,
     },
     {
         accessorKey: "linked_institute_name",
         header: "College/School",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="linked_institute_name" />,
     },
     {
         accessorKey: "gender",
         header: "Gender",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="gender" />,
     },
     {
         accessorKey: "mobile_number",
         header: "Mobile Number",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="mobile_number" />,
     },
     {
         accessorKey: "email",
         header: "Email ID",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="email" />,
     },
     {
         accessorKey: "father_name",
         header: "Father's Name",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="father_name" />,
     },
     {
         accessorKey: "mother_name",
         header: "Mother's Name",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="mother_name" />,
     },
     {
         accessorKey: "guardian_name",
         header: "Guardian's Name",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="guardian_name" />,
     },
     {
         accessorKey: "parents_mobile_number",
         header: "Parent/Guardian's Mobile Number",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_mobile_number" />,
     },
     {
         accessorKey: "parents_email",
         header: "Parent/Guardian's Email ID",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="parents_email" />,
     },
     {
         accessorKey: "city",
         header: "City",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="city" />,
     },
     {
         accessorKey: "region",
         header: "State",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="region" />,
     },
     {
         accessorKey: "expiry_date",
         header: "Session Expiry",
-        cell: ({ row }) => {
-            if (row.original.expiry_date == null) return <></>;
-
-            const expiryDate = new Date(row.original.expiry_date);
-            const today = new Date();
-
-            // Use getTime() to get timestamps in milliseconds
-            const diffTime = expiryDate.getTime() - today.getTime();
-            const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            return (
-                <div
-                    className={`${
-                        daysLeft < 30
-                            ? "text-danger-600"
-                            : daysLeft < 180
-                              ? "text-warning-500"
-                              : "text-success-500"
-                    }`}
-                >
-                    {daysLeft > 0 && daysLeft}
-                </div>
-            );
-        },
+        cell: ({ row }) => <ExpiryDateCell row={row} />,
     },
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => {
-            const status = row.original.status;
-            const statusMapping: Record<string, ActivityStatus> = {
-                ACTIVE: "active",
-                TERMINATED: "inactive",
-            };
-
-            const mappedStatus = statusMapping[status] || "inactive";
-            return <StatusChips status={mappedStatus} />;
-        },
+        cell: ({ row }) => <StatusCell row={row} />,
     },
     {
         id: "options",
         header: "",
-        cell: ({ row }) => (
-            <StudentMenuOptions student={row.original} /> // Pass the row.original which contains the student data
-        ),
+        cell: ({ row }) => <StudentMenuOptions student={row.original} />,
     },
 ];
 
@@ -243,7 +340,13 @@ export interface ActivityLogDialogProps {
 
 const LastPageReadHeader = () => {
     const { activeItem } = useContentStore();
-    return <>{activeItem?.video_url != null ? "Percentage Watched" : "Total Pages Read"}</>;
+    return (
+        <>
+            {activeItem?.video_url != null || activeItem?.published_url != null
+                ? "Percentage Watched"
+                : "Total Pages Read"}
+        </>
+    );
 };
 
 export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
@@ -262,6 +365,10 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
     {
         accessorKey: "duration",
         header: "Duration",
+    },
+    {
+        accessorKey: "concentrationScore",
+        header: "Concentration Score",
     },
     {
         accessorKey: "lastPageRead",
@@ -306,14 +413,6 @@ export const ActivityStatsColumns: ColumnDef<ActivityStatsColumnsType>[] = [
     {
         accessorKey: "full_name",
         header: "Student Name",
-    },
-    {
-        accessorKey: "institute_enrollment_id",
-        header: "Enrollment Number",
-    },
-    {
-        accessorKey: "username",
-        header: "User Name",
     },
     {
         accessorKey: "time_spent",

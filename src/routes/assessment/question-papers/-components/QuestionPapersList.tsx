@@ -14,7 +14,11 @@ import {
     PaginatedResponse,
     QuestionPaperInterface,
 } from "@/types/assessments/question-paper-template";
-import { getLevelNameById, getSubjectNameById, processQuestions } from "../-utils/helper";
+import {
+    getLevelNameById,
+    getSubjectNameById,
+    transformResponseDataToMyQuestionsSchema,
+} from "../-utils/helper";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import { MyQuestion } from "@/types/assessments/question-paper-form";
@@ -24,7 +28,8 @@ import { UseFormReturn } from "react-hook-form";
 import { Dispatch, SetStateAction } from "react";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { TokenKey } from "@/constants/auth/tokens";
-
+import { DashboardLoader } from "@/components/core/dashboard-loader";
+import ExportQuestionPaper from "./export-question-paper/ExportQuestionPaper";
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
     questionPaperList,
@@ -36,8 +41,6 @@ export const QuestionPapersList = ({
     sectionsForm,
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    currentQuestionImageIndex,
-    setCurrentQuestionImageIndex,
 }: {
     questionPaperList: PaginatedResponse;
     pageNo: number;
@@ -48,8 +51,6 @@ export const QuestionPapersList = ({
     sectionsForm?: UseFormReturn<SectionFormType>;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -96,7 +97,7 @@ export const QuestionPapersList = ({
         mutationFn: ({ id }: { id: string }) => getQuestionPaperById(id),
         onSuccess: async (data) => {
             setIsSavedQuestionPaperDialogOpen(false);
-            const transformQuestionsData: MyQuestion[] = await processQuestions(
+            const transformQuestionsData: MyQuestion[] = transformResponseDataToMyQuestionsSchema(
                 data.question_dtolist,
             );
             if (sectionsForm && index !== undefined) {
@@ -150,13 +151,20 @@ export const QuestionPapersList = ({
         handleGetQuestionPaperData.mutate({ id });
     };
 
+    if (index !== undefined && handleGetQuestionPaperData.status === "pending")
+        return <DashboardLoader />;
+
     return (
         <div className="mt-5 flex flex-col gap-5">
             {questionPaperList?.content?.map((questionsData, idx) => (
                 <div
                     key={idx}
                     className="flex flex-col gap-2 rounded-xl border-[1.5px] bg-neutral-50 p-4"
-                    onClick={() => handleGetQuestionPaperDataById(questionsData)}
+                    onClick={
+                        index !== undefined
+                            ? () => handleGetQuestionPaperDataById(questionsData)
+                            : undefined
+                    }
                 >
                     <div className="flex items-center justify-between">
                         <h1 className="font-medium">{questionsData.title}</h1>
@@ -174,7 +182,6 @@ export const QuestionPapersList = ({
                                             : "text-gray-300"
                                     }`}
                                 />
-
                                 <DropdownMenu>
                                     <DropdownMenuTrigger>
                                         <Button
@@ -193,10 +200,6 @@ export const QuestionPapersList = ({
                                             refetchData={refetchData}
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                            currentQuestionImageIndex={currentQuestionImageIndex}
-                                            setCurrentQuestionImageIndex={
-                                                setCurrentQuestionImageIndex
-                                            }
                                         />
                                         <DropdownMenuItem
                                             onClick={() =>
@@ -208,6 +211,7 @@ export const QuestionPapersList = ({
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+                                <ExportQuestionPaper questionPaperId={questionsData.id} />
                             </div>
                         )}
                     </div>

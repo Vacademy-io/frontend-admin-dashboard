@@ -3,15 +3,24 @@ import { FormStepHeading } from "../form-components/form-step-heading";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { FormItemWrapper } from "../form-components/form-item-wrapper";
 import { useForm } from "react-hook-form";
-import { FormSubmitButtons } from "../form-components/form-submit-buttons";
 import { MyInput } from "@/components/design-system/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormStore } from "@/stores/students/enroll-students-manually/enroll-manually-form-store";
-import { StepFourData, stepFourSchema } from "@/types/students/schema-enroll-students-manually";
+import {
+    StepFourData,
+    stepFourSchema,
+} from "@/schemas/student/student-list/schema-enroll-students-manually";
 import PhoneInputField from "@/components/design-system/phone-input-field";
-import { StudentTable } from "@/schemas/student/student-list/table-schema";
+import { StudentTable } from "@/types/student-table-types";
+import { useEffect, useRef } from "react";
 
-export const StepFourForm = ({ initialValues }: { initialValues?: StudentTable }) => {
+export const StepFourForm = ({
+    initialValues,
+    submitFn,
+}: {
+    initialValues?: StudentTable;
+    submitFn: (fn: () => void) => void;
+}) => {
     const { stepFourData, setStepFourData, nextStep } = useFormStore();
 
     const form = useForm<StepFourData>({
@@ -22,20 +31,42 @@ export const StepFourForm = ({ initialValues }: { initialValues?: StudentTable }
             guardianName: "",
             guardianEmail: initialValues?.parents_email || "",
             guardianMobileNumber: initialValues?.parents_mobile_number || "",
+            motherEmail: initialValues?.parents_to_mother_email || "",
+            motherMobileNumber: initialValues?.parents_to_mother_mobile_number || "",
         },
         mode: "onChange",
     });
+
+    useEffect(() => {}, [stepFourData]);
 
     const onSubmit = (values: StepFourData) => {
         setStepFourData(values);
         nextStep();
     };
 
+    const formRef = useRef<HTMLFormElement>(null);
+
+    const requestFormSubmit = () => {
+        if (formRef.current) {
+            formRef.current.requestSubmit();
+        }
+    };
+
+    useEffect(() => {
+        if (submitFn) {
+            submitFn(requestFormSubmit);
+        }
+    }, [submitFn]);
+
     return (
         <div>
-            <div className="flex flex-col justify-center p-6 text-neutral-600">
+            <div className="flex flex-col justify-center px-6 text-neutral-600">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+                    <form
+                        ref={formRef}
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="flex flex-col gap-6"
+                    >
                         <FormItemWrapper<StepFourData> control={form.control} name="fatherName">
                             <FormStepHeading stepNumber={4} heading="Parent's/Guardians Details" />
                         </FormItemWrapper>
@@ -118,11 +149,33 @@ export const StepFourForm = ({ initialValues }: { initialValues?: StudentTable }
                                         <FormControl>
                                             <MyInput
                                                 inputType="email"
-                                                label="Parent/Guardian's Email"
+                                                label="Father/Male Guardian's Email"
                                                 inputPlaceholder="you@email.com"
                                                 input={value}
                                                 onChangeFunction={onChange}
                                                 error={form.formState.errors.guardianEmail?.message}
+                                                required={false}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="motherEmail"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="email"
+                                                label="Mother/Female Guardian's Email"
+                                                inputPlaceholder="you@email.com"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                error={form.formState.errors.motherEmail?.message}
                                                 required={false}
                                                 size="large"
                                                 className="w-full"
@@ -140,11 +193,30 @@ export const StepFourForm = ({ initialValues }: { initialValues?: StudentTable }
                                     <FormItem>
                                         <FormControl>
                                             <PhoneInputField
-                                                label="Parent/Guardian's Mobile Number"
+                                                label="Father/Guardian's Mobile Number"
                                                 placeholder="123 456 7890"
                                                 name="guardianMobileNumber"
                                                 control={form.control}
                                                 country="in"
+                                                required={false}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="motherMobileNumber"
+                                render={() => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <PhoneInputField
+                                                label="Mother/Female Guardian's Mobile Number"
+                                                placeholder="123 456 7890"
+                                                name="motherMobileNumber"
+                                                control={form.control}
+                                                country="in"
+                                                required={false}
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -154,7 +226,6 @@ export const StepFourForm = ({ initialValues }: { initialValues?: StudentTable }
                     </form>
                 </Form>
             </div>
-            <FormSubmitButtons stepNumber={4} onNext={form.handleSubmit(onSubmit)} />
         </div>
     );
 };

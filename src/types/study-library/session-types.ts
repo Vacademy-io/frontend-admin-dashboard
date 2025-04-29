@@ -21,11 +21,11 @@ interface Level {
 interface LevelWithStatus {
     level_dto: Level;
     package_session_id: string;
-    package_session_status: "ACTIVE" | "INACTIVE";
+    package_session_status: string;
     start_date: string;
 }
 
-interface Package {
+export interface Package {
     package_dto: PackageDTO;
     level: LevelWithStatus[];
 }

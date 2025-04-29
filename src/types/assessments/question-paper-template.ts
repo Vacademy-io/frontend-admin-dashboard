@@ -14,8 +14,6 @@ export interface QuestionPaperTemplateProps {
     isAssessment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    currentQuestionImageIndex: number;
-    setCurrentQuestionImageIndex: Dispatch<SetStateAction<number>>;
 }
 
 export interface QuestionData {
@@ -106,11 +104,12 @@ export interface QuestionResponse {
     question_type: string;
     access_level: string;
     auto_evaluation_json: string;
-    marking_json: string;
+    options_json: string | null;
     evaluation_type: string;
     explanation_text: ExplanationText;
     default_question_time_mins: number | null;
     options: OptionText[];
+    parent_rich_text: TextContent | null;
     errors: string[];
     warnings: string[];
 }

@@ -19,12 +19,14 @@ import sectionDetailsSchema from "../-utils/section-details-schema";
 import {
     calculateTotalTime,
     classifySections,
+    convertDataToStep3,
     convertStep2Data,
     convertToUTC,
 } from "../-utils/helper";
 import testAccessSchema from "../-utils/add-participants-schema";
 import { AccessControlFormSchema } from "../-utils/access-control-form-schema";
-import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/-utils/assessment-details-interface";
+import { TestAccessFormType } from "@/types/assessments/assessment-steps";
+import { AssessmentPreviewSectionsInterface } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/assessment-details-interface";
 
 export const getAssessmentDetailsData = async ({
     assessmentId,
@@ -139,6 +141,7 @@ export const handlePostStep1Data = async (
 ) => {
     const transformedData = {
         status: data.status,
+        assessment_type: "ASSESSMENT",
         test_creation: {
             assessment_name: data.testCreation.assessmentName,
             subject_id: data.testCreation.subject,
@@ -235,15 +238,16 @@ export const handlePostAssessmentPreview = async (
 // Type definition for each converted custom field
 
 // Function that converts customFields to the desired structure
-const convertCustomFields = (customFields: CustomFields): ConvertedCustomField[] => {
+export const convertCustomFields = (customFields: CustomFields): ConvertedCustomField[] => {
     const convertedFields = customFields.map((field) => {
         return {
+            id: field.id,
             name: field.name,
             type: field.type,
             default_value: "", // Provide a default value, if necessary
             description: "", // Provide a description, if necessary
             is_mandatory: field.isRequired,
-            key: "", // Use the ID as the key
+            key: field.key ?? "", // Use the ID as the key
             comma_separated_options: field.options
                 ? field.options.map((opt) => opt.value).join(",")
                 : "", // Join options for dropdowns
@@ -253,58 +257,65 @@ const convertCustomFields = (customFields: CustomFields): ConvertedCustomField[]
 };
 
 export const handlePostStep3Data = async (
-    data: z.infer<typeof testAccessSchema>,
+    oldFormData: TestAccessFormType | null,
+    newData: z.infer<typeof testAccessSchema>,
     assessmentId: string | null,
     instituteId: string | undefined,
     type: string | undefined,
+    actionType: string,
 ) => {
-    const convertedData = {
-        closed_test: data.closed_test,
-        open_test_details: data.open_test.checked
+    const convertedData1 = {
+        closed_test: newData.closed_test,
+        open_test_details: newData.open_test.checked
             ? {
-                  registration_start_date: convertToUTC(data.open_test.start_date) || "",
-                  registration_end_date: convertToUTC(data.open_test.end_date) || "",
-                  instructions_html: data.open_test.instructions || "",
+                  registration_start_date: convertToUTC(newData.open_test.start_date) || "",
+                  registration_end_date: convertToUTC(newData.open_test.end_date) || "",
+                  instructions_html: newData.open_test.instructions || "",
                   registration_form_details: {
-                      added_custom_added_fields: convertCustomFields(data.open_test.custom_fields),
+                      added_custom_added_fields: convertCustomFields(
+                          newData.open_test.custom_fields,
+                      ),
                       removed_custom_added_fields: [], // Default to an empty array as per example
                   },
               }
             : {},
-        added_pre_register_batches_details: data.select_batch.batch_details
-            ? Object.values(data.select_batch.batch_details).flat()
+        added_pre_register_batches_details: newData.select_batch.batch_details
+            ? Object.values(newData.select_batch.batch_details).flat()
             : [],
         deleted_pre_register_batches_details: [],
-        added_pre_register_students_details: data.select_individually.student_details
-            ? data.select_individually.student_details
+        added_pre_register_students_details: newData.select_individually.student_details
+            ? newData.select_individually.student_details
             : [],
         deleted_pre_register_students_details: [],
-        updated_join_link: data.join_link || "",
+        updated_join_link: newData.join_link || "",
         notify_student: {
-            when_assessment_created: data.notify_student.when_assessment_created || false,
-            show_leaderboard: data.show_leaderboard || false,
-            before_assessment_goes_live:
-                parseInt(data.notify_student.before_assessment_goes_live.value) || 0,
-            when_assessment_live: data.notify_student.when_assessment_live || false,
+            when_assessment_created: newData.notify_student.when_assessment_created || false,
+            show_leaderboard: newData.show_leaderboard || false,
+            before_assessment_goes_live: newData.notify_student.before_assessment_goes_live.checked
+                ? parseInt(newData.notify_student.before_assessment_goes_live.value)
+                : 0,
+            when_assessment_live: newData.notify_student.when_assessment_live || false,
             when_assessment_report_generated:
-                data.notify_student.when_assessment_report_generated || false,
+                newData.notify_student.when_assessment_report_generated || false,
         },
         notify_parent: {
-            when_assessment_created: data.notify_parent.when_assessment_created || false,
-            before_assessment_goes_live:
-                parseInt(data.notify_parent.before_assessment_goes_live.value) || 0,
-            show_leaderboard: data.show_leaderboard || false,
-            when_assessment_live: data.notify_parent.when_assessment_live || false,
-            when_student_appears: data.notify_parent.when_student_appears || false,
-            when_student_finishes_test: data.notify_parent.when_student_finishes_test || false,
+            when_assessment_created: newData.notify_parent.when_assessment_created || false,
+            before_assessment_goes_live: newData.notify_parent.before_assessment_goes_live.checked
+                ? parseInt(newData.notify_parent.before_assessment_goes_live.value)
+                : 0,
+            show_leaderboard: newData.show_leaderboard || false,
+            when_assessment_live: newData.notify_parent.when_assessment_live || false,
+            when_student_appears: newData.notify_parent.when_student_appears || false,
+            when_student_finishes_test: newData.notify_parent.when_student_finishes_test || false,
             when_assessment_report_generated:
-                data.notify_parent.when_assessment_report_generated || false,
+                newData.notify_parent.when_assessment_report_generated || false,
         },
     };
+    const convertedData2 = convertDataToStep3(oldFormData, newData);
     const response = await authenticatedAxiosInstance({
         method: "POST",
         url: STEP3_ASSESSMENT_URL,
-        data: convertedData,
+        data: actionType === "create" ? convertedData1 : convertedData2,
         params: {
             assessmentId,
             instituteId,
@@ -320,34 +331,42 @@ export const handlePostStep4Data = async (
     instituteId: string | undefined,
     type: string | undefined,
 ) => {
+    //Currently implementated only for evaluation setting
+    const assess_setting = {
+        institute_id: instituteId,
+        assessment_id: assessmentId,
+        type: "manual",
+        users: data.evaluation_process.map((user) => {
+            return {
+                user_id: user.userId,
+                name: user.name,
+                email: user.email,
+                role: user.roles[0]?.roleName,
+            };
+        }),
+    };
+
     const addedData = {
         assessment_creation_access: {
             batch_ids: [],
-            roles: data.assessment_creation_access.roles
-                .filter((role) => role.isSelected)
-                .map((role) => role.roleName),
-            user_ids: data.assessment_creation_access.users.map((user) => user.email),
+            roles: [],
+            user_ids: data.assessment_creation_access.map((user) => user.userId),
         },
         live_assessment_notification_access: {
             batch_ids: [],
-            roles: data.live_assessment_notification.roles
-                .filter((role) => role.isSelected)
-                .map((role) => role.roleName),
-            user_ids: data.live_assessment_notification.users.map((user) => user.email),
+            roles: [],
+            user_ids: data.live_assessment_notification.map((user) => user.userId),
         },
         assessment_submission_and_report_access: {
             batch_ids: [],
-            roles: data.assessment_submission_and_report_access.roles
-                .filter((role) => role.isSelected)
-                .map((role) => role.roleName),
-            user_ids: data.assessment_submission_and_report_access.users.map((user) => user.email),
+            roles: [],
+            user_ids: data.assessment_submission_and_report_access.map((user) => user.userId),
         },
         evaluation_process_access: {
             batch_ids: [],
-            roles: data.evaluation_process.roles
-                .filter((role) => role.isSelected)
-                .map((role) => role.roleName),
-            user_ids: data.evaluation_process.users.map((user) => user.email),
+            roles: [],
+            user_ids: data.evaluation_process.map((user) => user.userId),
+            assess_setting: JSON.stringify(assess_setting),
         },
     };
     const response = await authenticatedAxiosInstance({

@@ -1,6 +1,6 @@
 // hooks/useSessionDropdown.ts
 import { useState, useCallback } from "react";
-import { useGetSessions } from "@/hooks/student-list-section/useFilters";
+import { useGetSessions } from "@/routes/students/students-list/-hooks/useFilters";
 import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
 
 interface UseSessionDropdownProps {

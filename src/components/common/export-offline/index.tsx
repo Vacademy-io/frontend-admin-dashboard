@@ -73,7 +73,7 @@ function PreviewWithSettings({
             duration: allSections.find((section) => section.id === sectionId)?.duration || 0,
             questions: settings.randomizeQuestions
                 ? shuffleArray(questions as Question[])
-                : questions,
+                : (questions as Question[]),
         }));
     }, [settings.randomizeQuestions]);
 
@@ -233,12 +233,15 @@ function PreviewWithSettings({
             </div>
 
             {showSettings && (
-                <ExportSettingsDialog open={showSettings} onOpenChange={setShowSettings} />
+                <ExportSettingsDialog
+                    open={showSettings}
+                    onOpenChange={setShowSettings}
+                    sections={sections}
+                />
             )}
 
             <div className="container mx-auto py-4">
                 <PaperSet
-                    // @ts-expect-error : Type 'unknown' is not assignable to type 'Question[]'.
                     sections={currentPaperSet?.sections ?? []}
                     settings={settings}
                     setNumber={currentPaperSet?.setNumber ?? 0}

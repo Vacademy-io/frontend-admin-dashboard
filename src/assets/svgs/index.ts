@@ -48,3 +48,36 @@ export { EmptyInvitePage };
 
 import EmptyRequestPage from "./empty-request-page.svg";
 export { EmptyRequestPage };
+
+import AIChatImg from "./AIChatImg.svg";
+export { AIChatImg };
+
+import AIExtractPdfImg from "./AIExtractPdfImg.svg";
+export { AIExtractPdfImg };
+
+import AIGivePromptImg from "./AIGivePromptImg.svg";
+export { AIGivePromptImg };
+
+import AISortAndSplitImg from "./AISortAndSplitImg.svg";
+export { AISortAndSplitImg };
+
+import AIUploadAudioImg from "./AIUploadAudioImg.svg";
+export { AIUploadAudioImg };
+
+import AIUploadPdfImg from "./AIUploadPdfImg.svg";
+export { AIUploadPdfImg };
+
+import AIExtractImg from "./AIExtractImg.svg";
+export { AIExtractImg };
+
+import AISorterImg from "./AISorterImg.svg";
+export { AISorterImg };
+
+import AIPlanLectureImg from "./AIPlanLectureImg.svg";
+export { AIPlanLectureImg };
+
+import AIEvaluateLectureImg from "./AIEvaluateLectureImg.svg";
+export { AIEvaluateLectureImg };
+
+import EmptyBatchImage from "./empty_manage_batches.svg";
+export { EmptyBatchImage };

@@ -13,12 +13,13 @@ import {
     RowSelectionState,
     OnChangeFn,
     ColumnDef,
+    VisibilityState,
 } from "@tanstack/react-table";
 import { ChangeBatchDialog } from "./table-components/student-menu-options/change-batch-dialog";
 import { ExtendSessionDialog } from "./table-components/student-menu-options/extend-session-dialog";
 import { ReRegisterDialog } from "./table-components/student-menu-options/re-register-dialog";
 import { TerminateRegistrationDialog } from "./table-components/student-menu-options/terminate-registration-dialog";
-import { useDialogStore } from "./utils/useDialogStore";
+import { useDialogStore } from "../../routes/students/students-list/-hooks/useDialogStore";
 import { DeleteStudentDialog } from "./table-components/student-menu-options/delete-student-dialog";
 import { ColumnWidthConfig } from "./utils/constants/table-layout";
 import { DashboardLoader } from "../core/dashboard-loader";
@@ -45,6 +46,11 @@ interface MyTableProps<T> {
     onRowSelectionChange?: OnChangeFn<RowSelectionState>;
     currentPage: number;
     columnWidths?: ColumnWidthConfig;
+    scrollable?: boolean;
+    className?: string;
+    tableState?: { columnVisibility: VisibilityState };
+    onCellClick?: (row: T, column: ColumnDef<T>) => void;
+    onHeaderClick?: () => void;
 }
 
 export function MyTable<T>({
@@ -56,6 +62,11 @@ export function MyTable<T>({
     columnWidths,
     rowSelection,
     onRowSelectionChange,
+    scrollable = false,
+    className = "",
+    tableState,
+    onCellClick,
+    onHeaderClick,
 }: MyTableProps<T>) {
     const table = useReactTable({
         data: data?.content || [],
@@ -63,6 +74,7 @@ export function MyTable<T>({
         getCoreRowModel: getCoreRowModel(),
         meta: { onSort },
         state: {
+            columnVisibility: tableState?.columnVisibility || {},
             rowSelection,
         },
         enableRowSelection: true,
@@ -98,7 +110,11 @@ export function MyTable<T>({
     if (!table) return <DashboardLoader />;
 
     return (
-        <div className="h-auto w-full overflow-visible rounded-lg border">
+        <div
+            className={`h-auto w-full ${
+                scrollable ? "overflow-auto" : "overflow-visible"
+            } rounded-lg border ${className}`}
+        >
             <div className="max-w-full overflow-visible rounded-lg">
                 <Table className="rounded-lg">
                     <TableHeader className="relative bg-primary-200">
@@ -112,11 +128,21 @@ export function MyTable<T>({
                                             className={`${headerTextCss} overflow-visible bg-primary-100 text-subtitle font-semibold text-neutral-600 ${
                                                 columnWidths?.[header.column.id] || ""
                                             }`}
+                                            style={{
+                                                width: columnWidths?.[header.id] || "auto",
+                                            }}
+                                            onClick={() => {
+                                                if (onHeaderClick) {
+                                                    onHeaderClick();
+                                                }
+                                            }}
                                         >
-                                            {flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext(),
-                                            )}
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                      header.column.columnDef.header,
+                                                      header.getContext(),
+                                                  )}
                                         </TableHead>
                                     ))}
                                 </TableRow>
@@ -124,13 +150,18 @@ export function MyTable<T>({
                     </TableHeader>
                     <TableBody>
                         {table.getRowModel().rows.map((row) => (
-                            <TableRow key={row.id} className="hover:bg-white">
+                            <TableRow key={row.id} className="cursor-pointer hover:bg-white">
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell
                                         key={cell.id}
                                         className={`${cellCommonCss} z-10 bg-white text-body font-regular text-neutral-600 ${
                                             columnWidths?.[cell.column.id] || ""
                                         }`}
+                                        onClick={() => {
+                                            if (onCellClick) {
+                                                onCellClick(row.original, cell.column.columnDef);
+                                            }
+                                        }}
                                     >
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </TableCell>
