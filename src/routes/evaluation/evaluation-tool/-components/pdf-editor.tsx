@@ -45,7 +45,7 @@ import { toast } from "sonner";
 import { ProgressBar } from "@/components/design-system/progress-bar";
 import { SlNote } from "react-icons/sl";
 import Evaluation from "./evaluation";
-import { useParams, useRouter } from "@tanstack/react-router";
+import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import { useTimerStore } from "@/stores/evaluation/timer-store";
 import { submitEvlauationMarks } from "../../evaluations/-services/evaluation-service";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -86,6 +86,7 @@ const PDFEvaluator = ({
     const [pdfFile, setPdfFile] = useState<File | null>(file);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
     // PDF states
     const [numPages, setNumPages] = useState<number>(0);
@@ -537,8 +538,17 @@ const PDFEvaluator = ({
                     description: "The answer sheet evaluation has been completed and submitted.",
                     duration: 3000,
                 });
+
                 setIsUploading(false);
                 clearInterval(progressInterval);
+                navigate({
+                    to: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType",
+                    params: {
+                        assessmentId,
+                        examType: "EXAM",
+                        assesssmentType: "PRIVATE",
+                    },
+                });
             }
         } catch (error) {
             console.log(error);
@@ -708,7 +718,10 @@ const PDFEvaluator = ({
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleSubmit}>
+                                        <AlertDialogAction
+                                            onClick={handleSubmit}
+                                            className="bg-primary-500 text-white hover:bg-primary-400"
+                                        >
                                             {(isUploading || isUploadingFile) && (
                                                 <Loader2 className="size-6 animate-spin text-primary-500" />
                                             )}
