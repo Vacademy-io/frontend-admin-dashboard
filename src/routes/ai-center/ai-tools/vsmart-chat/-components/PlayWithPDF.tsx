@@ -11,8 +11,6 @@ import {
 } from "@/routes/ai-center/-services/ai-center-service";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
 
 export interface QuestionWithAnswerChatInterface {
     id: string;
@@ -239,9 +237,14 @@ const PlayWithPDF = ({
                                                 {qa.question}
                                             </p>
                                         </div>
-                                        <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                                            {qa.response}
-                                        </ReactMarkdown>
+                                        <div className="flex justify-start">
+                                            <p
+                                                className="rounded-xl bg-blue-100 px-4 py-2 text-black"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: qa.response || "",
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                                 <div ref={messagesEndRef} />
