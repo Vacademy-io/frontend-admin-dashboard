@@ -134,7 +134,7 @@ export const UploadFileInS3V2 = async (
 
         if (file) {
             const signedURLData: SignedURLResponse = await getSignedURL(
-                'jsone',
+                'json',
                 'json',
                 effectiveSource,
                 effectiveSourceId,

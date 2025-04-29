@@ -459,7 +459,7 @@ const ExcalidrawWrapper = () => {
                         }
                         return acc;
                     }, [] as FileId[]) || [];
-
+           
                 if (data.isExternalScene) {
                     loadFilesFromFirebase(
                         `${FIREBASE_STORAGE_PREFIXES.shareLinkFiles}/${data.id}`,

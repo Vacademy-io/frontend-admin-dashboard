@@ -9,7 +9,7 @@ import axios from "axios";
 import { Presentation } from "../types";
 import { getPublicUrl } from "@/services/upload_file";
 
-export const fetchPresentation = async (presentationId: string) => {
+export const fetchPresentation = async (presentationId: string, setSlides: any, setCurrentSlideId: any) => {
     try {
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         if (!accessToken) throw new Error("Authentication required");
@@ -27,25 +27,25 @@ export const fetchPresentation = async (presentationId: string) => {
         }
 
         // 2. Get file URL from the first slide
-        const fileId = presResponse.data.added_slides[0].source_id;
+        const length = presResponse.data?.added_slides?.length;
+        const fileId = presResponse.data.added_slides[length - 1].content;
         const publicUrl = await getPublicUrl(fileId);
 
         // 3. Fetch the actual slide content from S3 using axios
         const s3Response = await axios.get(publicUrl, {
             responseType: 'json', // Ensure proper JSON parsing
-            timeout: 10000, // 10 second timeout
             headers: {
                 'Cache-Control': 'no-cache' // Avoid cached responses
             }
         });
 
-        if (s3Response.status !== 200) {
-            throw new Error(`S3 request failed with status ${s3Response.status}`);
-        }
 
         // 4. Return combined data
-        console.log(s3Response.data, "hello")
-        return s3Response.data
+        console.log(s3Response?.data, "hello")
+        setSlides(s3Response?.data)
+
+        setCurrentSlideId(s3Response?.data[0]?.id)
+        return s3Response?.data
 
     } catch (error) {
         console.error("Error fetching presentation:", error);
@@ -58,9 +58,12 @@ export const fetchPresentation = async (presentationId: string) => {
 };
 
 export const useGetSinglePresentation = ({
-    presentationId
+    presentationId,
+    setSlides,
+    setCurrentSlideId
 }: {
-    presentationId: string
+    presentationId: string,
+    setSlides: (slides: any) => void
 }) => {
     return useQuery<
         Presentation & {
@@ -68,17 +71,12 @@ export const useGetSinglePresentation = ({
             s3Url?: string
         }
     >({
-        queryKey: ["presentation"],
-        queryFn: () => fetchPresentation(presentationId),
-        staleTime: 5 * 60 * 1000, // 5 minute cache
-        retry: (failureCount, error) => {
-            // Don't retry for 404 errors
-            if (error.message.includes("404")) return false;
-            return failureCount < 2; // Retry twice max
-        },
-        enabled: !!presentationId,
+        queryKey: ["GET_PRESENTATION", presentationId],
+        queryFn: () => fetchPresentation(presentationId, setSlides, setCurrentSlideId),
         onError: (error) => {
             console.error("Presentation fetch error:", error);
-        }
+        },
+        enabled: !!presentationId,
+        refetchOnWindowFocus: false
     });
 };

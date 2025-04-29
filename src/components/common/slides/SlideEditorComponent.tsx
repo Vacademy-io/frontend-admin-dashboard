@@ -7,7 +7,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { SlideEditor } from "./SlideEditor";
 import { Button } from "@/components/ui/button";
-import { ListStart, Settings, FileDown, Save } from "lucide-react";
+import { ListStart, Settings, FileDown, Save, Loader2 } from "lucide-react";
 import SlideList from "./SlideList";
 import { SlideType } from "./constant/slideType";
 import { QuizeSlide } from "./slidesTypes/QuizSlides";
@@ -21,7 +21,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useGetSinglePresentation } from "./hooks/useGetSinglePresntation";
 import { isNullOrEmptyOrUndefined } from "@/lib/utils";
 import { toast } from "sonner";
-
+import { IoArrowBackSharp } from "react-icons/io5";
 
 const SlideRenderer = ({
   type,
@@ -48,14 +48,14 @@ const SlideRenderer = ({
         <SlideEditor
           editMode={editMode}
           slide={slide}
-          onSlideChange={(elements) => updateSlide(currentSlideId, elements)}
+          onSlideChange={(elements, appState, files) => updateSlide(currentSlideId, elements, appState, files)}
           key={currentSlideId}
         />
       );
   }
 };
 
-export default function SlidesEditor({ metaData, presentationId, isEdit }: { metaData: { title: string; description: string }, presentationId: string, isEdit: boolean }) {
+export default function SlidesEditorComponent({ metaData, presentationId, isEdit }: { metaData: { title: string; description: string }, presentationId: string, isEdit: boolean }) {
   const {
     slides,
     currentSlideId,
@@ -74,7 +74,7 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
   const [isSaving, setIsSaving] = useState(false);
 
 
-  const { isLoading, isError, data: presentation } = useGetSinglePresentation({ presentationId: presentationId });
+  const { isLoading, isError, data: presentation, isRefetching } = useGetSinglePresentation({ presentationId: presentationId, setSlides, setCurrentSlideId });
 
   const changeCurrentSlide = (id: string) => {
     setCurrentSlideId(id);
@@ -234,15 +234,18 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
       }
 
       // 4. Upload slides to S3 (mock for now)
+
+      console.log(slides, 'slides')
+      debugger
       let fileId;
       try {
 
         fileId = await UploadFileInS3V2(
           slides,
           () => { },
-          tokenData.sub, // user ID
-          INSTITUTE_ID,
+          tokenData.sub,
           "SLIDES",
+          tokenData.sub,
           true
         );
 
@@ -255,7 +258,9 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
       // 5. Transform slides data
       const addedSlides = slides.map((slide, index) => {
         const isQuestionSlide = [SlideType.Quiz, SlideType.Feedback].includes(slide.type);
+        debugger
         const baseSlide = {
+          id:"2d480349-465f-499c-8293-823ec6a910c4",
           presentation_id: "", // Will be set by backend
           title: slide?.elements?.questionName || `Slide ${index + 1}`,
           source_id: fileId,
@@ -344,10 +349,16 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
           //   id: "1",
           //   preview_id: "prev_001",
           //   section_id: "1",
-          //   question_order_in_section: 0,
-          //   text: null,
+          //   question_order_in_section: 1,
+          //   text: {
+          //     "id": null,
+          //     "type": "HTML",
+          //     "content": "",
+          //   },
           //   question_response_type: "single_choice",
           //   default_question_time_mins: 0,
+          //   "media_id": "media_001",
+          //   "auto_evaluation_json": "{\"type\":\"MCQS\",\"data\":{\"correctOptionIds\":[\"1\"]}}",
           //   question_type: "MCQS",
           //   options_json: null,
           //   parsed_evaluation_object: null,
@@ -355,13 +366,41 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
           //     text: { type: "text", content: option.name || "" },
           //     option_order: optIndex,
           //     ...(option.image?.imageId && { media_id: option.image.imageId })
-          //   }))
+          //   })),
+          //   "explanation_text": {
+          //     "id": null,
+          //     "type": "HTML",
+          //     "content": ""
+          //   },
+          //   "evaluation_type": "auto",
+          //   "parent_rich_text_id": "prt_001",
+          //   "parent_rich_text": {
+          //     "id": null,
+          //     "type": "HTML",
+          //     "content": ""
+          //   },
+          //   "errors": [],
+          //   "warnings": [],
+          //   access_level: "public", // ← Missing
+          //   parsed_evaluation_object: { // ← Missing
+          //     correct_option: 1 // Assuming option 1 is correct
+          //   },
+          //   explanation_text: { // ← Missing content
+          //     id: null,
+          //     type: "HTML",
+          //     content: "" // Dummy explanation
+          //   },
+          //   parent_rich_text: { // ← Missing content
+          //     id: null,
+          //     type: "HTML",
+          //     content: "" // Dummy intro text
+          //   }
           // };
 
           return {
             ...baseSlide,
-            added_question: question,
-            updated_question: null
+            added_question: isEdit ? null : question,
+            updated_question: isEdit ? question : null
           }
         }
 
@@ -369,16 +408,19 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
       });
 
       // 6. Prepare final payload
+      debugger
       const payload = {
         id: isEdit ? presentationId : "",
         title: metaData?.title || "New Presentation",
         description: metaData?.description || "",
         cover_file_id: "",
         added_slides: addedSlides ?? null,
-        status: "PUBLISHED"
+        status: "PUBLISHED",
+        updated_slides :[]
       };
 
       // 7. API call
+      debugger
       const response = await authenticatedAxiosInstance.post(
         isEdit ? EDIT_PRESENTATION : ADD_PRESENTATION,
         payload,
@@ -410,27 +452,29 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
   };
 
 
-  useEffect(() => {
-    if (!isNullOrEmptyOrUndefined(presentation)) {
-      setSlides(presentation ?? []);
-    }
-  }, [presentation])
 
-
-  
-
+  if (isLoading || isRefetching) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <Loader2 className="animate-spin size-10 text-primary-300" />
+      </div>
+    );
+  }
   return (
     <div className="flex h-screen w-full bg-white">
       <div className="flex size-full flex-col rounded-xl bg-base-white">
         <div className="flex justify-between  bg-primary-200 p-1 mb-1 min-h-32">
-          <Button
-            variant="destructive"
-            onClick={savePresentation}
-            className="gap-2 bg-primary-400  hover:bg-primary-500 mt-4"
-          >
-            <Save className="size-4" />
-            {isSaving ? "Saving..." : isEdit ? "Save Presentation" : "Add Presentation"}
-          </Button>
+          <div className="flex gap-2 justify-end " >
+            <IoArrowBackSharp size={32} className="text-primary-400 cursor-pointer" onClick={() => router.navigate({ to: '/study-library/present' })} />
+            <Button
+              variant="destructive"
+              onClick={savePresentation}
+              className="gap-2 bg-primary-400  hover:bg-primary-500 "
+            >
+              <Save className="size-4" />
+              {isSaving ? "Saving..." : isEdit ? "Save Presentation" : "Add Presentation"}
+            </Button>
+          </div>
           <div className="flex justify-end gap-2 ">
             <Button
               variant="destructive"
@@ -459,7 +503,6 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
           </div>
         </div>
 
-
         <div className="slide-container flex gap-4 bg-primary-100" style={{ position: 'relative' }}>
           {currentSlideId && (
             <div className={`slide-${currentSlideId}`} style={{
@@ -487,11 +530,14 @@ export default function SlidesEditor({ metaData, presentationId, isEdit }: { met
               {!editMode && (
                 <div className="absolute inset-0 z-10 rounded-lg bg-black/50" />
               )}
-              {currentSlideId && (
+
+              {(!isLoading && currentSlideId) && (
                 <SlideRenderer
                   currentSlideId={currentSlideId}
                   type={getSlide(currentSlideId)?.type || SlideType.Title}
                   editMode={editMode}
+                  key={currentSlideId}
+
                 />
               )}
             </div>

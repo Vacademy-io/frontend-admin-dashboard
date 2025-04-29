@@ -1,4 +1,4 @@
-import SlidesEditor from "@/components/common/slides/SlideEditorComponent";
+import SlidesEditorComponent from "@/components/common/slides/SlideEditorComponent";
 import { createFileRoute } from "@tanstack/react-router"
 
 interface AddPresentParams {
@@ -21,6 +21,6 @@ export const Route = createFileRoute("/study-library/present/add/")({
 
 function RouteComponent() {
   const { title = "", description = "", id, isEdit } = Route.useSearch();
-  return <SlidesEditor metaData={{ title, description }} presentationId={id} isEdit={isEdit} />;
+  return <SlidesEditorComponent metaData={{ title, description }} presentationId={id} isEdit={isEdit} />;
 }
 

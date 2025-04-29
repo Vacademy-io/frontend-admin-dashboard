@@ -14,18 +14,19 @@ interface SlideStore {
   setCurrentSlideId: (id: string) => void;
   setEditMode: (editMode: boolean) => void;
   getSlide: (id: string) => Slide | undefined;
-  updateSlide: (id: string, elements: any[]) => void;
+  updateSlide: (id: string, elements: any[] , appState: any, files: any) => void;
   addSlide: (type: SlideType) => void;
   deleteSlide: (id: string) => void;
   moveSlideUp: (id: string) => void;
   moveSlideDown: (id: string) => void;
-  updateQuizeSlide:(id: string, elements: any) => void;
+  updateQuizeSlide: (id: string, elements: any) => void;
 }
 
 export const useSlideStore = create<SlideStore>((set, get) => {
   // Initialize from localStorage or default
   const savedSlides = localStorage.getItem("slides");
   const initialSlides = savedSlides && savedSlides.length > 0 ? JSON.parse(savedSlides) : defaultSlides;
+  console.log(initialSlides, 'initialSlides')
 
   return {
     slides: initialSlides,
@@ -38,9 +39,9 @@ export const useSlideStore = create<SlideStore>((set, get) => {
     setCurrentSlideId: (currentSlideId) => set({ currentSlideId }),
     setEditMode: (editMode) => set({ editMode }),
     getSlide: (id) => get().slides.find((s) => s.id === id),
-    updateSlide: (id, elements) => {
+    updateSlide: (id, elements, appState, files) => {
       const newSlides = get().slides.map((slide) =>
-        slide.id === id ? { ...slide, elements: elements.filter((e) => !e.isDeleted) } : slide
+        slide.id === id ? { ...slide, elements: elements.filter((e) => !e.isDeleted), files: files, appState: appState } : slide
       );
       get().setSlides(newSlides);
     },
@@ -56,7 +57,7 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
       const slideIndex = slides.findIndex((s) => s.id === id);
       const isLastSlide = slideIndex === slides.length - 1;
-      
+
       const newSlides = slides.filter((s) => s.id !== id);
       get().setSlides(newSlides);
 
@@ -93,7 +94,7 @@ export const useSlideStore = create<SlideStore>((set, get) => {
 
     updateQuizeSlide: (id, elements) => {
       const newSlides = get().slides.map((slide) =>
-        slide.id === id ? { ...slide, elements:elements  } : slide
+        slide.id === id ? { ...slide, elements: elements } : slide
       );
       get().setSlides(newSlides);
     },

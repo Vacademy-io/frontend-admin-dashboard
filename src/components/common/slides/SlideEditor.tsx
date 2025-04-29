@@ -32,12 +32,12 @@ const sameElements = (elements1: any[], elements2: any[]) =>
     elements1.every((el, index) => sameElement(el, elements2[index]));
 
 export const SlideEditor = ({ slide, editMode, onSlideChange }: Props) => {
-    const [initialElements, setInitialElements] = useState(slide?.elements);
+    const [initialSlide, setInitialSlide] = useState(slide);
 
-    const onChange = (elements: any[]) => {
-        if (!sameElements(elements, initialElements)) {
-            onSlideChange(elements); // Notify parent component of changes
-            setInitialElements(JSON.parse(JSON.stringify(elements))); // Update local state
+    const onChange = (elements: any[], appState: any, files: any) => {
+        if (!sameElements(elements, initialSlide)) {
+            onSlideChange(elements ,  appState, files); // Notify parent component of changes
+            setInitialSlide(JSON.parse(JSON.stringify(elements))); // Update local state
         }
     };
 
@@ -69,7 +69,7 @@ export const SlideEditor = ({ slide, editMode, onSlideChange }: Props) => {
                 `}
             </style>
             <ExcalidrawWrapper
-                initialElements={initialElements}
+                initialSlide={initialSlide}
                 onChange={onChange}
                 editMode={editMode}
             />
