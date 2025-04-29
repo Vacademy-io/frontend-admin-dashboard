@@ -546,7 +546,8 @@ export const SlideMaterial = ({
                                     </MyButton>
                                 )}
                             <ActivityStatsSidebar />
-                            {activeItem?.document_type == "DOC" && (
+                            {(activeItem?.document_type == "DOC" ||
+                                activeItem?.source_type == "QUESTION") && (
                                 <MyButton
                                     buttonType="secondary"
                                     scale="medium"

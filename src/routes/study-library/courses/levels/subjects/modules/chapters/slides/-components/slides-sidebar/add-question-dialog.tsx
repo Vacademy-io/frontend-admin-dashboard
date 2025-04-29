@@ -8,13 +8,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useContentStore } from "../../-stores/chapter-sidebar-store";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { MyInput } from "@/components/design-system/input";
+import { MyButton } from "@/components/design-system/button";
+import { useState } from "react";
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
     text: string; // Accepts the text label
     type?: QuestionTypeList;
-    handleAddQuestion: (type: string) => void;
+    handleAddQuestion: (
+        type: string,
+        questionPoints: string | undefined,
+        reattemptCount: string | undefined,
+    ) => void;
 }
+
 export type QuestionPaperFormType = z.infer<typeof questionsFormSchema>;
 
 const AddQuestionDialog = ({
@@ -42,23 +51,20 @@ const AddQuestionDialog = ({
         },
     });
 
-    const QuestionType = ({
-        icon,
-        text,
-        type = QuestionTypeList.MCQS,
-        handleAddQuestion,
-    }: QuestionTypeProps) => {
+    const [localPoints, setLocalPoints] = useState("");
+    const [localReattempts, setLocalReattempts] = useState("");
+    const [activeQuestionDialog, setActiveQuestionDialog] = useState<QuestionTypeList | null>(null);
+
+    console.log(items);
+
+    const QuestionType = ({ icon, text, type = QuestionTypeList.MCQS }: QuestionTypeProps) => {
         return (
             <div
-                className="w-full"
-                onClick={() => {
-                    handleAddQuestion(type);
-                }}
+                className="flex w-full cursor-pointer flex-row items-center gap-4 rounded-md border px-4 py-3"
+                onClick={() => setActiveQuestionDialog(type)}
             >
-                <div className="flex w-full cursor-pointer flex-row items-center gap-4 rounded-md border px-4 py-3">
-                    {icon}
-                    <div className="text-body">{text}</div>
-                </div>
+                {icon}
+                <div className="text-body">{text}</div>
             </div>
         );
     };
@@ -69,7 +75,11 @@ const AddQuestionDialog = ({
     });
 
     // Function to handle adding a new question
-    const handleAddQuestion = (newQuestionType: string) => {
+    const handleAddQuestion = (
+        newQuestionType: string,
+        questionPoints: string | undefined,
+        reattemptCount: string | undefined,
+    ) => {
         append({
             questionId: String(fields.length + 1),
             questionName: "",
@@ -83,6 +93,17 @@ const AddQuestionDialog = ({
             questionMark: "",
             singleChoiceOptions: [],
             multipleChoiceOptions: [],
+            csingleChoiceOptions: [],
+            cmultipleChoiceOptions: [],
+            trueFalseOptions: [],
+            parentRichTextContent: "",
+            decimals: 0,
+            numericType: "",
+            validAnswers: [],
+            questionResponseType: "",
+            subjectiveAnswerText: "",
+            questionPoints: questionPoints || "",
+            reattemptCount: reattemptCount || "",
         });
         setItems([
             {
@@ -107,8 +128,12 @@ const AddQuestionDialog = ({
             ...items,
         ]);
         form.trigger();
+        setActiveQuestionDialog(null); // Close the dialog
+        setLocalPoints(""); // Reset input fields
+        setLocalReattempts("");
         openState && openState(false);
     };
+
     return (
         <>
             <div className="flex flex-col gap-4">
@@ -202,6 +227,63 @@ const AddQuestionDialog = ({
                     handleAddQuestion={handleAddQuestion}
                 />
             </div>
+
+            {/* Separate dialog component that appears when a question type is selected */}
+            <Dialog
+                open={activeQuestionDialog !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setActiveQuestionDialog(null);
+                        setLocalPoints("");
+                        setLocalReattempts("");
+                    }
+                }}
+            >
+                <DialogContent className="p-0">
+                    <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                        Question Settings
+                    </h1>
+                    <div className="flex flex-col gap-4 p-4">
+                        <MyInput
+                            input={localPoints}
+                            onChangeFunction={(e) => setLocalPoints(e.target.value)}
+                            label="Question Points"
+                            required={true}
+                            inputType="text"
+                            inputPlaceholder="00"
+                            className="w-full"
+                        />
+                        <MyInput
+                            input={localReattempts}
+                            onChangeFunction={(e) => setLocalReattempts(e.target.value)}
+                            label="Reattempt Count"
+                            required={true}
+                            inputType="text"
+                            inputPlaceholder="00"
+                            className="w-full"
+                        />
+                        <div>
+                            <MyButton
+                                type="button"
+                                scale="large"
+                                buttonType="primary"
+                                className="font-medium"
+                                onClick={() => {
+                                    if (activeQuestionDialog) {
+                                        handleAddQuestion(
+                                            activeQuestionDialog,
+                                            localPoints,
+                                            localReattempts,
+                                        );
+                                    }
+                                }}
+                            >
+                                Add
+                            </MyButton>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </>
     );
 };

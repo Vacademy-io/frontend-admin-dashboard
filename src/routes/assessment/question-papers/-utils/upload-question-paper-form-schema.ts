@@ -109,6 +109,8 @@ export const uploadQuestionPaperFormSchema = z.object({
                 validAnswers: z.union([z.array(z.number()), z.null()]).optional(),
                 questionResponseType: z.union([z.string(), z.null()]).optional(),
                 subjectiveAnswerText: z.string().optional(),
+                questionPoints: z.string().optional(),
+                reattemptCount: z.string().optional(),
             })
             .superRefine((question, ctx) => {
                 // Validate based on question type
