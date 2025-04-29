@@ -238,9 +238,12 @@ const PlayWithPDF = ({
                                             </p>
                                         </div>
                                         <div className="flex justify-start">
-                                            <p className="rounded-xl bg-blue-100 px-4 py-2 text-black">
-                                                {qa.response}
-                                            </p>
+                                            <p
+                                                className="rounded-xl bg-blue-100 px-4 py-2 text-black"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: qa.response || "",
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 ))}

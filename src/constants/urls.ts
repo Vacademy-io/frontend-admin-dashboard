@@ -160,6 +160,7 @@ export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info
 export const USERS_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/users-credential`;
 export const EXPORT_ACCOUNT_DETAILS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/basic-details-csv`;
 
+export const RETRY_AI_URL = `${BASE_URL}/media-service/ai/retry/task`;
 export const START_PROCESSING_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/start-process-pdf-file-id`;
 export const LIST_INDIVIDUAL_AI_TASKS_URL = `${BASE_URL}/media-service/task-status/get-all`;
 export const GET_INDIVIDUAL_AI_TASK_QUESTIONS = `${BASE_URL}/media-service/task-status/get-result`;
