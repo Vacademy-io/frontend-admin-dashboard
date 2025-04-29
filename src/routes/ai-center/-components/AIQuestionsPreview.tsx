@@ -114,6 +114,10 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
             return handleRetryAITask(taskId);
         },
         onSuccess: (response) => {
+            if (!response.questions) {
+                toast.success("No data exists!");
+                return;
+            }
             setAssessmentData(response);
             const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
                 response.questions,
