@@ -21,7 +21,7 @@ export interface TestContent {
     subject_id: string | null;
     created_at: string;
     updated_at: string;
-    is_homework?: boolean
+    is_homework?: boolean;
 }
 
 export interface ScheduleTestTab {

@@ -20,17 +20,9 @@ import { usePDFStore } from "@/routes/study-library/courses/levels/subjects/modu
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { SidebarSimple } from "@phosphor-icons/react";
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
-import { MyButton } from "@/components/design-system/button";
 import { Separator } from "@/components/ui/separator";
 import EditDashboardProfileComponent from "@/routes/dashboard/-components/EditDashboardProfileComponent";
 
@@ -133,7 +125,7 @@ export function Navbar() {
                                             </p>
                                             <p className="text-sm text-neutral-600">
                                                 <span>Institute Mobile:&nbsp;</span>
-                                                <span>{instituteDetails?.phone}</span>
+                                                <span>+{instituteDetails?.phone}</span>
                                             </p>
                                             <p className="text-sm text-neutral-600">
                                                 <span>Institute Website:&nbsp;</span>

@@ -35,7 +35,7 @@ export interface AIAssessmentCompleteQuestion {
     explanation_text: RichText;
     default_question_time_mins: number | null;
     parent_rich_text_id: string | null;
-    parent_rich_text: string | null;
+    parent_rich_text: RichText | null;
     options: Option[];
     errors: string[];
     warnings: string[];
@@ -51,4 +51,69 @@ export interface AIAssessmentResponseInterface {
     subjects: string[];
     classes: string[];
     questions: AIAssessmentCompleteQuestion[];
+}
+
+export interface AITaskIndividualListInterface {
+    id: string;
+    task_name: string;
+    institute_id: string;
+    parent_id: string;
+    status: string; // Add more status values as needed
+    result_json: string;
+    input_id: string;
+    input_type: string; // Add more input types as needed
+    created_at: string; // ISO datetime string
+    updated_at: string; // ISO datetime string
+}
+
+interface TimeWiseSection {
+    section_heading: string;
+    time_split: string;
+    content: string;
+    topic_covered: string[];
+    question_to_students: string[];
+    activity: string[];
+}
+
+interface Assignment {
+    topic_covered: string[];
+    tasks: string[];
+}
+
+export interface PlanLectureDataInterface {
+    heading: string;
+    mode: string;
+    duration: string;
+    language: string;
+    level: string;
+    time_wise_split: TimeWiseSection[];
+    assignment: Assignment;
+    summary: string[];
+}
+
+export interface AILectureFeedbackInterface {
+    title: string;
+    report_title: string;
+    lecture_info: LectureInfo;
+    total_score: string; // or number, depending on usage
+    criteria: EvaluationCriterion[];
+    summary: string[];
+}
+
+export interface LectureInfo {
+    lecture_title: string;
+    duration: string;
+    evaluation_date: string;
+}
+
+export interface EvaluationCriterion {
+    name: string;
+    score: string; // or number
+    points: CriterionPoint[];
+    scope_of_improvement: string[];
+}
+
+export interface CriterionPoint {
+    title: string;
+    description: string[];
 }

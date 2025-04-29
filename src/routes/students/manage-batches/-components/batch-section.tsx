@@ -9,7 +9,9 @@ import { Plus, TrashSimple } from "phosphor-react";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
-
+import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
+import { useDeleteBatches } from "@/routes/students/manage-batches/-services/delete-batches";
+import { toast } from "sonner";
 interface batchCardProps {
     batch: BatchType;
 }
@@ -18,6 +20,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const navigate = useNavigate();
     const { levelName, packageName } = useGetStudentBatch(batch.package_session_id);
+    const deleteBatchesMutation = useDeleteBatches();
 
     const handleViewBatch = () => {
         // Navigate to student list with this batch pre-selected
@@ -36,6 +39,21 @@ const BatchCard = ({ batch }: batchCardProps) => {
                 package_session_id: batch.package_session_id,
             },
         });
+    };
+
+    const handleDeleteBatch = () => {
+        deleteBatchesMutation.mutate(
+            { packageSessionIds: [batch.package_session_id] },
+            {
+                onSuccess: () => {
+                    toast.success("Batch deleted successfully");
+                    setOpenDeleteDialog(false);
+                },
+                onError: () => {
+                    toast.error("Failed to delete batch");
+                },
+            },
+        );
     };
 
     return (
@@ -58,15 +76,19 @@ const BatchCard = ({ batch }: batchCardProps) => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <MyButton
-                        buttonType="text"
-                        layoutVariant="default"
-                        scale="medium"
-                        className="text-primary-500"
-                    >
-                        {" "}
-                        <Plus /> Enroll Student
-                    </MyButton>
+                    <EnrollManuallyButton
+                        triggerButton={
+                            <MyButton
+                                buttonType="text"
+                                layoutVariant="default"
+                                scale="medium"
+                                className="text-primary-500"
+                            >
+                                {" "}
+                                <Plus /> Enroll Student
+                            </MyButton>
+                        }
+                    />
                     <MyButton
                         buttonType="secondary"
                         layoutVariant="default"
@@ -86,7 +108,9 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         <MyButton buttonType="secondary" onClick={() => setOpenDeleteDialog(false)}>
                             Cancel
                         </MyButton>
-                        <MyButton buttonType="primary">Yes, I am sure</MyButton>
+                        <MyButton buttonType="primary" onClick={handleDeleteBatch}>
+                            Yes, I am sure
+                        </MyButton>
                     </div>
                 }
             >
@@ -99,7 +123,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
 export const BatchSection = ({ batch }: { batch: batchWithStudentDetails }) => {
     return (
         <>
-            {batch.batches.length > 0 && (
+            {batch.batches.length > 0 ? (
                 <div className="flex flex-col gap-4">
                     <p className="text-title font-semibold">{batch.package_dto.package_name}</p>
                     <div className="grid grid-cols-3 gap-6">
@@ -107,6 +131,11 @@ export const BatchSection = ({ batch }: { batch: batchWithStudentDetails }) => {
                             <BatchCard batch={batchLevel} key={index} />
                         ))}
                     </div>
+                </div>
+            ) : (
+                <div className="flex flex-col gap-4">
+                    <p className="text-title font-semibold">{batch.package_dto.package_name}</p>
+                    <p className="text-neutral-400">No batches found</p>
                 </div>
             )}
         </>

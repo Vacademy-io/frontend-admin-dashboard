@@ -30,7 +30,8 @@ export function filterMenuItems(menuList: SidebarItemsType[], instituteId: strin
             (item) =>
                 item.id !== "evaluation-centre" &&
                 item.id !== "Community Centre" &&
-                item.id !== "Homework Creation",
+                item.id !== "Homework Creation" &&
+                item.id !== "AI Center",
         );
     }
     return menuList;

@@ -27,21 +27,11 @@ export const NumericQuestionPaperTemplateMainView = ({
 
     const numericType = watch(`questions.${currentQuestionIndex}.numericType`);
     const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`);
-    useEffect(() => {
-        if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
-    });
-    useEffect(() => {
-        trigger(`questions.${currentQuestionIndex}.validAnswers`);
-    }, [numericType, currentQuestionIndex, trigger]);
-    const formValues = useWatch({ control });
-    useEffect(() => {
-        console.log("Form data changed: ", formValues);
-    }, [formValues]);
+
+    useWatch({ control });
     const answersType = getValues("answersType") || "Answer:";
     const explanationsType = getValues("explanationsType") || "Explanation:";
     const questionsType = getValues("questionsType") || "";
-
-    const allQuestions = getValues("questions") || [];
 
     useEffect(() => {
         const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
@@ -50,13 +40,12 @@ export const NumericQuestionPaperTemplateMainView = ({
         }
     }, []);
 
-    if (allQuestions.length === 0) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <h1>Please add a question to show question details</h1>
-            </div>
-        );
-    }
+    useEffect(() => {
+        if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
+    }, []);
+    useEffect(() => {
+        trigger(`questions.${currentQuestionIndex}.validAnswers`);
+    }, [numericType, currentQuestionIndex, trigger]);
 
     return (
         <div className={className}>
@@ -101,42 +90,10 @@ export const NumericQuestionPaperTemplateMainView = ({
                             />
                             <CustomInput
                                 control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
                                 name={`questions.${currentQuestionIndex}.decimals`}
                                 label="Decimal Precision"
                                 required
                             />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>

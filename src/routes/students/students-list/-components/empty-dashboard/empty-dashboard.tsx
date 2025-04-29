@@ -1,5 +1,6 @@
 import { EnrollStudentsButton } from "@/components/common/students/enroll-students-button";
 import { EmptyDashboardImage } from "@/assets/svgs";
+import { BulkDialogProvider } from "../../-providers/bulk-dialog-provider";
 // import { EnrollManuallyButton } from "../enroll-manually/enroll-manually-button";
 
 export const EmptyDashboard = () => {
@@ -12,7 +13,9 @@ export const EmptyDashboard = () => {
             <div className="text-title font-regular text-neutral-600">
                 No student data available
             </div>
-            <EnrollStudentsButton />
+            <BulkDialogProvider>
+                <EnrollStudentsButton />
+            </BulkDialogProvider>
         </div>
     );
 };

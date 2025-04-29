@@ -28,6 +28,7 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { useQueryClient } from "@tanstack/react-query";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { MyDialog } from "@/components/design-system/dialog";
+import { useBulkDialog } from "../../-context/bulk-dialog-context";
 
 interface FileState {
     file: File | null;
@@ -74,7 +75,7 @@ export const UploadCSVButton = ({
     });
     const queryClient = useQueryClient();
     const [showNotificationDialog, setShowNotificationDialog] = useState(false);
-
+    const { setEnrollStudentDialogOpen } = useBulkDialog();
     // Function to close all dialogs
     const closeAllDialogs = () => {
         setIsOpen(false);
@@ -83,16 +84,10 @@ export const UploadCSVButton = ({
             setOpenDialog(false);
         }
 
-        // Close the root enroll students dialog
-        const rootDialog = document.querySelector(
-            '[data-dialog-id="enroll-students-root-dialog"] [role="dialog"]',
-        );
-        if (rootDialog) {
-            const closeButton = rootDialog.querySelector('button[aria-label="Close"]');
-            if (closeButton instanceof HTMLButtonElement) {
-                closeButton.click();
-            }
-        }
+        // Close the preview dialog
+        setShowPreview(false);
+
+        setEnrollStudentDialogOpen(false);
     };
 
     const requestPayload = {
@@ -278,7 +273,7 @@ export const UploadCSVButton = ({
             });
 
             // Invalidate queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ["students-list"] });
+            queryClient.invalidateQueries({ queryKey: ["students"] });
 
             // Close other dialogs first
             // closeAllDialogs();

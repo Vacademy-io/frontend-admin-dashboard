@@ -5,14 +5,12 @@ import "react-quill/dist/quill.snow.css";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "@radix-ui/react-popover";
 import SelectField from "@/components/design-system/select-field";
-import CustomInput from "@/components/design-system/custom-input";
 import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
-// import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
-// import { formatStructure } from "../../../-utils/helper";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
 import { MyInput } from "@/components/design-system/input";
 import { useEffect } from "react";
-// import { CollapsibleQuillEditor } from "../CollapsibleQuillEditor";
+import { CollapsibleQuillEditor } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/CollapsibleQuillEditor";
+import { formatStructure } from "@/routes/assessment/question-papers/-utils/helper";
 import { SectionQuestionPaperFormProps } from "../../../-utils/assessment-question-paper";
 
 export const OneWordQuestionPaperTemplateMainView = ({
@@ -22,10 +20,8 @@ export const OneWordQuestionPaperTemplateMainView = ({
     selectedSectionIndex,
 }: SectionQuestionPaperFormProps) => {
     const { control, getValues } = form;
-    // const explanationsType = getValues("explanationsType") || "Explanation:";
-    // const questionsType = getValues("questionsType") || "";
-
-    const allQuestions = getValues(`sections.${selectedSectionIndex}.questions`) || [];
+    const explanationsType = "Explanation:";
+    const questionsType = "";
 
     useEffect(() => {
         const validAnswrs = form.getValues(
@@ -38,14 +34,6 @@ export const OneWordQuestionPaperTemplateMainView = ({
             );
         }
     }, []);
-
-    if (allQuestions.length === 0) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <h1>Please add a question to show question details</h1>
-            </div>
-        );
-    }
 
     return (
         <div className={className}>
@@ -76,48 +64,18 @@ export const OneWordQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
-            {/* {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
+            {getValues(
+                `sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`,
+            ) && (
                 <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                     <span>Comprehension Text</span>
                     <FormField
                         control={control}
-                        name={`questions.${currentQuestionIndex}.parentRichTextContent`}
+                        name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.parentRichTextContent`}
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
@@ -131,11 +89,13 @@ export const OneWordQuestionPaperTemplateMainView = ({
                         )}
                     />
                 </div>
-            )} */}
+            )}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
                     Question&nbsp;
-                    {currentQuestionIndex + 1}
+                    {questionsType
+                        ? formatStructure(questionsType, currentQuestionIndex + 1)
+                        : currentQuestionIndex + 1}
                 </span>
                 <FormField
                     control={control}
@@ -178,7 +138,7 @@ export const OneWordQuestionPaperTemplateMainView = ({
                 />
             </div>
             <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>Explanation:</span>
+                <span>{explanationsType}</span>
                 <FormField
                     control={control}
                     name={`sections.${selectedSectionIndex}.questions.${currentQuestionIndex}.explanation`}

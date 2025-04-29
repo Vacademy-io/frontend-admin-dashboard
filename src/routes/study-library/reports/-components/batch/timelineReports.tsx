@@ -15,7 +15,7 @@ import { MyButton } from "@/components/design-system/button";
 import { LineChartComponent } from "./lineChart";
 import { MyTable } from "@/components/design-system/table";
 import { useMutation } from "@tanstack/react-query";
-import { fetchBatchReport, fetchLeaderboardData } from "../../-services/utils";
+import { fetchBatchReport, fetchLeaderboardData, exportBatchReport } from "../../-services/utils";
 import {
     DailyLearnerTimeSpent,
     BatchReportResponse,
@@ -30,6 +30,7 @@ import dayjs from "dayjs";
 import { MyPagination } from "@/components/design-system/pagination";
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from "../../-services/helper";
 import { usePacageDetails } from "../../-store/usePacageDetails";
+import { toast } from "sonner";
 
 const formSchema = z
     .object({
@@ -164,6 +165,39 @@ export default function TimelineReports() {
         );
     }, [currPage]);
 
+    const getBatchReportDataPDF = useMutation({
+        mutationFn: () =>
+            exportBatchReport({
+                startDate: startDate,
+                endDate: endDate,
+                packageSessionId:
+                    getPackageSessionId({
+                        courseId: selectedCourse,
+                        sessionId: selectedSession,
+                        levelId: selectedLevel,
+                    }) || "",
+                userId: "",
+            }),
+        onSuccess: async (response) => {
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `batch_report.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Batch Report PDF exported successfully");
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
+
+    const handleExportPDF = () => {
+        getBatchReportDataPDF.mutate();
+    };
+
     const onSubmit = (data: FormValues) => {
         setLoading(true);
         generateReportMutation.mutate(
@@ -279,6 +313,7 @@ export default function TimelineReports() {
         mutationFn: fetchLeaderboardData,
     });
     const { isPending, error } = leaderboardMutation;
+    const isExporting = getBatchReportDataPDF.isPending;
 
     return (
         <div className="mt-10 flex flex-col gap-10">
@@ -409,16 +444,25 @@ export default function TimelineReports() {
                     <div className="flex flex-row justify-between gap-10">
                         <div className="flex flex-col gap-6">
                             <div className="text-h3 text-primary-500">
-                                10th Premier Pro Group1 (2024-2025)
+                                {courseList.find((c) => c.id === selectedCourse)?.name}
                             </div>
                             <div>{`Date ${startDate} - ${endDate}`}</div>
                         </div>
-                        <MyButton buttonType="secondary">Export</MyButton>
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => {
+                                handleExportPDF();
+                            }}
+                        >
+                            {isExporting ? <DashboardLoader size={20} /> : "Export"}
+                        </MyButton>
                     </div>
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">Course Completed by batch</div>
-                            <div>{`${reportData?.percentage_course_completed} %`}</div>
+                            <div>{`${formatToTwoDecimalPlaces(
+                                reportData?.percentage_course_completed,
+                            )} %`}</div>
                         </div>
                         <div className="flex flex-col items-center justify-center">
                             <div className="text-h3 font-[600]">
@@ -439,7 +483,7 @@ export default function TimelineReports() {
                     </div>
                     <div className="flex flex-col gap-6">
                         <div className="text-h3 font-[600] text-primary-500">
-                            Concentration score of batch (Avg)
+                            Daily Learning Performance
                         </div>
                         <div className="flex h-[570px] w-full flex-row gap-6">
                             <LineChartComponent
@@ -460,6 +504,7 @@ export default function TimelineReports() {
                         </div>
                     </div>
                     <div className="flex flex-col gap-6">
+                        <div className="text-h3 font-[600] text-primary-500">Leaderboard</div>
                         <MyTable
                             data={leaderBoardData}
                             columns={leaderBoardColumns}

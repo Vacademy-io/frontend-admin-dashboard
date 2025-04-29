@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { Checkbox } from "@/components/ui/checkbox";
+import useIntroJsTour from "@/hooks/use-intro";
+import { IntroKey } from "@/constants/storage/introKey";
+import { inviteSteps } from "@/constants/intro/steps";
 
 interface CreateInviteDialogProps {
     initialValues?: InviteForm;
@@ -162,6 +165,11 @@ export const CreateInviteDialog = ({
         if (maxValue > len) setValue("batches.maxCourses", len);
     }, [watch("batches.learnerChoiceCourses").length]);
 
+    useIntroJsTour({
+        key: IntroKey.inviteFirstTimeVisit,
+        steps: inviteSteps,
+        enable: open,
+    });
     return (
         <MyDialog
             heading="Invite Students"
@@ -169,6 +177,7 @@ export const CreateInviteDialog = ({
             trigger={triggerButton}
             dialogWidth="w-[60vw]"
             open={open}
+            isTour={true}
             onOpenChange={onOpenChange}
         >
             <FormProvider {...form}>
@@ -191,9 +200,10 @@ export const CreateInviteDialog = ({
                                 control={control}
                                 name="inviteLink"
                                 render={({ field }) => (
-                                    <FormItem className="w-[80%]">
+                                    <FormItem className="w-4/5">
                                         <FormControl>
                                             <MyInput
+                                                id="invite-link-name"
                                                 label="Invite Link Name"
                                                 required={true}
                                                 inputType="text"
@@ -207,7 +217,7 @@ export const CreateInviteDialog = ({
                                 )}
                             />
 
-                            <div className="flex w-fit gap-2">
+                            <div className="flex w-fit gap-2" id="activate-link">
                                 <p className="text-subtitle font-semibold">Active Status</p>
                                 <FormField
                                     control={control}
@@ -227,14 +237,16 @@ export const CreateInviteDialog = ({
                         </div>
 
                         {/* Custom Fields Section */}
-                        <CustomFieldsSection
-                            toggleIsRequired={toggleIsRequired}
-                            handleAddOpenFieldValues={handleAddOpenFieldValues}
-                            handleDeleteOpenField={handleDeleteOpenField}
-                        />
+                        <div id="custom-fields">
+                            <CustomFieldsSection
+                                toggleIsRequired={toggleIsRequired}
+                                handleAddOpenFieldValues={handleAddOpenFieldValues}
+                                handleDeleteOpenField={handleDeleteOpenField}
+                            />
+                        </div>
 
                         {/* <CourseList /> */}
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-3" id="select-batch">
                             <p className="text-subtitle font-semibold">
                                 Batch Selection<span className="text-danger-600">*</span>
                             </p>
@@ -300,7 +312,7 @@ export const CreateInviteDialog = ({
                             />
                             <div className="ml-3">
                                 {courseSelectionMode === "institute" ? (
-                                    <div className="grid grid-cols-3 gap-x-1 gap-y-1 text-caption">
+                                    <div className="grid grid-cols-3 gap-1 text-caption">
                                         {instituteDetails?.batches_for_sessions.map((batch) => (
                                             <FormField
                                                 key={batch.id}
@@ -462,7 +474,7 @@ export const CreateInviteDialog = ({
                         </div>
 
                         {/* Student Expiry Date */}
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-6" id="student-access-duration">
                             <p className="text-subtitle font-semibold">Student expiry date</p>
                             <div className="flex items-center gap-2">
                                 <FormField
@@ -491,7 +503,7 @@ export const CreateInviteDialog = ({
 
                         {/* Invitee Email */}
                         {!isEditing && (
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-3" id="invitee-email">
                                 <div className="flex items-end justify-between gap-10">
                                     <FormField
                                         control={control}

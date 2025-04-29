@@ -30,15 +30,6 @@ import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtili
 import { TokenKey } from "@/constants/auth/tokens";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import ExportQuestionPaper from "./export-question-paper/ExportQuestionPaper";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export const QuestionPapersList = ({
     questionPaperList,

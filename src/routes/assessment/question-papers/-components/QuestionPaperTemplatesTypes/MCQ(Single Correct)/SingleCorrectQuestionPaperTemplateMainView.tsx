@@ -87,6 +87,26 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     </PopoverContent>
                 </Popover>
             </div>
+            {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
+                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                    <span>Comprehension Text</span>
+                    <FormField
+                        control={control}
+                        name={`questions.${currentQuestionIndex}.parentRichTextContent`}
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <MainViewQuillEditor
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
                     Question&nbsp;
@@ -116,7 +136,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option1?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -166,7 +186,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option2?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -218,7 +238,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option3.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option3?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -269,7 +289,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option4.isSelected ? "border border-primary-300 bg-primary-50" : ""
+                            option4?.isSelected ? "border border-primary-300 bg-primary-50" : ""
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">

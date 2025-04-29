@@ -43,16 +43,16 @@ function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
     const { settings, updateSettings } = useExportSettings();
 
     // Determine padding based on settings
-    const getPadding = () => {
-        switch (settings.pagePadding) {
-            case "low":
-                return "10mm";
-            case "high":
-                return "30mm";
-            default:
-                return "20mm"; // medium
-        }
-    };
+    // const getPadding = () => {
+    //     switch (settings.pagePadding) {
+    //         case "low":
+    //             return "10mm";
+    //         case "high":
+    //             return "30mm";
+    //         default:
+    //             return "20mm"; // medium
+    //     }
+    // };
 
     const handleLetterheadUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -74,7 +74,7 @@ function PreviewWithSettings({ questionPaperId }: { questionPaperId: string }) {
         });
     };
 
-    if(isLoading) return <DashboardLoader/>
+    if (isLoading) return <DashboardLoader />;
 
     return (
         <div className="min-h-screen w-full bg-slate-50/50" style={{ boxSizing: "border-box" }}>

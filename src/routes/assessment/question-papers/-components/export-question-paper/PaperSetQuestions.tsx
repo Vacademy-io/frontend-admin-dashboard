@@ -64,7 +64,7 @@ export function PaperSetQuestions({ questionPaperId, settings }: PaperSetProps) 
         setHeights(newHeights);
     }, [settings]);
 
-    const renderHeader = (isInstructionPage = false) => (
+    const renderHeader = () => (
         <div ref={initialHeaderRef} className="mb-6">
             {settings.showInstitutionLetterhead && (
                 <div className="mb-6 border-b pb-4 text-center">
@@ -156,7 +156,7 @@ export function PaperSetQuestions({ questionPaperId, settings }: PaperSetProps) 
 
         // First page with instructions if enabled
         if (settings.showFirstPageInstructions) {
-            pages.push(createPage([renderHeader(true)]));
+            pages.push(createPage([renderHeader()]));
             pageNumber++;
         }
 
@@ -165,7 +165,7 @@ export function PaperSetQuestions({ questionPaperId, settings }: PaperSetProps) 
 
         // Add header for first content page
         if (!settings.showFirstPageInstructions) {
-            currentContent.push(renderHeader(false));
+            currentContent.push(renderHeader());
             availableHeight -= heights.initialHeader;
         }
 
@@ -328,5 +328,5 @@ export function PaperSetQuestions({ questionPaperId, settings }: PaperSetProps) 
 
     if (isLoading) return <DashboardLoader />;
 
-    return <div className="space-y-4 fixed top-0 overflow-auto max-h-screen w-screen">{pages}</div>;
+    return <div className="fixed top-0 max-h-screen w-screen space-y-4 overflow-auto">{pages}</div>;
 }

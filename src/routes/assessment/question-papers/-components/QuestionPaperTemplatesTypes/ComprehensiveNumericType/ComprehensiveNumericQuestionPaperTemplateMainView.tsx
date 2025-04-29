@@ -26,7 +26,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`);
     useEffect(() => {
         if (validAnswers && validAnswers?.length > 1) setIsMultipleAnswersAllowed(true);
-    });
+    }, []);
     useEffect(() => {
         trigger(`questions.${currentQuestionIndex}.validAnswers`);
     }, [numericType, currentQuestionIndex, trigger]);
@@ -135,66 +135,32 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                             />
                             <CustomInput
                                 control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionMark`}
-                                label="Marks"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
-                                name={`questions.${currentQuestionIndex}.questionPenalty`}
-                                label="Negative Marking"
-                                required
-                            />
-                            <CustomInput
-                                control={form.control}
                                 name={`questions.${currentQuestionIndex}.decimals`}
                                 label="Decimal Precision"
                                 required
                             />
-                            <div className="flex flex-col gap-2">
-                                <h1 className="text-sm font-semibold">Time Limit</h1>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.hrs`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <CustomInput
-                                        control={form.control}
-                                        name={`questions.${currentQuestionIndex}.questionDuration.min`}
-                                        label=""
-                                        className="w-10"
-                                    />
-                                    <span>min</span>
-                                </div>
-                            </div>
                         </div>
                     </PopoverContent>
                 </Popover>
             </div>
-            {getValues(`questions.${currentQuestionIndex}.parentRichTextContent`) && (
-                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                    <span>Comprehension Text</span>
-                    <FormField
-                        control={control}
-                        name={`questions.${currentQuestionIndex}.parentRichTextContent`}
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormControl>
-                                    <CollapsibleQuillEditor
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-            )}
+            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                <span>Comprehension Text</span>
+                <FormField
+                    control={control}
+                    name={`questions.${currentQuestionIndex}.parentRichTextContent`}
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormControl>
+                                <CollapsibleQuillEditor
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>
                     Question&nbsp;

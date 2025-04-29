@@ -1,4 +1,4 @@
-import { SessionData } from "@/types/study-library/session-types";
+import { Package, SessionData } from "@/types/study-library/session-types";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -14,7 +14,6 @@ import { useRef, useState } from "react";
 import { AddSessionDataType } from "./session-operations/add-session/add-session-form";
 import { useEditSession } from "@/services/study-library/session-management/editSession";
 import { toast } from "sonner";
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface SessionCardProps {
     data: SessionData;
@@ -23,7 +22,6 @@ interface SessionCardProps {
 export function SessionCard({ data }: SessionCardProps) {
     const [disableAddButton, setDisableAddButton] = useState(true);
     const editSessionMutation = useEditSession();
-    const { getPackageSessionId } = useInstituteDetailsStore();
 
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const handleOpenAddSessionDialog = () => {
@@ -31,7 +29,6 @@ export function SessionCard({ data }: SessionCardProps) {
     };
 
     const handleEditSession = (sessionData: AddSessionDataType) => {
-        console.log("sessionData", sessionData);
         // Get all the selected package_session_ids from the form
         const allPackageSessionIds: string[] = [];
         data.packages.forEach((pkg) => {
@@ -39,16 +36,9 @@ export function SessionCard({ data }: SessionCardProps) {
                 allPackageSessionIds.push(level.package_session_id);
             });
         });
-        console.log("allPackageSessionIds", allPackageSessionIds);
 
         const visiblePackageSessionIds = sessionData.levels.map((level) => {
-            return (
-                getPackageSessionId({
-                    courseId: level.level_dto.package_id || "",
-                    sessionId: sessionData.id || "",
-                    levelId: level.level_dto.id || "",
-                }) || ""
-            );
+            return level.package_session_id;
         });
 
         const hiddenPackageSessionIds = allPackageSessionIds.filter((pksId) => {
@@ -57,11 +47,6 @@ export function SessionCard({ data }: SessionCardProps) {
 
         const commaSeparatedVisiblePackageSessionIds = visiblePackageSessionIds.join(",");
         const commaSeparatedHiddenPackageSessionIds = hiddenPackageSessionIds.join(",");
-        console.log(
-            "commaSeparatedVisiblePackageSessionIds",
-            commaSeparatedVisiblePackageSessionIds,
-        );
-        console.log("commaSeparatedHiddenPackageSessionIds", commaSeparatedHiddenPackageSessionIds);
 
         const requestData = {
             comma_separated_hidden_package_session_ids: commaSeparatedHiddenPackageSessionIds,
@@ -105,6 +90,14 @@ export function SessionCard({ data }: SessionCardProps) {
 
     const submitFn = (fn: () => void) => {
         formSubmitRef.current = fn;
+    };
+
+    const containsActiveLevels = (pkg: Package) => {
+        let containsActiveLevels = false;
+        pkg.level.forEach((level) => {
+            if (level.package_session_status == "ACTIVE") containsActiveLevels = true;
+        });
+        return containsActiveLevels;
     };
 
     return (
@@ -153,24 +146,29 @@ export function SessionCard({ data }: SessionCardProps) {
             </div>
             <div className="border-t"></div>
             <div className="grid grid-cols-4 gap-4">
-                {data?.packages.map((item, idx) => (
-                    <div key={idx}>
-                        <div className="text-base">{item?.package_dto.package_name}</div>
-                        <div>
-                            {item.level.map(
-                                (level, idx) =>
-                                    level.package_session_status == "ACTIVE" && (
-                                        <div key={idx} className="flex flex-row items-center gap-1">
-                                            <div className="size-2 rounded-full bg-neutral-300"></div>
-                                            <div className="text-sm">
-                                                {level.level_dto.level_name}
+                {data?.packages.map((item, idx) =>
+                    containsActiveLevels(item) ? (
+                        <div key={idx}>
+                            <div className="text-base">{item?.package_dto.package_name}</div>
+                            <div>
+                                {item.level.map(
+                                    (level, idx) =>
+                                        level.package_session_status == "ACTIVE" && (
+                                            <div
+                                                key={idx}
+                                                className="flex flex-row items-center gap-1"
+                                            >
+                                                <div className="size-2 rounded-full bg-neutral-300"></div>
+                                                <div className="text-sm">
+                                                    {level.level_dto.level_name}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ),
-                            )}
+                                        ),
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ) : null,
+                )}
             </div>
         </div>
     );

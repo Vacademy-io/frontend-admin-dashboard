@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
 import CustomInput from "@/components/design-system/custom-input";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
 import { addQuestionPaper, getQuestionPaperById } from "../-utils/question-paper-services";
@@ -54,6 +54,7 @@ export const QuestionPaperUpload = ({
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperUploadProps) => {
+    const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
 
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -149,6 +150,7 @@ export const QuestionPaperUpload = ({
             setIsMainQuestionPaperAddDialogOpen(false);
             setIsManualQuestionPaperDialogOpen(false);
             setIsUploadFromDeviceDialogOpen(false);
+            queryClient.invalidateQueries({ queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA"] });
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -156,8 +158,6 @@ export const QuestionPaperUpload = ({
     });
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        console.log("get questions ", getValues("questions"));
-        console.log("values ", values);
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
@@ -275,6 +275,7 @@ export const QuestionPaperUpload = ({
             fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
+
     return (
         <>
             <FormProvider {...form}>
