@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) => {
     const [open, setOpen] = useState(false);
@@ -52,6 +53,9 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
             answersType: "",
             explanationsType: "",
             fileUpload: undefined,
+            classess: [],
+            subjects: [],
+            tags: [],
             questions: [],
         },
     });
@@ -87,6 +91,9 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
             form.reset({
                 ...form.getValues(),
                 title: response?.title,
+                classess: response?.classes,
+                subjects: response?.subjects,
+                tags: response?.tags,
                 questions: transformQuestionsData,
             });
         },
@@ -100,6 +107,8 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
             taskId,
         });
     };
+
+    console.log("assessmentData", form.getValues());
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -123,15 +132,26 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
                     <FormProvider {...form}>
                         <form className="flex h-screen flex-col items-start">
                             <div className="flex w-full items-center justify-between bg-primary-100 p-2">
-                                <div className="flex items-center gap-2">
-                                    <img
-                                        src={instituteLogo}
-                                        alt="logo"
-                                        className="size-12 rounded-full"
-                                    />
-                                    <span className="text-lg font-semibold text-neutral-500">
-                                        {form.getValues("title")}
-                                    </span>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <img
+                                            src={instituteLogo}
+                                            alt="logo"
+                                            className="size-12 rounded-full"
+                                        />
+                                        <span className="text-lg font-semibold text-neutral-500">
+                                            {form.getValues("title")}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {form.getValues("tags")?.map((tag, idx) => {
+                                            return (
+                                                <Badge variant="outline" key={idx}>
+                                                    {tag}
+                                                </Badge>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <MyButton
