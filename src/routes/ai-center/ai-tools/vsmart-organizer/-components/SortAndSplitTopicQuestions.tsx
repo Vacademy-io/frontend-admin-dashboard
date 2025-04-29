@@ -70,7 +70,7 @@ const SortAndSplitTopicQuestions = () => {
         },
     });
 
-    const handleGenerateQuestionsForAssessment = (pdfId = uploadedFilePDFId) => {
+    const handleGenerateQuestionsForAssessment = (pdfId = uploadedFilePDFId, prompt = "") => {
         // Use pdfId in your mutation call
         generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: prompt, taskName });
     };
@@ -82,7 +82,7 @@ const SortAndSplitTopicQuestions = () => {
 
     useEffect(() => {
         if (uploadedFilePDFId) {
-            handleGenerateQuestionsForAssessment(uploadedFilePDFId);
+            handleGenerateQuestionsForAssessment(uploadedFilePDFId, prompt);
         }
     }, [uploadedFilePDFId]);
 
@@ -100,6 +100,7 @@ const SortAndSplitTopicQuestions = () => {
                 setTaskName={setTaskName}
                 prompt={prompt}
                 setPrompt={setPrompt}
+                handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
             />
         </>
     );

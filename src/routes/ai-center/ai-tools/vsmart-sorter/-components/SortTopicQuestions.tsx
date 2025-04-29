@@ -101,6 +101,7 @@ const SortTopicQuestions = () => {
                 setTaskName={setTaskName}
                 prompt={prompt}
                 setPrompt={setPrompt}
+                handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
             />
         </>
     );

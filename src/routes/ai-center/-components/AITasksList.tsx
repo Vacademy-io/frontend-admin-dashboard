@@ -16,13 +16,22 @@ import AIPlanLecturePreview from "./AIPlanLecturePreview";
 import AIEvaluatePreview from "./AIEvaluatePreview";
 import { ArrowCounterClockwise } from "phosphor-react";
 import { convertToLocalDateTime } from "@/constants/helper";
+import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
 
 const AITasksList = ({
     heading,
     enableDialog = false,
+    pollGenerateAssessment,
+    handleGenerateQuestionsForAssessment,
+    pollGenerateQuestionsFromText,
+    pollGenerateQuestionsFromAudio,
 }: {
     heading: string;
     enableDialog?: boolean;
+    pollGenerateAssessment?: (prompt?: string) => void;
+    handleGenerateQuestionsForAssessment?: (pdfId?: string, prompt?: string) => void;
+    pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
 }) => {
     const [open, setOpen] = useState(enableDialog);
 
@@ -137,7 +146,22 @@ const AITasksList = ({
                                                 heading !== "Vsmart Feedback" &&
                                                 (task.status === "COMPLETED" ||
                                                     task.status === "FAILED") && (
-                                                    <AIQuestionsPreview task={task} />
+                                                    <AIQuestionsPreview
+                                                        task={task}
+                                                        pollGenerateAssessment={
+                                                            pollGenerateAssessment
+                                                        }
+                                                        handleGenerateQuestionsForAssessment={
+                                                            handleGenerateQuestionsForAssessment
+                                                        }
+                                                        pollGenerateQuestionsFromText={
+                                                            pollGenerateQuestionsFromText
+                                                        }
+                                                        pollGenerateQuestionsFromAudio={
+                                                            pollGenerateQuestionsFromAudio
+                                                        }
+                                                        heading={heading}
+                                                    />
                                                 )}
                                         </div>
                                     </div>

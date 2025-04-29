@@ -127,7 +127,10 @@ export const GenerateQuestionsFromText = () => {
                             <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
                             {toolData.heading}
                         </div>
-                        <AITasksList heading={toolData.heading} />
+                        <AITasksList
+                            heading={toolData.heading}
+                            pollGenerateQuestionsFromText={pollGenerateQuestionsFromText}
+                        />
                     </div>
                     {GetImagesForAITools(toolData.key)}
                     <div className="flex flex-col gap-1">

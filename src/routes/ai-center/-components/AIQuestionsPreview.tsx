@@ -7,7 +7,7 @@ import {
 } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useMutation } from "@tanstack/react-query";
 import { handleGetQuestionsInvidualTask } from "../-services/ai-center-service";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
@@ -23,9 +23,41 @@ import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
 import { toast } from "sonner";
+import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
+import { handleGenerateAssessmentQuestions } from "../-services/ai-center-service";
+import { VsmartUpload } from "./regenerate-dialogs/VsmartUpload";
+interface AIQuestionsPreviewProps {
+    task: AITaskIndividualListInterface;
+    pollGenerateAssessment?: (prompt?: string) => void;
+    handleGenerateQuestionsForAssessment?: (pdfId?: string, prompt?: string) => void;
+    pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
+    heading: string;
+}
 
-const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+const AIQuestionsPreview = ({
+    task,
+    pollGenerateAssessment,
+    handleGenerateQuestionsForAssessment,
+    pollGenerateQuestionsFromText,
+    pollGenerateQuestionsFromAudio,
+    heading,
+}: AIQuestionsPreviewProps) => {
     const [open, setOpen] = useState(false);
+    const [openVsmartUpload, setOpenVsmartUpload] = useState(false);
+    const handleOpenVsmartUpload = (open: boolean) => {
+        setOpenVsmartUpload(open);
+    };
+
+    useEffect(() => {
+        console.log(
+            handleGenerateQuestionsForAssessment,
+            pollGenerateQuestionsFromText,
+            pollGenerateQuestionsFromAudio,
+            handleGenerateAssessmentQuestions,
+        );
+    }, [openVsmartUpload]);
+
     const { instituteLogo } = useInstituteLogoStore();
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: "",
@@ -101,158 +133,201 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
         });
     };
 
+    const handleGenerateClick = () => {
+        switch (heading) {
+            case "Vsmart Upload":
+                setOpenVsmartUpload(true);
+                break;
+            case "Vsmart Audio":
+                console.log("Vsmart Audio");
+                break;
+            case "Vsmart Topics":
+                console.log("Vsmart Topics");
+                break;
+            case "Vsmart Extract":
+                console.log("Vsmart Extract");
+                break;
+            case "Vsmart Image":
+                console.log("Vsmart Image");
+                break;
+            case "Vsmart Organizer":
+                console.log("Vsmart Organizer");
+                break;
+            case "Vsmart Sorter":
+                console.log("Vsmart Sorter");
+                break;
+            default:
+                console.log("Vsmart Upload");
+                break;
+        }
+    };
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger>
-                <MyButton
-                    type="button"
-                    scale="small"
-                    buttonType="secondary"
-                    className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
-                    onClick={() => handlViewQuestionsList(task.id)}
-                >
-                    {getQuestionsListMutation.status === "pending" ? (
-                        <DashboardLoader size={18} />
-                    ) : (
-                        "View"
-                    )}
-                </MyButton>
-            </DialogTrigger>
-            {assessmentData && assessmentData.questions && assessmentData.questions.length > 0 && (
-                <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
-                    <FormProvider {...form}>
-                        <form className="flex h-screen flex-col items-start">
-                            <div className="flex w-full items-center justify-between bg-primary-100 p-2">
-                                <div className="flex items-center gap-2">
-                                    <img
-                                        src={instituteLogo}
-                                        alt="logo"
-                                        className="size-12 rounded-full"
-                                    />
-                                    <span className="text-lg font-semibold text-neutral-500">
-                                        {form.getValues("title")}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <MyButton
-                                        type="button"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="mr-4 text-sm"
-                                        onClick={() => {
-                                            setOpen(false);
-                                        }}
-                                    >
-                                        Cancel
-                                    </MyButton>
-                                    <ExportQuestionPaperAI
-                                        responseQuestionsData={assessmentData?.questions}
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex w-full">
-                                <div className="mt-4 flex w-40 flex-col items-center justify-center gap-2">
-                                    <div className="flex h-[325vh] w-40 flex-col items-start justify-between gap-4 overflow-x-hidden overflow-y-scroll p-2">
-                                        <Sortable
-                                            value={fields}
-                                            onMove={({ activeIndex, overIndex }) =>
-                                                move(activeIndex, overIndex)
-                                            }
-                                        >
-                                            <div className="flex origin-top-left scale-[0.26] flex-col gap-8 overflow-x-hidden">
-                                                {fields.map((field, index) => {
-                                                    return (
-                                                        <SortableItem
-                                                            key={field.id}
-                                                            value={field.id}
-                                                            asChild
-                                                        >
-                                                            <div
-                                                                key={index}
-                                                                // onClick={() => handlePageClick(index)}
-                                                                className={`rounded-xl border-4 bg-primary-50 p-6 ${
-                                                                    currentQuestionIndex === index
-                                                                        ? "border-primary-500 bg-none"
-                                                                        : "bg-none"
-                                                                }`}
-                                                                onMouseEnter={() =>
-                                                                    handlePageClick(index)
-                                                                }
-                                                            >
-                                                                <div className="flex flex-col">
-                                                                    <div className="flex items-center justify-start gap-4">
-                                                                        <h1 className="left-0 w-96 whitespace-nowrap text-4xl font-bold">
-                                                                            {index + 1}
-                                                                            &nbsp;
-                                                                            {getPPTViewTitle(
-                                                                                getValues(
-                                                                                    `questions.${index}.questionType`,
-                                                                                ) as QuestionType,
-                                                                            )}
-                                                                        </h1>
-                                                                        <SortableDragHandle
-                                                                            variant="outline"
-                                                                            size="icon"
-                                                                            className="size-16"
-                                                                        >
-                                                                            <DotsSixVertical className="!size-12" />
-                                                                        </SortableDragHandle>
-                                                                    </div>
-                                                                    <PPTComponentFactory
+        <>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger>
+                    <MyButton
+                        type="button"
+                        scale="small"
+                        buttonType="secondary"
+                        className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
+                        onClick={() => handlViewQuestionsList(task.id)}
+                    >
+                        {getQuestionsListMutation.status === "pending" ? (
+                            <DashboardLoader size={18} />
+                        ) : (
+                            "View"
+                        )}
+                    </MyButton>
+                </DialogTrigger>
+                {assessmentData &&
+                    assessmentData.questions &&
+                    assessmentData.questions.length > 0 && (
+                        <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                            <FormProvider {...form}>
+                                <form className="flex h-screen flex-col items-start">
+                                    <div className="flex w-full items-center justify-between bg-primary-100 p-2">
+                                        <div className="flex items-center gap-2">
+                                            <img
+                                                src={instituteLogo}
+                                                alt="logo"
+                                                className="size-12 rounded-full"
+                                            />
+                                            <span className="text-lg font-semibold text-neutral-500">
+                                                {form.getValues("title")}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <MyButton onClick={handleGenerateClick} type="button">
+                                                Generate
+                                            </MyButton>
+                                            <MyButton
+                                                type="button"
+                                                scale="medium"
+                                                buttonType="secondary"
+                                                layoutVariant="default"
+                                                className="mr-4 text-sm"
+                                                onClick={() => {
+                                                    setOpen(false);
+                                                }}
+                                            >
+                                                Cancel
+                                            </MyButton>
+                                            <ExportQuestionPaperAI
+                                                responseQuestionsData={assessmentData?.questions}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex w-full">
+                                        <div className="mt-4 flex w-40 flex-col items-center justify-center gap-2">
+                                            <div className="flex h-[325vh] w-40 flex-col items-start justify-between gap-4 overflow-x-hidden overflow-y-scroll p-2">
+                                                <Sortable
+                                                    value={fields}
+                                                    onMove={({ activeIndex, overIndex }) =>
+                                                        move(activeIndex, overIndex)
+                                                    }
+                                                >
+                                                    <div className="flex origin-top-left scale-[0.26] flex-col gap-8 overflow-x-hidden">
+                                                        {fields.map((field, index) => {
+                                                            return (
+                                                                <SortableItem
+                                                                    key={field.id}
+                                                                    value={field.id}
+                                                                    asChild
+                                                                >
+                                                                    <div
                                                                         key={index}
-                                                                        type={
-                                                                            getValues(
-                                                                                `questions.${index}.questionType`,
-                                                                            ) as QuestionType
+                                                                        // onClick={() => handlePageClick(index)}
+                                                                        className={`rounded-xl border-4 bg-primary-50 p-6 ${
+                                                                            currentQuestionIndex ===
+                                                                            index
+                                                                                ? "border-primary-500 bg-none"
+                                                                                : "bg-none"
+                                                                        }`}
+                                                                        onMouseEnter={() =>
+                                                                            handlePageClick(index)
                                                                         }
-                                                                        props={{
-                                                                            form: form,
-                                                                            currentQuestionIndex:
-                                                                                index,
-                                                                            setCurrentQuestionIndex:
-                                                                                setCurrentQuestionIndex,
-                                                                            className:
-                                                                                "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
-                                                                        }}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </SortableItem>
-                                                    );
-                                                })}
+                                                                    >
+                                                                        <div className="flex flex-col">
+                                                                            <div className="flex items-center justify-start gap-4">
+                                                                                <h1 className="left-0 w-96 whitespace-nowrap text-4xl font-bold">
+                                                                                    {index + 1}
+                                                                                    &nbsp;
+                                                                                    {getPPTViewTitle(
+                                                                                        getValues(
+                                                                                            `questions.${index}.questionType`,
+                                                                                        ) as QuestionType,
+                                                                                    )}
+                                                                                </h1>
+                                                                                <SortableDragHandle
+                                                                                    variant="outline"
+                                                                                    size="icon"
+                                                                                    className="size-16"
+                                                                                >
+                                                                                    <DotsSixVertical className="!size-12" />
+                                                                                </SortableDragHandle>
+                                                                            </div>
+                                                                            <PPTComponentFactory
+                                                                                key={index}
+                                                                                type={
+                                                                                    getValues(
+                                                                                        `questions.${index}.questionType`,
+                                                                                    ) as QuestionType
+                                                                                }
+                                                                                props={{
+                                                                                    form: form,
+                                                                                    currentQuestionIndex:
+                                                                                        index,
+                                                                                    setCurrentQuestionIndex:
+                                                                                        setCurrentQuestionIndex,
+                                                                                    className:
+                                                                                        "relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4",
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </SortableItem>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </Sortable>
                                             </div>
-                                        </Sortable>
+                                        </div>
+                                        <Separator orientation="vertical" className="h-screen" />
+                                        {questions && questions.length === 0 ? (
+                                            <div className="flex h-screen w-screen items-center justify-center">
+                                                <h1>No Question Exists.</h1>
+                                            </div>
+                                        ) : (
+                                            <MainViewComponentFactory
+                                                key={currentQuestionIndex}
+                                                type={
+                                                    getValues(
+                                                        `questions.${currentQuestionIndex}.questionType`,
+                                                    ) as QuestionType
+                                                }
+                                                props={{
+                                                    form: form,
+                                                    currentQuestionIndex: currentQuestionIndex,
+                                                    setCurrentQuestionIndex:
+                                                        setCurrentQuestionIndex,
+                                                    className:
+                                                        "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
+                                                }}
+                                            />
+                                        )}
                                     </div>
-                                </div>
-                                <Separator orientation="vertical" className="h-screen" />
-                                {questions && questions.length === 0 ? (
-                                    <div className="flex h-screen w-screen items-center justify-center">
-                                        <h1>No Question Exists.</h1>
-                                    </div>
-                                ) : (
-                                    <MainViewComponentFactory
-                                        key={currentQuestionIndex}
-                                        type={
-                                            getValues(
-                                                `questions.${currentQuestionIndex}.questionType`,
-                                            ) as QuestionType
-                                        }
-                                        props={{
-                                            form: form,
-                                            currentQuestionIndex: currentQuestionIndex,
-                                            setCurrentQuestionIndex: setCurrentQuestionIndex,
-                                            className:
-                                                "dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4",
-                                        }}
-                                    />
-                                )}
-                            </div>
-                        </form>
-                    </FormProvider>
-                </DialogContent>
-            )}
-        </Dialog>
+                                </form>
+                            </FormProvider>
+                        </DialogContent>
+                    )}
+            </Dialog>
+            <VsmartUpload
+                open={openVsmartUpload}
+                handleOpen={handleOpenVsmartUpload}
+                pollGenerateAssessment={pollGenerateAssessment}
+            />
+        </>
     );
 };
 

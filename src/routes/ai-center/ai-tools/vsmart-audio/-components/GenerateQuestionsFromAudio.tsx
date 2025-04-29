@@ -9,6 +9,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 import GenerateQuestionsFromAudioForm from "./GenerateQuestionsFromAudioForm";
+import { QuestionsFromTextData } from "@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
 
 export const GenerateQuestionsFromAudio = () => {
     const [audioId, setAudioId] = useState("");
@@ -82,7 +83,18 @@ export const GenerateQuestionsFromAudio = () => {
         },
     });
 
-    const pollGenerateQuestionsFromAudio = (
+    const pollGenerateQuestionsFromAudio = (data: QuestionsFromTextData) => {
+        getQuestionsFromAudioMutation.mutate({
+            audioId,
+            numQuestions: data.num.toString(),
+            prompt: data.text,
+            difficulty: data.class_level,
+            language: data.question_language,
+            taskName: data.taskName,
+        });
+    };
+
+    const handleCallApi = (
         audioId: string,
         numQuestions: string,
         prompt: string,
@@ -118,12 +130,10 @@ export const GenerateQuestionsFromAudio = () => {
                 keyProp="audio"
                 taskName={taskName}
                 setTaskName={setTaskName}
+                pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
             />
             {audioId !== "" && (
-                <GenerateQuestionsFromAudioForm
-                    audioId={audioId}
-                    handleCallApi={pollGenerateQuestionsFromAudio}
-                />
+                <GenerateQuestionsFromAudioForm audioId={audioId} handleCallApi={handleCallApi} />
             )}
         </>
     );

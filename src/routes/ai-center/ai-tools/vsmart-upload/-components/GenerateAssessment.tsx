@@ -83,10 +83,10 @@ const GenerateAIAssessmentComponent = () => {
         },
     });
 
-    const pollGenerateAssessment = () => {
+    const pollGenerateAssessment = (prompt?: string) => {
         generateAssessmentMutation.mutate({
             pdfId: uploadedFilePDFId,
-            userPrompt: "",
+            userPrompt: prompt || "",
             taskName,
         });
     };
@@ -126,6 +126,7 @@ const GenerateAIAssessmentComponent = () => {
                 keyProp="assessment"
                 taskName={taskName}
                 setTaskName={setTaskName}
+                pollGenerateAssessment={pollGenerateAssessment}
             />
             <GenerateAssessmentDialog
                 open={openAssessmentDialog}

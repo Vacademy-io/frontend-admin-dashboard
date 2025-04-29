@@ -68,10 +68,10 @@ const GenerateAiQuestionPaperComponent = () => {
         },
     });
 
-    const pollGenerateAssessment = (pdfId: string) => {
+    const pollGenerateAssessment = (pdfId?: string, prompt?: string) => {
         generateAssessmentMutation.mutate({
-            pdfId: pdfId,
-            userPrompt: "",
+            pdfId: pdfId || "",
+            userPrompt: prompt || "",
             taskName,
         });
     };
@@ -94,6 +94,7 @@ const GenerateAiQuestionPaperComponent = () => {
                 keyProp="question"
                 taskName={taskName}
                 setTaskName={setTaskName}
+                pollGenerateAssessment={pollGenerateAssessment}
             />
         </>
     );
