@@ -15,7 +15,7 @@ export const Route = createFileRoute("/evaluator-ai/students/")({
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     useEffect(() => {
-        setNavHeading(<h1 className="text-lg">Attempts List</h1>);
+        setNavHeading(<h1 className="text-lg">Students List</h1>);
     }, []);
     return (
         <main className="flex min-h-screen scroll-mt-10 flex-col">

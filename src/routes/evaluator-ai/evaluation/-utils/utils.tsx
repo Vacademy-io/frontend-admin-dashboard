@@ -61,6 +61,8 @@ export interface Student {
     name: string;
     enrollmentId: string;
     assessment: string | null;
+    assessmentId: string;
+    responseId: string;
     status: "EXTRACTING_ANSWER" | "EVALUATING" | "EVALUATION_COMPLETED" | "WAITING";
     marks: string | null;
     extracted: SectionWiseAnsExtracted[];
@@ -76,7 +78,10 @@ export function parseEvaluationResults(data: ApiResponse): EvaluationData[] {
     }
 }
 
-export function transformEvaluationData(pasrsedData: EvaluationData[]): Student[] {
+export function transformEvaluationData(
+    pasrsedData: EvaluationData[],
+    assessmentId: string,
+): Student[] {
     if (!pasrsedData) return [];
 
     return pasrsedData.map((result, index) => {
@@ -85,6 +90,8 @@ export function transformEvaluationData(pasrsedData: EvaluationData[]): Student[
             name: result.name || "Unknown Student",
             enrollmentId: result.user_id || `enroll-${index + 1}`,
             assessment: "Section 1",
+            responseId: result.response_id,
+            assessmentId: assessmentId,
             status: result.status,
             summary: result,
             extracted: result.section_wise_ans_extracted,

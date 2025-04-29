@@ -41,6 +41,7 @@ import {
 import { useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { GET_PUBLIC_URL_PUBLIC } from "@/constants/urls";
+import { FilePlus } from "phosphor-react";
 
 // Helper functions for API calls using axios directly
 export const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
@@ -523,8 +524,8 @@ export function StudentEnrollment() {
                             <div className="flex flex-col items-start gap-2">
                                 <Label htmlFor="file">
                                     {isEditMode && pdfId
-                                        ? "Replace Response (Optional)"
-                                        : "Upload Response"}
+                                        ? "Replace Response (optional)"
+                                        : "Upload Response (optional)"}
                                 </Label>
                                 <div className="w-full space-y-2">
                                     {isEditMode && pdfId && (
@@ -567,7 +568,7 @@ export function StudentEnrollment() {
                                         ? "pointer-events-none opacity-50"
                                         : "cursor-pointer",
                                 )}
-                                disabled={!name && !enrollId && !pdfId}
+                                disabled={!name && !enrollId}
                             >
                                 {isEditMode ? "Update" : "Enroll"}
                             </MyButton>
@@ -680,7 +681,7 @@ export function StudentEnrollment() {
                                                 {student.name}
                                             </TableCell>
                                             <TableCell>{student.enrollId}</TableCell>
-                                            <TableCell>
+                                            <TableCell className="flex items-center gap-x-2">
                                                 <DropdownMenu
                                                     open={attemptDropdownOpen[index]}
                                                     onOpenChange={(open) =>
@@ -700,6 +701,10 @@ export function StudentEnrollment() {
                                                             <ChevronDown className="size-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
+                                                    <FilePlus
+                                                        className="size-6 cursor-pointer hover:text-primary-500"
+                                                        onClick={() => openAddAttemptDialog(index)}
+                                                    />
                                                     <DropdownMenuContent
                                                         align="start"
                                                         className="w-56"

@@ -360,7 +360,11 @@ export default function EvaluationSummary() {
                                         <td
                                             className="border border-[#e6e3d8] p-2"
                                             dangerouslySetInnerHTML={{
-                                                __html: question.question_text || "",
+                                                __html:
+                                                    question.question_text.replace(
+                                                        /^\[\[(.*)\]\]$/s,
+                                                        "$1",
+                                                    ) ?? "",
                                             }}
                                         />
                                         <td className="border border-[#e6e3d8] p-2">
@@ -394,17 +398,17 @@ export default function EvaluationSummary() {
                                                                     className="text-primary-500 underline"
                                                                     onClick={() => {
                                                                         setPreviewText({
-                                                                            first: question.question_text
-                                                                                .replace(
-                                                                                    /<[^>]+>/g,
-                                                                                    "",
-                                                                                )
-                                                                                .trim(),
-                                                                            second:
-                                                                                plainText.replace(
-                                                                                    /^\[\[(.*)\]\]$/s,
-                                                                                    "$1",
-                                                                                ) ?? "",
+                                                                            first:
+                                                                                question.question_text
+                                                                                    .replace(
+                                                                                        /<[^>]+>/g,
+                                                                                        "",
+                                                                                    )
+                                                                                    .replace(
+                                                                                        /^\[\[(.*)\]\]$/s,
+                                                                                        "$1",
+                                                                                    ) ?? "".trim(),
+                                                                            second: answerHtml,
                                                                         });
                                                                         setOpenPreview(true);
                                                                     }}
@@ -446,7 +450,7 @@ export default function EvaluationSummary() {
                         heading="View Question"
                         dialogWidth="min-w-fit"
                     >
-                        <div className="space-y-4">
+                        <div className="space-y-4 p-5">
                             <p>
                                 <strong>Question </strong>
                                 <br />
@@ -456,7 +460,12 @@ export default function EvaluationSummary() {
                             <p>
                                 <strong>Extracted Answer </strong>
                                 <br />
-                                {previewText.second}
+                                <div
+                                    className="list-item"
+                                    dangerouslySetInnerHTML={{
+                                        __html: previewText.second,
+                                    }}
+                                />
                             </p>
                         </div>
                     </MyDialog>

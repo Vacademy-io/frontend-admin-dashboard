@@ -167,7 +167,10 @@ export const EvaluatedStudents = () => {
                         if (statusResponse.data.response) {
                             try {
                                 const parsedData = parseEvaluationResults(statusResponse.data);
-                                const students = transformEvaluationData(parsedData);
+                                const students = transformEvaluationData(
+                                    parsedData,
+                                    selectedAssessment,
+                                );
 
                                 console.log("students data", students);
                                 // Update partial results
@@ -204,7 +207,10 @@ export const EvaluatedStudents = () => {
 
                             if (statusResponse.data.status === "COMPLETED") {
                                 const parsedResults = parseEvaluationResults(statusResponse.data);
-                                const students = transformEvaluationData(parsedResults);
+                                const students = transformEvaluationData(
+                                    parsedResults,
+                                    selectedAssessment,
+                                );
                                 console.log("completed", students);
                                 localStorage.setItem(
                                     "evaluatedStudentData",
@@ -213,7 +219,9 @@ export const EvaluatedStudents = () => {
                                 setEvaluatedData(students);
                                 toast.success(`Successfully evaluated ${students.length} students`);
                             } else {
-                                toast.error(`Evaluation failed for ${selectedAssessment}`);
+                                if (statusResponse.data.response.includes("File Still Processing"))
+                                    toast.error(`File is processing please try again`);
+                                else toast.error(`Evaluation failed for ${selectedAssessment}`);
                             }
                         }
                     } catch (error) {
@@ -279,7 +287,11 @@ export const EvaluatedStudents = () => {
             {/* Show table when we have data (either partial or complete) */}
             {(hasInitialData || displayData.length > 0) && (
                 <div className="w-full">
-                    <StudentEvaluationTable data={displayData} isProcessing={isPolling} />
+                    <StudentEvaluationTable
+                        data={displayData}
+                        isProcessing={isPolling}
+                        handleStudentSubmit={handleStudentSubmit}
+                    />
                 </div>
             )}
 

@@ -24,6 +24,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import axios from "axios";
+import { MyButton } from "@/components/design-system/button";
 
 // Default token for authorization
 const DEFAULT_ACCESS_TOKEN =
@@ -59,6 +60,7 @@ export default function StudentEvaluationTable({
     const [loadingPdf, setLoadingPdf] = useState<Record<string, boolean>>({});
     const [openPreview, setOpenPreview] = useState(false);
     const [extracted, setExtracted] = useState<SectionWiseAnsExtracted[]>([]);
+    const [openConfirmRevaluate, setOpenConfirmRevaluate] = useState(false);
     const [previewStudent, setPreviewStudent] = useState<string | null>(null);
 
     // Load enrolled students from localStorage
@@ -148,8 +150,9 @@ export default function StudentEvaluationTable({
                                                 <span>Preview</span>
                                             </div>
                                         ) : (
-                                            <span className="text-muted-foreground">
-                                                No submission
+                                            //TODO: revert this to no submission handling after demo
+                                            <span className="cursor-pointer text-primary-500 hover:underline">
+                                                Preview
                                             </span>
                                         )}
                                     </TableCell>
@@ -180,7 +183,7 @@ export default function StudentEvaluationTable({
                                     </TableCell>
                                     <TableCell className="flex items-center gap-x-2">
                                         <StatusIndicator status={student.status} />
-                                        {student.status !== "EXTRACTING_ANSWER" &&
+                                        {student.status === "EVALUATING" &&
                                             !isNullOrEmptyOrUndefined(student.extracted) && (
                                                 <ExternalLink
                                                     className="cursor-pointer"
@@ -191,6 +194,20 @@ export default function StudentEvaluationTable({
                                                     }}
                                                 />
                                             )}
+                                        {/* {student.status === "EVALUATION_COMPLETED" && (
+                                            <RefreshCcwDot
+                                                onClick={() => {
+                                                    setOpenConfirmRevaluate(true);
+                                                    setRevaluateStudent({
+                                                        assessmentId: student.assessmentId,
+                                                        responseId: student.responseId,
+                                                        name: student.name,
+                                                        id: student.id,
+                                                    });
+                                                }}
+                                                className="cursor-pointer"
+                                            />
+                                        )} */}
                                     </TableCell>
                                 </TableRow>
                             );
@@ -236,7 +253,6 @@ export default function StudentEvaluationTable({
                                         </AccordionTrigger>
                                         <AccordionContent className="mb-2 mt-1 rounded-md bg-gray-50 px-4 py-3">
                                             <div
-                                                className="prose prose-sm max-w-none"
                                                 dangerouslySetInnerHTML={{
                                                     __html:
                                                         question.answer_html?.replace(
@@ -249,6 +265,27 @@ export default function StudentEvaluationTable({
                                     </AccordionItem>
                                 ))}
                         </Accordion>
+                    </div>
+                </MyDialog>
+                <MyDialog
+                    open={openConfirmRevaluate}
+                    onOpenChange={() => setOpenConfirmRevaluate(false)}
+                    heading="Confirm Re-evaluation"
+                    dialogWidth="w-[400px]"
+                >
+                    <div className="mt-4">
+                        <p className="text-muted-foreground">
+                            Are you sure you want to re-evaluate this student?
+                        </p>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <MyButton
+                            onClick={() => {
+                                setOpenConfirmRevaluate(false);
+                            }}
+                        >
+                            Go ahead
+                        </MyButton>
                     </div>
                 </MyDialog>
             </div>

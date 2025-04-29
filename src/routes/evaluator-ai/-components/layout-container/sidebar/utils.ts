@@ -4,7 +4,7 @@ import { SidebarItemsType } from "@/types/layout-container/layout-container-type
 export const SidebarItemsData: SidebarItemsType[] = [
     {
         icon: Users,
-        title: "Attempts List",
+        title: "Students List",
         id: "student-mangement",
         to: "/evaluator-ai/students",
     },
