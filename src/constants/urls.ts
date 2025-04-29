@@ -72,6 +72,7 @@ export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
 export const GET_SIGNED_URL_PUBLIC = `${BASE_URL}/media-service/public/get-signed-url`;
 export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
 export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
+export const GET_PUBLIC_URL_PUBLIC = `${BASE_URL}/media-service/public/get-public-url`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 
@@ -176,6 +177,15 @@ export const SHARE_CREDENTIALS = `${BASE_URL}/auth-service/v1/user-operation/sen
 export const CHAT_WITH_PDF_AI_URL = `${BASE_URL}/media-service/ai/chat-with-pdf/get-response`;
 export const PROCESS_AUDIO_FILE = `${BASE_URL}/media-service/ai/get-question-audio/audio-parser/start-process-audio-file-id`;
 export const GET_QUESTIONS_FROM_AUDIO = `${BASE_URL}/media-service/ai/get-question-audio/audio-parser/audio-to-questions`;
+
+// Evaluation AI Free tool
+export const CREATE_ASSESSMENT_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment/create`;
+export const ADD_QUESTIONS_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment/sections`;
+export const GET_ASSESSMENT_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment`;
+
+export const EVALUATION_TOOL_EVALUATE_ASSESSMENT = `${BASE_URL}/media-service/ai/evaluation-tool/evaluate-assessment`;
+export const EVALUATION_TOOL_STATUS = `${BASE_URL}/media-service/ai/evaluation-tool/status`;
+export const EVALUATION_TOOL_GET_QUESTION = `${BASE_URL}/assessment-service/evaluation-tool/assessment`;
 export const GET_QUESTIONS_FROM_TEXT = `${BASE_URL}/media-service/ai/get-question-pdf/from-text`;
 export const GET_LECTURE_PLAN_URL = `${BASE_URL}/media-service/ai/lecture/generate-plan`;
 export const GET_LECTURE_PLAN_PREVIEW_URL = `${BASE_URL}/media-service/task-status/get/lecture-plan`;
