@@ -17,7 +17,9 @@ interface CustomTableMeta {
 }
 
 const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
-    const { setSelectedStudent } = useStudentSidebar();
+    const { setSelectedStudent, selectedStudent } = useStudentSidebar();
+
+
 
     return (
         <SidebarTrigger

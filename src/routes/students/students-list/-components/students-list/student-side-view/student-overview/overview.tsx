@@ -1,5 +1,6 @@
 import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 import { StudentTable } from "@/types/student-table-types";
+import { useEffect } from "react";
 
 export interface OverviewDetailsType {
     heading: string;
@@ -16,6 +17,7 @@ export const OverViewData = ({
     password: string;
 }) => {
     if (selectedStudent == null) return null;
+
 
     const OverviewDetails: OverviewDetailsType[] = [
         {

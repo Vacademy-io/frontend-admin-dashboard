@@ -16,16 +16,18 @@ import { StudentTestRecord } from "./student-test-records/student-test-record";
 import { getPublicUrl } from "@/services/upload_file";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { StudentTable } from "@/types/student-table-types";
-import { useStudentSidebar } from "../../../-context/selected-student-sidebar-context";
 
 export const StudentSidebar = ({
     selectedTab,
     examType,
     isStudentList,
+    isSubmissionTab,
+    selectedStudent,
 }: {
     selectedTab?: string;
     examType?: string;
     isStudentList?: boolean;
+    isSubmissionTab?: boolean;
     selectedStudent: StudentTable | null;
 }) => {
     const { state } = useSidebar();
@@ -34,7 +36,6 @@ export const StudentSidebar = ({
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [faceLoader, setFaceLoader] = useState(false);
 
-    const { selectedStudent } = useStudentSidebar();
 
     useEffect(() => {
         if (state == "expanded") {
@@ -154,8 +155,8 @@ export const StudentSidebar = ({
                         </div>
                     </SidebarMenuItem>
 
-                    {category == "overview" && <StudentOverview />}
-                    {category == "learningProgress" && <StudentLearningProgress />}
+                    {category == "overview" && <StudentOverview isSubmissionTab={isSubmissionTab} />}
+                    {category == "learningProgress" && <StudentLearningProgress isSubmissionTab={isSubmissionTab}/>}
                     {category == "testRecord" && (
                         <StudentTestRecord
                             selectedTab={selectedTab}
