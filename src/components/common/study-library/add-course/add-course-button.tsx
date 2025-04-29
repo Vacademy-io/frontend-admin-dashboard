@@ -62,9 +62,9 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
     );
 
     useIntroJsTour({
-        key: StudyLibraryIntroKey.createCourseStep,
+        key: StudyLibraryIntroKey.addCourseStep,
         steps: addCourseStep,
-        delay: 1000,
+        enable: openDialog,
     });
 
     return (
@@ -75,6 +75,7 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
             open={openDialog}
             onOpenChange={handleOpenChange}
             footer={submitButton}
+            isTour
         >
             <AddCourseForm
                 onSubmitCourse={onSubmit}

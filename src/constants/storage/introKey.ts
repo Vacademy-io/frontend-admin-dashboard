@@ -12,6 +12,7 @@ export enum IntroKey {
 
 export enum StudyLibraryIntroKey {
     createCourseStep = "createCourseStep",
+    addCourseStep = "addCourseStep",
     assignYearStep = "assignYearStep",
     addSubjectStep = "addSubjectStep",
     addModulesStep = "addModulesStep",

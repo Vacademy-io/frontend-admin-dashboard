@@ -298,15 +298,15 @@ const addCourseStep: Step[] = [
         position: "right",
     },
     {
-        element: "#add-course-session",
-        title: "Add Session",
-        intro: "Create sessions linked to the course, specifying a time period such as 2024-2025.",
-        position: "right",
-    },
-    {
         element: "#add-course-level",
         title: "Add Level",
         intro: "Create levels linked to your course, structured by difficulty tiers such as the 10th standard.",
+        position: "right",
+    },
+    {
+        element: "#add-course-session",
+        title: "Add Session",
+        intro: "Create sessions linked to the course, specifying a time period such as 2024-2025.",
         position: "right",
     },
     {
