@@ -16,6 +16,7 @@ import {
     HTML_TO_QUESTIONS_FROM_FILE_AI_URL,
     LIST_INDIVIDUAL_AI_TASKS_URL,
     PROCESS_AUDIO_FILE,
+    RETRY_AI_URL,
     SORT_QUESTIONS_FILE_AI_URL,
     SORT_SPLIT_FILE_AI_URL,
     START_PROCESSING_FILE_AI_URL,
@@ -42,6 +43,17 @@ export const handleGetListIndividualTopics = async (taskType: string) => {
         params: {
             instituteId,
             taskType,
+        },
+    });
+    return response?.data;
+};
+
+export const handleRetryAITask = async (taskId: string) => {
+    const response = await axios({
+        method: "POST",
+        url: RETRY_AI_URL,
+        params: {
+            taskId,
         },
     });
     return response?.data;

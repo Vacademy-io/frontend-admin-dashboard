@@ -30,6 +30,8 @@ export const transformQuestionsToGenerateAssessmentAI = (
             questionType: item.question_type,
             questionMark: "0",
             questionPenalty: "0",
+            tags: item.tags || [],
+            level: item.level || "",
             questionDuration: {
                 hrs: String(Math.floor((item.default_question_time_mins ?? 0) / 60)), // Extract hours
                 min: String((item.default_question_time_mins ?? 0) % 60), // Extract remaining minutes

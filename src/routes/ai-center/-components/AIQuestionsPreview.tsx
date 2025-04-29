@@ -5,8 +5,8 @@ import {
     AIAssessmentResponseInterface,
     AITaskIndividualListInterface,
 } from "@/types/ai/generate-assessment/generate-complete-assessment";
-import { useMutation } from "@tanstack/react-query";
-import { handleGetQuestionsInvidualTask } from "../-services/ai-center-service";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleGetQuestionsInvidualTask, handleRetryAITask } from "../-services/ai-center-service";
 import { useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,8 +23,10 @@ import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+    const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
@@ -52,6 +54,9 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
             answersType: "",
             explanationsType: "",
             fileUpload: undefined,
+            classess: [],
+            subjects: [],
+            tags: [],
             questions: [],
         },
     });
@@ -87,6 +92,9 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
             form.reset({
                 ...form.getValues(),
                 title: response?.title,
+                classess: response?.classes,
+                subjects: response?.subjects,
+                tags: response?.tags,
                 questions: transformQuestionsData,
             });
         },
@@ -101,37 +109,98 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
         });
     };
 
+    const getRetryMutation = useMutation({
+        mutationFn: async ({ taskId }: { taskId: string }) => {
+            return handleRetryAITask(taskId);
+        },
+        onSuccess: (response) => {
+            if (!response.questions) {
+                toast.success("No data exists!");
+                return;
+            }
+            setAssessmentData(response);
+            const transformQuestionsData = transformQuestionsToGenerateAssessmentAI(
+                response.questions,
+            );
+            form.reset({
+                ...form.getValues(),
+                title: response?.title,
+                classess: response?.classes,
+                subjects: response?.subjects,
+                tags: response?.tags,
+                questions: transformQuestionsData,
+            });
+            queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
+        },
+        onError: (error: unknown) => {
+            console.log(error);
+        },
+    });
+
+    const handleRetryTask = (taskId: string) => {
+        getRetryMutation.mutate({
+            taskId,
+        });
+    };
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger>
-                <MyButton
-                    type="button"
-                    scale="small"
-                    buttonType="secondary"
-                    className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
-                    onClick={() => handlViewQuestionsList(task.id)}
-                >
-                    {getQuestionsListMutation.status === "pending" ? (
-                        <DashboardLoader size={18} />
-                    ) : (
-                        "View"
-                    )}
-                </MyButton>
+                {task.status === "FAILED" ? (
+                    <MyButton
+                        type="button"
+                        scale="small"
+                        buttonType="secondary"
+                        className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
+                        onClick={() => handleRetryTask(task.id)}
+                    >
+                        {getRetryMutation.status === "pending" ? (
+                            <DashboardLoader size={18} />
+                        ) : (
+                            "Retry"
+                        )}
+                    </MyButton>
+                ) : (
+                    <MyButton
+                        type="button"
+                        scale="small"
+                        buttonType="secondary"
+                        className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
+                        onClick={() => handlViewQuestionsList(task.id)}
+                    >
+                        {getQuestionsListMutation.status === "pending" ? (
+                            <DashboardLoader size={18} />
+                        ) : (
+                            "View"
+                        )}
+                    </MyButton>
+                )}
             </DialogTrigger>
             {assessmentData && assessmentData.questions && assessmentData.questions.length > 0 && (
                 <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
                     <FormProvider {...form}>
                         <form className="flex h-screen flex-col items-start">
                             <div className="flex w-full items-center justify-between bg-primary-100 p-2">
-                                <div className="flex items-center gap-2">
-                                    <img
-                                        src={instituteLogo}
-                                        alt="logo"
-                                        className="size-12 rounded-full"
-                                    />
-                                    <span className="text-lg font-semibold text-neutral-500">
-                                        {form.getValues("title")}
-                                    </span>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <img
+                                            src={instituteLogo}
+                                            alt="logo"
+                                            className="size-12 rounded-full"
+                                        />
+                                        <span className="text-lg font-semibold text-neutral-500">
+                                            {form.getValues("title")}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {form.getValues("tags")?.map((tag, idx) => {
+                                            return (
+                                                <Badge variant="outline" key={idx}>
+                                                    {tag}
+                                                </Badge>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <MyButton

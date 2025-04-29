@@ -10,6 +10,7 @@ import { MainViewQuillEditor } from "@/components/quill/MainViewQuillEditor";
 import { QuestionPaperTemplateFormProps } from "../../../-utils/question-paper-template-form";
 import { formatStructure } from "../../../-utils/helper";
 import { QUESTION_TYPES } from "@/constants/dummy-data";
+import { Badge } from "@/components/ui/badge";
 
 export const MultipleCorrectQuestionPaperTemplateMainView = ({
     form,
@@ -27,6 +28,8 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
     const option2 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${1}`);
     const option3 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${2}`);
     const option4 = getValues(`questions.${currentQuestionIndex}.multipleChoiceOptions.${3}`);
+    const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
 
     if (allQuestions.length === 0) {
         return (
@@ -90,12 +93,15 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                 </div>
             )}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>
-                    Question&nbsp;
-                    {questionsType
-                        ? formatStructure(questionsType, currentQuestionIndex + 1)
-                        : currentQuestionIndex + 1}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span>
+                        Question&nbsp;
+                        {questionsType
+                            ? formatStructure(questionsType, currentQuestionIndex + 1)
+                            : currentQuestionIndex + 1}
+                    </span>
+                    <Badge variant="outline">{level}</Badge>
+                </div>
                 <FormField
                     control={control}
                     name={`questions.${currentQuestionIndex}.questionName`}
@@ -111,6 +117,15 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                         </FormItem>
                     )}
                 />
+                <div className="mt-2 flex items-center gap-2">
+                    {tags?.map((tag, idx) => {
+                        return (
+                            <Badge variant="outline" key={idx}>
+                                {tag}
+                            </Badge>
+                        );
+                    })}
+                </div>
             </div>
             <div className="flex w-full grow flex-col gap-4">
                 <span className="-mb-3">{answersType}</span>
