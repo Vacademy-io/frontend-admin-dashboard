@@ -30,7 +30,11 @@ interface GenerateCardProps {
     prompt?: string;
     setPrompt?: React.Dispatch<React.SetStateAction<string>>;
     pollGenerateAssessment?: (prompt?: string) => void;
-    handleGenerateQuestionsForAssessment?: (pdfId?: string, prompt?: string) => void;
+    handleGenerateQuestionsForAssessment?: (
+        pdfId?: string,
+        prompt?: string,
+        taskName?: string,
+    ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
 }

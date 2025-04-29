@@ -1,13 +1,12 @@
 import { getInstituteId } from "@/constants/helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useEffect, useRef, useState } from "react";
-import { handleGenerateAssessmentQuestions } from "@/routes/ai-center/-services/ai-center-service";
+import { handleGenerateAssessmentImage } from "@/routes/ai-center/-services/ai-center-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
 import { jsPDF } from "jspdf";
-import { saveAs } from "file-saver";
 
 interface ConvertImageToPDFResult {
     pdfFile: File;
@@ -54,9 +53,6 @@ const convertImageToPDF = async (file: File): Promise<ConvertImageToPDFResult> =
                             type: "application/pdf",
                         },
                     );
-
-                    // Download the PDF file
-                    saveAs(pdfBlob, pdfFile.name);
 
                     resolve({ pdfFile, pdfBlob });
                 };
@@ -125,7 +121,7 @@ const GenerateAiQuestionFromImageComponent = () => {
         }) => {
             setLoader(true);
             setKey("image");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
+            return handleGenerateAssessmentImage(pdfId, userPrompt, taskName);
         },
         onSuccess: () => {
             setLoader(false);

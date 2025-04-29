@@ -15,14 +15,14 @@ const formSchema = z.object({
     question_language: z.string().min(1),
 });
 
-export const VsmartAudio = ({
+export const VsmartPrompt = ({
     open,
     handleOpen,
-    pollGenerateQuestionsFromAudio,
+    pollGenerateQuestionsFromText,
 }: {
     open: boolean;
     handleOpen: (open: boolean) => void;
-    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
 }) => {
     const {
         register,
@@ -33,7 +33,7 @@ export const VsmartAudio = ({
     });
 
     const onSubmit = (data: QuestionsFromTextData) => {
-        pollGenerateQuestionsFromAudio?.(data);
+        pollGenerateQuestionsFromText?.(data);
         handleOpen(false);
     };
 
@@ -54,7 +54,7 @@ export const VsmartAudio = ({
     );
 
     return (
-        <MyDialog heading="Vsmart Audio" open={open} onOpenChange={handleOpen}>
+        <MyDialog heading="Vsmart Prompt" open={open} onOpenChange={handleOpen}>
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                     <label htmlFor="taskName" className="text-sm font-medium">
@@ -170,4 +170,4 @@ export const VsmartAudio = ({
     );
 };
 
-export default VsmartAudio;
+export default VsmartPrompt;

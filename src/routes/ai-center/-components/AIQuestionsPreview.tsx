@@ -7,7 +7,7 @@ import {
 } from "@/types/ai/generate-assessment/generate-complete-assessment";
 import { useMutation } from "@tanstack/react-query";
 import { handleGetQuestionsInvidualTask } from "../-services/ai-center-service";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { generateCompleteAssessmentFormSchema } from "../-utils/generate-complete-assessment-schema";
@@ -26,10 +26,20 @@ import { toast } from "sonner";
 import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
 import { handleGenerateAssessmentQuestions } from "../-services/ai-center-service";
 import { VsmartUpload } from "./regenerate-dialogs/VsmartUpload";
+import VsmartAudio from "./regenerate-dialogs/VsmartAudio";
+import { VsmartPrompt } from "./regenerate-dialogs/VsmartPrompt";
+import { VsmartExtract } from "./regenerate-dialogs/VsmartExtract";
+import { VsmartImage } from "./regenerate-dialogs/VsmartImage";
+import { VsmartOrganizer } from "./regenerate-dialogs/VsmartOrganizer";
+import { VsmartSorter } from "./regenerate-dialogs/VsmartSorter";
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
     pollGenerateAssessment?: (prompt?: string) => void;
-    handleGenerateQuestionsForAssessment?: (pdfId?: string, prompt?: string) => void;
+    handleGenerateQuestionsForAssessment?: (
+        pdfId?: string,
+        prompt?: string,
+        taskName?: string,
+    ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
     pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
     heading: string;
@@ -45,18 +55,33 @@ const AIQuestionsPreview = ({
 }: AIQuestionsPreviewProps) => {
     const [open, setOpen] = useState(false);
     const [openVsmartUpload, setOpenVsmartUpload] = useState(false);
+    const [openVsmartAudio, setOpenVsmartAudio] = useState(false);
+    const [openVsmartPrompt, setOpenVsmartPrompt] = useState(false);
+    const [openVsmartExtract, setOpenVsmartExtract] = useState(false);
+    const [openVsmartImage, setOpenVsmartImage] = useState(false);
+    const [openVsmartOrganizer, setOpenVsmartOrganizer] = useState(false);
+    const [openVsmartSorter, setOpenVsmartSorter] = useState(false);
     const handleOpenVsmartUpload = (open: boolean) => {
         setOpenVsmartUpload(open);
     };
-
-    useEffect(() => {
-        console.log(
-            handleGenerateQuestionsForAssessment,
-            pollGenerateQuestionsFromText,
-            pollGenerateQuestionsFromAudio,
-            handleGenerateAssessmentQuestions,
-        );
-    }, [openVsmartUpload]);
+    const handleOpenVsmartAudio = (open: boolean) => {
+        setOpenVsmartAudio(open);
+    };
+    const handleOpenVsmartPrompt = (open: boolean) => {
+        setOpenVsmartPrompt(open);
+    };
+    const handleOpenVsmartExtract = (open: boolean) => {
+        setOpenVsmartExtract(open);
+    };
+    const handleOpenVsmartImage = (open: boolean) => {
+        setOpenVsmartImage(open);
+    };
+    const handleOpenVsmartOrganizer = (open: boolean) => {
+        setOpenVsmartOrganizer(open);
+    };
+    const handleOpenVsmartSorter = (open: boolean) => {
+        setOpenVsmartSorter(open);
+    };
 
     const { instituteLogo } = useInstituteLogoStore();
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
@@ -139,22 +164,22 @@ const AIQuestionsPreview = ({
                 setOpenVsmartUpload(true);
                 break;
             case "Vsmart Audio":
-                console.log("Vsmart Audio");
+                setOpenVsmartAudio(true);
                 break;
             case "Vsmart Topics":
-                console.log("Vsmart Topics");
+                setOpenVsmartPrompt(true);
                 break;
             case "Vsmart Extract":
-                console.log("Vsmart Extract");
+                setOpenVsmartExtract(true);
                 break;
             case "Vsmart Image":
-                console.log("Vsmart Image");
+                setOpenVsmartImage(true);
                 break;
             case "Vsmart Organizer":
-                console.log("Vsmart Organizer");
+                setOpenVsmartOrganizer(true);
                 break;
             case "Vsmart Sorter":
-                console.log("Vsmart Sorter");
+                setOpenVsmartSorter(true);
                 break;
             default:
                 console.log("Vsmart Upload");
@@ -326,6 +351,36 @@ const AIQuestionsPreview = ({
                 open={openVsmartUpload}
                 handleOpen={handleOpenVsmartUpload}
                 pollGenerateAssessment={pollGenerateAssessment}
+            />
+            <VsmartAudio
+                open={openVsmartAudio}
+                handleOpen={handleOpenVsmartAudio}
+                pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
+            />
+            <VsmartPrompt
+                open={openVsmartPrompt}
+                handleOpen={handleOpenVsmartPrompt}
+                pollGenerateQuestionsFromText={pollGenerateQuestionsFromText}
+            />
+            <VsmartExtract
+                open={openVsmartExtract}
+                handleOpen={handleOpenVsmartExtract}
+                pollGenerateAssessment={pollGenerateAssessment}
+            />
+            <VsmartImage
+                open={openVsmartImage}
+                handleOpen={handleOpenVsmartImage}
+                handleGenerateQuestionsFromImage={handleGenerateAssessmentQuestions}
+            />
+            <VsmartOrganizer
+                open={openVsmartOrganizer}
+                handleOpen={handleOpenVsmartOrganizer}
+                pollGenerateAssessment={handleGenerateAssessmentQuestions}
+            />
+            <VsmartSorter
+                open={openVsmartSorter}
+                handleOpen={handleOpenVsmartSorter}
+                handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
             />
         </>
     );

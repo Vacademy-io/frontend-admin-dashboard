@@ -29,7 +29,7 @@ export const VsmartUpload = ({
             >
                 Cancel
             </MyButton>
-            <MyButton type="submit" scale="small" buttonType="primary">
+            <MyButton type="submit" scale="small" buttonType="primary" onClick={handleSubmit}>
                 Regenerate
             </MyButton>
         </div>
