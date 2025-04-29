@@ -57,6 +57,8 @@ export const uploadQuestionPaperFormSchema = z.object({
                     hrs: z.string(),
                     min: z.string(),
                 }),
+                tags: z.array(z.string()).optional(),
+                level: z.string().optional(),
                 questionMark: z.string(),
                 singleChoiceOptions: z
                     .array(

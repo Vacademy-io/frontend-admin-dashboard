@@ -1,7 +1,14 @@
 import { getInstituteId } from "@/constants/helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useEffect, useRef, useState } from "react";
+<<<<<<< HEAD
 import { handleGenerateAssessmentImage } from "@/routes/ai-center/-services/ai-center-service";
+=======
+import {
+    handleGenerateAssessmentImage,
+    handleStartProcessUploadedFile,
+} from "@/routes/ai-center/-services/ai-center-service";
+>>>>>>> main
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
@@ -96,8 +103,9 @@ const GenerateAiQuestionFromImageComponent = () => {
                     sourceId: "STUDENTS",
                 });
                 if (fileId) {
+                    const response = await handleStartProcessUploadedFile(fileId);
                     generateAssessmentMutation.mutate({
-                        pdfId: fileId,
+                        pdfId: response.pdf_id,
                         userPrompt: "",
                         taskName,
                         taskId: "",
@@ -124,7 +132,11 @@ const GenerateAiQuestionFromImageComponent = () => {
         }) => {
             setLoader(true);
             setKey("image");
+<<<<<<< HEAD
             return handleGenerateAssessmentImage(pdfId, userPrompt, taskName, taskId);
+=======
+            return handleGenerateAssessmentImage(pdfId, userPrompt, taskName);
+>>>>>>> main
         },
         onSuccess: () => {
             setLoader(false);

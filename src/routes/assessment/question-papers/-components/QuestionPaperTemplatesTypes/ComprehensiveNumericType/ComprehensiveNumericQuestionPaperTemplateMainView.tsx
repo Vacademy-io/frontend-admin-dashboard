@@ -13,6 +13,7 @@ import { formatStructure } from "../../../-utils/helper";
 import { QUESTION_TYPES, NUMERIC_TYPES } from "@/constants/dummy-data";
 import { MyInput } from "@/components/design-system/input";
 import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     form,
@@ -37,6 +38,8 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
 
     // const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues("questions") || [];
+    const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
+    const level = getValues(`questions.${currentQuestionIndex}.level`) || "";
 
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
@@ -162,12 +165,15 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                 />
             </div>
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>
-                    Question&nbsp;
-                    {questionsType
-                        ? formatStructure(questionsType, currentQuestionIndex + 1)
-                        : currentQuestionIndex + 1}
-                </span>
+                <div className="flex items-center gap-2">
+                    <span>
+                        Question&nbsp;
+                        {questionsType
+                            ? formatStructure(questionsType, currentQuestionIndex + 1)
+                            : currentQuestionIndex + 1}
+                    </span>
+                    <Badge variant="outline">{level}</Badge>
+                </div>
                 <FormField
                     control={control}
                     name={`questions.${currentQuestionIndex}.questionName`}
@@ -183,6 +189,15 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                         </FormItem>
                     )}
                 />
+                <div className="mt-2 flex items-center gap-2">
+                    {tags?.map((tag, idx) => {
+                        return (
+                            <Badge variant="outline" key={idx}>
+                                {tag}
+                            </Badge>
+                        );
+                    })}
+                </div>
             </div>
 
             <div className="flex w-full flex-col gap-4">

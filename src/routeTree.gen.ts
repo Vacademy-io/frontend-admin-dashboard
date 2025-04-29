@@ -15,6 +15,7 @@ import { Route as StudyLibraryIndexImport } from "./routes/study-library/index"
 import { Route as StudentsIndexImport } from "./routes/students/index"
 import { Route as SignupIndexImport } from "./routes/signup/index"
 import { Route as LoginIndexImport } from "./routes/login/index"
+import { Route as EvaluatorAiIndexImport } from "./routes/evaluator-ai/index"
 import { Route as EvaluationIndexImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexImport } from "./routes/community/index"
@@ -31,6 +32,9 @@ import { Route as SignupOnboardingIndexImport } from "./routes/signup/onboarding
 import { Route as LoginForgotPasswordIndexImport } from "./routes/login/forgot-password/index"
 import { Route as LoginKeyIndexImport } from "./routes/login/$key/index"
 import { Route as HomeworkCreationAssessmentListIndexImport } from "./routes/homework-creation/assessment-list/index"
+import { Route as EvaluatorAiStudentsIndexImport } from "./routes/evaluator-ai/students/index"
+import { Route as EvaluatorAiEvaluationIndexImport } from "./routes/evaluator-ai/evaluation/index"
+import { Route as EvaluatorAiAssessmentIndexImport } from "./routes/evaluator-ai/assessment/index"
 import { Route as EvaluationEvaluationsIndexImport } from "./routes/evaluation/evaluations/index"
 import { Route as EvaluationEvaluationToolIndexImport } from "./routes/evaluation/evaluation-tool/index"
 import { Route as CommunityQuestionPaperIndexImport } from "./routes/community/question-paper/index"
@@ -38,6 +42,8 @@ import { Route as AssessmentQuestionPapersIndexImport } from "./routes/assessmen
 import { Route as AssessmentAssessmentListIndexImport } from "./routes/assessment/assessment-list/index"
 import { Route as AiCenterAiToolsIndexImport } from "./routes/ai-center/ai-tools/index"
 import { Route as StudyLibraryCoursesLevelsIndexImport } from "./routes/study-library/courses/levels/index"
+import { Route as EvaluatorAiEvaluationStudentSummaryIndexImport } from "./routes/evaluator-ai/evaluation/student-summary/index"
+import { Route as EvaluatorAiAssessmentCreateAssessmentIndexImport } from "./routes/evaluator-ai/assessment/create-assessment/index"
 import { Route as AssessmentExportAssessmentIdIndexImport } from "./routes/assessment/export/$assessmentId/index"
 import { Route as AiCenterAiToolsVsmartUploadIndexImport } from "./routes/ai-center/ai-tools/vsmart-upload/index"
 import { Route as AiCenterAiToolsVsmartSorterIndexImport } from "./routes/ai-center/ai-tools/vsmart-sorter/index"
@@ -83,6 +89,12 @@ const SignupIndexRoute = SignupIndexImport.update({
 const LoginIndexRoute = LoginIndexImport.update({
   id: "/login/",
   path: "/login/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const EvaluatorAiIndexRoute = EvaluatorAiIndexImport.update({
+  id: "/evaluator-ai/",
+  path: "/evaluator-ai/",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -186,6 +198,28 @@ const HomeworkCreationAssessmentListIndexRoute =
     getParentRoute: () => rootRoute,
   } as any)
 
+const EvaluatorAiStudentsIndexRoute = EvaluatorAiStudentsIndexImport.update({
+  id: "/evaluator-ai/students/",
+  path: "/evaluator-ai/students/",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const EvaluatorAiEvaluationIndexRoute = EvaluatorAiEvaluationIndexImport.update(
+  {
+    id: "/evaluator-ai/evaluation/",
+    path: "/evaluator-ai/evaluation/",
+    getParentRoute: () => rootRoute,
+  } as any,
+)
+
+const EvaluatorAiAssessmentIndexRoute = EvaluatorAiAssessmentIndexImport.update(
+  {
+    id: "/evaluator-ai/assessment/",
+    path: "/evaluator-ai/assessment/",
+    getParentRoute: () => rootRoute,
+  } as any,
+)
+
 const EvaluationEvaluationsIndexRoute = EvaluationEvaluationsIndexImport.update(
   {
     id: "/evaluation/evaluations/",
@@ -232,6 +266,20 @@ const StudyLibraryCoursesLevelsIndexRoute =
   StudyLibraryCoursesLevelsIndexImport.update({
     id: "/study-library/courses/levels/",
     path: "/study-library/courses/levels/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const EvaluatorAiEvaluationStudentSummaryIndexRoute =
+  EvaluatorAiEvaluationStudentSummaryIndexImport.update({
+    id: "/evaluator-ai/evaluation/student-summary/",
+    path: "/evaluator-ai/evaluation/student-summary/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const EvaluatorAiAssessmentCreateAssessmentIndexRoute =
+  EvaluatorAiAssessmentCreateAssessmentIndexImport.update({
+    id: "/evaluator-ai/assessment/create-assessment/",
+    path: "/evaluator-ai/assessment/create-assessment/",
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -427,6 +475,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof EvaluationIndexImport
       parentRoute: typeof rootRoute
     }
+    "/evaluator-ai/": {
+      id: "/evaluator-ai/"
+      path: "/evaluator-ai"
+      fullPath: "/evaluator-ai"
+      preLoaderRoute: typeof EvaluatorAiIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/login/": {
       id: "/login/"
       path: "/login"
@@ -495,6 +550,27 @@ declare module "@tanstack/react-router" {
       path: "/evaluation/evaluations"
       fullPath: "/evaluation/evaluations"
       preLoaderRoute: typeof EvaluationEvaluationsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/assessment/": {
+      id: "/evaluator-ai/assessment/"
+      path: "/evaluator-ai/assessment"
+      fullPath: "/evaluator-ai/assessment"
+      preLoaderRoute: typeof EvaluatorAiAssessmentIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/evaluation/": {
+      id: "/evaluator-ai/evaluation/"
+      path: "/evaluator-ai/evaluation"
+      fullPath: "/evaluator-ai/evaluation"
+      preLoaderRoute: typeof EvaluatorAiEvaluationIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/students/": {
+      id: "/evaluator-ai/students/"
+      path: "/evaluator-ai/students"
+      fullPath: "/evaluator-ai/students"
+      preLoaderRoute: typeof EvaluatorAiStudentsIndexImport
       parentRoute: typeof rootRoute
     }
     "/homework-creation/assessment-list/": {
@@ -651,6 +727,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AssessmentExportAssessmentIdIndexImport
       parentRoute: typeof rootRoute
     }
+    "/evaluator-ai/assessment/create-assessment/": {
+      id: "/evaluator-ai/assessment/create-assessment/"
+      path: "/evaluator-ai/assessment/create-assessment"
+      fullPath: "/evaluator-ai/assessment/create-assessment"
+      preLoaderRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexImport
+      parentRoute: typeof rootRoute
+    }
+    "/evaluator-ai/evaluation/student-summary/": {
+      id: "/evaluator-ai/evaluation/student-summary/"
+      path: "/evaluator-ai/evaluation/student-summary"
+      fullPath: "/evaluator-ai/evaluation/student-summary"
+      preLoaderRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexImport
+      parentRoute: typeof rootRoute
+    }
     "/study-library/courses/levels/": {
       id: "/study-library/courses/levels/"
       path: "/study-library/courses/levels"
@@ -739,6 +829,7 @@ export interface FileRoutesByFullPath {
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
+  "/evaluator-ai": typeof EvaluatorAiIndexRoute
   "/login": typeof LoginIndexRoute
   "/signup": typeof SignupIndexRoute
   "/students": typeof StudentsIndexRoute
@@ -749,6 +840,9 @@ export interface FileRoutesByFullPath {
   "/community/question-paper": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations": typeof EvaluationEvaluationsIndexRoute
+  "/evaluator-ai/assessment": typeof EvaluatorAiAssessmentIndexRoute
+  "/evaluator-ai/evaluation": typeof EvaluatorAiEvaluationIndexRoute
+  "/evaluator-ai/students": typeof EvaluatorAiStudentsIndexRoute
   "/homework-creation/assessment-list": typeof HomeworkCreationAssessmentListIndexRoute
   "/login/$key": typeof LoginKeyIndexRoute
   "/login/forgot-password": typeof LoginForgotPasswordIndexRoute
@@ -771,6 +865,8 @@ export interface FileRoutesByFullPath {
   "/ai-center/ai-tools/vsmart-sorter": typeof AiCenterAiToolsVsmartSorterIndexRoute
   "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute
   "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
+  "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
@@ -790,6 +886,7 @@ export interface FileRoutesByTo {
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
+  "/evaluator-ai": typeof EvaluatorAiIndexRoute
   "/login": typeof LoginIndexRoute
   "/signup": typeof SignupIndexRoute
   "/students": typeof StudentsIndexRoute
@@ -800,6 +897,9 @@ export interface FileRoutesByTo {
   "/community/question-paper": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations": typeof EvaluationEvaluationsIndexRoute
+  "/evaluator-ai/assessment": typeof EvaluatorAiAssessmentIndexRoute
+  "/evaluator-ai/evaluation": typeof EvaluatorAiEvaluationIndexRoute
+  "/evaluator-ai/students": typeof EvaluatorAiStudentsIndexRoute
   "/homework-creation/assessment-list": typeof HomeworkCreationAssessmentListIndexRoute
   "/login/$key": typeof LoginKeyIndexRoute
   "/login/forgot-password": typeof LoginForgotPasswordIndexRoute
@@ -822,6 +922,8 @@ export interface FileRoutesByTo {
   "/ai-center/ai-tools/vsmart-sorter": typeof AiCenterAiToolsVsmartSorterIndexRoute
   "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute
   "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
+  "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
@@ -842,6 +944,7 @@ export interface FileRoutesById {
   "/community/": typeof CommunityIndexRoute
   "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
+  "/evaluator-ai/": typeof EvaluatorAiIndexRoute
   "/login/": typeof LoginIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/students/": typeof StudentsIndexRoute
@@ -852,6 +955,9 @@ export interface FileRoutesById {
   "/community/question-paper/": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool/": typeof EvaluationEvaluationToolIndexRoute
   "/evaluation/evaluations/": typeof EvaluationEvaluationsIndexRoute
+  "/evaluator-ai/assessment/": typeof EvaluatorAiAssessmentIndexRoute
+  "/evaluator-ai/evaluation/": typeof EvaluatorAiEvaluationIndexRoute
+  "/evaluator-ai/students/": typeof EvaluatorAiStudentsIndexRoute
   "/homework-creation/assessment-list/": typeof HomeworkCreationAssessmentListIndexRoute
   "/login/$key/": typeof LoginKeyIndexRoute
   "/login/forgot-password/": typeof LoginForgotPasswordIndexRoute
@@ -874,6 +980,8 @@ export interface FileRoutesById {
   "/ai-center/ai-tools/vsmart-sorter/": typeof AiCenterAiToolsVsmartSorterIndexRoute
   "/ai-center/ai-tools/vsmart-upload/": typeof AiCenterAiToolsVsmartUploadIndexRoute
   "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute
+  "/evaluator-ai/assessment/create-assessment/": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  "/evaluator-ai/evaluation/student-summary/": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/levels/": typeof StudyLibraryCoursesLevelsIndexRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype/": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
@@ -895,6 +1003,7 @@ export interface FileRouteTypes {
     | "/community"
     | "/dashboard"
     | "/evaluation"
+    | "/evaluator-ai"
     | "/login"
     | "/signup"
     | "/students"
@@ -905,6 +1014,9 @@ export interface FileRouteTypes {
     | "/community/question-paper"
     | "/evaluation/evaluation-tool"
     | "/evaluation/evaluations"
+    | "/evaluator-ai/assessment"
+    | "/evaluator-ai/evaluation"
+    | "/evaluator-ai/students"
     | "/homework-creation/assessment-list"
     | "/login/$key"
     | "/login/forgot-password"
@@ -927,6 +1039,8 @@ export interface FileRouteTypes {
     | "/ai-center/ai-tools/vsmart-sorter"
     | "/ai-center/ai-tools/vsmart-upload"
     | "/assessment/export/$assessmentId"
+    | "/evaluator-ai/assessment/create-assessment"
+    | "/evaluator-ai/evaluation/student-summary"
     | "/study-library/courses/levels"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
@@ -945,6 +1059,7 @@ export interface FileRouteTypes {
     | "/community"
     | "/dashboard"
     | "/evaluation"
+    | "/evaluator-ai"
     | "/login"
     | "/signup"
     | "/students"
@@ -955,6 +1070,9 @@ export interface FileRouteTypes {
     | "/community/question-paper"
     | "/evaluation/evaluation-tool"
     | "/evaluation/evaluations"
+    | "/evaluator-ai/assessment"
+    | "/evaluator-ai/evaluation"
+    | "/evaluator-ai/students"
     | "/homework-creation/assessment-list"
     | "/login/$key"
     | "/login/forgot-password"
@@ -977,6 +1095,8 @@ export interface FileRouteTypes {
     | "/ai-center/ai-tools/vsmart-sorter"
     | "/ai-center/ai-tools/vsmart-upload"
     | "/assessment/export/$assessmentId"
+    | "/evaluator-ai/assessment/create-assessment"
+    | "/evaluator-ai/evaluation/student-summary"
     | "/study-library/courses/levels"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
@@ -995,6 +1115,7 @@ export interface FileRouteTypes {
     | "/community/"
     | "/dashboard/"
     | "/evaluation/"
+    | "/evaluator-ai/"
     | "/login/"
     | "/signup/"
     | "/students/"
@@ -1005,6 +1126,9 @@ export interface FileRouteTypes {
     | "/community/question-paper/"
     | "/evaluation/evaluation-tool/"
     | "/evaluation/evaluations/"
+    | "/evaluator-ai/assessment/"
+    | "/evaluator-ai/evaluation/"
+    | "/evaluator-ai/students/"
     | "/homework-creation/assessment-list/"
     | "/login/$key/"
     | "/login/forgot-password/"
@@ -1027,6 +1151,8 @@ export interface FileRouteTypes {
     | "/ai-center/ai-tools/vsmart-sorter/"
     | "/ai-center/ai-tools/vsmart-upload/"
     | "/assessment/export/$assessmentId/"
+    | "/evaluator-ai/assessment/create-assessment/"
+    | "/evaluator-ai/evaluation/student-summary/"
     | "/study-library/courses/levels/"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
     | "/homework-creation/create-assessment/$assessmentId/$examtype/"
@@ -1047,6 +1173,7 @@ export interface RootRouteChildren {
   CommunityIndexRoute: typeof CommunityIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   EvaluationIndexRoute: typeof EvaluationIndexRoute
+  EvaluatorAiIndexRoute: typeof EvaluatorAiIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudentsIndexRoute: typeof StudentsIndexRoute
@@ -1057,6 +1184,9 @@ export interface RootRouteChildren {
   CommunityQuestionPaperIndexRoute: typeof CommunityQuestionPaperIndexRoute
   EvaluationEvaluationToolIndexRoute: typeof EvaluationEvaluationToolIndexRoute
   EvaluationEvaluationsIndexRoute: typeof EvaluationEvaluationsIndexRoute
+  EvaluatorAiAssessmentIndexRoute: typeof EvaluatorAiAssessmentIndexRoute
+  EvaluatorAiEvaluationIndexRoute: typeof EvaluatorAiEvaluationIndexRoute
+  EvaluatorAiStudentsIndexRoute: typeof EvaluatorAiStudentsIndexRoute
   HomeworkCreationAssessmentListIndexRoute: typeof HomeworkCreationAssessmentListIndexRoute
   LoginKeyIndexRoute: typeof LoginKeyIndexRoute
   LoginForgotPasswordIndexRoute: typeof LoginForgotPasswordIndexRoute
@@ -1079,6 +1209,8 @@ export interface RootRouteChildren {
   AiCenterAiToolsVsmartSorterIndexRoute: typeof AiCenterAiToolsVsmartSorterIndexRoute
   AiCenterAiToolsVsmartUploadIndexRoute: typeof AiCenterAiToolsVsmartUploadIndexRoute
   AssessmentExportAssessmentIdIndexRoute: typeof AssessmentExportAssessmentIdIndexRoute
+  EvaluatorAiAssessmentCreateAssessmentIndexRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
+  EvaluatorAiEvaluationStudentSummaryIndexRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   StudyLibraryCoursesLevelsIndexRoute: typeof StudyLibraryCoursesLevelsIndexRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
@@ -1098,6 +1230,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityIndexRoute: CommunityIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   EvaluationIndexRoute: EvaluationIndexRoute,
+  EvaluatorAiIndexRoute: EvaluatorAiIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudentsIndexRoute: StudentsIndexRoute,
@@ -1108,6 +1241,9 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
   EvaluationEvaluationToolIndexRoute: EvaluationEvaluationToolIndexRoute,
   EvaluationEvaluationsIndexRoute: EvaluationEvaluationsIndexRoute,
+  EvaluatorAiAssessmentIndexRoute: EvaluatorAiAssessmentIndexRoute,
+  EvaluatorAiEvaluationIndexRoute: EvaluatorAiEvaluationIndexRoute,
+  EvaluatorAiStudentsIndexRoute: EvaluatorAiStudentsIndexRoute,
   HomeworkCreationAssessmentListIndexRoute:
     HomeworkCreationAssessmentListIndexRoute,
   LoginKeyIndexRoute: LoginKeyIndexRoute,
@@ -1136,6 +1272,10 @@ const rootRouteChildren: RootRouteChildren = {
   AiCenterAiToolsVsmartUploadIndexRoute: AiCenterAiToolsVsmartUploadIndexRoute,
   AssessmentExportAssessmentIdIndexRoute:
     AssessmentExportAssessmentIdIndexRoute,
+  EvaluatorAiAssessmentCreateAssessmentIndexRoute:
+    EvaluatorAiAssessmentCreateAssessmentIndexRoute,
+  EvaluatorAiEvaluationStudentSummaryIndexRoute:
+    EvaluatorAiEvaluationStudentSummaryIndexRoute,
   StudyLibraryCoursesLevelsIndexRoute: StudyLibraryCoursesLevelsIndexRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
@@ -1174,6 +1314,7 @@ export const routeTree = rootRoute
         "/community/",
         "/dashboard/",
         "/evaluation/",
+        "/evaluator-ai/",
         "/login/",
         "/signup/",
         "/students/",
@@ -1184,6 +1325,9 @@ export const routeTree = rootRoute
         "/community/question-paper/",
         "/evaluation/evaluation-tool/",
         "/evaluation/evaluations/",
+        "/evaluator-ai/assessment/",
+        "/evaluator-ai/evaluation/",
+        "/evaluator-ai/students/",
         "/homework-creation/assessment-list/",
         "/login/$key/",
         "/login/forgot-password/",
@@ -1206,6 +1350,8 @@ export const routeTree = rootRoute
         "/ai-center/ai-tools/vsmart-sorter/",
         "/ai-center/ai-tools/vsmart-upload/",
         "/assessment/export/$assessmentId/",
+        "/evaluator-ai/assessment/create-assessment/",
+        "/evaluator-ai/evaluation/student-summary/",
         "/study-library/courses/levels/",
         "/assessment/create-assessment/$assessmentId/$examtype/",
         "/homework-creation/create-assessment/$assessmentId/$examtype/",
@@ -1233,6 +1379,9 @@ export const routeTree = rootRoute
     },
     "/evaluation/": {
       "filePath": "evaluation/index.tsx"
+    },
+    "/evaluator-ai/": {
+      "filePath": "evaluator-ai/index.tsx"
     },
     "/login/": {
       "filePath": "login/index.tsx"
@@ -1263,6 +1412,15 @@ export const routeTree = rootRoute
     },
     "/evaluation/evaluations/": {
       "filePath": "evaluation/evaluations/index.tsx"
+    },
+    "/evaluator-ai/assessment/": {
+      "filePath": "evaluator-ai/assessment/index.tsx"
+    },
+    "/evaluator-ai/evaluation/": {
+      "filePath": "evaluator-ai/evaluation/index.tsx"
+    },
+    "/evaluator-ai/students/": {
+      "filePath": "evaluator-ai/students/index.tsx"
     },
     "/homework-creation/assessment-list/": {
       "filePath": "homework-creation/assessment-list/index.tsx"
@@ -1329,6 +1487,12 @@ export const routeTree = rootRoute
     },
     "/assessment/export/$assessmentId/": {
       "filePath": "assessment/export/$assessmentId/index.tsx"
+    },
+    "/evaluator-ai/assessment/create-assessment/": {
+      "filePath": "evaluator-ai/assessment/create-assessment/index.tsx"
+    },
+    "/evaluator-ai/evaluation/student-summary/": {
+      "filePath": "evaluator-ai/evaluation/student-summary/index.tsx"
     },
     "/study-library/courses/levels/": {
       "filePath": "study-library/courses/levels/index.tsx"

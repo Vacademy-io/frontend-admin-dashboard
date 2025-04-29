@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { QuestionType } from "@/constants/dummy-data";
 import { QuestionTypeSelection } from "./QuestionTypeSelection";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 export function QuestionPaperTemplate({
     form,
@@ -298,13 +299,15 @@ export function QuestionPaperTemplate({
                                 >
                                     Save
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    variant="outline"
-                                    className="w-44 bg-transparent shadow-none hover:bg-transparent"
-                                >
-                                    Exit
-                                </Button>
+                                <DialogClose>
+                                    <Button
+                                        type="submit"
+                                        variant="outline"
+                                        className="w-44 bg-transparent shadow-none hover:bg-transparent"
+                                    >
+                                        Exit
+                                    </Button>
+                                </DialogClose>
                             </div>
                         </div>
                         <div className="flex h-screen items-start">

@@ -21,6 +21,8 @@ export interface MyQuestion {
     questionType: string; // Default value: "MCQS"
     questionMark: string; // Required string
     questionPenalty: string;
+    tags?: string[];
+    level?: string;
     questionDuration: {
         hrs: string;
         min: string;

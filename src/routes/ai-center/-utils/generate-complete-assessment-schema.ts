@@ -42,6 +42,9 @@ export const generateCompleteAssessmentFormSchema = z.object({
             message: "File upload is required and must be a valid file",
         })
         .optional(),
+    classess: z.array(z.string()).optional(),
+    subjects: z.array(z.string()).optional(),
+    tags: z.array(z.string()).optional(),
     questions: z.array(
         z.object({
             questionId: z.string().optional(),
@@ -53,6 +56,7 @@ export const generateCompleteAssessmentFormSchema = z.object({
                 hrs: z.string(),
                 min: z.string(),
             }),
+            tags: z.array(z.string()).optional(),
             questionMark: z.string(),
             singleChoiceOptions: z
                 .array(
