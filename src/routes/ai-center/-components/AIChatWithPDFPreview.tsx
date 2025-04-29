@@ -77,7 +77,7 @@ const AIChatWithPDFPreview = ({ task }: { task: AITaskIndividualListInterface })
                     scale="small"
                     buttonType="secondary"
                     className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
-                    onClick={() => handlViewChatList(task.parent_id)}
+                    onClick={() => handlViewChatList(task.id)}
                 >
                     {getChatListMutation.status === "pending" ? (
                         <DashboardLoader size={18} />
