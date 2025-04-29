@@ -103,6 +103,7 @@ export const handleSortSplitPDF = async (
     pdfId: string,
     requiredTopics: string,
     taskName: string,
+    taskId: string,
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
@@ -113,6 +114,7 @@ export const handleSortSplitPDF = async (
             requiredTopics,
             taskName,
             instituteId,
+            taskId,
         },
     });
     return response?.data;
@@ -141,6 +143,7 @@ export const handleGenerateAssessmentQuestions = async (
     pdfId: string,
     userPrompt: string,
     taskName: string,
+    taskId: string,
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
@@ -151,6 +154,7 @@ export const handleGenerateAssessmentQuestions = async (
             userPrompt,
             taskName,
             instituteId,
+            taskId,
         },
     });
     return response?.data;
@@ -159,6 +163,7 @@ export const handleGenerateAssessmentImage = async (
     pdfId: string,
     userPrompt: string,
     taskName: string,
+    taskId: string,
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
@@ -169,6 +174,7 @@ export const handleGenerateAssessmentImage = async (
             userPrompt,
             taskName,
             instituteId,
+            taskId,
         },
     });
     return response?.data;
@@ -191,6 +197,7 @@ export const handleEvaluateLecture = async (audioId: string, taskName: string) =
 export const handleGenerateAssessmentQuestionsPageWise = async (
     html: string,
     userPrompt: string,
+    taskId: string,
 ) => {
     const response = await axios({
         method: "POST",
@@ -198,7 +205,7 @@ export const handleGenerateAssessmentQuestionsPageWise = async (
         params: {
             userPrompt,
         },
-        data: { html: html },
+        data: { html: html, taskId: taskId },
     });
     return response?.data;
 };
@@ -248,6 +255,7 @@ export const handleGetQuestionsFromAudio = async (
     difficulty: string | null,
     language: string | null,
     taskName: string,
+    taskId: string,
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
@@ -261,6 +269,7 @@ export const handleGetQuestionsFromAudio = async (
             language: language,
             taskName,
             instituteId,
+            taskId,
         },
     });
     return response?.data;
@@ -274,6 +283,7 @@ export const handleGetQuestionsFromText = async (
     topics: string,
     question_type: string,
     question_language: string,
+    taskId: string,
 ) => {
     const instituteId = getInstituteId();
     const response = await authenticatedAxiosInstance({
@@ -287,6 +297,7 @@ export const handleGetQuestionsFromText = async (
             question_type: question_type,
             question_language: question_language,
             taskName,
+            taskId,
         },
         params: { instituteId },
     });

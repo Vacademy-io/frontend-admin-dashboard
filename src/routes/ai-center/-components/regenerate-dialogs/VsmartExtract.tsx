@@ -1,21 +1,24 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useState } from "react";
+import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 
 export const VsmartExtract = ({
     open,
     handleOpen,
     pollGenerateAssessment,
+    task,
 }: {
     open: boolean;
     handleOpen: (open: boolean) => void;
-    pollGenerateAssessment?: (prompt?: string) => void;
+    pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
+    task: AITaskIndividualListInterface;
 }) => {
     const [prompt, setPrompt] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        pollGenerateAssessment && pollGenerateAssessment(prompt);
+        pollGenerateAssessment && pollGenerateAssessment(prompt, task.id);
         handleOpen(false);
     };
 

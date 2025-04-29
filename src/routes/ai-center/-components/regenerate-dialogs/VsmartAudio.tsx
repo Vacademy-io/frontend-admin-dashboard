@@ -4,7 +4,7 @@ import { MyButton } from "@/components/design-system/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
+import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 const formSchema = z.object({
     taskName: z.string().min(1),
     text: z.string().min(1),
@@ -19,10 +19,12 @@ export const VsmartAudio = ({
     open,
     handleOpen,
     pollGenerateQuestionsFromAudio,
+    task,
 }: {
     open: boolean;
     handleOpen: (open: boolean) => void;
-    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
+    task: AITaskIndividualListInterface;
 }) => {
     const {
         register,
@@ -33,7 +35,7 @@ export const VsmartAudio = ({
     });
 
     const onSubmit = (data: QuestionsFromTextData) => {
-        pollGenerateQuestionsFromAudio?.(data);
+        pollGenerateQuestionsFromAudio?.(data, task.id);
         handleOpen(false);
     };
 

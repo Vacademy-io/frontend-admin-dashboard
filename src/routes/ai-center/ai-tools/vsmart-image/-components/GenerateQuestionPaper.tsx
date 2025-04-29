@@ -100,6 +100,7 @@ const GenerateAiQuestionFromImageComponent = () => {
                         pdfId: fileId,
                         userPrompt: "",
                         taskName,
+                        taskId: "",
                     });
                 }
             } catch (error) {
@@ -114,14 +115,16 @@ const GenerateAiQuestionFromImageComponent = () => {
             pdfId,
             userPrompt,
             taskName,
+            taskId,
         }: {
             pdfId: string;
             userPrompt: string;
             taskName: string;
+            taskId: string;
         }) => {
             setLoader(true);
             setKey("image");
-            return handleGenerateAssessmentImage(pdfId, userPrompt, taskName);
+            return handleGenerateAssessmentImage(pdfId, userPrompt, taskName, taskId);
         },
         onSuccess: () => {
             setLoader(false);

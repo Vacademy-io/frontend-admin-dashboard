@@ -55,6 +55,7 @@ export const GenerateQuestionsFromAudio = () => {
             difficulty,
             language,
             taskName,
+            taskId,
         }: {
             audioId: string;
             numQuestions: string;
@@ -62,6 +63,7 @@ export const GenerateQuestionsFromAudio = () => {
             difficulty: string;
             language: string;
             taskName: string;
+            taskId?: string;
         }) => {
             setLoader(true);
             setKey("audio");
@@ -72,6 +74,7 @@ export const GenerateQuestionsFromAudio = () => {
                 difficulty,
                 language,
                 taskName,
+                taskId || "",
             );
         },
         onSuccess: () => {
@@ -84,7 +87,7 @@ export const GenerateQuestionsFromAudio = () => {
         },
     });
 
-    const pollGenerateQuestionsFromAudio = (data: QuestionsFromTextData) => {
+    const pollGenerateQuestionsFromAudio = (data: QuestionsFromTextData, taskId: string) => {
         getQuestionsFromAudioMutation.mutate({
             audioId,
             numQuestions: data.num.toString(),
@@ -92,6 +95,7 @@ export const GenerateQuestionsFromAudio = () => {
             difficulty: data.class_level,
             language: data.question_language,
             taskName: data.taskName,
+            taskId: taskId,
         });
     };
 

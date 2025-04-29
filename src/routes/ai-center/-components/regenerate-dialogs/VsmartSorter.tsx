@@ -1,11 +1,13 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useState } from "react";
+import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 
 export const VsmartSorter = ({
     open,
     handleOpen,
     handleGenerateQuestionsForAssessment,
+    // task
 }: {
     open: boolean;
     handleOpen: (open: boolean) => void;
@@ -14,6 +16,7 @@ export const VsmartSorter = ({
         prompt: string,
         taskName: string,
     ) => void;
+    task: AITaskIndividualListInterface;
 }) => {
     const [prompt, setPrompt] = useState("");
 

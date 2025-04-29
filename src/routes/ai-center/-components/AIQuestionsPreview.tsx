@@ -31,24 +31,24 @@ import { VsmartPrompt } from "./regenerate-dialogs/VsmartPrompt";
 import { VsmartExtract } from "./regenerate-dialogs/VsmartExtract";
 import { VsmartImage } from "./regenerate-dialogs/VsmartImage";
 import { VsmartOrganizer } from "./regenerate-dialogs/VsmartOrganizer";
-import { VsmartSorter } from "./regenerate-dialogs/VsmartSorter";
+// import { VsmartSorter } from "./regenerate-dialogs/VsmartSorter";
 interface AIQuestionsPreviewProps {
     task: AITaskIndividualListInterface;
-    pollGenerateAssessment?: (prompt?: string) => void;
+    pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
     handleGenerateQuestionsForAssessment?: (
         pdfId?: string,
         prompt?: string,
         taskName?: string,
     ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
-    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
     heading: string;
 }
 
 const AIQuestionsPreview = ({
     task,
     pollGenerateAssessment,
-    handleGenerateQuestionsForAssessment,
+    // handleGenerateQuestionsForAssessment,
     pollGenerateQuestionsFromText,
     pollGenerateQuestionsFromAudio,
     heading,
@@ -60,7 +60,7 @@ const AIQuestionsPreview = ({
     const [openVsmartExtract, setOpenVsmartExtract] = useState(false);
     const [openVsmartImage, setOpenVsmartImage] = useState(false);
     const [openVsmartOrganizer, setOpenVsmartOrganizer] = useState(false);
-    const [openVsmartSorter, setOpenVsmartSorter] = useState(false);
+    // const [openVsmartSorter, setOpenVsmartSorter] = useState(false);
     const handleOpenVsmartUpload = (open: boolean) => {
         setOpenVsmartUpload(open);
     };
@@ -79,9 +79,9 @@ const AIQuestionsPreview = ({
     const handleOpenVsmartOrganizer = (open: boolean) => {
         setOpenVsmartOrganizer(open);
     };
-    const handleOpenVsmartSorter = (open: boolean) => {
-        setOpenVsmartSorter(open);
-    };
+    // const handleOpenVsmartSorter = (open: boolean) => {
+    //     setOpenVsmartSorter(open);
+    // };
 
     const { instituteLogo } = useInstituteLogoStore();
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
@@ -178,9 +178,9 @@ const AIQuestionsPreview = ({
             case "Vsmart Organizer":
                 setOpenVsmartOrganizer(true);
                 break;
-            case "Vsmart Sorter":
-                setOpenVsmartSorter(true);
-                break;
+            // case "Vsmart Sorter":
+            //     setOpenVsmartSorter(true);
+            //     break;
             default:
                 console.log("Vsmart Upload");
                 break;
@@ -351,14 +351,17 @@ const AIQuestionsPreview = ({
                 open={openVsmartUpload}
                 handleOpen={handleOpenVsmartUpload}
                 pollGenerateAssessment={pollGenerateAssessment}
+                task={task}
             />
             <VsmartAudio
                 open={openVsmartAudio}
                 handleOpen={handleOpenVsmartAudio}
                 pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
+                task={task}
             />
             <VsmartPrompt
                 open={openVsmartPrompt}
+                task={task}
                 handleOpen={handleOpenVsmartPrompt}
                 pollGenerateQuestionsFromText={pollGenerateQuestionsFromText}
             />
@@ -366,22 +369,26 @@ const AIQuestionsPreview = ({
                 open={openVsmartExtract}
                 handleOpen={handleOpenVsmartExtract}
                 pollGenerateAssessment={pollGenerateAssessment}
+                task={task}
             />
             <VsmartImage
                 open={openVsmartImage}
                 handleOpen={handleOpenVsmartImage}
                 handleGenerateQuestionsFromImage={handleGenerateAssessmentQuestions}
+                task={task}
             />
             <VsmartOrganizer
                 open={openVsmartOrganizer}
                 handleOpen={handleOpenVsmartOrganizer}
                 pollGenerateAssessment={handleGenerateAssessmentQuestions}
+                task={task}
             />
-            <VsmartSorter
+            {/* <VsmartSorter
                 open={openVsmartSorter}
                 handleOpen={handleOpenVsmartSorter}
                 handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
-            />
+                task={task}
+            /> */}
         </>
     );
 };

@@ -1,11 +1,13 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
 import { useState } from "react";
+import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 
 export const VsmartImage = ({
     open,
     handleOpen,
     handleGenerateQuestionsFromImage,
+    task,
 }: {
     open: boolean;
     handleOpen: (open: boolean) => void;
@@ -13,14 +15,16 @@ export const VsmartImage = ({
         pdfId: string,
         userPrompt: string,
         taskName: string,
+        taskId: string,
     ) => void;
+    task: AITaskIndividualListInterface;
 }) => {
     const [prompt, setPrompt] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         handleGenerateQuestionsFromImage &&
-            handleGenerateQuestionsFromImage("", prompt, "Vsmart Image");
+            handleGenerateQuestionsFromImage("", prompt, task.task_name, task.id);
         handleOpen(false);
     };
 

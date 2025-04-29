@@ -4,6 +4,7 @@ import { MyButton } from "@/components/design-system/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { AITaskIndividualListInterface } from "@/types/ai/generate-assessment/generate-complete-assessment";
 
 const formSchema = z.object({
     taskName: z.string().min(1),
@@ -19,10 +20,12 @@ export const VsmartPrompt = ({
     open,
     handleOpen,
     pollGenerateQuestionsFromText,
+    // task
 }: {
     open: boolean;
     handleOpen: (open: boolean) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
+    task: AITaskIndividualListInterface;
 }) => {
     const {
         register,

@@ -28,10 +28,14 @@ const AITasksList = ({
 }: {
     heading: string;
     enableDialog?: boolean;
-    pollGenerateAssessment?: (prompt?: string) => void;
-    handleGenerateQuestionsForAssessment?: (pdfId?: string, prompt?: string) => void;
+    pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
+    handleGenerateQuestionsForAssessment?: (
+        pdfId?: string,
+        prompt?: string,
+        taskId?: string,
+    ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
-    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
 }) => {
     const [open, setOpen] = useState(enableDialog);
 

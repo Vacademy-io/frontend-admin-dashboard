@@ -29,14 +29,15 @@ interface GenerateCardProps {
     setTaskName: React.Dispatch<React.SetStateAction<string>>;
     prompt?: string;
     setPrompt?: React.Dispatch<React.SetStateAction<string>>;
-    pollGenerateAssessment?: (prompt?: string) => void;
+    pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
     handleGenerateQuestionsForAssessment?: (
         pdfId?: string,
         prompt?: string,
         taskName?: string,
+        taskId?: string,
     ) => void;
     pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
-    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
 }
 export const GenerateCard = ({
     handleUploadClick,

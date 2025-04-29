@@ -150,6 +150,7 @@ const GenerateCompleteAssessment = ({
                                             submitButton={submitButtonForText || <></>}
                                             handleDisableSubmitBtn={handleDisableSubmitBtn}
                                             submitForm={submitFormFn}
+                                            taskId={keyProp || ""}
                                         />
                                     ) : (
                                         <Dialog
