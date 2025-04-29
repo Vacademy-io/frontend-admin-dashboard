@@ -1,14 +1,7 @@
 import { getInstituteId } from "@/constants/helper";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { useEffect, useRef, useState } from "react";
-<<<<<<< HEAD
-import { handleGenerateAssessmentImage } from "@/routes/ai-center/-services/ai-center-service";
-=======
-import {
-    handleGenerateAssessmentImage,
-    handleStartProcessUploadedFile,
-} from "@/routes/ai-center/-services/ai-center-service";
->>>>>>> main
+import { handleGenerateAssessmentImage, handleStartProcessUploadedFile } from "@/routes/ai-center/-services/ai-center-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "@/routes/ai-center/-components/GenerateCard";
 import { useAICenter } from "@/routes/ai-center/-contexts/useAICenterContext";
@@ -92,27 +85,37 @@ const GenerateAiQuestionFromImageComponent = () => {
         const file = event.target.files?.[0];
         if (file) {
             try {
-                // Convert image to PDF
                 const { pdfFile } = await convertImageToPDF(file);
+                console.log("PDF file created:", pdfFile);
 
-                const fileId = await uploadFile({
+                const response1 = await uploadFile({
                     file: pdfFile,
                     setIsUploading: setFileUploading,
                     userId: "your-user-id",
                     source: instituteId,
                     sourceId: "STUDENTS",
                 });
-                if (fileId) {
-                    const response = await handleStartProcessUploadedFile(fileId);
-                    generateAssessmentMutation.mutate({
-                        pdfId: response.pdf_id,
-                        userPrompt: "",
-                        taskName,
-                        taskId: "",
-                    });
+                console.log("Upload response:", response1);
+
+                if (response1) {
+                    try {
+                        const response = await handleStartProcessUploadedFile(response1);
+                        console.log("Process response:", response);
+
+                        if (response) {
+                            generateAssessmentMutation.mutate({
+                                pdfId: response.pdf_id,
+                                userPrompt: "",
+                                taskName,
+                                taskId: "",
+                            });
+                        }
+                    } catch (processError) {
+                        console.error("Error in handleStartProcessUploadedFile:", processError);
+                    }
                 }
             } catch (error) {
-                console.error("Error converting image to PDF:", error);
+                console.error("Error in file processing:", error);
             }
             event.target.value = "";
         }
@@ -132,11 +135,7 @@ const GenerateAiQuestionFromImageComponent = () => {
         }) => {
             setLoader(true);
             setKey("image");
-<<<<<<< HEAD
             return handleGenerateAssessmentImage(pdfId, userPrompt, taskName, taskId);
-=======
-            return handleGenerateAssessmentImage(pdfId, userPrompt, taskName);
->>>>>>> main
         },
         onSuccess: () => {
             setLoader(false);
