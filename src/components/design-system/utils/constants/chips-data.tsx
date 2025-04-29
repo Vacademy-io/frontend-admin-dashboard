@@ -81,4 +81,11 @@ export const ActivityStatusData: Record<
             icon: "text-success-600",
         },
     },
+    evaluating: {
+        icon: WarningCircle,
+        color: {
+            bg: "bg-warning-100",
+            icon: "text-warning-600",
+        },
+    },
 };

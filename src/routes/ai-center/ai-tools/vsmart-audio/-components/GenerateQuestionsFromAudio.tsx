@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 import GenerateQuestionsFromAudioForm from "./GenerateQuestionsFromAudioForm";
 import { QuestionsFromTextData } from "@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 export const GenerateQuestionsFromAudio = () => {
     const [audioId, setAudioId] = useState("");
@@ -133,7 +134,14 @@ export const GenerateQuestionsFromAudio = () => {
                 pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
             />
             {audioId !== "" && (
-                <GenerateQuestionsFromAudioForm audioId={audioId} handleCallApi={handleCallApi} />
+                <GenerateQuestionsFromAudioForm
+                    audioId={audioId}
+                    handleCallApi={handleCallApi}
+                    status={getQuestionsFromAudioMutation.status}
+                />
+            )}
+            {getQuestionsFromAudioMutation.status === "success" && (
+                <AITasksList heading="Vsmart Audio" />
             )}
         </>
     );

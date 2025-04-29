@@ -83,7 +83,7 @@ const AITasksList = ({
                 className="no-scrollbar !m-0 flex size-[90%] flex-col !gap-0 overflow-hidden !p-0"
             >
                 {/* Fixed Header */}
-                <div className="sticky top-0 z-10 flex items-center justify-start gap-4 rounded-t-lg bg-primary-50 p-4">
+                <div className="z-1 sticky top-0 flex items-center justify-start gap-4 rounded-t-lg bg-primary-50 p-4">
                     <h1 className="font-semibold text-primary-500">{heading}</h1>
                     <div
                         className="cursor-pointer rounded-lg border p-2 px-3"

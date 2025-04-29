@@ -8,6 +8,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { GenerateCard } from "../../../-components/GenerateCard";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
+import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 const GenerateAiQuestionPaperComponent = () => {
     const queryClient = useQueryClient();
@@ -96,6 +97,9 @@ const GenerateAiQuestionPaperComponent = () => {
                 setTaskName={setTaskName}
                 pollGenerateAssessment={pollGenerateAssessment}
             />
+            {generateAssessmentMutation.status === "success" && (
+                <AITasksList heading="Vsmart Extract" enableDialog={true} />
+            )}
         </>
     );
 };
