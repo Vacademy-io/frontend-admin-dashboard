@@ -10,8 +10,11 @@ import { handleGetLecturePlan, handleRetryAITask } from "../-services/ai-center-
 import PlanLecturePreview from "../ai-tools/vsmart-lecture/-components/PlanLecturePreview";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AxiosError } from "axios";
 
 const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+    const [noResponse, setNoResponse] = useState(false);
     const queryClient = useQueryClient();
     const [planLectureData, setPlanLectureData] = useState<PlanLectureDataInterface>({
         heading: "",
@@ -31,6 +34,14 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
             return handleGetLecturePlan(parentId);
         },
         onSuccess: (response) => {
+            if (!response) {
+                setTimeout(() => {
+                    setNoResponse(false);
+                }, 10000);
+                setNoResponse(true);
+                return;
+            }
+            setNoResponse(false);
             setPlanLectureData(response);
         },
         onError: (error: unknown) => {
@@ -49,6 +60,7 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
             return handleRetryAITask(taskId);
         },
         onSuccess: (response) => {
+            setNoResponse(false);
             if (!response) {
                 toast.success("No data exists!");
                 return;
@@ -57,7 +69,16 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
             queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
         onError: (error: unknown) => {
-            console.log(error);
+            setNoResponse(false);
+            if (error instanceof AxiosError) {
+                toast.error(error.response?.data.ex, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
         },
     });
 
@@ -68,6 +89,26 @@ const AIPlanLecturePreview = ({ task }: { task: AITaskIndividualListInterface })
     };
     return (
         <>
+            <Dialog open={noResponse} onOpenChange={setNoResponse}>
+                <DialogContent className="p-0">
+                    <h1 className="rounded-t-lg bg-primary-50 p-2 text-primary-500">
+                        Failed to load questions
+                    </h1>
+                    <h1 className="p-4">
+                        Click{" "}
+                        <MyButton
+                            type="button"
+                            scale="small"
+                            buttonType="secondary"
+                            className="!w-0 !min-w-8 border-none !p-0 text-sm !text-blue-600 shadow-none hover:bg-transparent hover:underline focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
+                            onClick={() => handleRetryTask(task.id)}
+                        >
+                            Here
+                        </MyButton>{" "}
+                        to retry
+                    </h1>
+                </DialogContent>
+            </Dialog>
             {task.status === "FAILED" ? (
                 <MyButton
                     type="button"
