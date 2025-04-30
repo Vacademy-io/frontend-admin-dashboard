@@ -81,3 +81,6 @@ export { AIEvaluateLectureImg };
 
 import EmptyBatchImage from "./empty_manage_batches.svg";
 export { EmptyBatchImage };
+
+import EmptySessionImage from "./Empty_sessions_page.svg";
+export { EmptySessionImage };

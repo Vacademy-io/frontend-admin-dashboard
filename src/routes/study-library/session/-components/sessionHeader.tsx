@@ -5,16 +5,18 @@ import { toast } from "sonner";
 import { useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
 import { Plus } from "@phosphor-icons/react";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 
 export default function SessionHeader() {
     const [disableAddButton, setDisableAddButton] = useState(true);
-
+    const { instituteDetails } = useInstituteDetailsStore();
     const addSessionMutation = useAddSession();
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const handleOpenAddSessionDialog = () => {
         setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
     };
-
+    const [isOpen, setIsOpen] = useState(false);
     const handleAddSession = (sessionData: AddSessionDataType) => {
         const processedData = structuredClone(sessionData);
 
@@ -78,19 +80,27 @@ export default function SessionHeader() {
                 </div>
             </div>
             <div>
+                {!instituteDetails?.batches_for_sessions.length ?
+                <div className="flex flex-col items-center gap-1">
+                    <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Adding Sessions" content="You need to create a course before"  trigger={<MyButton><Plus /> Add New Session</MyButton>}/>
+                </div>
+                :
                 <AddSessionDialog
                     isAddSessionDiaogOpen={isAddSessionDiaogOpen}
                     handleOpenAddSessionDialog={handleOpenAddSessionDialog}
                     handleSubmit={handleAddSession}
                     trigger={
-                        <MyButton>
-                            <Plus /> Add New Session
-                        </MyButton>
+                        <div className="flex flex-col items-center gap-1">
+                            <MyButton disable={!instituteDetails?.batches_for_sessions.length}>
+                                <Plus /> Add New Session
+                            </MyButton>
+                        </div>
                     }
                     submitButton={submitButton}
                     setDisableAddButton={setDisableAddButton}
                     submitFn={submitFn}
                 />
+                }
             </div>
         </div>
     );

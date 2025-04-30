@@ -11,15 +11,58 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowSquareOut } from "phosphor-react";
 import { useStudentSidebar } from "@/routes/students/students-list/-context/selected-student-sidebar-context";
 import { StatusChips } from "@/components/design-system/chips";
+import { useRef } from "react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
 }
 
-const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
+const useClickHandlers = () => {
+    const clickTimeout = useRef<NodeJS.Timeout | null>(null);
     const { setSelectedStudent, selectedStudent } = useStudentSidebar();
+    const { setOpen, open } = useSidebar();
 
+    const handleClick = (columnId: string, row: Row<StudentTable>) => {
+        if (clickTimeout.current) clearTimeout(clickTimeout.current);
+        clickTimeout.current = setTimeout(() => {
+            if (selectedStudent?.id != row.original.id) {
+                setSelectedStudent(row.original);
+                setOpen(true);
+            } else {
+                if (open == true) setOpen(false);
+                else setOpen(true);
+            }
+        }, 250);
+    };
 
+    const handleDoubleClick = (e: React.MouseEvent, columnId: string, row: Row<StudentTable>) => {
+        e.stopPropagation();
+        if (clickTimeout.current) {
+            clearTimeout(clickTimeout.current);
+            clickTimeout.current = null;
+        }
+    };
+
+    return { handleClick, handleDoubleClick };
+};
+
+const CreateClickableCell = ({ row, columnId }: { row: Row<StudentTable>; columnId: string }) => {
+    const { handleClick, handleDoubleClick } = useClickHandlers();
+
+    return (
+        <div
+            onClick={() => handleClick(columnId, row)}
+            onDoubleClick={(e) => handleDoubleClick(e, columnId, row)}
+            className="cursor-pointer"
+        >
+            {row.getValue(columnId)}
+        </div>
+    );
+};
+
+const DetailsCell = ({ row }: { row: Row<StudentTable> }) => {
+    const { setSelectedStudent } = useStudentSidebar();
 
     return (
         <SidebarTrigger
@@ -78,30 +121,37 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
                 </div>
             );
         },
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
     },
     {
         accessorKey: "package_session_id",
         header: "Batch",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="package_session_id" />,
     },
     {
         accessorKey: "attempt_date",
         header: "Attempt Date",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="attempt_date" />,
     },
     {
         accessorKey: "start_time",
         header: "Start Time",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="start_time" />,
     },
     {
         accessorKey: "end_time",
         header: "End Time",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="end_time" />,
     },
     {
         accessorKey: "duration",
         header: "Duration",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="duration" />,
     },
     {
         accessorKey: "score",
         header: "Score",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="score" />,
     },
     {
         accessorKey: "evaluation_status",
@@ -115,7 +165,6 @@ export const assessmentStatusStudentAttemptedColumnsInternal: ColumnDef<StudentT
             };
 
             const mappedStatus = statusMapping[status] || "evaluating";
-            console.log("mapped", status, mappedStatus);
             return <StatusChips status={mappedStatus} />;
         },
     },
@@ -174,10 +223,12 @@ export const assessmentStatusStudentOngoingColumnsInternal: ColumnDef<StudentTab
                 </div>
             );
         },
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
     },
     {
         accessorKey: "start_time",
         header: "Start Time",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="start_time" />,
     },
     {
         id: "options",
@@ -232,6 +283,7 @@ export const assessmentStatusStudentPendingColumnsInternal: ColumnDef<StudentTab
                 </div>
             );
         },
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
     },
     {
         id: "options",
@@ -286,26 +338,32 @@ export const assessmentStatusStudentAttemptedColumnsExternal: ColumnDef<StudentT
                 </div>
             );
         },
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
     },
     {
         accessorKey: "attempt_date",
         header: "Attempt Date",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="attempt_date" />,
     },
     {
         accessorKey: "start_time",
         header: "Start Time",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="start_time" />,
     },
     {
         accessorKey: "end_time",
         header: "End Time",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="end_time" />,
     },
     {
         accessorKey: "duration",
         header: "Duration",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="duration" />,
     },
     {
         accessorKey: "score",
         header: "Score",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="score" />,
     },
     {
         accessorKey: "evaluation_status",
@@ -315,9 +373,10 @@ export const assessmentStatusStudentAttemptedColumnsExternal: ColumnDef<StudentT
             const statusMapping: Record<string, ActivityStatus> = {
                 EVALUATED: "evaluated",
                 PENDING: "pending",
+                EVALUATING: "evaluating",
             };
 
-            const mappedStatus = statusMapping[status] || "evaluated";
+            const mappedStatus = statusMapping[status] || "evaluating";
             return <StatusChips status={mappedStatus} />;
         },
     },
@@ -376,10 +435,12 @@ export const assessmentStatusStudentOngoingColumnsExternal: ColumnDef<StudentTab
                 </div>
             );
         },
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
     },
     {
         accessorKey: "start_time",
         header: "Start Time",
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="start_time" />,
     },
     {
         id: "options",
@@ -434,6 +495,7 @@ export const assessmentStatusStudentPendingColumnsExternal: ColumnDef<StudentTab
                 </div>
             );
         },
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
     },
     {
         id: "options",

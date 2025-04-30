@@ -32,6 +32,7 @@ import { DropdownItemType } from "@/components/common/students/enroll-manually/d
 import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
 import { ShareCredentialsDialog } from "./bulk-actions/share-credentials-dialog";
 import { IndividualShareCredentialsDialog } from "./bulk-actions/individual-share-credentials-dialog";
+import { InviteFormProvider } from "@/routes/students/invite/-context/useInviteFormContext";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -39,7 +40,7 @@ export const StudentsListSection = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedStudent] = useState<StudentTable | null>(null);
-    const { getCourseFromPackage } = useInstituteDetailsStore();
+    const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -64,7 +65,7 @@ export const StudentsListSection = () => {
         if (courseList.length === 0) {
             setIsOpen(true);
         }
-    }, [getCourseFromPackage]);
+    }, [instituteDetails]);
 
     useIntroJsTour({
         key: IntroKey.studentManagementFirstTimeVisit,
@@ -182,8 +183,6 @@ export const StudentsListSection = () => {
         0,
     );
 
-    const { instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
-
     useEffect(() => {
         if (search.batch && search.package_session_id) {
             const details = getDetailsFromPackageSessionId({
@@ -229,7 +228,9 @@ export const StudentsListSection = () => {
     return (
         <section className="flex max-w-full flex-col gap-8 overflow-visible">
             <div className="flex flex-col gap-4">
-                <StudentListHeader />
+                <InviteFormProvider>
+                    <StudentListHeader currentSession={currentSession} />
+                </InviteFormProvider>
                 <StudentFilters
                     currentSession={currentSession}
                     filters={filters}
@@ -318,7 +319,7 @@ export const StudentsListSection = () => {
                     </div>
                 )}
             </div>
-            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" />
+            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" content="You need to create a course and add a subject in it before" />
             <ShareCredentialsDialog />
             <IndividualShareCredentialsDialog />
         </section>
