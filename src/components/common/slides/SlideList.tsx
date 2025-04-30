@@ -2,7 +2,7 @@
 // @ts-nocheck
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   DragDropContext,
   Droppable,
@@ -28,6 +28,8 @@ import type { Slide } from "./types"
 import type { SlideType } from "./constant/slideType"
 import { SlideType as SlideTypeEnum } from "./constant/slideType"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { exportToSvg } from "@excalidraw/excalidraw"
+import { QuzizIcon, feedbackIcon } from "@/svgs"
 
 interface SlideListProps {
   slides: Slide[]
@@ -36,57 +38,142 @@ interface SlideListProps {
   onAddSlide: (type: SlideType) => void
   onMoveSlideUp: () => void
   onMoveSlideDown: () => void
-  onDeleteSlide: (id: string) => void // Changed to accept slide ID
+  onDeleteSlide: (id: string) => void
   onExport: () => void
   onImport: (event: React.ChangeEvent<HTMLInputElement>) => void
   onReorderSlides: (newSlides: Slide[]) => void
 }
 
 interface PreviewProps {
-  type: SlideType
+  slide: Slide
 }
 
-export function SlideTypePreview({ type }: PreviewProps) {
-  switch (type) {
-    case SlideTypeEnum.TextMedia:
+const SlideTypePreview = React.memo(({ slide }: PreviewProps) => {
+  const [svg, setSvg] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+    const generateThumbnail = async () => {
+      try {
+        // For Excalidraw slides
+        if ([SlideTypeEnum.Title, SlideTypeEnum.Text, SlideTypeEnum.Blank, SlideTypeEnum.TextMedia, SlideTypeEnum.FullscreenMedia, SlideTypeEnum.WebLink, SlideTypeEnum.InteractiveVideo, SlideTypeEnum.Presentation].includes(slide.type)) {
+          const svgElement = await exportToSvg({
+            elements: slide.elements || [],
+            appState: {
+              ...slide.appState,
+              exportEmbedScene: true,
+              exportWithDarkMode: false,
+              viewBackgroundColor: "#ffffff",
+            },
+            files: slide.files || null,
+          })
+
+          // Set dimensions for thumbnail
+          svgElement.setAttribute("width", "100%")
+          svgElement.setAttribute("height", "80")
+
+          // Convert to data URL
+          const serializer = new XMLSerializer()
+          let svgStr = serializer.serializeToString(svgElement)
+
+          // Fix potential xmlns issues
+          if (!svgStr.includes('xmlns="http://www.w3.org/2000/svg"')) {
+            svgStr = svgStr.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"')
+          }
+
+          const dataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgStr)))}`
+          if (isMounted) setSvg(dataUrl)
+        }
+      } catch (error) {
+        console.error("Error generating thumbnail:", error)
+        if (isMounted) setSvg(null)
+      }
+    }
+
+    generateThumbnail()
+
+    return () => {
+      isMounted = false
+    }
+  }, [slide])
+
+  switch (slide.type) {
+    case SlideTypeEnum.Quiz:
       return (
-        <div className="relative h-12 w-full rounded-md bg-gray-200">
-          <div className="h-2 w-3/4 bg-gray-300 rounded mt-2 mx-2"></div>
-          <div className="absolute right-2 top-2 h-8 w-8 bg-gray-300 rounded flex items-center justify-center">
-            <QrCode className="h-4 w-4 text-gray-400" />
+        <div className="relative h-16 w-full rounded-t-md bg-indigo-50 flex flex-col items-center justify-center p-2">
+          <div className="h-16 w-full rounded-t-md bg-white overflow-hidden border-b">
+            <img
+              src={QuzizIcon}
+              alt="Slide thumbnail"
+              className="w-full h-full object-contain bg-white pointer-events-none"
+              onError={() => setSvg(null)}
+            />
+          </div>
+          {slide.elements?.questionName && (
+            <div className="text-xs text-center font-medium text-indigo-800 truncate w-full px-1">
+              {slide.elements.questionName}
+            </div>
+          )}
+        </div>
+      )
+    case SlideTypeEnum.Feedback:
+      return (
+        <div className="relative h-16 w-full rounded-t-md bg-teal-50 flex flex-col items-center justify-center p-2">
+          <div className="h-16 w-full rounded-t-md bg-white overflow-hidden border-b">
+            <img
+              src={feedbackIcon}
+              alt="Slide thumbnail"
+              className="w-full h-full object-contain bg-white pointer-events-none"
+              onError={() => setSvg(null)}
+            />
+          </div>
+          {slide.elements?.questionName && (
+            <div className="text-xs text-center font-medium text-teal-800 truncate w-full px-1">
+              {slide.elements.questionName}
+            </div>
+          )}
+        </div>
+      )
+    case SlideTypeEnum.Title:
+    case SlideTypeEnum.Text:
+    case SlideTypeEnum.Blank:
+    case SlideTypeEnum.TextMedia:
+    case SlideTypeEnum.FullscreenMedia:
+    case SlideTypeEnum.WebLink:
+    case SlideTypeEnum.InteractiveVideo:
+    case SlideTypeEnum.Presentation:
+
+      return svg ? (
+        <div className="h-16 w-full rounded-t-md bg-white overflow-hidden border-b">
+          <img
+            src={svg}
+            alt="Slide thumbnail"
+            className="w-full h-full object-contain bg-white pointer-events-none"
+            onError={() => setSvg(null)}
+          />
+        </div>
+      ) : (
+        <div className="h-16 w-full rounded-t-md bg-gray-100 flex flex-col items-center justify-center">
+          <Presentation className="h-5 w-5 text-gray-400 mb-1" />
+          <div className="text-xs text-gray-500">
+            {slide.type === SlideTypeEnum.Title ? "Title" :
+              slide.type === SlideTypeEnum.Text ? "Text" : "Blank"}
           </div>
         </div>
       )
-    case SlideTypeEnum.FullscreenMedia:
-      return <Youtube className="h-8 w-8 text-gray-500" />
-    case SlideTypeEnum.WebLink:
-      return <Link2 className="h-8 w-8 text-gray-500" />
-    case SlideTypeEnum.Quiz:
-      return <FileQuestion className="h-8 w-8 text-gray-500"/>
-    case SlideTypeEnum.Feedback:
-      return <MessageSquare className="h-8 w-8 text-gray-500"/>
-    case SlideTypeEnum.Presentation:
-      return <Presentation className="h-8 w-8 text-gray-500" />
-    case SlideTypeEnum.Title:
-      return (
-        <div className="h-12 w-full rounded-md bg-gray-200 flex flex-col justify-center">
-          <div className="mx-auto h-2 w-3/4 bg-gray-300 rounded"></div>
-        </div>
-      )
-    case SlideTypeEnum.Text:
-      return (
-        <div className="h-12 w-full rounded-md bg-gray-200 flex flex-col justify-between py-2">
-          <div className="h-2 w-full bg-gray-300 rounded" />
-          <div className="h-2 w-full bg-gray-300 rounded" />
-        </div>
-      )
-    case SlideTypeEnum.Blank:
     default:
-      return <div className="h-12 w-full rounded-md bg-gray-200" />
+      return (
+        <div className="h-16 w-full rounded-t-md bg-gray-100 flex flex-col items-center justify-center">
+          <Presentation className="h-5 w-5 text-gray-400 mb-1" />
+          <div className="text-xs text-gray-500">Slide</div>
+        </div>
+      )
   }
-}
+})
 
-export default function SlideList({
+SlideTypePreview.displayName = "SlideTypePreview"
+
+const SlideList = ({
   slides,
   currentSlide,
   onSlideChange,
@@ -97,7 +184,7 @@ export default function SlideList({
   onExport,
   onImport,
   onReorderSlides,
-}: SlideListProps) {
+}: SlideListProps) => {
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false)
 
   const handleSelectSlideType = (type: SlideType) => {
@@ -118,7 +205,7 @@ export default function SlideList({
 
   return (
     <>
-      <div className="flex w-48 flex-col rounded-xl bg-primary-200 p-3">
+      <div className="flex w-60 flex-col rounded-xl bg-primary-100 p-3 border border-gray-200 shadow-sm">
         <div className="pt-3">
           <Button
             onClick={() => setIsTypeSheetOpen(true)}
@@ -128,20 +215,20 @@ export default function SlideList({
           </Button>
         </div>
 
-        <Separator className="my-3" />
+        <Separator className="my-3 bg-gray-200" />
 
-        <div className="mb-3 flex justify-between">
-          <h2 className="text-lg font-medium">Slides</h2>
+        <div className="mb-3 flex justify-between items-center">
+          <h2 className="text-lg font-semibold p-1">Slides</h2>
           <div className="flex gap-2">
             <button
-              className="rounded p-1 hover:bg-green-50"
+              className="rounded p-1 hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-colors"
               onClick={onExport}
               title="Export"
             >
-              <ExportIcon width={16} />
+              <ExportIcon width={18} />
             </button>
-            <label className="cursor-pointer rounded p-1 hover:bg-green-50">
-              <ImportIcon width={16} />
+            <label className="cursor-pointer rounded p-1 hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-colors">
+              <ImportIcon width={18} />
               <input
                 type="file"
                 onChange={onImport}
@@ -153,14 +240,14 @@ export default function SlideList({
         </div>
 
         <div className="flex-1">
-          <ScrollArea className="h-[70vh] rounded-md overflow-auto">
+          <ScrollArea className="h-[calc(100vh-220px)] rounded-md">
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="slides">
                 {(provided) => (
                   <ul
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className="space-y-2 p-2"
+                    className="space-y-3 p-4"
                   >
                     {slides.map((slide, index) => (
                       <Draggable
@@ -173,26 +260,29 @@ export default function SlideList({
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             className={cn(
-                              "group relative rounded-md border-2 transition-all cursor-pointer",
+                              "group relative rounded-lg transition-all cursor-pointer bg-white shadow-sm",
                               snapshot.isDragging
-                                ? "bg-green-100 shadow-lg border-primary-400"
-                                : "bg-white",
+                                ? "shadow-lg ring-2 ring-primary-500 z-10"
+                                : "hover:shadow-md",
                               slide.id === currentSlide
-                                ? "border-primary-400"
-                                : "border-transparent hover:border-gray-200"
+                                ? "ring-2 ring-primary-500"
+                                : "ring-1 ring-gray-200 hover:ring-gray-300"
                             )}
                             onClick={() => onSlideChange(slide.id)}
                           >
-                            <SlideTypePreview type={slide.type} />
-                            <div className="flex items-center justify-between p-2">
+                            <SlideTypePreview slide={slide} />
+                            <div className="flex items-center justify-between p-2 bg-gray-50 rounded-b-lg border-t">
                               <div
                                 {...provided.dragHandleProps}
-                                className="cursor-grab hover:bg-gray-100 p-1 rounded"
+                                className="cursor-grab hover:bg-gray-100 p-1 rounded text-gray-500 hover:text-gray-700"
                               >
-                                <GripVertical className="h-4 w-4 text-gray-500" />
+                                <GripVertical className="h-4 w-4" />
                               </div>
+                              <span className="text-xs font-medium text-gray-500">
+                                {index + 1}
+                              </span>
                               <button
-                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-50 hover:text-red-500"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-50 text-gray-500 hover:text-red-500"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   onDeleteSlide(slide.id)
@@ -223,3 +313,5 @@ export default function SlideList({
     </>
   )
 }
+
+export default React.memo(SlideList)

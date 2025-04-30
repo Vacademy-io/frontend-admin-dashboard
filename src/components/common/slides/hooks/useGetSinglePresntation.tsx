@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Presentation } from "../types";
 import { getPublicUrl } from "@/services/upload_file";
+import { useKey } from "@dnd-kit/core/dist/components/DragOverlay/hooks";
 
 export const fetchPresentation = async (presentationId: string, setSlides: any, setCurrentSlideId: any) => {
     try {
@@ -25,7 +26,6 @@ export const fetchPresentation = async (presentationId: string, setSlides: any, 
         if (!presResponse.data?.added_slides?.length) {
             throw new Error("No slides found in presentation");
         }
-
         // 2. Get file URL from the first slide
         const length = presResponse.data?.added_slides?.length;
         const fileId = presResponse.data.added_slides[length - 1].content;

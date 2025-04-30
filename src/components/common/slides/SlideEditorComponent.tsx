@@ -503,7 +503,7 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
           </div>
         </div>
 
-        <div className="slide-container flex gap-4 bg-primary-100" style={{ position: 'relative' }}>
+        <div className="slide-container flex bg-primary-100" style={{ position: 'relative' }}>
           {currentSlideId && (
             <div className={`slide-${currentSlideId}`} style={{
               display: 'block',
