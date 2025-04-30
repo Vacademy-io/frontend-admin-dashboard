@@ -46,6 +46,7 @@ export const uploadQuestionPaperFormSchema = z.object({
     questions: z.array(
         z
             .object({
+                id: z.string().optional(),
                 questionId: z.string().optional(),
                 questionName: z.string().refine((val) => !isQuillContentEmpty(val), {
                     message: "Question name is required",
@@ -111,6 +112,8 @@ export const uploadQuestionPaperFormSchema = z.object({
                 validAnswers: z.union([z.array(z.number()), z.null()]).optional(),
                 questionResponseType: z.union([z.string(), z.null()]).optional(),
                 subjectiveAnswerText: z.string().optional(),
+                questionPoints: z.string().optional(),
+                reattemptCount: z.string().optional(),
             })
             .superRefine((question, ctx) => {
                 // Validate based on question type

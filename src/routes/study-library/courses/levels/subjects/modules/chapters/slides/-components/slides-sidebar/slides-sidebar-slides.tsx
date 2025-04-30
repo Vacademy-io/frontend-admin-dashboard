@@ -12,7 +12,7 @@ import {
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
 import { useFieldArray, useForm } from "react-hook-form";
-import { CheckCircle } from "phosphor-react";
+import { CheckCircle, Question } from "phosphor-react";
 import { useSaveDraft } from "../../-context/saveDraftContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -61,10 +61,6 @@ export const ChapterSidebarSlides = ({
         toggleSidebar();
     };
 
-    useEffect(() => {
-        form.setValue("slides", items || []);
-    }, [items]);
-
     const form = useForm<FormValues>({
         defaultValues: {
             slides: items || [],
@@ -76,30 +72,13 @@ export const ChapterSidebarSlides = ({
         name: "slides",
     });
 
-    useEffect(() => {
-        if (slides?.length) {
-            form.reset({ slides });
-            setItems(slides);
-
-            if (slideId) {
-                const targetSlide: Slide = slides.find(
-                    (slide: Slide) => slide.slide_id === slideId,
-                );
-                if (targetSlide) {
-                    setActiveItem(targetSlide);
-                    return;
-                }
-            }
-
-            setActiveItem(slides[0]);
-        } else {
-            setActiveItem(null);
-        }
-    }, [slides, slideId]);
-
     const getIcon = (slide: Slide): ReactNode => {
         const type =
-            slide.published_url != null || slide.video_url != null ? "VIDEO" : slide.document_type;
+            slide.source_type === "QUESTION"
+                ? "QUESTION"
+                : slide.published_url != null || slide.video_url != null
+                  ? "VIDEO"
+                  : slide.document_type;
         switch (type) {
             case "PDF":
                 return <FilePdf className="size-6" />;
@@ -109,6 +88,8 @@ export const ChapterSidebarSlides = ({
                 return <FileDoc className="size-6" />;
             case "DOCX":
                 return <FileDoc className="size-6" />;
+            case "QUESTION":
+                return <Question className="size-6" />;
             default:
                 return <></>;
         }
@@ -129,6 +110,31 @@ export const ChapterSidebarSlides = ({
         // Call the handler to update the order through API
         handleSlideOrderChange(orderPayload);
     };
+
+    useEffect(() => {
+        form.setValue("slides", items || []);
+    }, [items]);
+
+    useEffect(() => {
+        if (slides?.length) {
+            form.reset({ slides: items });
+            setItems(items);
+
+            if (slideId) {
+                const targetSlide: Slide | undefined = items.find(
+                    (item: Slide) => item.slide_id === slideId,
+                );
+                if (targetSlide) {
+                    setActiveItem(targetSlide);
+                    return;
+                }
+            }
+
+            setActiveItem(slides[0]);
+        } else {
+            setActiveItem(null);
+        }
+    }, [slides, slideId]);
 
     if (isLoading) {
         return <DashboardLoader />;

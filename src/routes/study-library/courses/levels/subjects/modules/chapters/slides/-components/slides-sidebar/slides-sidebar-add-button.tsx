@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { useSidebar } from "@/components/ui/sidebar";
-import { Plus, FilePdf, FileDoc, YoutubeLogo } from "@phosphor-icons/react";
+import { Plus, FilePdf, FileDoc, YoutubeLogo, Question } from "@phosphor-icons/react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { AddVideoDialog } from "./add-video-dialog";
 import { AddDocDialog } from "./add-doc-dialog";
@@ -11,6 +11,7 @@ import { useSlides } from "@/routes/study-library/courses/levels/subjects/module
 import { formatHTMLString } from "../slide-material";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
+import AddQuestionDialog from "./add-question-dialog";
 
 export const ChapterSidebarAddButton = () => {
     const { open } = useSidebar();
@@ -24,12 +25,15 @@ export const ChapterSidebarAddButton = () => {
         isPdfDialogOpen,
         isDocUploadDialogOpen,
         isVideoDialogOpen,
+        isQuestionDialogOpen,
         openPdfDialog,
         closePdfDialog,
         openDocUploadDialog,
         closeDocUploadDialog,
         openVideoDialog,
         closeVideoDialog,
+        openQuestionDialog,
+        closeQuestionDialog,
     } = useDialogStore();
 
     const dropdownList = [
@@ -51,6 +55,11 @@ export const ChapterSidebarAddButton = () => {
             label: "Video",
             value: "video",
             icon: <YoutubeLogo className="size-4" />,
+        },
+        {
+            label: "Question",
+            value: "question",
+            icon: <Question className="size-4" />,
         },
     ];
 
@@ -99,6 +108,9 @@ export const ChapterSidebarAddButton = () => {
             }
             case "video":
                 openVideoDialog(); // Use store action instead of setState
+                break;
+            case "question":
+                openQuestionDialog(); // Use store action instead of setState
                 break;
         }
     };
@@ -149,6 +161,17 @@ export const ChapterSidebarAddButton = () => {
                 onOpenChange={closeVideoDialog} // Pass the action function directly
             >
                 <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
+            </MyDialog>
+
+            {/* Question Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Upload Question"
+                dialogWidth="min-w-[500px]"
+                open={isQuestionDialogOpen}
+                onOpenChange={closeQuestionDialog} // Pass the action function directly
+            >
+                <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
             </MyDialog>
         </>
     );

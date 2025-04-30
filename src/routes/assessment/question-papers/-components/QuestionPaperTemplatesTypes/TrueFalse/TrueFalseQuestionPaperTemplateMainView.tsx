@@ -144,7 +144,7 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                                     {optionsType ? formatStructure(optionsType, "a") : "(a.)"}
                                 </span>
                             </div>
-                            <div>{option1.name}</div>
+                            <div>True</div>
                             {/* <FormField
                                 control={control}
                                 name={`questions.${currentQuestionIndex}.trueFalseOptions.${0}.name`}
@@ -192,7 +192,7 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
                                     {optionsType ? formatStructure(optionsType, "b") : "(b.)"}
                                 </span>
                             </div>
-                            <div>{option2.name}</div>
+                            <div>False</div>
                             {/* <FormField
                                 control={control}
                                 name={`questions.${currentQuestionIndex}.trueFalseOptions.${1}.name`}
