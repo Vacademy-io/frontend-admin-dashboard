@@ -12,7 +12,7 @@ export const NoCourseDialog = ({
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
     type: string;
-    content: string;
+    content?: string;
     trigger?: React.ReactNode;
 }) => {
     const navigate = useNavigate();
@@ -25,7 +25,7 @@ export const NoCourseDialog = ({
                         Create Course First
                     </div>
                     <p className="mt-2 p-2 text-sm text-gray-500">
-                        {`${content} ${type.toLocaleLowerCase()}.`}
+                        {`${content || 'You need to create a course and add a subject in it before'} ${type.toLocaleLowerCase()}.`}
                     </p>
                 </DialogHeader>
                 <div className="my-4 flex w-full justify-end gap-2 px-2">

@@ -13,7 +13,7 @@ import { CreateInvite } from "@/routes/students/invite/-components/create-invite
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 import { NoCourseDialog } from "@/components/common/students/no-course-dialog";
 
-const InviteLinksDialog = ({currentSession, openInviteLinksDialog, handleOpenChange}: {currentSession: DropdownItemType, openInviteLinksDialog: boolean, handleOpenChange: () => void}) => {
+const InviteLinksDialog = ({currentSession, openInviteLinksDialog, handleOpenChange}: {currentSession?: DropdownItemType, openInviteLinksDialog: boolean, handleOpenChange: () => void}) => {
     const router = useRouter();
 
     const { data, isLoading, isError } = useGetBatchesQuery({
@@ -51,7 +51,7 @@ const InviteLinksDialog = ({currentSession, openInviteLinksDialog, handleOpenCha
     )
 }
 
-export const StudentListHeader = ({currentSession}: {currentSession: DropdownItemType}) => {
+export const StudentListHeader = ({currentSession}: {currentSession?: DropdownItemType}) => {
     const [openInviteLinksDialog, setOpenInviteLinksDialog] = useState(false);
     const { instituteDetails } = useInstituteDetailsStore();
     const [isOpen, setIsOpen] = useState(false);
