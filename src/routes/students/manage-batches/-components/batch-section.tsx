@@ -5,13 +5,15 @@ import {
     BatchType,
     batchWithStudentDetails,
 } from "@/routes/students/manage-batches/-types/manage-batches-types";
-import { Plus, TrashSimple } from "phosphor-react";
+import { Check, Copy, Plus, TrashSimple } from "phosphor-react";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
 import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
 import { useDeleteBatches } from "@/routes/students/manage-batches/-services/delete-batches";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger  } from "@/components/ui/tooltip";
+import createInviteLink from "../../invite/-utils/createInviteLink";
 interface batchCardProps {
     batch: BatchType;
 }
@@ -21,6 +23,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
     const navigate = useNavigate();
     const { levelName, packageName } = useGetStudentBatch(batch.package_session_id);
     const deleteBatchesMutation = useDeleteBatches();
+    const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
     const handleViewBatch = () => {
         // Navigate to student list with this batch pre-selected
@@ -56,6 +59,21 @@ const BatchCard = ({ batch }: batchCardProps) => {
         );
     };
 
+    const handleCopyClick = (link: string) => {
+        navigator.clipboard
+            .writeText(link)
+            .then(() => {
+                setCopySuccess(link);
+                setTimeout(() => {
+                    setCopySuccess(null);
+                }, 2000);
+            })
+            .catch((err) => {
+                console.log("Failed to copy link: ", err);
+                toast.error("Copy failed");
+            });
+    };
+
     return (
         <>
             <div className="flex flex-col gap-8 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
@@ -73,6 +91,52 @@ const BatchCard = ({ batch }: batchCardProps) => {
                             {batch.count_students}
                         </p>
                         <p className="text-subtitle font-semibold">students</p>
+                    </div>
+                    <div className="flex gap-2 text-body items-center">
+                        <p>Invite: </p>
+                        <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <a
+                                                    href={createInviteLink(batch.invite_code)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-body underline hover:text-primary-500"
+                                                >
+                                                    {`${createInviteLink(batch.invite_code).slice(
+                                                        0,
+                                                        32,
+                                                    )}..`}
+                                                </a>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:text-primary-500">
+                                                <a
+                                                    href={createInviteLink(batch.invite_code)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {createInviteLink(batch.invite_code)}
+                                                </a>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    <div className="flex items-center gap-2">
+                                        <MyButton
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="icon"
+                                            onClick={() =>
+                                                handleCopyClick(createInviteLink(batch.invite_code))
+                                            }
+                                        >
+                                            <Copy />
+                                        </MyButton>
+                                        {copySuccess == createInviteLink(batch.invite_code) && (
+                                            <div className=" text-primary-500">
+                                                <Check />
+                                            </div>
+                                        )}
+                                    </div>
                     </div>
                 </div>
                 <div className="flex items-center justify-between">

@@ -4,6 +4,7 @@ export interface BatchType {
     count_students: number;
     start_date: string;
     package_session_id: string;
+    invite_code: string;
 }
 export interface PackageType {
     id: string;
