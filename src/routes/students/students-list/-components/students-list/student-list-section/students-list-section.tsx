@@ -40,7 +40,7 @@ export const StudentsListSection = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedStudent] = useState<StudentTable | null>(null);
-    const { getCourseFromPackage } = useInstituteDetailsStore();
+    const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -65,7 +65,7 @@ export const StudentsListSection = () => {
         if (courseList.length === 0) {
             setIsOpen(true);
         }
-    }, [getCourseFromPackage]);
+    }, [instituteDetails]);
 
     useIntroJsTour({
         key: IntroKey.studentManagementFirstTimeVisit,
@@ -182,8 +182,6 @@ export const StudentsListSection = () => {
         (count, pageSelection) => count + Object.keys(pageSelection).length,
         0,
     );
-
-    const { instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
 
     useEffect(() => {
         if (search.batch && search.package_session_id) {
@@ -321,7 +319,7 @@ export const StudentsListSection = () => {
                     </div>
                 )}
             </div>
-            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" />
+            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" content="You need to create a course and add a subject in it before" />
             <ShareCredentialsDialog />
             <IndividualShareCredentialsDialog />
         </section>
