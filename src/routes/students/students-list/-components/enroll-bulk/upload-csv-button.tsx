@@ -435,12 +435,12 @@ export const UploadCSVButton = ({
                 open={showNotificationDialog}
                 onOpenChange={setShowNotificationDialog}
                 heading="Notification Preference"
-                dialogWidth="w-[500px]"
+                dialogWidth="w-[600px]"
                 footer={
                     <div className="flex justify-end gap-4">
                         <MyButton
                             buttonType="secondary"
-                            scale="large"
+                            scale="medium"
                             layoutVariant="default"
                             onClick={() => handleNotificationConfirm(false)}
                         >
@@ -448,7 +448,7 @@ export const UploadCSVButton = ({
                         </MyButton>
                         <MyButton
                             buttonType="primary"
-                            scale="large"
+                            scale="medium"
                             layoutVariant="default"
                             onClick={() => handleNotificationConfirm(true)}
                         >
