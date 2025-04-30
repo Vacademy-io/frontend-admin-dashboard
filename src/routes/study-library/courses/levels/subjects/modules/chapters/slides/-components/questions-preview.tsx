@@ -55,8 +55,6 @@ export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide
         return () => subscription.unsubscribe(); // cleanup
     }, [watch, items, activeItem, form, setItems]);
 
-    console.log("activeItem: ", activeItem);
-
     return (
         <div key={`question-${activeItem.slide_id}`} className="size-full">
             <FormProvider {...form}>
