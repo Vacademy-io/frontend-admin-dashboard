@@ -3,6 +3,7 @@ import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers
 import { getEvaluationJSON } from "@/routes/assessment/question-papers/-utils/helper";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { Slide } from "../-hooks/use-slides";
 
 export const convertHtmlToPdf = async (htmlString: string): Promise<Blob> => {
     // Create temporary div to hold the HTML content
@@ -178,9 +179,27 @@ const optimizeImage = (canvas: HTMLCanvasElement): string => {
     return optimizedCanvas.toDataURL("image/jpeg", 0.8);
 };
 
+export function updateDocumentDataInSlides(
+    data: Slide[],
+    slide: Slide,
+    formData: UploadQuestionPaperFormType,
+    setActiveItem: (item: Slide) => void,
+): Slide[] {
+    return data.map((item) => {
+        if (item.slide_id === slide.slide_id) {
+            const changedData: Slide = {
+                ...item,
+                document_data: JSON.stringify(formData),
+            };
+            setActiveItem(changedData);
+            return changedData;
+        }
+        return item;
+    });
+}
+
 export function convertToSlideFormat(question: UploadQuestionPaperFormType) {
     const questionsData = question.questions[0];
-    console.log(questionsData);
     if (!questionsData) return;
     const generateTextBlock = (content: string | null | undefined) => ({
         id: "",

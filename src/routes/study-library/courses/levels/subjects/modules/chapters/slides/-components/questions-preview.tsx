@@ -7,25 +7,7 @@ import { QuestionType } from "@/constants/dummy-data";
 import { useEffect, useState } from "react";
 import { Slide } from "../-hooks/use-slides";
 import { useContentStore } from "../-stores/chapter-sidebar-store";
-
-function updateDocumentDataInSlides(
-    data: Slide[],
-    slide: Slide,
-    formData: UploadQuestionPaperFormType,
-    setActiveItem: (item: Slide) => void,
-): Slide[] {
-    return data.map((item) => {
-        if (item.slide_id === slide.slide_id) {
-            const changedData: Slide = {
-                ...item,
-                document_data: JSON.stringify(formData),
-            };
-            setActiveItem(changedData);
-            return changedData;
-        }
-        return item;
-    });
-}
+import { updateDocumentDataInSlides } from "../-helper/helper";
 
 export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide }) => {
     const defaultValues = JSON.parse(activeItem.document_data!);
