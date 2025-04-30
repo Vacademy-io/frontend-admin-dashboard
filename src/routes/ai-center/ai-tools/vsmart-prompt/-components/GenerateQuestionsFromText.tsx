@@ -58,14 +58,20 @@ export const GenerateQuestionsFromText = () => {
     };
 
     const getQuestionsFromTextMutation = useMutation({
-        mutationFn: async (data: {
-            taskName: string;
-            text: string;
-            num: number;
-            class_level: string;
-            topics: string;
-            question_type: string;
-            question_language: string;
+        mutationFn: async ({
+            data,
+            taskId,
+        }: {
+            data: {
+                taskName: string;
+                text: string;
+                num: number;
+                class_level: string;
+                topics: string;
+                question_type: string;
+                question_language: string;
+            };
+            taskId: string;
         }) => {
             setLoader(true);
             setKey("text");
@@ -77,6 +83,7 @@ export const GenerateQuestionsFromText = () => {
                 data.topics,
                 data.question_type,
                 data.question_language,
+                taskId,
             );
         },
         onSuccess: () => {
@@ -92,14 +99,18 @@ export const GenerateQuestionsFromText = () => {
     });
 
     const pollGenerateQuestionsFromText = (data: QuestionsFromTextData) => {
+        const taskId = ""; // Generate a unique taskId if needed
         getQuestionsFromTextMutation.mutate({
-            taskName: data.taskName,
-            text: data.text,
-            num: data.num,
-            class_level: data.class_level,
-            topics: data.topics,
-            question_type: data.question_type,
-            question_language: data.question_language,
+            data: {
+                taskName: data.taskName,
+                text: data.text,
+                num: data.num,
+                class_level: data.class_level,
+                topics: data.topics,
+                question_type: data.question_type,
+                question_language: data.question_language,
+            },
+            taskId: taskId,
         });
         dialogForm.reset();
     };
@@ -129,7 +140,10 @@ export const GenerateQuestionsFromText = () => {
                             <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
                             {toolData.heading}
                         </div>
-                        <AITasksList heading={toolData.heading} />
+                        <AITasksList
+                            heading={toolData.heading}
+                            pollGenerateQuestionsFromText={pollGenerateQuestionsFromText}
+                        />
                     </div>
                     {GetImagesForAITools(toolData.key)}
                     <div className="flex flex-col gap-1">
@@ -191,6 +205,7 @@ export const GenerateQuestionsFromText = () => {
                 handleDisableSubmitBtn={handleDisableSubmitBtn}
                 submitForm={submitFormFn}
                 form={dialogForm}
+                taskId=""
             />
             {getQuestionsFromTextMutation.status === "success" && (
                 <AITasksList heading="Vsmart Topics" enableDialog={true} />

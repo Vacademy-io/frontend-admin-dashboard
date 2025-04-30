@@ -93,7 +93,7 @@ const InfoCell = ({ row }: { row: Row<ActivityLogType> }) => {
 const useClickHandlers = () => {
     const clickTimeout = useRef<NodeJS.Timeout | null>(null);
     const { setSelectedStudent, selectedStudent } = useStudentSidebar();
-    const { setOpen } = useSidebar();
+    const { setOpen, open } = useSidebar();
 
     const handleClick = (columnId: string, row: Row<StudentTable>) => {
         if (clickTimeout.current) clearTimeout(clickTimeout.current);
@@ -104,7 +104,8 @@ const useClickHandlers = () => {
                 setSelectedStudent(row.original);
                 setOpen(true);
             } else {
-                setOpen(false);
+                if (open == true) setOpen(false);
+                else setOpen(true);
             }
         }, 250);
     };

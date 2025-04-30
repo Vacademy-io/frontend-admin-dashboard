@@ -75,6 +75,7 @@ export const getAssessmentSubmissionsFilteredDataStudentData = (
                         id: student.user_id,
                         attempt_id: student.attempt_id,
                         full_name: student.student_name,
+                        package_id: student.batch_id,
                         package_session_id: getBatchNameById(
                             batches_for_sessions,
                             student.batch_id,

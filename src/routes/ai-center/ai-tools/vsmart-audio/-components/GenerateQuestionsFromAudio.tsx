@@ -9,6 +9,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAICenter } from "../../../-contexts/useAICenterContext";
 import GenerateQuestionsFromAudioForm from "./GenerateQuestionsFromAudioForm";
+import { QuestionsFromTextData } from "@/routes/ai-center/ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
 import AITasksList from "@/routes/ai-center/-components/AITasksList";
 
 export const GenerateQuestionsFromAudio = () => {
@@ -54,6 +55,7 @@ export const GenerateQuestionsFromAudio = () => {
             difficulty,
             language,
             taskName,
+            taskId,
         }: {
             audioId: string;
             numQuestions: string;
@@ -61,6 +63,7 @@ export const GenerateQuestionsFromAudio = () => {
             difficulty: string;
             language: string;
             taskName: string;
+            taskId?: string;
         }) => {
             setLoader(true);
             setKey("audio");
@@ -71,6 +74,7 @@ export const GenerateQuestionsFromAudio = () => {
                 difficulty,
                 language,
                 taskName,
+                taskId || "",
             );
         },
         onSuccess: () => {
@@ -83,7 +87,19 @@ export const GenerateQuestionsFromAudio = () => {
         },
     });
 
-    const pollGenerateQuestionsFromAudio = (
+    const pollGenerateQuestionsFromAudio = (data: QuestionsFromTextData, taskId: string) => {
+        getQuestionsFromAudioMutation.mutate({
+            audioId,
+            numQuestions: data.num.toString(),
+            prompt: data.text,
+            difficulty: data.class_level,
+            language: data.question_language,
+            taskName: data.taskName,
+            taskId: taskId,
+        });
+    };
+
+    const handleCallApi = (
         audioId: string,
         numQuestions: string,
         prompt: string,
@@ -119,11 +135,12 @@ export const GenerateQuestionsFromAudio = () => {
                 keyProp="audio"
                 taskName={taskName}
                 setTaskName={setTaskName}
+                pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
             />
             {audioId !== "" && (
                 <GenerateQuestionsFromAudioForm
                     audioId={audioId}
-                    handleCallApi={pollGenerateQuestionsFromAudio}
+                    handleCallApi={handleCallApi}
                     status={getQuestionsFromAudioMutation.status}
                 />
             )}

@@ -23,12 +23,69 @@ import { Separator } from "@/components/ui/separator";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import ExportQuestionPaperAI from "./export-ai-question-paper/ExportQuestionPaperAI";
 import { toast } from "sonner";
+import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
+import { handleGenerateAssessmentQuestions } from "../-services/ai-center-service";
+import { VsmartUpload } from "./regenerate-dialogs/VsmartUpload";
+import VsmartAudio from "./regenerate-dialogs/VsmartAudio";
+import { VsmartPrompt } from "./regenerate-dialogs/VsmartPrompt";
+import { VsmartExtract } from "./regenerate-dialogs/VsmartExtract";
+import { VsmartImage } from "./regenerate-dialogs/VsmartImage";
+import { VsmartOrganizer } from "./regenerate-dialogs/VsmartOrganizer";
 import { Badge } from "@/components/ui/badge";
 import { AxiosError } from "axios";
+// import { VsmartSorter } from "./regenerate-dialogs/VsmartSorter";
+interface AIQuestionsPreviewProps {
+    task: AITaskIndividualListInterface;
+    pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
+    handleGenerateQuestionsForAssessment?: (
+        pdfId?: string,
+        prompt?: string,
+        taskName?: string,
+    ) => void;
+    pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
+    heading: string;
+}
 
-const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+const AIQuestionsPreview = ({
+    task,
+    pollGenerateAssessment,
+    // handleGenerateQuestionsForAssessment,
+    pollGenerateQuestionsFromText,
+    pollGenerateQuestionsFromAudio,
+    heading,
+}: AIQuestionsPreviewProps) => {
     const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
+    const [openVsmartUpload, setOpenVsmartUpload] = useState(false);
+    const [openVsmartAudio, setOpenVsmartAudio] = useState(false);
+    const [openVsmartPrompt, setOpenVsmartPrompt] = useState(false);
+    const [openVsmartExtract, setOpenVsmartExtract] = useState(false);
+    const [openVsmartImage, setOpenVsmartImage] = useState(false);
+    const [openVsmartOrganizer, setOpenVsmartOrganizer] = useState(false);
+    // const [openVsmartSorter, setOpenVsmartSorter] = useState(false);
+    const handleOpenVsmartUpload = (open: boolean) => {
+        setOpenVsmartUpload(open);
+    };
+    const handleOpenVsmartAudio = (open: boolean) => {
+        setOpenVsmartAudio(open);
+    };
+    const handleOpenVsmartPrompt = (open: boolean) => {
+        setOpenVsmartPrompt(open);
+    };
+    const handleOpenVsmartExtract = (open: boolean) => {
+        setOpenVsmartExtract(open);
+    };
+    const handleOpenVsmartImage = (open: boolean) => {
+        setOpenVsmartImage(open);
+    };
+    const handleOpenVsmartOrganizer = (open: boolean) => {
+        setOpenVsmartOrganizer(open);
+    };
+    // const handleOpenVsmartSorter = (open: boolean) => {
+    //     setOpenVsmartSorter(open);
+    // };
+
     const { instituteLogo } = useInstituteLogoStore();
     const [assessmentData, setAssessmentData] = useState<AIAssessmentResponseInterface>({
         title: "",
@@ -113,6 +170,35 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
         getQuestionsListMutation.mutate({
             taskId,
         });
+    };
+
+    const handleGenerateClick = () => {
+        switch (heading) {
+            case "Vsmart Upload":
+                setOpenVsmartUpload(true);
+                break;
+            case "Vsmart Audio":
+                setOpenVsmartAudio(true);
+                break;
+            case "Vsmart Topics":
+                setOpenVsmartPrompt(true);
+                break;
+            case "Vsmart Extract":
+                setOpenVsmartExtract(true);
+                break;
+            case "Vsmart Image":
+                setOpenVsmartImage(true);
+                break;
+            case "Vsmart Organizer":
+                setOpenVsmartOrganizer(true);
+                break;
+            // case "Vsmart Sorter":
+            //     setOpenVsmartSorter(true);
+            //     break;
+            default:
+                console.log("Vsmart Upload");
+                break;
+        }
     };
 
     const getRetryMutation = useMutation({
@@ -242,6 +328,9 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
+                                            <MyButton onClick={handleGenerateClick} type="button">
+                                                Generate
+                                            </MyButton>
                                             <MyButton
                                                 type="button"
                                                 scale="medium"
@@ -363,6 +452,42 @@ const AIQuestionsPreview = ({ task }: { task: AITaskIndividualListInterface }) =
                         </DialogContent>
                     )}
             </Dialog>
+            <VsmartUpload
+                open={openVsmartUpload}
+                handleOpen={handleOpenVsmartUpload}
+                pollGenerateAssessment={pollGenerateAssessment}
+                task={task}
+            />
+            <VsmartAudio
+                open={openVsmartAudio}
+                handleOpen={handleOpenVsmartAudio}
+                pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
+                task={task}
+            />
+            <VsmartPrompt
+                open={openVsmartPrompt}
+                task={task}
+                handleOpen={handleOpenVsmartPrompt}
+                pollGenerateQuestionsFromText={pollGenerateQuestionsFromText}
+            />
+            <VsmartExtract
+                open={openVsmartExtract}
+                handleOpen={handleOpenVsmartExtract}
+                pollGenerateAssessment={pollGenerateAssessment}
+                task={task}
+            />
+            <VsmartImage
+                open={openVsmartImage}
+                handleOpen={handleOpenVsmartImage}
+                handleGenerateQuestionsFromImage={handleGenerateAssessmentQuestions}
+                task={task}
+            />
+            <VsmartOrganizer
+                open={openVsmartOrganizer}
+                handleOpen={handleOpenVsmartOrganizer}
+                pollGenerateAssessment={handleGenerateAssessmentQuestions}
+                task={task}
+            />
         </>
     );
 };

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
 import { PromptDummyData } from "./Prompt-dummy-data";
+import { QuestionsFromTextData } from "../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText";
 
 type PromptType = keyof typeof PromptDummyData;
 
@@ -28,6 +29,15 @@ interface GenerateCardProps {
     setTaskName: React.Dispatch<React.SetStateAction<string>>;
     prompt?: string;
     setPrompt?: React.Dispatch<React.SetStateAction<string>>;
+    pollGenerateAssessment?: (prompt?: string, taskId?: string) => void;
+    handleGenerateQuestionsForAssessment?: (
+        pdfId?: string,
+        prompt?: string,
+        taskName?: string,
+        taskId?: string,
+    ) => void;
+    pollGenerateQuestionsFromText?: (data: QuestionsFromTextData) => void;
+    pollGenerateQuestionsFromAudio?: (data: QuestionsFromTextData, taskId: string) => void;
 }
 export const GenerateCard = ({
     handleUploadClick,
@@ -39,6 +49,10 @@ export const GenerateCard = ({
     setTaskName,
     prompt,
     setPrompt,
+    pollGenerateAssessment,
+    handleGenerateQuestionsForAssessment,
+    pollGenerateQuestionsFromText,
+    pollGenerateQuestionsFromAudio,
 }: GenerateCardProps) => {
     const [selectedValue, setSelectedValue] = useState<PromptType>("topic");
     const { key: keyContext, loader } = useAICenter();
@@ -52,7 +66,15 @@ export const GenerateCard = ({
                             <StarFour size={30} weight="fill" className="text-primary-500" />{" "}
                             {toolData.heading}
                         </div>
-                        <AITasksList heading={toolData.heading} />
+                        <AITasksList
+                            heading={toolData.heading}
+                            pollGenerateAssessment={pollGenerateAssessment}
+                            handleGenerateQuestionsForAssessment={
+                                handleGenerateQuestionsForAssessment
+                            }
+                            pollGenerateQuestionsFromText={pollGenerateQuestionsFromText}
+                            pollGenerateQuestionsFromAudio={pollGenerateQuestionsFromAudio}
+                        />
                     </div>
                     <div className="flex items-center justify-between">
                         {GetImagesForAITools(toolData.key)}

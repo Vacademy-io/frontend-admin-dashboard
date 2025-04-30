@@ -71,9 +71,13 @@ const SortTopicQuestions = () => {
         },
     });
 
-    const handleGenerateQuestionsForAssessment = (pdfId = uploadedFilePDFId) => {
+    const handleGenerateQuestionsForAssessment = (
+        pdfId = uploadedFilePDFId,
+        userPrompt = prompt,
+        name = taskName,
+    ) => {
         // Use pdfId in your mutation call
-        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: prompt, taskName });
+        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: userPrompt, taskName: name });
     };
 
     useEffect(() => {
@@ -102,6 +106,7 @@ const SortTopicQuestions = () => {
                 setTaskName={setTaskName}
                 prompt={prompt}
                 setPrompt={setPrompt}
+                handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
             />
             {generateAssessmentMutation.status === "success" && (
                 <AITasksList heading="Vsmart Sorter" enableDialog={true} />

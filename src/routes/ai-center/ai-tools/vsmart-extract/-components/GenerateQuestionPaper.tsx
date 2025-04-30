@@ -37,7 +37,7 @@ const GenerateAiQuestionPaperComponent = () => {
             if (fileId) {
                 const response = await handleStartProcessUploadedFile(fileId);
                 if (response) {
-                    pollGenerateAssessment(response.pdf_id);
+                    pollGenerateAssessment(response.pdf_id, "", "");
                 }
             }
             event.target.value = "";
@@ -50,14 +50,16 @@ const GenerateAiQuestionPaperComponent = () => {
             pdfId,
             userPrompt,
             taskName,
+            taskId,
         }: {
             pdfId: string;
             userPrompt: string;
             taskName: string;
+            taskId?: string;
         }) => {
             setLoader(true);
             setKey("question");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName, taskId || "");
         },
         onSuccess: () => {
             setLoader(false);
@@ -69,11 +71,12 @@ const GenerateAiQuestionPaperComponent = () => {
         },
     });
 
-    const pollGenerateAssessment = (pdfId: string) => {
+    const pollGenerateAssessment = (pdfId?: string, prompt?: string, taskId?: string) => {
         generateAssessmentMutation.mutate({
-            pdfId: pdfId,
-            userPrompt: "",
+            pdfId: pdfId || "",
+            userPrompt: prompt || "",
             taskName,
+            taskId,
         });
     };
 
@@ -95,6 +98,7 @@ const GenerateAiQuestionPaperComponent = () => {
                 keyProp="question"
                 taskName={taskName}
                 setTaskName={setTaskName}
+                pollGenerateAssessment={pollGenerateAssessment}
             />
             {generateAssessmentMutation.status === "success" && (
                 <AITasksList heading="Vsmart Extract" enableDialog={true} />
