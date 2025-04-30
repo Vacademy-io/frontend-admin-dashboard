@@ -32,6 +32,7 @@ import { DropdownItemType } from "@/components/common/students/enroll-manually/d
 import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
 import { ShareCredentialsDialog } from "./bulk-actions/share-credentials-dialog";
 import { IndividualShareCredentialsDialog } from "./bulk-actions/individual-share-credentials-dialog";
+import { InviteFormProvider } from "@/routes/students/invite/-context/useInviteFormContext";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -229,7 +230,9 @@ export const StudentsListSection = () => {
     return (
         <section className="flex max-w-full flex-col gap-8 overflow-visible">
             <div className="flex flex-col gap-4">
-                <StudentListHeader />
+                <InviteFormProvider>
+                    <StudentListHeader currentSession={currentSession} />
+                </InviteFormProvider>
                 <StudentFilters
                     currentSession={currentSession}
                     filters={filters}
