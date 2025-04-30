@@ -32,7 +32,6 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     useEffect(() => {
         if (selectedStudent) {
             const credentials = getCredentials(isSubmissionTab ? selectedStudent.id : selectedStudent.user_id);
-            console.log("credentials: ", credentials);
             setPassword(credentials?.password || "password not found");
         }
     }, [selectedStudent]);
@@ -43,6 +42,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         const details = getDetailsFromPackageSessionId({
             packageSessionId: isSubmissionTab ? selectedStudent?.package_id || "" : selectedStudent?.package_session_id || "",
         });
+        console.log("studentDetails: ", studentDetails);
         const student: StudentTable | null = {
             id: studentDetails?.id || "",
             username: studentDetails?.username || "",
@@ -77,6 +77,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         }
 
         const learner = isSubmissionTab ? student : selectedStudent;
+        console.log("learner: ", learner);
         setOverviewData(
             OverViewData({
                 selectedStudent: learner,
@@ -101,7 +102,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         } else {
             setDaysUntilExpiry(0);
         }
-    }, [selectedStudent, instituteDetails, password]);
+    }, [selectedStudent, instituteDetails, password, studentDetails]);
 
     if(isLoading) {
         return <DashboardLoader />
@@ -147,7 +148,10 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                             studentDetail.content.length > 0 ? (
                                                 studentDetail.content.map((obj, key2) => (
                                                     <div className="text-body" key={key2}>
-                                                        {obj}
+                                                        {obj==undefined ?
+                                                        <p className="text-primary-500">No data available</p>  :
+                                                        <p>{obj}</p>
+                                                    }
                                                     </div>
                                                 ))
                                             ) : (

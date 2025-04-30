@@ -42,6 +42,7 @@ import { AssessmentGlobalLevelReleaseResultAssessment } from "./assessment-globa
 import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
 import Papa from "papaparse";
 import { useRef } from "react";
+import { useUsersCredentials } from "@/routes/students/students-list/-services/usersCredentials";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -771,15 +772,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         });
     };
 
-    console.log(
-        getAssessmentSubmissionsFilteredDataStudentData(
-            participantsData.content,
-            type,
-            selectedTab,
-            initData?.batches_for_sessions,
-            totalMarks.total_achievable_marks,
-        ),
-    );
+    
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -842,6 +835,26 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [isSidebarOpen]);
+
+    const getUserCredentialsMutation = useUsersCredentials();
+
+    async function getCredentials() {
+        const ids = participantsData?.content.map((student: StudentTable) => student.user_id);
+        if (!ids || ids.length === 0) {
+            return;
+        }
+        const credentials = await getUserCredentialsMutation.mutateAsync({ userIds: ids || [] });
+        return credentials;
+    }
+
+    useEffect(() => {
+        async function fetchCredentials() {
+            if (participantsData?.content && participantsData.content.length > 0) {
+                await getCredentials();
+            }
+        }
+        fetchCredentials();
+    }, [participantsData]);
 
     if (isParticipantsLoading) return <DashboardLoader />;
 
