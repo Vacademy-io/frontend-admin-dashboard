@@ -22,8 +22,9 @@ import {
 import { toast } from "sonner";
 import { Check, DownloadSimple, PencilSimpleLine } from "phosphor-react";
 import { formatReadableDate } from "@/utils/formatReadableData";
-import { convertHtmlToPdf } from "../-helper/html-to-pdf";
+import { convertHtmlToPdf, convertToSlideFormat } from "../-helper/helper";
 import { StudyLibraryQuestionsPreview } from "./questions-preview";
+import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 
 export const formatHTMLString = (htmlString: string) => {
     // Remove the body tag and its attributes
@@ -67,6 +68,7 @@ export const SlideMaterial = ({
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
     const { addUpdateVideoSlide } = useSlides(chapterId || "");
+    const { updateQuestionOrder } = useSlides(chapterId || "");
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
     };
@@ -376,6 +378,21 @@ export const SlideMaterial = ({
     // Modified SaveDraft function
     const SaveDraft = async (slideToSave?: Slide | null) => {
         const slide = slideToSave ? slideToSave : activeItem;
+        if (activeItem?.source_type === "QUESTION") {
+            const questionsData: UploadQuestionPaperFormType = JSON.parse(
+                activeItem.document_data!,
+            );
+            // need to add my question logic
+            const convertedData = convertToSlideFormat(questionsData);
+            try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                await updateQuestionOrder(convertedData!);
+            } catch {
+                toast.error("error saving slide");
+            }
+            return;
+        }
 
         const currentHtml = getCurrentEditorHTMLContent();
 

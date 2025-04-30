@@ -580,7 +580,7 @@ export const isQuillContentEmpty = (content: string) => {
     return textOnly.length === 0;
 };
 
-function getEvaluationJSON(
+export function getEvaluationJSON(
     question: MyQuestion,
     correctOptionIds?: (string | null)[],
     validAnswers?: number[],
@@ -658,7 +658,7 @@ function getEvaluationJSON(
             return "";
     }
 }
-function getOptionsJson(question: MyQuestion): string | null {
+export function getOptionsJson(question: MyQuestion): string | null {
     switch (question.questionType) {
         case "MCQS":
             return null;
@@ -673,7 +673,7 @@ function getOptionsJson(question: MyQuestion): string | null {
             return null;
     }
 }
-const getQuestionType = (type: string): string => {
+export const getQuestionType = (type: string): string => {
     if (type === "CMCQS") return "MCQS";
     else if (type === "CMCQM") return "MCQM";
     else if (type === "CNUMERIC") return "NUMERIC";

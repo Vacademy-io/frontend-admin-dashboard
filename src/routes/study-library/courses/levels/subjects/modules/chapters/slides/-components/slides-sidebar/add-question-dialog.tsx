@@ -55,8 +55,6 @@ const AddQuestionDialog = ({
     const [localReattempts, setLocalReattempts] = useState("");
     const [activeQuestionDialog, setActiveQuestionDialog] = useState<QuestionTypeList | null>(null);
 
-    console.log(items);
-
     const QuestionType = ({ icon, text, type = QuestionTypeList.MCQS }: QuestionTypeProps) => {
         return (
             <div
@@ -81,6 +79,7 @@ const AddQuestionDialog = ({
         reattemptCount: string | undefined,
     ) => {
         append({
+            id: "",
             questionId: String(fields.length + 1),
             questionName: "",
             explanation: "",
@@ -91,11 +90,31 @@ const AddQuestionDialog = ({
                 min: "",
             },
             questionMark: "",
-            singleChoiceOptions: [],
-            multipleChoiceOptions: [],
-            csingleChoiceOptions: [],
-            cmultipleChoiceOptions: [],
-            trueFalseOptions: [],
+            singleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            multipleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            csingleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            cmultipleChoiceOptions: Array(4).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
+            trueFalseOptions: Array(2).fill({
+                id: "",
+                name: "",
+                isSelected: false,
+            }),
             parentRichTextContent: "",
             decimals: 0,
             numericType: "",
