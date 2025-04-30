@@ -76,7 +76,7 @@ export const GET_PUBLIC_URL_PUBLIC = `${BASE_URL}/media-service/public/get-publi
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 
-export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
+export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/content_structure`;
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
 
 export const ADD_LEVEL = `${BASE_URL}/admin-core-service/level/v1/add-level`;

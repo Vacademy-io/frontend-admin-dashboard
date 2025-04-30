@@ -9,8 +9,11 @@ import { handleGetEvaluateLecture, handleRetryAITask } from "../-services/ai-cen
 import EvaluateReportPreview from "../ai-tools/vsmart-feedback/-components/EvaluateReportPreview";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) => {
+    const [noResponse, setNoResponse] = useState(false);
     const queryClient = useQueryClient();
     const [evaluateLecture, setEvaluateLecture] = useState<AILectureFeedbackInterface>({
         title: "",
@@ -24,11 +27,20 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
         criteria: [],
         summary: [],
     });
+
     const getChatListMutation = useMutation({
         mutationFn: async ({ parentId }: { parentId: string }) => {
             return handleGetEvaluateLecture(parentId); // need to change it
         },
         onSuccess: (response) => {
+            if (!response) {
+                setTimeout(() => {
+                    setNoResponse(false);
+                }, 10000);
+                setNoResponse(true);
+                return;
+            }
+            setNoResponse(false);
             setEvaluateLecture(response);
         },
         onError: (error: unknown) => {
@@ -47,6 +59,7 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
             return handleRetryAITask(taskId);
         },
         onSuccess: (response) => {
+            setNoResponse(false);
             if (!response) {
                 toast.success("No data exists!");
                 return;
@@ -55,7 +68,16 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
             queryClient.invalidateQueries({ queryKey: ["GET_INDIVIDUAL_AI_LIST_DATA"] });
         },
         onError: (error: unknown) => {
-            console.log(error);
+            setNoResponse(false);
+            if (error instanceof AxiosError) {
+                toast.error(error.response?.data.ex, {
+                    className: "error-toast",
+                    duration: 2000,
+                });
+            } else {
+                // Handle non-Axios errors if necessary
+                console.error("Unexpected error:", error);
+            }
         },
     });
 
@@ -67,6 +89,26 @@ const AIEvaluatePreview = ({ task }: { task: AITaskIndividualListInterface }) =>
 
     return (
         <>
+            <Dialog open={noResponse} onOpenChange={setNoResponse}>
+                <DialogContent className="p-0">
+                    <h1 className="rounded-t-lg bg-primary-50 p-2 text-primary-500">
+                        Failed to load questions
+                    </h1>
+                    <h1 className="p-4">
+                        Click{" "}
+                        <MyButton
+                            type="button"
+                            scale="small"
+                            buttonType="secondary"
+                            className="!w-0 !min-w-8 border-none !p-0 text-sm !text-blue-600 shadow-none hover:bg-transparent hover:underline focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
+                            onClick={() => handleRetryTask(task.id)}
+                        >
+                            Here
+                        </MyButton>{" "}
+                        to retry
+                    </h1>
+                </DialogContent>
+            </Dialog>
             {task.status === "FAILED" ? (
                 <MyButton
                     type="button"
