@@ -7,9 +7,8 @@ const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
     return (
         <>
             <div key={`video-${activeItem.slide_id}`} className="size-full">
-                <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
+                <YouTubePlayer videoUrl={videoURL} />
             </div>
-            ,
         </>
     );
 };
