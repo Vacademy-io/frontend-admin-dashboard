@@ -326,6 +326,7 @@ export const EnrollBulkDialog = () => {
                                 scale="large"
                                 type="button"
                                 onClick={handleDoneClick}
+                                disable={form.getValues("course")?.id === "" || form.getValues("session")?.id === "" || form.getValues("level")?.id === ""}
                             >
                                 Enroll
                             </MyButton>
