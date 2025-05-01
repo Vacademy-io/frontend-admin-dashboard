@@ -7,7 +7,6 @@ import { ActivityStatsSidebar } from "./stats-dialog/activity-sidebar";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { EmptySlideMaterial } from "@/assets/svgs";
 import { useState } from "react";
-import YouTubePlayer from "./youtube-player";
 import { html } from "@yoopta/exports";
 import { SlidesMenuOption } from "./slides-menu-options/slides-menu-option";
 import { plugins, TOOLS, MARKS } from "@/constants/study-library/yoopta-editor-plugins-tools";
@@ -26,6 +25,7 @@ import { convertHtmlToPdf, convertToSlideFormat } from "../-helper/helper";
 import { StudyLibraryQuestionsPreview } from "./questions-preview";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import StudyLibraryAssignmentPreview from "./assignment-preview";
+import VideoSlidePreview from "./video-slide-preview";
 
 export const formatHTMLString = (htmlString: string) => {
     // Remove the body tag and its attributes
@@ -170,10 +170,6 @@ export const SlideMaterial = ({
             );
             return;
         } else if (activeItem.source_type == "VIDEO") {
-            const videoURL =
-                (activeItem.status == "PUBLISHED"
-                    ? activeItem.published_url
-                    : activeItem.video_url) || "";
             // TODO : add drive video upload functionality when drive video is handled at the students portal side
             // if (videoURL.includes("drive")) {
             //     if (videoURL.includes("drive")) {
@@ -212,11 +208,7 @@ export const SlideMaterial = ({
             //         </div>,
             //     );
             // }
-            setContent(
-                <div key={`video-${activeItem.slide_id}`} className="size-full">
-                    <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
-                </div>,
-            );
+            setContent(<VideoSlidePreview activeItem={activeItem} />);
             return;
         } else if (activeItem.source_type == "DOCUMENT" && activeItem.document_type == "PDF") {
             const url = await getPublicUrl(
@@ -240,9 +232,7 @@ export const SlideMaterial = ({
         } else if (activeItem.source_type == "QUESTION") {
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
             return;
-        }
-
-        else if (activeItem.source_type == "ASSIGNMENT") {
+        } else if (activeItem.source_type == "ASSIGNMENT") {
             setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             return;
         }
