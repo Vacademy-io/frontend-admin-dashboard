@@ -75,11 +75,34 @@ export const CreateBatchDialog = () => {
 
     const prevStep = () => setCurrentStep(currentStep - 1);
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData, duplicateFromSession, duplicationSessionId, courseId, levelId, sessionId }: { requestData: AddCourseData, duplicateFromSession: boolean, duplicationSessionId: string, courseId: string, levelId: string, sessionId: string }) => {
+        console.log(" inside handleAddCourse:");
         addCourseMutation.mutate(
             { requestData: requestData },
             {
-                onSuccess: () => {
+                onSuccess: (responseData) => {
+                    if(duplicateFromSession){
+                        setTimeout(() => {
+                        console.log("courseId", courseId);
+                        console.log("levelId", levelId);
+                        console.log("sessionId", sessionId);
+                        console.log("duplicationSessionId", duplicationSessionId);
+                        const toPackageSessionId = getPackageSessionId({courseId: responseData.data, levelId: levelId, sessionId: sessionId })
+                        const fromPackageSessionId = getPackageSessionId({courseId: courseId, levelId: levelId, sessionId: duplicationSessionId})
+                        copyStudyMaterialFromSession.mutate({fromPackageSessionId: fromPackageSessionId || "", toPackageSessionId: toPackageSessionId || ""},
+                            {
+                                onSuccess: () => {
+                                    toast.success("Study material copied successfully");
+                                },
+                                onError: (error) => {
+                                    toast.error(error.message || "Failed to copy study material");
+                                },
+                            }
+                        )
+                        }, 3000);
+                    }
+
+                    // responseData contains the API response
                     toast.success("Batch created successfully");
                     handleOpenManageBatchDialog(false);
                     setCurrentStep(0);
@@ -166,8 +189,8 @@ export const CreateBatchDialog = () => {
                           contain_levels: true,
                           sessions: [sessionData],
                       };
-
-            handleAddCourse({ requestData: courseData });
+            console.log("going inside handleAddCourse:");
+            handleAddCourse({ requestData: courseData, duplicateFromSession: data.duplicateStudyMaterials, duplicationSessionId: data.selectedDuplicateSession?.id || "", courseId: data.selectedCourse?.id || "", levelId: data.selectedLevel?.id || "", sessionId: data.selectedSession?.id || "" });
         })();
     };
 
