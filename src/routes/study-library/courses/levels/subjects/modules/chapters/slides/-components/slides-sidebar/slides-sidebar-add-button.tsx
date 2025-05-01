@@ -12,13 +12,29 @@ import { formatHTMLString } from "../slide-material";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
 import AddQuestionDialog from "./add-question-dialog";
+import { File } from "phosphor-react";
+import { useForm } from "react-hook-form";
+import { assignmentFormSchema, AssignmentFormType } from "../../-form-schemas/assignmentFormSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export const ChapterSidebarAddButton = () => {
+    const form = useForm<AssignmentFormType>({
+        resolver: zodResolver(assignmentFormSchema),
+        defaultValues: {
+            task: "",
+            taskDescription: "",
+            startDate: "",
+            endDate: "",
+            reattemptCount: "0",
+            uploaded_question_paper: null,
+            adaptive_marking_for_each_question: [],
+        },
+    });
     const { open } = useSidebar();
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, setItems, items } = useContentStore();
 
     // Use the Zustand store instead of useState
     const {
@@ -60,6 +76,11 @@ export const ChapterSidebarAddButton = () => {
             label: "Question",
             value: "question",
             icon: <Question className="size-4" />,
+        },
+        {
+            label: "Assignment",
+            value: "assignment",
+            icon: <File className="size-4" />,
         },
     ];
 
@@ -112,8 +133,34 @@ export const ChapterSidebarAddButton = () => {
             case "question":
                 openQuestionDialog(); // Use store action instead of setState
                 break;
+            case "assignment":
+                setItems([
+                    {
+                        slide_title: null,
+                        document_id: null,
+                        document_title: `Assignment ${items.length + 1}`,
+                        document_type: "",
+                        slide_description: null,
+                        document_cover_file_id: null,
+                        video_description: null,
+                        document_data: JSON.stringify(form.getValues()),
+                        video_id: null,
+                        video_title: null,
+                        video_url: null,
+                        slide_id: String(items.length + 1),
+                        source_type: "ASSIGNMENT",
+                        status: "DRAFT",
+                        published_data: "",
+                        published_url: "",
+                        last_sync_date: null,
+                    },
+                    ...items,
+                ]);
+                break;
         }
     };
+
+    console.log(items);
 
     return (
         <>

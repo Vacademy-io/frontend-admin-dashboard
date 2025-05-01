@@ -12,7 +12,7 @@ import {
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { useRouter } from "@tanstack/react-router";
 import { useFieldArray, useForm } from "react-hook-form";
-import { CheckCircle, Question } from "phosphor-react";
+import { CheckCircle, File, Question } from "phosphor-react";
 import { useSaveDraft } from "../../-context/saveDraftContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -73,6 +73,9 @@ export const ChapterSidebarSlides = ({
     });
 
     const getIcon = (slide: Slide): ReactNode => {
+        if (slide.source_type === "ASSIGNMENT") {
+            return <File className="size-6" />;
+        }
         const type =
             slide.source_type === "QUESTION"
                 ? "QUESTION"

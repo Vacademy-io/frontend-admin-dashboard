@@ -179,10 +179,10 @@ const optimizeImage = (canvas: HTMLCanvasElement): string => {
     return optimizedCanvas.toDataURL("image/jpeg", 0.8);
 };
 
-export function updateDocumentDataInSlides(
+export function updateDocumentDataInSlides<T>(
     data: Slide[],
     slide: Slide,
-    formData: UploadQuestionPaperFormType,
+    formData: T,
     setActiveItem: (item: Slide) => void,
 ): Slide[] {
     return data.map((item) => {
