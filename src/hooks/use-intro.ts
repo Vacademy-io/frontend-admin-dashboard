@@ -16,11 +16,18 @@ interface UseIntroJsTourProps {
     steps: Step[];
     enable?: boolean;
     partial?: boolean;
+    delay?: number;
     className?: string;
     onTourExit?: () => void;
 }
 
-const useIntroJsTour = ({ key, steps, onTourExit, className,enable = true }: UseIntroJsTourProps) => {
+const useIntroJsTour = ({
+    key,
+    steps,
+    onTourExit,
+    className,
+    enable = true,
+}: UseIntroJsTourProps) => {
     const { getValue, setValue } = useLocalStorage<boolean>(key, false);
     const [hasDisplayedIntro, setHasDisplayedIntro] = useState(false);
 

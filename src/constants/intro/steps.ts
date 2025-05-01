@@ -45,12 +45,6 @@ const dashboardSteps: Step[] = [
 
 const createAssesmentSteps: Step[] = [
     {
-        element: "#create-assessment",
-        title: "Create Assessment",
-        intro: "Set up your first assessment with ease.",
-        position: "right",
-    },
-    {
         element: "#basic-info",
         title: "Complete Basic Info",
         intro: "Provide the basic details of the assessment and move forward.",
@@ -186,6 +180,15 @@ const createAssesmentSteps: Step[] = [
     },
 ];
 
+const createAssesmentButtonStep: Step[] = [
+    {
+        element: "#create-assessment",
+        title: "Create Assessment",
+        intro: "Set up your first assessment with ease.",
+        position: "right",
+    },
+];
+
 const createCourseStep: Step[] = [
     {
         element: "#create-new-course",
@@ -275,6 +278,44 @@ const studentManagementSteps: Step[] = [
     },
 ];
 
+const addCourseStep: Step[] = [
+    {
+        element: "#course-name",
+        title: "Enter Course Name",
+        intro: "Specify the course name offered by your institute.",
+        position: "bottom",
+    },
+    {
+        element: "#course-thumbnail",
+        title: "Upload Image",
+        intro: "Add a cover image to your course for easy identification.",
+        position: "right",
+    },
+    {
+        element: "#course-level",
+        title: "Level",
+        intro: "Specify whether your course includes multiple levels, such as 9th or 10th standard, or if it has no levels.",
+        position: "right",
+    },
+    {
+        element: "#add-course-level",
+        title: "Add Level",
+        intro: "Create levels linked to your course, structured by difficulty tiers such as the 10th standard.",
+        position: "right",
+    },
+    {
+        element: "#add-course-session",
+        title: "Add Session",
+        intro: "Create sessions linked to the course, specifying a time period such as 2024-2025.",
+        position: "right",
+    },
+    {
+        element: "#add-course-button",
+        title: "Add Course",
+        intro: `Click the "Add" button to include a course in your institute.`,
+        position: "right",
+    },
+];
 const inviteSteps: Step[] = [
     {
         element: "#invite-link-name",
@@ -319,5 +360,7 @@ export {
     createAssesmentSteps,
     studyLibrarySteps,
     studentManagementSteps,
+    createAssesmentButtonStep,
+    addCourseStep,
     inviteSteps,
 };
