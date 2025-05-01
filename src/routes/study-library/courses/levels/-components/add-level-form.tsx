@@ -51,6 +51,7 @@ interface AddLevelFormProps {
     initialValues?: AddLevelData;
     setOpenDialog: Dispatch<SetStateAction<boolean>>;
     submitForm: (submitFn: () => void) => void;
+    packageId?: string;
 }
 
 export const AddLevelForm = ({
@@ -58,6 +59,7 @@ export const AddLevelForm = ({
     initialValues,
     setOpenDialog,
     submitForm,
+    packageId,
 }: AddLevelFormProps) => {
     const [newSessionName, setNewSessionName] = useState("");
     const { instituteDetails, getAllSessions } = useInstituteDetailsStore();
@@ -66,7 +68,7 @@ export const AddLevelForm = ({
 
     const route = useRouter();
     const search = route.state.location.search;
-    const courseId: string = search.courseId || "";
+    const courseId: string = packageId ? packageId : search.courseId || "";
     const { selectedSession } = useSelectedSessionStore();
 
     const handleAddSession = (sessionName: string, startDate: string) => {
@@ -101,9 +103,8 @@ export const AddLevelForm = ({
             ...data,
             status: "ACTIVE",
         };
-        console.log("Form submitted with data:", submissionData);
         onSubmitSuccess({
-            packageId: courseId,
+            packageId: packageId ? packageId : courseId,
             sessionId: selectedSession?.id || "",
             requestData: submissionData,
         });

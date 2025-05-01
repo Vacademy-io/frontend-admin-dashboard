@@ -35,11 +35,11 @@ export const CreateLevelStep = () => {
     useEffect(() => {
         // Get all sessions except the currently selected one
         const allSessions = getSessionFromPackage({
-            courseId: form.watch("selectedCourse")?.id,
+            courseId: form.watch("selectedCourse")?.id, levelId: form.watch("selectedLevel")?.id
         });
         const filteredSessions = allSessions.filter(
             (session) => session.id !== form.watch("selectedSession")?.id
-        );
+        );  
         setSessionList(filteredSessions);
     }, [form.watch("selectedCourse"), form.watch("selectedSession")]);
 
@@ -172,7 +172,7 @@ export const CreateLevelStep = () => {
                     ))}
 
                 {shouldShowDuplicateOption && (
-                    <div className="flex flex-col gap-4 mt-4">
+                    <div className="flex items-center gap-4 mt-4">
                         <FormField
                             control={form.control}
                             name="duplicateStudyMaterials"
