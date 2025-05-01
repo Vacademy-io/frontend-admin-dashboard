@@ -90,7 +90,7 @@ function RouteComponent() {
                     id: course.id,
                 };
             })}
-            sideBarData={{ title: "Course", listIconText: "C", searchParam: "courseId" }}
+            sideBarData={{ title: "Courses", listIconText: "C", searchParam: "courseId" }}
         >
             <InitStudyLibraryProvider>
                 <LevelPage />

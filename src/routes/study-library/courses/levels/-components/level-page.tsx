@@ -18,29 +18,33 @@ import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
 import { useUpdateLevel } from "@/routes/study-library/courses/levels/-services/update-level";
 import { EmptyLevelPage } from "@/svgs";
+import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
+import { DropdownItemType, DropdownValueType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const { setSelectedSession } = useSelectedSessionStore();
     const addLevelMutation = useAddLevel();
     const deleteLevelMutation = useDeleteLevel();
     const updateLevelMutation = useUpdateLevel();
     // Ensure hooks always run
-    const [sessionList, setSessionList] = useState(
-        searchParams.courseId ? getCourseSessions(searchParams.courseId) : [],
+    const [sessionList, setSessionList] = useState<DropdownItemType[]>(
+        searchParams.courseId ? getCourseSessions(searchParams.courseId).map((session) => ({id: session.id, name: session.session_name})) : [],
     );
-    const initialSession: StudyLibrarySessionType | undefined = sessionList[0] ?? undefined;
+    const initialSession: DropdownItemType | undefined = {id: sessionList[0]?.id || "", name: sessionList[0]?.name || ""}
 
-    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
+    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(
         () => initialSession,
     );
 
     useEffect(() => {
-        setSessionList(searchParams.courseId ? getCourseSessions(searchParams.courseId) : []);
-        setCurrentSession(sessionList[0] ?? undefined);
+        setSessionList(searchParams.courseId ? getCourseSessions(searchParams.courseId).map((session) => ({id: session.id, name: session.session_name})) : []);
     }, [searchParams.courseId]);
+
+    useEffect(() => {
+        setCurrentSession({id: sessionList[0]?.id || "", name: sessionList[0]?.name || ""});
+    }, [sessionList]);
 
     // Get levels only if session is selected
     const initialLevelList = currentSession
@@ -49,9 +53,9 @@ export const LevelPage = () => {
 
     const [levelList, setLevelList] = useState(initialLevelList);
 
-    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
-        if (typeof value !== "string" && value) {
-            setCurrentSession(value);
+    const handleSessionChange = (value: DropdownValueType) => {
+        if (value && typeof value === "object" && "id" in value && "name" in value) {
+            setCurrentSession(value as DropdownItemType);
         }
     };
 
@@ -72,7 +76,6 @@ export const LevelPage = () => {
     });
 
     useEffect(() => {
-        setSelectedSession(currentSession);
         const newLevelList = currentSession
             ? getCourseLevels(searchParams.courseId!, currentSession.id)
             : [];
@@ -153,11 +156,11 @@ export const LevelPage = () => {
                     {LevelHeader()}
 
                     <div className="flex items-center gap-6">
-                        <SessionDropdown
-                            currentSession={currentSession ?? undefined} // Convert null to undefined
-                            onSessionChange={handleSessionChange}
-                            className="text-title font-semibold"
-                            sessionList={sessionList}
+                         <MyDropdown
+                            currentValue={currentSession ?? undefined}
+                            dropdownList={sessionList}
+                            placeholder="Select Session"
+                            handleChange={handleSessionChange}
                         />
                     </div>
 

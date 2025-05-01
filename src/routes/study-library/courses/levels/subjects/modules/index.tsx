@@ -6,8 +6,10 @@ import { ModuleMaterial } from "@/routes/study-library/courses/levels/subjects/m
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { CaretLeft } from "phosphor-react";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
 
 interface SubjectSearchParams {
     courseId: string;
@@ -59,13 +61,35 @@ function RouteComponent() {
     // Ensure dependencies are complete
     useEffect(() => {
         setNavHeading(heading);
-
         // You can call this function here if you want to invalidate on component mount
         invalidateModulesQuery();
     }, []);
 
+
+    const { instituteDetails } = useInstituteDetailsStore();
+    const batchDetails = instituteDetails?.batches_for_sessions.filter((batch)=> batch.level.id==levelId && batch.package_dto.id==courseId)
+    const sessionId = batchDetails && batchDetails.length > 0 ? batchDetails[1]?.session.id : ""
+
+    const initialSubjects = getCourseSubjects(courseId, sessionId?? "", levelId);
+    const [subjects, setSubjects] = useState(initialSubjects);
+
+    useEffect(() => {
+        const newSubjects = getCourseSubjects(courseId, sessionId ?? "", levelId);
+        setSubjects(newSubjects);
+    }, [sessionId, levelId]);
+
+
     return (
-        <LayoutContainer>
+        <LayoutContainer
+            internalSideBar
+            sideBarList={subjects.map((subject)=>{
+                return{
+                    value: subject.subject_name,
+                    id: subject.id
+                }
+            })}
+            sideBarData={{title: "Subjects", listIconText: "S", searchParam: "subjectId"}}
+        >
             <InitStudyLibraryProvider>
                 <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
                     <ModuleMaterial />
