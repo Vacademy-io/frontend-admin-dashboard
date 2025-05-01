@@ -51,8 +51,8 @@ export const StepTwoForm = ({
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
     const [levelList, setLevelList] = useState<DropdownItemType[]>(getLevelsFromPackage());
     const addCourseMutation = useAddCourse();
-    const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
     const { instituteDetails } = useInstituteDetailsStore();
+    const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
     const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const addSessionMutation = useAddSession();
     const [disableAddButton, setDisableAddButton] = useState(true);
@@ -61,8 +61,30 @@ export const StepTwoForm = ({
         setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
     };
 
-
-
+    // Update lists when instituteDetails changes
+    useEffect(() => {
+        setCourseList(getCourseFromPackage());
+        form.reset({
+            course: {
+                id: "",
+                name: "",
+            },
+        });
+        setSessionList(getSessionFromPackage());
+        form.reset({
+            session: {
+                id: "",
+                name: "",
+            },
+        });
+        setLevelList(getLevelsFromPackage());
+        form.reset({
+            level: {
+                id: "",
+                name: "",
+            },
+        });
+    }, [instituteDetails, getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage]);
 
     useEffect(() => {
         if (initialValues) {
@@ -192,7 +214,7 @@ export const StepTwoForm = ({
 
         // Reset the change tracker after handling
         lastChangedField.current = null;
-    }, [courseValue, getSessionFromPackage, getLevelsFromPackage, instituteDetails]);
+    }, [courseValue, getSessionFromPackage, getLevelsFromPackage]);
 
     // When session changes, update course and level lists
     useEffect(() => {
@@ -232,7 +254,7 @@ export const StepTwoForm = ({
 
         // Reset the change tracker after handling
         lastChangedField.current = null;
-    }, [sessionValue, getCourseFromPackage, getLevelsFromPackage, instituteDetails]);
+    }, [sessionValue, getCourseFromPackage, getLevelsFromPackage]);
 
     // When level changes, update course and session lists
     useEffect(() => {
@@ -272,7 +294,7 @@ export const StepTwoForm = ({
 
         // Reset the change tracker after handling
         lastChangedField.current = null;
-    }, [levelValue, getCourseFromPackage, getSessionFromPackage, instituteDetails]);
+    }, [levelValue, getCourseFromPackage, getSessionFromPackage]);
 
     // Add this effect to auto-select single options
     useEffect(() => {
@@ -506,6 +528,7 @@ export const StepTwoForm = ({
                                                     showAddLevelButton={true}
                                                     onAddLevel={handleAddLevel}
                                                     packageId={form.getValues("course").id}
+                                                    disableAddLevelButton = {form.getValues("course").id === ""}
                                                 />
                                             </div>
                                         </FormControl>

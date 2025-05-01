@@ -51,6 +51,7 @@ export const MyDropdown = ({
     onAddSession,
     onAddLevel,
     packageId,
+    disableAddLevelButton = false,
 }: myDropDownProps & {
     showAddCourseButton?: boolean;
     showAddSessionButton?: boolean;
@@ -59,6 +60,7 @@ export const MyDropdown = ({
     onAddSession?: (data: AddSessionDataType) => void;
     onAddLevel?: (data: { requestData: AddLevelData; packageId?: string; sessionId?: string }) => void;
     packageId?: string;
+    disableAddLevelButton?: boolean;
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isAddSessionDialogOpen, setIsAddSessionDialogOpen] = useState(false);
@@ -131,6 +133,7 @@ export const MyDropdown = ({
     const handleAddSessionSubmit = (sessionData: AddSessionDataType) => {
         if (onAddSession) {
             onAddSession(sessionData);
+            setIsAddSessionDialogOpen(false);
         } else {
             const processedData = structuredClone(sessionData);
             const transformedData = {
@@ -354,15 +357,21 @@ export const MyDropdown = ({
                                     <AddLevelButton
                                         onSubmit={handleAddLevelSubmit}
                                         trigger={
+                                            <div>
                                             <MyButton
                                                 type="button"
                                                 buttonType="text"
                                                 layoutVariant="default"
                                                 scale="small"
                                                 className="w-full text-primary-500"
+                                                disable={disableAddLevelButton}
                                             >
-                                                <Plus className="mr-2" /> Create Level
+                                                <div className="flex items-center">
+                                                <Plus className={`${disableAddLevelButton ? "text-primary-300" : "text-primary-500"}`} /> <p className={disableAddLevelButton ? "text-primary-300" : "text-primary-500"}>Create Level</p>
+                                                </div>
+                                                {disableAddLevelButton && <p className="text-caption text-neutral-500">(Select a course first)</p>}
                                             </MyButton>
+                                            </div>
                                         }
                                         packageId={packageId}
                                     />
