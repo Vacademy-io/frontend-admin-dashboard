@@ -8,6 +8,8 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useAddCourse } from "@/services/study-library/course-operations/add-course";
 import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
+import { useCopyStudyMaterialFromSession } from "../../students-list/-services/copyStudyMaterialFromSession";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface FormData {
     // Course step
@@ -23,6 +25,8 @@ interface FormData {
     levelCreationType: "existing" | "new";
     selectedLevel: { id: string; name: string } | null;
     selectedLevelDuration: number | null;
+    duplicateStudyMaterials: boolean;
+    selectedDuplicateSession: { id: string; name: string } | null;
 }
 
 export const CreateBatchDialog = () => {
@@ -31,7 +35,8 @@ export const CreateBatchDialog = () => {
     const [openManageBatchDialog, setOpenManageBatchDialog] = useState(false);
     const addCourseMutation = useAddCourse();
     const handleOpenManageBatchDialog = (open: boolean) => setOpenManageBatchDialog(open);
-
+    const copyStudyMaterialFromSession = useCopyStudyMaterialFromSession();
+    const {getPackageSessionId} = useInstituteDetailsStore();
     // Set up the form with default values
     const methods = useForm<FormData>({
         defaultValues: {
@@ -48,6 +53,8 @@ export const CreateBatchDialog = () => {
             levelCreationType: "existing",
             selectedLevel: null,
             selectedLevelDuration: null,
+            duplicateStudyMaterials: false,
+            selectedDuplicateSession: null,
         },
     });
 
@@ -68,11 +75,30 @@ export const CreateBatchDialog = () => {
 
     const prevStep = () => setCurrentStep(currentStep - 1);
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    const handleAddCourse = ({ requestData, duplicateFromSession, duplicationSessionId, courseId, levelId, sessionId }: { requestData: AddCourseData, duplicateFromSession: boolean, duplicationSessionId: string, courseId: string, levelId: string, sessionId: string }) => {
+        console.log(" inside handleAddCourse:");
         addCourseMutation.mutate(
             { requestData: requestData },
             {
-                onSuccess: () => {
+                onSuccess: (responseData) => {
+                    if(duplicateFromSession){
+                        setTimeout(() => {
+                        const toPackageSessionId = getPackageSessionId({courseId: responseData.data, levelId: levelId, sessionId: sessionId })
+                        const fromPackageSessionId = getPackageSessionId({courseId: courseId, levelId: levelId, sessionId: duplicationSessionId})
+                        copyStudyMaterialFromSession.mutate({fromPackageSessionId: fromPackageSessionId || "", toPackageSessionId: toPackageSessionId || ""},
+                            {
+                                onSuccess: () => {
+                                    toast.success("Study material copied successfully");
+                                },
+                                onError: (error) => {
+                                    toast.error(error.message || "Failed to copy study material");
+                                },
+                            }
+                        )
+                        }, 3000);
+                    }
+
+                    // responseData contains the API response
                     toast.success("Batch created successfully");
                     handleOpenManageBatchDialog(false);
                     setCurrentStep(0);
@@ -86,6 +112,8 @@ export const CreateBatchDialog = () => {
                         levelCreationType: "existing",
                         selectedLevel: null,
                         selectedLevelDuration: null,
+                        duplicateStudyMaterials: false,
+                        selectedDuplicateSession: null,
                     });
                 },
                 onError: (error) => {
@@ -97,7 +125,6 @@ export const CreateBatchDialog = () => {
 
     const submit = () => {
         methods.handleSubmit((data) => {
-            console.log("Form submitted with data:", data);
             // Handle submission here
             const levelData =
                 data.levelCreationType === "new"
@@ -127,6 +154,7 @@ export const CreateBatchDialog = () => {
                           start_date: data.selectedStartDate || "",
                           levels: [levelData],
                           status: "ACTIVE",
+                          duplicate_from_session_id: data.duplicateStudyMaterials ? data.selectedDuplicateSession?.id : undefined,
                       }
                     : {
                           id: data.selectedSession?.id || "",
@@ -135,6 +163,7 @@ export const CreateBatchDialog = () => {
                           start_date: data.selectedStartDate || "",
                           levels: [levelData],
                           status: "ACTIVE",
+                          duplicate_from_session_id: data.duplicateStudyMaterials ? data.selectedDuplicateSession?.id : undefined,
                       };
 
             const courseData: AddCourseData =
@@ -155,8 +184,8 @@ export const CreateBatchDialog = () => {
                           contain_levels: true,
                           sessions: [sessionData],
                       };
-
-            handleAddCourse({ requestData: courseData });
+            console.log("going inside handleAddCourse:");
+            handleAddCourse({ requestData: courseData, duplicateFromSession: data.duplicateStudyMaterials, duplicationSessionId: data.selectedDuplicateSession?.id || "", courseId: data.selectedCourse?.id || "", levelId: data.selectedLevel?.id || "", sessionId: data.selectedSession?.id || "" });
         })();
     };
 

@@ -5,6 +5,8 @@ interface DialogState {
     isPdfDialogOpen: boolean;
     isDocUploadDialogOpen: boolean;
     isVideoDialogOpen: boolean;
+    isQuestionDialogOpen: boolean;
+    isAssignmentDialogOpen: boolean;
 
     // Dialog actions
     openPdfDialog: () => void;
@@ -19,6 +21,14 @@ interface DialogState {
     closeVideoDialog: () => void;
     toggleVideoDialog: () => void;
 
+    openQuestionDialog: () => void;
+    closeQuestionDialog: () => void;
+    toggleQuestionDialog: () => void;
+
+    openAssignmentDialog: () => void;
+    closeAssignmentDialog: () => void;
+    toggleAssignmentDialog: () => void;
+
     // Reset all dialog states
     resetDialogs: () => void;
 }
@@ -28,6 +38,8 @@ export const useDialogStore = create<DialogState>((set) => ({
     isPdfDialogOpen: false,
     isDocUploadDialogOpen: false,
     isVideoDialogOpen: false,
+    isQuestionDialogOpen: false,
+    isAssignmentDialogOpen: false,
 
     // PDF Dialog actions
     openPdfDialog: () => set({ isPdfDialogOpen: true }),
@@ -45,11 +57,25 @@ export const useDialogStore = create<DialogState>((set) => ({
     closeVideoDialog: () => set({ isVideoDialogOpen: false }),
     toggleVideoDialog: () => set((state) => ({ isVideoDialogOpen: !state.isVideoDialogOpen })),
 
+    // Question Dialog actions
+    openQuestionDialog: () => set({ isQuestionDialogOpen: true }),
+    closeQuestionDialog: () => set({ isQuestionDialogOpen: false }),
+    toggleQuestionDialog: () =>
+        set((state) => ({ isQuestionDialogOpen: !state.isQuestionDialogOpen })),
+
+    // Assignment Dialog actions
+    openAssignmentDialog: () => set({ isAssignmentDialogOpen: true }),
+    closeAssignmentDialog: () => set({ isAssignmentDialogOpen: false }),
+    toggleAssignmentDialog: () =>
+        set((state) => ({ isAssignmentDialogOpen: !state.isAssignmentDialogOpen })),
+
     // Reset all dialogs
     resetDialogs: () =>
         set({
             isPdfDialogOpen: false,
             isDocUploadDialogOpen: false,
             isVideoDialogOpen: false,
+            isQuestionDialogOpen: false,
+            isAssignmentDialogOpen: false,
         }),
 }));

@@ -120,8 +120,15 @@ const GeneratePageWiseAssessment = ({
     };
 
     const generateAssessmentMutation = useMutation({
-        mutationFn: ({ html, userPrompt }: { html: string; userPrompt: string }) =>
-            handleGenerateAssessmentQuestionsPageWise(html, userPrompt),
+        mutationFn: ({
+            html,
+            userPrompt,
+            taskId,
+        }: {
+            html: string;
+            userPrompt: string;
+            taskId: string;
+        }) => handleGenerateAssessmentQuestionsPageWise(html, userPrompt, taskId),
         onSuccess: (response) => {
             // Check if response indicates pending state
             if (response?.status === "pending") {
@@ -199,6 +206,7 @@ const GeneratePageWiseAssessment = ({
         generateAssessmentMutation.mutate({
             html: String(rightEditorRef.current?.value),
             userPrompt: propmtInput,
+            taskId: "",
         });
     };
 

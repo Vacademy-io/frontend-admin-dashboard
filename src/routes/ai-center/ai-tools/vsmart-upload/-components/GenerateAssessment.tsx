@@ -72,14 +72,16 @@ const GenerateAIAssessmentComponent = () => {
             pdfId,
             userPrompt,
             taskName,
+            taskId,
         }: {
             pdfId: string;
             userPrompt: string;
             taskName: string;
+            taskId?: string;
         }) => {
             setLoader(true);
             setKey("assessment");
-            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName);
+            return handleGenerateAssessmentQuestions(pdfId, userPrompt, taskName, taskId || "");
         },
         onMutate: () => {
             setAllPagesGenerateQuestionsStatus(true);
@@ -95,11 +97,12 @@ const GenerateAIAssessmentComponent = () => {
         },
     });
 
-    const pollGenerateAssessment = () => {
+    const pollGenerateAssessment = (prompt?: string, taskId?: string) => {
         generateAssessmentMutation.mutate({
             pdfId: uploadedFilePDFId,
-            userPrompt: "",
+            userPrompt: prompt || "",
             taskName,
+            taskId,
         });
     };
 
@@ -217,6 +220,7 @@ const GenerateAIAssessmentComponent = () => {
                 keyProp="assessment"
                 taskName={taskName}
                 setTaskName={setTaskName}
+                pollGenerateAssessment={pollGenerateAssessment}
             />
             <GenerateAssessmentDialog
                 open={openAssessmentDialog}

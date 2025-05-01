@@ -15,6 +15,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import useIntroJsTour from "@/hooks/use-intro";
 import { IntroKey } from "@/constants/storage/introKey";
 import { inviteSteps } from "@/constants/intro/steps";
+import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
+import { useAddCourse } from "@/services/study-library/course-operations/add-course";
+import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
+import { Plus } from "phosphor-react";
 
 interface CreateInviteDialogProps {
     initialValues?: InviteForm;
@@ -49,6 +53,7 @@ export const CreateInviteDialog = ({
 }: CreateInviteDialogProps) => {
     const { form, toggleIsRequired, handleAddOpenFieldValues, handleDeleteOpenField } =
         useInviteForm(initialValues);
+    const addCourseMutation = useAddCourse();
 
     const {
         control,
@@ -122,6 +127,20 @@ export const CreateInviteDialog = ({
         setValue(
             "inviteeEmails",
             currentEmails.filter((entry: EmailEntry) => entry.id !== idToRemove),
+        );
+    };
+
+    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+        addCourseMutation.mutate(
+            { requestData: requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Batch created successfully");
+                },
+                onError: () => {
+                    toast.error("Failed to create batch");
+                },
+            },
         );
     };
 
@@ -246,11 +265,36 @@ export const CreateInviteDialog = ({
                         </div>
 
                         {/* <CourseList /> */}
-                        <div className="flex flex-col gap-3" id="select-batch">
-                            <p className="text-subtitle font-semibold">
-                                Batch Selection<span className="text-danger-600">*</span>
-                            </p>
-                            <FormField
+                        {instituteDetails?.batches_for_sessions.length == 0 ? (
+                            <div className="flex flex-col gap-3" id="select-batch">
+                                <p className="text-subtitle font-semibold">
+                                    Batch Selection<span className="text-danger-600">*</span>
+                                </p>
+                                <AddCourseButton
+                                    onSubmit={handleAddCourse}
+                                    courseButton={
+                                        <MyButton
+                                            type="button"
+                                            buttonType="text"
+                                            layoutVariant="default"
+                                            scale="small"
+                                            className="w-fit text-primary-500 hover:bg-white active:bg-white"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                            }}
+                                        >
+                                            <Plus /> Create Batch
+                                        </MyButton>
+                                    }
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-3" id="select-batch">
+                                <p className="text-subtitle font-semibold">
+                                    Batch Selection<span className="text-danger-600">*</span>
+                                </p>
+                                <FormField
                                 control={form.control}
                                 name="batches.courseSelectionMode"
                                 render={({ field }) => (
@@ -472,6 +516,7 @@ export const CreateInviteDialog = ({
                                 )}
                             </div>
                         </div>
+)}
 
                         {/* Student Expiry Date */}
                         <div className="flex items-center gap-6" id="student-access-duration">

@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { Plus } from "phosphor-react";
 import { AddLevelData, AddLevelForm } from "./add-level-form";
 
@@ -21,9 +21,11 @@ interface AddLevelButtonProps {
         sessionId?: string;
         levelId?: string;
     }) => void;
+    trigger?: ReactNode;
+    packageId?: string;
 }
 
-export const AddLevelButton = ({ onSubmit }: AddLevelButtonProps) => {
+export const AddLevelButton = ({ onSubmit, trigger, packageId }: AddLevelButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleOpenChange = () => {
@@ -52,18 +54,28 @@ export const AddLevelButton = ({ onSubmit }: AddLevelButtonProps) => {
 
     return (
         <MyDialog
-            trigger={triggerButton}
+            trigger={trigger ? trigger : triggerButton}
             heading="Add Level"
             dialogWidth="w-[430px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
             footer={levelSubmitButton}
+            className="z-[99999]"
         >
-            <AddLevelForm
-                onSubmitSuccess={onSubmit}
-                setOpenDialog={setOpenDialog}
-                submitForm={submitFormFn}
-            />
+            {packageId ?
+                <AddLevelForm
+                    onSubmitSuccess={onSubmit}
+                    setOpenDialog={setOpenDialog}
+                    submitForm={submitFormFn}
+                    packageId={packageId}
+                />
+                :
+                <AddLevelForm
+                    onSubmitSuccess={onSubmit}
+                    setOpenDialog={setOpenDialog}
+                    submitForm={submitFormFn}
+                />
+            }
         </MyDialog>
     );
 };

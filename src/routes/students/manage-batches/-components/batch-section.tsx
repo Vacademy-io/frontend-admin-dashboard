@@ -5,13 +5,14 @@ import {
     BatchType,
     batchWithStudentDetails,
 } from "@/routes/students/manage-batches/-types/manage-batches-types";
-import { Plus, TrashSimple } from "phosphor-react";
+import { Check, Copy, Plus, TrashSimple } from "phosphor-react";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useGetStudentBatch } from "@/routes/students/students-list/-hooks/useGetStudentBatch";
 import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
 import { useDeleteBatches } from "@/routes/students/manage-batches/-services/delete-batches";
 import { toast } from "sonner";
+import { InviteLink } from "@/routes/students/-components/InviteLink";
 interface batchCardProps {
     batch: BatchType;
 }
@@ -56,6 +57,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
         );
     };
 
+
     return (
         <>
             <div className="flex flex-col gap-8 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
@@ -73,6 +75,10 @@ const BatchCard = ({ batch }: batchCardProps) => {
                             {batch.count_students}
                         </p>
                         <p className="text-subtitle font-semibold">students</p>
+                    </div>
+                    <div className="flex gap-2 text-body items-center">
+                        <p>Invite: </p>
+                        <InviteLink inviteCode={batch.invite_code} />
                     </div>
                 </div>
                 <div className="flex items-center justify-between">

@@ -19,6 +19,7 @@ interface DialogProps {
     footer?: JSX.Element;
     isTour?: boolean;
     dialogId?: string;
+    className?: string;
 }
 
 export const MyDialog = ({
@@ -32,13 +33,14 @@ export const MyDialog = ({
     footer,
     isTour = false,
     dialogId,
+    className,
 }: DialogProps) => {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
             <DialogContent
                 data-dialog-id={dialogId}
-                className={`${dialogWidth} dialog-no-close-icon flex max-h-[80vh] max-w-[80vw] flex-col p-0`}
+                className={`${dialogWidth} dialog-no-close-icon flex max-h-[80vh] max-w-[80vw] flex-col p-0 ${className}`}
                 onInteractOutside={(e) => {
                     if (isTour) e.preventDefault();
                 }}

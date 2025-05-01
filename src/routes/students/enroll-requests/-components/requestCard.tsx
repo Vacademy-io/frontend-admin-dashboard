@@ -1,14 +1,11 @@
 import { MyButton } from "@/components/design-system/button";
-import { Copy } from "phosphor-react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { EnrollManuallyButton } from "@/components/common/students/enroll-manually/enroll-manually-button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 import { ContentType } from "../-types/enroll-request-types";
 import { useEffect, useState } from "react";
-import createInviteLink from "../../invite/-utils/createInviteLink";
-import { toast } from "sonner";
 import { StudentTable } from "@/types/student-table-types";
+import { InviteLink } from "@/routes/students/-components/InviteLink";
 
 export const RequestCard = ({
     obj,
@@ -17,31 +14,11 @@ export const RequestCard = ({
     obj: ContentType;
     batchDetails: BatchForSessionType;
 }) => {
-    const [inviteLink, setInviteLink] = useState("");
-    const [copySuccess, setCopySuccess] = useState<string | null>(null);
+
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [studentData, setStudentData] = useState<StudentTable | undefined>();
 
-    const handleCopyClick = (link: string) => {
-        navigator.clipboard
-            .writeText(link)
-            .then(() => {
-                setCopySuccess(link);
-                setTimeout(() => setCopySuccess(null), 2000);
-            })
-            .catch((err) => {
-                console.log("Error copying link: ", err);
-                toast.error("Copy failed!");
-            });
-    };
-
     useEffect(() => {
-        if (obj.learner_invitation.invite_code) {
-            const link = createInviteLink(obj.learner_invitation.invite_code);
-            setInviteLink(link);
-        } else {
-            setInviteLink("");
-        }
 
         const data: StudentTable = {
             id: obj.learner_invitation_response_dto.id,
@@ -124,45 +101,7 @@ export const RequestCard = ({
                                 </div>
                                 <div className="flex items-center gap-2 text-body">
                                     <p className="text-body font-semibold">Invite Link: </p>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <a
-                                                    href={inviteLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-subtitle underline hover:text-primary-500"
-                                                >
-                                                    {`${inviteLink.slice(0, 40)}..`}
-                                                </a>
-                                            </TooltipTrigger>
-                                            <TooltipContent className="cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:text-primary-500">
-                                                <a
-                                                    href={inviteLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    {inviteLink}
-                                                </a>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-
-                                    <div className="flex items-center gap-2">
-                                        <MyButton
-                                            buttonType="secondary"
-                                            scale="medium"
-                                            layoutVariant="icon"
-                                            onClick={() => handleCopyClick(inviteLink)}
-                                        >
-                                            <Copy />
-                                        </MyButton>
-                                        {copySuccess == inviteLink && (
-                                            <span className="text-caption text-primary-500">
-                                                Copied!
-                                            </span>
-                                        )}
-                                    </div>
+                                    <InviteLink inviteCode={obj.learner_invitation.invite_code || ""} />
                                 </div>
                             </div>
                         </div>

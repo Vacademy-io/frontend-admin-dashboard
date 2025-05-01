@@ -53,6 +53,7 @@ export interface StudentTable {
     attempt_id?: string;
     parents_to_mother_mobile_number: string;
     parents_to_mother_email: string;
+    package_id?: string;
 }
 
 export interface StudentListResponse {

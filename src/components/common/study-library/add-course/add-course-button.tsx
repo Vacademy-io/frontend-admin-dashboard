@@ -76,6 +76,7 @@ export const AddCourseButton = ({ onSubmit, courseButton }: AddCourseButtonProps
             onOpenChange={handleOpenChange}
             footer={submitButton}
             isTour
+            className="z-[99999]"
         >
             <AddCourseForm
                 onSubmitCourse={onSubmit}

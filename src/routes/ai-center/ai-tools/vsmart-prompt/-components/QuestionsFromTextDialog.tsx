@@ -16,10 +16,11 @@ export const QuestionsFromTextDialog = ({
     submitForm,
     trigger,
     form,
+    taskId,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSubmitSuccess: (data: QuestionsFromTextData) => void;
+    onSubmitSuccess: (data: QuestionsFromTextData, taskId: string) => void;
     submitButton: JSX.Element;
     handleDisableSubmitBtn: (value: boolean) => void;
     submitForm: (submitFn: () => void) => void;
@@ -33,6 +34,7 @@ export const QuestionsFromTextDialog = ({
         question_type: string;
         question_language: string;
     }>;
+    taskId: string;
 }) => {
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -59,7 +61,7 @@ export const QuestionsFromTextDialog = ({
         >
             <FormProvider {...form}>
                 <form
-                    onSubmit={form.handleSubmit(onSubmitSuccess)}
+                    onSubmit={form.handleSubmit((data) => onSubmitSuccess(data, taskId))}
                     className="flex flex-col gap-4"
                     ref={formRef}
                 >

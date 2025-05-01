@@ -52,14 +52,16 @@ const SortAndSplitTopicQuestions = () => {
             pdfId,
             userPrompt,
             taskName,
+            taskId,
         }: {
             pdfId: string;
             userPrompt: string;
             taskName: string;
+            taskId: string;
         }) => {
             setLoader(true);
             setKey("sortSplitPdf");
-            return handleSortSplitPDF(pdfId, userPrompt, taskName);
+            return handleSortSplitPDF(pdfId, userPrompt, taskName, taskId);
         },
         onSuccess: () => {
             setLoader(false);
@@ -71,9 +73,13 @@ const SortAndSplitTopicQuestions = () => {
         },
     });
 
-    const handleGenerateQuestionsForAssessment = (pdfId = uploadedFilePDFId) => {
+    const handleGenerateQuestionsForAssessment = (
+        pdfId = uploadedFilePDFId,
+        prompt = "",
+        taskId = "",
+    ) => {
         // Use pdfId in your mutation call
-        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: prompt, taskName });
+        generateAssessmentMutation.mutate({ pdfId: pdfId, userPrompt: prompt, taskName, taskId });
     };
     useEffect(() => {
         if (key === "sortSplitPdf") {
@@ -83,7 +89,7 @@ const SortAndSplitTopicQuestions = () => {
 
     useEffect(() => {
         if (uploadedFilePDFId) {
-            handleGenerateQuestionsForAssessment(uploadedFilePDFId);
+            handleGenerateQuestionsForAssessment(uploadedFilePDFId, prompt);
         }
     }, [uploadedFilePDFId]);
 
@@ -101,6 +107,7 @@ const SortAndSplitTopicQuestions = () => {
                 setTaskName={setTaskName}
                 prompt={prompt}
                 setPrompt={setPrompt}
+                handleGenerateQuestionsForAssessment={handleGenerateQuestionsForAssessment}
             />
             {generateAssessmentMutation.status === "success" && (
                 <AITasksList heading="Vsmart Organizer" enableDialog={true} />

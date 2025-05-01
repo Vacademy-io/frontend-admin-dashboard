@@ -41,6 +41,8 @@ import { AssessmentGlobalLevelRevaluateQuestionWise } from "./assessment-global-
 import { AssessmentGlobalLevelReleaseResultAssessment } from "./assessment-global-level-revaluate/assessment-global-level-release-result-assessment";
 import ExportDialogPDFCSV from "@/components/common/export-dialog-pdf-csv";
 import Papa from "papaparse";
+import { useRef } from "react";
+import { useUsersCredentials } from "@/routes/students/students-list/-services/usersCredentials";
 
 export interface SelectedSubmissionsFilterInterface {
     name: string;
@@ -100,6 +102,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
     const [attemptedCount, setAttemptedCount] = useState(0);
     const [ongoingCount, setOngoingCount] = useState(0);
     const [pendingCount, setPendingCount] = useState(0);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const getParticipantsListData = useMutation({
         mutationFn: ({
@@ -769,15 +772,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
         });
     };
 
-    console.log(
-        getAssessmentSubmissionsFilteredDataStudentData(
-            participantsData.content,
-            type,
-            selectedTab,
-            initData?.batches_for_sessions,
-            totalMarks.total_achievable_marks,
-        ),
-    );
+    
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -821,6 +816,45 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
             }));
         }
     }, [participantsData?.content, page]);
+
+    const tableRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                tableRef.current &&
+                !tableRef.current.contains(event.target as Node) &&
+                isSidebarOpen
+            ) {
+                setIsSidebarOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isSidebarOpen]);
+
+    const getUserCredentialsMutation = useUsersCredentials();
+
+    async function getCredentials() {
+        const ids = participantsData?.content.map((student: StudentTable) => student.user_id);
+        if (!ids || ids.length === 0) {
+            return;
+        }
+        const credentials = await getUserCredentialsMutation.mutateAsync({ userIds: ids || [] });
+        return credentials;
+    }
+
+    useEffect(() => {
+        async function fetchCredentials() {
+            if (participantsData?.content && participantsData.content.length > 0) {
+                await getCredentials();
+            }
+        }
+        fetchCredentials();
+    }, [participantsData]);
 
     if (isParticipantsLoading) return <DashboardLoader />;
 
@@ -1063,10 +1097,12 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                     </div>
                 )}
                 <div className="flex max-h-[72vh] flex-col gap-6 overflow-y-auto p-4">
-                    <TabsContent value={selectedTab}>
+                    <TabsContent value={selectedTab} ref={tableRef}>
                         <SidebarProvider
                             style={{ ["--sidebar-width" as string]: "565px" }}
                             defaultOpen={false}
+                            open={isSidebarOpen}
+                            onOpenChange={setIsSidebarOpen}
                         >
                             <AssessmentSubmissionsStudentTable
                                 data={{
@@ -1097,7 +1133,7 @@ const AssessmentSubmissionsTab = ({ type }: { type: string }) => {
                                 onRowSelectionChange={handleRowSelectionChange}
                                 currentPage={page}
                             />
-                            <StudentSidebar selectedTab={selectedTab} examType={examType} />
+                            <StudentSidebar selectedTab={selectedTab} examType={examType} selectedStudent={selectedStudent} isSubmissionTab={true}/>
                         </SidebarProvider>
                     </TabsContent>
                     <div className="flex justify-between">
