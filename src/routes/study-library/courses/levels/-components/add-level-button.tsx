@@ -1,6 +1,6 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDialog } from "@/components/design-system/dialog";
-import { useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { Plus } from "phosphor-react";
 import { AddLevelData, AddLevelForm } from "./add-level-form";
 
@@ -21,9 +21,10 @@ interface AddLevelButtonProps {
         sessionId?: string;
         levelId?: string;
     }) => void;
+    trigger?: ReactNode;
 }
 
-export const AddLevelButton = ({ onSubmit }: AddLevelButtonProps) => {
+export const AddLevelButton = ({ onSubmit, trigger }: AddLevelButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleOpenChange = () => {
@@ -52,7 +53,7 @@ export const AddLevelButton = ({ onSubmit }: AddLevelButtonProps) => {
 
     return (
         <MyDialog
-            trigger={triggerButton}
+            trigger={trigger ? trigger : triggerButton}
             heading="Add Level"
             dialogWidth="w-[430px]"
             open={openDialog}

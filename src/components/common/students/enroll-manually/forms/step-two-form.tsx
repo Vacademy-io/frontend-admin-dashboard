@@ -17,6 +17,17 @@ import { DropdownItemType } from "../dropdownTypesForPackageItems";
 import { StudentTable } from "@/types/student-table-types";
 import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 import { MyButton } from "@/components/design-system/button";
+import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
+import { Plus } from "lucide-react";
+import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
+import { useAddCourse } from "@/services/study-library/course-operations/add-course";
+import { toast } from "sonner";
+import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
+import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
+import { useAddSession } from "@/services/study-library/session-management/addSession";
+import { AddLevelButton } from "@/routes/study-library/courses/levels/-components/add-level-button";
+import { AddLevelData } from "@/routes/study-library/courses/levels/-components/add-level-form";
+import { useAddLevel } from "@/routes/study-library/courses/levels/-services/add-level";
 
 export const StepTwoForm = ({
     initialValues,
@@ -27,6 +38,7 @@ export const StepTwoForm = ({
 }) => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
     const genderList = useGetGenders();
+    const addLevelMutation = useAddLevel();
 
     const {
         getCourseFromPackage,
@@ -38,8 +50,16 @@ export const StepTwoForm = ({
     const [courseList, setCourseList] = useState<DropdownItemType[]>(getCourseFromPackage());
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
     const [levelList, setLevelList] = useState<DropdownItemType[]>(getLevelsFromPackage());
-
+    const addCourseMutation = useAddCourse();
     const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
+    const { instituteDetails } = useInstituteDetailsStore();
+    const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
+    const addSessionMutation = useAddSession();
+    const [disableAddButton, setDisableAddButton] = useState(true);
+    const handleOpenAddSessionDialog = () => {
+        if (!instituteDetails?.batches_for_sessions.length) return;
+        setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
+    };
 
     useEffect(() => {
         if (initialValues) {
@@ -169,7 +189,7 @@ export const StepTwoForm = ({
 
         // Reset the change tracker after handling
         lastChangedField.current = null;
-    }, [courseValue, getSessionFromPackage, getLevelsFromPackage]);
+    }, [courseValue, getSessionFromPackage, getLevelsFromPackage, instituteDetails]);
 
     // When session changes, update course and level lists
     useEffect(() => {
@@ -209,7 +229,7 @@ export const StepTwoForm = ({
 
         // Reset the change tracker after handling
         lastChangedField.current = null;
-    }, [sessionValue, getCourseFromPackage, getLevelsFromPackage]);
+    }, [sessionValue, getCourseFromPackage, getLevelsFromPackage, instituteDetails]);
 
     // When level changes, update course and session lists
     useEffect(() => {
@@ -249,7 +269,7 @@ export const StepTwoForm = ({
 
         // Reset the change tracker after handling
         lastChangedField.current = null;
-    }, [levelValue, getCourseFromPackage, getSessionFromPackage]);
+    }, [levelValue, getCourseFromPackage, getSessionFromPackage, instituteDetails]);
 
     // Add this effect to auto-select single options
     useEffect(() => {
@@ -279,6 +299,95 @@ export const StepTwoForm = ({
     const handleGenerateEnrollNum = () => {
         const enrollNum = Math.floor(100000 + Math.random() * 900000).toString();
         setValue("enrollmentNumber", enrollNum);
+    };
+
+    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+        addCourseMutation.mutate(
+            { requestData: requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Course created successfully");
+                },
+                onError: () => {
+                    toast.error("Failed to create batch");
+                },
+            },
+        );
+    };
+
+    const handleAddSession = (sessionData: AddSessionDataType) => {
+        const processedData = structuredClone(sessionData);
+
+        const transformedData = {
+            ...processedData,
+            levels: processedData.levels.map((level) => ({
+                id: level.level_dto.id,
+                new_level: level.level_dto.new_level === true,
+                level_name: level.level_dto.level_name,
+                duration_in_days: level.level_dto.duration_in_days,
+                thumbnail_file_id: level.level_dto.thumbnail_file_id,
+                package_id: level.level_dto.package_id,
+            })),
+        };
+
+        // Use type assertion since we know this is the correct format for the API
+        addSessionMutation.mutate(
+            { requestData: transformedData as unknown as AddSessionDataType },
+            {
+                onSuccess: () => {
+                    toast.success("Session added successfully");
+                    setIsAddSessionDiaogOpen(false);
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to add session");
+                },
+            },
+        );
+    };
+
+    const formSubmitRef = useRef(() => {});
+
+    const sessionSubmitFn = (fn: () => void) => {
+        formSubmitRef.current = fn;
+    };
+
+    const submitButton = (
+        <div className="flex items-center justify-end">
+            <MyButton
+                type="submit"
+                buttonType="primary"
+                layoutVariant="default"
+                scale="large"
+                className="w-[140px]"
+                disable={disableAddButton}
+                onClick={() => formSubmitRef.current()}
+            >
+                Add
+            </MyButton>
+        </div>
+    );
+
+    const handleAddLevel = ({
+        requestData,
+        packageId,
+        sessionId,
+    }: {
+        requestData: AddLevelData;
+        packageId?: string;
+        sessionId?: string;
+        levelId?: string;
+    }) => {
+        addLevelMutation.mutate(
+            { requestData: requestData, packageId: packageId || "", sessionId: sessionId || "" },
+            {
+                onSuccess: () => {
+                    toast.success("Level added successfully");
+                },
+                onError: (error) => {
+                    toast.error(error.message || "Failed to add course");
+                },
+            },
+        );
     };
 
     useEffect(() => {
@@ -323,7 +432,6 @@ export const StepTwoForm = ({
                                     </FormItem>
                                 )}
                             />
-
                             <FormField
                                 control={form.control}
                                 name="course"
@@ -347,6 +455,8 @@ export const StepTwoForm = ({
                                                         form.formState.errors.course?.name?.message
                                                     }
                                                     required={true}
+                                                    showAddCourseButton={true}
+                                                    onAddCourse={handleAddCourse}
                                                 />
                                             </div>
                                         </FormControl>
@@ -354,36 +464,38 @@ export const StepTwoForm = ({
                                 )}
                             />
 
-                            <FormField
-                                control={form.control}
-                                name="session"
-                                render={({ field: { value } }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    Session{" "}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
+                                <FormField
+                                    control={form.control}
+                                    name="session"
+                                    render={({ field: { value } }) => (
+                                        <FormItem className="w-full">
+                                            <FormControl>
+                                                <div className="flex flex-col gap-1">
+                                                    <div>
+                                                        Session{" "}
+                                                        <span className="text-subtitle text-danger-600">
+                                                            *
+                                                        </span>
+                                                    </div>
+                                                    <MyDropdown
+                                                        currentValue={value.name}
+                                                        dropdownList={sessionList}
+                                                        handleChange={handleSessionChange}
+                                                        placeholder="Select Session"
+                                                        error={
+                                                            form.formState.errors.session?.id
+                                                                ?.message ||
+                                                            form.formState.errors.session?.name?.message
+                                                        }
+                                                        required={true}
+                                                        showAddSessionButton={true}
+                                                        onAddSession={handleAddSession}
+                                                    />
                                                 </div>
-                                                <MyDropdown
-                                                    currentValue={value.name}
-                                                    dropdownList={sessionList}
-                                                    handleChange={handleSessionChange}
-                                                    placeholder="Select Session"
-                                                    error={
-                                                        form.formState.errors.session?.id
-                                                            ?.message ||
-                                                        form.formState.errors.session?.name?.message
-                                                    }
-                                                    required={true}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
 
                             <FormField
                                 control={form.control}
@@ -408,6 +520,8 @@ export const StepTwoForm = ({
                                                         form.formState.errors.level?.name?.message
                                                     }
                                                     required={true}
+                                                    showAddLevelButton={true}
+                                                    onAddLevel={handleAddLevel}
                                                 />
                                             </div>
                                         </FormControl>

@@ -39,7 +39,7 @@ export const CreateLevelStep = () => {
         });
         const filteredSessions = allSessions.filter(
             (session) => session.id !== form.watch("selectedSession")?.id
-        );
+        );  
         setSessionList(filteredSessions);
     }, [form.watch("selectedCourse"), form.watch("selectedSession")]);
 

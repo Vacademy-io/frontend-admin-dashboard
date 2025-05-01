@@ -83,10 +83,6 @@ export const CreateBatchDialog = () => {
                 onSuccess: (responseData) => {
                     if(duplicateFromSession){
                         setTimeout(() => {
-                        console.log("courseId", courseId);
-                        console.log("levelId", levelId);
-                        console.log("sessionId", sessionId);
-                        console.log("duplicationSessionId", duplicationSessionId);
                         const toPackageSessionId = getPackageSessionId({courseId: responseData.data, levelId: levelId, sessionId: sessionId })
                         const fromPackageSessionId = getPackageSessionId({courseId: courseId, levelId: levelId, sessionId: duplicationSessionId})
                         copyStudyMaterialFromSession.mutate({fromPackageSessionId: fromPackageSessionId || "", toPackageSessionId: toPackageSessionId || ""},
