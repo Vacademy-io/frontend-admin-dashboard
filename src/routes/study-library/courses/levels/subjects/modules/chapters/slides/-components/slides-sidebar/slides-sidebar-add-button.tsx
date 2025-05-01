@@ -1,7 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { MyDropdown } from "@/components/design-system/dropdown";
 import { useSidebar } from "@/components/ui/sidebar";
-import { Plus, FilePdf, FileDoc, YoutubeLogo } from "@phosphor-icons/react";
+import { Plus, FilePdf, FileDoc, YoutubeLogo, Question } from "@phosphor-icons/react";
 import { MyDialog } from "@/components/design-system/dialog";
 import { AddVideoDialog } from "./add-video-dialog";
 import { AddDocDialog } from "./add-doc-dialog";
@@ -11,25 +11,45 @@ import { useSlides } from "@/routes/study-library/courses/levels/subjects/module
 import { formatHTMLString } from "../slide-material";
 import { useContentStore } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-stores/chapter-sidebar-store";
 import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
+import AddQuestionDialog from "./add-question-dialog";
+import { File } from "phosphor-react";
+import { useForm } from "react-hook-form";
+import { assignmentFormSchema, AssignmentFormType } from "../../-form-schemas/assignmentFormSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export const ChapterSidebarAddButton = () => {
+    const form = useForm<AssignmentFormType>({
+        resolver: zodResolver(assignmentFormSchema),
+        defaultValues: {
+            task: "",
+            taskDescription: "",
+            startDate: "",
+            endDate: "",
+            reattemptCount: "0",
+            uploaded_question_paper: null,
+            adaptive_marking_for_each_question: [],
+        },
+    });
     const { open } = useSidebar();
     const route = useRouter();
     const { chapterId } = route.state.location.search;
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
-    const { setActiveItem, getSlideById } = useContentStore();
+    const { setActiveItem, getSlideById, setItems, items } = useContentStore();
 
     // Use the Zustand store instead of useState
     const {
         isPdfDialogOpen,
         isDocUploadDialogOpen,
         isVideoDialogOpen,
+        isQuestionDialogOpen,
         openPdfDialog,
         closePdfDialog,
         openDocUploadDialog,
         closeDocUploadDialog,
         openVideoDialog,
         closeVideoDialog,
+        openQuestionDialog,
+        closeQuestionDialog,
     } = useDialogStore();
 
     const dropdownList = [
@@ -51,6 +71,16 @@ export const ChapterSidebarAddButton = () => {
             label: "Video",
             value: "video",
             icon: <YoutubeLogo className="size-4" />,
+        },
+        {
+            label: "Question",
+            value: "question",
+            icon: <Question className="size-4" />,
+        },
+        {
+            label: "Assignment",
+            value: "assignment",
+            icon: <File className="size-4" />,
         },
     ];
 
@@ -100,8 +130,37 @@ export const ChapterSidebarAddButton = () => {
             case "video":
                 openVideoDialog(); // Use store action instead of setState
                 break;
+            case "question":
+                openQuestionDialog(); // Use store action instead of setState
+                break;
+            case "assignment":
+                setItems([
+                    {
+                        slide_title: null,
+                        document_id: null,
+                        document_title: `Assignment ${items.length + 1}`,
+                        document_type: "",
+                        slide_description: null,
+                        document_cover_file_id: null,
+                        video_description: null,
+                        document_data: JSON.stringify(form.getValues()),
+                        video_id: null,
+                        video_title: null,
+                        video_url: null,
+                        slide_id: String(items.length + 1),
+                        source_type: "ASSIGNMENT",
+                        status: "DRAFT",
+                        published_data: "",
+                        published_url: "",
+                        last_sync_date: null,
+                    },
+                    ...items,
+                ]);
+                break;
         }
     };
+
+    console.log(items);
 
     return (
         <>
@@ -149,6 +208,17 @@ export const ChapterSidebarAddButton = () => {
                 onOpenChange={closeVideoDialog} // Pass the action function directly
             >
                 <AddVideoDialog openState={(open) => !open && closeVideoDialog()} />
+            </MyDialog>
+
+            {/* Question Upload Dialog */}
+            <MyDialog
+                trigger={<></>}
+                heading="Upload Question"
+                dialogWidth="min-w-[500px]"
+                open={isQuestionDialogOpen}
+                onOpenChange={closeQuestionDialog} // Pass the action function directly
+            >
+                <AddQuestionDialog openState={(open) => !open && closeQuestionDialog()} />
             </MyDialog>
         </>
     );

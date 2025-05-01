@@ -135,16 +135,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const reattemptCount = watch("reattemptCount");
 
     // Determine if all fields are filled
-    const isFormValid1 =
-        (examType === "EXAM" || examType === "SURVEY") && assessmentId === "defaultId"
-            ? !!assessmentName &&
-              !!liveDateRangeStartDate &&
-              !!liveDateRangeEndDate &&
-              !!Number(reattemptCount) &&
-              Object.entries(form.formState.errors).length === 0
-            : !!assessmentName && Object.entries(form.formState.errors).length === 0;
-
-    const isFormValid2 =
+    const isFormValid =
         (examType === "EXAM" || examType === "SURVEY") && assessmentId === "defaultId"
             ? !!assessmentName &&
               !!liveDateRangeStartDate &&
@@ -302,9 +293,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         type="button"
                         scale="large"
                         buttonType="primary"
-                        disable={
-                            assessmentId === "defaultId" ? !isFormValid1 || !isFormValid2 : false
-                        }
+                        disable={assessmentId === "defaultId" ? !isFormValid : false}
                         onClick={handleSubmit(onSubmit, onInvalid)}
                     >
                         {assessmentId !== "defaultId" ? "Update" : "Next"}
@@ -356,7 +345,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     _id: index,
                                 }))}
                                 control={form.control}
-                                className="w-56 font-thin"
+                                className="mt-[8px] w-56 font-thin"
                                 required={
                                     getStepKey({
                                         assessmentDetails,
@@ -472,8 +461,37 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         )}
                     </div>
                     <Separator />
-
                     <h1>Attempt Settings</h1>
+                    {(examType === "EXAM" || examType === "SURVEY") && (
+                        <FormField
+                            control={control}
+                            name="reattemptCount"
+                            render={({ field: { ...field } }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <MyInput
+                                            inputType="number"
+                                            inputPlaceholder="Reattempt Count"
+                                            input={field.value}
+                                            labelStyle="text-[12px]"
+                                            onChangeFunction={field.onChange}
+                                            error={form.formState.errors?.reattemptCount?.message}
+                                            required={true}
+                                            size="large"
+                                            label="Reattempt Count"
+                                            {...field}
+                                            min={0}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "-" || e.key === "e") {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                     <div className="flex flex-col gap-6" id="evaluation-type">
                         {getStepKey({
                             assessmentDetails,

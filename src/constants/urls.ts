@@ -12,6 +12,7 @@ export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
 
 export const GET_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/get-dashboard`;
+export const UPDATE_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/institute-update`;
 export const GET_DASHBOARD_ASSESSMENT_COUNT_URL = `${BASE_URL}/assessment-service/assessment/admin/dashboard/get-count`;
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details`;
 export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/all`;
@@ -71,6 +72,7 @@ export const GET_SIGNED_URL = `${BASE_URL}/media-service/get-signed-url`;
 export const GET_SIGNED_URL_PUBLIC = `${BASE_URL}/media-service/public/get-signed-url`;
 export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
 export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
+export const GET_PUBLIC_URL_PUBLIC = `${BASE_URL}/media-service/public/get-public-url`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 
@@ -112,6 +114,7 @@ export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/a
 export const ADD_UPDATE_DOCUMENT_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-document-slide`;
 export const UPDATE_SLIDE_STATUS = `${BASE_URL}/admin-core-service/slide/v1/update-status`;
 export const UPDATE_SLIDE_ORDER = `${BASE_URL}/admin-core-service/slide/v1/update-slide-order`;
+export const UPDATE_QUESTION_ORDER = `${BASE_URL}/admin-core-service/slide/question-slide/add-or-update`;
 export const GET_SLIDE_ACTIVITY = `${BASE_URL}/admin-core-service/learner-tracking/activity-log/v1/learner-activity`;
 export const GET_USER_VIDEO_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-video-activity-logs`;
 export const GET_USER_DOC_SLIDE_ACTIVITY_LOGS = `${BASE_URL}/admin-core-service/learner-tracking/v1/get-learner-document-activity-logs`;
@@ -138,6 +141,7 @@ export const ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/learner-invitatio
 
 export const GET_ATTEMPT_DATA = `${BASE_URL}/assessment-service/assessment/manual-evaluation/get/attempt-data`;
 export const UPDATE_ATTEMPT = `${BASE_URL}/assessment-service/assessment/manual-evaluation/update/attempt`;
+export const SUBMIT_MARKS = `${BASE_URL}/assessment-service/assessment/manual-evaluation/submit/marks`;
 export const GET_INVITE_DETAILS = `${BASE_URL}/admin-core-service/learner-invitation/learner-invitation-detail-by-id`;
 export const GET_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report`;
 export const GET_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report`;
@@ -148,8 +152,51 @@ export const SLIDE_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learne
 export const CHAPTER_WISE_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/batch-report/chapter-wise-progress`;
 export const CHAPTER_WISE_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/learner-report/chapter-wise-progress`;
 export const GET_LEARNERS_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/learner-details`;
+export const EXPORT_BATCH_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/batch-report`;
+export const EXPORT_LEARNERS_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-report`;
+export const EXPORT_LEARNERS_SUBJECT_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-subject-wise-report`;
+export const EXPORT_LEARNERS_MODULE_REPORT = `${BASE_URL}/admin-core-service/learner-management/export/learner-module-progress-report`;
 
 export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-credentials`;
 export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;
 export const USERS_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/users-credential`;
 export const EXPORT_ACCOUNT_DETAILS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/basic-details-csv`;
+
+export const RETRY_AI_URL = `${BASE_URL}/media-service/ai/retry/task`;
+export const START_PROCESSING_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/start-process-pdf-file-id`;
+export const LIST_INDIVIDUAL_AI_TASKS_URL = `${BASE_URL}/media-service/task-status/get-all`;
+export const GET_INDIVIDUAL_AI_TASK_QUESTIONS = `${BASE_URL}/media-service/task-status/get-result`;
+export const GET_INDIVIDUAL_CHAT_WITH_PDF_AI_TASK_QUESTIONS = `${BASE_URL}/media-service/ai/chat-with-pdf/get-chat`;
+export const SORT_SPLIT_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/pdf-to-extract-topic-questions`;
+export const SORT_QUESTIONS_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/topic-wise/pdf-to-questions`;
+export const GENERATE_QUESTIONS_FROM_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/pdf-to-questions`;
+export const GENERATE_QUESTIONS_FROM_IMAGE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/image-to-questions`;
+export const GENERATE_FEEDBACK_FROM_FILE_AI_URL = `${BASE_URL}/media-service/ai/lecture/generate-feedback`;
+export const HTML_TO_QUESTIONS_FROM_FILE_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/html-to-questions`;
+export const CONVERT_PDF_TO_HTML_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/pdf-to-html`;
+export const GET_QUESTIONS_URL_FROM_HTML_AI_URL = `${BASE_URL}/media-service/ai/get-question-pdf/math-parser/html-to-questions`;
+export const SHARE_CREDENTIALS = `${BASE_URL}/auth-service/v1/user-operation/send-passwords`;
+export const CHAT_WITH_PDF_AI_URL = `${BASE_URL}/media-service/ai/chat-with-pdf/get-response`;
+export const PROCESS_AUDIO_FILE = `${BASE_URL}/media-service/ai/get-question-audio/audio-parser/start-process-audio-file-id`;
+export const GET_QUESTIONS_FROM_AUDIO = `${BASE_URL}/media-service/ai/get-question-audio/audio-parser/audio-to-questions`;
+
+// Evaluation AI Free tool
+export const CREATE_ASSESSMENT_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment/create`;
+export const ADD_QUESTIONS_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment/sections`;
+export const GET_ASSESSMENT_URL = `${BASE_URL}/assessment-service/evaluation-tool/assessment`;
+
+export const EVALUATION_TOOL_EVALUATE_ASSESSMENT = `${BASE_URL}/media-service/ai/evaluation-tool/evaluate-assessment`;
+export const EVALUATION_TOOL_STATUS = `${BASE_URL}/media-service/ai/evaluation-tool/status`;
+export const EVALUATION_TOOL_GET_QUESTION = `${BASE_URL}/assessment-service/evaluation-tool/assessment`;
+export const GET_QUESTIONS_FROM_TEXT = `${BASE_URL}/media-service/ai/get-question-pdf/from-text`;
+export const GET_LECTURE_PLAN_URL = `${BASE_URL}/media-service/ai/lecture/generate-plan`;
+export const GET_LECTURE_PLAN_PREVIEW_URL = `${BASE_URL}/media-service/task-status/get/lecture-plan`;
+export const GET_LECTURE_FEEDBACK_PREVIEW_URL = `${BASE_URL}/media-service/task-status/get/lecture-feedback`;
+export const INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/institute-setting`;
+export const UPDATE_INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/institute/update`;
+export const LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/learner-setting`;
+export const UPDATE_LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/learner/update`;
+
+export const DELETE_BATCHES = `${BASE_URL}/admin-core-service/batch/v1/delete-batches`;
+export const GET_USER_DETAILS = `${BASE_URL}/auth-service/v1/user-details/by-user-id`;
+export const DUPLICATE_STUDY_MATERIAL_FROM_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/copy-study-material`;

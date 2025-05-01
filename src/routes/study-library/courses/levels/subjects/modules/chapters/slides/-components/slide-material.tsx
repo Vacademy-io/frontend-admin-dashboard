@@ -20,8 +20,12 @@ import {
     useSlides,
 } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-hooks/use-slides";
 import { toast } from "sonner";
-import { Check, PencilSimpleLine } from "phosphor-react";
+import { Check, DownloadSimple, PencilSimpleLine } from "phosphor-react";
 import { formatReadableDate } from "@/utils/formatReadableData";
+import { convertHtmlToPdf, convertToSlideFormat } from "../-helper/helper";
+import { StudyLibraryQuestionsPreview } from "./questions-preview";
+import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
+import StudyLibraryAssignmentPreview from "./assignment-preview";
 
 export const formatHTMLString = (htmlString: string) => {
     // Remove the body tag and its attributes
@@ -65,6 +69,7 @@ export const SlideMaterial = ({
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
     const { addUpdateVideoSlide } = useSlides(chapterId || "");
+    const { updateQuestionOrder } = useSlides(chapterId || "");
 
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
@@ -232,6 +237,14 @@ export const SlideMaterial = ({
                 setContent(<div>Error loading document content</div>);
             }
             return;
+        } else if (activeItem.source_type == "QUESTION") {
+            setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
+            return;
+        }
+
+        else if (activeItem.source_type == "ASSIGNMENT") {
+            setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
+            return;
         }
 
         return;
@@ -362,15 +375,6 @@ export const SlideMaterial = ({
         }
     };
 
-    useEffect(() => {
-        if (items.length == 0) setActiveItem(null);
-    }, [items]);
-
-    useEffect(() => {
-        setHeading(activeItem?.document_title || activeItem?.video_title || "");
-        loadContent();
-    }, [activeItem]);
-
     const getCurrentEditorHTMLContent: () => string = () => {
         const data = editor.getEditorValue();
         const htmlString = html.serialize(editor, data);
@@ -381,8 +385,24 @@ export const SlideMaterial = ({
     // Modified SaveDraft function
     const SaveDraft = async (slideToSave?: Slide | null) => {
         const slide = slideToSave ? slideToSave : activeItem;
+        if (activeItem?.source_type === "QUESTION") {
+            const questionsData: UploadQuestionPaperFormType = JSON.parse(
+                activeItem.document_data!,
+            );
+            // need to add my question logic
+            const convertedData = convertToSlideFormat(questionsData);
+            try {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                await updateQuestionOrder(convertedData!);
+            } catch {
+                toast.error("error saving slide");
+            }
+            return;
+        }
 
         const currentHtml = getCurrentEditorHTMLContent();
+
         const status = slide
             ? slide.status == "PUBLISHED"
                 ? "UNSYNC"
@@ -425,6 +445,40 @@ export const SlideMaterial = ({
             toast.error("error saving document");
         }
     };
+
+    const handleConvertAndUpload = async (htmlString: string | null): Promise<string | null> => {
+        if (htmlString == null) return null;
+        try {
+            // Step 1: Convert HTML to PDF
+            const pdfBlob = await convertHtmlToPdf(htmlString);
+
+            // Step 2: Create a download link
+            const url = window.URL.createObjectURL(pdfBlob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "document.pdf";
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast.success("Document downloaded successfully");
+            return null;
+        } catch (error) {
+            console.error("Download Failed:", error);
+            toast.error("Failed to download document. Please try again.");
+        }
+        return null;
+    };
+
+    useEffect(() => {
+        if (items.length == 0) setActiveItem(null);
+    }, [items]);
+
+    useEffect(() => {
+        setHeading(activeItem?.document_title || activeItem?.video_title || "");
+        loadContent();
+    }, [activeItem]);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout | null = null;
@@ -495,8 +549,30 @@ export const SlideMaterial = ({
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-6">
+                            {activeItem.source_type == "DOCUMENT" &&
+                                activeItem.document_type == "DOC" && (
+                                    <MyButton
+                                        layoutVariant="icon"
+                                        onClick={async () => {
+                                            await SaveDraft();
+                                            if (activeItem.status == "PUBLISHED") {
+                                                await handleConvertAndUpload(
+                                                    activeItem.published_data,
+                                                );
+                                            } else {
+                                                await handleConvertAndUpload(
+                                                    activeItem.document_data,
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        <DownloadSimple size={30} />
+                                    </MyButton>
+                                )}
                             <ActivityStatsSidebar />
-                            {activeItem?.document_type == "DOC" && (
+                            {(activeItem?.document_type == "DOC" ||
+                                activeItem?.source_type == "QUESTION" ||
+                                activeItem?.source_type == "ASSIGNMENT") && (
                                 <MyButton
                                     buttonType="secondary"
                                     scale="medium"

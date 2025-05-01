@@ -67,7 +67,10 @@ export const getAssessmentListWithFilters = async (
             instituteId,
             pageSize,
         },
-        data: transformFilterAssessmentData(data),
+        data: {
+            ...transformFilterAssessmentData(data),
+            assessment_types: ["ASSESSMENT"],
+        },
     });
     return response?.data;
 };

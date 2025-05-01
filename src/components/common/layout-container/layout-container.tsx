@@ -3,8 +3,8 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Navbar } from "./top-navbar.tsx/navbar";
 import { cn } from "@/lib/utils";
 import React from "react";
-import { StudentSidebarProvider } from "@/providers/student-list/student-sidebar-provider";
 import { InternalSideBar } from "./internal-sidebar/internalSideBar";
+import { StudentSidebarProvider } from "@/routes/students/students-list/-providers/student-sidebar-provider";
 
 export const LayoutContainer = ({
     children,

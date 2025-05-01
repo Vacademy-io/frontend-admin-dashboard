@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { DotsSixVertical, Plus, X } from "phosphor-react";
 import { useState } from "react";
 import { useFieldArray } from "react-hook-form";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sortable, SortableDragHandle, SortableItem } from "@/components/ui/sortable";
@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { QuestionType } from "@/constants/dummy-data";
 import { QuestionTypeSelection } from "./QuestionTypeSelection";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 export function QuestionPaperTemplate({
     form,
@@ -49,6 +50,8 @@ export function QuestionPaperTemplate({
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperTemplateProps) {
+    console.log(form.getValues());
+    const [isQuestionPaperTemplateDialog, setIsQuestionPaperTemplateDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
     const { handleRefetchData } = useRefetchStore();
     const queryClient = useQueryClient();
@@ -125,6 +128,7 @@ export function QuestionPaperTemplate({
         });
         setCurrentQuestionIndex(0);
         setAddQuestionDialogBox(false);
+        form.trigger();
     };
 
     // Function to handle page navigation by question number
@@ -148,6 +152,8 @@ export function QuestionPaperTemplate({
                 className: "success-toast",
                 duration: 2000,
             });
+            setIsQuestionPaperTemplateDialog(false);
+            queryClient.invalidateQueries({ queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA"] });
         },
         onError: (error: unknown) => {
             throw error;
@@ -204,8 +210,23 @@ export function QuestionPaperTemplate({
         handleMutationViewQuestionPaper.mutate({ questionPaperId });
     };
 
+    const handleTriggerForm = () => {
+        form.trigger();
+        if (Object.values(form.formState.errors).length > 0) {
+            toast.error("some of your questions are incomplete or needs attentions!", {
+                className: "error-toast",
+                duration: 3000,
+            });
+            return;
+        }
+        setIsQuestionPaperTemplateDialog(false);
+    };
+
     return (
-        <Dialog>
+        <Dialog
+            open={isQuestionPaperTemplateDialog}
+            onOpenChange={setIsQuestionPaperTemplateDialog}
+        >
             <DialogTrigger>
                 {isViewMode ? (
                     <Button
@@ -235,7 +256,7 @@ export function QuestionPaperTemplate({
                     <DashboardLoader />
                 ) : (
                     <div>
-                        <div className="flex items-center justify-between bg-primary-100 p-2">
+                        <div className="flex w-screen items-center justify-between bg-primary-100 p-2">
                             <div className="flex items-start gap-2">
                                 <img
                                     src={instituteLogo}
@@ -263,23 +284,21 @@ export function QuestionPaperTemplate({
                                 <QuestionPaperEditDialog form={form} />
                             </div>
                             <div className="flex items-center gap-4">
-                                <DialogClose>
-                                    <Button
-                                        type="submit"
-                                        variant="outline"
-                                        className="w-44 bg-transparent shadow-none hover:bg-transparent"
-                                        onClick={
-                                            isViewMode
-                                                ? () =>
-                                                      handleSaveClick(
-                                                          form.getValues() as MyQuestionPaperFormInterface,
-                                                      )
-                                                : undefined
-                                        }
-                                    >
-                                        Save
-                                    </Button>
-                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    className="w-44 bg-transparent shadow-none hover:bg-transparent"
+                                    onClick={
+                                        isViewMode
+                                            ? () =>
+                                                  handleSaveClick(
+                                                      form.getValues() as MyQuestionPaperFormInterface,
+                                                  )
+                                            : handleTriggerForm
+                                    }
+                                >
+                                    Save
+                                </Button>
                                 <DialogClose>
                                     <Button
                                         type="submit"
@@ -345,15 +364,15 @@ export function QuestionPaperTemplate({
                                                     >
                                                         <div
                                                             key={index}
-                                                            // onClick={() => handlePageClick(index)}
+                                                            onClick={() => handlePageClick(index)}
                                                             className={`rounded-xl border-4 bg-primary-50 p-6 ${
                                                                 currentQuestionIndex === index
                                                                     ? "border-primary-500 bg-none"
                                                                     : "bg-none"
                                                             }`}
-                                                            onMouseEnter={() =>
-                                                                handlePageClick(index)
-                                                            }
+                                                            // onMouseEnter={() =>
+                                                            //     handlePageClick(index)
+                                                            // }
                                                         >
                                                             <TooltipProvider>
                                                                 <Tooltip
@@ -383,7 +402,7 @@ export function QuestionPaperTemplate({
                                                                                 key={index}
                                                                                 type={
                                                                                     getValues(
-                                                                                        `questions.${currentQuestionIndex}.questionType`,
+                                                                                        `questions.${index}.questionType`,
                                                                                     ) as QuestionType
                                                                                 }
                                                                                 props={{

@@ -35,6 +35,8 @@ export const enrollStudent = async ({
             parents_mobile_number: formData.stepFourData?.guardianMobileNumber || "",
             parents_email: formData.stepFourData?.guardianEmail || "",
             linked_institute_name: formData.stepTwoData?.collegeName || "",
+            parents_to_mother_mobile_number: formData.stepFourData?.motherMobileNumber || "",
+            parents_to_mother_email: formData.stepFourData?.motherEmail || "",
         },
         institute_student_details: {
             institute_id: INSTITUTE_ID,

@@ -10,7 +10,6 @@ import {
     enrollBulkFormSchema,
     enrollBulkFormType,
 } from "@/routes/students/students-list/-schemas/student-bulk-enroll/enroll-bulk-schema";
-
 import { MyButton } from "@/components/design-system/button";
 
 export const EnrollBulkDialog = () => {
@@ -33,7 +32,6 @@ export const EnrollBulkDialog = () => {
         },
     };
     const [formValues, setFormValues] = useState<enrollBulkFormType>(defaultFormValues);
-
     const [courseList, setCourseList] = useState<DropdownItemType[]>(getCourseFromPackage());
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
     const [levelList, setLevelList] = useState<DropdownItemType[]>(getLevelsFromPackage());
@@ -63,6 +61,7 @@ export const EnrollBulkDialog = () => {
             );
         }
     }, [form.watch("course")]);
+
     useEffect(() => {
         const values = form.watch();
 
@@ -202,7 +201,7 @@ export const EnrollBulkDialog = () => {
                                 type="button"
                                 onClick={handleDoneClick}
                             >
-                                Done
+                                Enroll
                             </MyButton>
                         </div>
                     </form>

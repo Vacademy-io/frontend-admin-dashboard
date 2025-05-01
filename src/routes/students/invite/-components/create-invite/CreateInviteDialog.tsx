@@ -3,19 +3,22 @@ import { MyInput } from "@/components/design-system/input";
 import { Switch } from "@/components/ui/switch";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { MyButton } from "@/components/design-system/button";
-import { Separator } from "@/components/ui/separator";
-import { Copy } from "phosphor-react";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { InviteForm } from "../../-schema/InviteFormSchema";
 import { useInviteForm } from "../../-hooks/useInviteForm";
 import { CustomFieldsSection } from "./CustomFieldsSection";
-// import { CourseList } from "./batch-selection/course/CourseList";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-// import { BatchDropdown } from "@/components/common/batch-dropdown";
 import { Checkbox } from "@/components/ui/checkbox";
+import useIntroJsTour from "@/hooks/use-intro";
+import { IntroKey } from "@/constants/storage/introKey";
+import { inviteSteps } from "@/constants/intro/steps";
+import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
+import { useAddCourse } from "@/services/study-library/course-operations/add-course";
+import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
+import { Plus } from "phosphor-react";
 
 interface CreateInviteDialogProps {
     initialValues?: InviteForm;
@@ -28,6 +31,7 @@ interface CreateInviteDialogProps {
     inviteLink?: string | null;
     setInviteLink?: Dispatch<SetStateAction<string | null>>;
     isEditing?: boolean;
+    handleDisableCreateInviteButton?: (value: boolean) => void;
 }
 
 // Define a type for email entries
@@ -44,17 +48,12 @@ export const CreateInviteDialog = ({
     onOpenChange,
     submitForm,
     onCreateInvite,
-    inviteLink,
     isEditing,
+    handleDisableCreateInviteButton,
 }: CreateInviteDialogProps) => {
-    const {
-        form,
-        toggleIsRequired,
-        handleAddOpenFieldValues,
-        handleDeleteOpenField,
-        handleCopyClick,
-        copySuccess,
-    } = useInviteForm(initialValues);
+    const { form, toggleIsRequired, handleAddOpenFieldValues, handleDeleteOpenField } =
+        useInviteForm(initialValues);
+    const addCourseMutation = useAddCourse();
 
     const {
         control,
@@ -131,6 +130,20 @@ export const CreateInviteDialog = ({
         );
     };
 
+    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+        addCourseMutation.mutate(
+            { requestData: requestData },
+            {
+                onSuccess: () => {
+                    toast.success("Batch created successfully");
+                },
+                onError: () => {
+                    toast.error("Failed to create batch");
+                },
+            },
+        );
+    };
+
     useEffect(() => {
         if (open && initialValues) {
             reset(initialValues);
@@ -153,11 +166,29 @@ export const CreateInviteDialog = ({
     const courseSelectionMode = watch("batches.courseSelectionMode");
 
     useEffect(() => {
+        if (handleDisableCreateInviteButton) {
+            if (
+                watch("batches.preSelectedCourses").length === 0 &&
+                watch("batches.learnerChoiceCourses").length === 0
+            ) {
+                handleDisableCreateInviteButton(true);
+            } else {
+                handleDisableCreateInviteButton(false);
+            }
+        }
+    }, [watch("batches.preSelectedCourses"), watch("batches.learnerChoiceCourses")]);
+
+    useEffect(() => {
         const len = watch("batches.learnerChoiceCourses").length;
         const maxValue = watch("batches.maxCourses");
         if (maxValue > len) setValue("batches.maxCourses", len);
     }, [watch("batches.learnerChoiceCourses").length]);
 
+    useIntroJsTour({
+        key: IntroKey.inviteFirstTimeVisit,
+        steps: inviteSteps,
+        enable: open,
+    });
     return (
         <MyDialog
             heading="Invite Students"
@@ -165,6 +196,7 @@ export const CreateInviteDialog = ({
             trigger={triggerButton}
             dialogWidth="w-[60vw]"
             open={open}
+            isTour={true}
             onOpenChange={onOpenChange}
         >
             <FormProvider {...form}>
@@ -174,6 +206,7 @@ export const CreateInviteDialog = ({
                         try {
                             onCreateInvite && onCreateInvite(data);
                             // Other success handling
+                            form.reset();
                         } catch {
                             toast.error("error updating/creating invite");
                         }
@@ -186,9 +219,10 @@ export const CreateInviteDialog = ({
                                 control={control}
                                 name="inviteLink"
                                 render={({ field }) => (
-                                    <FormItem className="w-[80%]">
+                                    <FormItem className="w-4/5">
                                         <FormControl>
                                             <MyInput
+                                                id="invite-link-name"
                                                 label="Invite Link Name"
                                                 required={true}
                                                 inputType="text"
@@ -202,7 +236,7 @@ export const CreateInviteDialog = ({
                                 )}
                             />
 
-                            <div className="flex w-fit gap-2">
+                            <div className="flex w-fit gap-2" id="activate-link">
                                 <p className="text-subtitle font-semibold">Active Status</p>
                                 <FormField
                                     control={control}
@@ -222,18 +256,45 @@ export const CreateInviteDialog = ({
                         </div>
 
                         {/* Custom Fields Section */}
-                        <CustomFieldsSection
-                            toggleIsRequired={toggleIsRequired}
-                            handleAddOpenFieldValues={handleAddOpenFieldValues}
-                            handleDeleteOpenField={handleDeleteOpenField}
-                        />
+                        <div id="custom-fields">
+                            <CustomFieldsSection
+                                toggleIsRequired={toggleIsRequired}
+                                handleAddOpenFieldValues={handleAddOpenFieldValues}
+                                handleDeleteOpenField={handleDeleteOpenField}
+                            />
+                        </div>
 
                         {/* <CourseList /> */}
-                        <div className="flex flex-col gap-3">
-                            <p className="text-subtitle font-semibold">
-                                Batch Selection<span className="text-danger-600">*</span>
-                            </p>
-                            <FormField
+                        {instituteDetails?.batches_for_sessions.length == 0 ? (
+                            <div className="flex flex-col gap-3" id="select-batch">
+                                <p className="text-subtitle font-semibold">
+                                    Batch Selection<span className="text-danger-600">*</span>
+                                </p>
+                                <AddCourseButton
+                                    onSubmit={handleAddCourse}
+                                    courseButton={
+                                        <MyButton
+                                            type="button"
+                                            buttonType="text"
+                                            layoutVariant="default"
+                                            scale="small"
+                                            className="w-fit text-primary-500 hover:bg-white active:bg-white"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                            }}
+                                        >
+                                            <Plus /> Create Batch
+                                        </MyButton>
+                                    }
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-3" id="select-batch">
+                                <p className="text-subtitle font-semibold">
+                                    Batch Selection<span className="text-danger-600">*</span>
+                                </p>
+                                <FormField
                                 control={form.control}
                                 name="batches.courseSelectionMode"
                                 render={({ field }) => (
@@ -295,7 +356,7 @@ export const CreateInviteDialog = ({
                             />
                             <div className="ml-3">
                                 {courseSelectionMode === "institute" ? (
-                                    <div className="grid grid-cols-3 gap-x-1 gap-y-1 text-caption">
+                                    <div className="grid grid-cols-3 gap-1 text-caption">
                                         {instituteDetails?.batches_for_sessions.map((batch) => (
                                             <FormField
                                                 key={batch.id}
@@ -455,9 +516,10 @@ export const CreateInviteDialog = ({
                                 )}
                             </div>
                         </div>
+)}
 
                         {/* Student Expiry Date */}
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-6" id="student-access-duration">
                             <p className="text-subtitle font-semibold">Student expiry date</p>
                             <div className="flex items-center gap-2">
                                 <FormField
@@ -486,7 +548,7 @@ export const CreateInviteDialog = ({
 
                         {/* Invitee Email */}
                         {!isEditing && (
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-3" id="invitee-email">
                                 <div className="flex items-end justify-between gap-10">
                                     <FormField
                                         control={control}
@@ -500,6 +562,12 @@ export const CreateInviteDialog = ({
                                                         inputType="email"
                                                         input={field.value || ""}
                                                         onChangeFunction={field.onChange}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                handleAddEmail();
+                                                            }
+                                                        }}
                                                         className="w-full"
                                                         // required={true}
                                                         error={
@@ -549,26 +617,7 @@ export const CreateInviteDialog = ({
                             </div>
                         )}
 
-                        {/* Generated Invite Link */}
-
-                        {/*<p className="text-subtitle font-semibold">Invite Link</p>
-                            <FormField
-                                control={control}
-                                name="generatedInviteLink"
-                                render={({ field }) => (
-                                    <FormItem className="flex-grow">
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                input={field.value}
-                                                onChangeFunction={field.onChange}
-                                                className="w-fit text-wrap"
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            /> */}
-                        {inviteLink && inviteLink != null && (
+                        {/* {inviteLink && inviteLink != null && (
                             <div className="flex flex-col gap-10">
                                 <Separator />
                                 <div className="flex w-fit items-center gap-4">
@@ -593,7 +642,7 @@ export const CreateInviteDialog = ({
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </form>
             </FormProvider>

@@ -120,11 +120,13 @@ export function AssessmentDetailsQuestionAnalysisChart({
                             Check Question Insights
                         </MyButton>
                     </DialogTrigger>
-                    <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-0 overflow-y-auto !p-0">
-                        <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
+                    <DialogContent className="no-scrollbar [&>button]:z-100 !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col !gap-0 overflow-hidden !p-0">
+                        <h1 className="z-1 sticky top-0 bg-primary-50 p-4 font-semibold text-primary-500">
                             Question Insights
                         </h1>
-                        <QuestionInsightsComponent />
+                        <div className="no-scrollbar flex-1 overflow-y-auto">
+                            <QuestionInsightsComponent />
+                        </div>
                     </DialogContent>
                 </Dialog>
             </div>

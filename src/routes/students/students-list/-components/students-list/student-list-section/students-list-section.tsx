@@ -30,20 +30,24 @@ import { Route } from "@/routes/students/students-list";
 import { useUsersCredentials } from "../../../-services/usersCredentials";
 import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 import { useStudentFiltersContext } from "../../../-context/StudentFiltersContext";
+import { ShareCredentialsDialog } from "./bulk-actions/share-credentials-dialog";
+import { IndividualShareCredentialsDialog } from "./bulk-actions/individual-share-credentials-dialog";
+import { InviteFormProvider } from "@/routes/students/invite/-context/useInviteFormContext";
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { getCourseFromPackage } = useInstituteDetailsStore();
-    const sidebarRef = useRef<HTMLDivElement>(null);
+    const [selectedStudent] = useState<StudentTable | null>(null);
+    const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
+    const tableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
-                sidebarRef.current &&
-                !sidebarRef.current.contains(event.target as Node) &&
+                tableRef.current &&
+                !tableRef.current.contains(event.target as Node) &&
                 isSidebarOpen
             ) {
                 setIsSidebarOpen(false);
@@ -61,7 +65,7 @@ export const StudentsListSection = () => {
         if (courseList.length === 0) {
             setIsOpen(true);
         }
-    }, [getCourseFromPackage]);
+    }, [instituteDetails]);
 
     useIntroJsTour({
         key: IntroKey.studentManagementFirstTimeVisit,
@@ -179,8 +183,6 @@ export const StudentsListSection = () => {
         0,
     );
 
-    const { instituteDetails, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
-
     useEffect(() => {
         if (search.batch && search.package_session_id) {
             const details = getDetailsFromPackageSessionId({
@@ -220,17 +222,15 @@ export const StudentsListSection = () => {
         }
     }, [search, instituteDetails]);
 
-    useEffect(() => {
-        console.log("appliedFilters from students-list-section: ", appliedFilters);
-    }, [appliedFilters]);
-
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;
 
     return (
         <section className="flex max-w-full flex-col gap-8 overflow-visible">
             <div className="flex flex-col gap-4">
-                <StudentListHeader />
+                <InviteFormProvider>
+                    <StudentListHeader currentSession={currentSession} />
+                </InviteFormProvider>
                 <StudentFilters
                     currentSession={currentSession}
                     filters={filters}
@@ -264,7 +264,7 @@ export const StudentsListSection = () => {
                 ) : (
                     <div className="flex flex-col gap-5">
                         <div className="h-auto max-w-full">
-                            <div className="max-w-full">
+                            <div className="max-w-full" ref={tableRef}>
                                 <SidebarProvider
                                     style={{ ["--sidebar-width" as string]: "565px" }}
                                     defaultOpen={false}
@@ -292,11 +292,12 @@ export const StudentsListSection = () => {
                                         onRowSelectionChange={handleRowSelectionChange}
                                         currentPage={page}
                                     />
-                                    <div ref={sidebarRef}>
+                                    <div>
                                         <StudentSidebar
                                             selectedTab={"ENDED,PENDING,LIVE"}
                                             examType={"EXAM"}
                                             isStudentList={true}
+                                            selectedStudent={selectedStudent}
                                         />
                                     </div>
                                 </SidebarProvider>
@@ -318,7 +319,9 @@ export const StudentsListSection = () => {
                     </div>
                 )}
             </div>
-            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" />
+            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Enroll Students" content="You need to create a course and add a subject in it before" />
+            <ShareCredentialsDialog />
+            <IndividualShareCredentialsDialog />
         </section>
     );
 };

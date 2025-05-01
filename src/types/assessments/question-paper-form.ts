@@ -21,12 +21,17 @@ export interface MyQuestion {
     questionType: string; // Default value: "MCQS"
     questionMark: string; // Required string
     questionPenalty: string;
+    tags?: string[];
+    level?: string;
     questionDuration: {
         hrs: string;
         min: string;
     };
     singleChoiceOptions: MySingleChoiceOption[]; // Array of single choice options
     multipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
+    csingleChoiceOptions: MySingleChoiceOption[]; // Array of single choice options
+    cmultipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
+    trueFalseOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
     validAnswers?: number[];
     decimals?: number;
     numericType?: string;

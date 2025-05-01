@@ -59,6 +59,7 @@ const formSchema = z.object({
     thumbnail_file_id: z.string().optional(),
     contain_levels: z.boolean().optional(),
     status: z.string().optional(),
+    new_course: z.boolean().optional(),
     sessions: z
         .array(
             z.object({
@@ -95,6 +96,14 @@ interface AddCourseFormProps {
     setOpenDialog: Dispatch<SetStateAction<boolean>>;
     setDisableAddButton: Dispatch<SetStateAction<boolean>>;
     submitForm?: (submitFn: () => void) => void;
+}
+
+export function convertToFormSession(session: SessionType): Session {
+    return {
+        ...session,
+        new_session: false,
+        levels: [],
+    };
 }
 
 export const AddCourseForm = ({
@@ -178,17 +187,10 @@ export const AddCourseForm = ({
             thumbnail_file_id: initialValues?.thumbnail_file_id || fileId,
             contain_levels: initialValues?.contain_levels || true,
             status: initialValues?.status || "ACTIVE",
+            new_course: initialValues?.new_course || true,
             sessions: [], // Changed from levels to sessions
         },
     });
-
-    function convertToFormSession(session: SessionType): Session {
-        return {
-            ...session,
-            new_session: false,
-            levels: [],
-        };
-    }
 
     const handleAddSession = (sessionName: string, startDate: string) => {
         const newSession: Session = {

@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { QuestionPaperTemplate } from "./QuestionPaperTemplate";
 import CustomInput from "@/components/design-system/custom-input";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadDocsFile } from "../-services/question-paper-services";
 import { toast } from "sonner";
 import { addQuestionPaper, getQuestionPaperById } from "../-utils/question-paper-services";
@@ -36,6 +36,7 @@ import useDialogStore from "../-global-states/question-paper-dialogue-close";
 import sectionDetailsSchema from "../../create-assessment/$assessmentId/$examtype/-utils/section-details-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ConvertToHTML from "../-images/convertToHTML.png";
+import { AssignmentFormType } from "@/routes/study-library/courses/levels/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema";
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export type UploadQuestionPaperFormType = z.infer<typeof uploadQuestionPaperFormSchema>;
@@ -43,6 +44,8 @@ interface QuestionPaperUploadProps {
     isManualCreated: boolean;
     index?: number;
     sectionsForm?: UseFormReturn<SectionFormType>;
+    studyLibraryAssignmentForm?: UseFormReturn<AssignmentFormType>;
+    isStudyLibraryAssignment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
 }
@@ -51,9 +54,12 @@ export const QuestionPaperUpload = ({
     isManualCreated,
     index,
     sectionsForm,
+    studyLibraryAssignmentForm,
+    isStudyLibraryAssignment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
 }: QuestionPaperUploadProps) => {
+    const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
 
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -121,6 +127,20 @@ export const QuestionPaperUpload = ({
                 className: "success-toast",
                 duration: 2000,
             });
+            if (isStudyLibraryAssignment) {
+                studyLibraryAssignmentForm?.setValue(
+                    "uploaded_question_paper",
+                    data.saved_question_paper_id,
+                );
+                studyLibraryAssignmentForm?.setValue(
+                    `adaptive_marking_for_each_question`,
+                    transformQuestionsData.map((question) => ({
+                        questionId: question.questionId,
+                        questionName: question.questionName,
+                        questionType: question.questionType,
+                    })),
+                );
+            }
             if (index !== undefined) {
                 // Check if index is defined
 
@@ -149,6 +169,7 @@ export const QuestionPaperUpload = ({
             setIsMainQuestionPaperAddDialogOpen(false);
             setIsManualQuestionPaperDialogOpen(false);
             setIsUploadFromDeviceDialogOpen(false);
+            queryClient.invalidateQueries({ queryKey: ["GET_QUESTION_PAPER_FILTERED_DATA"] });
         },
         onError: (error: unknown) => {
             toast.error(error as string);
@@ -156,8 +177,6 @@ export const QuestionPaperUpload = ({
     });
 
     function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
-        console.log("get questions ", getValues("questions"));
-        console.log("values ", values);
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
@@ -275,6 +294,7 @@ export const QuestionPaperUpload = ({
             fileInputRef.current.value = ""; // Reset the file input to clear the selection
         }
     };
+
     return (
         <>
             <FormProvider {...form}>
@@ -484,7 +504,7 @@ export const QuestionPaperUpload = ({
                                         questionPaperId={questionPaperId}
                                         isViewMode={false}
                                         isManualCreated={isManualCreated}
-                                        buttonText="Create"
+                                        buttonText="Add Questions"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
                                     />

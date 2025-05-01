@@ -1,34 +1,23 @@
-import { MyButton } from "@/components/design-system/button";
-import { Copy, Plus } from "phosphor-react";
-import { CreateInviteDialog } from "./create-invite/CreateInviteDialog";
 import { InviteForm } from "../-schema/InviteFormSchema";
-import { useRef, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 import { EmptyInvitePage } from "@/assets/svgs";
 import { InviteCardMenuOptions } from "./InviteCardMenuOptions";
-import formDataToRequestData from "../-utils/formDataToRequestData";
-import { useCreateInvite } from "../-services/create-invite";
-import { CreateInvitationRequestType } from "../-types/create-invitation-types";
 import { TokenKey } from "@/constants/auth/tokens";
 import { getTokenDecodedData, getTokenFromCookie } from "@/lib/auth/sessionUtility";
 import { MyPagination } from "@/components/design-system/pagination";
 import { usePaginationState } from "@/hooks/pagination";
 import { useGetInviteList } from "../-services/get-invite-list";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import createInviteLink from "../-utils/createInviteLink";
 import { useInviteFormContext } from "../-context/useInviteFormContext";
+import { InviteLink } from "../../-components/InviteLink";
+import { CreateInvite } from "./create-invite/CreateInvite";
 
 export const Invite = () => {
-    const [copySuccess, setCopySuccess] = useState<string | null>(null);
-    const formSubmitRef = useRef<() => void>(() => {});
-    const createInviteMutation = useCreateInvite();
-    const [openCreateInviteDialog, setOpenCreateInviteDialog] = useState(false);
-    const [inviteLink, setInviteLink] = useState<string | null>(null);
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
     const { form } = useInviteFormContext();
-    const { setValue } = form;
+    const { watch } = form;
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
@@ -38,10 +27,6 @@ export const Invite = () => {
     const filterRequest = {
         status: ["ACTIVE", "INACTIVE"],
         name: "",
-    };
-
-    const onOpenChangeCreateInviteDialog = () => {
-        setOpenCreateInviteDialog(!openCreateInviteDialog);
     };
 
     const {
@@ -55,73 +40,31 @@ export const Invite = () => {
         requestFilterBody: filterRequest,
     });
 
-    const CreateInviteButton = (
-        <MyButton>
-            <Plus /> Create Invite Link
-        </MyButton>
-    );
 
-    const inviteSubmitButton = (
-        <div className="flex w-full items-center justify-end">
-            <MyButton onClick={() => formSubmitRef.current()}>Create</MyButton>
-        </div>
-    );
 
-    const handleCopyClick = (link: string) => {
-        navigator.clipboard
-            .writeText(link)
-            .then(() => {
-                setCopySuccess(link);
-                setTimeout(() => {
-                    setCopySuccess(null);
-                }, 2000);
-            })
-            .catch((err) => {
-                console.log("Failed to copy link: ", err);
-                toast.error("Copy failed");
-            });
-    };
+    useEffect(() => {
+        console.log(
+            "values: ",
+            watch("batches.preSelectedCourses"),
+            watch("batches.learnerChoiceCourses"),
+        );
+    }, [watch("batches.preSelectedCourses"), watch("batches.learnerChoiceCourses")]);
+
+
+
+
 
     const onEditInvite = (updatedInvite: InviteForm) => {
         console.log(updatedInvite);
     };
 
-    const onCreateInvite = async (invite: InviteForm) => {
-        const requestData = formDataToRequestData(invite);
-        try {
-            const { data: responseData }: { data: CreateInvitationRequestType } =
-                await createInviteMutation.mutateAsync({ requestBody: requestData });
-            toast.success("invitation created");
-            const link = createInviteLink(responseData?.learner_invitation?.invite_code || "");
-            setInviteLink(link);
-            setValue("batches", {
-                maxCourses: 0,
-                courseSelectionMode: "institute",
-                preSelectedCourses: [],
-                learnerChoiceCourses: [],
-            });
-            // setOpenCreateInviteDialog(false);
-        } catch {
-            toast.error("failed to create invitation");
-        }
-    };
+
 
     return (
         <div className="flex w-full flex-col gap-10">
             <div className="flex items-center justify-between">
                 <p className="text-h3 font-semibold">Invite Link List</p>
-                <CreateInviteDialog
-                    triggerButton={CreateInviteButton}
-                    submitButton={inviteSubmitButton}
-                    submitForm={(fn: () => void) => {
-                        formSubmitRef.current = fn;
-                    }}
-                    onCreateInvite={onCreateInvite}
-                    open={openCreateInviteDialog}
-                    onOpenChange={onOpenChangeCreateInviteDialog}
-                    inviteLink={inviteLink}
-                    setInviteLink={setInviteLink}
-                />
+                <CreateInvite />
             </div>
             <div className="flex w-full flex-col gap-10">
                 {isError ? (
@@ -150,26 +93,7 @@ export const Invite = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <p className="text-body font-semibold">Invite Link: </p>
-                                    <p className="text-subtitle underline">{`${createInviteLink(
-                                        obj.invite_code,
-                                    ).slice(0, 40)}..`}</p>
-                                    <div className="flex items-center gap-2">
-                                        <MyButton
-                                            buttonType="secondary"
-                                            scale="medium"
-                                            layoutVariant="icon"
-                                            onClick={() =>
-                                                handleCopyClick(createInviteLink(obj.invite_code))
-                                            }
-                                        >
-                                            <Copy />
-                                        </MyButton>
-                                        {copySuccess == createInviteLink(obj.invite_code) && (
-                                            <span className="text-caption text-primary-500">
-                                                Copied!
-                                            </span>
-                                        )}
-                                    </div>
+                                    <InviteLink inviteCode={obj.invite_code || ""} />
                                 </div>
                             </div>
                         ))}

@@ -17,7 +17,7 @@ import SelectField from "@/components/design-system/select-field";
 import { useForm, FormProvider } from "react-hook-form";
 import { useRouter } from "@tanstack/react-router";
 
-export const StudentLearningProgress = () => {
+export const StudentLearningProgress = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const [currentSubjectDetails, setCurrentSubjectDetails] = useState<SubjectWithDetails | null>(
         null,
     );
@@ -42,7 +42,7 @@ export const StudentLearningProgress = () => {
     useEffect(() => {
         setBatch(
             getDetailsFromPackageSessionId({
-                packageSessionId: selectedStudent?.package_session_id || "",
+                packageSessionId: isSubmissionTab ? selectedStudent?.package_id || "" : selectedStudent?.package_session_id || "",
             }),
         );
     }, [selectedStudent]);
@@ -53,8 +53,8 @@ export const StudentLearningProgress = () => {
         isError,
         error,
     } = useStudentSubjectsProgressQuery({
-        userId: selectedStudent?.user_id || "",
-        packageSessionId: selectedStudent?.package_session_id || "",
+        userId: isSubmissionTab ? selectedStudent?.id || "" : selectedStudent?.user_id || "",
+        packageSessionId: isSubmissionTab ? selectedStudent?.package_id || "" : selectedStudent?.package_session_id || "",
     });
 
     useEffect(() => {
@@ -143,7 +143,7 @@ export const StudentLearningProgress = () => {
                     sessionId: batch?.session.id,
                     levelId: batch?.session.id,
                     fullName: selectedStudent.full_name,
-                    userId: selectedStudent.user_id,
+                    userId: isSubmissionTab ? selectedStudent?.id || "" : selectedStudent?.user_id || "",
                 },
             },
         });
@@ -159,7 +159,7 @@ export const StudentLearningProgress = () => {
                     sessionId: batch?.session.id,
                     levelId: batch?.session.id,
                     fullName: selectedStudent.full_name,
-                    userId: selectedStudent.user_id,
+                    userId: isSubmissionTab ? selectedStudent?.id || "" : selectedStudent?.user_id || "",
                 },
             },
         });
