@@ -1,6 +1,5 @@
 import { TestContent } from "@/types/assessments/schedule-test-list";
 import { Badge } from "@/components/ui/badge";
-import { ReverseProgressBar } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { DotIcon, DotIconOffline } from "@/svgs";
 import { CheckCircle, LockSimple, PauseCircle } from "phosphor-react";
@@ -14,6 +13,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { getSubjectNameById } from "@/routes/assessment/question-papers/-utils/helper";
 import { getBatchNamesByIds } from "@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-utils/helper";
+import { ReverseProgressBar } from "@/components/ui/progress";
 
 const ScheduleTestDetails = ({
     scheduleTestContent,
@@ -180,7 +180,7 @@ const ScheduleTestDetails = ({
                         ? (scheduleTestContent.user_registrations /
                               scheduleTestContent.expected_participants) *
                           100
-                        : 0 // Default value if `expected_participants` or `user_registrations` is missing
+                        : 0
                 }
                 className="-mt-3 w-full border"
             />

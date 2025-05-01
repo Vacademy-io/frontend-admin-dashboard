@@ -21,6 +21,15 @@ import { X } from "phosphor-react";
 import { QuestionPaperUpload } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { QuestionPapersTabs } from "@/routes/assessment/question-papers/-components/QuestionPapersTabs";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { ReverseProgressBar } from "@/components/ui/progress";
 
 const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -39,10 +48,19 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
         resolver: zodResolver(assignmentFormSchema),
         defaultValues,
     });
-    console.log(form.getValues());
 
-    const { watch } = form;
+    const onSubmit = (data: AssignmentFormType) => {
+        console.log(data);
+    };
 
+    const onInvalid = (err: unknown) => {
+        console.log(err);
+    };
+
+    const adaptive_marking_for_each_question = form.getValues("adaptive_marking_for_each_question");
+    const { watch, getValues, handleSubmit } = form;
+    const totalParticipants = Number(getValues("totalParticipants")) || 0;
+    const submittedParticipants = Number(getValues("submittedParticipants")) || 0;
     useEffect(() => {
         const subscription = watch(() => {
             const modifiedItems = updateDocumentDataInSlides(
@@ -276,14 +294,65 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                         </DialogContent>
                     </Dialog>
                 </div>
+                {Boolean(adaptive_marking_for_each_question?.length) && (
+                    <div>
+                        <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
+                        <Table>
+                            <TableHeader className="bg-primary-200">
+                                <TableRow>
+                                    <TableHead>Q.No.</TableHead>
+                                    <TableHead>Question</TableHead>
+                                    <TableHead>Question Type</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="bg-neutral-50">
+                                {adaptive_marking_for_each_question?.map((question, idx) => {
+                                    return (
+                                        <TableRow key={idx}>
+                                            <TableCell>{idx + 1}</TableCell>
+                                            <TableCell
+                                                dangerouslySetInnerHTML={{
+                                                    __html: question.questionName || "",
+                                                }}
+                                            />
+                                            <TableCell>{question.questionType}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </div>
+                )}
                 <Separator />
                 <div className="flex flex-col gap-4">
                     <h1 className="font-semibold">Responses</h1>
                     <div className="flex flex-col gap-2 text-sm">
-                        <span>Total Participants:</span>
-                        <span>Submitted By:</span>
-                        <span>Pending:</span>
+                        <span>Total Participants: {totalParticipants}</span>
+                        <div className="flex items-center justify-between">
+                            <span>Submitted By: {submittedParticipants}</span>
+                            <span>Pending: {totalParticipants - submittedParticipants}</span>
+                        </div>
+                        <ReverseProgressBar
+                            value={parseFloat(
+                                (
+                                    ((totalParticipants - submittedParticipants) /
+                                        totalParticipants) *
+                                    100
+                                ).toFixed(2),
+                            )}
+                        />
                     </div>
+                </div>
+                <div>
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="secondary"
+                        className="font-medium text-neutral-600"
+                        onClick={handleSubmit(onSubmit, onInvalid)}
+                    >
+                        Upload Submission
+                    </MyButton>
                 </div>
             </FormProvider>
         </div>
