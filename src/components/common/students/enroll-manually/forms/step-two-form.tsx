@@ -53,13 +53,9 @@ export const StepTwoForm = ({
     const addCourseMutation = useAddCourse();
     const { instituteDetails } = useInstituteDetailsStore();
     const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
-    const [isAddSessionDiaogOpen, setIsAddSessionDiaogOpen] = useState(false);
     const addSessionMutation = useAddSession();
     const [disableAddButton, setDisableAddButton] = useState(true);
-    const handleOpenAddSessionDialog = () => {
-        if (!instituteDetails?.batches_for_sessions.length) return;
-        setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
-    };
+
 
     // Update lists when instituteDetails changes
     useEffect(() => {
@@ -84,7 +80,7 @@ export const StepTwoForm = ({
                 name: "",
             },
         });
-    }, [instituteDetails, getCourseFromPackage, getSessionFromPackage, getLevelsFromPackage]);
+    }, [instituteDetails]);
 
     useEffect(() => {
         if (initialValues) {
@@ -361,7 +357,6 @@ export const StepTwoForm = ({
             {
                 onSuccess: () => {
                     toast.success("Session added successfully");
-                    setIsAddSessionDiaogOpen(false);
                 },
                 onError: (error) => {
                     toast.error(error.message || "Failed to add session");
