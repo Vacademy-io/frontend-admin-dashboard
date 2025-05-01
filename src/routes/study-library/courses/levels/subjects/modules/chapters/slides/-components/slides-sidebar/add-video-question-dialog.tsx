@@ -46,7 +46,6 @@ const AddVideoQuestionDialog = ({
 }: {
     videoPlayerTimeFrameForm: UseFormReturn<VideoPlayerTimeFormType>;
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
-    isTimeStampDialogOpen: boolean;
     setIsTimeStampDialogOpen: Dispatch<SetStateAction<boolean>>;
 }) => {
     const [addQuestionTypeDialog, setAddQuestionTypeDialog] = useState(false);
