@@ -26,7 +26,10 @@ const ReverseProgressBar = React.forwardRef<
 >(({ className, value, ...props }, ref) => (
     <ProgressPrimitive.Root
         ref={ref}
-        className={cn("bg-primary relative h-4 w-full overflow-hidden rounded-full", className)}
+        className={cn(
+            "bg-primary relative h-4 w-full overflow-hidden rounded-full border",
+            className,
+        )}
         {...props}
     >
         <ProgressPrimitive.Indicator
