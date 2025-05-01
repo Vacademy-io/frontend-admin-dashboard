@@ -25,6 +25,7 @@ import { formatReadableDate } from "@/utils/formatReadableData";
 import { convertHtmlToPdf, convertToSlideFormat } from "../-helper/helper";
 import { StudyLibraryQuestionsPreview } from "./questions-preview";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
+import StudyLibraryAssignmentPreview from "./assignment-preview";
 
 export const formatHTMLString = (htmlString: string) => {
     // Remove the body tag and its attributes
@@ -69,6 +70,7 @@ export const SlideMaterial = ({
     const { addUpdateDocumentSlide } = useSlides(chapterId || "");
     const { addUpdateVideoSlide } = useSlides(chapterId || "");
     const { updateQuestionOrder } = useSlides(chapterId || "");
+
     const handleHeadingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHeading(e.target.value);
     };
@@ -237,6 +239,11 @@ export const SlideMaterial = ({
             return;
         } else if (activeItem.source_type == "QUESTION") {
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
+            return;
+        }
+
+        else if (activeItem.source_type == "ASSIGNMENT") {
+            setContent(<StudyLibraryAssignmentPreview activeItem={activeItem} />);
             return;
         }
 
@@ -564,7 +571,8 @@ export const SlideMaterial = ({
                                 )}
                             <ActivityStatsSidebar />
                             {(activeItem?.document_type == "DOC" ||
-                                activeItem?.source_type == "QUESTION") && (
+                                activeItem?.source_type == "QUESTION" ||
+                                activeItem?.source_type == "ASSIGNMENT") && (
                                 <MyButton
                                     buttonType="secondary"
                                     scale="medium"
