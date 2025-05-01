@@ -22,9 +22,10 @@ interface AddLevelButtonProps {
         levelId?: string;
     }) => void;
     trigger?: ReactNode;
+    packageId?: string;
 }
 
-export const AddLevelButton = ({ onSubmit, trigger }: AddLevelButtonProps) => {
+export const AddLevelButton = ({ onSubmit, trigger, packageId }: AddLevelButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleOpenChange = () => {
@@ -59,12 +60,22 @@ export const AddLevelButton = ({ onSubmit, trigger }: AddLevelButtonProps) => {
             open={openDialog}
             onOpenChange={handleOpenChange}
             footer={levelSubmitButton}
+            className="z-[99999]"
         >
-            <AddLevelForm
-                onSubmitSuccess={onSubmit}
-                setOpenDialog={setOpenDialog}
-                submitForm={submitFormFn}
-            />
+            {packageId ?
+                <AddLevelForm
+                    onSubmitSuccess={onSubmit}
+                    setOpenDialog={setOpenDialog}
+                    submitForm={submitFormFn}
+                    packageId={packageId}
+                />
+                :
+                <AddLevelForm
+                    onSubmitSuccess={onSubmit}
+                    setOpenDialog={setOpenDialog}
+                    submitForm={submitFormFn}
+                />
+            }
         </MyDialog>
     );
 };

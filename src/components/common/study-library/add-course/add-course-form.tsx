@@ -256,7 +256,6 @@ export const AddCourseForm = ({
             sessions: filteredSessions,
         };
 
-        console.log("Form submitted with data:", submissionData);
         onSubmitCourse({ courseId: submissionData.id, requestData: submissionData });
         setOpenDialog(false);
     };

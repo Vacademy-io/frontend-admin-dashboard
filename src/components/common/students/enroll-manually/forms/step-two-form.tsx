@@ -61,6 +61,9 @@ export const StepTwoForm = ({
         setIsAddSessionDiaogOpen(!isAddSessionDiaogOpen);
     };
 
+
+
+
     useEffect(() => {
         if (initialValues) {
             const details = getDetailsFromPackageSessionId({
@@ -345,27 +348,7 @@ export const StepTwoForm = ({
         );
     };
 
-    const formSubmitRef = useRef(() => {});
 
-    const sessionSubmitFn = (fn: () => void) => {
-        formSubmitRef.current = fn;
-    };
-
-    const submitButton = (
-        <div className="flex items-center justify-end">
-            <MyButton
-                type="submit"
-                buttonType="primary"
-                layoutVariant="default"
-                scale="large"
-                className="w-[140px]"
-                disable={disableAddButton}
-                onClick={() => formSubmitRef.current()}
-            >
-                Add
-            </MyButton>
-        </div>
-    );
 
     const handleAddLevel = ({
         requestData,
@@ -522,6 +505,7 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddLevelButton={true}
                                                     onAddLevel={handleAddLevel}
+                                                    packageId={form.getValues("course").id}
                                                 />
                                             </div>
                                         </FormControl>

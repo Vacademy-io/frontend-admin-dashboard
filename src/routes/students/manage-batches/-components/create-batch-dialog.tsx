@@ -125,7 +125,6 @@ export const CreateBatchDialog = () => {
 
     const submit = () => {
         methods.handleSubmit((data) => {
-            console.log("Form submitted with data:", data);
             // Handle submission here
             const levelData =
                 data.levelCreationType === "new"

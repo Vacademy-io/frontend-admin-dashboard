@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CaretDown, CaretUp, CaretRight } from "@phosphor-icons/react";
 import {
     DropdownMenu,
@@ -51,7 +51,6 @@ export const MyDropdown = ({
     onAddSession,
     onAddLevel,
     packageId,
-    sessionId,
 }: myDropDownProps & {
     showAddCourseButton?: boolean;
     showAddSessionButton?: boolean;
@@ -60,7 +59,6 @@ export const MyDropdown = ({
     onAddSession?: (data: AddSessionDataType) => void;
     onAddLevel?: (data: { requestData: AddLevelData; packageId?: string; sessionId?: string }) => void;
     packageId?: string;
-    sessionId?: string;
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isAddSessionDialogOpen, setIsAddSessionDialogOpen] = useState(false);
@@ -68,7 +66,10 @@ export const MyDropdown = ({
     const addCourseMutation = useAddCourse();
     const addSessionMutation = useAddSession();
     const addLevelMutation = useAddLevel();
-
+    const formSubmitRef = useRef(() => {});
+    const submitFn = (fn: () => void) => {
+        formSubmitRef.current = fn;
+    };
     useEffect(() => {
         // Auto-select the only item if dropdownList has exactly one item and no current value is set
         if (dropdownList.length === 1) {
@@ -339,13 +340,14 @@ export const MyDropdown = ({
                                                     scale="large"
                                                     className="w-[140px]"
                                                     disable={disableAddButton}
+                                                    onClick={() => formSubmitRef.current()}
                                                 >
                                                     Add
                                                 </MyButton>
                                             </div>
                                         }
                                         setDisableAddButton={setDisableAddButton}
-                                        submitFn={() => {}}
+                                        submitFn={submitFn}
                                     />
                                 )}
                                 {showAddLevelButton && (
@@ -362,6 +364,7 @@ export const MyDropdown = ({
                                                 <Plus className="mr-2" /> Create Level
                                             </MyButton>
                                         }
+                                        packageId={packageId}
                                     />
                                 )}
                             </div>
