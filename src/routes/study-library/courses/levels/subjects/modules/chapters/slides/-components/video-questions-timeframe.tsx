@@ -1,0 +1,225 @@
+import { MyButton } from "@/components/design-system/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { FormProvider } from "react-hook-form";
+import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import { MyInput } from "@/components/design-system/input";
+import AddVideoQuestionDialog from "./slides-sidebar/add-video-question-dialog";
+import { Dispatch, MutableRefObject, SetStateAction, useEffect } from "react";
+import { UseFormReturn } from "react-hook-form";
+import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
+import { VideoPlayerTimeFormType } from "../-form-schemas/video-player-time-schema";
+import { PencilSimpleLine } from "phosphor-react";
+
+interface VideoQuestionsTimeFrameDialogProps {
+    formRefData: MutableRefObject<UploadQuestionPaperFormType>;
+    videoPlayerTimeFrameForm: UseFormReturn<VideoPlayerTimeFormType>; // Replace `any` with your form schema if available
+    handleSetCurrentTimeStamp: () => void;
+    isTimeStampDialogOpen: boolean;
+    setIsTimeStampDialogOpen: Dispatch<SetStateAction<boolean>>;
+    question?: any;
+    isEdited?: boolean;
+}
+
+const VideoQuestionsTimeFrameDialog = ({
+    formRefData,
+    videoPlayerTimeFrameForm,
+    handleSetCurrentTimeStamp,
+    isTimeStampDialogOpen,
+    setIsTimeStampDialogOpen,
+    question,
+    isEdited,
+}: VideoQuestionsTimeFrameDialogProps) => {
+    const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        const currentQuestionIndex = formRefData.current.questions.findIndex(
+            (q) => q.questionId === question.questionId,
+        );
+        (formRefData.current.questions[currentQuestionIndex].timestamp =
+            `${videoPlayerTimeFrameForm.getValues("hrs")}:${videoPlayerTimeFrameForm.getValues(
+                "min",
+            )}:${videoPlayerTimeFrameForm.getValues("sec")}`),
+            setIsTimeStampDialogOpen(false);
+    };
+
+    useEffect(() => {
+        if (isEdited) {
+            videoPlayerTimeFrameForm.reset({
+                hrs: question.timestamp.split(":")[0],
+                min: question.timestamp.split(":")[1],
+                sec: question.timestamp.split(":")[2],
+            });
+        }
+    }, [question]);
+    return (
+        <Dialog open={isTimeStampDialogOpen} onOpenChange={setIsTimeStampDialogOpen}>
+            <DialogTrigger>
+                {isEdited ? (
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        scale="small"
+                        layoutVariant="default"
+                        className="h-8 min-w-4"
+                    >
+                        <PencilSimpleLine size={32} />
+                    </MyButton>
+                ) : (
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        scale="large"
+                        layoutVariant="default"
+                        className="mt-4"
+                    >
+                        Add Question
+                    </MyButton>
+                )}
+            </DialogTrigger>
+            <DialogContent className="w-fit p-0">
+                <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
+                    Time Stamp
+                </h1>
+                <FormProvider {...videoPlayerTimeFrameForm}>
+                    <form className="flex flex-col items-center gap-2 p-4">
+                        <div className="flex items-center gap-4 p-4">
+                            <FormField
+                                control={videoPlayerTimeFrameForm.control}
+                                name={`hrs`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (!/[0-9]/.test(charCode)) {
+                                                        e.preventDefault(); // Prevent non-numeric input
+                                                    }
+                                                }}
+                                                onChangeFunction={(e) => {
+                                                    const inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        "",
+                                                    ); // Remove non-numeric characters
+                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                }}
+                                                size="large"
+                                                {...field}
+                                                className="w-11"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <span>hrs</span>
+                            <span>:</span>
+                            <FormField
+                                control={videoPlayerTimeFrameForm.control}
+                                name={`min`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (!/[0-9]/.test(charCode)) {
+                                                        e.preventDefault(); // Prevent non-numeric input
+                                                    }
+                                                }}
+                                                onChangeFunction={(e) => {
+                                                    const inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        "",
+                                                    ); // Remove non-numeric characters
+                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                }}
+                                                size="large"
+                                                {...field}
+                                                className="w-11"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <span>min</span>
+                            <span>:</span>
+                            <FormField
+                                control={videoPlayerTimeFrameForm.control}
+                                name={`sec`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onKeyPress={(e) => {
+                                                    const charCode = e.key;
+                                                    if (!/[0-9]/.test(charCode)) {
+                                                        e.preventDefault(); // Prevent non-numeric input
+                                                    }
+                                                }}
+                                                onChangeFunction={(e) => {
+                                                    const inputValue = e.target.value.replace(
+                                                        /[^0-9]/g,
+                                                        "",
+                                                    ); // Remove non-numeric characters
+                                                    field.onChange(inputValue); // Call onChange with the sanitized value
+                                                }}
+                                                size="large"
+                                                {...field}
+                                                className="w-11"
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <span>sec</span>
+                            <MyButton
+                                type="button"
+                                buttonType="secondary"
+                                scale="medium"
+                                layoutVariant="default"
+                                className="ml-8"
+                                onClick={handleSetCurrentTimeStamp}
+                            >
+                                Use Current Position
+                            </MyButton>
+                        </div>
+                        <div className="flex w-full justify-end">
+                            {!isEdited && (
+                                <AddVideoQuestionDialog
+                                    videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
+                                    formRefData={formRefData}
+                                    setIsTimeStampDialogOpen={setIsTimeStampDialogOpen}
+                                />
+                            )}
+                        </div>
+                    </form>
+                </FormProvider>
+                {/* Only show this button if we're not in edit mode */}
+                <div className="flex justify-end">
+                    {isEdited && (
+                        <MyButton
+                            type="button" // Explicitly set as button type
+                            buttonType="primary"
+                            scale="medium"
+                            layoutVariant="default"
+                            className="mb-6 mr-8"
+                            onClick={handleEditTimeStampCurrentQuestion}
+                        >
+                            Edit
+                        </MyButton>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+export default VideoQuestionsTimeFrameDialog;

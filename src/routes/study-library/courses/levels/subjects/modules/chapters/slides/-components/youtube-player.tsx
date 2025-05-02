@@ -12,6 +12,7 @@ import { MyInput } from "@/components/design-system/input";
 import AddVideoQuestionDialog from "./slides-sidebar/add-video-question-dialog";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { PencilSimpleLine } from "phosphor-react";
+import VideoQuestionsTimeFrameDialog from "./video-questions-timeframe";
 
 interface YTPlayer {
     destroy(): void;
@@ -205,7 +206,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     };
 
     const handleGetOptions = (question) => {
-        console.log("Question: ", question.questionType);
         if (question.questionType === "MCQS") return question.singleChoiceOptions;
         else if (question.questionType === "CMCQS") return question.csingleChoiceOptions;
         else if (question.questionType === "MCQM") return question.multipleChoiceOptions;
@@ -389,147 +389,13 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             {/* Add Question Form */}
 
             <div>
-                <Dialog open={isTimeStampDialogOpen} onOpenChange={setIsTimeStampDialogOpen}>
-                    <DialogTrigger>
-                        <MyButton
-                            buttonType="secondary"
-                            scale="large"
-                            layoutVariant="default"
-                            className="mt-4"
-                        >
-                            Add Question
-                        </MyButton>
-                    </DialogTrigger>
-                    <DialogContent className="w-fit p-0">
-                        <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
-                            Time Stamp
-                        </h1>
-                        <FormProvider {...videoPlayerTimeFrameForm}>
-                            <form className="flex flex-col items-center gap-2 p-4">
-                                <div className="flex items-center gap-4 p-4">
-                                    <FormField
-                                        control={videoPlayerTimeFrameForm.control}
-                                        name={`hrs`}
-                                        render={({ field: { ...field } }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <MyInput
-                                                        inputType="text"
-                                                        inputPlaceholder="00"
-                                                        input={field.value}
-                                                        onKeyPress={(e) => {
-                                                            const charCode = e.key;
-                                                            if (!/[0-9]/.test(charCode)) {
-                                                                e.preventDefault(); // Prevent non-numeric input
-                                                            }
-                                                        }}
-                                                        onChangeFunction={(e) => {
-                                                            const inputValue =
-                                                                e.target.value.replace(
-                                                                    /[^0-9]/g,
-                                                                    "",
-                                                                ); // Remove non-numeric characters
-                                                            field.onChange(inputValue); // Call onChange with the sanitized value
-                                                        }}
-                                                        size="large"
-                                                        {...field}
-                                                        className="w-11"
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <span>hrs</span>
-                                    <span>:</span>
-                                    <FormField
-                                        control={videoPlayerTimeFrameForm.control}
-                                        name={`min`}
-                                        render={({ field: { ...field } }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <MyInput
-                                                        inputType="text"
-                                                        inputPlaceholder="00"
-                                                        input={field.value}
-                                                        onKeyPress={(e) => {
-                                                            const charCode = e.key;
-                                                            if (!/[0-9]/.test(charCode)) {
-                                                                e.preventDefault(); // Prevent non-numeric input
-                                                            }
-                                                        }}
-                                                        onChangeFunction={(e) => {
-                                                            const inputValue =
-                                                                e.target.value.replace(
-                                                                    /[^0-9]/g,
-                                                                    "",
-                                                                ); // Remove non-numeric characters
-                                                            field.onChange(inputValue); // Call onChange with the sanitized value
-                                                        }}
-                                                        size="large"
-                                                        {...field}
-                                                        className="w-11"
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <span>min</span>
-                                    <span>:</span>
-                                    <FormField
-                                        control={videoPlayerTimeFrameForm.control}
-                                        name={`sec`}
-                                        render={({ field: { ...field } }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <MyInput
-                                                        inputType="text"
-                                                        inputPlaceholder="00"
-                                                        input={field.value}
-                                                        onKeyPress={(e) => {
-                                                            const charCode = e.key;
-                                                            if (!/[0-9]/.test(charCode)) {
-                                                                e.preventDefault(); // Prevent non-numeric input
-                                                            }
-                                                        }}
-                                                        onChangeFunction={(e) => {
-                                                            const inputValue =
-                                                                e.target.value.replace(
-                                                                    /[^0-9]/g,
-                                                                    "",
-                                                                ); // Remove non-numeric characters
-                                                            field.onChange(inputValue); // Call onChange with the sanitized value
-                                                        }}
-                                                        size="large"
-                                                        {...field}
-                                                        className="w-11"
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <span>sec</span>
-                                    <MyButton
-                                        type="button"
-                                        buttonType="secondary"
-                                        scale="medium"
-                                        layoutVariant="default"
-                                        className="ml-8"
-                                        onClick={handleSetCurrentTimeStamp}
-                                    >
-                                        Use Current Position
-                                    </MyButton>
-                                </div>
-                                <div className="flex w-full justify-end">
-                                    <AddVideoQuestionDialog
-                                        videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
-                                        formRefData={formRefData}
-                                        setIsTimeStampDialogOpen={setIsTimeStampDialogOpen}
-                                    />
-                                </div>
-                            </form>
-                        </FormProvider>
-                    </DialogContent>
-                </Dialog>
+                <VideoQuestionsTimeFrameDialog
+                    formRefData={formRefData}
+                    videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
+                    handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
+                    isTimeStampDialogOpen={isTimeStampDialogOpen}
+                    setIsTimeStampDialogOpen={setIsTimeStampDialogOpen}
+                />
             </div>
 
             {/* Questions List */}
@@ -551,14 +417,15 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         {idx + 1}. Time stamp -{" "}
                                         {formatTime(timestampToSeconds(question.timestamp))}
                                     </p>
-                                    <MyButton
-                                        buttonType="secondary"
-                                        scale="small"
-                                        layoutVariant="default"
-                                        className="h-8 min-w-4"
-                                    >
-                                        <PencilSimpleLine size={32} />
-                                    </MyButton>
+                                    <VideoQuestionsTimeFrameDialog
+                                        formRefData={formRefData}
+                                        videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
+                                        handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
+                                        isTimeStampDialogOpen={isTimeStampDialogOpen}
+                                        setIsTimeStampDialogOpen={setIsTimeStampDialogOpen}
+                                        question={question}
+                                        isEdited={true}
+                                    />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span
