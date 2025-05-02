@@ -231,8 +231,6 @@ export const MyDropdown = ({
         }
 
         if (isDropdownItemType(item)) {
-            console.log("Item tetsinad andkajs d :", item);
-            toast.success("yahan error hai");
             return (
                 <DropdownMenuItem
                     key={item.id}
@@ -305,7 +303,7 @@ export const MyDropdown = ({
                                 Clear All Fields
                             </DropdownMenuItem>
                         )}
-                        {dropdownList.map((item) => renderMenuItem(item))}
+                        {/* {dropdownList.map((item) => renderMenuItem(item))}
                         {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
                             <div className="border-t border-neutral-200 pt-2">
                                 {showAddCourseButton && (
@@ -404,7 +402,7 @@ export const MyDropdown = ({
                                     />
                                 )}
                             </div>
-                        )}
+                        )} */}
                     </DropdownMenuContent>
                 </DropdownMenuPortal>
             </DropdownMenu>
