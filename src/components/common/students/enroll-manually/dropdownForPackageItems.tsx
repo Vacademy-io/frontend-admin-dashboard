@@ -31,7 +31,7 @@ const isDropdownItem = (item: string | DropdownItem | DropdownItemType): item is
 const isDropdownItemType = (
     item: string | DropdownItem | DropdownItemType,
 ): item is DropdownItemType => {
-    return typeof item !== "string" && "id" in item && "name" in item;
+    return typeof item !== "string" && item !== null && "id" in item && "name" in item;
 };
 
 export const MyDropdown = ({
@@ -231,6 +231,8 @@ export const MyDropdown = ({
         }
 
         if (isDropdownItemType(item)) {
+            console.log("Item tetsinad andkajs d :", item);
+            toast.success("yahan error hai");
             return (
                 <DropdownMenuItem
                     key={item.id}
@@ -304,7 +306,7 @@ export const MyDropdown = ({
                             </DropdownMenuItem>
                         )}
                         {dropdownList.map((item) => renderMenuItem(item))}
-                        {/* {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
+                        {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
                             <div className="border-t border-neutral-200 pt-2">
                                 {showAddCourseButton && (
                                     <AddCourseButton
@@ -402,7 +404,7 @@ export const MyDropdown = ({
                                     />
                                 )}
                             </div>
-                        )} */}
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenuPortal>
             </DropdownMenu>
