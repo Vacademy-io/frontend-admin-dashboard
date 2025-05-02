@@ -106,12 +106,12 @@ export const EnrollBulkDialog = () => {
         const transformedData = {
             ...processedData,
             levels: processedData.levels.map((level) => ({
-                id: level.level_dto.id,
-                new_level: level.level_dto.new_level === true,
-                level_name: level.level_dto.level_name,
-                duration_in_days: level.level_dto.duration_in_days,
-                thumbnail_file_id: level.level_dto.thumbnail_file_id,
-                package_id: level.level_dto.package_id,
+                id: level.level_dto?.id,
+                new_level: level.level_dto?.new_level === true,
+                level_name: level.level_dto?.level_name,
+                duration_in_days: level.level_dto?.duration_in_days,
+                thumbnail_file_id: level.level_dto?.thumbnail_file_id,
+                package_id: level.level_dto?.package_id,
             })),
         };
 
@@ -216,7 +216,6 @@ export const EnrollBulkDialog = () => {
         }
     }, [form.watch("session")]);
 
-
     return (
         <>
             <Form {...form} className="w-full">
@@ -305,15 +304,17 @@ export const EnrollBulkDialog = () => {
                                                     dropdownList={levelList}
                                                     handleChange={onChange}
                                                     placeholder="Select Level"
-                                                     error={
+                                                    error={
                                                         form.formState.errors.level?.id?.message ||
                                                         form.formState.errors.level?.name?.message
                                                     }
                                                     required={true}
                                                     showAddLevelButton={true}
                                                     onAddLevel={handleAddLevel}
-                                                    packageId={form.getValues("course").id}
-                                                    disableAddLevelButton = {form.getValues("course").id === ""}
+                                                    packageId={form.getValues("course")?.id ?? ""}
+                                                    disableAddLevelButton={
+                                                        form.getValues("course")?.id === ""
+                                                    }
                                                 />
                                             </div>
                                         </FormControl>
@@ -326,7 +327,11 @@ export const EnrollBulkDialog = () => {
                                 scale="large"
                                 type="button"
                                 onClick={handleDoneClick}
-                                disable={form.getValues("course")?.id === "" || form.getValues("session")?.id === "" || form.getValues("level")?.id === ""}
+                                disable={
+                                    form.getValues("course")?.id === "" ||
+                                    form.getValues("session")?.id === "" ||
+                                    form.getValues("level")?.id === ""
+                                }
                             >
                                 Enroll
                             </MyButton>
