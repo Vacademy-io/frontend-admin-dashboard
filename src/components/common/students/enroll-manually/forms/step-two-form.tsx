@@ -502,7 +502,7 @@ export const StepTwoForm = ({
                                                         *
                                                     </span>
                                                 </div>
-                                                <MyDropdown
+                                                {/* <MyDropdown
                                                     currentValue={value.name}
                                                     dropdownList={levelList}
                                                     handleChange={handleLevelChange}
@@ -518,7 +518,7 @@ export const StepTwoForm = ({
                                                     disableAddLevelButton={
                                                         form.getValues("course").id === ""
                                                     }
-                                                />
+                                                /> */}
                                             </div>
                                         </FormControl>
                                     </FormItem>
