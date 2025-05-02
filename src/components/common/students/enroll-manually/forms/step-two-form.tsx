@@ -51,7 +51,9 @@ export const StepTwoForm = ({
     const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
     const addSessionMutation = useAddSession();
 
-    console.log("coourse list", courseList);
+    console.log("course list", courseList);
+    console.log("session list", sessionList);
+    console.log("level list", levelList);
     // Update lists when instituteDetails changes
     useEffect(() => {
         setCourseList(getCourseFromPackage());
