@@ -437,7 +437,7 @@ export const StepTwoForm = ({
                                                         *
                                                     </span>
                                                 </div>
-                                                <MyDropdown
+                                                {/* <MyDropdown
                                                     currentValue={value.name}
                                                     dropdownList={courseList}
                                                     handleChange={handleCourseChange}
@@ -449,7 +449,7 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddCourseButton={true}
                                                     onAddCourse={handleAddCourse}
-                                                />
+                                                /> */}
                                             </div>
                                         </FormControl>
                                     </FormItem>
@@ -469,7 +469,7 @@ export const StepTwoForm = ({
                                                         *
                                                     </span>
                                                 </div>
-                                                <MyDropdown
+                                                {/* <MyDropdown
                                                     currentValue={value.name}
                                                     dropdownList={sessionList}
                                                     handleChange={handleSessionChange}
@@ -482,7 +482,7 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddSessionButton={true}
                                                     onAddSession={handleAddSession}
-                                                />
+                                                /> */}
                                             </div>
                                         </FormControl>
                                     </FormItem>
