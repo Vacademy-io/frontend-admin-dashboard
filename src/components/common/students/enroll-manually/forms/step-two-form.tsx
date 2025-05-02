@@ -171,18 +171,19 @@ export const StepTwoForm = ({
 
     // When course changes, update session and level lists
     useEffect(() => {
+        console.log("course value", courseValue);
         if (lastChangedField.current === "course" && courseValue.id) {
             // Update the sessions based on selected course
             setSessionList(
                 getSessionFromPackage({
-                    courseId: courseValue.id,
+                    courseId: courseValue?.id,
                 }),
             );
 
             // Update the levels based on selected course
             setLevelList(
                 getLevelsFromPackage({
-                    courseId: courseValue.id,
+                    courseId: courseValue?.id,
                 }),
             );
 
@@ -191,16 +192,16 @@ export const StepTwoForm = ({
             const currentLevel = form.getValues("level");
 
             // Reset session if needed
-            const validSessions = getSessionFromPackage({ courseId: courseValue.id });
-            const sessionIsValid = validSessions.some((s) => s.id === currentSession.id);
-            if (!sessionIsValid && currentSession.id) {
+            const validSessions = getSessionFromPackage({ courseId: courseValue?.id });
+            const sessionIsValid = validSessions.some((s) => s?.id === currentSession?.id);
+            if (!sessionIsValid && currentSession?.id) {
                 form.setValue("session", { id: "", name: "" });
             }
 
             // Reset level if needed
-            const validLevels = getLevelsFromPackage({ courseId: courseValue.id });
-            const levelIsValid = validLevels.some((l) => l.id === currentLevel.id);
-            if (!levelIsValid && currentLevel.id) {
+            const validLevels = getLevelsFromPackage({ courseId: courseValue?.id });
+            const levelIsValid = validLevels.some((l) => l?.id === currentLevel?.id);
+            if (!levelIsValid && currentLevel?.id) {
                 form.setValue("level", { id: "", name: "" });
             }
         }
@@ -211,18 +212,20 @@ export const StepTwoForm = ({
 
     // When session changes, update course and level lists
     useEffect(() => {
+        console.log("course value", sessionValue);
+
         if (lastChangedField.current === "session" && sessionValue.id) {
             // Update the courses based on selected session
             setCourseList(
                 getCourseFromPackage({
-                    sessionId: sessionValue.id,
+                    sessionId: sessionValue?.id,
                 }),
             );
 
             // Update the levels based on selected session
             setLevelList(
                 getLevelsFromPackage({
-                    sessionId: sessionValue.id,
+                    sessionId: sessionValue?.id,
                 }),
             );
 
@@ -231,16 +234,16 @@ export const StepTwoForm = ({
             const currentLevel = form.getValues("level");
 
             // Reset course if needed
-            const validCourses = getCourseFromPackage({ sessionId: sessionValue.id });
-            const courseIsValid = validCourses.some((c) => c.id === currentCourse.id);
-            if (!courseIsValid && currentCourse.id) {
+            const validCourses = getCourseFromPackage({ sessionId: sessionValue?.id });
+            const courseIsValid = validCourses.some((c) => c?.id === currentCourse?.id);
+            if (!courseIsValid && currentCourse?.id) {
                 form.setValue("course", { id: "", name: "" });
             }
 
             // Reset level if needed
-            const validLevels = getLevelsFromPackage({ sessionId: sessionValue.id });
-            const levelIsValid = validLevels.some((l) => l.id === currentLevel.id);
-            if (!levelIsValid && currentLevel.id) {
+            const validLevels = getLevelsFromPackage({ sessionId: sessionValue?.id });
+            const levelIsValid = validLevels.some((l) => l?.id === currentLevel?.id);
+            if (!levelIsValid && currentLevel?.id) {
                 form.setValue("level", { id: "", name: "" });
             }
         }
@@ -251,18 +254,19 @@ export const StepTwoForm = ({
 
     // When level changes, update course and session lists
     useEffect(() => {
-        if (lastChangedField.current === "level" && levelValue.id) {
+        console.log("course value", levelValue);
+        if (lastChangedField.current === "level" && levelValue?.id) {
             // Update the courses based on selected level
             setCourseList(
                 getCourseFromPackage({
-                    levelId: levelValue.id,
+                    levelId: levelValue?.id,
                 }),
             );
 
             // Update the sessions based on selected level
             setSessionList(
                 getSessionFromPackage({
-                    levelId: levelValue.id,
+                    levelId: levelValue?.id,
                 }),
             );
 
@@ -271,20 +275,19 @@ export const StepTwoForm = ({
             const currentSession = form.getValues("session");
 
             // Reset course if needed
-            const validCourses = getCourseFromPackage({ levelId: levelValue.id });
-            const courseIsValid = validCourses.some((c) => c.id === currentCourse.id);
-            if (!courseIsValid && currentCourse.id) {
+            const validCourses = getCourseFromPackage({ levelId: levelValue?.id });
+            const courseIsValid = validCourses.some((c) => c?.id === currentCourse?.id);
+            if (!courseIsValid && currentCourse?.id) {
                 form.setValue("course", { id: "", name: "" });
             }
 
             // Reset session if needed
-            const validSessions = getSessionFromPackage({ levelId: levelValue.id });
-            const sessionIsValid = validSessions.some((s) => s.id === currentSession.id);
-            if (!sessionIsValid && currentSession.id) {
+            const validSessions = getSessionFromPackage({ levelId: levelValue?.id });
+            const sessionIsValid = validSessions.some((s) => s?.id === currentSession?.id);
+            if (!sessionIsValid && currentSession?.id) {
                 form.setValue("session", { id: "", name: "" });
             }
         }
-
         // Reset the change tracker after handling
         lastChangedField.current = null;
     }, [levelValue, getCourseFromPackage, getSessionFromPackage]);
@@ -292,16 +295,16 @@ export const StepTwoForm = ({
     // Add this effect to auto-select single options
     useEffect(() => {
         // If there's exactly one session and nothing is selected yet
-        if (sessionList.length === 1 && !sessionValue.id) {
+        if (sessionList.length === 1 && !sessionValue?.id) {
             handleSessionChange(sessionList[0]);
         }
 
         // Similar logic for course and level if needed
-        if (courseList.length === 1 && !courseValue.id) {
+        if (courseList.length === 1 && !courseValue?.id) {
             handleCourseChange(courseList[0]);
         }
 
-        if (levelList.length === 1 && !levelValue.id) {
+        if (levelList.length === 1 && !levelValue?.id) {
             handleLevelChange(levelList[0]);
         }
     }, [sessionList, courseList, levelList]);
