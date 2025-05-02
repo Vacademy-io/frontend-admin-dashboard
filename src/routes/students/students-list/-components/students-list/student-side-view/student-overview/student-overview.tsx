@@ -25,22 +25,25 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
 
     const { getCredentials } = useStudentCredentialsStore();
     const [password, setPassword] = useState(
-        getCredentials(isSubmissionTab ? selectedStudent?.id || "" : selectedStudent?.user_id || "")?.password || "password not found",
+        getCredentials(isSubmissionTab ? selectedStudent?.id || "" : selectedStudent?.user_id || "")
+            ?.password || "password not found",
     );
     const { openIndividualShareCredentialsDialog } = useDialogStore();
 
     useEffect(() => {
         if (selectedStudent) {
-            const credentials = getCredentials(isSubmissionTab ? selectedStudent.id : selectedStudent.user_id);
+            const credentials = getCredentials(
+                isSubmissionTab ? selectedStudent.id : selectedStudent.user_id,
+            );
             setPassword(credentials?.password || "password not found");
         }
     }, [selectedStudent]);
 
-
-
     useEffect(() => {
         const details = getDetailsFromPackageSessionId({
-            packageSessionId: isSubmissionTab ? selectedStudent?.package_id || "" : selectedStudent?.package_session_id || "",
+            packageSessionId: isSubmissionTab
+                ? selectedStudent?.package_id || ""
+                : selectedStudent?.package_session_id || "",
         });
         console.log("studentDetails: ", studentDetails);
         const student: StudentTable | null = {
@@ -74,7 +77,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
             parents_to_mother_mobile_number: "",
             parents_to_mother_email: "",
             package_id: selectedStudent?.package_id || "",
-        }
+        };
 
         const learner = isSubmissionTab ? student : selectedStudent;
         console.log("learner: ", learner);
@@ -104,12 +107,12 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         }
     }, [selectedStudent, instituteDetails, password, studentDetails]);
 
-    if(isLoading) {
-        return <DashboardLoader />
+    if (isLoading) {
+        return <DashboardLoader />;
     }
 
-    if(isError) {
-        return <div>Error fetching student details</div>
+    if (isError) {
+        return <div>Error fetching student details</div>;
     }
 
     return (
@@ -148,10 +151,13 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                             studentDetail.content.length > 0 ? (
                                                 studentDetail.content.map((obj, key2) => (
                                                     <div className="text-body" key={key2}>
-                                                        {obj==undefined ?
-                                                        <p className="text-primary-500">No data available</p>  :
-                                                        <p>{obj}</p>
-                                                    }
+                                                        {obj == undefined ? (
+                                                            <p className="text-primary-500">
+                                                                No data available
+                                                            </p>
+                                                        ) : (
+                                                            <p>{obj}</p>
+                                                        )}
                                                     </div>
                                                 ))
                                             ) : (
