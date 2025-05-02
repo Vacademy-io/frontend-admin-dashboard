@@ -31,7 +31,7 @@ const isDropdownItem = (item: string | DropdownItem | DropdownItemType): item is
 const isDropdownItemType = (
     item: string | DropdownItem | DropdownItemType,
 ): item is DropdownItemType => {
-    return typeof item !== "string" && item !== null && "id" in item && "name" in item;
+    return typeof item !== "string" && "id" in item && "name" in item;
 };
 
 export const MyDropdown = ({
@@ -50,7 +50,7 @@ export const MyDropdown = ({
     onAddCourse,
     onAddSession,
     onAddLevel,
-    packageId,
+    packageId = "",
     disableAddLevelButton = false,
 }: myDropDownProps & {
     showAddCourseButton?: boolean;
@@ -303,7 +303,7 @@ export const MyDropdown = ({
                                 Clear All Fields
                             </DropdownMenuItem>
                         )}
-                        {/* {dropdownList.map((item) => renderMenuItem(item))}
+                        {dropdownList.map((item) => renderMenuItem(item))}
                         {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
                             <div className="border-t border-neutral-200 pt-2">
                                 {showAddCourseButton && (
@@ -402,7 +402,7 @@ export const MyDropdown = ({
                                     />
                                 )}
                             </div>
-                        )} */}
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenuPortal>
             </DropdownMenu>
