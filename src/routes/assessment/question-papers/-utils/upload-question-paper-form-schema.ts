@@ -112,13 +112,7 @@ export const uploadQuestionPaperFormSchema = z.object({
                 subjectiveAnswerText: z.string().optional(),
                 questionPoints: z.string().optional(),
                 reattemptCount: z.string().optional(),
-                timeStamp: z
-                    .object({
-                        hrs: z.string().optional(),
-                        min: z.string().optional(),
-                        sec: z.string().optional(),
-                    })
-                    .optional(),
+                timestamp: z.string().optional(),
             })
             .superRefine((question, ctx) => {
                 // Validate based on question type

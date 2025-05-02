@@ -140,11 +140,11 @@ const AddVideoQuestionDialog = ({
             validAnswers: [],
             questionResponseType: "",
             subjectiveAnswerText: "",
-            timeStamp: {
-                hrs: videoPlayerTimeFrameForm.getValues("hrs"),
-                min: videoPlayerTimeFrameForm.getValues("min"),
-                sec: videoPlayerTimeFrameForm.getValues("sec"),
-            },
+            timestamp: `${videoPlayerTimeFrameForm.getValues(
+                "hrs",
+            )}:${videoPlayerTimeFrameForm.getValues("min")}:${videoPlayerTimeFrameForm.getValues(
+                "sec",
+            )}`,
         });
         videoQuestionForm.trigger();
         setOpenQuestionPreview(true);

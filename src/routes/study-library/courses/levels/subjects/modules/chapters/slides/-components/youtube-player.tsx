@@ -11,6 +11,7 @@ import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import AddVideoQuestionDialog from "./slides-sidebar/add-video-question-dialog";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
+import { PencilSimpleLine } from "phosphor-react";
 
 interface YTPlayer {
     destroy(): void;
@@ -102,9 +103,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const [isAPIReady, setIsAPIReady] = useState(false);
     const [videoDuration, setVideoDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
-    const [questions, setQuestions] = useState<Question[]>([]);
-    const [newQuestion, setNewQuestion] = useState("");
-    const [customTimestamp, setCustomTimestamp] = useState("");
+    const [questions, setQuestions] = useState(formRefData.current.questions);
     const [hoveredQuestion, setHoveredQuestion] = useState<Question | null>(null);
     const [isTimeStampDialogOpen, setIsTimeStampDialogOpen] = useState(false);
 
@@ -161,33 +160,10 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         }
     };
 
-    const parseTimestamp = (timestamp: string): number | null => {
-        if (!timestamp) return null;
-
-        // Handle HH:MM:SS or MM:SS format
-        const parts = timestamp.split(":");
-
-        if (parts.length === 3) {
-            // HH:MM:SS format
-            const hrs = parseInt(parts[0], 10);
-            const mins = parseInt(parts[1], 10);
-            const secs = parseInt(parts[2], 10);
-            if (!isNaN(hrs) && !isNaN(mins) && !isNaN(secs)) {
-                return hrs * 3600 + mins * 60 + secs;
-            }
-        } else if (parts.length === 2) {
-            // MM:SS format
-            const mins = parseInt(parts[0], 10);
-            const secs = parseInt(parts[1], 10);
-            if (!isNaN(mins) && !isNaN(secs)) {
-                return mins * 60 + secs;
-            }
-        }
-
-        // Handle direct seconds input
-        const seconds = parseFloat(timestamp);
-        return isNaN(seconds) ? null : seconds;
-    };
+    function timestampToSeconds(timestamp: string): number {
+        const [hours = 0, minutes = 0, seconds = 0] = timestamp.split(":").map(Number);
+        return hours * 3600 + minutes * 60 + seconds;
+    }
 
     const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!playerRef.current || !timelineRef.current) return;
@@ -205,29 +181,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         if (!playerRef.current) return;
         playerRef.current.seekTo(timestamp, true);
         setCurrentTime(timestamp);
-    };
-
-    const handleAddQuestion = () => {
-        if (!newQuestion.trim() || !playerRef.current) return;
-
-        const timestamp = customTimestamp
-            ? parseTimestamp(customTimestamp)
-            : playerRef.current.getCurrentTime();
-
-        if (timestamp === null || timestamp < 0 || timestamp > videoDuration) {
-            alert("Invalid timestamp. Please enter a valid time in MM:SS format or seconds.");
-            return;
-        }
-
-        const newQuestionObj: Question = {
-            id: Date.now().toString(),
-            text: newQuestion,
-            timestamp,
-        };
-
-        setQuestions([...questions, newQuestionObj]);
-        setNewQuestion("");
-        setCustomTimestamp("");
     };
 
     const handleSetCurrentTimeStamp = () => {
@@ -250,6 +203,31 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             videoPlayerTimeFrameForm.reset({ hrs: 0, min, sec });
         }
     };
+
+    const handleGetOptions = (question) => {
+        console.log("Question: ", question.questionType);
+        if (question.questionType === "MCQS") return question.singleChoiceOptions;
+        else if (question.questionType === "CMCQS") return question.csingleChoiceOptions;
+        else if (question.questionType === "MCQM") return question.multipleChoiceOptions;
+        else if (question.questionType === "CMCQM") return question.cmultipleChoiceOptions;
+        else if (question.questionType === "TRUE_FALSE") return question.trueFalseOptions;
+        else if (question.questionType === "NUMERIC" || question.questionType === "CNUMERIC")
+            return question.validAnswers;
+        else if (question.questionType === "LONG_ANSWER" || question.questionType === "ONE_WORD")
+            return question.subjectiveAnswerText;
+    };
+
+    const chunkArray = (arr, size) => {
+        const result = [];
+        for (let i = 0; i < arr.length; i += size) {
+            result.push(arr.slice(i, i + size));
+        }
+        return result;
+    };
+
+    useEffect(() => {
+        setQuestions(formRefData.current.questions);
+    }, [formRefData.current]);
 
     // Initialize YouTube API
     useEffect(() => {
@@ -373,29 +351,37 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                             key={question.id}
                             className="absolute top-0 -ml-1.5 size-3 -translate-y-1/2 cursor-pointer rounded-full bg-red-500"
                             style={{
-                                left: `${(question.timestamp / videoDuration) * 100}%`,
+                                left: `${
+                                    (timestampToSeconds(question.timestamp) / videoDuration) * 100
+                                }%`,
                                 top: "50%",
                             }}
                             onMouseEnter={() => setHoveredQuestion(question)}
                             onMouseLeave={() => setHoveredQuestion(null)}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                handleQuestionClick(question.timestamp);
+                                handleQuestionClick(timestampToSeconds(question.timestamp));
                             }}
                         >
                             {hoveredQuestion === question && (
-                                <div className="absolute bottom-5 left-1/2 z-10 w-48 -translate-x-1/2 rounded border border-gray-300 bg-white p-2 shadow-lg">
-                                    <p className="text-sm font-medium">{question.text}</p>
-                                    <p className="text-xs text-gray-500">
-                                        Timestamp: {formatTime(question.timestamp)}
+                                <div className="absolute bottom-5 left-1/2 z-10 w-48 -translate-x-1/2 rounded border border-gray-300 bg-white p-4 shadow-xl">
+                                    <p className="text-sm text-gray-500">
+                                        Timestamp:{" "}
+                                        {formatTime(timestampToSeconds(question.timestamp))}
                                     </p>
+                                    <span
+                                        className="text-sm font-medium"
+                                        dangerouslySetInnerHTML={{
+                                            __html: question.questionName || "",
+                                        }}
+                                    />
                                 </div>
                             )}
                         </div>
                     ))}
                 </div>
                 <div className="mt-1 flex justify-between text-xs text-gray-500">
-                    <span>0:00</span>
+                    <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(videoDuration)}</span>
                 </div>
             </div>
@@ -548,23 +534,129 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
             {/* Questions List */}
             <div className="mt-4 w-full">
-                <h3 className="mb-2 text-base font-medium">Questions ({questions.length})</h3>
                 {questions.length === 0 ? (
                     <p className="text-sm italic text-gray-500">No questions added yet.</p>
                 ) : (
                     <ul className="max-h-60 space-y-1 overflow-y-auto">
-                        {questions.map((question) => (
+                        {questions.map((question, idx) => (
                             <li
                                 key={question.id}
-                                className="cursor-pointer rounded-md border border-gray-200 bg-white p-2 text-sm hover:bg-gray-50"
-                                onClick={() => handleQuestionClick(question.timestamp)}
+                                className="cursor-pointer rounded-md bg-white p-2 text-sm hover:bg-gray-50"
+                                onClick={() =>
+                                    handleQuestionClick(timestampToSeconds(question.timestamp))
+                                }
                             >
-                                <div className="flex items-center justify-between">
-                                    <span className="font-medium">{question.text}</span>
-                                    <span className="text-xs text-blue-600">
-                                        {formatTime(question.timestamp)}
-                                    </span>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-semibold">
+                                        {idx + 1}. Time stamp -{" "}
+                                        {formatTime(timestampToSeconds(question.timestamp))}
+                                    </p>
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="small"
+                                        layoutVariant="default"
+                                        className="h-8 min-w-4"
+                                    >
+                                        <PencilSimpleLine size={32} />
+                                    </MyButton>
                                 </div>
+                                <div className="flex items-center justify-between">
+                                    <span
+                                        className="font-thin"
+                                        dangerouslySetInnerHTML={{
+                                            __html: question.questionName || "",
+                                        }}
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <div className="rounded-lg border p-[6px] px-[10px]">
+                                            <span>{question.questionType}</span>
+                                        </div>
+                                        <MyButton
+                                            buttonType="secondary"
+                                            scale="small"
+                                            layoutVariant="default"
+                                            className="h-8 min-w-4"
+                                        >
+                                            <PencilSimpleLine size={32} />
+                                        </MyButton>
+                                    </div>
+                                </div>
+                                {(question.questionType === "LONG_ANSWER" ||
+                                    question.questionType === "ONE_WORD") && (
+                                    <span className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin">
+                                        <span
+                                            dangerouslySetInnerHTML={{
+                                                __html: handleGetOptions(question) || "",
+                                            }}
+                                        />
+                                    </span>
+                                )}
+                                {(question.questionType === "NUMERIC" ||
+                                    question.questionType === "CNUMERIC") && (
+                                    <div className="mt-4 flex w-full flex-col gap-4">
+                                        {chunkArray(handleGetOptions(question) || [], 2).map(
+                                            (optionPair, rowIdx) => (
+                                                <div
+                                                    key={rowIdx}
+                                                    className="mb-2 flex w-full items-center gap-4"
+                                                >
+                                                    {optionPair.map((option, idx) => {
+                                                        const globalIndex = rowIdx * 2 + idx;
+                                                        return (
+                                                            <span
+                                                                key={globalIndex}
+                                                                className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin"
+                                                            >
+                                                                <span
+                                                                    dangerouslySetInnerHTML={{
+                                                                        __html: option || "",
+                                                                    }}
+                                                                />
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                )}
+                                {!["LONG_ANSWER", "ONE_WORD", "NUMERIC", "CNUMERIC"].includes(
+                                    question.questionType,
+                                ) && (
+                                    <div className="mt-4 flex w-full flex-col gap-4">
+                                        {chunkArray(handleGetOptions(question) || [], 2).map(
+                                            (optionPair, rowIdx) => (
+                                                <div
+                                                    key={rowIdx}
+                                                    className="mb-2 flex w-full items-center gap-4"
+                                                >
+                                                    {optionPair.map((option, idx) => {
+                                                        const globalIndex = rowIdx * 2 + idx;
+                                                        return (
+                                                            <span
+                                                                key={globalIndex}
+                                                                className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin"
+                                                            >
+                                                                <span className="mr-1">
+                                                                    (
+                                                                    {String.fromCharCode(
+                                                                        97 + globalIndex,
+                                                                    )}
+                                                                    .)
+                                                                </span>
+                                                                <span
+                                                                    dangerouslySetInnerHTML={{
+                                                                        __html: option.name || "",
+                                                                    }}
+                                                                />
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                )}
                             </li>
                         ))}
                     </ul>
