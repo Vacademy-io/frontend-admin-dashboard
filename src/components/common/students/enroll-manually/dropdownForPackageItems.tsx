@@ -58,7 +58,11 @@ export const MyDropdown = ({
     showAddLevelButton?: boolean;
     onAddCourse?: ({ requestData }: { requestData: AddCourseData }) => void;
     onAddSession?: (data: AddSessionDataType) => void;
-    onAddLevel?: (data: { requestData: AddLevelData; packageId?: string; sessionId?: string }) => void;
+    onAddLevel?: (data: {
+        requestData: AddLevelData;
+        packageId?: string;
+        sessionId?: string;
+    }) => void;
     packageId?: string;
     disableAddLevelButton?: boolean;
 }) => {
@@ -276,7 +280,7 @@ export const MyDropdown = ({
                         <div className={`truncate ${!currentValue ? "text-neutral-400" : ""}`}>
                             {getDisplayText()}
                         </div>
-                        <div className="ml-2 flex-shrink-0">
+                        <div className="ml-2 shrink-0">
                             <CaretDown className={`${isOpen ? "hidden" : "visible"} size-[18px]`} />
                             <CaretUp className={`${isOpen ? "visible" : "hidden"} size-[18px]`} />
                         </div>
@@ -300,7 +304,7 @@ export const MyDropdown = ({
                             </DropdownMenuItem>
                         )}
                         {dropdownList.map((item) => renderMenuItem(item))}
-                        {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
+                        {/* {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
                             <div className="border-t border-neutral-200 pt-2">
                                 {showAddCourseButton && (
                                     <AddCourseButton
@@ -321,7 +325,9 @@ export const MyDropdown = ({
                                 {showAddSessionButton && (
                                     <AddSessionDialog
                                         isAddSessionDiaogOpen={isAddSessionDialogOpen}
-                                        handleOpenAddSessionDialog={() => setIsAddSessionDialogOpen(!isAddSessionDialogOpen)}
+                                        handleOpenAddSessionDialog={() =>
+                                            setIsAddSessionDialogOpen(!isAddSessionDialogOpen)
+                                        }
                                         handleSubmit={handleAddSessionSubmit}
                                         trigger={
                                             <MyButton
@@ -358,26 +364,45 @@ export const MyDropdown = ({
                                         onSubmit={handleAddLevelSubmit}
                                         trigger={
                                             <div>
-                                            <MyButton
-                                                type="button"
-                                                buttonType="text"
-                                                layoutVariant="default"
-                                                scale="small"
-                                                className="w-full text-primary-500"
-                                                disable={disableAddLevelButton}
-                                            >
-                                                <div className="flex items-center">
-                                                <Plus className={`${disableAddLevelButton ? "text-primary-300" : "text-primary-500"}`} /> <p className={disableAddLevelButton ? "text-primary-300" : "text-primary-500"}>Create Level</p>
-                                                </div>
-                                                {disableAddLevelButton && <p className="text-caption text-neutral-500">(Select a course first)</p>}
-                                            </MyButton>
+                                                <MyButton
+                                                    type="button"
+                                                    buttonType="text"
+                                                    layoutVariant="default"
+                                                    scale="small"
+                                                    className="w-full text-primary-500"
+                                                    disable={disableAddLevelButton}
+                                                >
+                                                    <div className="flex items-center">
+                                                        <Plus
+                                                            className={`${
+                                                                disableAddLevelButton
+                                                                    ? "text-primary-300"
+                                                                    : "text-primary-500"
+                                                            }`}
+                                                        />{" "}
+                                                        <p
+                                                            className={
+                                                                disableAddLevelButton
+                                                                    ? "text-primary-300"
+                                                                    : "text-primary-500"
+                                                            }
+                                                        >
+                                                            Create Level
+                                                        </p>
+                                                    </div>
+                                                    {disableAddLevelButton && (
+                                                        <p className="text-caption text-neutral-500">
+                                                            (Select a course first)
+                                                        </p>
+                                                    )}
+                                                </MyButton>
                                             </div>
                                         }
                                         packageId={packageId}
                                     />
                                 )}
                             </div>
-                        )}
+                        )} */}
                     </DropdownMenuContent>
                 </DropdownMenuPortal>
             </DropdownMenu>

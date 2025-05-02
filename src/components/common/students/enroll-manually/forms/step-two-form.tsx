@@ -17,15 +17,11 @@ import { DropdownItemType } from "../dropdownTypesForPackageItems";
 import { StudentTable } from "@/types/student-table-types";
 import { BatchForSessionType } from "@/schemas/student/student-list/institute-schema";
 import { MyButton } from "@/components/design-system/button";
-import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
-import { Plus } from "lucide-react";
 import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
 import { useAddCourse } from "@/services/study-library/course-operations/add-course";
 import { toast } from "sonner";
-import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
 import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
 import { useAddSession } from "@/services/study-library/session-management/addSession";
-import { AddLevelButton } from "@/routes/study-library/courses/levels/-components/add-level-button";
 import { AddLevelData } from "@/routes/study-library/courses/levels/-components/add-level-form";
 import { useAddLevel } from "@/routes/study-library/courses/levels/-services/add-level";
 
@@ -54,8 +50,6 @@ export const StepTwoForm = ({
     const { instituteDetails } = useInstituteDetailsStore();
     const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
     const addSessionMutation = useAddSession();
-    const [disableAddButton, setDisableAddButton] = useState(true);
-
 
     // Update lists when instituteDetails changes
     useEffect(() => {
@@ -365,8 +359,6 @@ export const StepTwoForm = ({
         );
     };
 
-
-
     const handleAddLevel = ({
         requestData,
         packageId,
@@ -464,38 +456,38 @@ export const StepTwoForm = ({
                                 )}
                             />
 
-                                <FormField
-                                    control={form.control}
-                                    name="session"
-                                    render={({ field: { value } }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <div className="flex flex-col gap-1">
-                                                    <div>
-                                                        Session{" "}
-                                                        <span className="text-subtitle text-danger-600">
-                                                            *
-                                                        </span>
-                                                    </div>
-                                                    <MyDropdown
-                                                        currentValue={value.name}
-                                                        dropdownList={sessionList}
-                                                        handleChange={handleSessionChange}
-                                                        placeholder="Select Session"
-                                                        error={
-                                                            form.formState.errors.session?.id
-                                                                ?.message ||
-                                                            form.formState.errors.session?.name?.message
-                                                        }
-                                                        required={true}
-                                                        showAddSessionButton={true}
-                                                        onAddSession={handleAddSession}
-                                                    />
+                            <FormField
+                                control={form.control}
+                                name="session"
+                                render={({ field: { value } }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    Session{" "}
+                                                    <span className="text-subtitle text-danger-600">
+                                                        *
+                                                    </span>
                                                 </div>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
+                                                <MyDropdown
+                                                    currentValue={value.name}
+                                                    dropdownList={sessionList}
+                                                    handleChange={handleSessionChange}
+                                                    placeholder="Select Session"
+                                                    error={
+                                                        form.formState.errors.session?.id
+                                                            ?.message ||
+                                                        form.formState.errors.session?.name?.message
+                                                    }
+                                                    required={true}
+                                                    showAddSessionButton={true}
+                                                    onAddSession={handleAddSession}
+                                                />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
 
                             <FormField
                                 control={form.control}
@@ -523,7 +515,9 @@ export const StepTwoForm = ({
                                                     showAddLevelButton={true}
                                                     onAddLevel={handleAddLevel}
                                                     packageId={form.getValues("course").id}
-                                                    disableAddLevelButton = {form.getValues("course").id === ""}
+                                                    disableAddLevelButton={
+                                                        form.getValues("course").id === ""
+                                                    }
                                                 />
                                             </div>
                                         </FormControl>
