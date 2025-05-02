@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { CaretDown, CaretUp, CaretRight } from "@phosphor-icons/react";
 import {
     DropdownMenu,
-    DropdownMenuContent,
+    // DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
     DropdownMenuPortal,
@@ -11,11 +11,11 @@ import {
     DropdownMenuSubContent,
 } from "@radix-ui/react-dropdown-menu";
 import { myDropDownProps, DropdownItem, DropdownItemType } from "./dropdownTypesForPackageItems";
-import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
-import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
-import { AddLevelButton } from "@/routes/study-library/courses/levels/-components/add-level-button";
-import { MyButton } from "@/components/design-system/button";
-import { Plus } from "lucide-react";
+// import { AddCourseButton } from "@/components/common/study-library/add-course/add-course-button";
+// import { AddSessionDialog } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-dialog";
+// import { AddLevelButton } from "@/routes/study-library/courses/levels/-components/add-level-button";
+// import { MyButton } from "@/components/design-system/button";
+// import { Plus } from "lucide-react";
 import { AddCourseData } from "@/components/common/study-library/add-course/add-course-form";
 import { AddSessionDataType } from "@/routes/study-library/session/-components/session-operations/add-session/add-session-form";
 import { AddLevelData } from "@/routes/study-library/courses/levels/-components/add-level-form";
@@ -67,15 +67,15 @@ export const MyDropdown = ({
     disableAddLevelButton?: boolean;
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [isAddSessionDialogOpen, setIsAddSessionDialogOpen] = useState(false);
-    const [disableAddButton, setDisableAddButton] = useState(true);
-    const addCourseMutation = useAddCourse();
-    const addSessionMutation = useAddSession();
-    const addLevelMutation = useAddLevel();
-    const formSubmitRef = useRef(() => {});
-    const submitFn = (fn: () => void) => {
-        formSubmitRef.current = fn;
-    };
+    // const [isAddSessionDialogOpen, setIsAddSessionDialogOpen] = useState(false);
+    // const [disableAddButton, setDisableAddButton] = useState(true);
+    // const addCourseMutation = useAddCourse();
+    // const addSessionMutation = useAddSession();
+    // const addLevelMutation = useAddLevel();
+    // const formSubmitRef = useRef(() => {});
+    // const submitFn = (fn: () => void) => {
+    //     formSubmitRef.current = fn;
+    // };
     useEffect(() => {
         // Auto-select the only item if dropdownList has exactly one item and no current value is set
         if (dropdownList.length === 1) {
@@ -89,19 +89,19 @@ export const MyDropdown = ({
         }
     }, [dropdownList]);
 
-    const handleValueChange = (value: string | DropdownItem | DropdownItemType) => {
-        if (handleChange) {
-            handleChange(value);
-        }
-        if (onSelect) {
-            onSelect(value);
-        }
-        setIsOpen(false);
-    };
+    // const handleValueChange = (value: string | DropdownItem | DropdownItemType) => {
+    //     if (handleChange) {
+    //         handleChange(value);
+    //     }
+    //     if (onSelect) {
+    //         onSelect(value);
+    //     }
+    //     setIsOpen(false);
+    // };
 
-    const handleClearAll = () => {
-        handleValueChange(""); // Reset the value to an empty string or null
-    };
+    // const handleClearAll = () => {
+    //     handleValueChange(""); // Reset the value to an empty string or null
+    // };
 
     // Helper function to get display text from the currentValue
     const getDisplayText = () => {
@@ -116,148 +116,148 @@ export const MyDropdown = ({
         }
     };
 
-    const handleAddCourseSubmit = ({ requestData }: { requestData: AddCourseData }) => {
-        if (onAddCourse) {
-            onAddCourse({ requestData });
-        } else {
-            addCourseMutation.mutate(
-                { requestData: requestData },
-                {
-                    onSuccess: () => {
-                        toast.success("Course created successfully");
-                    },
-                    onError: () => {
-                        toast.error("Failed to create course");
-                    },
-                },
-            );
-        }
-    };
+    // const handleAddCourseSubmit = ({ requestData }: { requestData: AddCourseData }) => {
+    //     if (onAddCourse) {
+    //         onAddCourse({ requestData });
+    //     } else {
+    //         addCourseMutation.mutate(
+    //             { requestData: requestData },
+    //             {
+    //                 onSuccess: () => {
+    //                     toast.success("Course created successfully");
+    //                 },
+    //                 onError: () => {
+    //                     toast.error("Failed to create course");
+    //                 },
+    //             },
+    //         );
+    //     }
+    // };
 
-    const handleAddSessionSubmit = (sessionData: AddSessionDataType) => {
-        if (onAddSession) {
-            onAddSession(sessionData);
-            setIsAddSessionDialogOpen(false);
-        } else {
-            const processedData = structuredClone(sessionData);
-            const transformedData = {
-                ...processedData,
-                levels: processedData.levels.map((level) => ({
-                    id: level.level_dto.id,
-                    new_level: level.level_dto.new_level === true,
-                    level_name: level.level_dto.level_name,
-                    duration_in_days: level.level_dto.duration_in_days,
-                    thumbnail_file_id: level.level_dto.thumbnail_file_id,
-                    package_id: level.level_dto.package_id,
-                })),
-            };
+    // const handleAddSessionSubmit = (sessionData: AddSessionDataType) => {
+    //     if (onAddSession) {
+    //         onAddSession(sessionData);
+    //         setIsAddSessionDialogOpen(false);
+    //     } else {
+    //         const processedData = structuredClone(sessionData);
+    //         const transformedData = {
+    //             ...processedData,
+    //             levels: processedData.levels.map((level) => ({
+    //                 id: level.level_dto.id,
+    //                 new_level: level.level_dto.new_level === true,
+    //                 level_name: level.level_dto.level_name,
+    //                 duration_in_days: level.level_dto.duration_in_days,
+    //                 thumbnail_file_id: level.level_dto.thumbnail_file_id,
+    //                 package_id: level.level_dto.package_id,
+    //             })),
+    //         };
 
-            addSessionMutation.mutate(
-                { requestData: transformedData as unknown as AddSessionDataType },
-                {
-                    onSuccess: () => {
-                        toast.success("Session added successfully");
-                        setIsAddSessionDialogOpen(false);
-                    },
-                    onError: (error) => {
-                        toast.error(error.message || "Failed to add session");
-                    },
-                },
-            );
-        }
-    };
+    //         addSessionMutation.mutate(
+    //             { requestData: transformedData as unknown as AddSessionDataType },
+    //             {
+    //                 onSuccess: () => {
+    //                     toast.success("Session added successfully");
+    //                     setIsAddSessionDialogOpen(false);
+    //                 },
+    //                 onError: (error) => {
+    //                     toast.error(error.message || "Failed to add session");
+    //                 },
+    //             },
+    //         );
+    //     }
+    // };
 
-    const handleAddLevelSubmit = ({
-        requestData,
-        packageId: pId,
-        sessionId: sId,
-    }: {
-        requestData: AddLevelData;
-        packageId?: string;
-        sessionId?: string;
-    }) => {
-        if (onAddLevel) {
-            onAddLevel({ requestData, packageId: pId, sessionId: sId });
-        } else {
-            addLevelMutation.mutate(
-                { requestData: requestData, packageId: pId || "", sessionId: sId || "" },
-                {
-                    onSuccess: () => {
-                        toast.success("Level added successfully");
-                    },
-                    onError: (error) => {
-                        toast.error(error.message || "Failed to add level");
-                    },
-                },
-            );
-        }
-    };
+    // const handleAddLevelSubmit = ({
+    //     requestData,
+    //     packageId: pId,
+    //     sessionId: sId,
+    // }: {
+    //     requestData: AddLevelData;
+    //     packageId?: string;
+    //     sessionId?: string;
+    // }) => {
+    //     if (onAddLevel) {
+    //         onAddLevel({ requestData, packageId: pId, sessionId: sId });
+    //     } else {
+    //         addLevelMutation.mutate(
+    //             { requestData: requestData, packageId: pId || "", sessionId: sId || "" },
+    //             {
+    //                 onSuccess: () => {
+    //                     toast.success("Level added successfully");
+    //                 },
+    //                 onError: (error) => {
+    //                     toast.error(error.message || "Failed to add level");
+    //                 },
+    //             },
+    //         );
+    //     }
+    // };
 
-    const renderMenuItem = (item: string | DropdownItem | DropdownItemType) => {
-        if (isDropdownItem(item)) {
-            if (item.subItems) {
-                return (
-                    <DropdownMenuSub key={item.value}>
-                        <DropdownMenuSubTrigger className="flex w-full cursor-pointer items-center justify-between rounded px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 focus:outline-none">
-                            <div className="flex items-center gap-2">
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </div>
-                            <CaretRight className="size-4" />
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                            <DropdownMenuSubContent className="z-[9999] min-w-32 rounded-lg bg-white py-2 shadow-lg">
-                                {item.subItems.map((subItem) => renderMenuItem(subItem))}
-                            </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                );
-            }
-            return (
-                <DropdownMenuItem
-                    key={item.value}
-                    className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                        currentValue === item.value ? "bg-primary-50" : "bg-none"
-                    } hover:outline-none`}
-                    onClick={() => handleValueChange(item)}
-                    disabled={disable}
-                >
-                    <div className="flex items-center gap-2">
-                        {item.icon}
-                        {item.label}
-                    </div>
-                </DropdownMenuItem>
-            );
-        }
+    // const renderMenuItem = (item: string | DropdownItem | DropdownItemType) => {
+    //     if (isDropdownItem(item)) {
+    //         if (item.subItems) {
+    //             return (
+    //                 <DropdownMenuSub key={item.value}>
+    //                     <DropdownMenuSubTrigger className="flex w-full cursor-pointer items-center justify-between rounded px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 focus:outline-none">
+    //                         <div className="flex items-center gap-2">
+    //                             {item.icon}
+    //                             <span>{item.label}</span>
+    //                         </div>
+    //                         <CaretRight className="size-4" />
+    //                     </DropdownMenuSubTrigger>
+    //                     <DropdownMenuPortal>
+    //                         <DropdownMenuSubContent className="z-[9999] min-w-32 rounded-lg bg-white py-2 shadow-lg">
+    //                             {item.subItems.map((subItem) => renderMenuItem(subItem))}
+    //                         </DropdownMenuSubContent>
+    //                     </DropdownMenuPortal>
+    //                 </DropdownMenuSub>
+    //             );
+    //         }
+    //         return (
+    //             <DropdownMenuItem
+    //                 key={item.value}
+    //                 className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
+    //                     currentValue === item.value ? "bg-primary-50" : "bg-none"
+    //                 } hover:outline-none`}
+    //                 onClick={() => handleValueChange(item)}
+    //                 disabled={disable}
+    //             >
+    //                 <div className="flex items-center gap-2">
+    //                     {item.icon}
+    //                     {item.label}
+    //                 </div>
+    //             </DropdownMenuItem>
+    //         );
+    //     }
 
-        if (isDropdownItemType(item)) {
-            return (
-                <DropdownMenuItem
-                    key={item.id}
-                    className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                        currentValue === item.id ? "bg-primary-50" : "bg-none"
-                    } hover:outline-none`}
-                    onClick={() => handleValueChange(item)}
-                    disabled={disable}
-                >
-                    {item.name}
-                </DropdownMenuItem>
-            );
-        }
+    //     if (isDropdownItemType(item)) {
+    //         return (
+    //             <DropdownMenuItem
+    //                 key={item.id}
+    //                 className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
+    //                     currentValue === item.id ? "bg-primary-50" : "bg-none"
+    //                 } hover:outline-none`}
+    //                 onClick={() => handleValueChange(item)}
+    //                 disabled={disable}
+    //             >
+    //                 {item.name}
+    //             </DropdownMenuItem>
+    //         );
+    //     }
 
-        return (
-            <DropdownMenuItem
-                key={item}
-                className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                    currentValue === item ? "bg-primary-50" : "bg-none"
-                } hover:outline-none`}
-                onClick={() => handleValueChange(item)}
-                disabled={disable}
-            >
-                {item}
-            </DropdownMenuItem>
-        );
-    };
+    //     return (
+    //         <DropdownMenuItem
+    //             key={item}
+    //             className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
+    //                 currentValue === item ? "bg-primary-50" : "bg-none"
+    //             } hover:outline-none`}
+    //             onClick={() => handleValueChange(item)}
+    //             disabled={disable}
+    //         >
+    //             {item}
+    //         </DropdownMenuItem>
+    //     );
+    // };
 
     return (
         <div className="flex flex-col gap-1">
@@ -286,14 +286,14 @@ export const MyDropdown = ({
                         </div>
                     </DropdownMenuTrigger>
                 )}
-                <DropdownMenuPortal container={document.getElementById("portal-root")}>
+                {/* <DropdownMenuPortal container={document.getElementById("portal-root")}>
                     <DropdownMenuContent
                         className="z-[9999] mt-2 min-w-60 rounded-lg bg-white py-2 shadow focus:outline-none"
                         sideOffset={5}
                         align="start"
-                    >
-                        {/* Add "Clear All Fields" option */}
-                        {dropdownList.length == 1 && required == true ? (
+                    > */}
+                {/* Add "Clear All Fields" option */}
+                {/* {dropdownList.length == 1 && required == true ? (
                             <></>
                         ) : (
                             <DropdownMenuItem
@@ -302,9 +302,9 @@ export const MyDropdown = ({
                             >
                                 Clear All Fields
                             </DropdownMenuItem>
-                        )}
-                        {dropdownList.map((item) => renderMenuItem(item))}
-                        {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
+                        )} */}
+                {/* {dropdownList.map((item) => renderMenuItem(item))} */}
+                {/* {(showAddCourseButton || showAddSessionButton || showAddLevelButton) && (
                             <div className="border-t border-neutral-200 pt-2">
                                 {showAddCourseButton && (
                                     <AddCourseButton
@@ -402,9 +402,9 @@ export const MyDropdown = ({
                                     />
                                 )}
                             </div>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenuPortal>
+                        )} */}
+                {/* </DropdownMenuContent>
+                </DropdownMenuPortal> */}
             </DropdownMenu>
             {error && <p className="text-caption text-danger-500">This field is required</p>}
         </div>
