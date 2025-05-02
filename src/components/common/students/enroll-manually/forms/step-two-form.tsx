@@ -34,7 +34,7 @@ export const StepTwoForm = ({
 }) => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
     const genderList = useGetGenders();
-    const addLevelMutation = useAddLevel();
+    // const addLevelMutation = useAddLevel();
 
     const {
         getCourseFromPackage,
@@ -360,28 +360,28 @@ export const StepTwoForm = ({
         );
     };
 
-    const handleAddLevel = ({
-        requestData,
-        packageId,
-        sessionId,
-    }: {
-        requestData: AddLevelData;
-        packageId?: string;
-        sessionId?: string;
-        levelId?: string;
-    }) => {
-        addLevelMutation.mutate(
-            { requestData: requestData, packageId: packageId || "", sessionId: sessionId || "" },
-            {
-                onSuccess: () => {
-                    toast.success("Level added successfully");
-                },
-                onError: (error) => {
-                    toast.error(error.message || "Failed to add course");
-                },
-            },
-        );
-    };
+    // const handleAddLevel = ({
+    //     requestData,
+    //     packageId,
+    //     sessionId,
+    // }: {
+    //     requestData: AddLevelData;
+    //     packageId?: string;
+    //     sessionId?: string;
+    //     levelId?: string;
+    // }) => {
+    //     addLevelMutation.mutate(
+    //         { requestData: requestData, packageId: packageId || "", sessionId: sessionId || "" },
+    //         {
+    //             onSuccess: () => {
+    //                 toast.success("Level added successfully");
+    //             },
+    //             onError: (error) => {
+    //                 toast.error(error.message || "Failed to add course");
+    //             },
+    //         },
+    //     );
+    // };
 
     useEffect(() => {
         if (submitFn) {
@@ -503,7 +503,7 @@ export const StepTwoForm = ({
                                                         *
                                                     </span>
                                                 </div>
-                                                <MyDropdown
+                                                {/* <MyDropdown
                                                     currentValue={value.name}
                                                     dropdownList={levelList}
                                                     handleChange={handleLevelChange}
@@ -519,7 +519,7 @@ export const StepTwoForm = ({
                                                     disableAddLevelButton={
                                                         form.getValues("course")?.id === ""
                                                     }
-                                                />
+                                                /> */}
                                             </div>
                                         </FormControl>
                                     </FormItem>
