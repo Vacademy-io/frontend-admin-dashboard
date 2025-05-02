@@ -317,48 +317,48 @@ export const StepTwoForm = ({
         setValue("enrollmentNumber", enrollNum);
     };
 
-    const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
-        addCourseMutation.mutate(
-            { requestData: requestData },
-            {
-                onSuccess: () => {
-                    toast.success("Course created successfully");
-                },
-                onError: () => {
-                    toast.error("Failed to create batch");
-                },
-            },
-        );
-    };
+    // const handleAddCourse = ({ requestData }: { requestData: AddCourseData }) => {
+    //     addCourseMutation.mutate(
+    //         { requestData: requestData },
+    //         {
+    //             onSuccess: () => {
+    //                 toast.success("Course created successfully");
+    //             },
+    //             onError: () => {
+    //                 toast.error("Failed to create batch");
+    //             },
+    //         },
+    //     );
+    // };
 
-    const handleAddSession = (sessionData: AddSessionDataType) => {
-        const processedData = structuredClone(sessionData);
+    // const handleAddSession = (sessionData: AddSessionDataType) => {
+    //     const processedData = structuredClone(sessionData);
 
-        const transformedData = {
-            ...processedData,
-            levels: processedData.levels.map((level) => ({
-                id: level.level_dto.id,
-                new_level: level.level_dto.new_level === true,
-                level_name: level.level_dto.level_name,
-                duration_in_days: level.level_dto.duration_in_days,
-                thumbnail_file_id: level.level_dto.thumbnail_file_id,
-                package_id: level.level_dto.package_id,
-            })),
-        };
+    //     const transformedData = {
+    //         ...processedData,
+    //         levels: processedData.levels.map((level) => ({
+    //             id: level.level_dto.id,
+    //             new_level: level.level_dto.new_level === true,
+    //             level_name: level.level_dto.level_name,
+    //             duration_in_days: level.level_dto.duration_in_days,
+    //             thumbnail_file_id: level.level_dto.thumbnail_file_id,
+    //             package_id: level.level_dto.package_id,
+    //         })),
+    //     };
 
-        // Use type assertion since we know this is the correct format for the API
-        addSessionMutation.mutate(
-            { requestData: transformedData as unknown as AddSessionDataType },
-            {
-                onSuccess: () => {
-                    toast.success("Session added successfully");
-                },
-                onError: (error) => {
-                    toast.error(error.message || "Failed to add session");
-                },
-            },
-        );
-    };
+    //     // Use type assertion since we know this is the correct format for the API
+    //     addSessionMutation.mutate(
+    //         { requestData: transformedData as unknown as AddSessionDataType },
+    //         {
+    //             onSuccess: () => {
+    //                 toast.success("Session added successfully");
+    //             },
+    //             onError: (error) => {
+    //                 toast.error(error.message || "Failed to add session");
+    //             },
+    //         },
+    //     );
+    // };
 
     // const handleAddLevel = ({
     //     requestData,
@@ -449,7 +449,7 @@ export const StepTwoForm = ({
                                                     }
                                                     required={true}
                                                     showAddCourseButton={true}
-                                                    onAddCourse={handleAddCourse}
+                                                    // onAddCourse={handleAddCourse}
                                                 />
                                             </div>
                                         </FormControl>
@@ -482,7 +482,7 @@ export const StepTwoForm = ({
                                                     }
                                                     required={true}
                                                     showAddSessionButton={true}
-                                                    onAddSession={handleAddSession}
+                                                    // onAddSession={handleAddSession}
                                                 />
                                             </div>
                                         </FormControl>
