@@ -51,6 +51,7 @@ export const StepTwoForm = ({
     const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
     const addSessionMutation = useAddSession();
 
+    console.log("coourse list", courseList);
     // Update lists when instituteDetails changes
     useEffect(() => {
         setCourseList(getCourseFromPackage());
@@ -437,7 +438,7 @@ export const StepTwoForm = ({
                                                         *
                                                     </span>
                                                 </div>
-                                                {/* <MyDropdown
+                                                <MyDropdown
                                                     currentValue={value.name}
                                                     dropdownList={courseList}
                                                     handleChange={handleCourseChange}
@@ -449,7 +450,7 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddCourseButton={true}
                                                     onAddCourse={handleAddCourse}
-                                                /> */}
+                                                />
                                             </div>
                                         </FormControl>
                                     </FormItem>
@@ -469,7 +470,7 @@ export const StepTwoForm = ({
                                                         *
                                                     </span>
                                                 </div>
-                                                {/* <MyDropdown
+                                                <MyDropdown
                                                     currentValue={value.name}
                                                     dropdownList={sessionList}
                                                     handleChange={handleSessionChange}
@@ -482,7 +483,7 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddSessionButton={true}
                                                     onAddSession={handleAddSession}
-                                                /> */}
+                                                />
                                             </div>
                                         </FormControl>
                                     </FormItem>
@@ -514,9 +515,9 @@ export const StepTwoForm = ({
                                                     required={true}
                                                     showAddLevelButton={true}
                                                     onAddLevel={handleAddLevel}
-                                                    packageId={form.getValues("course").id ?? ""}
+                                                    packageId={form.getValues("course")?.id ?? ""}
                                                     disableAddLevelButton={
-                                                        form.getValues("course").id === ""
+                                                        form.getValues("course")?.id === ""
                                                     }
                                                 />
                                             </div>
