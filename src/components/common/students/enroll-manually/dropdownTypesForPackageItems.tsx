@@ -16,7 +16,7 @@ export interface DropdownItemType {
 export type DropdownValueType = string | DropdownItem | DropdownItemType;
 
 export interface myDropDownProps {
-    currentValue?: DropdownValueType;
+    currentValue?: DropdownValueType | undefined;
     handleChange?: (value: DropdownValueType) => void;
     dropdownList: DropdownValueType[];
     children?: React.ReactNode;

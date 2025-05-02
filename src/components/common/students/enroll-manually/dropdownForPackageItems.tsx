@@ -111,9 +111,10 @@ export const MyDropdown = ({
             return currentValue.label;
         } else if (isDropdownItemType(currentValue)) {
             return currentValue.name;
-        } else {
-            return currentValue; // It's a string
+        } else if (typeof currentValue === 'string') {
+            return currentValue;
         }
+        return placeholder;
     };
 
     const handleAddCourseSubmit = ({ requestData }: { requestData: AddCourseData }) => {
@@ -194,6 +195,8 @@ export const MyDropdown = ({
     };
 
     const renderMenuItem = (item: string | DropdownItem | DropdownItemType) => {
+        if (!item) return null;
+
         if (isDropdownItem(item)) {
             if (item.subItems) {
                 return (
@@ -231,11 +234,12 @@ export const MyDropdown = ({
         }
 
         if (isDropdownItemType(item)) {
+            const isSelected = currentValue && isDropdownItemType(currentValue) && currentValue.id === item.id;
             return (
                 <DropdownMenuItem
                     key={item.id}
                     className={`cursor-pointer truncate px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 ${
-                        currentValue === item.id ? "bg-primary-50" : "bg-none"
+                        isSelected ? "bg-primary-50" : "bg-none"
                     } hover:outline-none`}
                     onClick={() => handleValueChange(item)}
                     disabled={disable}
