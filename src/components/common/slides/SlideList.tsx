@@ -48,6 +48,13 @@ interface PreviewProps {
   slide: Slide
 }
 
+
+function stripHtml(html: string) {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = html;
+  return tempDiv.textContent || tempDiv.innerText || "";
+}
+
 const SlideTypePreview = React.memo(({ slide }: PreviewProps) => {
   const [svg, setSvg] = useState<string | null>(null)
 
@@ -56,7 +63,7 @@ const SlideTypePreview = React.memo(({ slide }: PreviewProps) => {
     const generateThumbnail = async () => {
       try {
         // For Excalidraw slides
-        if ([SlideTypeEnum.Title, SlideTypeEnum.Text, SlideTypeEnum.Blank, SlideTypeEnum.TextMedia, SlideTypeEnum.FullscreenMedia, SlideTypeEnum.WebLink, SlideTypeEnum.InteractiveVideo, SlideTypeEnum.Presentation].includes(slide.type)) {
+        if (![SlideTypeEnum.Feedback, SlideTypeEnum.Quiz].includes(slide.type)) {
           const svgElement = await exportToSvg({
             elements: slide.elements || [],
             appState: {
@@ -102,6 +109,11 @@ const SlideTypePreview = React.memo(({ slide }: PreviewProps) => {
       return (
         <div className="relative h-16 w-full rounded-t-md bg-indigo-50 flex flex-col items-center justify-center p-2">
           <div className="h-16 w-full rounded-t-md bg-white overflow-hidden border-b">
+          {slide.elements?.questionName && (
+            <div className="text-xs text-center font-medium text-indigo-800 truncate w-full px-1">
+              {stripHtml(slide.elements.questionName)}
+            </div>
+          )}
             <img
               src={QuzizIcon}
               alt="Slide thumbnail"
@@ -109,17 +121,18 @@ const SlideTypePreview = React.memo(({ slide }: PreviewProps) => {
               onError={() => setSvg(null)}
             />
           </div>
-          {slide.elements?.questionName && (
-            <div className="text-xs text-center font-medium text-indigo-800 truncate w-full px-1">
-              {slide.elements.questionName}
-            </div>
-          )}
+         
         </div>
       )
     case SlideTypeEnum.Feedback:
       return (
         <div className="relative h-16 w-full rounded-t-md bg-teal-50 flex flex-col items-center justify-center p-2">
           <div className="h-16 w-full rounded-t-md bg-white overflow-hidden border-b">
+          {slide.elements?.questionName && (
+            <div className="text-xs text-center font-medium text-teal-800 truncate w-full px-1">
+               {stripHtml(slide.elements.questionName)}
+            </div>
+          )}
             <img
               src={feedbackIcon}
               alt="Slide thumbnail"
@@ -127,22 +140,10 @@ const SlideTypePreview = React.memo(({ slide }: PreviewProps) => {
               onError={() => setSvg(null)}
             />
           </div>
-          {slide.elements?.questionName && (
-            <div className="text-xs text-center font-medium text-teal-800 truncate w-full px-1">
-              {slide.elements.questionName}
-            </div>
-          )}
+          
         </div>
       )
-    case SlideTypeEnum.Title:
-    case SlideTypeEnum.Text:
-    case SlideTypeEnum.Blank:
-    case SlideTypeEnum.TextMedia:
-    case SlideTypeEnum.FullscreenMedia:
-    case SlideTypeEnum.WebLink:
-    case SlideTypeEnum.InteractiveVideo:
-    case SlideTypeEnum.Presentation:
-
+    default:
       return svg ? (
         <div className="h-16 w-full rounded-t-md bg-white overflow-hidden border-b">
           <img
@@ -159,13 +160,6 @@ const SlideTypePreview = React.memo(({ slide }: PreviewProps) => {
             {slide.type === SlideTypeEnum.Title ? "Title" :
               slide.type === SlideTypeEnum.Text ? "Text" : "Blank"}
           </div>
-        </div>
-      )
-    default:
-      return (
-        <div className="h-16 w-full rounded-t-md bg-gray-100 flex flex-col items-center justify-center">
-          <Presentation className="h-5 w-5 text-gray-400 mb-1" />
-          <div className="text-xs text-gray-500">Slide</div>
         </div>
       )
   }

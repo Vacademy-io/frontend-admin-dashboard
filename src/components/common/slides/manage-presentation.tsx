@@ -81,6 +81,7 @@ export default function ManagePresentation() {
 
 
   const handleCreatePresentation = (e: FormEvent) => {
+   
     e.preventDefault()
     router.navigate({
       to: `/study-library/present/add`,
@@ -150,7 +151,7 @@ export default function ManagePresentation() {
       // 7. API call
       const response = await authenticatedAxiosInstance.post(
         EDIT_PRESENTATION,
-        { ...presentationToDelete, status: "DELETED", added_slides: [] },
+        { ...presentationToDelete, status: "DELETED", added_slides: [] , updated_slides:[] , deleted_slides:[] },
         {
           params: { instituteId: INSTITUTE_ID },
           headers: {
@@ -338,7 +339,7 @@ export default function ManagePresentation() {
                 <p className="text-sm text-neutral-600 line-clamp-2 min-h-[40px]">{presentation.description}</p>
                 <div className="flex items-center gap-2 mt-3">
                   <Badge variant="outline" className="bg-neutral-50 text-xs font-normal">
-                    {2} slides
+                    {presentation?.added_slides_count} slides
                   </Badge>
                   {presentation?.updated_at && (
                     <Badge variant="outline" className="bg-neutral-50 text-xs font-normal">

@@ -131,3 +131,19 @@ export const createNewSlide = (type: SlideType): Slide => {
 
        
 };
+
+
+export function filterSlidesByIdType(slides: Slide[], isNew: boolean): Partial<Slide>[] {
+    return slides
+      .filter(slide => {
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(slide.id);
+        return isNew ? !isUUID : isUUID;
+      })
+      .map(slide => {
+        if (isNew) {
+          const { id, ...rest } = slide;
+          return rest;
+        }
+        return slide;
+      });
+  }

@@ -22,6 +22,8 @@ import { useGetSinglePresentation } from "./hooks/useGetSinglePresntation";
 import { isNullOrEmptyOrUndefined } from "@/lib/utils";
 import { toast } from "sonner";
 import { IoArrowBackSharp } from "react-icons/io5";
+import html2canvas from "html2canvas";
+import { filterSlidesByIdType } from "./utils/util";
 
 const SlideRenderer = ({
   type,
@@ -71,7 +73,7 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
   } = useSlideStore();
 
   const router = useRouter();
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
 
   const { isLoading, isError, data: presentation, isRefetching } = useGetSinglePresentation({ presentationId: presentationId, setSlides, setCurrentSlideId });
@@ -84,12 +86,12 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
     setEditMode(!editMode);
   };
 
-  const slideIndex = slides.findIndex((s) => s.id === currentSlideId);
+  const slideIndex = slides?.findIndex((s) => s.id === currentSlideId);
   const isFirstSlide = slideIndex === 0;
-  const isLastSlide = slideIndex === slides.length - 1;
+  const isLastSlide = slideIndex === slides?.length - 1;
 
   const goToNextSlide = () => {
-    if (!isLastSlide) changeCurrentSlide(slides[slideIndex + 1].id);
+    if (!isLastSlide) changeCurrentSlide(slides?.[slideIndex + 1]?.id);
   };
 
   const goToPreviousSlide = () => {
@@ -103,7 +105,7 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
       "data:application/json;charset=utf-8," +
       encodeURIComponent(JSON.stringify(slides, undefined, 2)),
     );
-    a.setAttribute("download", "Untitled.edslides");
+    a.setAttribute("download", "Untitled.excalidraw");
     a.style.display = "none";
     document.body.appendChild(a);
     a.click();
@@ -163,52 +165,51 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
     }
   };
 
-  const exportToPowerPoint = async () => {
-    try {
-      const pptx = new PptxGenJS();
+  // const exportToPowerPoint = async () => {
+  //   try {
+  //     const pptx = new PptxGenJS();
 
-      for (const slide of slides) {
-        const pptxSlide = pptx.addSlide();
+  //     for (const slide of slides) {
+  //       const pptxSlide = pptx.addSlide();
 
-        try {
-          const slideContainer = document.querySelector(`.excalidraw__canvas`);
+  //       try {
+  //         const slideContainer = document.querySelector(`.excalidraw__canvas`);
 
-          if (!slideContainer) {
-            console.warn(`Slide container for slide ${slide.id} not found`);
-            continue;
-          }
+  //         if (!slideContainer) {
+  //           console.warn(`Slide container for slide ${slide.id} not found`);
+  //           continue;
+  //         }
 
-          const canvas = await html2canvas(slideContainer as HTMLElement, {
-            useCORS: true,
-            scale: 2,
-            logging: false,
-            allowTaint: true,
-          });
+  //         const canvas = await html2canvas(slideContainer as HTMLElement, {
+  //           useCORS: true,
+  //           scale: 2,
+  //           logging: false,
+  //           allowTaint: true,
+  //         });
 
-          const imageData = canvas.toDataURL('image/png');
+  //         const imageData = canvas.toDataURL('image/png');
 
-          pptxSlide.addImage({
-            data: imageData,
-            x: 0.5,
-            y: 0.5,
-            w: 9,
-            h: 5.5,
-          });
-        } catch (slideError) {
-          console.error(`Error processing slide ${slide.id}:`, slideError);
-        }
-      }
+  //         pptxSlide.addImage({
+  //           data: imageData,
+  //           x: 0.5,
+  //           y: 0.5,
+  //           w: 9,
+  //           h: 5.5,
+  //         });
+  //       } catch (slideError) {
+  //         console.error(`Error processing slide ${slide.id}:`, slideError);
+  //       }
+  //     }
 
-      pptx.writeFile({
-        fileName: `Presentation_${new Date().toISOString().replace(/:/g, '-')}.pptx`
-      });
-    } catch (error) {
-      console.error('PowerPoint export failed:', error);
-    }
-  };
+  //     pptx.writeFile({
+  //       fileName: `Presentation_${new Date().toISOString().replace(/:/g, '-')}.pptx`
+  //     });
+  //   } catch (error) {
+  //     console.error('PowerPoint export failed:', error);
+  //   }
+  // };
 
   const savePresentation = async () => {
-
     try {
       setIsSaving(true);
 
@@ -233,35 +234,32 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
         return;
       }
 
-      // 4. Upload slides to S3 (mock for now)
+      // 4 & 5. Upload and transform slides
+      const addedSlides = [];
+      for (let index = 0; index < slides.length; index++) {
+        const slide = slides[index];
+        let fileId;
 
-      console.log(slides, 'slides')
-      debugger
-      let fileId;
-      try {
+        try {
+          fileId = await UploadFileInS3V2(
+            slide,
+            () => { },
+            tokenData.sub,
+            "SLIDES",
+            tokenData.sub,
+            true
+          );
+        } catch (uploadError) {
+          console.error("Upload failed:", uploadError);
+          toast.error("Failed to upload slides");
+          return;
+        }
 
-        fileId = await UploadFileInS3V2(
-          slides,
-          () => { },
-          tokenData.sub,
-          "SLIDES",
-          tokenData.sub,
-          true
-        );
-
-      } catch (uploadError) {
-        console.error("Upload failed:", uploadError);
-        toast.error("Failed to upload slides");
-        return;
-      }
-
-      // 5. Transform slides data
-      const addedSlides = slides.map((slide, index) => {
         const isQuestionSlide = [SlideType.Quiz, SlideType.Feedback].includes(slide.type);
-        debugger
+
         const baseSlide = {
-          id:"2d480349-465f-499c-8293-823ec6a910c4",
-          presentation_id: "", // Will be set by backend
+          id: slide.id ?? "",
+          presentation_id: "",
           title: slide?.elements?.questionName || `Slide ${index + 1}`,
           source_id: fileId,
           source: isQuestionSlide ? "question" : "excalidraw",
@@ -271,157 +269,87 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
           default_time: 0,
           content: fileId,
           added_question: null,
-          default_time: 0,
         };
 
         if (isQuestionSlide) {
           const question = {
-            "preview_id": "1",
-            "section_id": null,
-            "question_order_in_section": 1,
-            "text": {
-              "id": null,
-              "type": "HTML",
-              "content": "Which of the following is a front-end technology?"
+            preview_id: "1",
+            section_id: null,
+            question_order_in_section: 1,
+            text: {
+              id: null,
+              type: "HTML",
+              content: slide?.elements?.questionText || "Question text"
             },
-            "media_id": "media_001",
-            "question_response_type": "multiple_choice",
-            "question_type": "MCQS",
-            "access_level": "public",
-            "auto_evaluation_json": "{\"type\":\"MCQS\",\"data\":{\"correctOptionIds\":[\"1\"]}}",
-            "options_json": null,
-            "parsed_evaluation_object": {
-              "correct_option": 1
+            media_id: "",
+            question_response_type: "multiple_choice",
+            question_type: "MCQS",
+            access_level: "public",
+            auto_evaluation_json: JSON.stringify({
+              type: "MCQS",
+              data: { correctOptionIds: slide?.elements?.correctOptions || [] }
+            }),
+            options_json: null,
+            parsed_evaluation_object: {
+              correct_option: slide?.elements?.correctOptions?.[0] || 1
             },
-            "evaluation_type": "auto",
-            "explanation_text": {
-              "id": null,
-              "type": "HTML",
-              "content": "HTML is used to structure content on the web, making it a front-end technology."
+            evaluation_type: "auto",
+            explanation_text: {
+              id: null,
+              type: "HTML",
+              content: ""
             },
-            "parent_rich_text_id": "prt_001",
-            "parent_rich_text": {
-              "id": null,
-              "type": "HTML",
-              "content": "Let'\''s check your understanding of front-end technologies."
+            parent_rich_text_id: "prt_001",
+            parent_rich_text: {
+              id: null,
+              type: "HTML",
+              content: ""
             },
-            "default_question_time_mins": 1,
-            "options": [
-              {
-                "id": null,
-                "preview_id": "1",
-                "text": {
-                  "id": null,
-                  "type": "HTML",
-                  "content": "HTML"
-                },
-                "media_id": "media_opt_001",
-                "option_order": 1,
-                "explanation_text": {
-                  "id": "exp_opt_001",
-                  "type": "HTML",
-                  "content": "Correct! HTML is used to build web page structure."
-                }
+            default_question_time_mins: slide?.elements?.timeLimit || 1,
+            options: (slide?.elements?.singleChoiceOptions || []).map((option, optIndex) => ({
+              id: isEdit ? option.id || "" : "",
+              preview_id: `${optIndex + 1}`,
+              question_id: isEdit ? slide.questionId || "" : "",
+              text: {
+                id: null,
+                type: "HTML",
+                content: option.text || `Option ${optIndex + 1}`
               },
-              {
-                "id": null,
-                "preview_id": 2,
-                "text": {
-                  "id": null,
-                  "type": "HTML",
-                  "content": "Node.js"
-                },
-                "media_id": "media_opt_002",
-                "option_order": 2,
-                "explanation_text": {
-                  "id": null,
-                  "type": "HTML",
-                  "content": "Incorrect. Node.js is used for server-side (back-end) development."
-                }
+              media_id:  "",
+              option_order: optIndex,
+              explanation_text: {
+                id: null,
+                type: "HTML",
+                content:  ""
               }
-            ],
-            "errors": [],
-            "warnings": []
-          }
-
-
-          // const question = {
-          //   id: "1",
-          //   preview_id: "prev_001",
-          //   section_id: "1",
-          //   question_order_in_section: 1,
-          //   text: {
-          //     "id": null,
-          //     "type": "HTML",
-          //     "content": "",
-          //   },
-          //   question_response_type: "single_choice",
-          //   default_question_time_mins: 0,
-          //   "media_id": "media_001",
-          //   "auto_evaluation_json": "{\"type\":\"MCQS\",\"data\":{\"correctOptionIds\":[\"1\"]}}",
-          //   question_type: "MCQS",
-          //   options_json: null,
-          //   parsed_evaluation_object: null,
-          //   options: (slide.elements.singleChoiceOptions || []).map((option, optIndex) => ({
-          //     text: { type: "text", content: option.name || "" },
-          //     option_order: optIndex,
-          //     ...(option.image?.imageId && { media_id: option.image.imageId })
-          //   })),
-          //   "explanation_text": {
-          //     "id": null,
-          //     "type": "HTML",
-          //     "content": ""
-          //   },
-          //   "evaluation_type": "auto",
-          //   "parent_rich_text_id": "prt_001",
-          //   "parent_rich_text": {
-          //     "id": null,
-          //     "type": "HTML",
-          //     "content": ""
-          //   },
-          //   "errors": [],
-          //   "warnings": [],
-          //   access_level: "public", // ← Missing
-          //   parsed_evaluation_object: { // ← Missing
-          //     correct_option: 1 // Assuming option 1 is correct
-          //   },
-          //   explanation_text: { // ← Missing content
-          //     id: null,
-          //     type: "HTML",
-          //     content: "" // Dummy explanation
-          //   },
-          //   parent_rich_text: { // ← Missing content
-          //     id: null,
-          //     type: "HTML",
-          //     content: "" // Dummy intro text
-          //   }
-          // };
-
-          return {
-            ...baseSlide,
-            added_question: isEdit ? null : question,
-            updated_question: isEdit ? question : null
-          }
+            })),
+            errors: [],
+            warnings: []
+          };
+          baseSlide.added_question = question;
         }
 
-        return baseSlide;
-      });
+        addedSlides.push(baseSlide);
+      }
 
       // 6. Prepare final payload
-      debugger
       const payload = {
         id: isEdit ? presentationId : "",
         title: metaData?.title || "New Presentation",
         description: metaData?.description || "",
         cover_file_id: "",
-        added_slides: addedSlides ?? null,
+        added_slides: filterSlidesByIdType(addedSlides, true),
         status: "PUBLISHED",
-        updated_slides :[]
+
       };
 
-      // 7. API call
-      debugger
-      const response = await authenticatedAxiosInstance.post(
+      if (isEdit) {
+        payload.updated_slides =  filterSlidesByIdType(addedSlides, false)
+        payload.deleted_slides = []
+      }
+
+      // 7. Make API call
+      await authenticatedAxiosInstance.post(
         isEdit ? EDIT_PRESENTATION : ADD_PRESENTATION,
         payload,
         {
@@ -433,11 +361,8 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
         }
       );
 
-      // 8. Handle response
-
-      toast.success("Presentation saved successfully");
+      toast.success(`Presentation ${isEdit ? "updated" : "created"} successfully`);
       router.navigate({ to: '/study-library/present' });
-
 
     } catch (error) {
       console.error("Save error:", error);
@@ -451,8 +376,6 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
     }
   };
 
-
-
   if (isLoading || isRefetching) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -465,7 +388,7 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
       <div className="flex size-full flex-col rounded-xl bg-base-white">
         <div className="flex justify-between  bg-primary-200 p-1 mb-1 min-h-32">
           <div className="flex gap-2 justify-end " >
-            <IoArrowBackSharp size={32} className="text-primary-400 cursor-pointer" onClick={() => router.navigate({ to: '/study-library/present' })} />
+            <IoArrowBackSharp size={36} className="text-primary-400 cursor-pointer" onClick={() => router.navigate({ to: '/study-library/present' })} />
             <Button
               variant="destructive"
               onClick={savePresentation}
@@ -476,22 +399,22 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
             </Button>
           </div>
           <div className="flex justify-end gap-2 ">
-            <Button
+            {/* <Button
               variant="destructive"
               onClick={takeScreenshot}
               className="gap-2"
             >
               <Settings className="size-4" />
               SnapShot
-            </Button>
-            <Button
+            </Button> */}
+            {/* <Button
               variant="destructive"
               onClick={exportToPowerPoint}
               className="gap-2"
             >
               <FileDown className="size-4" />
               Export PPT
-            </Button>
+            </Button> */}
             <Button
               variant="ghost"
               onClick={toggleEditMode}
@@ -537,15 +460,12 @@ export default function SlidesEditorComponent({ metaData, presentationId, isEdit
                   type={getSlide(currentSlideId)?.type || SlideType.Title}
                   editMode={editMode}
                   key={currentSlideId}
-
                 />
               )}
             </div>
-
           </div>
         </div>
       </div>
-
     </div>
   );
 }
