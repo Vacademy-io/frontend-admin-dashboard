@@ -353,6 +353,8 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         };
     }, [playerRef.current]);
 
+    console.log(formRefData.current.questions);
+
     return (
         <div className="flex w-full flex-col">
             {/* Video Player Container (preserving your aspect ratio) */}

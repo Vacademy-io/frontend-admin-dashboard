@@ -51,7 +51,7 @@ const VideoQuestionDialogEditPreview = ({
         const currentQuestionIndex = formRefData.current.questions.findIndex(
             (q) => q.questionId === question.questionId,
         );
-        formRefData.current.questions[currentQuestionIndex] = question;
+        formRefData.current.questions[currentQuestionIndex] = form.getValues("questions")[0];
         setEditQuestionPreview(false);
     };
 
