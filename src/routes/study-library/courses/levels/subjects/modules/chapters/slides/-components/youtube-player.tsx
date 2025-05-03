@@ -141,6 +141,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const [currentTime, setCurrentTime] = useState(0);
     const [hoveredQuestion, setHoveredQuestion] = useState<Question | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [previewQuestionDialog, setPreviewQuestionDialog] = useState(false);
+    const [editTimeFrameDialog, setEditTimeFrameDialog] = useState(false);
+    const [editQuestionPreview, setEditQuestionPreview] = useState(false);
 
     const extractVideoId = (url: string): string => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -258,10 +261,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         }
         return result;
     };
-
-    const [previewQuestionDialog, setPreviewQuestionDialog] = useState(false);
-    const [editTimeFrameDialog, setEditTimeFrameDialog] = useState(false);
-    const [editQuestionPreview, setEditQuestionPreview] = useState(false);
 
     // Initialize YouTube API
     useEffect(() => {
