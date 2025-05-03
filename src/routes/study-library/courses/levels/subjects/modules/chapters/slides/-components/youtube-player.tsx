@@ -265,6 +265,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
     const [previewQuestionDialog, setPreviewQuestionDialog] = useState(false);
     const [editTimeFrameDialog, setEditTimeFrameDialog] = useState(false);
+    const [editQuestionPreview, setEditQuestionPreview] = useState(false);
 
     // Initialize YouTube API
     useEffect(() => {
@@ -479,11 +480,12 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                             <span>{question.questionType}</span>
                                         </div>
                                         <VideoQuestionDialogEditPreview
-                                            videoQuestionForm={videoQuestionForm}
                                             formRefData={formRefData}
                                             question={question}
                                             currentQuestionIndex={idx}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                            editQuestionPreview={editQuestionPreview}
+                                            setEditQuestionPreview={setEditQuestionPreview}
                                         />
                                     </div>
                                 </div>
