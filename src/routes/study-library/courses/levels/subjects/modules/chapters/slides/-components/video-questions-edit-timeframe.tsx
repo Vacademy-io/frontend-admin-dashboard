@@ -1,47 +1,50 @@
 import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { FormProvider } from "react-hook-form";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { FormProvider, useForm } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
-import { Dispatch, MutableRefObject, SetStateAction, useEffect } from "react";
+import { Dispatch, MutableRefObject, SetStateAction, useEffect, useRef } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { VideoPlayerTimeFormType } from "../-form-schemas/video-player-time-schema";
+import {
+    VideoPlayerTimeFormType,
+    videoPlayerTimeSchema,
+} from "../-form-schemas/video-player-time-schema";
 import { PencilSimpleLine } from "phosphor-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface VideoQuestionsTimeFrameDialogProps {
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
-    videoPlayerTimeFrameForm: UseFormReturn<VideoPlayerTimeFormType>; // Replace `any` with your form schema if available
     handleSetCurrentTimeStamp: () => void;
     question?: any;
-    editTimeFrameDialog: boolean;
-    setEditTimeFrameDialog: Dispatch<SetStateAction<boolean>>;
 }
 
 const VideoQuestionsTimeFrameEditDialog = ({
     formRefData,
-    videoPlayerTimeFrameForm,
     handleSetCurrentTimeStamp,
     question,
-    editTimeFrameDialog,
-    setEditTimeFrameDialog,
 }: VideoQuestionsTimeFrameDialogProps) => {
+    const closeRef = useRef<HTMLButtonElement | null>(null);
+    const form = useForm<VideoPlayerTimeFormType>({
+        resolver: zodResolver(videoPlayerTimeSchema),
+        defaultValues: {
+            hrs: "",
+            min: "",
+            sec: "",
+        },
+    });
     const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const currentQuestionIndex = formRefData.current.questions.findIndex(
             (q) => q.questionId === question.questionId,
         );
         formRefData.current.questions[currentQuestionIndex].timestamp =
-            videoPlayerTimeFrameForm.getValues("hrs") +
-            ":" +
-            videoPlayerTimeFrameForm.getValues("min") +
-            ":" +
-            videoPlayerTimeFrameForm.getValues("sec");
-        setEditTimeFrameDialog(false);
+            form.getValues("hrs") + ":" + form.getValues("min") + ":" + form.getValues("sec");
+        closeRef.current?.click();
     };
 
     useEffect(() => {
-        videoPlayerTimeFrameForm.reset({
+        form.reset({
             hrs: question.timestamp.split(":")[0],
             min: question.timestamp.split(":")[1],
             sec: question.timestamp.split(":")[2],
@@ -49,7 +52,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
     }, []);
 
     return (
-        <Dialog open={editTimeFrameDialog} onOpenChange={setEditTimeFrameDialog}>
+        <Dialog>
             <DialogTrigger>
                 <MyButton
                     type="button"
@@ -65,11 +68,11 @@ const VideoQuestionsTimeFrameEditDialog = ({
                 <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                     Time Stamp
                 </h1>
-                <FormProvider {...videoPlayerTimeFrameForm}>
+                <FormProvider {...form}>
                     <form className="flex flex-col items-center gap-2 p-4">
                         <div className="flex items-center gap-4 p-4">
                             <FormField
-                                control={videoPlayerTimeFrameForm.control}
+                                control={form.control}
                                 name={`hrs`}
                                 render={({ field: { ...field } }) => (
                                     <FormItem>
@@ -102,7 +105,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                             <span>hrs</span>
                             <span>:</span>
                             <FormField
-                                control={videoPlayerTimeFrameForm.control}
+                                control={form.control}
                                 name={`min`}
                                 render={({ field: { ...field } }) => (
                                     <FormItem>
@@ -135,7 +138,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                             <span>min</span>
                             <span>:</span>
                             <FormField
-                                control={videoPlayerTimeFrameForm.control}
+                                control={form.control}
                                 name={`sec`}
                                 render={({ field: { ...field } }) => (
                                     <FormItem>
@@ -180,8 +183,11 @@ const VideoQuestionsTimeFrameEditDialog = ({
                     </form>
                 </FormProvider>
                 <div className="flex justify-end">
+                    <DialogClose asChild>
+                        <button ref={closeRef} className="hidden" />
+                    </DialogClose>
                     <MyButton
-                        type="button" // Explicitly set as button type
+                        type="button"
                         buttonType="primary"
                         scale="medium"
                         layoutVariant="default"

@@ -4,7 +4,7 @@ import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-pape
 import { Dispatch, MutableRefObject, SetStateAction, useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { DialogTrigger } from "@radix-ui/react-dialog";
@@ -13,20 +13,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
+import { useRef } from "react"; // Add useRef import
+
 const VideoQuestionDialogEditPreview = ({
     formRefData,
     question,
     currentQuestionIndex,
     setCurrentQuestionIndex,
-    editQuestionPreview,
-    setEditQuestionPreview,
 }: {
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
     question?: any;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
-    editQuestionPreview: boolean;
-    setEditQuestionPreview: Dispatch<SetStateAction<boolean>>;
 }) => {
     const form = useForm<QuestionPaperForm>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -46,6 +44,9 @@ const VideoQuestionDialogEditPreview = ({
             questions: [],
         },
     });
+
+    const closeRef = useRef<HTMLButtonElement | null>(null);
+
     const handleEditQuestionInAddedForm = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const currentQIndex = formRefData.current.questions.findIndex(
@@ -53,7 +54,7 @@ const VideoQuestionDialogEditPreview = ({
         );
         formRefData.current.questions[currentQIndex] =
             form.getValues("questions")[currentQuestionIndex];
-        setEditQuestionPreview(false);
+        closeRef.current?.click();
     };
 
     useEffect(() => {
@@ -64,7 +65,7 @@ const VideoQuestionDialogEditPreview = ({
     }, []);
 
     return (
-        <Dialog open={editQuestionPreview} onOpenChange={setEditQuestionPreview}>
+        <Dialog>
             <DialogTrigger>
                 <MyButton
                     buttonType="secondary"
@@ -103,6 +104,9 @@ const VideoQuestionDialogEditPreview = ({
                     </FormProvider>
                 </div>
                 <div className="flex justify-end">
+                    <DialogClose asChild>
+                        <button ref={closeRef} className="hidden" />
+                    </DialogClose>
                     <MyButton
                         type="button"
                         buttonType="primary"

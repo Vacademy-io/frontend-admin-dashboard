@@ -142,8 +142,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const [hoveredQuestion, setHoveredQuestion] = useState<Question | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [previewQuestionDialog, setPreviewQuestionDialog] = useState(false);
-    const [editTimeFrameDialog, setEditTimeFrameDialog] = useState(false);
-    const [editQuestionPreview, setEditQuestionPreview] = useState(false);
 
     const extractVideoId = (url: string): string => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -458,11 +456,8 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                     </p>
                                     <VideoQuestionsTimeFrameEditDialog
                                         formRefData={formRefData}
-                                        videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
                                         handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
                                         question={question}
-                                        editTimeFrameDialog={editTimeFrameDialog}
-                                        setEditTimeFrameDialog={setEditTimeFrameDialog}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -481,8 +476,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                             question={question}
                                             currentQuestionIndex={idx}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
-                                            editQuestionPreview={editQuestionPreview}
-                                            setEditQuestionPreview={setEditQuestionPreview}
                                         />
                                     </div>
                                 </div>
