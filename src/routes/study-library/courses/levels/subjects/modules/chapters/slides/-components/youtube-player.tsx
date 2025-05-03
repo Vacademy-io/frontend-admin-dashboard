@@ -264,6 +264,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     };
 
     const [previewQuestionDialog, setPreviewQuestionDialog] = useState(false);
+    const [editTimeFrameDialog, setEditTimeFrameDialog] = useState(false);
 
     // Initialize YouTube API
     useEffect(() => {
@@ -462,6 +463,8 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
                                         handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
                                         question={question}
+                                        editTimeFrameDialog={editTimeFrameDialog}
+                                        setEditTimeFrameDialog={setEditTimeFrameDialog}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">

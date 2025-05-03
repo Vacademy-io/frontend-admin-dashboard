@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
-import { MutableRefObject, useEffect } from "react";
+import { Dispatch, MutableRefObject, SetStateAction, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { VideoPlayerTimeFormType } from "../-form-schemas/video-player-time-schema";
@@ -14,6 +14,8 @@ interface VideoQuestionsTimeFrameDialogProps {
     videoPlayerTimeFrameForm: UseFormReturn<VideoPlayerTimeFormType>; // Replace `any` with your form schema if available
     handleSetCurrentTimeStamp: () => void;
     question?: any;
+    editTimeFrameDialog: boolean;
+    setEditTimeFrameDialog: Dispatch<SetStateAction<boolean>>;
 }
 
 const VideoQuestionsTimeFrameEditDialog = ({
@@ -21,6 +23,8 @@ const VideoQuestionsTimeFrameEditDialog = ({
     videoPlayerTimeFrameForm,
     handleSetCurrentTimeStamp,
     question,
+    editTimeFrameDialog,
+    setEditTimeFrameDialog,
 }: VideoQuestionsTimeFrameDialogProps) => {
     const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -33,20 +37,19 @@ const VideoQuestionsTimeFrameEditDialog = ({
             videoPlayerTimeFrameForm.getValues("min") +
             ":" +
             videoPlayerTimeFrameForm.getValues("sec");
+        setEditTimeFrameDialog(false);
     };
 
     useEffect(() => {
-        if (question) {
-            videoPlayerTimeFrameForm.reset({
-                hrs: question.timestamp.split(":")[0],
-                min: question.timestamp.split(":")[1],
-                sec: question.timestamp.split(":")[2],
-            });
-        }
-    }, [question]);
+        videoPlayerTimeFrameForm.reset({
+            hrs: question.timestamp.split(":")[0],
+            min: question.timestamp.split(":")[1],
+            sec: question.timestamp.split(":")[2],
+        });
+    }, []);
 
     return (
-        <Dialog>
+        <Dialog open={editTimeFrameDialog} onOpenChange={setEditTimeFrameDialog}>
             <DialogTrigger>
                 <MyButton
                     type="button"
