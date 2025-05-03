@@ -48,19 +48,20 @@ const VideoQuestionDialogEditPreview = ({
     });
     const handleEditQuestionInAddedForm = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        const currentQuestionIndex = formRefData.current.questions.findIndex(
+        const currentQIndex = formRefData.current.questions.findIndex(
             (q) => q.questionId === question.questionId,
         );
-        formRefData.current.questions[currentQuestionIndex] = form.getValues("questions")[0];
+        formRefData.current.questions[currentQIndex] =
+            form.getValues("questions")[currentQuestionIndex];
         setEditQuestionPreview(false);
     };
 
     useEffect(() => {
         form.reset({
             ...form.getValues(),
-            questions: [...form.getValues("questions"), question],
+            questions: [...formRefData.current.questions],
         });
-    }, [question]);
+    }, []);
 
     return (
         <Dialog open={editQuestionPreview} onOpenChange={setEditQuestionPreview}>

@@ -94,7 +94,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             sec: "",
         },
     });
-    videoPlayerTimeFrameForm.watch();
+    // videoPlayerTimeFrameForm.watch();
     const addedQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
@@ -113,7 +113,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             questions: [],
         },
     });
-    addedQuestionForm.watch();
+    // addedQuestionForm.watch();
 
     const videoQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -381,9 +381,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     ></div>
 
                     {/* Question Markers */}
-                    {formRefData.current.questions.map((question) => (
+                    {formRefData.current.questions.map((question, idx) => (
                         <div
-                            key={question.id}
+                            key={idx}
                             className="absolute top-0 -ml-1.5 size-3 -translate-y-1/2 cursor-pointer rounded-full bg-red-500"
                             style={{
                                 left: `${
@@ -445,7 +445,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     <ul className="max-h-60 space-y-1 overflow-y-auto">
                         {formRefData.current.questions.map((question, idx) => (
                             <li
-                                key={question.id}
+                                key={idx}
                                 className="cursor-pointer rounded-md bg-white p-2 text-sm hover:bg-gray-50"
                                 onClick={() =>
                                     handleQuestionClick(timestampToSeconds(question.timestamp))
@@ -509,7 +509,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                                         const globalIndex = rowIdx * 2 + idx;
                                                         return (
                                                             <span
-                                                                key={globalIndex}
+                                                                key={`option-${globalIndex}-${
+                                                                    option?.name || idx
+                                                                }`}
                                                                 className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin"
                                                             >
                                                                 <span
@@ -539,7 +541,9 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                                         const globalIndex = rowIdx * 2 + idx;
                                                         return (
                                                             <span
-                                                                key={globalIndex}
+                                                                key={`option-${globalIndex}-${
+                                                                    option?.name || idx
+                                                                }`}
                                                                 className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin"
                                                             >
                                                                 <span className="mr-1">

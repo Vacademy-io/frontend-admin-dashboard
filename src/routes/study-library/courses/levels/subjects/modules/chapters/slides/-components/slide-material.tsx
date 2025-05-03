@@ -170,44 +170,6 @@ export const SlideMaterial = ({
             );
             return;
         } else if (activeItem.source_type == "VIDEO") {
-            // TODO : add drive video upload functionality when drive video is handled at the students portal side
-            // if (videoURL.includes("drive")) {
-            //     if (videoURL.includes("drive")) {
-            //         const videoId = videoURL.match(/\/d\/(.+?)\//)?.[1];
-            //         const embedUrl = videoId
-            //             ? `https://drive.google.com/file/d/${videoId}/preview`
-            //             : null;
-
-            //         console.log(embedUrl);
-
-            //         setContent(
-            //             embedUrl ? (
-            //                 <div
-            //                     key={`video-${activeItem.slide_id}`}
-            //                     className="relative max-h-[80vh] w-full"
-            //                 >
-            //                     <div className="relative aspect-[16/9] max-h-[80vh] w-full">
-            //                         <iframe
-            //                             key={`drive-video-${activeItem.slide_id}`}
-            //                             src={embedUrl}
-            //                             className="absolute inset-0 h-full w-full"
-            //                             allow="autoplay"
-            //                             allowFullScreen
-            //                         />
-            //                     </div>
-            //                 </div>
-            //             ) : (
-            //                 <div>Unable to load the video. Ensure it is publicly accessible.</div>
-            //             ),
-            //         );
-            //     }
-            // } else {
-            //     setContent(
-            //         <div key={`video-${activeItem.slide_id}`} className="size-full">
-            //             <YouTubePlayer videoUrl={videoURL} videoTitle={activeItem.video_title} />
-            //         </div>,
-            //     );
-            // }
             setContent(<VideoSlidePreview activeItem={activeItem} />);
             return;
         } else if (activeItem.source_type == "DOCUMENT" && activeItem.document_type == "PDF") {
