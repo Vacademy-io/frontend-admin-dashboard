@@ -3,8 +3,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
-import AddVideoQuestionDialog from "./slides-sidebar/add-video-question-dialog";
-import { Dispatch, MutableRefObject, SetStateAction, useEffect } from "react";
+import { MutableRefObject, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { VideoPlayerTimeFormType } from "../-form-schemas/video-player-time-schema";
@@ -14,35 +13,30 @@ interface VideoQuestionsTimeFrameDialogProps {
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
     videoPlayerTimeFrameForm: UseFormReturn<VideoPlayerTimeFormType>; // Replace `any` with your form schema if available
     handleSetCurrentTimeStamp: () => void;
-    isTimeStampDialogOpen: boolean;
-    setIsTimeStampDialogOpen: Dispatch<SetStateAction<boolean>>;
     question?: any;
-    isEdited?: boolean;
 }
 
-const VideoQuestionsTimeFrameDialog = ({
+const VideoQuestionsTimeFrameEditDialog = ({
     formRefData,
     videoPlayerTimeFrameForm,
     handleSetCurrentTimeStamp,
-    isTimeStampDialogOpen,
-    setIsTimeStampDialogOpen,
     question,
-    isEdited,
 }: VideoQuestionsTimeFrameDialogProps) => {
     const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const currentQuestionIndex = formRefData.current.questions.findIndex(
             (q) => q.questionId === question.questionId,
         );
-        (formRefData.current.questions[currentQuestionIndex].timestamp =
-            `${videoPlayerTimeFrameForm.getValues("hrs")}:${videoPlayerTimeFrameForm.getValues(
-                "min",
-            )}:${videoPlayerTimeFrameForm.getValues("sec")}`),
-            setIsTimeStampDialogOpen(false);
+        formRefData.current.questions[currentQuestionIndex].timestamp =
+            videoPlayerTimeFrameForm.getValues("hrs") +
+            ":" +
+            videoPlayerTimeFrameForm.getValues("min") +
+            ":" +
+            videoPlayerTimeFrameForm.getValues("sec");
     };
 
     useEffect(() => {
-        if (isEdited) {
+        if (question) {
             videoPlayerTimeFrameForm.reset({
                 hrs: question.timestamp.split(":")[0],
                 min: question.timestamp.split(":")[1],
@@ -50,30 +44,19 @@ const VideoQuestionsTimeFrameDialog = ({
             });
         }
     }, [question]);
+
     return (
-        <Dialog open={isTimeStampDialogOpen} onOpenChange={setIsTimeStampDialogOpen}>
+        <Dialog>
             <DialogTrigger>
-                {isEdited ? (
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        scale="small"
-                        layoutVariant="default"
-                        className="h-8 min-w-4"
-                    >
-                        <PencilSimpleLine size={32} />
-                    </MyButton>
-                ) : (
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        scale="large"
-                        layoutVariant="default"
-                        className="mt-4"
-                    >
-                        Add Question
-                    </MyButton>
-                )}
+                <MyButton
+                    type="button"
+                    buttonType="secondary"
+                    scale="small"
+                    layoutVariant="default"
+                    className="h-8 min-w-4"
+                >
+                    <PencilSimpleLine size={32} />
+                </MyButton>
             </DialogTrigger>
             <DialogContent className="w-fit p-0">
                 <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
@@ -191,35 +174,23 @@ const VideoQuestionsTimeFrameDialog = ({
                                 Use Current Position
                             </MyButton>
                         </div>
-                        <div className="flex w-full justify-end">
-                            {!isEdited && (
-                                <AddVideoQuestionDialog
-                                    videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
-                                    formRefData={formRefData}
-                                    setIsTimeStampDialogOpen={setIsTimeStampDialogOpen}
-                                />
-                            )}
-                        </div>
                     </form>
                 </FormProvider>
-                {/* Only show this button if we're not in edit mode */}
                 <div className="flex justify-end">
-                    {isEdited && (
-                        <MyButton
-                            type="button" // Explicitly set as button type
-                            buttonType="primary"
-                            scale="medium"
-                            layoutVariant="default"
-                            className="mb-6 mr-8"
-                            onClick={handleEditTimeStampCurrentQuestion}
-                        >
-                            Edit
-                        </MyButton>
-                    )}
+                    <MyButton
+                        type="button" // Explicitly set as button type
+                        buttonType="primary"
+                        scale="medium"
+                        layoutVariant="default"
+                        className="mb-6 mr-8"
+                        onClick={handleEditTimeStampCurrentQuestion}
+                    >
+                        Edit
+                    </MyButton>
                 </div>
             </DialogContent>
         </Dialog>
     );
 };
 
-export default VideoQuestionsTimeFrameDialog;
+export default VideoQuestionsTimeFrameEditDialog;

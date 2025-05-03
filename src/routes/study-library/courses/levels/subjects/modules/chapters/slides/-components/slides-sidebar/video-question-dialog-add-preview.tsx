@@ -1,40 +1,36 @@
 import { QuestionType } from "@/constants/dummy-data";
 import { MainViewComponentFactory } from "@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory";
 import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { Dispatch, MutableRefObject, SetStateAction, useState } from "react";
+import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { VideoPlayerTimeFormType } from "../../-form-schemas/video-player-time-schema";
-
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
-const VideoQuestionDialogPreview = ({
+const VideoQuestionDialogAddPreview = ({
     videoQuestionForm,
     addedQuestionForm,
     videoPlayerTimeFrameForm,
-    openQuestionPreview,
-    setOpenQuestionPreview,
     formRefData,
-    setIsTimeStampDialogOpen,
-    setAddQuestionTypeDialog,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    previewQuestionDialog,
+    setPreviewQuestionDialog,
 }: {
     videoQuestionForm: UseFormReturn<QuestionPaperForm>;
     addedQuestionForm: UseFormReturn<QuestionPaperForm>;
     videoPlayerTimeFrameForm: UseFormReturn<VideoPlayerTimeFormType>;
-    openQuestionPreview: boolean;
-    setOpenQuestionPreview: Dispatch<SetStateAction<boolean>>;
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
-    setIsTimeStampDialogOpen: Dispatch<SetStateAction<boolean>>;
-    setAddQuestionTypeDialog: Dispatch<SetStateAction<boolean>>;
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    previewQuestionDialog: boolean;
+    setPreviewQuestionDialog: Dispatch<SetStateAction<boolean>>;
 }) => {
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const handleClose = () => {
         setCurrentQuestionIndex(0);
-        setOpenQuestionPreview(false);
-
         videoQuestionForm.reset({
             questionPaperId: "1",
             isFavourite: false,
@@ -55,8 +51,7 @@ const VideoQuestionDialogPreview = ({
             min: "",
             sec: "",
         });
-        setIsTimeStampDialogOpen(false);
-        setAddQuestionTypeDialog(false);
+        setPreviewQuestionDialog(false);
     };
     const handleAddQuestionInAddedForm = () => {
         addedQuestionForm.reset({
@@ -75,9 +70,9 @@ const VideoQuestionDialogPreview = ({
         };
         handleClose();
     };
-    console.log("form ref data", formRefData.current);
+
     return (
-        <Dialog open={openQuestionPreview} onOpenChange={handleClose}>
+        <Dialog open={previewQuestionDialog} onOpenChange={setPreviewQuestionDialog}>
             <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0">
                 <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">Question</h1>
                 <div>
@@ -122,4 +117,4 @@ const VideoQuestionDialogPreview = ({
     );
 };
 
-export default VideoQuestionDialogPreview;
+export default VideoQuestionDialogAddPreview;

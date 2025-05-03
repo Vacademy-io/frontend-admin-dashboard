@@ -3,15 +3,14 @@ import { QuestionType as QuestionTypeList } from "@/constants/dummy-data";
 import { Separator } from "@/components/ui/separator";
 import { z } from "zod";
 import { questionsFormSchema } from "@/routes/assessment/question-papers/-utils/question-form-schema";
-import { useFieldArray, useForm, UseFormReturn } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
-import VideoQuestionDialogPreview from "./video-question-dialog-preview";
-import { Dispatch, MutableRefObject, SetStateAction, useState } from "react";
+import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { VideoPlayerTimeFormType } from "../../-form-schemas/video-player-time-schema";
+import VideoQuestionDialogAddPreview from "./video-question-dialog-add-preview";
 
 export interface QuestionTypeProps {
     icon: React.ReactNode; // Accepts an SVG or any React component
@@ -21,6 +20,7 @@ export interface QuestionTypeProps {
 }
 
 export type QuestionPaperFormType = z.infer<typeof questionsFormSchema>;
+type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
 const QuestionType = ({
     icon,
@@ -40,56 +40,24 @@ const QuestionType = ({
 };
 
 const AddVideoQuestionDialog = ({
+    addedQuestionForm,
+    videoQuestionForm,
     videoPlayerTimeFrameForm,
     formRefData,
-    setIsTimeStampDialogOpen,
+    currentQuestionIndex,
+    setCurrentQuestionIndex,
+    previewQuestionDialog,
+    setPreviewQuestionDialog,
 }: {
+    addedQuestionForm: UseFormReturn<QuestionPaperForm>;
+    videoQuestionForm: UseFormReturn<QuestionPaperForm>;
     videoPlayerTimeFrameForm: UseFormReturn<VideoPlayerTimeFormType>;
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
-    setIsTimeStampDialogOpen: Dispatch<SetStateAction<boolean>>;
+    currentQuestionIndex: number;
+    setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    previewQuestionDialog: boolean;
+    setPreviewQuestionDialog: Dispatch<SetStateAction<boolean>>;
 }) => {
-    const [addQuestionTypeDialog, setAddQuestionTypeDialog] = useState(false);
-    const [openQuestionPreview, setOpenQuestionPreview] = useState(false);
-    const addedQuestionForm = useForm<UploadQuestionPaperFormType>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
-        defaultValues: {
-            questionPaperId: "1",
-            isFavourite: false,
-            title: "",
-            createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
-            fileUpload: undefined,
-            questions: [],
-        },
-    });
-
-    addedQuestionForm.watch();
-
-    const videoQuestionForm = useForm<UploadQuestionPaperFormType>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
-        mode: "onChange",
-        defaultValues: {
-            questionPaperId: "1",
-            isFavourite: false,
-            title: "",
-            createdOn: new Date(),
-            yearClass: "",
-            subject: "",
-            questionsType: "",
-            optionsType: "",
-            answersType: "",
-            explanationsType: "",
-            fileUpload: undefined,
-            questions: [],
-        },
-    });
-
     const { append: appendVideoQuestion } = useFieldArray({
         control: videoQuestionForm.control,
         name: "questions", // Name of the field array
@@ -147,12 +115,12 @@ const AddVideoQuestionDialog = ({
             )}`,
         });
         videoQuestionForm.trigger();
-        setOpenQuestionPreview(true);
+        setPreviewQuestionDialog(true);
     };
 
     return (
         <>
-            <Dialog open={addQuestionTypeDialog} onOpenChange={setAddQuestionTypeDialog}>
+            <Dialog>
                 <DialogTrigger>
                     <MyButton
                         type="button"
@@ -263,15 +231,15 @@ const AddVideoQuestionDialog = ({
                     </div>
                 </DialogContent>
             </Dialog>
-            <VideoQuestionDialogPreview
+            <VideoQuestionDialogAddPreview
                 videoQuestionForm={videoQuestionForm}
                 addedQuestionForm={addedQuestionForm}
                 videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
-                openQuestionPreview={openQuestionPreview}
-                setOpenQuestionPreview={setOpenQuestionPreview}
                 formRefData={formRefData}
-                setIsTimeStampDialogOpen={setIsTimeStampDialogOpen}
-                setAddQuestionTypeDialog={setAddQuestionTypeDialog}
+                currentQuestionIndex={currentQuestionIndex}
+                setCurrentQuestionIndex={setCurrentQuestionIndex}
+                previewQuestionDialog={previewQuestionDialog}
+                setPreviewQuestionDialog={setPreviewQuestionDialog}
             />
         </>
     );

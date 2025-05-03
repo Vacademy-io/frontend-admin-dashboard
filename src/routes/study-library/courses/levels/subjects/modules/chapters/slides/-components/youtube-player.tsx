@@ -1,18 +1,15 @@
-import { MyButton } from "@/components/design-system/button";
 import React, { useEffect, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
     VideoPlayerTimeFormType,
     videoPlayerTimeSchema,
 } from "../-form-schemas/video-player-time-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
-import { MyInput } from "@/components/design-system/input";
-import AddVideoQuestionDialog from "./slides-sidebar/add-video-question-dialog";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import { PencilSimpleLine } from "phosphor-react";
-import VideoQuestionsTimeFrameDialog from "./video-questions-timeframe";
+import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
+import VideoQuestionsTimeFrameAddDialog from "./video-questions-add-timeframe";
+import VideoQuestionsTimeFrameEditDialog from "./video-questions-edit-timeframe";
+import VideoQuestionDialogEditPreview from "./slides-sidebar/video-question-dialog-edit-preview";
 
 interface YTPlayer {
     destroy(): void;
@@ -98,15 +95,56 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         },
     });
     videoPlayerTimeFrameForm.watch();
+    const addedQuestionForm = useForm<UploadQuestionPaperFormType>({
+        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        mode: "onChange",
+        defaultValues: {
+            questionPaperId: "1",
+            isFavourite: false,
+            title: "",
+            createdOn: new Date(),
+            yearClass: "",
+            subject: "",
+            questionsType: "",
+            optionsType: "",
+            answersType: "",
+            explanationsType: "",
+            fileUpload: undefined,
+            questions: [],
+        },
+    });
+    addedQuestionForm.watch();
+
+    const videoQuestionForm = useForm<UploadQuestionPaperFormType>({
+        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        mode: "onChange",
+        defaultValues: {
+            questionPaperId: "1",
+            isFavourite: false,
+            title: "",
+            createdOn: new Date(),
+            yearClass: "",
+            subject: "",
+            questionsType: "",
+            optionsType: "",
+            answersType: "",
+            explanationsType: "",
+            fileUpload: undefined,
+            questions: [],
+        },
+    });
     const playerRef = useRef<YTPlayer | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const timelineRef = useRef<HTMLDivElement>(null);
     const [isAPIReady, setIsAPIReady] = useState(false);
     const [videoDuration, setVideoDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
-    const [questions, setQuestions] = useState(formRefData.current.questions);
     const [hoveredQuestion, setHoveredQuestion] = useState<Question | null>(null);
     const [isTimeStampDialogOpen, setIsTimeStampDialogOpen] = useState(false);
+    const [isTimeStampEditDialogOpen, setIsTimeStampEditDialogOpen] = useState(false);
+    const [addQuestionTypeDialog, setAddQuestionTypeDialog] = useState(false);
+    const [openQuestionPreview, setOpenQuestionPreview] = useState(false);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
     const extractVideoId = (url: string): string => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -225,9 +263,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         return result;
     };
 
-    useEffect(() => {
-        setQuestions(formRefData.current.questions);
-    }, [formRefData.current]);
+    const [previewQuestionDialog, setPreviewQuestionDialog] = useState(false);
 
     // Initialize YouTube API
     useEffect(() => {
@@ -346,7 +382,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     ></div>
 
                     {/* Question Markers */}
-                    {questions.map((question) => (
+                    {formRefData.current.questions.map((question) => (
                         <div
                             key={question.id}
                             className="absolute top-0 -ml-1.5 size-3 -translate-y-1/2 cursor-pointer rounded-full bg-red-500"
@@ -389,22 +425,26 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             {/* Add Question Form */}
 
             <div>
-                <VideoQuestionsTimeFrameDialog
+                <VideoQuestionsTimeFrameAddDialog
+                    addedQuestionForm={addedQuestionForm}
+                    videoQuestionForm={videoQuestionForm}
                     formRefData={formRefData}
                     videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
                     handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
-                    isTimeStampDialogOpen={isTimeStampDialogOpen}
-                    setIsTimeStampDialogOpen={setIsTimeStampDialogOpen}
+                    currentQuestionIndex={currentQuestionIndex}
+                    setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    previewQuestionDialog={previewQuestionDialog}
+                    setPreviewQuestionDialog={setPreviewQuestionDialog}
                 />
             </div>
 
             {/* Questions List */}
             <div className="mt-4 w-full">
-                {questions.length === 0 ? (
+                {formRefData.current.questions.length === 0 ? (
                     <p className="text-sm italic text-gray-500">No questions added yet.</p>
                 ) : (
                     <ul className="max-h-60 space-y-1 overflow-y-auto">
-                        {questions.map((question, idx) => (
+                        {formRefData.current.questions.map((question, idx) => (
                             <li
                                 key={question.id}
                                 className="cursor-pointer rounded-md bg-white p-2 text-sm hover:bg-gray-50"
@@ -417,14 +457,11 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         {idx + 1}. Time stamp -{" "}
                                         {formatTime(timestampToSeconds(question.timestamp))}
                                     </p>
-                                    <VideoQuestionsTimeFrameDialog
+                                    <VideoQuestionsTimeFrameEditDialog
                                         formRefData={formRefData}
                                         videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
                                         handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
-                                        isTimeStampDialogOpen={isTimeStampDialogOpen}
-                                        setIsTimeStampDialogOpen={setIsTimeStampDialogOpen}
                                         question={question}
-                                        isEdited={true}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -438,14 +475,13 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         <div className="rounded-lg border p-[6px] px-[10px]">
                                             <span>{question.questionType}</span>
                                         </div>
-                                        <MyButton
-                                            buttonType="secondary"
-                                            scale="small"
-                                            layoutVariant="default"
-                                            className="h-8 min-w-4"
-                                        >
-                                            <PencilSimpleLine size={32} />
-                                        </MyButton>
+                                        <VideoQuestionDialogEditPreview
+                                            videoQuestionForm={videoQuestionForm}
+                                            formRefData={formRefData}
+                                            question={question}
+                                            currentQuestionIndex={idx}
+                                            setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                        />
                                     </div>
                                 </div>
                                 {(question.questionType === "LONG_ANSWER" ||
