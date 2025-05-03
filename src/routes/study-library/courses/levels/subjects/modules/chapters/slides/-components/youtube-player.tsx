@@ -84,6 +84,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         fileUpload: undefined,
         questions: [],
     });
+
     const videoPlayerTimeFrameForm = useForm<VideoPlayerTimeFormType>({
         resolver: zodResolver(videoPlayerTimeSchema),
         defaultValues: {
@@ -92,7 +93,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             sec: "",
         },
     });
-    // videoPlayerTimeFrameForm.watch();
+
     const addedQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
@@ -111,7 +112,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             questions: [],
         },
     });
-    // addedQuestionForm.watch();
 
     const videoQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -131,6 +131,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             questions: [],
         },
     });
+
     const playerRef = useRef<YTPlayer | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const timelineRef = useRef<HTMLDivElement>(null);
@@ -349,8 +350,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             if (interval) clearInterval(interval);
         };
     }, [playerRef.current]);
-
-    console.log(formRefData.current.questions);
 
     return (
         <div className="flex w-full flex-col">
