@@ -3,8 +3,7 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/
 import { FormProvider, useForm } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
-import { Dispatch, MutableRefObject, SetStateAction, useEffect, useRef } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { MutableRefObject, useEffect, useRef } from "react";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import {
     VideoPlayerTimeFormType,
@@ -12,11 +11,12 @@ import {
 } from "../-form-schemas/video-player-time-schema";
 import { PencilSimpleLine } from "phosphor-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { StudyLibraryQuestion } from "@/types/study-library/study-library-video-questions";
 
 interface VideoQuestionsTimeFrameDialogProps {
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
     handleSetCurrentTimeStamp: () => void;
-    question?: any;
+    question?: StudyLibraryQuestion;
 }
 
 const VideoQuestionsTimeFrameEditDialog = ({
@@ -36,19 +36,24 @@ const VideoQuestionsTimeFrameEditDialog = ({
     const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const currentQuestionIndex = formRefData.current.questions.findIndex(
-            (q) => q.questionId === question.questionId,
+            (q) => q.questionId === question?.questionId,
         );
-        formRefData.current.questions[currentQuestionIndex].timestamp =
+        const currentQuestion = formRefData.current.questions[currentQuestionIndex];
+
+        if (!currentQuestion) return;
+        currentQuestion.timestamp =
             form.getValues("hrs") + ":" + form.getValues("min") + ":" + form.getValues("sec");
         closeRef.current?.click();
     };
 
     useEffect(() => {
-        form.reset({
-            hrs: question.timestamp.split(":")[0],
-            min: question.timestamp.split(":")[1],
-            sec: question.timestamp.split(":")[2],
-        });
+        if (question && question.timestamp) {
+            form.reset({
+                hrs: question?.timestamp.split(":")[0],
+                min: question?.timestamp.split(":")[1],
+                sec: question?.timestamp.split(":")[2],
+            });
+        }
     }, []);
 
     return (

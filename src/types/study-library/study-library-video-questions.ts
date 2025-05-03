@@ -10,11 +10,11 @@ export interface MyQuestionPaperFormInterface {
     answersType?: string; // Required string
     explanationsType?: string; // Required string
     fileUpload?: File; // Optional file
-    questions?: MyQuestion[]; // Required array of questions
+    questions?: StudyLibraryQuestion[]; // Required array of questions
 }
 
-export interface MyQuestion {
-    id: string;
+export interface StudyLibraryQuestion {
+    id?: string;
     questionId?: string; // Optional string
     questionName: string; // Required string, must have at least 1 character
     explanation?: string; // Optional string
@@ -25,18 +25,17 @@ export interface MyQuestion {
         hrs: string;
         min: string;
     };
-    singleChoiceOptions: MySingleChoiceOption[]; // Array of single choice options
-    multipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
-    csingleChoiceOptions: MySingleChoiceOption[]; // Array of single choice options
-    cmultipleChoiceOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
-    trueFalseOptions: MyMultipleChoiceOption[]; // Array of multiple choice options
-    validAnswers?: number[];
+    singleChoiceOptions?: MySingleChoiceOption[]; // Array of single choice options
+    multipleChoiceOptions?: MyMultipleChoiceOption[]; // Array of multiple choice options
+    csingleChoiceOptions?: MySingleChoiceOption[]; // Array of single choice options
+    cmultipleChoiceOptions?: MyMultipleChoiceOption[]; // Array of multiple choice options
+    trueFalseOptions?: MyMultipleChoiceOption[]; // Array of multiple choice options
+    validAnswers?: number[] | null;
     decimals?: number;
     numericType?: string;
     parentRichTextContent?: string | null;
     subjectiveAnswerText?: string;
     timestamp?: string;
-    // optionsJson: string | null; //Array for numerical answers
 }
 
 export interface MySingleChoiceOption {
@@ -49,20 +48,4 @@ export interface MyMultipleChoiceOption {
     id?: string;
     name?: string; // Optional string
     isSelected?: boolean; // Optional boolean
-}
-
-export interface MyImage {
-    imageId?: string; // Optional string
-    imageName?: string; // Optional string
-    imageTitle?: string; // Optional string
-    imageFile?: string; // Optional string
-    isDeleted?: boolean; // Optional boolean
-}
-
-export interface MyQuestionPaperFormEditInterface {
-    questionPaperId: string | undefined; // Optional string
-    title: string; // Required string
-    level_id?: string; // Required string
-    subject_id?: string; // Required string
-    questions: MyQuestion[];
 }

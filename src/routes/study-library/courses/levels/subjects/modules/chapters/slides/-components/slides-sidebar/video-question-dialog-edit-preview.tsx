@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
 
 import { useRef } from "react"; // Add useRef import
+import { StudyLibraryQuestion } from "@/types/study-library/study-library-video-questions";
 
 const VideoQuestionDialogEditPreview = ({
     formRefData,
@@ -22,7 +23,7 @@ const VideoQuestionDialogEditPreview = ({
     setCurrentQuestionIndex,
 }: {
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
-    question?: any;
+    question?: StudyLibraryQuestion;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
 }) => {
@@ -49,11 +50,30 @@ const VideoQuestionDialogEditPreview = ({
 
     const handleEditQuestionInAddedForm = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+
+        // Ensure formRefData.current and question are defined
+        if (!formRefData.current || !question) return;
+
         const currentQIndex = formRefData.current.questions.findIndex(
             (q) => q.questionId === question.questionId,
         );
-        formRefData.current.questions[currentQIndex] =
-            form.getValues("questions")[currentQuestionIndex];
+
+        // If question with the matching questionId was not found
+        if (currentQIndex === -1) return;
+
+        const updatedQuestions = form.getValues("questions");
+
+        // Ensure updatedQuestions is an array and that the current question exists in the array
+        if (!Array.isArray(updatedQuestions) || !updatedQuestions[currentQIndex]) return;
+
+        // Only assign if the updated question is not undefined
+        const updatedQuestion = updatedQuestions[currentQIndex];
+
+        if (updatedQuestion) {
+            formRefData.current.questions[currentQIndex] = updatedQuestion;
+        }
+
+        // Close the form after the update
         closeRef.current?.click();
     };
 
