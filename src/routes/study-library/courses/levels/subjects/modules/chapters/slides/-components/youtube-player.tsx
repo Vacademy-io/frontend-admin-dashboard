@@ -140,10 +140,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const [videoDuration, setVideoDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
     const [hoveredQuestion, setHoveredQuestion] = useState<Question | null>(null);
-    const [isTimeStampDialogOpen, setIsTimeStampDialogOpen] = useState(false);
-    const [isTimeStampEditDialogOpen, setIsTimeStampEditDialogOpen] = useState(false);
-    const [addQuestionTypeDialog, setAddQuestionTypeDialog] = useState(false);
-    const [openQuestionPreview, setOpenQuestionPreview] = useState(false);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
     const extractVideoId = (url: string): string => {
