@@ -5,32 +5,33 @@ import { useInstituteDetailsStore } from "@/stores/students/students-list/useIns
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const ModulesWithChaptersProvider = ({
-    subjectId,
     children,
-    packageSessionId,
 }: {
-    subjectId: string;
     children: React.ReactNode;
-    packageSessionId?: string;
 }) => {
     const { getPackageSessionId } = useInstituteDetailsStore();
     const router = useRouter();
-    const { courseId, levelId } = router.state.location.search;
-    const { selectedSession } = useSelectedSessionStore();
+    const { courseId, levelId, subjectId, sessionId } = router.state.location.search;
     const newPackageSessionId = getPackageSessionId({
         courseId: courseId || "",
-        sessionId: selectedSession?.id || "",
+        sessionId: sessionId || "",
         levelId: levelId || "",
     });
 
-    const myPackageSessionId = packageSessionId || newPackageSessionId;
+    const myPackageSessionId = newPackageSessionId;
+
+    useEffect(()=>{
+        console.log(subjectId);
+    }, [subjectId])
 
     // Always call the query hook, but control its execution with enabled
     const { isLoading } = useQuery({
-        ...useModulesWithChaptersQuery(subjectId, myPackageSessionId || ""),
+        ...useModulesWithChaptersQuery(subjectId || "", myPackageSessionId || ""),
     });
+
 
     return <div>{isLoading ? <DashboardLoader /> : children}</div>;
 };

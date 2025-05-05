@@ -72,6 +72,7 @@ function RouteComponent() {
                 courseId,
                 levelId,
                 subjectId,
+                sessionId,
             },
         });
     };

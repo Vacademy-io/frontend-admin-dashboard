@@ -87,7 +87,7 @@ function RouteComponent() {
             sideBarData={{title: "Subjects", listIconText: "S", searchParam: "subjectId"}}
         >
             <InitStudyLibraryProvider>
-                <ModulesWithChaptersProvider subjectId={searchParams.subjectId}>
+                <ModulesWithChaptersProvider>
                     <ModuleMaterial />
                 </ModulesWithChaptersProvider>
             </InitStudyLibraryProvider>
