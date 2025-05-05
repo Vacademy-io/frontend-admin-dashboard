@@ -7,14 +7,16 @@ import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore
 import { CaretLeft } from "phosphor-react";
 import { getSubjectName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById";
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query"; // Import useQueryClient
-import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
-import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
+import { useQueryClient } from "@tanstack/react-query";
+import { SubjectType } from "@/stores/study-library/use-study-library-store";
+import { getSubjectsByLevelAndSession } from "@/utils/courseUtils";
+import { useStudyLibraryStore } from "@/stores/study-library/use-study-library-store";
 
 interface SubjectSearchParams {
     courseId: string;
     levelId: string;
     subjectId: string;
+    sessionId: string;
 }
 
 export const Route = createFileRoute("/study-library/courses/levels/subjects/modules/")({
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/study-library/courses/levels/subjects/mod
             courseId: search.courseId as string,
             levelId: search.levelId as string,
             subjectId: search.subjectId as string,
+            sessionId: search.sessionId as string,
         };
     },
 });
@@ -34,7 +37,7 @@ function RouteComponent() {
 
     const { setNavHeading } = useNavHeadingStore();
     const navigate = useNavigate();
-    const { courseId, levelId, subjectId } = Route.useSearch();
+    const { courseId, levelId, subjectId, sessionId } = Route.useSearch();
     const subjectName = getSubjectName(subjectId);
 
     // Function to invalidate the modules with chapters query
@@ -61,23 +64,16 @@ function RouteComponent() {
     // Ensure dependencies are complete
     useEffect(() => {
         setNavHeading(heading);
-        // You can call this function here if you want to invalidate on component mount
         invalidateModulesQuery();
     }, []);
 
+    const [subjects, setSubjects] = useState<SubjectType[]>([]);
 
-    const { instituteDetails } = useInstituteDetailsStore();
-    const batchDetails = instituteDetails?.batches_for_sessions.filter((batch)=> batch.level.id==levelId && batch.package_dto.id==courseId)
-    const sessionId = batchDetails && batchDetails.length > 0 ? batchDetails[1]?.session.id : ""
-
-    const initialSubjects = getCourseSubjects(courseId, sessionId?? "", levelId);
-    const [subjects, setSubjects] = useState(initialSubjects);
-
+    const { studyLibraryData } = useStudyLibraryStore();
     useEffect(() => {
-        const newSubjects = getCourseSubjects(courseId, sessionId ?? "", levelId);
-        setSubjects(newSubjects);
-    }, [sessionId, levelId]);
-
+        const subjects = getSubjectsByLevelAndSession(studyLibraryData, levelId, sessionId);
+        setSubjects(subjects);
+    }, [levelId, sessionId]);
 
     return (
         <LayoutContainer

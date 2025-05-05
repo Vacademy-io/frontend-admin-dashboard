@@ -45,7 +45,6 @@ export const SubjectMaterial = () => {
 
     useEffect(() => {
         setSessionList(searchParams.courseId ? getSessionFromPackage({courseId: courseId, levelId: searchParams.levelId}) : []);
-        console.log("session list on level id change" ,getSessionFromPackage({courseId: courseId, levelId: searchParams.levelId}));
     }, [searchParams.courseId, searchParams.levelId]);
 
     useEffect(() => {
@@ -155,6 +154,7 @@ export const SubjectMaterial = () => {
                 onEditSubject={handleEditSubject}
                 packageSessionIds={packageSessionIds}
                 onOrderChange={handleSubjectOrderChange}
+                currentSession={currentSession}
             />
         </div>
     );

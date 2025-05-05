@@ -8,6 +8,7 @@ import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { SubjectType } from "@/stores/study-library/use-study-library-store";
 import { orderSubjectPayloadType } from "@/routes/study-library/courses/-types/order-payload";
 import { useSidebar } from "@/components/ui/sidebar";
+import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 
 interface SubjectsProps {
     subjects: SubjectType[];
@@ -16,6 +17,7 @@ interface SubjectsProps {
     onOrderChange?: (updatedOrder: orderSubjectPayloadType[]) => void;
     isLoading?: boolean;
     packageSessionIds: string;
+    currentSession?: DropdownItemType;
 }
 
 export const Subjects = ({
@@ -25,6 +27,7 @@ export const Subjects = ({
     onOrderChange,
     isLoading = false,
     packageSessionIds,
+    currentSession,
 }: SubjectsProps) => {
     const { open } = useSidebar();
 
@@ -39,8 +42,6 @@ export const Subjects = ({
             package_session_id: packageSessionIds, // This needs to be filled with actual package session id
             subject_order: index + 1,
         }));
-
-        console.log("Updated order: ", orderPayload);
 
         onOrderChange?.(orderPayload);
     };
@@ -83,6 +84,7 @@ export const Subjects = ({
                                         onEdit={(updatedSubject) =>
                                             onEditSubject(subject.id, updatedSubject)
                                         }
+                                        currentSession={currentSession}
                                     />
                                 </div>
                             </SortableItem>
