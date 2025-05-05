@@ -15,7 +15,7 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const router = useRouter();
-    const { courseId, levelId, subjectId, moduleId } = router.state.location.search;
+    const { courseId, levelId, subjectId, moduleId, sessionId } = router.state.location.search;
     const navigate = useNavigate();
 
     const navigateToSlidePage = () => {
@@ -29,6 +29,7 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
                 subjectId: subjectId,
                 moduleId: moduleId,
                 chapterId: chapter.chapter.id,
+                sessionId: sessionId,
             },
         });
     };

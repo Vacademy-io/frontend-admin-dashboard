@@ -13,14 +13,16 @@ import { SubjectType } from "@/stores/study-library/use-study-library-store";
 import { getModuleFlags } from "@/components/common/layout-container/sidebar/helper";
 import { useInstituteQuery } from "@/services/student-list-section/getInstituteDetails";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 
 interface SubjectCardProps {
     subject: SubjectType;
     onDelete: () => void;
     onEdit: (updatedSubject: SubjectType) => void;
+    currentSession?: DropdownItemType;
 }
 
-export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => {
+export const SubjectCard = ({ subject, onDelete, onEdit, currentSession }: SubjectCardProps) => {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
     const { getPublicUrl } = useFileUpload();
@@ -49,6 +51,7 @@ export const SubjectCard = ({ subject, onDelete, onEdit }: SubjectCardProps) => 
                 courseId: searchParams.courseId,
                 levelId: searchParams.levelId,
                 subjectId: subject.id,
+                sessionId: currentSession?.id,
             },
         });
     };

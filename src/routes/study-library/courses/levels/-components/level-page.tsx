@@ -6,10 +6,7 @@ import { SessionDropdown } from "../../../../../components/common/study-library/
 import { useSidebar } from "@/components/ui/sidebar";
 import { getCourseSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForLevels";
 import { getCourseLevels } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getLevelWithDetails";
-import {
-    StudyLibrarySessionType,
-    useStudyLibraryStore,
-} from "@/stores/study-library/use-study-library-store";
+import { StudyLibrarySessionType } from "@/stores/study-library/use-study-library-store";
 import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import { AddLevelButton } from "./add-level-button";
 import { AddLevelData } from "./add-level-form";
@@ -21,33 +18,44 @@ import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
 import { useUpdateLevel } from "@/routes/study-library/courses/levels/-services/update-level";
 import { EmptyLevelPage } from "@/svgs";
+import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
+import { DropdownItemType, DropdownValueType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 
 export const LevelPage = () => {
     const { open } = useSidebar();
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const courseId = searchParams.courseId;
-    const { setSelectedSession } = useSelectedSessionStore();
     const addLevelMutation = useAddLevel();
     const deleteLevelMutation = useDeleteLevel();
     const updateLevelMutation = useUpdateLevel();
-    const { studyLibraryData } = useStudyLibraryStore();
     // Ensure hooks always run
-    const sessionList = courseId ? getCourseSessions(courseId) : [];
-    const initialSession: StudyLibrarySessionType | undefined = sessionList[0] ?? undefined;
+    const [sessionList, setSessionList] = useState<DropdownItemType[]>(
+        searchParams.courseId ? getCourseSessions(searchParams.courseId).map((session) => ({id: session.id, name: session.session_name})) : [],
+    );
+    const initialSession: DropdownItemType | undefined = {id: sessionList[0]?.id || "", name: sessionList[0]?.name || ""}
 
-    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
+    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(
         () => initialSession,
     );
 
+    useEffect(() => {
+        setSessionList(searchParams.courseId ? getCourseSessions(searchParams.courseId).map((session) => ({id: session.id, name: session.session_name})) : []);
+    }, [searchParams.courseId]);
+
+    useEffect(() => {
+        setCurrentSession({id: sessionList[0]?.id || "", name: sessionList[0]?.name || ""});
+    }, [sessionList]);
+
     // Get levels only if session is selected
-    const initialLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
+    const initialLevelList = currentSession
+        ? getCourseLevels(searchParams.courseId!, currentSession.id)
+        : [];
 
     const [levelList, setLevelList] = useState(initialLevelList);
 
-    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
-        if (typeof value !== "string" && value) {
-            setCurrentSession(value);
+    const handleSessionChange = (value: DropdownValueType) => {
+        if (value && typeof value === "object" && "id" in value && "name" in value) {
+            setCurrentSession(value as DropdownItemType);
         }
     };
 
@@ -68,15 +76,11 @@ export const LevelPage = () => {
     });
 
     useEffect(() => {
-        setSelectedSession(currentSession);
-        const newLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
+        const newLevelList = currentSession
+            ? getCourseLevels(searchParams.courseId!, currentSession.id)
+            : [];
         setLevelList(newLevelList);
-    }, [currentSession]);
-
-    useEffect(() => {
-        const newLevelList = currentSession ? getCourseLevels(courseId!, currentSession.id) : [];
-        setLevelList(newLevelList);
-    }, [studyLibraryData]);
+    }, [currentSession, searchParams.courseId]);
 
     const handleAddLevel = ({
         requestData,
@@ -135,7 +139,7 @@ export const LevelPage = () => {
 
     return (
         <div className="relative flex flex-1 flex-col gap-8 text-neutral-600">
-            {!courseId ? (
+            {!searchParams.courseId ? (
                 <div>Course not found</div>
             ) : sessionList.length === 0 ? (
                 <div className="flex flex-1 flex-col">
@@ -152,11 +156,11 @@ export const LevelPage = () => {
                     {LevelHeader()}
 
                     <div className="flex items-center gap-6">
-                        <SessionDropdown
-                            currentSession={currentSession ?? undefined} // Convert null to undefined
-                            onSessionChange={handleSessionChange}
-                            className="text-title font-semibold"
-                            sessionList={sessionList}
+                         <MyDropdown
+                            currentValue={currentSession ?? undefined}
+                            dropdownList={sessionList}
+                            placeholder="Select Session"
+                            handleChange={handleSessionChange}
                         />
                     </div>
 

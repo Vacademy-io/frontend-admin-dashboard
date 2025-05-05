@@ -8,6 +8,7 @@ import { CaretLeft } from "phosphor-react";
 import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { useNavHeadingStore } from "@/stores/layout-container/useNavHeadingStore";
 import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 
 interface LevelSearchParams {
     courseId: string;
@@ -29,6 +30,11 @@ function RouteComponent() {
     const navigate = useNavigate();
     const { courseId, levelId } = Route.useSearch();
     const levelName = getLevelName(levelId);
+    const {getLevelsFromPackage} = useInstituteDetailsStore();
+
+    const levelList = getLevelsFromPackage({courseId: courseId});
+
+    
 
     const handleBackClick = () => {
         if (levelId == "DEFAULT") {
@@ -60,7 +66,16 @@ function RouteComponent() {
     }, []);
 
     return (
-        <LayoutContainer>
+        <LayoutContainer
+            internalSideBar
+            sideBarList={levelList.map((level)=>{
+                return{
+                    value: level.name,
+                    id: level.id
+                }
+            })}
+            sideBarData={{title: "Levels", listIconText: "L", searchParam: "levelId"}}
+        >
             <InitStudyLibraryProvider>
                 <SubjectMaterial />
             </InitStudyLibraryProvider>

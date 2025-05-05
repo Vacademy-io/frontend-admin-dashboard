@@ -15,7 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import { getChaptersByModuleId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getChaptersByModuleId";
 import { useDialogStore } from "@/routes/study-library/courses/-stores/slide-add-dialogs-store";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 
 // Form validation schema
 const formSchema = z.object({
@@ -66,6 +66,8 @@ export const CreateStudyDocForm = () => {
     } = useInstituteDetailsStore();
 
     const { openDocUploadDialog } = useDialogStore();
+    const router = useRouter();
+    const { sessionId } = router.state.location.search;
 
     const navigate = useNavigate();
 
@@ -223,6 +225,7 @@ export const CreateStudyDocForm = () => {
                 moduleId: data.module?.id || "",
                 chapterId: data.chapter?.id || "",
                 slideId: "",
+                sessionId: sessionId || "",
             },
         });
         openDocUploadDialog();
@@ -233,8 +236,8 @@ export const CreateStudyDocForm = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {formData.map((obj, index) => (
                     <ModulesWithChaptersProvider
-                        subjectId={form.getValues("subject")?.id || ""}
-                        packageSessionId={packageSessionId || ""}
+                        // subjectId={form.getValues("subject")?.id || ""}
+                        // packageSessionId={packageSessionId || ""}
                         key={index}
                     >
                         <FormField

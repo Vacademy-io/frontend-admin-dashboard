@@ -4,7 +4,6 @@ import { AddSubjectButton } from "./add-subject.tsx/add-subject-button";
 import { Subjects } from "./add-subject.tsx/subjects";
 import { useEffect, useState } from "react";
 import {
-    StudyLibrarySessionType,
     SubjectType,
     useStudyLibraryStore,
 } from "@/stores/study-library/use-study-library-store";
@@ -12,24 +11,22 @@ import { useAddSubject } from "@/routes/study-library/courses/levels/subjects/-s
 import { useUpdateSubject } from "@/routes/study-library/courses/levels/subjects/-services/updateSubject";
 import { useDeleteSubject } from "@/routes/study-library/courses/levels/subjects/-services/deleteSubject";
 import { DashboardLoader } from "@/components/core/dashboard-loader";
-import { SessionDropdown } from "../../../../../../components/common/study-library/study-library-session-dropdown";
 import { getCourseSubjects } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects";
-// import { getLevelName } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getLevelNameById";
 import { useGetPackageSessionId } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId";
 import { useUpdateSubjectOrder } from "@/routes/study-library/courses/levels/subjects/-services/updateSubjectOrder";
 import { orderSubjectPayloadType } from "@/routes/study-library/courses/-types/order-payload";
-import { getLevelSessions } from "@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSessionsForSubjects";
-import { useSelectedSessionStore } from "@/stores/study-library/selected-session-store";
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
-// import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
+import { MyDropdown } from "@/components/common/students/enroll-manually/dropdownForPackageItems";
+import { DropdownValueType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
+import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
+import { DropdownItemType } from "@/components/common/students/enroll-manually/dropdownTypesForPackageItems";
 
 export const SubjectMaterial = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const { selectedSession, setSelectedSession } = useSelectedSessionStore();
-
+    const { getSessionFromPackage } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
 
     // Extract params safely
@@ -37,12 +34,28 @@ export const SubjectMaterial = () => {
     const levelId: string = searchParams.levelId || "";
 
     // Define states before any conditions
-    const sessionList = courseId && levelId ? getLevelSessions(levelId) : [];
-    const initialSession: StudyLibrarySessionType | undefined =
-        selectedSession && sessionList.includes(selectedSession) ? selectedSession : sessionList[0];
-    const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
-        initialSession,
+    const [sessionList, setSessionList] = useState<DropdownItemType[]>(
+        searchParams.courseId ? getSessionFromPackage({courseId: courseId, levelId: levelId}) : []
     );
+    const initialSession: DropdownItemType | undefined = {id: sessionList[0]?.id || "", name: sessionList[0]?.name || ""}
+
+    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(
+        () => initialSession,
+    );
+
+    useEffect(() => {
+        setSessionList(searchParams.courseId ? getSessionFromPackage({courseId: courseId, levelId: searchParams.levelId}) : []);
+    }, [searchParams.courseId, searchParams.levelId]);
+
+    useEffect(() => {
+        setCurrentSession({id: sessionList[0]?.id || "", name: sessionList[0]?.name || ""});
+    }, [sessionList]);
+
+    const handleSessionChange = (value: DropdownValueType) => {
+        if (value && typeof value === "object" && "id" in value && "name" in value) {
+            setCurrentSession(value as DropdownItemType);
+        }
+    };
     // const [searchInput, setSearchInput] = useState("");
 
     // Custom hooks (always called unconditionally)
@@ -51,24 +64,15 @@ export const SubjectMaterial = () => {
     const deleteSubjectMutation = useDeleteSubject();
     const updateSubjectOrderMutation = useUpdateSubjectOrder();
 
-    // Prevent rendering if required params are missing
-
-    const handleSessionChange = (value: string | StudyLibrarySessionType) => {
-        if (typeof value !== "string" && value) {
-            setCurrentSession(value);
-        }
-    };
-
-    const initialSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
-    const [subjects, setSubjects] = useState(initialSubjects);
-
     useIntroJsTour({
         key: StudyLibraryIntroKey.addSubjectStep,
         steps: studyLibrarySteps.addSubjectStep,
     });
 
+    const initialSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
+    const [subjects, setSubjects] = useState(initialSubjects);
+
     useEffect(() => {
-        setSelectedSession(currentSession);
         const newSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
         setSubjects(newSubjects);
     }, [currentSession, studyLibraryData]);
@@ -137,18 +141,12 @@ export const SubjectMaterial = () => {
                 <AddSubjectButton onAddSubject={handleAddSubject} />
             </div>
             <div className="flex items-center gap-6">
-                <SessionDropdown
-                    currentSession={currentSession ?? undefined}
-                    onSessionChange={handleSessionChange}
-                    className="text-title font-semibold"
-                    sessionList={sessionList}
+                <MyDropdown
+                    currentValue={currentSession ?? undefined}
+                    dropdownList={sessionList}
+                    placeholder="Select Session"
+                    handleChange={handleSessionChange}
                 />
-                {/* TODO: aad search fuctionlity when api is created
-                    <SearchInput
-                    searchInput={searchInput}
-                    onSearchChange={handleSearchInputChange}
-                    placeholder="Search subject"
-                /> */}
             </div>
             <Subjects
                 subjects={subjects}
@@ -156,6 +154,7 @@ export const SubjectMaterial = () => {
                 onEditSubject={handleEditSubject}
                 packageSessionIds={packageSessionIds}
                 onOrderChange={handleSubjectOrderChange}
+                currentSession={currentSession}
             />
         </div>
     );

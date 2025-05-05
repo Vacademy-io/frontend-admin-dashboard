@@ -1,6 +1,7 @@
 import { MyButton } from "@/components/design-system/button";
 import { Question as QusetionDto } from "@/types/community/filters/questionDto";
 import { processHtmlString } from "../-service/utils";
+
 interface QuestionProps {
     idx: number;
     questionData: QusetionDto;
@@ -25,6 +26,7 @@ export function Question({ idx, questionData }: QuestionProps) {
                             ),
                         )}
                     </div>
+                    {/* <div>{showAnswer ? questionData.options[questionData.] : ""}</div> */}
                 </div>
                 <div className="flex flex-row items-center gap-4">
                     <MyButton buttonType="secondary" scale="small">

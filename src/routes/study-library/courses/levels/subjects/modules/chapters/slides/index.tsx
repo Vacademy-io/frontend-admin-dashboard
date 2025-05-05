@@ -33,6 +33,7 @@ interface ChapterSearchParams {
     moduleId: string;
     chapterId: string;
     slideId: string;
+    sessionId: string;
 }
 
 export const Route = createFileRoute(
@@ -47,12 +48,13 @@ export const Route = createFileRoute(
             moduleId: search.moduleId as string,
             chapterId: search.chapterId as string,
             slideId: search.slideId as string,
+            sessionId: search.sessionId as string
         };
     },
 });
 
 function RouteComponent() {
-    const { courseId, subjectId, levelId, moduleId, chapterId } = Route.useSearch();
+    const { courseId, subjectId, levelId, moduleId, chapterId, sessionId } = Route.useSearch();
     const { open } = useSidebar();
     const navigate = useNavigate();
     const { activeItem } = useContentStore();
@@ -74,6 +76,7 @@ function RouteComponent() {
                 courseId: courseId,
                 levelId: levelId,
                 subjectId: subjectId,
+                sessionId: sessionId,
             },
             hash: "",
         });
@@ -88,6 +91,7 @@ function RouteComponent() {
                 levelId: levelId,
                 subjectId: subjectId,
                 moduleId: moduleId,
+                sessionId: sessionId,
             },
             hash: "",
         });
@@ -171,6 +175,7 @@ function RouteComponent() {
                 moduleId,
                 chapterId,
                 slideId: activeItem?.slide_id || "",
+                sessionId: sessionId,
             },
             replace: true,
         });
@@ -184,6 +189,7 @@ function RouteComponent() {
                 levelId,
                 subjectId,
                 moduleId,
+                sessionId: sessionId,
             },
         });
     };
@@ -209,9 +215,9 @@ function RouteComponent() {
             getCurrentEditorHTMLContent={() => getCurrentEditorHTMLContentRef.current()}
             saveDraft={(slide) => saveDraftRef.current(slide)}
         >
-            <LayoutContainer sidebarComponent={SidebarComponent}>
+            <LayoutContainer internalSidebarComponent={SidebarComponent}  hasInternalSidebarComponent={true}>
                 <InitStudyLibraryProvider>
-                    <ModulesWithChaptersProvider subjectId={subjectId}>
+                    <ModulesWithChaptersProvider>
                         <SlideMaterial
                             setGetCurrentEditorHTMLContent={(fn) =>
                                 (getCurrentEditorHTMLContentRef.current = fn)
