@@ -160,8 +160,6 @@ export const ChapterSidebarAddButton = () => {
         }
     };
 
-    console.log(items);
-
     return (
         <>
             <MyDropdown dropdownList={dropdownList} onSelect={handleSelect}>

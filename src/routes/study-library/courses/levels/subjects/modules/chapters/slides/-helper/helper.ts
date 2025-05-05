@@ -388,3 +388,9 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType) {
         new_slide: true,
     };
 }
+
+export function timestampToSeconds(timestamp: string | undefined): number {
+    if (!timestamp) return 0;
+    const [hours = 0, minutes = 0, seconds = 0] = timestamp.split(":").map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+}
