@@ -1,5 +1,5 @@
 import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { FormProvider } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
@@ -25,6 +25,8 @@ interface VideoQuestionsTimeFrameDialogProps {
     setPreviewQuestionDialog: Dispatch<SetStateAction<boolean>>;
     formData: UploadQuestionPaperFormType;
     setFormData: Dispatch<SetStateAction<UploadQuestionPaperFormType>>;
+    isAddTimeFrameRef: React.RefObject<HTMLButtonElement>;
+    isAddQuestionTypeRef: React.RefObject<HTMLButtonElement>;
 }
 
 const VideoQuestionsTimeFrameAddDialog = ({
@@ -39,6 +41,8 @@ const VideoQuestionsTimeFrameAddDialog = ({
     setPreviewQuestionDialog,
     formData,
     setFormData,
+    isAddTimeFrameRef,
+    isAddQuestionTypeRef,
 }: VideoQuestionsTimeFrameDialogProps) => {
     return (
         <Dialog>
@@ -181,10 +185,15 @@ const VideoQuestionsTimeFrameAddDialog = ({
                                 setPreviewQuestionDialog={setPreviewQuestionDialog}
                                 formData={formData}
                                 setFormData={setFormData}
+                                isAddTimeFrameRef={isAddTimeFrameRef}
+                                isAddQuestionTypeRef={isAddQuestionTypeRef}
                             />
                         </div>
                     </form>
                 </FormProvider>
+                <DialogClose asChild>
+                    <button ref={isAddTimeFrameRef} className="hidden" />
+                </DialogClose>
             </DialogContent>
         </Dialog>
     );

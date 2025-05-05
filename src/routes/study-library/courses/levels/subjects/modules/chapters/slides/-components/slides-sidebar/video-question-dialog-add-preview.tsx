@@ -21,6 +21,8 @@ const VideoQuestionDialogAddPreview = ({
     setPreviewQuestionDialog,
     formData,
     setFormData,
+    isAddTimeFrameRef,
+    isAddQuestionTypeRef,
 }: {
     videoQuestionForm: UseFormReturn<QuestionPaperForm>;
     addedQuestionForm: UseFormReturn<QuestionPaperForm>;
@@ -32,6 +34,8 @@ const VideoQuestionDialogAddPreview = ({
     setPreviewQuestionDialog: Dispatch<SetStateAction<boolean>>;
     formData: UploadQuestionPaperFormType;
     setFormData: Dispatch<SetStateAction<UploadQuestionPaperFormType>>;
+    isAddTimeFrameRef: React.RefObject<HTMLButtonElement>;
+    isAddQuestionTypeRef: React.RefObject<HTMLButtonElement>;
 }) => {
     const handleClose = () => {
         setCurrentQuestionIndex(0);
@@ -56,6 +60,8 @@ const VideoQuestionDialogAddPreview = ({
             sec: "",
         });
         setPreviewQuestionDialog(false);
+        isAddTimeFrameRef.current?.click();
+        isAddQuestionTypeRef.current?.click();
     };
     const handleAddQuestionInAddedForm = () => {
         addedQuestionForm.reset({

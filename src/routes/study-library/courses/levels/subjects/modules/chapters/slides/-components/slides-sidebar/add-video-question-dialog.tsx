@@ -6,7 +6,7 @@ import { questionsFormSchema } from "@/routes/assessment/question-papers/-utils/
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
 import { uploadQuestionPaperFormSchema } from "@/routes/assessment/question-papers/-utils/upload-question-paper-form-schema";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { MyButton } from "@/components/design-system/button";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { VideoPlayerTimeFormType } from "../../-form-schemas/video-player-time-schema";
@@ -50,6 +50,8 @@ const AddVideoQuestionDialog = ({
     setPreviewQuestionDialog,
     formData,
     setFormData,
+    isAddTimeFrameRef,
+    isAddQuestionTypeRef,
 }: {
     addedQuestionForm: UseFormReturn<QuestionPaperForm>;
     videoQuestionForm: UseFormReturn<QuestionPaperForm>;
@@ -61,6 +63,8 @@ const AddVideoQuestionDialog = ({
     setPreviewQuestionDialog: Dispatch<SetStateAction<boolean>>;
     formData: UploadQuestionPaperFormType;
     setFormData: Dispatch<SetStateAction<UploadQuestionPaperFormType>>;
+    isAddTimeFrameRef: React.RefObject<HTMLButtonElement>;
+    isAddQuestionTypeRef: React.RefObject<HTMLButtonElement>;
 }) => {
     const { append: appendVideoQuestion } = useFieldArray({
         control: videoQuestionForm.control,
@@ -237,6 +241,9 @@ const AddVideoQuestionDialog = ({
                             />
                         </div>
                     </div>
+                    <DialogClose asChild>
+                        <button ref={isAddQuestionTypeRef} className="hidden" />
+                    </DialogClose>
                 </DialogContent>
             </Dialog>
             <VideoQuestionDialogAddPreview
@@ -250,6 +257,8 @@ const AddVideoQuestionDialog = ({
                 setPreviewQuestionDialog={setPreviewQuestionDialog}
                 formData={formData}
                 setFormData={setFormData}
+                isAddTimeFrameRef={isAddTimeFrameRef}
+                isAddQuestionTypeRef={isAddQuestionTypeRef}
             />
         </>
     );

@@ -378,6 +378,8 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         };
     }, [playerRef.current]);
 
+    const isAddTimeFrameRef = useRef<HTMLButtonElement | null>(null);
+    const isAddQuestionTypeRef = useRef<HTMLButtonElement | null>(null);
     return (
         <div className="flex w-full flex-col">
             {/* Video Player Container (preserving your aspect ratio) */}
@@ -459,6 +461,8 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     setPreviewQuestionDialog={setPreviewQuestionDialog}
                     formData={formData}
                     setFormData={setFormData}
+                    isAddTimeFrameRef={isAddTimeFrameRef}
+                    isAddQuestionTypeRef={isAddQuestionTypeRef}
                 />
             </div>
 
