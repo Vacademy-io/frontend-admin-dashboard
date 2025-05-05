@@ -19,6 +19,8 @@ const VideoQuestionDialogAddPreview = ({
     setCurrentQuestionIndex,
     previewQuestionDialog,
     setPreviewQuestionDialog,
+    formData,
+    setFormData,
 }: {
     videoQuestionForm: UseFormReturn<QuestionPaperForm>;
     addedQuestionForm: UseFormReturn<QuestionPaperForm>;
@@ -28,6 +30,8 @@ const VideoQuestionDialogAddPreview = ({
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
     previewQuestionDialog: boolean;
     setPreviewQuestionDialog: Dispatch<SetStateAction<boolean>>;
+    formData: UploadQuestionPaperFormType;
+    setFormData: Dispatch<SetStateAction<UploadQuestionPaperFormType>>;
 }) => {
     const handleClose = () => {
         setCurrentQuestionIndex(0);
@@ -68,6 +72,10 @@ const VideoQuestionDialogAddPreview = ({
                 ...videoQuestionForm.getValues("questions"),
             ],
         };
+        setFormData({
+            ...formData,
+            questions: [...formData.questions, ...videoQuestionForm.getValues("questions")],
+        });
         handleClose();
     };
 

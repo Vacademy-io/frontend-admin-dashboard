@@ -21,11 +21,13 @@ const VideoQuestionDialogEditPreview = ({
     question,
     currentQuestionIndex,
     setCurrentQuestionIndex,
+    updateQuestion, // Add updateQuestion prop
 }: {
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
     question?: StudyLibraryQuestion;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    updateQuestion?: (question: StudyLibraryQuestion) => void; // New prop for updating state
 }) => {
     const form = useForm<QuestionPaperForm>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
@@ -70,7 +72,13 @@ const VideoQuestionDialogEditPreview = ({
         const updatedQuestion = updatedQuestions[currentQIndex];
 
         if (updatedQuestion) {
+            // Update the ref for compatibility with existing code
             formRefData.current.questions[currentQIndex] = updatedQuestion;
+
+            // Call updateQuestion to update the state and trigger re-render
+            if (updateQuestion) {
+                updateQuestion(updatedQuestion);
+            }
         }
 
         // Close the form after the update

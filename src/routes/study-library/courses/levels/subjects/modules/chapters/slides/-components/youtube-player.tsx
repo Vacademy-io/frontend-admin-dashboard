@@ -70,7 +70,8 @@ interface YouTubePlayerProps {
 }
 
 export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
-    const formRefData = useRef<UploadQuestionPaperFormType>({
+    // Convert formRefData from a ref to useState to trigger re-renders
+    const [formData, setFormData] = useState<UploadQuestionPaperFormType>({
         questionPaperId: "1",
         isFavourite: false,
         title: "",
@@ -84,6 +85,14 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         fileUpload: undefined,
         questions: [],
     });
+
+    // Keep ref for compatibility with existing code
+    const formRefData = useRef<UploadQuestionPaperFormType>(formData);
+
+    // Update ref whenever state changes
+    useEffect(() => {
+        formRefData.current = formData;
+    }, [formData]);
 
     const videoPlayerTimeFrameForm = useForm<VideoPlayerTimeFormType>({
         resolver: zodResolver(videoPlayerTimeSchema),
@@ -260,6 +269,25 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         return result;
     }
 
+    // Function to update questions in state
+    const updateQuestion = (updatedQuestion: StudyLibraryQuestion) => {
+        setFormData((prevData) => {
+            const updatedQuestions = [...prevData.questions];
+            const index = updatedQuestions.findIndex(
+                (q) => q.questionId === updatedQuestion.questionId,
+            );
+
+            if (index !== -1) {
+                updatedQuestions[index] = updatedQuestion;
+            }
+
+            return {
+                ...prevData,
+                questions: updatedQuestions,
+            };
+        });
+    };
+
     // Initialize YouTube API
     useEffect(() => {
         loadYouTubeAPI();
@@ -377,7 +405,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     ></div>
 
                     {/* Question Markers */}
-                    {formRefData.current.questions.map((question: StudyLibraryQuestion, idx) => (
+                    {formData.questions.map((question: StudyLibraryQuestion, idx) => (
                         <div
                             key={idx}
                             className="absolute top-0 -ml-1.5 size-3 -translate-y-1/2 cursor-pointer rounded-full bg-red-500"
@@ -430,16 +458,18 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     setCurrentQuestionIndex={setCurrentQuestionIndex}
                     previewQuestionDialog={previewQuestionDialog}
                     setPreviewQuestionDialog={setPreviewQuestionDialog}
+                    formData={formData}
+                    setFormData={setFormData}
                 />
             </div>
 
             {/* Questions List */}
             <div className="mt-4 w-full">
-                {formRefData.current.questions.length === 0 ? (
+                {formData.questions.length === 0 ? (
                     <p className="text-sm italic text-gray-500">No questions added yet.</p>
                 ) : (
                     <ul className="max-h-60 space-y-1 overflow-y-auto">
-                        {formRefData.current.questions.map((question, idx) => (
+                        {formData.questions.map((question, idx) => (
                             <li
                                 key={idx}
                                 className="cursor-pointer rounded-md bg-white p-2 text-sm hover:bg-gray-50"
@@ -456,6 +486,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         formRefData={formRefData}
                                         handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
                                         question={question}
+                                        updateQuestion={updateQuestion} // Pass updateQuestion function
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -474,6 +505,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                             question={question}
                                             currentQuestionIndex={idx}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                            updateQuestion={updateQuestion} // Pass updateQuestion function
                                         />
                                     </div>
                                 </div>

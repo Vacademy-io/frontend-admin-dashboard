@@ -48,6 +48,8 @@ const AddVideoQuestionDialog = ({
     setCurrentQuestionIndex,
     previewQuestionDialog,
     setPreviewQuestionDialog,
+    formData,
+    setFormData,
 }: {
     addedQuestionForm: UseFormReturn<QuestionPaperForm>;
     videoQuestionForm: UseFormReturn<QuestionPaperForm>;
@@ -57,6 +59,8 @@ const AddVideoQuestionDialog = ({
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
     previewQuestionDialog: boolean;
     setPreviewQuestionDialog: Dispatch<SetStateAction<boolean>>;
+    formData: UploadQuestionPaperFormType;
+    setFormData: Dispatch<SetStateAction<UploadQuestionPaperFormType>>;
 }) => {
     const { append: appendVideoQuestion } = useFieldArray({
         control: videoQuestionForm.control,
@@ -240,6 +244,8 @@ const AddVideoQuestionDialog = ({
                 setCurrentQuestionIndex={setCurrentQuestionIndex}
                 previewQuestionDialog={previewQuestionDialog}
                 setPreviewQuestionDialog={setPreviewQuestionDialog}
+                formData={formData}
+                setFormData={setFormData}
             />
         </>
     );

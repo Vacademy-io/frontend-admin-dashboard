@@ -23,6 +23,8 @@ interface VideoQuestionsTimeFrameDialogProps {
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
     previewQuestionDialog: boolean;
     setPreviewQuestionDialog: Dispatch<SetStateAction<boolean>>;
+    formData: UploadQuestionPaperFormType;
+    setFormData: Dispatch<SetStateAction<UploadQuestionPaperFormType>>;
 }
 
 const VideoQuestionsTimeFrameAddDialog = ({
@@ -35,6 +37,8 @@ const VideoQuestionsTimeFrameAddDialog = ({
     setCurrentQuestionIndex,
     previewQuestionDialog,
     setPreviewQuestionDialog,
+    formData,
+    setFormData,
 }: VideoQuestionsTimeFrameDialogProps) => {
     return (
         <Dialog>
@@ -175,6 +179,8 @@ const VideoQuestionsTimeFrameAddDialog = ({
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
                                 previewQuestionDialog={previewQuestionDialog}
                                 setPreviewQuestionDialog={setPreviewQuestionDialog}
+                                formData={formData}
+                                setFormData={setFormData}
                             />
                         </div>
                     </form>
