@@ -23,6 +23,10 @@ import { useSelectedSessionStore } from "@/stores/study-library/selected-session
 import useIntroJsTour from "@/hooks/use-intro";
 import { StudyLibraryIntroKey } from "@/constants/storage/introKey";
 import { studyLibrarySteps } from "@/constants/intro/steps";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { tabs, TabType } from "../-constants/constant";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {useModulesWithChaptersQuery} from "../../../-services/getModulesWithChapters"
 // import { getCourseNameById } from "@/utils/helpers/study-library-helpers.ts/get-name-by-id/getCourseNameById";
 
 export const SubjectMaterial = () => {
@@ -43,6 +47,17 @@ export const SubjectMaterial = () => {
     const [currentSession, setCurrentSession] = useState<StudyLibrarySessionType | undefined>(
         initialSession,
     );
+    const [selectedTab, setSelectedTab] = useState("OUTLINE");
+    const handleTabChange = (value: string) => {
+        setSelectedTab(value);
+    };
+
+    const getTabClass = (isActive: boolean) =>
+        `flex gap-1.5 rounded-none pb-2 pl-12 pr-12 pt-2 !shadow-none ${
+            isActive
+                ? "border-4px rounded-tl-sm rounded-tr-sm border !border-b-0 border-primary-200 !bg-primary-50"
+                : "border-none bg-transparent"
+        }`;
     // const [searchInput, setSearchInput] = useState("");
 
     // Custom hooks (always called unconditionally)
@@ -72,6 +87,10 @@ export const SubjectMaterial = () => {
         const newSubjects = getCourseSubjects(courseId, currentSession?.id ?? "", levelId);
         setSubjects(newSubjects);
     }, [currentSession, studyLibraryData]);
+    
+    useEffect(() => {
+
+    }, [subjects]);
 
     // const classNumber = getLevelName(levelId);
     const packageSessionIds =
@@ -110,6 +129,55 @@ export const SubjectMaterial = () => {
         });
     };
 
+    const tabContent: Record<TabType, React.ReactNode> = {
+        [TabType.OUTLINE]: (
+            <div>
+                {subjects.map((subject, index) => (
+                    <Collapsible key={index}>
+                        <CollapsibleTrigger>{subject.subject_name}</CollapsibleTrigger>
+                        {/* <CollapsibleContent>{subject.description}</CollapsibleContent> */}
+                    </Collapsible>
+                ))}
+            </div>
+        ),
+        [TabType.SUBJECTS]: (
+            <div className="flex flex-col gap-8">
+                <div className="flex items-center justify-between gap-8">
+                    <div className="flex w-full flex-col gap-2">
+                        <div className="text-h3 font-semibold">{`Manage Batch Subjects`}</div>
+                        <div className="text-subtitle">
+                            Explore and manage resources for the batch. Click on a subject to view
+                            and organize eBooks and video lectures, or upload new content to enrich
+                            your learning centre.
+                        </div>
+                    </div>
+                    <AddSubjectButton onAddSubject={handleAddSubject} />
+                </div>
+                <div className="flex items-center gap-6">
+                    <SessionDropdown
+                        currentSession={currentSession ?? undefined}
+                        onSessionChange={handleSessionChange}
+                        className="text-title font-semibold"
+                        sessionList={sessionList}
+                    />
+                </div>
+                <Subjects
+                    subjects={subjects}
+                    onDeleteSubject={handleDeleteSubject}
+                    onEditSubject={handleEditSubject}
+                    packageSessionIds={packageSessionIds}
+                    onOrderChange={handleSubjectOrderChange}
+                />
+            </div>
+        ),
+        [TabType.STUDENT]: <div>student content</div>,
+        [TabType.TEACHERS]: <div>teachers content</div>,
+        [TabType.ASSESSMENT]: <div>assessment content</div>,
+        [TabType.ASSIGNMENT]: <div>assignment content</div>,
+        [TabType.GRADING]: <div>grading content</div>,
+        [TabType.ANNOUNCEMENT]: <div>announcement content</div>,
+    };
+
     if (courseId == "" || levelId == "") {
         return <p>Missing required parameters</p>;
     }
@@ -125,38 +193,27 @@ export const SubjectMaterial = () => {
         <DashboardLoader />
     ) : (
         <div className="flex size-full flex-col gap-8 text-neutral-600">
-            <div className="flex items-center justify-between gap-8">
-                <div className="flex w-full flex-col gap-2">
-                    <div className="text-h3 font-semibold">{`Manage Batch Subjects`}</div>
-                    <div className="text-subtitle">
-                        Explore and manage resources for the batch. Click on a subject to view and
-                        organize eBooks and video lectures, or upload new content to enrich your
-                        learning centre.
-                    </div>
+            <Tabs value={selectedTab} onValueChange={handleTabChange}>
+                <div className="flex flex-row justify-between">
+                    <TabsList className="hide-scrollbar inline-flex h-auto justify-start gap-4 overflow-y-auto rounded-none border-b-[1px] !bg-transparent p-0">
+                        {tabs.map((tab) => (
+                            <TabsTrigger
+                                key={tab.value}
+                                value={tab.value}
+                                className={getTabClass(selectedTab === tab.value)}
+                            >
+                                {tab.label}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
                 </div>
-                <AddSubjectButton onAddSubject={handleAddSubject} />
-            </div>
-            <div className="flex items-center gap-6">
-                <SessionDropdown
-                    currentSession={currentSession ?? undefined}
-                    onSessionChange={handleSessionChange}
-                    className="text-title font-semibold"
-                    sessionList={sessionList}
-                />
-                {/* TODO: aad search fuctionlity when api is created
-                    <SearchInput
-                    searchInput={searchInput}
-                    onSearchChange={handleSearchInputChange}
-                    placeholder="Search subject"
-                /> */}
-            </div>
-            <Subjects
-                subjects={subjects}
-                onDeleteSubject={handleDeleteSubject}
-                onEditSubject={handleEditSubject}
-                packageSessionIds={packageSessionIds}
-                onOrderChange={handleSubjectOrderChange}
-            />
+
+                {tabs.map((tab) => (
+                    <TabsContent key={tab.value} value={tab.value}>
+                        {tabContent[tab.value as TabType]}
+                    </TabsContent>
+                ))}
+            </Tabs>
         </div>
     );
 };
