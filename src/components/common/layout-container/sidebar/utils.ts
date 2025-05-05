@@ -40,6 +40,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
             },
         ],
     },
+
     {
         icon: BookOpen,
         title: "Learning Center",
