@@ -198,7 +198,7 @@ export function updateDocumentDataInSlides<T>(
     });
 }
 
-export function convertToSlideFormat(question: UploadQuestionPaperFormType) {
+export function convertToSlideFormat(question: UploadQuestionPaperFormType, status: string) {
     const questionsData = question.questions[0];
     if (!questionsData) return;
     const generateTextBlock = (content: string | null | undefined) => ({
@@ -323,7 +323,7 @@ export function convertToSlideFormat(question: UploadQuestionPaperFormType) {
         title: "",
         image_file_id: "",
         description: "",
-        status: "DRAFT",
+        status: status,
         slide_order: 0,
         video_slide: {
             id: "",
