@@ -1,21 +1,18 @@
 import { MyButton } from "@/components/design-system/button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { FormProvider, useForm } from "react-hook-form";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
+import { FormProvider, UseFormReturn } from "react-hook-form";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { MyInput } from "@/components/design-system/input";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { UploadQuestionPaperFormType } from "@/routes/assessment/question-papers/-components/QuestionPaperUpload";
-import {
-    VideoPlayerTimeFormType,
-    videoPlayerTimeSchema,
-} from "../-form-schemas/video-player-time-schema";
+import { VideoPlayerTimeFormType } from "../-form-schemas/video-player-time-schema";
 import { PencilSimpleLine } from "phosphor-react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { StudyLibraryQuestion } from "@/types/study-library/study-library-video-questions";
 import { toast } from "sonner";
 import { timestampToSeconds } from "../-helper/helper";
 
 interface VideoQuestionsTimeFrameDialogProps {
+    form: UseFormReturn<VideoPlayerTimeFormType>;
     formRefData: MutableRefObject<UploadQuestionPaperFormType>;
     handleSetCurrentTimeStamp: () => void;
     question?: StudyLibraryQuestion;
@@ -23,6 +20,7 @@ interface VideoQuestionsTimeFrameDialogProps {
 }
 
 const VideoQuestionsTimeFrameEditDialog = ({
+    form,
     formRefData,
     handleSetCurrentTimeStamp,
     question,
@@ -30,14 +28,6 @@ const VideoQuestionsTimeFrameEditDialog = ({
 }: VideoQuestionsTimeFrameDialogProps) => {
     const closeRef = useRef<HTMLButtonElement | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const form = useForm<VideoPlayerTimeFormType>({
-        resolver: zodResolver(videoPlayerTimeSchema),
-        defaultValues: {
-            hrs: "",
-            min: "",
-            sec: "",
-        },
-    });
     const { hrs, min, sec } = form.watch();
     const isButtonDisabled = !hrs && !min && !sec;
 
@@ -79,17 +69,20 @@ const VideoQuestionsTimeFrameEditDialog = ({
 
     return (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger>
-                <MyButton
-                    type="button"
-                    buttonType="secondary"
-                    scale="small"
-                    layoutVariant="default"
-                    className="h-8 min-w-4"
-                >
-                    <PencilSimpleLine size={32} />
-                </MyButton>
-            </DialogTrigger>
+            <MyButton
+                type="button"
+                buttonType="secondary"
+                scale="small"
+                layoutVariant="default"
+                className="h-8 min-w-4"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDialogOpen(true);
+                }}
+            >
+                <PencilSimpleLine size={32} />
+            </MyButton>
+
             <DialogContent className="w-fit p-0">
                 <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                     Time Stamp
@@ -201,7 +194,10 @@ const VideoQuestionsTimeFrameEditDialog = ({
                                 scale="medium"
                                 layoutVariant="default"
                                 className="ml-8"
-                                onClick={handleSetCurrentTimeStamp}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSetCurrentTimeStamp();
+                                }}
                             >
                                 Use Current Position
                             </MyButton>

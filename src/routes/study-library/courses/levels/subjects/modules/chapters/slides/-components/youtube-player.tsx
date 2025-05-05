@@ -102,6 +102,15 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         },
     });
 
+    const editQuestionTimeFrameForm = useForm<VideoPlayerTimeFormType>({
+        resolver: zodResolver(videoPlayerTimeSchema),
+        defaultValues: {
+            hrs: "",
+            min: "",
+            sec: "",
+        },
+    });
+
     const addedQuestionForm = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: "onChange",
@@ -234,11 +243,13 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             const min = String(parseInt(parts[1] as string, 10));
             const sec = String(parseInt(parts[2] as string, 10));
             videoPlayerTimeFrameForm.reset({ hrs, min, sec });
+            editQuestionTimeFrameForm.reset({ hrs, min, sec });
         } else if (parts.length === 2) {
             // MM:SS format
             const min = String(parseInt(parts[0] as string, 10));
             const sec = String(parseInt(parts[1] as string, 10));
             videoPlayerTimeFrameForm.reset({ hrs: "0", min, sec });
+            editQuestionTimeFrameForm.reset({ hrs: "0", min, sec });
         }
     };
 
@@ -473,9 +484,10 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                             <li
                                 key={idx}
                                 className="cursor-pointer rounded-md bg-white p-2 text-sm hover:bg-gray-50"
-                                onClick={() =>
-                                    handleQuestionClick(timestampToSeconds(question.timestamp))
-                                }
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQuestionClick(timestampToSeconds(question.timestamp));
+                                }}
                             >
                                 <div className="flex items-center gap-2">
                                     <p className="font-semibold">
@@ -483,6 +495,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                         {formatTime(timestampToSeconds(question.timestamp))}
                                     </p>
                                     <VideoQuestionsTimeFrameEditDialog
+                                        form={editQuestionTimeFrameForm}
                                         formRefData={formRefData}
                                         handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
                                         question={question}
