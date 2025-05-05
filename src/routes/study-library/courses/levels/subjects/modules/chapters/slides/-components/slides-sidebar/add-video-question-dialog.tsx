@@ -67,6 +67,9 @@ const AddVideoQuestionDialog = ({
         name: "questions", // Name of the field array
     });
 
+    const { hrs, min, sec } = videoPlayerTimeFrameForm.watch();
+    const isButtonDisabled = !hrs && !min && !sec;
+
     // Function to handle adding a new question
     const handleAddQuestion = (newQuestionType: string) => {
         appendVideoQuestion({
@@ -132,6 +135,7 @@ const AddVideoQuestionDialog = ({
                         scale="large"
                         layoutVariant="default"
                         className="mr-3"
+                        disable={isButtonDisabled}
                     >
                         Next
                     </MyButton>

@@ -234,7 +234,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
 
         // Handle HH:MM:SS or MM:SS format
         const parts = timestamp.split(":");
-        console.log(parts);
 
         if (parts.length === 3) {
             // HH:MM:SS format

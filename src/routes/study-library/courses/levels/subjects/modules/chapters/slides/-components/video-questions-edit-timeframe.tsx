@@ -33,6 +33,9 @@ const VideoQuestionsTimeFrameEditDialog = ({
             sec: "",
         },
     });
+    const { hrs, min, sec } = form.watch();
+    const isButtonDisabled = !hrs && !min && !sec;
+
     const handleEditTimeStampCurrentQuestion = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const currentQuestionIndex = formRefData.current.questions.findIndex(
@@ -198,6 +201,7 @@ const VideoQuestionsTimeFrameEditDialog = ({
                         layoutVariant="default"
                         className="mb-6 mr-8"
                         onClick={handleEditTimeStampCurrentQuestion}
+                        disable={isButtonDisabled}
                     >
                         Edit
                     </MyButton>
